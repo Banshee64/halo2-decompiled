@@ -69,9 +69,6 @@ void function_10cdf0(long object_index) { }
 // @stub 0x10ca80
 void function_10ca80(long object_index, long a) { }
 
-// @stub 0xc5740
-void function_c5740(long unit_index, long a) { }
-
 /* outside the unit range */
 // @stub 0x1e3370
 bool function_1e3370(long actor_index, void *unknown) { return false; }
@@ -87,3 +84,10 @@ void function_c98a0(long unit_index, long a, long b, long c) { }
 
 // @stub 0xcaa60
 void __stdcall function_caa60(long unit_index, long a, long b, long c, long d) { }
+
+/* outside the unit range */
+// @stub 0x1e9070
+void function_1e9070(long player_index) { }
+
+// @stub 0xa8950
+void function_a8950(long unit_index, long definition_index) { }

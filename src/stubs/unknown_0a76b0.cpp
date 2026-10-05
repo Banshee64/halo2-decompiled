@@ -108,9 +108,6 @@ void __stdcall function_1bb570(long vehicle_index, long actor_index) { }
 // @stub 0xe5300
 void function_e5300(long unit_index, long a) { }
 
-// @stub 0xcdeb0
-long __stdcall function_cdeb0(long unit_index, long state_name, long a, long b) { return 0; }
-
 // @stub 0xe0070
 void function_e0070(long unit_index, long vehicle_index) { }
 

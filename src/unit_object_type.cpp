@@ -19,6 +19,7 @@ unknown_0cd660.cpp, unknown_0d0690.cpp, unknown_0d0e00.cpp). */
 #include "unknown_1c62f0.h"
 #include "unknown_0d0690.h"
 #include "sound_sources.h"
+#include "object_iterator.h"
 #include <math.h>
 #include <string.h>
 
@@ -229,7 +230,7 @@ bool function_10f630(long object_index, long *first, long *second);
 void function_b7360(long object_index);
 bool function_c9040(long unit_index, long a, short seat_index, vector3f const *forward);
 long function_1e4a10(long index);
-void function_c5740(long unit_index, long a);
+void function_c5740(long unit_index, bool start);
 void function_1520f0(long player_index);
 long __stdcall function_cdeb0(long unit_index, long state_name, long a, long b);
 bool function_100f00(long weapon_index);
@@ -250,6 +251,19 @@ void function_d6800(long object_index, s_damage_owner const *owner, bool notify_
 void function_d6a70(long object_index);
 void __stdcall function_caa60(long unit_index, long a, long b, long c, long d);
 void __stdcall function_bd020(long object_index);
+void function_1e9070(long player_index);
+void function_a7a30(long object_index, dword mask);
+void function_a8950(long unit_index, long definition_index);
+long unit_get_player_index(long unit_index);
+void function_f8110(long equipment_index);
+extern bool g_4f55dc[16];
+bool function_1012c0(long weapon_index);
+long function_baf80(long object_index);
+struct s_location;
+void function_188180(point3f const *point, vector3f const *forward, long tag_index, long object_index, long index, long variant,
+	long unused, long effect_value, s_location const *location, real scale);
+long function_189060(long object_index, short value, real scale, point3f const *position, vector3f const *direction,
+	long tag_index);
 
 /* the damage data (as vehicles.cpp reads it) */
 struct s_type_1e6529
@@ -2120,5 +2134,269 @@ void __stdcall function_c42e0(long unit_index, void const *placement)
 		*(word *)unit->grenade_counts = 0;
 		function_caa60(unit_index, NONE, 0, 1, 0);
 		function_bd020(unit_index);
+	}
+}
+
+/* picks up a grenade: when the globals allow its type (+0x104, 0x2c bytes
+   each) and the unit carries fewer than the type's maximum, counts it,
+   tells the player code, and deletes it */
+// @retail 0xccba0
+bool __stdcall function_ccba0(long unit_index, long grenade_index)
+{
+	byte *definition = UNIT_DEFINITION_GET(UNIT_GET(grenade_index));
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *globals = (byte *)g_4e034c;
+
+	if (!*(void **)(globals + 0x100))
+	{
+		return false;
+	}
+	short type = *(short *)(definition + 0x12e);
+	short *maximum = (short *)(*(byte **)(globals + 0x104) + type * 0x2c);
+	if (!maximum || unit->grenade_counts[type] >= *maximum)
+	{
+		return false;
+	}
+	if (unit->unknown13c != NONE)
+	{
+		function_1e9070(unit->unknown13c);
+	}
+	if (g_4e6948->mode == 4)
+	{
+		return false;
+	}
+	unit->grenade_counts[type]++;
+	function_a7a30(unit_index, 0x400000);
+	function_a8950(unit_index, UNIT_GET(grenade_index)->definition_index);
+	s_unit *object = (s_unit *)function_badc0(unit_index, 3);
+	if (object && object->unknown13c != NONE &&
+		*(short *)((byte *)g_4e8c24->data + (unit_get_player_index(unit_index) & 0xffff) * 0x21c + 0x28) != NONE)
+	{
+		function_f8110(grenade_index);
+	}
+	function_b8540(grenade_index);
+	return true;
+}
+
+/* finds a unit that is dying or down: object flags 22, 26 or 27 in its
+   animation state, or in animation 0xc000043 or 0xd000042 without flag 2
+   at +0x33e and bit 0 at its animation's +0x6c */
+// @retail 0xcc170
+bool __stdcall function_cc170(long *value)
+{
+	s_type_f1af8e iterator;
+	s_unit *object;
+
+	function_bae80(&iterator, 3, 1);
+	while ((object = (s_unit *)function_baeb0(&iterator)) != 0)
+	{
+		long unit_index = iterator.object_index;
+		s_unit *unit = UNIT_GET(unit_index);
+		s_unit_animation *animation = UNIT_ANIMATION(unit);
+		long name = NONE;
+
+		if (animation->unknown68 != NONE && animation->unknown00 != NONE && animation->unknown06 != NONE)
+		{
+			name = animation->name;
+		}
+		if ((*(dword *)((byte *)unit + unit->unknown346 + 4) >> 22) & 1 ||
+			(*(dword *)((byte *)unit + unit->unknown346 + 4) >> 26) & 1 ||
+			(*(dword *)((byte *)unit + unit->unknown346 + 4) >> 27) & 1)
+		{
+			*value = unit_index;
+			return true;
+		}
+		if ((name == 0xc000043 || name == 0xd000042) && !((*((byte *)object + object->unknown33e) >> 2) & 1) &&
+			!(*((byte *)object + object->animation_offset + 0x6c) & 1))
+		{
+			*value = unit_index;
+			return true;
+		}
+	}
+	return false;
+}
+
+/* the next weapon slot from the given one in a direction whose weapon the
+   unit may ready in the state (0xcd6a0), not its second hand's; prefers
+   weapons with bit 3 at +0x12c, then (direction 0) the newest */
+// @retail 0xcdeb0
+long __stdcall function_cdeb0(long unit_index, long state_name, long a, long b)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	short slot = (short)a;
+	short direction = (short)b;
+	short result = NONE;
+	bool result_flag = false;
+	long best = 0;
+	short first = slot == NONE ? 0 : (slot + direction + 4) % 4;
+	short i = first;
+
+	do
+	{
+		long weapon_index = unit->weapon_object_indices[i];
+
+		if (weapon_index != NONE && function_cd6a0(unit_index, state_name, weapon_index) &&
+			i != unit->next_weapon_index)
+		{
+			long time = unit->unknown228[i];
+			bool flag = (*(dword *)(UNIT_DEFINITION_GET(UNIT_GET(weapon_index)) + 0x12c) >> 3) & 1;
+
+			if (result == NONE || (!result_flag && (flag || (direction == 0 && time > best))))
+			{
+				result = i;
+				best = time;
+				result_flag = flag;
+			}
+		}
+		i = direction < 0 ? (i + 3) % 4 : (i + 1) % 4;
+	} while (i != first);
+	return result;
+}
+
+/* starts (state 1, its timer from 0xc5340, flag 3) or ends (state 2, ten
+   seconds) the unit's state +0x2bc while its player is in state 1 at
+   +0x88 (or the campaign flag allows it), with the globals' sounds */
+// @retail 0xc5740
+void function_c5740(long unit_index, bool start)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (unit->unknown13c != NONE)
+	{
+		byte state = *((byte *)g_4e8c24->data + (unit->unknown13c & 0xffff) * 0x21c + 0x88);
+
+		if (state == 1 || (g_4e6948->state == 1 && g_4f55dc[0]))
+		{
+			if (start)
+			{
+				if (unit->parent_seat_index == NONE && !unit->unknown2bc)
+				{
+					unit->unknown2bc = 1;
+					unit->unknown2be = function_c5340();
+					unit->flags_134 |= 8;
+					unit->unknown2b8 = g_510c54->field_2_3 * 0.05f;
+					function_c5890(unit_index, 0);
+				}
+				else
+				{
+					function_c5890(unit_index, 2);
+				}
+			}
+			else if (unit->unknown2bc == 1)
+			{
+				unit->unknown2bc = 2;
+				unit->unknown2be = (short)unit_round(g_510c54->field_2_3 * 10.0f);
+				unit->flags_134 &= ~8;
+				unit->unknown2b8 = g_510c54->field_2_3 * 0.1f;
+				function_c5890(unit_index, 1);
+			}
+		}
+	}
+}
+
+/* plays the sounds of a unit's impact: its weapon's (+0x58) when it holds
+   a weapon that allows it (0x1012c0), else the globals' material sound
+   (+0x154, 0xb4 bytes each) and the definition's +0xac */
+// @retail 0xceee0
+void __stdcall function_ceee0(long unit_index, long definition_index, short material_index, point3f const *point,
+	vector3f const *forward)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	short index = unit->current_weapon_index;
+
+	if (index != NONE)
+	{
+		long weapon_index = unit->weapon_object_indices[index];
+
+		if (weapon_index != NONE && function_1012c0(weapon_index))
+		{
+			long tag_index = *(long *)(UNIT_DEFINITION_GET(UNIT_GET(weapon_index)) + 0x58);
+
+			if (tag_index != NONE)
+			{
+				byte *root = (byte *)UNIT_GET(function_baf80(weapon_index));
+
+				function_188180(point, forward, tag_index, unit_index, 0xf, 0, material_index, (long)(root + 0x70),
+					(s_location const *)(root + 0x28), 1.0f);
+			}
+			return;
+		}
+	}
+	byte *material = 0;
+	if (material_index != NONE && material_index >= 0 && material_index < *(long *)((byte *)g_4e034c + 0x150))
+	{
+		material = *(byte **)((byte *)g_4e034c + 0x154) + material_index * 0xb4;
+	}
+	long tag_index = *(long *)(material + 0x64);
+	if (tag_index != NONE)
+	{
+		function_189060(unit_index, NONE, 1.0f, g_468788, g_4687a8, tag_index);
+	}
+	if (definition_index != NONE)
+	{
+		tag_index = *(long *)(g_4e3b44[definition_index & 0xffff].bytes + 0xac);
+		if (tag_index != NONE)
+		{
+			function_189060(unit_index, NONE, 1.0f, g_468788, g_4687a8, tag_index);
+		}
+	}
+}
+
+/* forgets an object everywhere the unit refers to it: +0x248, +0x24c, its
+   weapon slots (and hands), +0x238, the seat it last had and its
+   animation state's targets */
+// @retail 0xced30
+void __stdcall function_ced30(long unit_index, long object_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (unit->unknown248 == object_index)
+	{
+		unit->unknown248 = NONE;
+	}
+	if (unit->unknown24c == object_index)
+	{
+		unit->unknown24c = NONE;
+	}
+	long *slot = unit->weapon_object_indices;
+	for (long i = 0; i < 4; i++, slot++)
+	{
+		if (*slot == object_index)
+		{
+			if (i == unit->current_weapon_index)
+			{
+				unit->current_weapon_index = NONE;
+			}
+			if (i == unit->next_weapon_index)
+			{
+				unit->next_weapon_index = NONE;
+			}
+			UNIT_GET(unit_index)->weapon_object_indices[(short)i] = NONE;
+			unit_weapon_slot_changed(unit_index, (short)i);
+		}
+	}
+	if (unit->current_weapon_index == NONE)
+	{
+		unit->unknown216 = (char)function_cdeb0(unit_index, NONE, NONE, 0);
+	}
+	if (unit->unknown238 == object_index)
+	{
+		unit->unknown238 = NONE;
+	}
+	if (unit->unknown2a0 == object_index)
+	{
+		unit->unknown2a0 = NONE;
+		unit->unknown2a4 = NONE;
+	}
+	s_unit *again = UNIT_GET(unit_index);
+	byte *state = (byte *)again + again->unknown346;
+	if (*(long *)(state + 0x10) == object_index)
+	{
+		*(long *)(state + 0x10) = NONE;
+		*(short *)(state + 0x14) = NONE;
+	}
+	if (*(long *)(state + 0x18) == object_index)
+	{
+		*(long *)(state + 0x18) = NONE;
 	}
 }
