@@ -1617,14 +1617,14 @@ long function_1a5c00(s_sort_weight_view const *weights, long object_index, bool 
 	return count;
 }
 
-struct s_target_bounds_view
+struct s_1a56c0
 {
 	byte field_0[0x30];
 	point3f field_30;
 	real field_3c;
 };
 
-PRIVATE inline real local_bounds_squared(vector3f const *delta)
+PRIVATE inline real local_0(vector3f const *delta)
 {
 	real result = delta->i * delta->i;
 	result += delta->j * delta->j;
@@ -1643,7 +1643,7 @@ long __stdcall function_1a56c0(s_sort_weight_view const *weights, long object_in
 		bool has_hostile = false;
 		if (function_1a58b0(object_index))
 		{
-			s_target_bounds_view *bounds = (s_target_bounds_view *)OBJECT_HEADER(object_index)->object;
+			s_1a56c0 *bounds = (s_1a56c0 *)OBJECT_HEADER(object_index)->object;
 			real radius = bounds->field_3c;
 			vector3f delta;
 			vector3d_from_points3d(origin, &bounds->field_30, &delta);
@@ -1652,7 +1652,7 @@ long __stdcall function_1a56c0(s_sort_weight_view const *weights, long object_in
 			projection += delta.i * direction->i;
 			if (projection >= 0.0f - radius && projection <= radius + distance &&
 				(radius * spread * 2.0f + projection) * projection + radius * radius >=
-				local_bounds_squared(&delta) * cosine * cosine &&
+				local_0(&delta) * cosine * cosine &&
 				function_1a5910(object_index, excluded_index, team, &has_hostile))
 			{
 				count = function_1a5c00(weights, object_index, has_hostile, origin, direction, count, candidates);

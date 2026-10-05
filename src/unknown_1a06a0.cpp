@@ -203,7 +203,7 @@ word *function_215b50(long file_index, word *name);
 bool function_1a0560(wchar_t const *name, s_player_profile_settings *settings, long *file_index)
 {
 	long count = 4096;
-	wchar_t local_name[128];
+	wchar_t local_0[128];
 	long indices[4096];
 	bool result = false;
 	if (file_index)
@@ -213,8 +213,8 @@ bool function_1a0560(wchar_t const *name, s_player_profile_settings *settings, l
 		function_215900(255, 0, (word *)&count, indices, 1);
 		for (long index = 0; index < (word)count; index++)
 		{
-			wchar_t const *candidate_name = (wchar_t *)function_215b50(indices[index], (word *)local_name);
-			if (!_wcsicmp(candidate_name, name))
+			wchar_t const *local_1 = (wchar_t *)function_215b50(indices[index], (word *)local_0);
+			if (!_wcsicmp(local_1, name))
 			{
 				result = true;
 				if (settings)

@@ -135,7 +135,7 @@ bool __stdcall function_1ac090(long actor_index, s_slot *slot)
 
 void function_265bb0(long actor_index);
 
-PRIVATE __forceinline void local_add_timer(real seconds, short *timer)
+PRIVATE __forceinline void local_0(real seconds, short *timer)
 {
 	long ticks;
 	__asm
@@ -146,7 +146,7 @@ PRIVATE __forceinline void local_add_timer(real seconds, short *timer)
 	*timer += (short)ticks;
 }
 
-PRIVATE __forceinline void local_set_timer(real seconds, short *timer)
+PRIVATE __forceinline void local_1(real seconds, short *timer)
 {
 	long ticks;
 	__asm
@@ -173,10 +173,10 @@ short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next)
 		*seed = 1664525 * *seed + 1013904223;
 		short delay = (short)(2 + (3 * (*seed >> 16) >> 16));
 		real seconds = (real)delay * g_510c54->field_2_3;
-		local_add_timer(seconds, &state->ticks);
+		local_0(seconds, &state->ticks);
 		state->unknown12 = false;
 		seconds = g_510c54->field_2_3 * 0.5f;
-		local_set_timer(seconds, &state->unknown22);
+		local_1(seconds, &state->unknown22);
 		if (actor->prop_index != NONE)
 			function_265bb0(actor_index);
 		if (function_e68c0(0x24, actor->unknown018))
