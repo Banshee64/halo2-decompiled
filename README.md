@@ -147,6 +147,7 @@ So the work runs in stages:
 | `tools/check.py` | Compares our functions with retail and records progress. Needs the SDK and capstone. |
 | `tools/ready.py` | Lists the functions that are ready to decompile next. `--claims` drops addresses from a saved copy of the Active claims table. |
 | `tools/permute.py` | Searches variants of a source function for ones that turn a near-miss into a match. |
+| `tools/near.py` | Counts the near-misses in the csv by source file (functions, bytes). No XBE. `--list` prints each function. |
 | `tools/disasm.py` | Disassembles retail code. |
 | `tools/match.py` | The spike's one-file matcher, kept for reference. Replaced by `check.py`. |
 

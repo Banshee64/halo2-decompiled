@@ -88,7 +88,7 @@ address range or by source file:
   must still match.
 - Near-misses are fine to commit with their markers; the checker re-tests
   them on every build, and they often match once their callers or callees
-  land.
+  land. `python tools/near.py` counts those near-misses from the csv, with no XBE.
 - You don't need to commit `config/functions.csv`; we regenerate its
   statuses when we merge.
 
