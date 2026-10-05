@@ -7,6 +7,7 @@
 #include "unknown_24b5bc.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
+#include "unknown_2b116a.h"
 
 void profile_edit_end();
 long function_11cbb0();
@@ -39,6 +40,7 @@ public:
 
 	void handle_item(s_controller_reference **controller, long *item);
 	void reload_if_changed();
+	void focus_signed_in_gamertag();
 
 	c_class_14750b items[4];
 	word gamertags[4][0x40];
@@ -123,6 +125,54 @@ void c_gamertag_select_list::v20(c_class_1a2c81 *widget, long index)
 		short gamertag = (short)widget_item(widget)->value70;
 
 		text->function_22f52e()->set_text(gamertags[gamertag]);
+	}
+}
+
+unsigned long function_11c9a0(char const *string, unsigned long size);
+bool function_1a0540(s_player_profile_settings *settings, long file_index);
+bool function_24b5bc(char const *a, char const *b);
+
+/* focuses the gamertag the controller's profile last signed in with */
+// @retail 0x24b1fb
+void c_gamertag_select_list::focus_signed_in_gamertag()
+{
+	s_player_profile_settings settings;
+	long controller_index = get_controller_index();
+
+	if (function_1a0540(&settings, player_slot_profile_get(controller_index)->profile_index))
+	{
+		char gamertag[16];
+
+		strncpy(gamertag, (char const *)settings.unknown048, 16);
+		gamertag[15] = 0;
+		if ((long)function_11c9a0(gamertag, 15) > 0)
+		{
+			s_list_item_iterator iterator;
+
+			iterator.iterator.data = data;
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			while (function_2b2327(&iterator))
+			{
+				s_gamertag_datum *datum = (s_gamertag_datum *)iterator.item;
+
+				if (datum->type != 0x1023 && datum->type != 0x1971)
+				{
+					XONLINE_USER *user = &datum->user;
+					char const *name = "";
+
+					if (user)
+					{
+						name = user->szGamertag;
+					}
+					if (function_24b5bc(gamertag, name))
+					{
+						select_datum(iterator.iterator.datum_index);
+						break;
+					}
+				}
+			}
+		}
 	}
 }
 
