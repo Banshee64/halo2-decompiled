@@ -192,7 +192,7 @@ void c_dialog_screen::set_dialog(long dialog_id, bool unused)
 {
 	s_dialog_definition definition;
 
-	(void)unused;
+	bool const *unused_reference = &unused;
 
 	function_23661f(&definition, dialog_id);
 	title[0] = 0;
