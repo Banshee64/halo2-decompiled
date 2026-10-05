@@ -21,6 +21,7 @@ unknown_0cd660.cpp, unknown_0d0690.cpp, unknown_0d0e00.cpp). */
 #include "sound_sources.h"
 #include "object_iterator.h"
 #include <math.h>
+#include <stddef.h>
 #include <string.h>
 
 /* the last 0x24 bytes of a unit state (0xc6ef0), kept at the unit's +0x1c8 */
@@ -61,7 +62,8 @@ struct s_unit
 	long actor_index;
 	long unknown130;
 	dword flags_134;
-	byte unknown138[0x13c - 0x138];
+	short unknown138;
+	byte unknown13a[2];
 	long unknown13c;
 	byte unknown140[0x148 - 0x140];
 	long unknown148;
@@ -114,7 +116,7 @@ struct s_unit
 	long unknown2a8;
 	long unknown2ac;
 	real unknown2b0;
-	byte unknown2b4[4];
+	real unknown2b4;
 	real unknown2b8;
 	char unknown2bc;
 	byte unknown2bd;
@@ -135,6 +137,27 @@ struct s_unit
 	short unknown346;
 	byte flags_348;
 };
+
+/* the field offsets the retail code reads */
+#define UNIT_OFFSET_CHECK(field, offset) typedef char unit_offset_check_##field[offsetof(s_unit, field) == (offset) ? 1 : -1]
+UNIT_OFFSET_CHECK(type, 0xaa);
+UNIT_OFFSET_CHECK(unknown0d4, 0xd4);
+UNIT_OFFSET_CHECK(flags_10a, 0x10a);
+UNIT_OFFSET_CHECK(actor_index, 0x12c);
+UNIT_OFFSET_CHECK(unknown13c, 0x13c);
+UNIT_OFFSET_CHECK(unknown180, 0x180);
+UNIT_OFFSET_CHECK(unknown1c8, 0x1c8);
+UNIT_OFFSET_CHECK(unknown1ec, 0x1ec);
+UNIT_OFFSET_CHECK(parent_seat_index, 0x1fc);
+UNIT_OFFSET_CHECK(weapon_object_indices, 0x218);
+UNIT_OFFSET_CHECK(unknown238, 0x238);
+UNIT_OFFSET_CHECK(grenade_counts, 0x23e);
+UNIT_OFFSET_CHECK(unknown2a0, 0x2a0);
+UNIT_OFFSET_CHECK(unknown2bc, 0x2bc);
+UNIT_OFFSET_CHECK(unknown2d8, 0x2d8);
+UNIT_OFFSET_CHECK(unknown2e8, 0x2e8);
+UNIT_OFFSET_CHECK(unknown346, 0x346);
+UNIT_OFFSET_CHECK(flags_348, 0x348);
 
 /* the unit's animation state, at the offset +0x12a holds */
 struct s_unit_animation
@@ -257,6 +280,28 @@ void function_a8950(long unit_index, long definition_index);
 long unit_get_player_index(long unit_index);
 void function_f8110(long equipment_index);
 extern bool g_4f55dc[16];
+struct s_game_allegiance_globals;
+extern s_game_allegiance_globals *g_4f55ec;
+bool function_0bfe60(const dword *flags, long bit);
+struct s_time_entry;
+struct s_unknown_1e6a40;
+extern s_unknown_1e6a40 *g_51e9c0;
+void function_1e6980(s_time_entry *entries, short a, byte b);
+
+/* a unit request type's handlers (unknown_0e6900.cpp) */
+typedef bool (__stdcall *t_unit_request_proc)(long unit_index, s_unit_request *request);
+typedef bool (__stdcall *t_unit_request_update_proc)(long unit_index, long type);
+typedef void (__stdcall *t_unit_request_end_proc)(long unit_index, long type);
+
+struct s_unit_request_definition
+{
+	t_unit_request_proc perform;
+	t_unit_request_update_proc update;
+	t_unit_request_end_proc finished;
+	t_unit_request_end_proc interrupted;
+};
+
+extern s_unit_request_definition *g_4677c8[60];
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -1755,7 +1800,8 @@ void function_ce920(long unit_index, long slot_index, long mode, bool flag)
 struct s_unit_motion
 {
 	bool done;
-	byte unknown01[0xc - 0x1];
+	byte unknown01[0x8 - 0x1];
+	real velocity;
 	real acceleration;
 	real acceleration_time;
 	real coast_time;
@@ -2400,3 +2446,265 @@ void __stdcall function_ced30(long unit_index, long object_index)
 		*(long *)(state + 0x18) = NONE;
 	}
 }
+
+/* the request a weapon event sends the unit holding the weapon (and the
+   unit +0x24c names): by the event type, for its first or second hand */
+// @retail 0xc9d00
+void __stdcall function_c9d00(long unit_index, long weapon_index, long type)
+{
+	if (type)
+	{
+		s_unit *unit = UNIT_GET(unit_index);
+		short index = unit->current_weapon_index;
+		bool first = weapon_index == (index != NONE ? unit->weapon_object_indices[index] : NONE);
+		unit = UNIT_GET(unit_index);
+		index = unit->next_weapon_index;
+		bool second = weapon_index == (index != NONE ? unit->weapon_object_indices[index] : NONE);
+		long action;
+
+		if (first)
+		{
+			switch (type)
+			{
+			case 1:
+				action = 2;
+				break;
+			case 2:
+				action = 3;
+				break;
+			case 3:
+				action = 4;
+				break;
+			case 4:
+				action = 5;
+				break;
+			case 7:
+				action = 6;
+				break;
+			case 8:
+				action = 7;
+				break;
+			default:
+				return;
+			}
+		}
+		else if (second)
+		{
+			switch (type)
+			{
+			case 1:
+				action = 0xc;
+				break;
+			case 2:
+				action = 0xd;
+				break;
+			case 3:
+				action = 0xe;
+				break;
+			case 4:
+				action = 0xf;
+				break;
+			case 7:
+				action = 0x10;
+				break;
+			case 8:
+				action = 0x11;
+				break;
+			default:
+				return;
+			}
+		}
+		else
+		{
+			return;
+		}
+		function_e68c0(action, unit_index);
+		long rider_index = UNIT_GET(unit_index)->unknown24c;
+		if (rider_index != NONE)
+		{
+			function_e68c0(action, rider_index);
+		}
+	}
+}
+
+/* evens out two motions: the one that would finish first gives up part of
+   its acceleration so both end together (or stops when its speed would
+   vanish) */
+// @retail 0xc75d0
+void function_c75d0(s_unit_motion *a, s_unit_motion *b, real scale)
+{
+	if (!a->done && !b->done)
+	{
+		real total_a = a->deceleration_time + a->coast_time + a->acceleration_time;
+		real total_b = b->deceleration_time + b->coast_time + b->acceleration_time;
+		real difference;
+		s_unit_motion *motion;
+
+		if (a->acceleration_time > 0.0f && total_b > total_a)
+		{
+			difference = total_b - total_a;
+			motion = a;
+		}
+		else if (b->acceleration_time > 0.0f && total_a > total_b)
+		{
+			difference = total_a - total_b;
+			motion = b;
+		}
+		else
+		{
+			return;
+		}
+		if (motion)
+		{
+			real x = (difference + motion->coast_time) * scale;
+			real speed = (real)fabs(motion->acceleration_time * motion->acceleration + motion->velocity);
+			real step = ((real)sqrt(x * x + 4.0f * speed * difference * scale) - x) / (scale + scale);
+			real limit = motion->acceleration_time > motion->deceleration_time ? motion->deceleration_time :
+				motion->acceleration_time;
+
+			if (step > limit)
+			{
+				step = motion->acceleration_time > motion->deceleration_time ? motion->deceleration_time :
+					motion->acceleration_time;
+			}
+			if (step > 0.0f)
+			{
+				real time = motion->acceleration_time - step;
+				real velocity = time * motion->acceleration + motion->velocity;
+
+				if (0.0001f > (real)fabs(velocity))
+				{
+					motion->done = true;
+					motion->acceleration_time = 0.0f;
+					motion->deceleration_time = 0.0f;
+					motion->coast_time = 0.0f;
+					return;
+				}
+				motion->acceleration_time = time;
+				motion->deceleration_time -= step;
+				motion->coast_time = (motion->acceleration * step + velocity * 2.0f) * step / velocity;
+			}
+		}
+	}
+}
+
+/* moves the unit's two fades toward their targets each tick: +0x2b0 by
+   +0x2b8 per second up to 1 while flag 3 is set (set here when its team
+   +0x138 is not at peace with the campaign's team 16), else down to 0;
+   +0x2b4 by a third per second by flag 4 */
+// @retail 0xc6810
+void function_c6810(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (unit->actor_index != NONE && g_4e6948->state == 1 && g_4f55dc[2])
+	{
+		short team = unit->unknown138;
+
+		if (team == NONE || team < 0 || team >= 0x10 ||
+			!function_0bfe60((dword const *)((byte *)g_4f55ec + 0xc4), team + 0x10))
+		{
+			unit->flags_134 |= 8;
+		}
+	}
+	if ((unit->flags_134 >> 3) & 1)
+	{
+		unit->unknown2b0 += unit->unknown2b8 * g_510c54->rate;
+		if (unit->unknown2b0 > 1.0f)
+		{
+			unit->unknown2b0 = 1.0f;
+			if (UNIT_GET(unit_index)->unknown0d4 != NONE)
+			{
+				function_b58c0(UNIT_GET(unit_index)->unknown0d4, 0x800000);
+			}
+		}
+	}
+	else
+	{
+		unit->unknown2b0 -= unit->unknown2b8 * g_510c54->rate;
+		if (0.0f > unit->unknown2b0)
+		{
+			unit->unknown2b0 = 0.0f;
+			if (UNIT_GET(unit_index)->unknown0d4 != NONE)
+			{
+				function_b58c0(UNIT_GET(unit_index)->unknown0d4, 0x800000);
+			}
+		}
+	}
+	if ((unit->flags_134 >> 4) & 1)
+	{
+		unit->unknown2b4 += g_510c54->rate * 0.33333334f;
+		if (unit->unknown2b4 > 1.0f)
+		{
+			unit->unknown2b4 = 1.0f;
+		}
+	}
+	else
+	{
+		unit->unknown2b4 -= g_510c54->rate * 0.33333334f;
+		if (0.0f > unit->unknown2b4)
+		{
+			unit->unknown2b4 = 0.0f;
+		}
+	}
+}
+
+/* drops a weapon of the unit: from its first hand at once (request 9's
+   handler, then the player's controller hears of it), from its second
+   hand by request 0x13, else from its slot (0xce920) */
+// @retail 0xce520
+void function_ce520(long unit_index, long weapon_index, bool flag)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	long slot = NONE;
+
+	for (long i = 0; i < 4; i++)
+	{
+		if (unit->weapon_object_indices[i] == weapon_index)
+		{
+			slot = i;
+			break;
+		}
+	}
+	if (slot == unit->current_weapon_index)
+	{
+		s_unit_request request;
+
+		memset(&request, 0, sizeof(request));
+		request.type = 9;
+		request.type17.unknown4 = !flag;
+		function_b7360(unit_index);
+		bool result = g_4677c8[9]->perform(unit_index, &request);
+		if (unit_index != NONE)
+		{
+			long player_index = UNIT_GET(unit_index)->unknown13c;
+
+			if (player_index != NONE)
+			{
+				short controller = *(short *)((byte *)g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x28);
+
+				if (controller != NONE)
+				{
+					function_1e6980((s_time_entry *)((byte *)g_51e9c0 + controller * 0x1b0 + 0x150),
+						(short)request.type, result);
+				}
+			}
+		}
+	}
+	else if (slot == unit->next_weapon_index)
+	{
+		s_unit_request request;
+
+		memset(&request, 0, sizeof(request));
+		request.type = 0x13;
+		request.type17.unknown4 = !flag;
+		function_e6900(unit_index, &request);
+	}
+	else
+	{
+		function_ce920(unit_index, slot, 0, flag);
+	}
+}
+
+typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
+typedef char unit_motion_offset_check[offsetof(s_unit_motion, deceleration_time) == 0x1c ? 1 : -1];
