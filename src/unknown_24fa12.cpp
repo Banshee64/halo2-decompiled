@@ -145,3 +145,52 @@ void function_24ff61(c_class_1a2c81 *screen, bool selected, s_session_player_vie
 		text->function_253b1a(string_handle);
 	}
 }
+
+long function_1480ff(long screen_id);
+bool function_13ee20(word const *string, long font);
+void function_199b45(void);
+byte *function_19aaa5(long player_index);
+
+// @retail 0x24fc53
+void c_screen_24fd74::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	c_class_1a2c81 *buttons[2] = { &button0, &button1 };
+	s_screen_layout layout = { 0, 1, { { 2, buttons, 0, 0 } } };
+	build(&layout);
+	delegate_register(&button0.handlers, &choice0);
+	delegate_register(&button1.handlers, &choice1);
+	value1464 = 0;
+	value146c = NONE;
+	value1468 = false;
+	value1460 = false;
+	c_class_1a2c81::v1();
+	v7(&button0);
+	if (!(*(byte *)parameters & 1))
+		function_24fbea(this);
+	function_13ee20((word const *)L"0123456789", 4);
+	g_51ec98 = false;
+}
+
+// @retail 0x24fd21
+void c_screen_24fd74::v2()
+{
+	if (value1468)
+	{
+		function_199b45();
+		value1468 = false;
+	}
+	c_class_1a2c81::v2();
+}
+
+// @retail 0x24fd41
+int __cdecl function_24fd41(void const *left, void const *right)
+{
+	/* The comparator's first argument is stack-resident in retail. */
+	void const *const *local_left_reference = &left;
+	byte *local_left = function_19aaa5(*(long const *)*local_left_reference);
+	byte *local_right = function_19aaa5(*(long const *)right);
+	char a = *(char *)(local_left + 0x7c);
+	char b = *(char *)(local_right + 0x7c);
+	return a > b ? 1 : a < b ? -1 : 0;
+}
