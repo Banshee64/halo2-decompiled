@@ -16,7 +16,7 @@ long cache_copy_queued_priority(char const *map_name);
 long cache_copy_priority(char const *map_name);
 bool map_copy_request(char const *map_name, long priority);
 bool map_names_equal(char const *map_name, char const *other_map_name);
-void function_2141f0(void);
+bool function_2141f0(void);
 bool function_2148b0(long progress);
 
 extern char g_55bd21[0x103];
