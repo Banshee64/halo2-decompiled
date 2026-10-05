@@ -72,7 +72,8 @@ struct s_network_observer_channel
 /* the observer's timeouts and limits (0x4cf4e0) */
 struct s_network_observer_configuration
 {
-	byte unknown00[0x74];
+	byte unknown00[0x70];
+	long timeout70;
 	long timeout74;
 	long timeout78;
 	long timeout7c;
@@ -80,13 +81,21 @@ struct s_network_observer_configuration
 	long timeout84;
 	long timeout88;
 	long timeout8c;
-	byte unknown90[0x108 - 0x90];
+	byte unknown90[0x9c - 0x90];
+	long rate_count;
+	real rates[(0xf8 - 0xa0) / 4];
+	long statistics_interval;
+	byte unknownfc[0x108 - 0xfc];
 	long value108;
 	long value10c;
 	real real110;
 	byte unknown114[0x134 - 0x114];
 	long value134;
 	long value138;
+	byte unknown13c[0x1ac - 0x13c];
+	real real1ac;
+	long time1b0;
+	long shift1b4;
 };
 
 /* what the connections report their traffic to (the observer, vtable
@@ -121,10 +130,24 @@ struct s_network_observer : public c_network_connection_listener
 	long value4e10;
 	byte flag4e14;
 	byte unknown4e15[3];
-	long value4e18;
-	long value4e1c;
+	union
+	{
+		struct
+		{
+			long value4e18;
+			long value4e1c;
+		};
+		long counts4e18[2];
+	};
 	byte unknown4e20[0x4e30 - 0x4e20];
 	s_network_statistics statistics_sent;
+	byte unknown4f08[0x4f30 - 0x4f08];
+	long time4f30;
+	long time4f34;
+	long value4f38;
+	bool flag4f3c;
+	bool flag4f3d;
+	bool flag4f3e;
 };
 
 long function_75870(void);
