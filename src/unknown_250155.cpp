@@ -274,6 +274,8 @@ public:
 	virtual void v2();
 	/* refills the list, then remembers the focused squad */
 	virtual void v3();
+	/* shows a squad's name and game, or the item that creates one */
+	virtual void v20(c_class_1a2c81 *item, long unused);
 	/* folded with c_widget's v2 */
 	virtual void *get_item_data() { return items; }
 
@@ -526,6 +528,158 @@ void __stdcall function_252ed8(c_class_252b72 *list)
 					datum_index = record_pool_next_used(list->data, datum_index);
 				}
 				list->select_datum(focused);
+			}
+		}
+	}
+}
+/* a squad found on the system link, as its item shows it */
+struct s_network_squad_item_view
+{
+	byte unknown00[0x14];
+	short state;
+	byte unknown16[2];
+	word name[0x40];
+	byte unknown98[0x9e - 0x98];
+	short game_type;
+};
+
+// @retail 0x252c6a
+void c_class_252b72::v20(c_class_1a2c81 *item, long unused)
+{
+	c_class_1a2c81 *name_text = item->find_child(6, 0, false);
+	c_class_1a2c81 *game_text = item->find_child(6, 1, false);
+	long datum_index = widget_item(item)->value70;
+
+	if (datum_index != NONE)
+	{
+		s_network_squad_datum *datum = &((s_network_squad_datum *)data->data)[datum_index & 0xffff];
+
+		if (name_text)
+		{
+			if (datum->create)
+			{
+				((c_text_widget_45a5e0 *)name_text)->function_253b1a(0xf000236);
+			}
+			else
+			{
+				long index = datum->index;
+				word *name = L"";
+				s_network_squad_item_view *squad;
+
+				if (index != NONE && function_199ba5(index) && (squad = (s_network_squad_item_view *)function_199bbf(index)) != 0)
+				{
+					name = squad->name;
+				}
+				name_text->function_22f52e()->set_text(name);
+			}
+		}
+		if (game_text)
+		{
+			game_text->function_22f52e()->set_text(L"");
+			if (!datum->create)
+			{
+				long index = datum->index;
+				s_network_squad_item_view *squad;
+
+				if (index != NONE && function_199ba5(index) && (squad = (s_network_squad_item_view *)function_199bbf(index)) != 0)
+				{
+					long string_handle = 0;
+					bool state0 = squad->state == 0;
+					bool state1 = squad->state == 1;
+					bool state2 = squad->state == 2;
+
+					switch (squad->game_type)
+					{
+					case 0:
+						if (state0)
+						{
+							string_handle = 0x9000238;
+						}
+						else if (state1)
+						{
+							string_handle = 0xb00023f;
+						}
+						else if (state2)
+						{
+							string_handle = 0xb000246;
+						}
+						break;
+					case 1:
+						if (state0)
+						{
+							string_handle = 0x9000239;
+						}
+						else if (state1)
+						{
+							string_handle = 0xb000240;
+						}
+						else if (state2)
+						{
+							string_handle = 0xb000247;
+						}
+						break;
+					case 6:
+						if (state0)
+						{
+							string_handle = 0x1000023a;
+						}
+						else if (state1)
+						{
+							string_handle = 0x12000241;
+						}
+						else if (state2)
+						{
+							string_handle = 0x12000248;
+						}
+						break;
+					case 2:
+					case 7:
+						if (state0)
+						{
+							string_handle = 0x1200023c;
+						}
+						else if (state1)
+						{
+							string_handle = 0x14000243;
+						}
+						else if (state2)
+						{
+							string_handle = 0x1400024a;
+						}
+						break;
+					case 3:
+					case 8:
+						if (state0)
+						{
+							string_handle = 0xb00023d;
+						}
+						else if (state1)
+						{
+							string_handle = 0xd000244;
+						}
+						else if (state2)
+						{
+							string_handle = 0xd00024b;
+						}
+						break;
+					case 4:
+					case 9:
+						if (state0)
+						{
+							string_handle = 0xd00023e;
+						}
+						else if (state1)
+						{
+							string_handle = 0xf000245;
+						}
+						else if (state2)
+						{
+							string_handle = 0xf00024c;
+						}
+						break;
+					}
+					((c_text_widget_45a5e0 *)game_text)->function_253b1a(string_handle);
+				}
 			}
 		}
 	}
