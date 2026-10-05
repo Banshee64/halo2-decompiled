@@ -89,7 +89,7 @@ long saved_game_file_type_size_in_blocks(long type);
 real __stdcall function_122dd0(byte *map_name, long unknown);
 struct s_name_buffer;
 void function_13934d(s_name_buffer *buffer, long string_handle);
-void function_15ea80(long string_handle, long maximum_count, word *buffer);
+void function_15ea80(long string_handle, word *buffer, long maximum_count);
 struct s_friend_request;
 bool friend_request_get(s_friend_request *request);
 void friends_lists_get_user(XUID const *xuid, bool *arg_a721be, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *field_xb3bdcf);
@@ -684,7 +684,7 @@ void __stdcall parse_ge_round_time_left(long string_handle, word *buffer)
 
 	if (g_4e6948->state == 2)
 	{
-		function_15ea80(string_handle, NUMBEROF(time), time);
+		function_15ea80(string_handle, time, NUMBEROF(time));
 		parse_copy(buffer, time);
 	}
 }

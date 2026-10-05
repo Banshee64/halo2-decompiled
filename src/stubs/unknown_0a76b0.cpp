@@ -132,9 +132,6 @@ void __stdcall function_a8b90(long unit_index) { }
 // @stub 0xd0f30
 void __stdcall function_d0f30(long unit_index, long a, long b) { }
 
-// @stub 0x152140
-void function_152140(long player_index) { }
-
 // @stub 0xb9a50
 void __stdcall function_b9a50(long unit_index) { }
 

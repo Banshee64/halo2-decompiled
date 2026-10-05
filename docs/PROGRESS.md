@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5298 functions match
+
+```
+matched 5298 of 11318 game functions (528316 of 2784283 bytes, 18.97%)
+```
+
+**Codex lane Q**, round 2: 8 new matches, none lost. They cover game-engine callbacks, player-change notifications, a label lookup, a proximity query and the round-time text, plus that text's caller in the UI.
+
 ## 2026-10-05: 5290 functions match
 
 ```
