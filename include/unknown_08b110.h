@@ -7,7 +7,7 @@
 #define UNKNOWN_08B110_H
 
 #include <xtl.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "bitstream.h"
 

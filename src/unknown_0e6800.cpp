@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_0E6800.CPP: whether an animation channel has stopped playing */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_1c62f0.h"
 
 // @retail 0xe6800

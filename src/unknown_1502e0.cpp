@@ -2,9 +2,9 @@
 /* UNKNOWN_1502E0.CPP: player helpers at the end of the players code (target
    candidates, the local players' view state, the players' census) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <string.h>
 
 /* the players (g_4e8c24, 0x21c bytes each) */
@@ -74,7 +74,7 @@ struct s_view_globals
 
 struct s_object;
 s_object *function_bae20(long object_index, dword type_mask);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 static inline s_tail_player *tail_player_get(long player_index)
 {
@@ -97,11 +97,11 @@ bool function_151320(s_target_candidate *candidate, s_target_candidate *best, lo
 
 	if (candidate->priority <= best->priority)
 	{
-		real_point3d player_position;
-		real_point3d best_position;
-		real_point3d candidate_position;
-		real_vector3d to_candidate;
-		real_vector3d to_best;
+		point3f player_position;
+		point3f best_position;
+		point3f candidate_position;
+		vector3f to_candidate;
+		vector3f to_best;
 
 		if (candidate->priority != best->priority)
 		{
@@ -112,7 +112,7 @@ bool function_151320(s_target_candidate *candidate, s_target_candidate *best, lo
 		function_b9dd0(candidate->object_index, &candidate_position);
 		vector3d_from_points3d(&player_position, &candidate_position, &to_candidate);
 		vector3d_from_points3d(&player_position, &best_position, &to_best);
-		if (magnitude_squared3d(&to_best) <= magnitude_squared3d(&to_candidate))
+		if (length_sq3f(&to_best) <= length_sq3f(&to_candidate))
 		{
 			return false;
 		}
@@ -157,7 +157,7 @@ void function_1520f0(long player_index)
 void function_152340(void)
 {
 	s_player_census *census = (s_player_census *)g_4e8c20;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_tail_player *player;
 
 	census->all_without_units = true;
@@ -335,14 +335,14 @@ void function_152580(long unit_index, s_tail_unit_state *state)
 /* a horizontal forward vector and its left */
 struct s_horizontal_axes
 {
-	real_vector3d forward;
-	real_vector3d left;
+	vector3f forward;
+	vector3f left;
 };
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 // @retail 0x1502e0
-void function_1502e0(real_vector3d const *forward, real_vector3d const *fallback, s_horizontal_axes *axes)
+void function_1502e0(vector3f const *forward, vector3f const *fallback, s_horizontal_axes *axes)
 {
 	axes->forward = *forward;
 	axes->forward.k = 0.0f;
@@ -367,7 +367,7 @@ void __stdcall function_152cf0(long object_index)
 {
 	if ((1 << tail_object_get(object_index)->type) & 3)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_tail_player *player;
 
 		iterator.data = g_4e8c24;

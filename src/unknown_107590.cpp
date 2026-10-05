@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /Gr
 /* UNKNOWN_107590.CPP: device flag setters of the script functions */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_107590.h"
 

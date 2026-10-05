@@ -6,15 +6,15 @@
 #ifndef MAIN_GLOBALS_H
 #define MAIN_GLOBALS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_main_globals
 {
 	byte unknown28;
 	bool unknown29;
 	byte unknown2a[3];
-	byte core_load;
-	char core_name[0x40];	/* the last byte stays the terminator */
+	byte field_5;
+	char field_6_2[0x40];	/* the last byte stays the terminator */
 	byte reset_map;
 	byte unknown6f;
 	byte save_map;
@@ -25,7 +25,7 @@ struct s_main_globals
 	byte unknown75;
 	byte unknown76;
 	byte unknown77;
-	short structure_bsp_index;
+	short field_0_3;
 };
 
 extern s_main_globals main_globals;

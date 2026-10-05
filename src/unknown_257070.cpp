@@ -2,7 +2,7 @@
 /* UNKNOWN_257070.CPP: slot handler 0x78 (handler at 0x47f9f8, children at
    0x470bf0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "props.h"
 

@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_2551C0.CPP: slot handler 0xc (handler at 0x47f790) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_2551c0.h"
 #include "lane_c_callees.h"
@@ -12,7 +12,7 @@ struct s_slot_0c_state
 	s_slot_header header;
 	short timer;
 	byte unknown0e[2];
-	real_point3d point;
+	point3f point;
 	real unknown1c;
 };
 
@@ -25,7 +25,7 @@ struct s_unit_0c_view
 
 /* turns a vector about a unit axis by the angle whose sine and cosine are
    given */
-static inline void rotate_vector_about_axis(real_vector3d *vector, real_vector3d const *axis, real sine, real cosine)
+static inline void function_x84d9e8(vector3f *vector, vector3f const *axis, real sine, real cosine)
 {
 	real i = vector->i;
 	real j = vector->j;
@@ -37,7 +37,7 @@ static inline void rotate_vector_about_axis(real_vector3d *vector, real_vector3d
 	vector->k = (axis->k * projection + k * cosine) - (i * axis->j - j * axis->i) * sine;
 }
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 bool function_26bf10(long object_index);
 long function_1fa7f0(void);
 void function_cfec0(long unit_index);
@@ -79,10 +79,10 @@ bool __stdcall function_2551f0(long actor_index, s_slot *slot)
 		return false;
 	}
 
-	state->timer = g_510c54->ticks_per_second * 10;
-	*(real_vector3d *)&state->point = actor->unknown290;
+	state->timer = g_510c54->field_2_3 * 10;
+	*(vector3f *)&state->point = actor->unknown290;
 	state->unknown1c = 0.f;
-	if (function_30bf0((real_vector3d *)&state->point) > 0.f)
+	if (function_30bf0((vector3f *)&state->point) > 0.f)
 	{
 		if (function_26bf10(actor->unknown018))
 		{
@@ -92,21 +92,21 @@ bool __stdcall function_2551f0(long actor_index, s_slot *slot)
 				s_pathfinding_data *pathfinding = (s_pathfinding_data *)function_1fa7f0();
 				real best_score = 0.f;
 				bool found = false;
-				real_vector3d forward;
-				real_vector3d best_direction;
+				vector3f forward;
+				vector3f best_direction;
 
 				function_210770(actor->unknown27c.point.output_index, &actor->unknown290, &forward);
 				for (long i = 0; i < 8; i++)
 				{
 					real angle = (real)i * 0.7853982f;
-					real_vector3d direction = forward;
+					vector3f direction = forward;
 					s_path_trace_result trace;
 
-					rotate_vector_about_axis(&direction, g_4687b0, (real)sin(angle), (real)cos(angle));
+					function_x84d9e8(&direction, g_4687b0, (real)sin(angle), (real)cos(angle));
 					function_26c590(actor->unknown27c.unknown10, &actor->unknown27c.point.point, &trace, pathfinding,
 						&actor->unknown27c.point.point, NONE, &direction, 5.f, 0);
 
-					real score = (dot_product3d(&forward, &direction) + 1.f) * (trace.distance * 0.2f);
+					real score = (dot3f(&forward, &direction) + 1.f) * (trace.distance * 0.2f);
 					if (score > best_score)
 					{
 						best_score = score;
@@ -117,7 +117,7 @@ bool __stdcall function_2551f0(long actor_index, s_slot *slot)
 
 				if (found)
 				{
-					function_210770(actor->unknown27c.point.output_index, &best_direction, (real_vector3d *)&state->point);
+					function_210770(actor->unknown27c.point.output_index, &best_direction, (vector3f *)&state->point);
 				}
 			}
 		}
@@ -154,7 +154,7 @@ short __stdcall function_255570(long actor_index, s_slot *slot, bool active)
 		return g_470b4c;
 	}
 
-	ticks = g_510c54->ticks_per_second * 0.5f;
+	ticks = g_510c54->field_2_3 * 0.5f;
 	__asm
 	{
 		fld ticks
@@ -181,7 +181,7 @@ short __stdcall function_255570(long actor_index, s_slot *slot, bool active)
 
 			long timer;
 
-			ticks = g_510c54->ticks_per_second * 0.5f;
+			ticks = g_510c54->field_2_3 * 0.5f;
 			__asm
 			{
 				fld ticks
@@ -200,7 +200,7 @@ void __stdcall function_255660(long actor_index, s_slot *slot)
 	s_actor_view *actor = actor_get(actor_index);
 	s_slot_0c_state *state = (s_slot_0c_state *)slot;
 
-	actor->unknown458 = *(real_vector3d *)&state->point;
+	actor->unknown458 = *(vector3f *)&state->point;
 	actor->unknown450 = 0x4000089;
 	actor->unknown456 = true;
 }

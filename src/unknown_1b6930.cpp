@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_1fb7e0.h"
 #include "unknown_26b230.h"
@@ -268,7 +268,7 @@ short __stdcall function_1b74c0(long actor_index, s_slot *slot)
 		s_prop_view_fields *view = prop_node_view(node);
 
 		if (view && node->unknown28 < 20.0f && view->unknown00 >= 9 &&
-			dot_product3d(&actor->unknown290, &view->unknown2c) < -0.1f)
+			dot3f(&actor->unknown290, &view->unknown2c) < -0.1f)
 		{
 			result = 0x2a;
 		}
@@ -504,7 +504,7 @@ void __stdcall function_1b6d40(long actor_index, s_slot *slot)
 			}
 			else
 			{
-				real_point3d point;
+				point3f point;
 
 				function_210850(&view->unknown78, &point);
 				actor->unknown41c = 3;

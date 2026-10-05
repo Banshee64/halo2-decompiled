@@ -3,24 +3,24 @@
    (the creation relevance the entity definitions print, 0xaa4d0) and the
    update relevance and period of an entity (0xabac0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "data_array.h"
 #include "object_type_definitions.h"
-#include "simulation_entity_database.h"
+#include "unknown_xa19f52.h"
 #include "entity_relevance.h"
 #include <float.h>
 #include <xtl.h>
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 /* an observer of the simulation: its entity, where it is and where it looks */
 struct s_relevance_observer
 {
 	long entity_index;
-	real_point3d position;
-	real_vector3d forward;
+	point3f position;
+	vector3f forward;
 	char type;
 	byte unknown1d[7];
 };
@@ -57,14 +57,14 @@ static inline long simulation_entity_get_object_index(long entity_index)
 	return object_index;
 }
 
-static inline real distance_squared3d(real_point3d const *p0, real_point3d const *p1)
+static inline real distance_sq3f(point3f const *p0, point3f const *p1)
 {
-	real_vector3d vector;
+	vector3f vector;
 	vector3d_from_points3d(p0, p1, &vector);
-	return magnitude_squared3d(&vector);
+	return length_sq3f(&vector);
 }
 
-static inline real normalize3d(real_vector3d *v)
+static inline real normalize3d(vector3f *v)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 	if (!(fabs(m) < 0.0001f))
@@ -110,16 +110,16 @@ real function_aa4d0(long count, long const *entity_indices, real maximum_distanc
 			long object_index = simulation_entity_get_object_index(entity_index);
 			if (object_index != NONE)
 			{
-				real_point3d origin;
+				point3f origin;
 				function_b9dd0(object_index, &origin);
-				real distance_squared = distance_squared3d(&origin, &observer->position);
+				real distance_squared = distance_sq3f(&origin, &observer->position);
 				if (minimum_distance_squared > distance_squared)
 					minimum_distance_squared = distance_squared;
 				s_object_header_view *header = &((s_object_header_view *)g_4e0300->data)[object_index & 0xffff];
 				if (((1 << header->type) & 3) && observer->type != NONE)
 				{
 					real threshold = 1.0f;
-					real_vector3d direction;
+					vector3f direction;
 					vector3d_from_points3d(&observer->position, &origin, &direction);
 					if (normalize3d(&direction) != 0.0f)
 					{
@@ -134,7 +134,7 @@ real function_aa4d0(long count, long const *entity_indices, real maximum_distanc
 							facing_relevance = g_4cecf4;
 							break;
 						}
-						if (dot_product3d(&observer->forward, &direction) >= threshold)
+						if (dot3f(&observer->forward, &direction) >= threshold)
 							facing = true;
 					}
 				}
@@ -193,7 +193,7 @@ static inline dword network_time_now(void)
 	return GetTickCount();
 }
 
-static inline long network_time_since(long time)
+static inline long function_75890(long time)
 {
 	return network_time_now() - time;
 }
@@ -234,7 +234,7 @@ real function_abac0(real *relevance_out, s_creation_request const *request, s_up
 	}
 	if (period_out)
 		*period_out = period;
-	long time = network_time_since(state->time);
+	long time = function_75890(state->time);
 	real result;
 	if (time < period)
 		result = (weight->near_relevance[1] - weight->near_relevance[0]) * relevance + weight->near_relevance[0];

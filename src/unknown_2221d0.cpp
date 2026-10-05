@@ -3,7 +3,7 @@
    Part of the sound transmission file (src/unknown_221da0.cpp); retail calls
    it out of line from 0x2222c0, which this file's /Ob1 reproduces. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 #define PIN(n, floor, ceiling) ((n) < (floor) ? (floor) : ((n) > (ceiling) ? (ceiling) : (n)))
 

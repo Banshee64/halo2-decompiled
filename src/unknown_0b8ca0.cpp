@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* object markers and object physics state (0xb8ca0-0xb9c60) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1cec30.h"
 #include "object_markers.h"
@@ -56,7 +56,7 @@ struct s_object_view
 	byte physics_disabled : 1;
 	byte : 7;
 	byte unknown0c2[0xd4 - 0xc2];
-	long simulation_entity_index;
+	long field_x10a40f;
 	byte unknown0d8[0x10e - 0xd8];
 	short root_node_offset;
 	short unknown110;
@@ -85,7 +85,7 @@ struct s_object_header_view
 bool function_10cf50(long item_index);
 long function_1d8f00(long render_model_index, long marker_name);
 short function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
-	long const *node_remapping, real_matrix4x3 const *node_matrices, bool mirrored, s_object_marker *markers, short count);
+	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, short count);
 void function_b58c0(long index, dword mask);
 void function_b7360(long object_index);
 void havok_component_rigid_bodies_activate(s_havok_component *component);
@@ -121,13 +121,13 @@ short function_b8d30(long object_index, long marker_name, s_object_marker *marke
 		if (model_index != NONE)
 		{
 			byte const *region_permutations = (byte *)object + object->region_permutations_offset;
-			real_matrix4x3 const *node_matrices = (real_matrix4x3 *)((byte *)object + object->node_matrices_offset);
+			transform4x3f const *field_50 = (transform4x3f *)((byte *)object + object->node_matrices_offset);
 			bool mirrored = TEST_FIELD_BIT(object->mirrored);
-			volatile long node_count = object->node_matrices_size / sizeof(real_matrix4x3);
+			volatile long node_count = object->node_matrices_size / sizeof(transform4x3f);
 			long render_model_index = TAG_DATA(s_model_definition_view, model_index)->render_model_index;
 
 			result = function_1d8f50(function_1d8f00(render_model_index, marker_name), render_model_index,
-				region_permutations, NULL, node_matrices, mirrored, markers, count);
+				region_permutations, NULL, field_50, mirrored, markers, count);
 			if (result)
 				return result;
 		}
@@ -151,7 +151,7 @@ short function_b8d30(long object_index, long marker_name, s_object_marker *marke
 		markers->node_matrix.position.y = 0.0f;
 		markers->node_matrix.position.z = 0.0f;
 		s_object_view *node_object = OBJECT_GET(object_index);
-		markers->matrix = *(real_matrix4x3 *)((byte *)node_object + node_object->node_matrices_offset);
+		markers->matrix = *(transform4x3f *)((byte *)node_object + node_object->node_matrices_offset);
 		markers->unknown6c = 0.0f;
 		if (TEST_FIELD_BIT(object->mirrored))
 		{
@@ -194,14 +194,14 @@ void function_b9b90(long object_index, bool disable)
 	if (type_mask & 0x1c)
 	{
 		s_object_view *item = OBJECT_GET(object_index);
-		if (item->simulation_entity_index != NONE)
-			function_b58c0(item->simulation_entity_index, 0x400);
+		if (item->field_x10a40f != NONE)
+			function_b58c0(item->field_x10a40f, 0x400);
 	}
 	else if (type_mask & 0x20)
 	{
 		s_object_view *projectile = OBJECT_GET(object_index);
-		if (projectile->simulation_entity_index != NONE)
-			function_b58c0(projectile->simulation_entity_index, 0x400);
+		if (projectile->field_x10a40f != NONE)
+			function_b58c0(projectile->field_x10a40f, 0x400);
 	}
 }
 
@@ -212,7 +212,7 @@ void __stdcall function_bd020(long object_index);
 struct s_object_root_node
 {
 	byte unknown00[0x10];
-	real_vector3d vector;
+	vector3f vector;
 	real value_1c;
 };
 

@@ -2,13 +2,13 @@
 /* UNKNOWN_08E1E0.CPP: a table of 32 pending messages with two queues of 16
    indices into it (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include "crc.h"
 #include "pending_messages.h"
 
 
-/* crc_new, which retail inlines here (this file is /Ob1 so that 0x8e1e0 stays
+/* function_x86aaf2, which retail inlines here (this file is /Ob1 so that 0x8e1e0 stays
    a call) */
 static inline void crc_new_inlined(dword *crc_reference)
 {
@@ -66,7 +66,7 @@ long pending_message_add(long size, s_pending_message_header *header, void *data
 	if (header->kind == 1 || header->kind == 2)
 	{
 		crc_new_inlined((dword *)data);
-		crc_checksum_buffer((dword *)data, data, size);
+		function_163ba0((dword *)data, data, size);
 	}
 	g_4d8c28[index].size = size;
 	g_4d8c28[index].data = data;

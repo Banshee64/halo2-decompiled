@@ -2,7 +2,7 @@
 /* UNKNOWN_153750.CPP: the player appearance checks, the address printer and
    the profile record reset */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <stdio.h>
 #include <string.h>
 

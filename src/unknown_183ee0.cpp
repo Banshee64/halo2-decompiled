@@ -5,7 +5,7 @@
    entry with 183e40 (initialize_for_new_structure_bsp and
    dispose_from_old_structure_bsp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
 

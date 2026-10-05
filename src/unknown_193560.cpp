@@ -2,7 +2,7 @@
 /* UNKNOWN_193560.CPP: the game variant checks (lane H; kept apart with /Ob1
    because retail calls them out of line) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* a game variant (0x614 bytes; the 16 of them are at 0x551ae8) */
 struct s_surface_description

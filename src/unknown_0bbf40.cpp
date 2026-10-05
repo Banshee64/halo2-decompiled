@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /Gr
 /* UNKNOWN_0BBF40.CPP: object flag setters of the script functions */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_0bbf40.h"
 

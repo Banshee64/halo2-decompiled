@@ -2,7 +2,7 @@
 /* UNKNOWN_0F5DC0.CPP: an object angle test (an outside function lane A's
    script evaluator 0x2a60f0 needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <math.h>
 

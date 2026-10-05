@@ -2,7 +2,7 @@
 /* UNKNOWN_1E9700.CPP: a value of the difficulty table for the current
    campaign difficulty (lane M; called by the behaviors of 0x1a8000..0x1affff) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 real function_1e96a0(short column, short row);

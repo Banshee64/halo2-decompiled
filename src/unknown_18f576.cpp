@@ -2,7 +2,7 @@
 /* UNKNOWN_18F576.CPP: the local player slots (g_54e8e0, four slots of 0xc70
    bytes): the profile each slot holds, and queries over the slots */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_18f576.h"
 #include <xtl.h>

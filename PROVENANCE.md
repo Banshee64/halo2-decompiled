@@ -51,15 +51,14 @@ retail executable, and names that describe what the code does.
 | Function boundaries and the call graph | `tools/functions.py`, from the retail executable alone |
 | Which code is game code and which is library code | Library byte signatures (`tools/libsig.py`) matched against the contributor's own SDK libraries, plus the rules in `config/owners.json` and the third-party name data described under "Known issues" |
 | Calling conventions, structure layouts, behaviour | Contributors' own analysis of the retail code, checked by `tools/check.py` |
-| Function, file, type and field names | Should be descriptive names chosen by contributors from the code's behaviour, or `function_<address>`/`unknown_<address>` placeholders. See "Known issues" for names whose origin is under review |
+| Function, file, type and field names | Should be descriptive names chosen by contributors from the code's behaviour, or `function_<address>`/`unknown_<address>` placeholders. See "Known issues" for the names that were renamed |
 | Match status | `tools/check.py`, by comparing the build's bytes with the retail executable |
 
 ## Known issues under review
 
 The maintainers have found that some names in the repository were chosen with
-the help of sources that this policy does not permit. These are being audited
-and remediated. Until that work is complete, names in the repository should
-not be read as being independently derived.
+the help of sources that this policy does not permit. These have been audited
+and remediated as described below; item 3 is still under review.
 
 1. **`config/functions.csv`, `name` and `object` columns.** These were taken
    from the third-party project halo-symbol-atlas. Its names for the retail
@@ -86,18 +85,46 @@ not be read as being independently derived.
      publicly released by the rights holder; its assertion strings were used
      as hints for source file names, parameter names and field names.
 
-   *Plan:* audit identifiers, and replace names that cannot be independently
-   justified with descriptive names derived from the code's behaviour or with
-   address-based placeholders. Record the method used here. The recreated code
-   itself was written from the retail executable and is checked against it
-   byte for byte.
+   *Done:* the identifiers and file names have been renamed. The recreated
+   code itself was written from the retail executable and is checked against
+   it byte for byte, and the renames left every function's match status
+   unchanged. The method:
+   - Every identifier and file name in `src/` and `include/` was compared
+     with the names in those sources: the atlas names and the object and
+     function names of the 2003 maps (with their class qualifiers and the
+     types inside their decorated names), the identifiers in the contributor
+     notes that cited the maps, and the identifiers and source file names in
+     the debug build's strings. Debug-build matches did not count when the
+     name was already in the source before that build was first used, or
+     when the retail executable's own strings contain it.
+   - 703 identifiers that matched exactly were renamed, whole word, in code
+     and comments: functions to `function_<address>`, classes to
+     `c_class_<address>`, fields to `field_<offset>`, and types, parameters,
+     locals, globals and macros to hash-based placeholders. 44 widely used
+     names received descriptive names chosen from what the code does, such as
+     `point3f`, `string_handle` and `s_record_pool`.
+   - 120 files were renamed to `unknown_<lowest address in the file>`, and
+     the documents named after them followed.
+   - What was deliberately kept: single common words (`damage`, `path`,
+     `units`, `distance3d` and the like), generic idioms made of common words
+     with a generic suffix (`entity_index`, `edge_count`, `control_flags`,
+     `cpu_size`, `motion_type`, `TEST_BIT`, `SET_BIT`), names listed under
+     public SDK or C runtime libraries, and the SDK's own names (`XONLINE_USER`
+     and the `ITitleXHV` methods). Distinctive compounds, Halo-specific terms
+     and anything shaped like a function name were renamed even when generic
+     in form.
+   - Strings that are data in the retail executable (object type names such
+     as `"light_fixture"`) were left alone.
+
+   The comparison is by exact name, so a name that was altered slightly
+   before it was committed is not caught; please report any such name.
 3. **Halo CE reference names.** Some names follow the public Halo: Combat
    Evolved decompilation (punpckhdq/halo). How that project derived its names
    is being reviewed.
 4. **Contributor documentation.** Several files in `docs/`, written by
    contributors, described using the 2003 linker maps to identify functions
-   and file boundaries. Those passages have been removed; the names the
-   documents use are audited with item 2.
+   and file boundaries. Those passages have been removed, and the names the
+   documents use, and the documents' own file names, were renamed with item 2.
 
 ## The toolchain
 

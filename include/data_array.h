@@ -11,7 +11,7 @@
 #ifndef DATA_ARRAY_H
 #define DATA_ARRAY_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 #define DATA_ARRAY_SIGNATURE 0x64407440
 
@@ -23,7 +23,7 @@ public:
 	virtual void deallocate(void *block) { }
 };
 
-struct s_data_array
+struct s_record_pool
 {
 	char name[0x20];
 	long maximum_count;
@@ -46,65 +46,65 @@ struct s_data_array
 	dword *bitmap;
 };
 
-struct s_data_iterator
+struct s_record_pool_iterator
 {
-	s_data_array *data;
+	s_record_pool *data;
 	long datum_index;
 	long index;
 };
 
 /* a datum index is a salt in the high half and the absolute index in the low half */
-s_data_array *data_new(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator);
-void data_dispose(s_data_array *data);
-void data_initialize(s_data_array *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator);
-void data_array_construct(s_data_array *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator, dword *bitmap);
-void data_connect(s_data_array *data, long maximum_count, byte *elements);
-void data_make_valid(s_data_array *data);
-void data_delete_all(s_data_array *data);
-long datum_new(s_data_array *data);
-long datum_new_at_index_with_salt(s_data_array *data, long datum_index);
-long datum_new_at_index(s_data_array *data, long index);
-void datum_initialize(s_data_array *data, byte *datum);
-void datum_delete(s_data_array *data, long datum_index);
-byte *datum_get(s_data_array *data, long datum_index);
-byte *datum_get_absolute(s_data_array *data, long index);
-long index_to_datum_index(s_data_array *data, long index);
-byte *data_iterator_next(s_data_iterator *iterator);
+s_record_pool *data_new(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator);
+void data_dispose(s_record_pool *data);
+void function_16b5f0(s_record_pool *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator);
+void data_array_construct(s_record_pool *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator, dword *bitmap);
+void function_16b6b0(s_record_pool *data, long maximum_count, byte *elements);
+void function_16b790(s_record_pool *data);
+void record_pool_release_all(s_record_pool *data);
+long record_pool_allocate(s_record_pool *data);
+long datum_new_at_index_with_salt(s_record_pool *data, long datum_index);
+long function_16b990(s_record_pool *data, long index);
+void function_16ba00(s_record_pool *data, byte *datum);
+void record_pool_release(s_record_pool *data, long datum_index);
+byte *record_pool_lookup(s_record_pool *data, long datum_index);
+byte *datum_get_absolute(s_record_pool *data, long index);
+long index_to_datum_index(s_record_pool *data, long index);
+byte *record_pool_iterator_step(s_record_pool_iterator *iterator);
 
 /* an iteration over a data array that keeps a pointer to the current datum
    (data_iterator.cpp) */
 struct s_data_datum_iterator
 {
 	byte *datum;
-	s_data_array *data;
+	s_record_pool *data;
 	long datum_index;
 	long index;
 };
 
 bool data_datum_iterator_next(s_data_datum_iterator *iterator);
-long data_next_index(s_data_array *data, long datum_index);
-long data_next_absolute_index(s_data_array *data, long index);
+long record_pool_next_used(s_record_pool *data, long datum_index);
+long function_16bc00(s_record_pool *data, long index);
 
 /* retail inlines data_new into its callers via LTCG; the out-of-line original
    in unknown_16b570.cpp needs /Ob1, which stops LTCG inlining it, so callers
    that retail inlines it into use this copy. (data_dispose is already
    inlinable: it lives in its own file, unknown_16b5d0.cpp.) */
-static inline s_data_array *data_new_inlined(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
+static inline s_record_pool *data_new_inlined(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
 {
 	long bitmap_size = ((maximum_count + 31) >> 5) * 4;
-	s_data_array *data = (s_data_array *)allocator->allocate(sizeof(s_data_array) + maximum_count * size + bitmap_size + (1 << alignment_bits) - 1);
+	s_record_pool *data = (s_record_pool *)allocator->allocate(sizeof(s_record_pool) + maximum_count * size + bitmap_size + (1 << alignment_bits) - 1);
 
 	if (data)
 	{
-		data_initialize(data, name, maximum_count, size, alignment_bits, allocator);
+		function_16b5f0(data, name, maximum_count, size, alignment_bits, allocator);
 		data->allocated = 1;
 	}
 	return data;
 }
-/* likewise data_next_absolute_index and data_iterator_next
+/* likewise function_16bc00 and record_pool_iterator_step
    (unknown_16b570.cpp), which retail inlines into callers built /Ob1 (ai.cpp,
    unknown_1cec30.cpp) */
-static inline long data_next_absolute_index_inlined(s_data_array *data, long index)
+static inline long data_next_absolute_index_inlined(s_record_pool *data, long index)
 {
 	long result = NONE;
 
@@ -123,9 +123,9 @@ static inline long data_next_absolute_index_inlined(s_data_array *data, long ind
 	return result;
 }
 
-static inline byte *data_iterator_next_inlined(s_data_iterator *iterator)
+static inline byte *data_iterator_next_inlined(s_record_pool_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
+	s_record_pool *data = iterator->data;
 	long index = data_next_absolute_index_inlined(data, iterator->index + 1);
 	byte *result;
 
@@ -144,12 +144,12 @@ static inline byte *data_iterator_next_inlined(s_data_iterator *iterator)
 	return result;
 }
 
-/* likewise data_iterator_next itself, which retail inlines into callers that
-   still call data_next_absolute_index */
-static inline byte *data_iterator_next_calling(s_data_iterator *iterator)
+/* likewise record_pool_iterator_step itself, which retail inlines into callers that
+   still call function_16bc00 */
+static inline byte *data_iterator_next_calling(s_record_pool_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
-	long index = data_next_absolute_index(data, iterator->index + 1);
+	s_record_pool *data = iterator->data;
+	long index = function_16bc00(data, iterator->index + 1);
 	byte *result;
 
 	if (index != NONE)
@@ -167,9 +167,9 @@ static inline byte *data_iterator_next_calling(s_data_iterator *iterator)
 	return result;
 }
 
-/* likewise datum_get, which retail inlines into callers such as
-   joint_behavior.cpp's */
-static inline byte *datum_get_inlined(s_data_array *data, long datum_index)
+/* likewise record_pool_lookup, which retail inlines into callers such as
+   unknown_26e370.cpp's */
+static inline byte *datum_get_inlined(s_record_pool *data, long datum_index)
 {
 	byte *result = 0;
 
@@ -194,7 +194,7 @@ static inline byte *datum_get_inlined(s_data_array *data, long datum_index)
 
 /* the inline copies of the datum index lookup and of the next used index
    search (retail also calls 0x16bc00) that LTCG places in callers */
-static inline long data_datum_index(s_data_array *array, long index)
+static inline long data_datum_index(s_record_pool *array, long index)
 {
 	long datum = NONE;
 	if (index != NONE)
@@ -202,7 +202,7 @@ static inline long data_datum_index(s_data_array *array, long index)
 	return datum;
 }
 
-static inline long data_find_index(s_data_array *array, long index)
+static inline long data_find_index(s_record_pool *array, long index)
 {
 	long result = NONE;
 	if (index >= 0 && index < array->high_water_index)

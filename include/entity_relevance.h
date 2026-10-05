@@ -4,7 +4,7 @@
 #ifndef ENTITY_RELEVANCE_H
 #define ENTITY_RELEVANCE_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "object_type_definitions.h"
 
 /* what an entity's update was last sent with */

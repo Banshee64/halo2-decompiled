@@ -2,7 +2,7 @@
 /* UNKNOWN_10ACA0.CPP: the object list of g_5107f4 (unknown_10a980.cpp) and
    an object's fade */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_10a980.h"
 #include "unknown_10aca0.h"
@@ -99,7 +99,7 @@ void function_10ad90(long object_index, real target, real seconds)
 		}
 		else
 		{
-			real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+			real ticks_real = (real)g_510c54->field_2_3 * seconds;
 			long ticks;
 			__asm
 			{

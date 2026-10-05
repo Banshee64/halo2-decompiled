@@ -2,7 +2,7 @@
 /* UNKNOWN_16F3A0.CPP: the state of a local player. Decompiled by lane R for
    the effects (0x176210). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 // @retail 0x16f3a0

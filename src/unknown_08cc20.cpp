@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_08CC20.CPP: a name string setter */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <wchar.h>
 
 struct s_name_buffer

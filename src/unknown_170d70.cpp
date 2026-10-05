@@ -1,6 +1,6 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 #include <string.h>
 
@@ -13,9 +13,9 @@ real g_54e85c;
 real g_54e860;
 
 // @retail 0x170d70
-void function_170d70(real_vector3d const *rotation, real_vector3d *a, real_vector3d *b)
+void function_170d70(vector3f const *rotation, vector3f *a, vector3f *b)
 {
-	real_vector3d axis = *rotation;
+	vector3f axis = *rotation;
 	real angle = normalize_inline(&axis);
 
 	if (angle != 0.f)
@@ -51,7 +51,7 @@ static inline bool real_in_world_range(real value)
 }
 
 // @retail 0x172350
-bool function_172350(real_point3d const *point)
+bool function_172350(point3f const *point)
 {
 	if (real_in_world_range(point->x) && real_in_world_range(point->y) && real_in_world_range(point->z))
 		return true;
@@ -157,7 +157,7 @@ static inline long local_player_next(long index)
 }
 
 // @retail 0x172750
-bool function_172750(long mode, real_point3d const *point, real radius)
+bool function_172750(long mode, point3f const *point, real radius)
 {
 	real limit = radius * radius;
 
@@ -357,8 +357,8 @@ struct s_rotation_matrix
 struct s_view_setup
 {
 	byte unknown00[0x20];
-	real_vector3d forward;
-	real_vector3d up;
+	vector3f forward;
+	vector3f up;
 	real field_of_view;
 	real aspect;
 	real scale_x;
@@ -368,7 +368,7 @@ struct s_view_setup
 	real ratio;
 };
 
-static inline void rotation_matrix_from_axis_angle(s_rotation_matrix *m, real_vector3d const *axis, real angle)
+static inline void rotation_matrix_from_axis_angle(s_rotation_matrix *m, vector3f const *axis, real angle)
 {
 	real s = (real)sin(angle);
 	real c = (real)cos(angle);
@@ -391,9 +391,9 @@ static inline void rotation_matrix_from_axis_angle(s_rotation_matrix *m, real_ve
 	m->m21 = tjk + s * axis->i;
 }
 
-static inline void rotation_matrix_transform(s_rotation_matrix const *m, real_vector3d const *in, real_vector3d *out)
+static inline void rotation_matrix_transform(s_rotation_matrix const *m, vector3f const *in, vector3f *out)
 {
-	real_vector3d copy;
+	vector3f copy;
 
 	if (in == out)
 	{
@@ -408,7 +408,7 @@ static inline void rotation_matrix_transform(s_rotation_matrix const *m, real_ve
 // @retail 0x171d90
 void function_171d90(s_view_setup *view)
 {
-	real_vector3d original = view->forward;
+	vector3f original = view->forward;
 	s_rotation_matrix m;
 
 	view->ratio = view->field_of_view / g_54e854;
@@ -422,7 +422,7 @@ void function_171d90(s_view_setup *view)
 	rotation_matrix_transform(&m, &view->forward, &view->forward);
 	rotation_matrix_transform(&m, &view->up, &view->up);
 
-	real_vector3d axis;
+	vector3f axis;
 	axis.i = view->forward.j * view->up.k - view->up.j * view->forward.k;
 	axis.j = view->forward.k * view->up.i - view->up.k * view->forward.i;
 	axis.k = view->up.j * view->forward.i - view->forward.j * view->up.i;

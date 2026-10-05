@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_1F9240.CPP: the path settings of an actor */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 #include "command_scripts.h"

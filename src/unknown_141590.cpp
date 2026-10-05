@@ -1,21 +1,21 @@
 // @flags /O2 /Gr /arch:SSE
-/* UNKNOWN_141590.CPP: real_matrix4x3 and quaternion math */
+/* UNKNOWN_141590.CPP: transform4x3f and quaternion math */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 #include <string.h>
 
-struct real_orientation
+struct rigid_transform_scaled
 {
-	real_quaternion rotation;
-	real_point3d position;
+	quaternionf rotation;
+	point3f position;
 	real scale;
 };
 
-real_vector3d *function_11d000(real_vector3d const *v, real_vector3d *out);
+vector3f *function_11d000(vector3f const *v, vector3f *out);
 
-__inline void real_point3d_set(real_point3d *point, real x, real y, real z)
+__inline void real_point3d_set(point3f *point, real x, real y, real z)
 {
 	point->x = x;
 	point->y = y;
@@ -24,12 +24,12 @@ __inline void real_point3d_set(real_point3d *point, real x, real y, real z)
 
 // @retail 0x141590
 void function_141590(
-	real_matrix4x3 const *in,
-	real_matrix4x3 *out)
+	transform4x3f const *in,
+	transform4x3f *out)
 {
 	if (in->scale != 0.f)
 	{
-		real_vector3d v;
+		vector3f v;
 		real t;
 		v.i = 0.f - in->position.x;
 		v.j = 0.f - in->position.y;
@@ -58,14 +58,14 @@ void function_141590(
 	}
 	else
 	{
-		memset(out, 0, sizeof(real_matrix4x3));
+		memset(out, 0, sizeof(transform4x3f));
 	}
 }
 
 // @retail 0x1416c0
 void function_1416c0(
-	real_point3d const *position,
-	real_matrix4x3 *out)
+	point3f const *position,
+	transform4x3f *out)
 {
 	out->scale = 1.f;
 	out->forward.i = 1.f;
@@ -82,13 +82,13 @@ void function_1416c0(
 
 // @retail 0x141710
 void matrix4x3_from_forward_and_up(
-	real_matrix4x3 *out,
-	real_vector3d const *forward,
-	real_vector3d const *up)
+	transform4x3f *out,
+	vector3f const *forward,
+	vector3f const *up)
 {
 	out->scale = 1.f;
 	out->forward = *forward;
-	real_vector3d left;
+	vector3f left;
 	left.k = forward->j * up->i - up->j * forward->i;
 	left.j = up->k * forward->i - forward->k * up->i;
 	left.i = up->j * forward->k - up->k * forward->j;
@@ -99,22 +99,22 @@ void matrix4x3_from_forward_and_up(
 	real_point3d_set(&out->position, 0.f, 0.f, 0.f);
 }
 
-real function_30bf0(real_vector3d *v);
-bool valid_real_vector3d_axes3(real_vector3d const *forward, real_vector3d const *left, real_vector3d const *up);
+real function_30bf0(vector3f *v);
+bool function_143120(vector3f const *forward, vector3f const *left, vector3f const *up);
 
-real_quaternion *g_4687cc;
-extern real_matrix4x3 *g_4687d0;
+quaternionf *g_4687cc;
+extern transform4x3f *g_4687d0;
 
 /* rotates a vector by a unit quaternion */
 static inline void quaternion_transform_vector(
-	real_quaternion const *q,
-	real_vector3d const *v,
-	real_vector3d *out)
+	quaternionf const *q,
+	vector3f const *v,
+	vector3f *out)
 {
 	real dot = (q->i * v->i + q->j * v->j + q->k * v->k) * 2.f;
 	real w2 = q->w * 2.f;
 	real s = q->w * q->w * 2.f - 1.f;
-	real_vector3d cross;
+	vector3f cross;
 
 	cross.i = q->j * v->k - q->k * v->j;
 	cross.j = q->k * v->i - q->i * v->k;
@@ -127,12 +127,12 @@ static inline void quaternion_transform_vector(
 /* the rotation that takes one unit vector to another */
 // @retail 0x1417b0
 void matrix4x3_rotation_between_vectors(
-	real_matrix4x3 *matrix,
-	real_vector3d const *from_vector,
-	real_vector3d const *to_vector)
+	transform4x3f *matrix,
+	vector3f const *arg_5f338b,
+	vector3f const *arg_bc44c6)
 {
-	real_quaternion rotation;
-	real cosine = from_vector->i * to_vector->i + from_vector->j * to_vector->j + from_vector->k * to_vector->k;
+	quaternionf rotation;
+	real cosine = arg_5f338b->i * arg_bc44c6->i + arg_5f338b->j * arg_bc44c6->j + arg_5f338b->k * arg_bc44c6->k;
 
 	if (cosine < -1.f)
 	{
@@ -151,14 +151,14 @@ void matrix4x3_rotation_between_vectors(
 	{
 		real scale = sine_half / sine;
 
-		rotation.i = (from_vector->j * to_vector->k - from_vector->k * to_vector->j) * scale;
-		rotation.j = (from_vector->k * to_vector->i - from_vector->i * to_vector->k) * scale;
-		rotation.k = (from_vector->i * to_vector->j - from_vector->j * to_vector->i) * scale;
+		rotation.i = (arg_5f338b->j * arg_bc44c6->k - arg_5f338b->k * arg_bc44c6->j) * scale;
+		rotation.j = (arg_5f338b->k * arg_bc44c6->i - arg_5f338b->i * arg_bc44c6->k) * scale;
+		rotation.k = (arg_5f338b->i * arg_bc44c6->j - arg_5f338b->j * arg_bc44c6->i) * scale;
 		rotation.w = cosine_half;
 	}
 	else if (cosine < 0.f)
 	{
-		function_11d000(from_vector, (real_vector3d *)&rotation);
+		function_11d000(arg_5f338b, (vector3f *)&rotation);
 		rotation.w = 0.f;
 	}
 	else
@@ -170,7 +170,7 @@ void matrix4x3_rotation_between_vectors(
 	quaternion_transform_vector(&rotation, &matrix->forward, &matrix->forward);
 	quaternion_transform_vector(&rotation, &matrix->up, &matrix->up);
 	quaternion_transform_vector(&rotation, &matrix->left, &matrix->left);
-	if (!valid_real_vector3d_axes3(&matrix->forward, &matrix->left, &matrix->up))
+	if (!function_143120(&matrix->forward, &matrix->left, &matrix->up))
 	{
 		function_30bf0(&matrix->up);
 		matrix->left.i = matrix->up.j * matrix->forward.k - matrix->up.k * matrix->forward.j;
@@ -188,7 +188,7 @@ void function_141ce0(
 	real a,
 	real b,
 	real c,
-	real_matrix4x3 *out)
+	transform4x3f *out)
 {
 	real cos_c, sin_c, cos_b, sin_b, cos_a, sin_a, sin_b_sin_c, sin_b_cos_c;
 	cos_c = (real)cos(c);
@@ -217,7 +217,7 @@ void function_141ce0(
 // @retail 0x141e10
 matrix3x3 *function_141e10(
 	matrix3x3 *out,
-	real_quaternion const *q)
+	quaternionf const *q)
 {
 	real norm = q->i * q->i + q->j * q->j + q->k * q->k + q->w * q->w;
 	real s = norm > 0.0001f ? 2.f / norm : 0.f;
@@ -246,9 +246,9 @@ matrix3x3 *function_141e10(
 }
 
 // @retail 0x141f60
-real_quaternion *function_141f60(
+quaternionf *function_141f60(
 	matrix3x3 const *matrix,
-	real_quaternion *out)
+	quaternionf *out)
 {
 	real const *m = (real const *)matrix;
 	real trace = matrix->left.j + matrix->forward.i + matrix->up.k;
@@ -289,15 +289,15 @@ real_quaternion *function_141f60(
 }
 
 // @retail 0x1420f0
-void matrix4x3_from_point_and_vectors(
-	real_matrix4x3 *out,
-	real_point3d const *position,
-	real_vector3d const *forward,
-	real_vector3d const *up)
+void function_1420f0(
+	transform4x3f *out,
+	point3f const *position,
+	vector3f const *forward,
+	vector3f const *up)
 {
 	out->scale = 1.f;
 	out->forward = *forward;
-	real_vector3d left;
+	vector3f left;
 	left.k = forward->j * up->i - forward->i * up->j;
 	left.j = up->k * forward->i - forward->k * up->i;
 	left.i = forward->k * up->j - up->k * forward->j;
@@ -310,10 +310,10 @@ void matrix4x3_from_point_and_vectors(
 }
 
 // @retail 0x1421b0
-void matrix4x3_from_point_and_quaternion(
-	real_matrix4x3 *out,
-	real_point3d const *position,
-	real_quaternion const *rotation)
+void function_1421b0(
+	transform4x3f *out,
+	point3f const *position,
+	quaternionf const *rotation)
 {
 	function_141e10(&out->rotation, rotation);
 	real_point3d_set(&out->position, 0.f, 0.f, 0.f);
@@ -327,8 +327,8 @@ __declspec(align(16)) static const unsigned long g_453750[4] = {0x80000000, 0, 0
 
 // @retail 0x1421f0
 void __stdcall function_1421f0(
-	real_matrix4x3 *out,
-	real_orientation const *orientation)
+	transform4x3f *out,
+	rigid_transform_scaled const *orientation)
 {
 	static real epsilon = g_45dbdc;
 	__asm
@@ -412,15 +412,15 @@ void __stdcall function_1421f0(
 
 // @retail 0x142360
 void orientation_from_matrix4x3(
-	real_matrix4x3 const *matrix,
-	real_orientation *out)
+	transform4x3f const *matrix,
+	rigid_transform_scaled *out)
 {
 	function_141f60(&matrix->rotation, &out->rotation);
 	out->position = matrix->position;
 	out->scale = matrix->scale;
 }
 
-__inline real normalize3d(real_vector3d *v)
+__inline real normalize3d(vector3f *v)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 	if (!(fabs(m) < 0.0001f))
@@ -436,31 +436,31 @@ __inline real normalize3d(real_vector3d *v)
 
 // @retail 0x142390
 void function_142390(
-	real_plane3d const *plane,
-	real_matrix4x3 *out)
+	plane3f const *plane,
+	transform4x3f *out)
 {
-	real_vector3d w;
-	real_point3d position;
+	vector3f w;
+	point3f position;
 	function_11d000(&plane->n, &w);
 	normalize3d(&w);
 	position.x = plane->d * plane->n.i;
 	position.y = plane->n.j * plane->d;
 	position.z = plane->n.k * plane->d;
-	matrix4x3_from_point_and_vectors(out, &position, &w, &plane->n);
+	function_1420f0(out, &position, &w, &plane->n);
 }
 
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
-void function_11d790(real_quaternion const *q, real_vector3d *axis, real *angle);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+void function_11d790(quaternionf const *q, vector3f *axis, real *angle);
 
 // @retail 0x1424f0
-real_vector3d *matrix4x3_rotation_between(
-	real_matrix4x3 const *a,
-	real_matrix4x3 const *b,
-	real_vector3d *out)
+vector3f *matrix4x3_rotation_between(
+	transform4x3f const *a,
+	transform4x3f const *b,
+	vector3f *out)
 {
-	real_matrix4x3 inverse;
-	real_matrix4x3 relative;
-	real_quaternion rotation;
+	transform4x3f inverse;
+	transform4x3f relative;
+	quaternionf rotation;
 	real angle;
 
 	function_141590(a, &inverse);
@@ -474,16 +474,16 @@ real_vector3d *matrix4x3_rotation_between(
 }
 
 // @retail 0x142570
-real_point3d *matrix4x3_transform_point(
-	real_matrix4x3 const *matrix,
-	real_point3d const *point,
-	real_point3d *out)
+point3f *transform4x3f_apply_point(
+	transform4x3f const *matrix,
+	point3f const *point,
+	point3f *out)
 {
 	/* retail passes the matrix on the stack (ret 4) while 0x142640, with the
 	   same body, takes it in ecx: the parameter's address is taken here, and
 	   the optimizer removes the indirection only after LTCG has chosen the
 	   convention. Its callers' conventions (0x2104b0 ...) follow from it. */
-	real_matrix4x3 const *const *matrix_reference = &matrix;
+	transform4x3f const *const *matrix_reference = &matrix;
 	real x = point->x;
 	real y = point->y;
 	real z = point->z;
@@ -500,10 +500,10 @@ real_point3d *matrix4x3_transform_point(
 }
 
 // @retail 0x142640
-real_vector3d *function_142640(
-	real_matrix4x3 const *matrix,
-	real_vector3d const *vector,
-	real_vector3d *out)
+vector3f *function_142640(
+	transform4x3f const *matrix,
+	vector3f const *vector,
+	vector3f *out)
 {
 	real x = vector->i;
 	real y = vector->j;
@@ -521,10 +521,10 @@ real_vector3d *function_142640(
 }
 
 // @retail 0x142700
-real_point3d *function_142700(
-	real_matrix4x3 const *matrix,
-	real_point3d const *point,
-	real_point3d *out)
+point3f *function_142700(
+	transform4x3f const *matrix,
+	point3f const *point,
+	point3f *out)
 {
 	if (matrix->scale != 0.f)
 	{
@@ -552,10 +552,10 @@ real_point3d *function_142700(
 }
 
 // @retail 0x1427f0
-real_vector3d *matrix4x3_inverse_transform_vector(
-	real_matrix4x3 const *matrix,
-	real_vector3d const *vector,
-	real_vector3d *out)
+vector3f *function_1427f0(
+	transform4x3f const *matrix,
+	vector3f const *vector,
+	vector3f *out)
 {
 	real x = vector->i;
 	real y = vector->j;
@@ -573,21 +573,21 @@ real_vector3d *matrix4x3_inverse_transform_vector(
 	return out;
 }
 
-bool valid_real_normal3d(real_vector3d const *vector);
-bool valid_realcmp(real a, real b);
+bool function_a0190(vector3f const *vector);
+bool function_a0200(real a, real b);
 
 // @retail 0x143120
-bool valid_real_vector3d_axes3(
-	real_vector3d const *forward,
-	real_vector3d const *left,
-	real_vector3d const *up)
+bool function_143120(
+	vector3f const *forward,
+	vector3f const *left,
+	vector3f const *up)
 {
-	return valid_real_normal3d(forward) &&
-		valid_real_normal3d(left) &&
-		valid_real_normal3d(up) &&
-		valid_realcmp(dot_product3d(forward, left), 0.f) &&
-		valid_realcmp(dot_product3d(left, up), 0.f) &&
-		valid_realcmp(dot_product3d(forward, up), 0.f);
+	return function_a0190(forward) &&
+		function_a0190(left) &&
+		function_a0190(up) &&
+		function_a0200(dot3f(forward, left), 0.f) &&
+		function_a0200(dot3f(left, up), 0.f) &&
+		function_a0200(dot3f(forward, up), 0.f);
 }
 
 // @retail 0x143250

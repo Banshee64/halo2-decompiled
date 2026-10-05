@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_13BF00.CPP: the lifecycle callbacks of entry 53 */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include "unknown_030290.h"
 #include "language.h"
@@ -38,7 +38,7 @@ PRIVATE void ids_clear(s_unknown_ids *ids)
 // @retail 0x13bf00
 void function_13bf00(void)
 {
-	g_510c50 = (s_unknown_13bf00 *)game_state_malloc("unknown", "unknown", sizeof(s_unknown_13bf00));
+	g_510c50 = (s_unknown_13bf00 *)function_123d40("unknown", "unknown", sizeof(s_unknown_13bf00));
 	memset(g_510c50, 0, sizeof(*g_510c50));
 }
 
@@ -113,7 +113,7 @@ void __stdcall function_13c1e0(short title_index, real seconds)
 	if (i < 4)
 	{
 		data->titles[i].index = title_index;
-		real ticks = g_510c54->ticks_per_second * seconds;
+		real ticks = g_510c54->field_2_3 * seconds;
 		long rounded;
 		__asm
 		{
@@ -205,7 +205,7 @@ bool function_13cb40(void)
 	return result;
 }
 
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 struct s_4e0350_strings_view
 {
@@ -214,23 +214,23 @@ struct s_4e0350_strings_view
 };
 
 // @retail 0x13cb50
-void function_13cb50(long string_id, real seconds)
+void function_13cb50(long string_handle, real seconds)
 {
 	if (g_4e0350)
 	{
 		word string[256];
 		string[0] = 0;
-		unicode_string_list_get_string(((s_4e0350_strings_view *)g_4e0350)->strings_tag_index, string_id, string);
+		function_1a0180(((s_4e0350_strings_view *)g_4e0350)->strings_tag_index, string_handle, string);
 		if (string[0])
 		{
 			s_13bf00_view *data = (s_13bf00_view *)g_510c50;
-			data->timer_index = string_id;
+			data->timer_index = string_handle;
 			data->timer = seconds + 1.5f;
 		}
 	}
 }
 
-/* the window bounds (motion_sensor.cpp, unknown_139296.cpp) */
+/* the window bounds (unknown_1a1c3e.cpp, unknown_139296.cpp) */
 extern short g_4b9dd0;
 extern short g_4b9dd2;
 extern short g_4b9dd4;

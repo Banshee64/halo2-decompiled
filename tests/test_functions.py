@@ -197,8 +197,8 @@ def test_weak_start_inside_an_earlier_weak_function_is_dropped():
 @pytest.mark.retail
 def test_retail_known_functions(retail_xbe):
     found = discover(Xbe(retail_xbe))
-    assert found[0x163ba0].end == 0x163bf4      # crc_checksum_buffer, ends with ret 4
-    assert found[0x163c00].end == 0x163c35      # build_crc_table
+    assert found[0x163ba0].end == 0x163bf4      # function_163ba0, ends with ret 4
+    assert found[0x163c00].end == 0x163c35      # function_163c00
     assert found[0x163ba0].calls == {0x163c00}
     assert found[0x1782a0].tail_jumps == {0x17add0}
     ordered = list(found.values())

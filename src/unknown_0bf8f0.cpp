@@ -3,7 +3,7 @@
    collected into a new object list (objects.cpp; outside functions lane A's
    script functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* an object's place in the attachment tree */
@@ -21,8 +21,8 @@ struct s_object_tree_header_view
 	s_object_tree_view *object;
 };
 
-long object_list_new(void);
-void object_list_add(long list_index, long object_index);
+long function_1ded60(void);
+void function_1dedb0(long list_index, long object_index);
 
 static inline s_object_tree_view *object_tree_get(long object_index)
 {
@@ -38,7 +38,7 @@ void __stdcall function_bf8f0(long object_index, long definition_index, long lis
 	{
 		s_object_tree_view *object = object_tree_get(object_index);
 		if (object->definition_index == definition_index || definition_index == NONE)
-			object_list_add(list_index, object_index);
+			function_1dedb0(list_index, object_index);
 		if (object->next_object_index != NONE)
 			function_bf8f0(object->next_object_index, definition_index, list_index);
 		object_index = object->first_object_index;
@@ -53,7 +53,7 @@ long function_bf950(long object_index, long definition_index)
 
 	if (object_index != NONE)
 	{
-		list_index = object_list_new();
+		list_index = function_1ded60();
 		if (list_index != NONE)
 		{
 			long first_object_index = object_tree_get(object_index)->first_object_index;

@@ -3,7 +3,7 @@
    external global's value and reading a global (outside functions of lane I;
    retail calls them from the thread code, never inlines them) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "hs.h"
@@ -23,7 +23,7 @@ struct s_hs_external_global
 	void *address;
 };
 
-extern s_data_array *g_4f9380;
+extern s_record_pool *g_4f9380;
 extern s_hs_external_global *g_473468[1];
 extern char const *g_470010;
 

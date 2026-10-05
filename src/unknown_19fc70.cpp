@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
 
@@ -54,7 +54,7 @@ long function_19fc70(dword player_index)
 }
 
 // @retail 0x19fd00
-long string_id_number(long index)
+long function_19fd00(long index)
 {
 	long result = 0;
 	long table[101] =

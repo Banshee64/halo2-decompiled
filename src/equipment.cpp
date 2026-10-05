@@ -2,7 +2,7 @@
 /* EQUIPMENT.CPP: equipment placement and pickup sounds.
    See docs/equipment.md for the original-object mapping. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 
@@ -17,7 +17,7 @@ struct s_equipment_object_view
 		dword : 15;
 	} object_flags;
 	byte unknown08[0x6c - 0x08];
-	real position_z;
+	real field_x86bef3;
 	byte unknown70[0x12c - 0x70];
 	struct
 	{
@@ -57,7 +57,7 @@ void function_b9b90(long object_index, bool disable);
 long function_1896c0(real scale, long tag_index);
 
 // @retail 0xf8090
-void __stdcall equipment_place(long equipment_index, s_scenario_equipment_view *placement)
+void __stdcall function_f8090(long equipment_index, s_scenario_equipment_view *placement)
 {
 	s_equipment_object_view *equipment = EQUIPMENT_GET(equipment_index);
 
@@ -67,11 +67,11 @@ void __stdcall equipment_place(long equipment_index, s_scenario_equipment_view *
 	equipment->item_flags.does_not_accelerate = !TEST_FIELD_BIT(placement->flags.does_accelerate);
 
 	if (!TEST_FIELD_BIT(placement->flags.created_at_rest))
-		equipment->position_z += 0.05f;
+		equipment->field_x86bef3 += 0.05f;
 }
 
 // @retail 0xf8110
-void equipment_handle_pickup(long equipment_index)
+void function_f8110(long equipment_index)
 {
 	s_equipment_object_view *equipment = EQUIPMENT_GET(equipment_index);
 	s_equipment_definition_view *definition = EQUIPMENT_DEFINITION_GET(equipment->definition_index);
@@ -81,7 +81,7 @@ void equipment_handle_pickup(long equipment_index)
 }
 
 // @retail 0xf8160
-void equipment_definition_handle_pickup(long equipment_definition_index)
+void function_f8160(long equipment_definition_index)
 {
 	s_equipment_definition_view *definition = EQUIPMENT_DEFINITION_GET(equipment_definition_index);
 
@@ -108,5 +108,5 @@ s_equipment_type_definition_view g_467d98 =
 {
 	"equipment", 'eqip', 0x184, 0x80, 0x88, 0x38,
 	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-	equipment_place
+	function_f8090
 };

@@ -2,17 +2,17 @@
 /* UNKNOWN_19EC40.CPP: finds entries of the 4e0350 globals' second table by
    position and by three optional 16-bit keys */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_19ec40.h"
 #include <math.h>
 
-real distance_squared3d(real_point3d const *a, real_point3d const *b);
+real distance_sq3f(point3f const *a, point3f const *b);
 
 // @retail 0x19ec40
 long function_19ec40(
-	real_point3d const *point,
+	point3f const *point,
 	real height,
 	short key_a,
 	short key_b,
@@ -21,7 +21,7 @@ long function_19ec40(
 	long *results,
 	real radius)
 {
-	real_point3d const *const *point_reference = &point;
+	point3f const *const *point_reference = &point;
 	s_palette_source_globals *globals = g_4e0350;
 	real radius_squared = radius * radius;
 	real best = 0.0f;
@@ -44,8 +44,8 @@ long function_19ec40(
 
 						if (*point_reference)
 						{
-							real_point3d position = g_4e0350->marker_entries[i].position;
-							distance_squared = distance_squared3d(&position, point);
+							point3f position = g_4e0350->marker_entries[i].position;
+							distance_squared = distance_sq3f(&position, point);
 							if (radius >= 0.0f && distance_squared > radius_squared)
 								goto next;
 							if (height > 0.0f && fabs(entry->position.z - point->z) > height)

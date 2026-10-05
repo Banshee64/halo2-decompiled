@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* callees of lane S's region (0x100000-0x10ffff) that are not decompiled yet */
 
@@ -14,7 +14,7 @@ long function_1d8f00(long render_model_index, long marker_name)
 
 // @stub 0x1d8f50
 short function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
-	long const *node_remapping, real_matrix4x3 const *node_matrices, bool mirrored, s_object_marker *markers, short count)
+	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, short count)
 {
 	return 0;
 }

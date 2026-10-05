@@ -2,7 +2,7 @@
 /* UNKNOWN_11C050.CPP: queries on the cluster of a location (s_location).
    Decompiled by lane R for the effects (0x178020, 0x179730). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_queries.h"
 
@@ -17,7 +17,7 @@ struct s_11c120_zone
 {
 	byte unknown00[2];
 	short index;
-	real_plane3d plane;
+	plane3f plane;
 	byte unknown14[4];
 };
 
@@ -48,7 +48,7 @@ bool function_11c080(s_location const *location)
 }
 
 // @retail 0x11c120
-bool function_11c120(s_location const *location, real_point3d const *point, short *zone_index)
+bool function_11c120(s_location const *location, point3f const *point, short *zone_index)
 {
 	bool result = false;
 	short cluster_index = location->cluster_index;

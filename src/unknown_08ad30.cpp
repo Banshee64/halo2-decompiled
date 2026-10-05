@@ -3,7 +3,7 @@
    bytes, each owned by one of the entity definitions) and its interface to
    the replication code, the vtable at 0x450d4c */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "bitstream.h"
 #include "unknown_096ed0.h"
@@ -680,14 +680,14 @@ bool entity_table_new_entities(long *identifiers, c_entry_table *table, long cou
 {
 	void *datas[4] = { 0 };
 	void *states[4] = { 0 };
-	long data_sizes[4] = { 0 };
+	long field_34[4] = { 0 };
 	long state_sizes[4] = { 0 };
 	bool result = true;
 	long i;
 
 	for (i = 0; i < count; i++)
 	{
-		if (!table->function_08af70(handler_indices[i], &data_sizes[i], &datas[i]) ||
+		if (!table->function_08af70(handler_indices[i], &field_34[i], &datas[i]) ||
 			!table->function_08b010(handler_indices[i], &state_sizes[i], &states[i]))
 		{
 			goto failed;
@@ -696,7 +696,7 @@ bool entity_table_new_entities(long *identifiers, c_entry_table *table, long cou
 	if (!replication_table_create_chain((s_handle_peers *)table->unknown0c, count, identifiers))
 		goto failed;
 	for (i = 0; i < count; i++)
-		table->function_08ae80(identifiers[i], (short)handler_indices[i], data_sizes[i], (long)datas[i], state_sizes[i], (long)states[i]);
+		table->function_08ae80(identifiers[i], (short)handler_indices[i], field_34[i], (long)datas[i], state_sizes[i], (long)states[i]);
 	return result;
 
 failed:

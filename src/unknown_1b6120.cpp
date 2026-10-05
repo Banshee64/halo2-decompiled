@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 #include "data_array.h"
 
 /* slot type 0x25 */
@@ -33,7 +33,7 @@ struct s_prop_view_25
 	byte unknown10[0x70 - 0x10];
 	s_prop_sighting unknown70;
 	byte unknown88[0x94 - 0x88];
-	real_vector3d unknown94;
+	vector3f unknown94;
 };
 
 struct s_joint_participant_25
@@ -61,7 +61,7 @@ struct s_502424_element_25
 	real unknown90;
 	s_prop_sighting unknown94;
 	real unknownac;
-	real_vector3d unknownb0;
+	vector3f unknownb0;
 };
 
 short __stdcall function_1b6450(long actor_index, s_slot *slot, bool active);
@@ -91,7 +91,7 @@ long __stdcall function_1b6120(long actor_index, s_slot *slot)
 			for (entry = function_26f0c0(&iterator); entry; entry = function_26f0c0(&iterator))
 			{
 				if (joint_index == NONE && element_502424_get(entry->unknown4)->target.unknown4 == node->object_index &&
-					joint_accept(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+					function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
 				{
 					joint_index = entry->unknown4;
 				}
@@ -103,7 +103,7 @@ long __stdcall function_1b6120(long actor_index, s_slot *slot)
 
 			if (joint_index == NONE)
 			{
-				joint_index = joint_new(actor_index);
+				joint_index = function_26e940(actor_index);
 				if (joint_index != NONE)
 				{
 					state->unknown0c = true;
@@ -134,7 +134,7 @@ long __stdcall function_1b6120(long actor_index, s_slot *slot)
 					element->unknown90 = (real)view->unknown0c;
 					element->unknown94 = view->unknown70;
 				}
-				if (magnitude_squared3d(&view->unknown94) > 0.0f)
+				if (length_sq3f(&view->unknown94) > 0.0f)
 				{
 					if (element->unknownac == -1.0f || (real)view->unknown0c > element->unknownac)
 					{
@@ -142,7 +142,7 @@ long __stdcall function_1b6120(long actor_index, s_slot *slot)
 						element->unknownb0 = view->unknown94;
 					}
 				}
-				real ticks = _real_random(&g_4e7408->unknown0, __FILE__, __LINE__) * 3.0f * g_510c54->ticks_per_second;
+				real ticks = function_x82e52f(&g_4e7408->unknown0, __FILE__, __LINE__) * 3.0f * g_510c54->field_2_3;
 				long value;
 
 				__asm
@@ -209,11 +209,11 @@ short __stdcall function_1b6450(long actor_index, s_slot *slot, bool active)
 
 				if (participant->actor_index != NONE && participant->status == 0)
 				{
-					s_actor_view *other = (s_actor_view *)datum_get(g_4f55f0, participant->actor_index);
+					s_actor_view *other = (s_actor_view *)record_pool_lookup(g_4f55f0, participant->actor_index);
 
 					if (other && other->unknown221 && actor->unknown009)
 					{
-						if (joint->unknown8c > 10 * g_510c54->ticks_per_second)
+						if (joint->unknown8c > 10 * g_510c54->field_2_3)
 							goto done;
 
 						joint->unknown8c++;
@@ -286,10 +286,10 @@ short __stdcall function_1b6740(long actor_index, long leader_index, long a, lon
 
 					if (state->prop_index != NONE)
 					{
-						s_prop_node_view *other_node = (s_prop_node_view *)datum_get(g_502418, state->prop_index);
+						s_prop_node_view *other_node = (s_prop_node_view *)record_pool_lookup(g_502418, state->prop_index);
 
 						if (other_node && node->object_index == other_node->object_index &&
-							invite_actor(leader_index, other_index, 3, 1.0f))
+							function_26eae0(leader_index, other_index, 3, 1.0f))
 						{
 							count++;
 						}

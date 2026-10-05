@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_11A4D0_H
 #define UNKNOWN_11A4D0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 void function_11a220(long list_index, real maximum_body_vitality, real maximum_shield_vitality);
 bool function_11a4d0(long unit_index, long definition_index);

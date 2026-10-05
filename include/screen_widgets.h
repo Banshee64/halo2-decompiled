@@ -14,12 +14,12 @@
 #ifndef SCREEN_WIDGETS_H
 #define SCREEN_WIDGETS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_19d220.h"
 
-class __single_inheritance c_screen_widget;
+class __single_inheritance c_class_1473c9;
 struct s_screen_parameters;
 struct s_screen_layout;
 
@@ -79,10 +79,10 @@ void profile_edit_save();
 void profile_edit_end();
 
 /* the user interface heap (unknown_1a4742.cpp) */
-void *__stdcall user_interface_malloc(unsigned int size);
-void __stdcall user_interface_free(void *pointer);
+void *__stdcall function_1a47fd(unsigned int size);
+void __stdcall function_1a4826(void *pointer);
 
-typedef c_screen_widget *(__stdcall *screen_load_proc)(s_screen_parameters *parameters);
+typedef c_class_1473c9 *(__stdcall *screen_load_proc)(s_screen_parameters *parameters);
 
 /* what a screen is loaded with (0x20 bytes, built by function_149f49, which
    unknown_19b516.h declares with this as an s_message): the controllers it is
@@ -164,9 +164,9 @@ struct s_text_block
 	short value08;
 	short font;
 	real alpha;
-	real_rgb_color color;
+	color3f color;
 	s_widget_bounds bounds;
-	long string_id;
+	long string_handle;
 	short value28;
 	byte unknown2a[2];
 };
@@ -180,12 +180,12 @@ struct s_button_block
 	byte unknown08[2];
 	short font;
 	byte unknown0c[4];
-	real_rgb_color color;
+	color3f color;
 	s_widget_bounds bounds;
 	byte unknown24[4];
 	long bitmap_tag_index;
 	byte unknown2c[4];
-	long string_id;
+	long string_handle;
 	short value34;
 	byte unknown36[2];
 	dword text_flags;
@@ -274,7 +274,7 @@ struct s_screen_definition
 	};
 	short screen_id;
 	short value06;
-	real_argb_color subtitle_color;
+	color4f subtitle_color;
 	byte unknown18[0x1c - 0x18];
 	long string_list_index;
 	long pane_count;
@@ -316,14 +316,14 @@ struct s_widget_event
 };
 
 /* an animation of a widget (0x34 bytes): the definition is copied into the
-   widget's state by c_user_interface_widget::set_animation */
+   widget's state by c_class_1a2c81::set_animation */
 /* a widget animation flag tested by shifting the flags word, widened to a
    dword, rather than as a bitfield: this gives retail's zero-extended byte
    load, shr and test of the low byte (xor ecx, ecx; mov cl, [x + 0x42];
    shr ecx, 1; test cl, 1) */
 #define ANIMATION_FLAG(animation, bit) ((bool)(((dword)(animation).valuee >> (bit)) & 1))
 
-struct s_widget_animation
+struct s_type_0cfb31
 {
 	long type;
 	long target;
@@ -348,7 +348,7 @@ struct s_widget_animation
 	long end_time;
 	long value20;
 	/* x and y move the widget; z is its depth */
-	real_point3d offset;
+	point3f offset;
 	real scale;
 };
 
@@ -408,21 +408,21 @@ void delegate_register(s_list_head *list, c_list_item_delegate *delegate);
 
 /* a widget's text (vtable 0x4576d0): slot 1 sets the string, slot 2 returns
    it */
-class c_user_interface_text
+class c_class_22cc8e
 {
 public:
-	c_user_interface_text();
-	virtual ~c_user_interface_text() {}
+	c_class_22cc8e();
+	virtual ~c_class_22cc8e() {}
 	/* pure in retail (the stand-ins cannot construct an abstract class) */
 	virtual void set_text(word *text) {}
-	virtual word *get_text() { return 0; }
+	virtual word *function_22f52e() { return 0; }
 
 	void update_length();
 	/* sets the text and how it shows (unknown_22e27b.cpp) */
-	void setup(word *text, long value04, real_rgb_color const *color, short value14, long value18, long value1c, long value24);
+	void setup(word *text, long value04, color3f const *color, short value14, long value18, long value1c, long value24);
 
 	long value04;
-	real_rgb_color color;
+	color3f color;
 	short value14;
 	short value16;
 	long value18;
@@ -437,24 +437,24 @@ public:
 };
 
 /* a text with its own buffer (vtable 0x458930) */
-class c_user_interface_text_buffer : public c_user_interface_text
+class c_user_interface_text_buffer : public c_class_22cc8e
 {
 public:
 	c_user_interface_text_buffer();
 	virtual void set_text(word *text);
-	virtual word *get_text();
+	virtual word *function_22f52e();
 
 	s_text_256 buffer;
 };
 
 /* a text with a buffer of 0x20 characters (vtable 0x4588b0) */
-class c_user_interface_text_buffer_32 : public c_user_interface_text
+class c_user_interface_text_buffer_32 : public c_class_22cc8e
 {
 public:
 	c_user_interface_text_buffer_32();
 	virtual void set_text(word *text);
 	/* folded with c_user_interface_text_buffer's */
-	virtual word *get_text() { return buffer.text; }
+	virtual word *function_22f52e() { return buffer.text; }
 
 	struct s_text_32
 	{
@@ -467,11 +467,11 @@ public:
 	} buffer;
 };
 
-class c_user_interface_widget
+class c_class_1a2c81
 {
 public:
-	c_user_interface_widget(long type, word user_flags);
-	virtual ~c_user_interface_widget();
+	c_class_1a2c81(long type, word user_flags);
+	virtual ~c_class_1a2c81();
 	/* gives the widget and its children new ids */
 	virtual void v1();
 	virtual void v2();
@@ -480,7 +480,7 @@ public:
 	virtual void v4(long) {}
 	virtual bool v5(s_widget_event *) { return false; }
 	virtual long v6() { return 0; }
-	virtual void v7(c_user_interface_widget *) {}
+	virtual void v7(c_class_1a2c81 *) {}
 	virtual void v8() {}
 	virtual void v9() {}
 	/* passes the event up to the parent */
@@ -489,50 +489,50 @@ public:
 	virtual long v12() { return 0; }
 	virtual void v13() {}
 	virtual void v14() {}
-	virtual c_user_interface_text *get_text() { return 0; }
+	virtual c_class_22cc8e *function_22f52e() { return 0; }
 	/* whether the widget shows and its animation has ended */
 	virtual bool v16();
 
 	/* the widgets are allocated from the user interface heap */
 	static void *operator new(unsigned int size)
 	{
-		return user_interface_malloc(size);
+		return function_1a47fd(size);
 	}
 
 	/* unknown_22e27b.cpp */
 	void delete_children();
 	/* steps the widget's animation */
 	void update(dword time);
-	void set_animation(s_widget_animation *animation);
-	c_user_interface_widget *find_child(long type, short index, bool recursive);
-	c_screen_widget *get_screen();
+	void set_animation(s_type_0cfb31 *animation);
+	c_class_1a2c81 *find_child(long type, short index, bool recursive);
+	c_class_1473c9 *get_screen();
 	bool has_screen();
 	bool is_in_window();
 	/* focuses the widget in its window (or gives the focus back to its
 	   parent), telling the widgets that lose the focus */
-	void set_focus(bool focus);
+	void function_22ecb4_2(bool focus);
 	bool has_valid_type();
 	real get_depth();
 	void get_bounds(s_widget_bounds *bounds);
-	void get_real_bounds(real_rectangle2d *bounds);
-	void add_child(c_user_interface_widget *widget);
-	void remove_child(c_user_interface_widget *widget);
-	c_user_interface_widget *find_text(long index);
-	c_user_interface_widget *find_bitmap(short index);
-	c_user_interface_widget *find_model(short index);
+	void get_real_bounds(box2f *bounds);
+	void add_child(c_class_1a2c81 *widget);
+	void remove_child(c_class_1a2c81 *widget);
+	c_class_1a2c81 *find_text(long index);
+	c_class_1a2c81 *find_bitmap(short index);
+	c_class_1a2c81 *find_model(short index);
 	void set_child_value6e(long type, short index, bool value);
-	c_user_interface_widget *find_by_id(long id);
+	c_class_1a2c81 *find_by_id(long id);
 	void set_user_flags(word user_flags);
-	c_screen_widget *find_window_screen();
+	c_class_1473c9 *find_window_screen();
 	long new_widget_id();
 	/* the first controller of the widget's user flags (unknown_1a2c81.cpp) */
 	long get_controller_index();
-	void build_animation(s_widget_animation *animation, short index, long type);
+	void build_animation(s_type_0cfb31 *animation, short index, long type);
 	void start_animation(long type);
 
 	/* unknown_24c177.cpp */
 	long child_count();
-	c_user_interface_widget *get_child(long index);
+	c_class_1a2c81 *get_child(long index);
 
 	/* the old name of start_animation */
 	void function_22e957(long type) { start_animation(type); }
@@ -541,13 +541,13 @@ public:
 	word user_flags;
 	short value0a;
 	long value0c;
-	c_user_interface_widget *parent;
-	c_user_interface_widget *child;
-	c_user_interface_widget *next;
-	c_user_interface_widget *previous;
+	c_class_1a2c81 *parent;
+	c_class_1a2c81 *child;
+	c_class_1a2c81 *next;
+	c_class_1a2c81 *previous;
 	s_widget_bounds bounds;
-	real_rgb_color color;
-	s_widget_animation animation;
+	color3f color;
+	s_type_0cfb31 animation;
 	short value68;
 	short value6a;
 	bool m6c;
@@ -557,7 +557,7 @@ public:
 };
 
 /* a text widget (type 6, vtable 0x45a5e0); slot 15 returns its text */
-class c_text_widget_45a5e0 : public c_user_interface_widget
+class c_text_widget_45a5e0 : public c_class_1a2c81
 {
 public:
 	c_text_widget_45a5e0(word user_flags);
@@ -567,7 +567,7 @@ public:
 	virtual long v6();
 
 	/* shows the string with this id from the screen's string list */
-	void set_string(long string_id);
+	void function_253b1a(long string_handle);
 
 	long value70;
 };
@@ -578,7 +578,7 @@ class c_text_widget_458940 : public c_text_widget_45a5e0
 public:
 	c_text_widget_458940(word user_flags);
 	c_text_widget_458940(long controller_index);
-	virtual c_user_interface_text *get_text();
+	virtual c_class_22cc8e *function_22f52e();
 
 	c_user_interface_text_buffer text;
 };
@@ -591,17 +591,17 @@ public:
 	c_text_widget_32(word user_flags);
 	c_text_widget_32(long controller_index);
 	/* folded with c_text_widget_458940's */
-	virtual c_user_interface_text *get_text() { return &text; }
+	virtual c_class_22cc8e *function_22f52e() { return &text; }
 
 	c_user_interface_text_buffer_32 text;
 };
 
 /* a button (type 3, vtable 0x45a628; unknown_253c8b.cpp): a text of 0x20
    characters, and the handlers its press runs */
-class c_button_widget : public c_user_interface_widget
+class c_class_19b8b1 : public c_class_1a2c81
 {
 public:
-	c_button_widget(short valuef8, word user_flags);
+	c_class_19b8b1(short valuef8, word user_flags);
 
 	/* colours the text: focused or as the definition says */
 	virtual void v3();
@@ -609,13 +609,13 @@ public:
 	/* a press of A or start runs the handlers; the directions move the
 	   focus unless the definition's flags stop them */
 	virtual bool v10(s_widget_event *event);
-	virtual c_user_interface_text *get_text();
+	virtual c_class_22cc8e *function_22f52e();
 	/* whether the focused button's bitmap has more than one frame */
 	virtual long v17();
 
 	/* shows the string with this id from the screen's string list
 	   (unknown_253c8b.cpp) */
-	void set_string(long string_id);
+	void function_253b1a(long string_handle);
 
 	c_user_interface_text_buffer_32 text;
 	long valuef4;
@@ -628,7 +628,7 @@ public:
 class c_screen_delegate : public s_list_node
 {
 public:
-	c_screen_delegate(c_screen_widget *owner, void (c_screen_widget::*method)(short *delta)) :
+	c_screen_delegate(c_class_1473c9 *owner, void (c_class_1473c9::*method)(short *delta)) :
 		owner(owner),
 		method(method)
 	{
@@ -638,16 +638,16 @@ public:
 		(owner->*method)(delta);
 	}
 
-	c_screen_widget *owner;
-	void (c_screen_widget::*method)(short *delta);
+	c_class_1473c9 *owner;
+	void (c_class_1473c9::*method)(short *delta);
 };
 
 /* the screen widget (vtable 0x458840); the screens override slots 10, 17,
    18, 19 and 26 */
-class c_screen_widget : public c_user_interface_widget
+class c_class_1473c9 : public c_class_1a2c81
 {
 public:
-	c_screen_widget(long screen_id, long a, long b, word user_flags);
+	c_class_1473c9(long screen_id, long a, long b, word user_flags);
 
 	/* 0x2300ea: a press of B or back leaves the screen (unknown_2300cf.cpp) */
 	virtual bool v10(s_widget_event *event);
@@ -676,7 +676,7 @@ public:
 	bool set_screen_id(long id);
 	long get_definition_value(long block, long index);
 
-	/* builds the screen from its definition (user_interface_widget_window.cpp) */
+	/* builds the screen from its definition (unknown_22f6ca.cpp) */
 	void build(s_screen_layout *layout);
 
 	/* places the newly loaded screen in its window (unknown_147f6d.cpp) */
@@ -700,7 +700,7 @@ public:
 };
 
 /* the screen with a list (vtable 0x4588c0, constructed by 0x230451) */
-class c_screen_with_menu : public c_screen_widget
+class c_screen_with_menu : public c_class_1473c9
 {
 public:
 	c_screen_with_menu(long screen_id, long a, long b, word user_flags, void *list);
@@ -711,56 +711,56 @@ public:
 	void *list;
 };
 
-class c_list_widget;
+class c_class_1474e8;
 
 /* what a screen's panes are built from (function_22f8df): the widget that
    holds the panes when there are several, and each pane's buttons or list */
 struct s_screen_layout
 {
-	c_user_interface_widget *container;
+	c_class_1a2c81 *container;
 	long count;
 	struct
 	{
 		long type;
-		c_user_interface_widget **widget;
-		c_list_widget *list;
+		c_class_1a2c81 **widget;
+		c_class_1474e8 *list;
 		long unknownc;
 	} lists[6];
 };
 
 
 /* the window manager disposes of a screen (not decompiled yet) */
-void function_148148(c_screen_widget *screen);
+void function_148148(c_class_1473c9 *screen);
 
 /* unknown_19b516.h's c_widget is a list of this family (vtable 0x4594a0)
    with its slots rotated by 8; its v9, v10 and v11 are slots 1, 2 and 3 here.
    See the note there on why the two views are still separate. */
-class c_list_widget : public c_user_interface_widget
+class c_class_1474e8 : public c_class_1a2c81
 {
 public:
-	c_list_widget(word user_flags);
+	c_class_1474e8(word user_flags);
 
 	virtual void v17() {}
 	virtual void *get_item_data() { return 0; }
 	virtual long get_item_count() { return 0; }
-	virtual void v20(c_user_interface_widget *, long) {}
+	virtual void v20(c_class_1a2c81 *, long) {}
 	/* whether the item is the focused one (unknown_24c177.cpp) */
-	virtual bool v21(c_user_interface_widget *item);
+	virtual bool v21(c_class_1a2c81 *item);
 
 	/* unknown_24c177.cpp */
-	s_list_definition *get_definition();
+	s_list_definition *function_1751d0();
 	long get_skin_index();
 	void *get_item_animation(long index);
-	c_user_interface_widget *find_item(long datum);
-	c_user_interface_widget *get_focused_item();
+	c_class_1a2c81 *find_item(long datum);
+	c_class_1a2c81 *get_focused_item();
 	long get_focused_datum();
 	void assign_items(long datum);
 	void select_datum(long datum);
 	void select_item(short item);
 	long count_filled_items();
-	void *get_datum(long datum);
+	void *function_24c5f2(long datum);
 
-	s_data_array *data;
+	s_record_pool *data;
 	short value74;
 	short value76;
 	long value78;
@@ -773,7 +773,7 @@ public:
 };
 
 /* the widget base of the list items (vtable 0x45c4d0) */
-class c_widget_45c4d0 : public c_user_interface_widget
+class c_widget_45c4d0 : public c_class_1a2c81
 {
 public:
 	c_widget_45c4d0(long type, word user_flags);
@@ -797,14 +797,14 @@ struct s_bitmap_block
 	byte unknown2c[0x38 - 0x2c];
 };
 
-struct bitmap_data;
+struct s_type_7ba8e9;
 
 /* a bitmap widget (type 8, vtable 0x45ad60, 0x90 bytes; the helpers that
    view it as s_widget_view_2b0a are in unknown_2b116a.cpp) */
-class c_bitmap_widget : public c_user_interface_widget
+class c_class_2b01eb : public c_class_1a2c81
 {
 public:
-	c_bitmap_widget(s_bitmap_block *definition);
+	c_class_2b01eb(s_bitmap_block *definition);
 
 	s_bitmap_block *definition;
 	long start_time;
@@ -814,7 +814,7 @@ public:
 	real value84;
 	short sequence;
 	byte unknown8a[2];
-	bitmap_data *bitmap;
+	s_type_7ba8e9 *bitmap;
 };
 
 /* a model of a pane (0x4c bytes) */
@@ -830,10 +830,10 @@ struct s_model_block
 };
 
 /* a model widget (type 7, vtable 0x45ada8, 0x74 bytes) */
-class c_model_widget : public c_user_interface_widget
+class c_class_2b0b5e : public c_class_1a2c81
 {
 public:
-	c_model_widget(s_model_block *definition);
+	c_class_2b0b5e(s_model_block *definition);
 
 	s_model_block *definition;
 };
@@ -852,7 +852,7 @@ struct s_widget_block_24
 };
 
 /* its widget (type 9, vtable 0x45adf0, 0x88 bytes) */
-class c_widget_45adf0 : public c_user_interface_widget
+class c_widget_45adf0 : public c_class_1a2c81
 {
 public:
 	c_widget_45adf0(s_widget_block_24 *definition);
@@ -878,13 +878,18 @@ public:
 
 /* a list's item widget (vtable 0x459f10, 0x80 bytes); every list keeps an
    array of them at +0x88 */
-class c_list_item_widget : public c_widget_45c4d0
+class c_class_14750b : public c_widget_45c4d0
 {
 public:
-	c_list_item_widget();
+	c_class_14750b();
 
+	/* lets the list fill the item, then shows its focus */
+	virtual void v3();
 	/* a press of A or start chooses the item */
 	virtual bool v10(s_widget_event *event);
+	/* starts the item's animations of the list's skin */
+	virtual void v13();
+	virtual void v14();
 	virtual bool v16();
 	/* whether the item shows a datum */
 	virtual bool v17();
@@ -899,33 +904,33 @@ public:
 struct s_list_item_text
 {
 	short item;
-	long string_id;
+	long string_handle;
 };
 
-bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_item_text *table, long text_index, long count);
+bool function_24c75c(c_class_1474e8 *list, c_class_1a2c81 *item, s_list_item_text *table, long text_index, long count);
 
-typedef void (c_list_widget::*list_item_method)(s_controller_reference **controller, long *item);
+typedef void (c_class_1474e8::*list_item_method)(s_controller_reference **controller, long *item);
 
 /* the item handler a list's constructor registers (vtable 0x45bdb0; retail
    folded every list's copy of its one slot into 0x2b27f9) */
 class c_list_item_handler : public c_list_item_delegate
 {
 public:
-	c_list_item_handler(c_list_widget *owner, list_item_method method) :
+	c_list_item_handler(c_class_1474e8 *owner, list_item_method method) :
 		owner(owner),
 		method(method)
 	{
 	}
 	virtual void invoke(s_controller_reference **controller, long *item);
 
-	c_list_widget *owner;
+	c_class_1474e8 *owner;
 	list_item_method method;
 };
 
 /* a list's item widget (a list's children are its items) */
-inline c_list_item_widget *widget_item(c_user_interface_widget *widget)
+inline c_class_14750b *widget_item(c_class_1a2c81 *widget)
 {
-	return (c_list_item_widget *)widget;
+	return (c_class_14750b *)widget;
 }
 
 /* a list's datum: the item it shows */
@@ -936,22 +941,22 @@ struct s_list_item_datum
 };
 
 /* adds a datum showing this item to a list's data */
-__forceinline void list_item_add(c_list_widget *list, short item)
+__forceinline void list_item_add(c_class_1474e8 *list, short item)
 {
-	((s_list_item_datum *)list->data->data)[datum_new(list->data) & 0xffff].item = item;
+	((s_list_item_datum *)list->data->data)[record_pool_allocate(list->data) & 0xffff].item = item;
 }
 
 /* creates a data array in the user interface heap */
-s_data_array *user_interface_data_new(const char *name, long maximum_count, long size);
+s_record_pool *user_interface_data_new(const char *name, long maximum_count, long size);
 
 /* the lists with a 23rd slot (0x45b3e0, 0x45b510) and the 26-slot lists of
    the vtable at 0x459e88 (0x45af88): slot 22 returns the items and their
    count */
-class c_list_widget_with_items : public c_list_widget
+class c_list_widget_with_items : public c_class_1474e8
 {
 public:
 	c_list_widget_with_items(word user_flags) :
-		c_list_widget(user_flags)
+		c_class_1474e8(user_flags)
 	{
 	}
 
@@ -1001,7 +1006,7 @@ struct s_widget_item
 	short value60;
 	byte unknown62[2];
 	long value64;
-	real_rgb_color color;
+	color3f color;
 };
 
 #endif

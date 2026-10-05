@@ -4,12 +4,12 @@
    input they generate (lane H) */
 
 #include "global_preferences.h"
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
 #include "globals.h"
-#include "input_xbox.h"
+#include "unknown_1248b0.h"
 #include "online_presence.h"
 #include "unknown_19b510.h"
 
@@ -183,7 +183,7 @@ s_controller_input_globals g_55e758;
 bool g_551ae0[MAXIMUM_CONTROLLERS];
 
 long function_190262(long value);
-void online_task_dispose(long task_index);
+void function_6b640(long task_index);
 void network_session_interface_clear_user(long index);
 void online_get_logon_users(XONLINE_USER *users);
 bool function_6c7e0();
@@ -216,7 +216,7 @@ bool network_session_interface_get_user_properties(long index, long *unknown10, 
 void network_session_interface_set_user_properties(long index, long unknown10, const byte *properties, long unknowna4);
 void network_session_interface_set_user_xuid(long index, const XUID *xuid);
 dword voice_get_player_flags(long unknown14);
-void function_23620d(long string_id, word *buffer);
+void function_23620d(long string_handle, word *buffer);
 long __stdcall function_64610(dword *xuid);
 
 /* the controller's xuid and its session record */
@@ -749,8 +749,8 @@ bool g_54d5a0;
 
 bool function_8d7c0(void);
 void function_149ef3(word user_flags, long load);
-c_screen_widget *__stdcall function_18f42d(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_18f474(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_18f42d(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_18f474(s_screen_parameters *parameters);
 
 // @retail 0x1905bf
 void function_1905bf(long controller, bool flag)
@@ -822,12 +822,12 @@ void function_190728(long index)
 
 	if (controller->task_c14 != NONE)
 	{
-		online_task_dispose(controller->task_c14);
+		function_6b640(controller->task_c14);
 		controller->task_c14 = NONE;
 	}
 	if (controller->task_c18 != NONE)
 	{
-		online_task_dispose(controller->task_c18);
+		function_6b640(controller->task_c18);
 		controller->task_c18 = NONE;
 	}
 	memset(&controller->identity, 0, sizeof(controller->identity));
@@ -961,13 +961,13 @@ void function_1907d6(dword time)
 
 	for (controller = 0; controller != NONE; controller = (short)controller_next(controller))
 	{
-		gamepad_state const *state;
+		s_type_ff3a2a const *state;
 
 		if (!g_4e61cc[controller])
 		{
 			continue;
 		}
-		state = input_get_gamepad_state(controller);
+		state = function_1249a0(controller);
 		if (!state)
 		{
 			continue;
@@ -1101,12 +1101,12 @@ void function_190d0a(long index)
 	{
 		if (controller->task_c14 != NONE)
 		{
-			online_task_dispose(controller->task_c14);
+			function_6b640(controller->task_c14);
 			controller->task_c14 = NONE;
 		}
 		if (controller->task_c18 != NONE)
 		{
-			online_task_dispose(controller->task_c18);
+			function_6b640(controller->task_c18);
 			controller->task_c18 = NONE;
 		}
 	}
@@ -1259,7 +1259,7 @@ done:
 /* the closed callback of the same dialog: shows the next controller's
    message instead */
 // @retail 0x19119c
-bool __stdcall function_19119c(c_screen_widget *screen, long dialog_id)
+bool __stdcall function_19119c(c_class_1473c9 *screen, long dialog_id)
 {
 	long index;
 
@@ -1278,7 +1278,7 @@ bool __stdcall function_19119c(c_screen_widget *screen, long dialog_id)
 	return false;
 }
 
-char const *levels_get_path(long campaign_id, long map_id);
+char const *function_19c970(long campaign_id, long map_id);
 
 bool window_manager_window_has_pause_screen_for_user(long channel, long index, long user_index);
 
@@ -1304,7 +1304,7 @@ struct s_scenario_type_view
 };
 
 bool function_2365f7(void);
-long game_time_get_paused(void);
+long function_146840(void);
 void function_125a90(long value);
 
 /* asks the first controller that lost its connection to reconnect, and
@@ -1324,7 +1324,7 @@ void function_18f9be(void)
 
 				dialog_ok_show(0, controller_dialog_id(index), 4, 1 << index, function_191135, function_19119c);
 				type = g_4e0350 ? ((s_scenario_type_view *)g_4e0350)->type : NONE;
-				if (type == 0 && !game_time_get_paused())
+				if (type == 0 && !function_146840())
 				{
 					g_510c54->unknown01 = true;
 					function_125a90(0);
@@ -1342,7 +1342,7 @@ char const *function_191117(void)
 
 	if (map_id != NONE)
 	{
-		char const *path = levels_get_path(1, map_id);
+		char const *path = function_19c970(1, map_id);
 
 		if (path)
 			return path;

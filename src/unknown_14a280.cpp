@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include <math.h>
 
@@ -15,7 +15,7 @@ struct s_bsp3d_node
 
 struct s_bsp3d_plane
 {
-	real_vector3d normal;
+	vector3f normal;
 	real distance;
 };
 
@@ -28,7 +28,7 @@ struct s_bsp3d
 };
 
 // @retail 0x14a280
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index)
+long function_14a280(s_bsp3d *bsp, point3f *point, long index)
 {
 	do
 	{
@@ -47,7 +47,7 @@ long function_14a280(s_bsp3d *bsp, real_point3d *point, long index)
 }
 
 // @retail 0x14a300
-real_plane3d *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, real_plane3d *plane)
+plane3f *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, plane3f *plane)
 {
 	s_bsp3d_plane *source = &bsp->planes[plane_index & 0x7fff];
 
@@ -60,7 +60,7 @@ real_plane3d *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, real_plane3
 	}
 	else
 	{
-		*plane = *(real_plane3d *)source;
+		*plane = *(plane3f *)source;
 	}
 	return plane;
 }
@@ -72,11 +72,11 @@ struct s_structure_portal
 	short front_cluster;
 	short back_cluster;
 	long plane_index;
-	real_point3d center;
+	point3f center;
 	real radius;
 	byte unknown18[4];
 	long vertex_count;
-	real_point3d *vertices;
+	point3f *vertices;
 };
 
 struct s_structure_cluster_portals
@@ -90,7 +90,7 @@ struct s_structure_cluster_portals
 struct s_structure_bsp_portals_view
 {
 	byte unknown00[0x18];
-	s_bsp3d *collision_bsp;
+	s_bsp3d *field_18;
 	byte unknown1c[0x60 - 0x1c];
 	s_structure_portal *portals;
 	byte unknown64[0xa0 - 0x64];
@@ -105,32 +105,32 @@ extern s_bsp3d *g_4e033c;
 extern long g_4e7414;
 long g_4e7418[0x200];
 
-short function_120850(real_vector3d const *v);
-bool function_23a160(real_point2d const *point, real radius, short count, real_point2d const *points);
+short function_120850(vector3f const *v);
+bool function_23a160(point2f const *point, real radius, short count, point2f const *points);
 
 /* whether a sphere reaches through a portal */
 // @retail 0x14a370
-bool function_14a370(s_structure_bsp_portals_view const *bsp, real_point3d const *point, short portal_index, real radius)
+bool function_14a370(s_structure_bsp_portals_view const *bsp, point3f const *point, short portal_index, real radius)
 {
 	s_structure_portal const *portal = &bsp->portals[portal_index];
-	real_plane3d const *plane = (real_plane3d const *)&bsp->collision_bsp->planes[portal->plane_index];
+	plane3f const *plane = (plane3f const *)&bsp->field_18->planes[portal->plane_index];
 	real distance = plane_distance_to_point(plane, point);
 
 	if (radius > (real)fabs(distance))
 	{
-		real_vector3d offset;
+		vector3f offset;
 		real portal_radius;
 
 		vector3d_from_points3d(point, &portal->center, &offset);
 		portal_radius = portal->radius + radius;
-		if (portal_radius * portal_radius > magnitude_squared3d(&offset))
+		if (portal_radius * portal_radius > length_sq3f(&offset))
 		{
-			real_plane3d const *structure_plane = (real_plane3d const *)&g_4e033c->planes[portal->plane_index];
+			plane3f const *structure_plane = (plane3f const *)&g_4e033c->planes[portal->plane_index];
 			short axis = function_120850(&structure_plane->n);
 			bool positive = structure_plane->n.n[axis] > 0.0f;
-			real_point3d projected;
-			real_point2d point2d;
-			real_point2d vertices[0x80];
+			point3f projected;
+			point2f point2d;
+			point2f vertices[0x80];
 			short const *axes;
 			short i;
 
@@ -178,7 +178,7 @@ void structure_clusters_from_bit_vector(dword const *bits, short *count, short m
 
 /* the clusters a sphere reaches from one, through their portals */
 // @retail 0x14a5b0
-short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, real radius, long maximum_count, short *clusters)
+short __stdcall function_14a5b0(short cluster_index, point3f const *point, real radius, long maximum_count, short *clusters)
 {
 	s_structure_bsp_portals_view *bsp = (s_structure_bsp_portals_view *)g_4e0348;
 	s_structure_cluster_portals *cluster = &bsp->clusters[cluster_index];
@@ -221,7 +221,7 @@ extern bool g_4e7411;
    counts when its sphere is within the distance along the direction and
    inside the cone (whose cosine is given) */
 // @retail 0x14a6d0
-short function_14a6d0(short cluster_index, real cosine, real_point3d const *point, real_vector3d const *direction,
+short function_14a6d0(short cluster_index, real cosine, point3f const *point, vector3f const *direction,
 	real maximum_distance, real scale, short maximum_count, short *clusters, short *count)
 {
 	short stack[0x200];
@@ -258,14 +258,14 @@ short function_14a6d0(short cluster_index, real cosine, real_point3d const *poin
 			}
 			if (g_4e7418[other_cluster] != g_4e7414)
 			{
-				real_vector3d offset;
+				vector3f offset;
 				real distance;
 				real radius = portal->radius;
 
 				vector3d_from_points3d(point, &portal->center, &offset);
-				distance = dot_product3d(direction, &offset);
+				distance = dot3f(direction, &offset);
 				if (distance >= 0.0f - radius && radius + maximum_distance >= distance &&
-					(radius * scale * 2.0f + distance) * distance + radius * radius >= magnitude_squared3d(&offset) * cosine * cosine)
+					(radius * scale * 2.0f + distance) * distance + radius * radius >= length_sq3f(&offset) * cosine * cosine)
 				{
 					g_4e7418[other_cluster] = g_4e7414;
 					stack[stack_count++] = other_cluster;
@@ -322,7 +322,7 @@ struct s_sky_view
 	byte unknown08[8];
 	byte flags;
 	byte unknown11[0xa0 - 0x11];
-	real_vector3d vector;
+	vector3f vector;
 };
 
 /* a disk around a point, in the plane of one of the bsp's planes */
@@ -330,7 +330,7 @@ struct s_bsp3d_disk
 {
 	byte unknown00[4];
 	long plane_index;
-	real_point3d center;
+	point3f center;
 	real radius;
 };
 
@@ -342,25 +342,25 @@ struct s_14b240_owner
 
 /* the distance from a point to a disk */
 // @retail 0x14b240
-real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, real_point3d const *point)
+real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, point3f const *point)
 {
 	s_bsp3d_plane const *plane = &owner->bsp->planes[disk->plane_index];
-	real_vector3d offset;
-	real_vector3d projection;
+	vector3f offset;
+	vector3f projection;
 	real distance;
 	real height;
 	real result;
 
 	vector3d_from_points3d(&disk->center, point, &offset);
-	distance = dot_product3d(&plane->normal, &offset);
+	distance = dot3f(&plane->normal, &offset);
 	projection.i = plane->normal.i * distance;
 	projection.j = plane->normal.j * distance;
 	projection.k = plane->normal.k * distance;
 	offset.i -= projection.i;
 	offset.j -= projection.j;
 	offset.k -= projection.k;
-	height = dot_product3d(&projection, &plane->normal);
-	distance = magnitude_squared3d(&offset);
+	height = dot3f(&projection, &plane->normal);
+	distance = length_sq3f(&offset);
 	if (disk->radius * disk->radius >= distance)
 	{
 		result = (real)fabs(height);
@@ -373,7 +373,7 @@ real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, real
 }
 
 // @retail 0x14b360
-void cluster_get_sky(long cluster_index, long *sky_index, bool *found, real_vector3d *vector)
+void cluster_get_sky(long cluster_index, long *sky_index, bool *found, vector3f *vector)
 {
 	bool result = false;
 	s_scenario_skies_view *scenario = (s_scenario_skies_view *)g_4e0350;

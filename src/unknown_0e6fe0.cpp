@@ -2,7 +2,7 @@
 /* UNKNOWN_0E6FE0.CPP: whether a unit is performing an action (unit action
    system; an outside function the unit board-vehicle event 0x9efa0 needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* a unit's actions: a block reference at +0x344 (its size, then its offset

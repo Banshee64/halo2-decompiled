@@ -2,12 +2,12 @@
 /* UNKNOWN_14B560.CPP: the players subsystem entries (initialize, dispose,
    initialize for new map, dispose from old map; the table at 0x441084) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "data_array.h"
 #include "engine_peer.h"
-#include "simulation_world.h"
+#include "unknown_067e10.h"
 #include <string.h>
 
 /* the players globals (0x130 bytes; globals.h views them as s_index_table) */
@@ -17,7 +17,7 @@ struct s_players_globals
 	byte unknown04[4];
 	short unknown08;
 	short unknown0a;
-	long local_players[4];
+	long field_x9b462b[4];
 	long unknown1c[4];
 	/* the machines in the game: which are valid, and their addresses */
 	dword machine_valid_mask;
@@ -51,21 +51,21 @@ static inline void players_globals_reset(s_players_globals *globals)
 {
 	globals->unknown08 = 0;
 	globals->unknown0a = 0;
-	player_index_array_reset(globals->local_players);
+	player_index_array_reset(globals->field_x9b462b);
 	player_index_array_reset(globals->unknown1c);
 }
 
 // @retail 0x14b4b0
-void players_initialize(void)
+void function_14b4b0(void)
 {
 	g_4e8c24 = data_new_inlined("players", 0x10, 0x21c, 0, g_510c2c);
-	s_players_globals *globals = (s_players_globals *)game_state_malloc("players globals", "players_global", sizeof(s_players_globals));
+	s_players_globals *globals = (s_players_globals *)function_123d40("players globals", "players_global", sizeof(s_players_globals));
 	g_4e8c20 = (s_index_table *)globals;
 	players_globals_reset(globals);
 }
 
 // @retail 0x14b560
-void players_dispose(void)
+void function_14b560(void)
 {
 	if (g_4e8c24)
 	{
@@ -78,12 +78,12 @@ void players_dispose(void)
 }
 
 // @retail 0x14b580
-void players_initialize_for_new_map(void)
+void function_14b580(void)
 {
 	if (!g_4ed39c)
 	{
 		s_players_globals *globals = (s_players_globals *)g_4e8c20;
-		s_data_array *players = g_4e8c24;
+		s_record_pool *players = g_4e8c24;
 
 		memset(globals, 0, sizeof(s_players_globals));
 		players_globals_reset(globals);
@@ -91,14 +91,14 @@ void players_initialize_for_new_map(void)
 		globals->unknownac = NONE;
 		globals->unknown9c = 0;
 		players->valid = true;
-		data_delete_all(players);
+		record_pool_release_all(players);
 		ai_players_reset();
 		((s_players_globals *)g_4e8c20)->local_machine_index = NONE;
 	}
 }
 
 // @retail 0x14b600
-void players_dispose_from_old_map(void)
+void function_14b600(void)
 {
 	if (!g_4ed39c)
 	{
@@ -115,7 +115,7 @@ void players_dispose_from_old_map(void)
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : ((value) > (upper) ? (upper) : (value)))
 
 /* the configuration of a player (0x90 bytes) */
-struct s_player_configuration
+struct s_type_b07538
 {
 	byte unknown00[0x44];
 	char representation_index;
@@ -152,7 +152,7 @@ struct s_scenario_starting_profiles_view
 struct s_player_representation
 {
 	byte unknown00[0xb4];
-	long first_person;
+	long field_b4;
 	long third_person;
 };
 
@@ -182,7 +182,7 @@ struct s_player
 		struct
 		{
 			word connected : 1;
-			word left_game : 1;
+			word field_2_2 : 1;
 			word unknown : 14;
 		} flags;
 		word flags_word;
@@ -227,7 +227,7 @@ static inline s_player *player_get(long player_index)
 PRIVATE bool player_appearance_get_function_value(long name, s_player_appearance const *appearance, real *value);
 
 // @retail 0x14bc80
-void player_configuration_verify(s_player_configuration *configuration)
+void player_configuration_verify(s_type_b07538 *configuration)
 {
 	s_scenario_starting_profiles_view *scenario = (s_scenario_starting_profiles_view *)g_4e0350;
 	s_globals_representations_view *globals = (s_globals_representations_view *)g_4e034c;
@@ -345,7 +345,7 @@ PRIVATE bool player_appearance_get_function_value(long name, s_player_appearance
 
 static inline long game_seconds_to_ticks_round(real seconds)
 {
-	real ticks = g_510c54->ticks_per_second * seconds;
+	real ticks = g_510c54->field_2_3 * seconds;
 	long result;
 
 	__asm
@@ -384,8 +384,8 @@ struct s_player_action
 	real facing_pitch;
 	real throttle_i;
 	real throttle_j;
-	real primary_trigger;
-	real secondary_trigger;
+	real field_14_3;
+	real field_18_2;
 	union
 	{
 		struct
@@ -441,7 +441,7 @@ void player_action_initialize(s_player_action *action)
 	target->unknown08 = NONE;
 }
 
-static inline bool valid_real(real value)
+static inline bool function_x41b793(real value)
 {
 	return (*(long *)&value & 0x7f800000) != 0x7f800000;
 }
@@ -467,25 +467,25 @@ static inline bool player_action_target_valid(s_player_action_target const *targ
 }
 
 // @retail 0x14d0a0
-bool player_action_valid(s_player_action const *action)
+bool function_14d0a0(s_player_action const *action)
 {
 	if (!action)
 	{
 		return false;
 	}
 
-	if (!valid_real(action->facing_pitch) || !valid_real(action->facing_yaw) ||
-		!valid_real(action->primary_trigger) || !valid_real(action->secondary_trigger))
+	if (!function_x41b793(action->facing_pitch) || !function_x41b793(action->facing_yaw) ||
+		!function_x41b793(action->field_14_3) || !function_x41b793(action->field_18_2))
 	{
 		return false;
 	}
 
-	if (action->primary_trigger < 0.0f || action->primary_trigger > 1.0f)
+	if (action->field_14_3 < 0.0f || action->field_14_3 > 1.0f)
 	{
 		return false;
 	}
 
-	if (!valid_real(action->throttle_i) || !valid_real(action->throttle_j))
+	if (!function_x41b793(action->throttle_i) || !function_x41b793(action->throttle_j))
 	{
 		return false;
 	}
@@ -560,14 +560,14 @@ void players_update_connections(void)
 {
 	if (g_4e6948->mode != 4)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_player *player;
 
 		iterator.data = g_4e8c24;
 		iterator.index = NONE;
 		while ((player = (s_player *)data_iterator_next_inlined(&iterator)) != NULL)
 		{
-			if (player->flags.left_game)
+			if (player->flags.field_2_2)
 			{
 				continue;
 			}
@@ -599,7 +599,7 @@ long players_first_active_local_player(void)
 
 	for (long i = 0; i < 4; i++)
 	{
-		if (globals->local_players[i] != NONE)
+		if (globals->field_x9b462b[i] != NONE)
 		{
 			result = i;
 			break;
@@ -609,7 +609,7 @@ long players_first_active_local_player(void)
 }
 
 // @retail 0x14de10
-long players_next_active_local_player(long index)
+long function_14de10(long index)
 {
 	long result = NONE;
 
@@ -624,7 +624,7 @@ long players_next_active_local_player(long index)
 
 	for (long i = index; i < 4; i++)
 	{
-		if (((s_players_globals *)g_4e8c20)->local_players[i] != NONE)
+		if (((s_players_globals *)g_4e8c20)->field_x9b462b[i] != NONE)
 		{
 			result = i;
 			break;
@@ -679,7 +679,7 @@ static inline byte *object_get_unchecked(long object_index)
 // @retail 0x14deb0
 bool __stdcall function_14deb0(long *unit_index)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_player *player;
 
 	iterator.data = g_4e8c24;
@@ -738,7 +738,7 @@ bool function_e4050(long object_index);
 // @retail 0x14df40
 bool __stdcall function_14df40(long *unit_index)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_player *player;
 
 	iterator.data = g_4e8c24;
@@ -917,7 +917,7 @@ static inline s_unit_speed_view *player_unit_get(long unit_index)
 // @retail 0x14ece0
 bool function_14ece0(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_player *player;
 
 	iterator.data = g_4e8c24;
@@ -935,7 +935,7 @@ bool function_14ece0(void)
 // @retail 0x14ed80
 bool function_14ed80(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_player *player;
 
 	iterator.data = g_4e8c24;
@@ -952,7 +952,7 @@ bool function_14ed80(void)
 
 
 // @retail 0x14f040
-void player_get_representation(long player_index, long *first_person, long *third_person)
+void player_get_representation(long player_index, long *field_b4, long *third_person)
 {
 	s_player *player = player_get(player_index);
 	s_globals_representations_view *globals = (s_globals_representations_view *)g_4e034c;
@@ -989,13 +989,13 @@ void player_get_representation(long player_index, long *first_person, long *thir
 	{
 		s_player_representation *representation = &globals->representations[index];
 
-		first = representation->first_person;
+		first = representation->field_b4;
 		third = representation->third_person;
 	}
 
-	if (first_person)
+	if (field_b4)
 	{
-		*first_person = first;
+		*field_b4 = first;
 	}
 	if (third_person)
 	{
@@ -1006,7 +1006,7 @@ void player_get_representation(long player_index, long *first_person, long *thir
 void player_control_set_unit(long player_index, long unit_index);
 void function_1682bf(long unit_index, long user_index, long representation_index);
 
-/* this and player_set_controller keep retail's stack arguments (ret 8) when
+/* this and function_14f270 keep retail's stack arguments (ret 8) when
    declared __stdcall, unlike most functions under LTCG; perhaps because they
    are self-recursive */
 // @retail 0x14f190
@@ -1020,7 +1020,7 @@ void __stdcall player_set_local_user(long player_index, long user_index)
 		{
 			player_control_set_unit(player->user_index, NONE);
 			function_1682bf(NONE, player->user_index, NONE);
-			((s_players_globals *)g_4e8c20)->local_players[player->user_index] = NONE;
+			((s_players_globals *)g_4e8c20)->field_x9b462b[player->user_index] = NONE;
 			((s_players_globals *)g_4e8c20)->unknown08--;
 			player->user_index = NONE;
 		}
@@ -1028,7 +1028,7 @@ void __stdcall player_set_local_user(long player_index, long user_index)
 		{
 			player_set_local_user(player_index, NONE);
 			player->user_index = (short)user_index;
-			((s_players_globals *)g_4e8c20)->local_players[user_index] = player_index;
+			((s_players_globals *)g_4e8c20)->field_x9b462b[user_index] = player_index;
 			((s_players_globals *)g_4e8c20)->unknown08++;
 			player_control_set_unit(player->user_index, player->unit_index);
 
@@ -1051,7 +1051,7 @@ void __stdcall player_set_local_user(long player_index, long user_index)
 }
 
 // @retail 0x14f270
-void __stdcall player_set_controller(long player_index, long controller_index)
+void __stdcall function_14f270(long player_index, long controller_index)
 {
 	s_player *player = &((s_player *)g_4e8c24->data)[player_index & 0xffff];
 
@@ -1065,7 +1065,7 @@ void __stdcall player_set_controller(long player_index, long controller_index)
 		}
 		else
 		{
-			player_set_controller(player_index, NONE);
+			function_14f270(player_index, NONE);
 			player->controller_index = controller_index;
 			((s_players_globals *)g_4e8c20)->unknown1c[controller_index] = player_index;
 			((s_players_globals *)g_4e8c20)->unknown0a++;
@@ -1101,7 +1101,7 @@ void players_set_local_machine(s_machine_address const *machine_address)
 		valid && memcmp(machine_address, &globals->local_machine_address, sizeof(s_machine_address)) != 0 ||
 		machine_index != globals->local_machine_index)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_player *player;
 
 		iterator.data = g_4e8c24;
@@ -1109,7 +1109,7 @@ void players_set_local_machine(s_machine_address const *machine_address)
 		while ((player = (s_player *)data_iterator_next_inlined(&iterator)) != NULL)
 		{
 			player_set_local_user(iterator.datum_index, NONE);
-			player_set_controller(iterator.datum_index, NONE);
+			function_14f270(iterator.datum_index, NONE);
 		}
 
 		globals = (s_players_globals *)g_4e8c20;
@@ -1133,7 +1133,7 @@ void players_set_local_machine(s_machine_address const *machine_address)
 				if (player->machine_index == ((s_players_globals *)g_4e8c20)->local_machine_index)
 				{
 					player_set_local_user(iterator.datum_index, player->machine_user_index);
-					player_set_controller(iterator.datum_index, player->machine_controller_index);
+					function_14f270(iterator.datum_index, player->machine_controller_index);
 				}
 			}
 		}

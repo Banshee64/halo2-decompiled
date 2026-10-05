@@ -2,11 +2,11 @@
 /* UNKNOWN_216A50.CPP: saved game file types and sizes in blocks on the
    saved game drive (the user interface's block counts call these) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "screen_widgets.h"
 
-char *csnprintf(char *buffer, long maximum_count, const char *format, ...);
+char *function_11c9c0(char *buffer, long maximum_count, const char *format, ...);
 
 /* the saved game drive: saved games go to the utility drive when set */
 struct s_saved_game_drive
@@ -21,7 +21,7 @@ s_saved_game_drive g_4e61c0;
 // @retail 0x216a50
 long saved_game_file_type_from_variant(s_game_variant *variant)
 {
-	switch (variant->game_engine_index)
+	switch (variant->field_xcb8724)
 	{
 	case 1:
 		return 7;
@@ -48,7 +48,7 @@ static inline void saved_game_drive_root(char *root, long maximum_count)
 
 	if (TEST_FIELD_BIT(g_4e61c0.utility_drive))
 	{
-		csnprintf(root, maximum_count, "%c:\\", letter);
+		function_11c9c0(root, maximum_count, "%c:\\", letter);
 	}
 	else
 	{

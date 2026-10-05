@@ -3,10 +3,10 @@
    each holds two online tasks; the first one also knows the matchmaking
    state (decompiled by lane D for the session manager, outside its region) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_058dd0.h"
 
-void online_task_dispose(long task_index);
+void function_6b640(long task_index);
 
 struct s_session_search
 {
@@ -58,12 +58,12 @@ static inline void session_search_dispose(s_session_search *search)
 {
 	if (search->task0c != NONE)
 	{
-		online_task_dispose(search->task0c);
+		function_6b640(search->task0c);
 		search->task0c = NONE;
 	}
 	if (search->task14 != NONE)
 	{
-		online_task_dispose(search->task14);
+		function_6b640(search->task14);
 		search->task14 = NONE;
 	}
 	search->active = false;

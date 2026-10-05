@@ -1,5 +1,5 @@
 /* stubs for the callees of lane E (0x2b0000..0x2cb8c0) not decompiled yet */
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 
 /* outside the region */
@@ -25,5 +25,5 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 /* in the region: screen load procedures */
 
 // @stub 0x2b19dc
-c_screen_widget *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
+c_class_1473c9 *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
 

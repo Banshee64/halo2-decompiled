@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_21E230_H
 #define UNKNOWN_21E230_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 
 /* mix bin volume pairs and the DSMIXBINS naming them (also used by

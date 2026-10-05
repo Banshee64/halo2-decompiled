@@ -2,7 +2,7 @@
 /* UNKNOWN_189010.CPP: sound sources: whether a sound plays from an object
    of the vehicle type, and the source description a sound starts from */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_sources.h"
 #include "sound_records.h"
@@ -36,8 +36,8 @@ struct s_sound_source_description
 	char value0;
 	byte flags;
 	byte unknown02[2];
-	real_point3d position;
-	real_vector3d direction;
+	point3f position;
+	vector3f direction;
 	byte unknown1c[8];
 	long value24;
 };
@@ -62,13 +62,13 @@ bool function_189010(long object_index, long tag_index)
 	return result;
 }
 
-dword vector3d_compress(real_vector3d const *vector);
+dword vector3d_compress(vector3f const *vector);
 struct s_sound_label_play;
-long function_1890c0(s_sound_label_play const *play, long object_index, short value, real_point3d const *position, real_vector3d const *direction);
+long function_1890c0(s_sound_label_play const *play, long object_index, short value, point3f const *position, vector3f const *direction);
 long function_189400(s_sound_position const *position, long object_index, long tag_index, real scale);
 
 // @retail 0x1892a0
-void function_1892a0(s_sound_source_description *description, real_point3d const *position, real_vector3d const *direction, short value, long tag_index, long object_index)
+void function_1892a0(s_sound_source_description *description, point3f const *position, vector3f const *direction, short value, long tag_index, long object_index)
 {
 	description->position = *position;
 	description->direction = *direction;
@@ -125,10 +125,10 @@ struct s_sound_play_tag
 
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
-long game_sound_find_platform_playback_by_label(long label);
+long function_18d5b0(long label);
 void function_18d4f0(long object_index, char *audible, long *local_player_index);
 
-static __forceinline long real_to_long_round(real value)
+static __forceinline long float_to_int_nearest(real value)
 {
 	long result;
 
@@ -204,7 +204,7 @@ long function_189fe0(s_sound_request const *request, long tag_index)
 			if (TEST_FIELD_BIT(sound_class->flag1) && TEST_FIELD_BIT(sound_class->flag2))
 			{
 				s_game_time_globals *game_time = g_510c54;
-				long end_time = game_time->game_time + real_to_long_round((real)sound->duration * 0.001f * (real)game_time->ticks_per_second) + 10;
+				long end_time = game_time->game_time + float_to_int_nearest((real)sound->duration * 0.001f * (real)game_time->field_2_3) + 10;
 				s_looping_sound_globals *globals = g_4ed288;
 
 				globals->value20 = end_time > globals->value20 ? end_time : globals->value20;
@@ -259,7 +259,7 @@ long function_189650(s_sound_position const *position, s_sound_label_play const 
 	request.location.requested_audible = 1;
 	request.location.unknown08 = 0;
 	request.object_index = NONE;
-	request.platform_playback = game_sound_find_platform_playback_by_label(play->label);
+	request.platform_playback = function_18d5b0(play->label);
 	request.marker = NULL;
 	request.source = NULL;
 	request.variant = NULL;
@@ -318,7 +318,7 @@ long function_189760(s_sound_label_play const *play)
 	request.location.scale = play->scale;
 	request.location.unknown08 = 0;
 	request.object_index = NONE;
-	request.platform_playback = game_sound_find_platform_playback_by_label(play->label);
+	request.platform_playback = function_18d5b0(play->label);
 	request.marker = NULL;
 	request.source = NULL;
 	request.variant = NULL;
@@ -354,8 +354,8 @@ long function_189340(long object_index, s_sound_source_callbacks const *source, 
 	return NONE;
 }
 
-void function_1892a0(s_sound_source_description *description, real_point3d const *position, real_vector3d const *direction, short value, long tag_index, long object_index);
-extern real_point3d *g_468788;
+void function_1892a0(s_sound_source_description *description, point3f const *position, vector3f const *direction, short value, long tag_index, long object_index);
+extern point3f *g_468788;
 extern s_sound_source_callbacks const g_444b5c;
 
 struct s_sound_globals_side_view
@@ -381,9 +381,9 @@ struct s_tag_header_globals_sound_view
 struct s_local_camera_view
 {
 	byte unknown00[0x18];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown24[0x30 - 0x24];
-	real_point3d position;
+	point3f position;
 };
 
 // @retail 0x189400
@@ -409,7 +409,7 @@ long function_189400(s_sound_position const *position, long object_index, long t
 
 				marker.flag0 = false;
 				marker.flag1 = false;
-				function_1892a0((s_sound_source_description *)&marker, g_468788, (real_vector3d *)g_4687a8, NONE, tag_index, object_index);
+				function_1892a0((s_sound_source_description *)&marker, g_468788, (vector3f *)g_4687a8, NONE, tag_index, object_index);
 
 				s_tag_header_globals_sound_view *globals = (s_tag_header_globals_sound_view *)g_4e034c;
 				s_tag_header_alt_sound_view *header = globals->header ? globals->header_alt : NULL;
@@ -418,7 +418,7 @@ long function_189400(s_sound_position const *position, long object_index, long t
 				{
 					s_sound_globals_side_view *sides = (s_sound_globals_side_view *)g_4e3b44[sound_globals_tag_index & 0xffff].bytes;
 					s_local_camera_view *camera = (s_local_camera_view *)local_camera_get(local_player_index);
-					real_vector3d forward = camera->forward;
+					vector3f forward = camera->forward;
 					real distance = (position->position.y * forward.j + position->position.z * forward.k + position->position.x * forward.i)
 						- (camera->position.y * forward.j + camera->position.z * forward.k + camera->position.x * forward.i);
 
@@ -450,7 +450,7 @@ extern s_sound_source_callbacks const g_444afc;
 extern s_sound_source_callbacks const g_444b1c;
 
 // @retail 0x189060
-long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index)
+long function_189060(long object_index, short value, real scale, point3f const *position, vector3f const *direction, long tag_index)
 {
 	s_sound_source_description description;
 
@@ -460,7 +460,7 @@ long function_189060(long object_index, short value, real scale, real_point3d co
 }
 
 // @retail 0x1890c0
-long function_1890c0(s_sound_label_play const *play, long object_index, short value, real_point3d const *position, real_vector3d const *direction)
+long function_1890c0(s_sound_label_play const *play, long object_index, short value, point3f const *position, vector3f const *direction)
 {
 	s_sound_source_description description;
 	s_sound_request request;
@@ -484,7 +484,7 @@ long function_1890c0(s_sound_label_play const *play, long object_index, short va
 	{
 		request.object_index = object_index;
 		request.marker = (s_sound_marker *)&description;
-		request.platform_playback = game_sound_find_platform_playback_by_label(play->label);
+		request.platform_playback = function_18d5b0(play->label);
 		request.source = function_189010(object_index, play->tag_index) ? &g_444b1c : &g_444afc;
 		return function_189fe0(&request, play->tag_index);
 	}
@@ -516,11 +516,11 @@ long function_189210(long object_index, long marker_name, s_sound_label_play con
 
 long function_155760(long local_player_index);
 real function_218d30(long definition_index);
-real function_30bf0(real_vector3d *vector);
+real function_30bf0(vector3f *vector);
 long function_1895f0(s_sound_position const *position, real scale, long tag_index);
 
 // @retail 0x1897c0
-bool function_1897c0(long local_player_index, long unit_index, long tag_index, s_location const *location, real_point3d const *origin, real_vector3d const *direction)
+bool function_1897c0(long local_player_index, long unit_index, long tag_index, s_location const *location, point3f const *origin, vector3f const *direction)
 {
 	s_local_camera *camera = local_camera_get(local_player_index);
 
@@ -539,16 +539,16 @@ bool function_1897c0(long local_player_index, long unit_index, long tag_index, s
 	}
 
 	real maximum_distance = function_218d30(tag_index);
-	real_vector3d to_camera;
-	real_vector3d perpendicular;
-	real_vector3d projection;
+	vector3f to_camera;
+	vector3f perpendicular;
+	vector3f projection;
 	real length_squared;
 
 	vector3d_from_points3d(origin, &camera->position, &to_camera);
-	length_squared = magnitude_squared3d(direction);
+	length_squared = length_sq3f(direction);
 	if (length_squared != 0.0f)
 	{
-		real t = dot_product3d(direction, &to_camera) / length_squared;
+		real t = dot3f(direction, &to_camera) / length_squared;
 
 		projection.i = direction->i * t;
 		projection.j = direction->j * t;
@@ -565,15 +565,15 @@ bool function_1897c0(long local_player_index, long unit_index, long tag_index, s
 		projection.k = 0.0f;
 	}
 
-	real along = dot_product3d(direction, &projection);
-	if (along >= 0.0f && magnitude_squared3d(direction) > along)
+	real along = dot3f(direction, &projection);
+	if (along >= 0.0f && length_sq3f(direction) > along)
 	{
-		real distance_squared = magnitude_squared3d(&perpendicular);
+		real distance_squared = length_sq3f(&perpendicular);
 
 		if (maximum_distance * maximum_distance > distance_squared)
 		{
 			s_sound_position position;
-			real_vector3d forward = *direction;
+			vector3f forward = *direction;
 			double distance = -sqrt(distance_squared);
 
 			position.position.x = (real)(perpendicular.i * distance + camera->position.x);

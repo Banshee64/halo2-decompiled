@@ -1,6 +1,6 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "kill_volumes.h"
 #include <math.h>
 #include <string.h>
@@ -21,12 +21,12 @@ struct s_ease_state
 	bool active;
 	bool limited;
 	byte pad0f;
-	real_point3d start;
-	real_vector3d impulse;
+	point3f start;
+	vector3f impulse;
 	real alignment;
 	real distance;
-	real_point3d target;
-	real_vector3d direction;
+	point3f target;
+	vector3f direction;
 	real limit;
 	bool settled;
 	byte pad4d[3];
@@ -38,22 +38,22 @@ struct s_ease_output
 {
 	dword flags;
 	byte unknown04[8];
-	real_vector3d position;
+	vector3f position;
 };
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 // @retail 0x1eb8a0
 long function_1eb8a0(
 	bool update,
-	real_vector3d *a,
-	real_point3d *b,
+	vector3f *a,
+	point3f *b,
 	s_ease_state *s,
 	s_ease_output *out,
 	real dt,
-	real_vector3d *d,
-	real_vector3d *q,
-	real_point3d *pos)
+	vector3f *d,
+	vector3f *q,
+	point3f *pos)
 {
 	s_game_time_globals *globals = g_510c54;
 	bool fail = false;
@@ -83,7 +83,7 @@ long function_1eb8a0(
 
 				s->alignment = d->k * a->k + d->j * a->j + a->i * d->i;
 				real v = s->alignment * 1.5f;
-				real_vector3d delta;
+				vector3f delta;
 				delta.i = b->x - pos->x;
 				delta.j = b->y - pos->y;
 				delta.k = b->z - pos->z;
@@ -188,13 +188,13 @@ long function_1eb8a0(
 		if (counter == 0)
 			q = g_4687a4;
 		w = w * globals->rate;
-		real_vector3d qr = *q;
+		vector3f qr = *q;
 		real third3 = e3 * 0.33333334f;
 		real lo = (w - third3) * 3.f * 0.5f;
 		real hi = (e3 - third3) * 3.f * 0.5f;
 		if (lo < 0.f)
 			lo = 0.f;
-		real_vector3d dl;
+		vector3f dl;
 		dl.i = s->target.x - pos->x;
 		qr.i = qr.i * globals->rate;
 		dl.j = s->target.y - pos->y;
@@ -213,7 +213,7 @@ long function_1eb8a0(
 					out->position.i = s->direction.i * f + qr.i;
 					out->position.j = s->direction.j * f + qr.j;
 					out->position.k = s->direction.k * f + qr.k;
-					real ticks = (real)globals->ticks_per_second;
+					real ticks = (real)globals->field_2_3;
 					out->position.i = out->position.i * ticks;
 					out->position.j = out->position.j * ticks;
 					out->position.k = out->position.k * ticks;
@@ -224,7 +224,7 @@ long function_1eb8a0(
 					out->position.i = qr.i;
 					out->position.j = qr.j;
 					out->position.k = qr.k;
-					real ticks = (real)globals->ticks_per_second;
+					real ticks = (real)globals->field_2_3;
 					out->position.i = ticks * out->position.i;
 					out->position.j = out->position.j * ticks;
 					out->position.k = out->position.k * ticks;
@@ -236,7 +236,7 @@ long function_1eb8a0(
 			{
 				real v = PIN((double)s->alignment * 1.5, 0.75, 3.5);
 				real step = (real)(globals->rate * v);
-				real_vector3d nq = qr;
+				vector3f nq = qr;
 				real len = (real)sqrt(qr.k * qr.k + qr.j * qr.j + qr.i * qr.i);
 				real nlen = function_30bf0(&nq);
 				if (!s->settled)
@@ -257,7 +257,7 @@ long function_1eb8a0(
 						out->position.j = nq.j * back + qr.j;
 						out->position.i = nq.i * back + qr.i;
 						out->position.k = nq.k * back + qr.k;
-						real ticks = (real)globals->ticks_per_second;
+						real ticks = (real)globals->field_2_3;
 						out->position.i = out->position.i * ticks;
 						out->position.j = out->position.j * ticks;
 						out->position.k = out->position.k * ticks;
@@ -322,7 +322,7 @@ s_kill_volume_globals *g_51e9c8;
 // @retail 0x1ec420
 void function_1ec420(void)
 {
-	s_kill_volume_globals *globals = (s_kill_volume_globals *)game_state_malloc("unknown", "unknown", sizeof(s_kill_volume_globals));
+	s_kill_volume_globals *globals = (s_kill_volume_globals *)function_123d40("unknown", "unknown", sizeof(s_kill_volume_globals));
 	g_51e9c8 = globals;
 	globals->enabled = false;
 }

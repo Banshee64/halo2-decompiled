@@ -2,7 +2,7 @@
 /* UNKNOWN_1FB940.CPP: the clusters an event in one cluster reaches (with
    event_handling's 0x1fbac0..0x1fc210) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_249e20.h"
 #include <string.h>
@@ -11,8 +11,8 @@
 dword g_4f5728[0x10];
 extern short g_4f5768; /* ai.cpp resets it */
 
-#define BIT_VECTOR_SIZE_IN_LONGS(count) (((count) + 31) >> 5)
-#define BIT_VECTOR_SIZE_IN_BYTES(count) (4 * BIT_VECTOR_SIZE_IN_LONGS(count))
+#define MACRO_46A44D(count) (((count) + 31) >> 5)
+#define BIT_VECTOR_SIZE_IN_BYTES(count) (4 * MACRO_46A44D(count))
 
 /* the clusters that hear the cluster: not cut off from it, and nearer than
    40 world units */
