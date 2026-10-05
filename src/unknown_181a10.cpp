@@ -278,3 +278,133 @@ bool function_182800(s_vehicle_ray *ray_data, long excluded_component, void *wor
 	_control87(0x9001f, 0xfffff);
 	return collector.found;
 }
+
+class c_distance_query_shape
+{
+public:
+	virtual void slot0() {}
+	virtual void slot1() {}
+	virtual void slot2() {}
+	virtual void slot3() {}
+	virtual void slot4() {}
+	virtual long get_type() { return 0; }
+};
+
+struct s_distance_query_body
+{
+	byte field_0[0xc];
+	c_distance_query_shape *shape;
+};
+
+struct s_distance_query_entry
+{
+	byte field_0[0x40];
+	s_distance_query_body *body;
+	byte field_44[0x60 - 0x44];
+};
+
+struct s_distance_query_component
+{
+	long field_0;
+	struct { dword field_4_0 : 5; dword field_4_5 : 1; } flags;
+	byte field_8[0x70 - 8];
+	s_distance_query_entry *bodies;
+	long count;
+	byte field_78[0xa0 - 0x78];
+};
+
+struct s_distance_query_context;
+typedef void (__cdecl *t_distance_query)(void const *, void const *, s_distance_query_context *, c_query_collector *);
+struct s_distance_query_dispatch
+{
+	byte field_0[0x218c];
+	t_distance_query query[32][32];
+};
+
+struct __declspec(align(16)) s_distance_query_context
+{
+	s_distance_query_dispatch *dispatch;
+	long field_4;
+	real maximum;
+	long field_c;
+};
+
+struct s_distance_query_world
+{
+	byte field_0[0xcc];
+	s_distance_query_context *context;
+};
+
+struct s_distance_query_contact
+{
+	__m128 position_distance;
+	__m128 normal;
+	__m128 field_20;
+};
+
+class hkWorld;
+extern hkWorld *g_51e9a4;
+void voice_fpu_enter();
+
+// @retail 0x183670
+bool __stdcall function_183670(long component_a, long component_b, point3f *a, point3f *b, real *distance)
+{
+	bool result = false;
+	if (component_a != NONE && component_b != NONE)
+	{
+		s_distance_query_component *first = &((s_distance_query_component *)g_51e9b8->data)[component_a & 0xffff];
+		s_distance_query_component *second = &((s_distance_query_component *)g_51e9b8->data)[component_b & 0xffff];
+		if (TEST_FIELD_BIT(first->flags.field_4_5) && TEST_FIELD_BIT(second->flags.field_4_5))
+		{
+			s_distance_query_context context = *((s_distance_query_world *)g_51e9a4)->context;
+			voice_fpu_enter();
+			*distance = FLT_MAX;
+			context.maximum = FLT_MAX;
+			for (long i = 0; i < first->count; i++)
+			{
+				for (long j = 0; j < second->count; j++)
+				{
+					__declspec(align(16)) c_query_array_collector collector;
+					s_distance_query_contact buffer[8];
+					collector.maximum = FLT_MAX;
+					collector.entries.data = buffer;
+					collector.entries.count = 0;
+					collector.entries.capacity_and_flags = 0x80000008;
+					s_distance_query_body *body_a = first->bodies[i].body;
+					s_distance_query_body *body_b = second->bodies[j].body;
+					c_distance_query_shape *shape_a = body_a->shape;
+					c_distance_query_shape *shape_b = body_b->shape;
+					long type_b = shape_b->get_type();
+					long type_a = shape_a->get_type();
+					context.dispatch->query[type_a][type_b](&body_a->shape, &body_b->shape, &context, &collector);
+					s_distance_query_contact *contacts = (s_distance_query_contact *)collector.entries.data;
+					for (long k = 0; k < collector.entries.count; k++)
+					{
+						if (*distance > contacts[k].position_distance.m128_f32[3])
+						{
+							*distance = contacts[k].position_distance.m128_f32[3];
+							real px = contacts[k].position_distance.m128_f32[0];
+							real py = contacts[k].position_distance.m128_f32[1];
+							real pz = contacts[k].position_distance.m128_f32[2];
+							b->x = px;
+							b->y = py;
+							b->z = pz;
+							real scale = *distance;
+							real x = contacts[k].normal.m128_f32[0];
+							real y = contacts[k].normal.m128_f32[1];
+							real z = contacts[k].normal.m128_f32[2];
+							a->x = x * scale + b->x;
+							a->y = y * scale + b->y;
+							a->z = z * scale + b->z;
+							result = true;
+						}
+					}
+				}
+			}
+			_mm_setcsr(_mm_getcsr() & ~0x3f);
+			_clearfp();
+			_control87(0x9001f, 0xfffff);
+		}
+	}
+	return result;
+}
