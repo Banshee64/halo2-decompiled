@@ -2189,33 +2189,30 @@ void c_multiplayer_settings_edit_list::handle_item(s_controller_reference **cont
 {
 	if (record_pool_lookup(data, *item))
 	{
-		screen_load_proc load;
-
 		switch (*(short *)item)
 		{
 		case 0:
-			load = function_2c8a8f;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c8a8f);
 			break;
 		case 1:
-			load = function_2c8998;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c8998);
 			break;
 		case 2:
-			load = function_2c89a8;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c89a8);
 			break;
 		case 3:
-			load = function_2c89b9;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c89b9);
 			break;
 		case 4:
-			load = function_2c89ca;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c89ca);
 			break;
 		case 5:
-			load = function_2c8858;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c8858);
 			break;
 		default:
-			load = function_2c8896;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c8896);
 			break;
 		}
-		function_149ef3(1 << (*controller)->controller_index, (long)load);
 	}
 }
 
@@ -2904,9 +2901,11 @@ void c_choose_emblem_list::handle_item(s_controller_reference **controller, long
 	case 0:
 		g_54e5d0.settings.unknown11d[0] = (byte)emblem;
 		break;
-	default:
+	case 1:
 		g_54e5d0.settings.unknown11d[1] = (byte)emblem;
 		break;
+	default:
+		__assume(0);
 	}
 	function_14800c(v11(), v12());
 }
