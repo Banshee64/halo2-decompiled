@@ -4,6 +4,8 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include <math.h>
+#include "globals.h"
 
 /* the influences' weights (g_502258, cleared by unknown_157450.cpp): two
    shared values, then three per influence type */
@@ -66,4 +68,78 @@ void function_23ba10(long type, s_spawn_influence_list *list, point3f const *poi
 
 	spawn_influence_add(list, point, definition->value0, definition->value4, globals->value0,
 		globals->value4, definition->value8);
+}
+
+/* the spawn settings of the game variant (the two distances at +0x1c) */
+struct s_spawn_settings_view
+{
+	byte unknown00[0x1c];
+	real distance1c;
+	real distance20;
+};
+
+/* the scenario's spawn data: its first block gives the distances */
+struct s_spawn_scenario_view
+{
+	byte unknown000[0x318];
+	long spawn_data_count;
+	real *spawn_data;
+};
+
+struct s_spawn_tag_header_view
+{
+	byte unknown000[0x16c];
+	long globals_index;
+};
+
+/* the globals' default distances */
+struct s_spawn_globals_tag_view
+{
+	byte unknown00[0xc];
+	byte *data;
+};
+
+/* the two distances spawning uses: the variant's, else the scenario's, else
+   the globals' */
+// @retail 0x23b3f0
+void function_23b3f0(s_spawn_settings_view *settings, real *distance20, real *distance1c)
+{
+	s_spawn_scenario_view *scenario = (s_spawn_scenario_view *)g_4e0350;
+	s_spawn_tag_header_view *header = (s_spawn_tag_header_view *)g_4e034c;
+	s_tag_instance *tags = g_4e3b44;
+
+	if (settings->distance1c == 0.0f)
+	{
+		byte *globals = ((s_spawn_globals_tag_view *)tags[header->globals_index & 0xffff].flags)->data;
+
+		if (scenario->spawn_data_count <= 0 || scenario->spawn_data[0] == 0.0f)
+		{
+			*distance1c = (real)fabs(*(real *)(globals + 0x154));
+		}
+		else
+		{
+			*distance1c = (real)fabs(scenario->spawn_data[0]);
+		}
+	}
+	else
+	{
+		*distance1c = (real)fabs(settings->distance1c);
+	}
+	if (settings->distance20 == 0.0f)
+	{
+		byte *globals = ((s_spawn_globals_tag_view *)tags[header->globals_index & 0xffff].flags)->data;
+
+		if (scenario->spawn_data_count <= 0 || scenario->spawn_data[1] == 0.0f)
+		{
+			*distance20 = (real)fabs(*(real *)(globals + 0x150));
+		}
+		else
+		{
+			*distance20 = (real)fabs(scenario->spawn_data[1]);
+		}
+	}
+	else
+	{
+		*distance20 = (real)fabs(settings->distance20);
+	}
 }
