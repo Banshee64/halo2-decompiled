@@ -575,7 +575,7 @@ struct s_sound_channel_parameters
 	s_sound_filter_parameters const *filter;
 	s_sound_lfo_parameters const *pitch_lfo;
 	s_sound_lfo_parameters const *combined_lfo;
-	dword effect_data[0x100];
+	dword effect_words[0x100];
 	dword effect_data_size;
 };
 
@@ -709,7 +709,7 @@ void function_2201f0(long channel_index, s_sound_channel_parameters const *param
 		}
 	finished:
 		*(real *)stream->unknown04 = interpolation;
-		function_21f960(parameters->effect_data_size, parameters->effect_data);
+		function_21f960(parameters->effect_data_size, parameters->effect_words);
 	}
 }
 
