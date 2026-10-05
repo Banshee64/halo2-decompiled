@@ -1,6 +1,7 @@
 // @flags /O2 /Gr
 #include "unknown_11c920.h"
 #include "loop_allocator.h"
+#include <xtl.h>
 
 // The allocator methods are shared with the memory source at 0x476fbc.
 class c_physical_memory_source : public c_memory_source
@@ -34,6 +35,9 @@ byte g_55c14e;
 byte g_55c14f;
 long g_55c160;
 s_55c164 g_55c164[16];
+bool g_55c274;
+long g_55c278;
+dword g_55c27c;
 
 void function_215880(void *ref);
 bool function_216800(void *a, long b);
@@ -116,6 +120,47 @@ bool function_216800(void *location, long file_index)
 				*(s_profile_location_bytes *)location = *(s_profile_location_bytes *)g_55c164[i].unknown04;
 				result = true;
 				break;
+			}
+		}
+	}
+	return result;
+}
+
+struct s_saved_game_file_location;
+
+// @retail 0x2168b0
+bool function_2168b0(s_saved_game_file_location *location, long file_index)
+{
+	long const *index_reference = &file_index;
+	bool result = false;
+	dword thread = GetCurrentThreadId();
+	if (g_55c274 || (g_55c278 == *index_reference && g_55c27c != thread))
+	{
+		void *files = g_51ea14;
+		if (files)
+		{
+			long unit = (*index_reference >> 4) & 0xf;
+			long index = (*index_reference >> 8) & 0x1fff;
+			s_profile_location_table *table = (s_profile_location_table *)((byte *)files + 0xbef8) + unit;
+			long count = table->count;
+			long bounded_index = index < 0 ? 0 : index > count - 1 ? count - 1 : index;
+			if (bounded_index == index)
+			{
+				table->entries[index] = *(s_profile_location_bytes const *)location;
+				result = true;
+			}
+		}
+		else if (g_55c14f)
+		{
+			long count = g_55c160;
+			for (long i = 0; i < count; i++)
+			{
+				long cached_index = (long)g_55c164[i].field0;
+				if (cached_index != NONE && cached_index == *index_reference)
+				{
+					*(s_profile_location_bytes *)g_55c164[i].unknown04 = *(s_profile_location_bytes const *)location;
+					break;
+				}
 			}
 		}
 	}
