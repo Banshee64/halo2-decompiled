@@ -672,7 +672,7 @@ bool network_connection_initialize(s_network_connection *connection, long id, dw
 	{
 		connection->reliable_stream_index = network_reliable_stream_allocate(0);
 		if (connection->reliable_stream_index == NONE)
-			goto failed;
+			goto done;
 		c_connection_client *client = (c_connection_client *)network_reliable_stream_get(connection->reliable_stream_index);
 		s_connection_handler *reliable = &connection->handlers[connection->handler_count];
 		reliable->client = client;
@@ -683,9 +683,10 @@ bool network_connection_initialize(s_network_connection *connection, long id, dw
 	{
 		connection->stream_index = network_stream_allocate(0);
 		if (connection->stream_index == NONE)
-			goto failed;
+			goto done;
+		c_connection_client *client = (c_connection_client *)network_stream_get(connection->stream_index);
 		s_connection_handler *unreliable = &connection->handlers[connection->handler_count];
-		unreliable->client = (c_connection_client *)network_stream_get(connection->stream_index);
+		unreliable->client = client;
 		unreliable->type = 0x19;
 		connection->handler_count++;
 	}
@@ -697,11 +698,9 @@ bool network_connection_initialize(s_network_connection *connection, long id, dw
 		connection->handler_count++;
 	}
 	result = true;
-	goto done;
-
-failed:
-	network_connection_dispose(connection);
 done:
+	if (!result)
+		network_connection_dispose(connection);
 	return result;
 }
 
@@ -717,8 +716,7 @@ long network_connection_allocate(long unused_owner, dword flags)
 		{
 			if (function_x7665e0(i)->state == 0)
 			{
-				s_network_connection *connection = function_x7665e0(i);
-				if (network_connection_initialize(connection, i, flags, &g_528000,
+				if (network_connection_initialize(function_x7665e0(i), i, flags, &g_528000,
 					g_528b28, (c_class_938e0 *)g_529188, &g_4cf6d4))
 					result = i;
 				break;

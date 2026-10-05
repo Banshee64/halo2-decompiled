@@ -3,6 +3,12 @@
 
 /* callees of lane S's region (0x100000-0x10ffff) that are not decompiled yet */
 
+// @stub 0xbf5a0
+bool function_bf5a0(long object_index)
+{
+	return false;
+}
+
 /* object callees of 0xb7680 */
 
 // @stub 0xbd020
