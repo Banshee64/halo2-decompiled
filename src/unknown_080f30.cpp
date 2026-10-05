@@ -4,8 +4,17 @@
 
 #include "unknown_11c920.h"
 #include "pending_messages.h"
+#include "crc.h"
 
 bool function_0b49a0(long index, real *result);
+
+// @retail 0x812a0
+dword pending_message_payload_crc(const void *data, long size)
+{
+	dword crc = 0xffffffff;
+	function_163ba0(&crc, (const byte *)data + 4, size - 4);
+	return crc;
+}
 
 /* how far the request's transfer has got */
 // @retail 0x80f30

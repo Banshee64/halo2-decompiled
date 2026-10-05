@@ -1228,7 +1228,7 @@ bool network_session_parameters_set_value49c8(c_class_58d20 *session, long value
 }
 
 // @retail 0x5b570
-bool network_session_parameters_set_value49f8(c_class_58d20 *session, long value)
+bool network_session_parameters_set_value49f8(c_class_58d20 *session, long unused_value)
 {
 	bool result = false;
 
@@ -1237,14 +1237,14 @@ bool network_session_parameters_set_value49f8(c_class_58d20 *session, long value
 		if (session->function_058d20())
 		{
 			session->update_count++;
-			session->value49f8 = value;
+			session->value49f8 = 0;
 		}
 		else
 		{
 			s_network_message_parameters_request request;
 			parameters_request_initialize(session, &request);
 			request.change_value49f8 = true;
-			request.value49f8 = value;
+			request.value49f8 = 0;
 			network_session_send_to_host(session, _network_message_type_parameters_request, sizeof(request), &request);
 		}
 		result = true;
