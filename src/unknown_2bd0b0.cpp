@@ -3,6 +3,8 @@
 #include "globals.h"
 #include "unknown_1523c0.h"
 #include "game_engine_events.h"
+#include "engine_peer.h"
+#include "marker_list.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -48,6 +50,7 @@ class c_game_engine_45c878 : public c_game_engine
 public:
 	virtual bool v23();
 	virtual void v28(long);
+	virtual void v36(long);
 	virtual void v37(long);
 };
 
@@ -120,6 +123,72 @@ void c_game_engine_45c878::v28(long a)
 	game_engine_event_initialize_inline(&event, 6, 0);
 	event.a = a;
 	game_engine_event_send_inline(&event);
+}
+
+void hill_marker(long local_player, s_polygon_2be *hill);
+bool function_19f240(long *iterator);
+
+/* a player iterator: the current player before the iterator (0x19f240) */
+struct s_player_iterator_2bd0
+{
+	s_player_2bd0 *player;
+	s_record_pool *data;
+	long index;
+	long absolute_index;
+};
+
+/* whether the engine counts the two teams as friends */
+static inline bool game_engine_teams_friendly_2bd0(short team, short other_team)
+{
+	bool result = false;
+	c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
+
+	if (engine)
+	{
+		result = engine->p27(team, other_team);
+	}
+	return result;
+}
+
+/* the hill's marker, and in team games the markers of the other teams'
+   players */
+// @retail 0x2bd820
+void c_game_engine_45c878::v36(long local_player)
+{
+	long player_index = NONE;
+
+	if (local_player != NONE)
+	{
+		player_index = g_4e8c20->entries[local_player];
+	}
+	hill_marker(local_player, (s_polygon_2be *)g_51ecc8);
+	if (player_index != NONE)
+	{
+		s_player_2bd0 *player = player_get_2bd0(player_index);
+
+		if (player->object_index != NONE)
+		{
+			s_player_iterator_2bd0 iterator;
+
+			iterator.data = g_4e8c24;
+			iterator.absolute_index = NONE;
+			iterator.index = NONE;
+			while (function_19f240((long *)&iterator))
+			{
+				long other = iterator.index;
+
+				if (other != player_index && !game_engine_teams_friendly_2bd0(iterator.player->team, player->team))
+				{
+					s_marker_list list;
+
+					if (function_162550(other, &list))
+					{
+						function_24e59f(&list);
+					}
+				}
+			}
+		}
+	}
 }
 
 // @retail 0x2bd2c0

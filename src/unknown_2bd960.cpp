@@ -425,6 +425,89 @@ void hill_color(long player_index, s_color_bits *color)
 	}
 }
 
+/* a player's unit, as the hill's marker reads it */
+struct s_player_unit_2be
+{
+	byte unknown00[0x2c];
+	long unit_index;
+	byte unknown30[0x21c - 0x30];
+};
+
+/* the hill's marker for the local player: in the hill's color, faded by how
+   far the player stands outside it */
+// @retail 0x2be6d0
+void hill_marker(long local_player, s_polygon_2be *hill)
+{
+	if (hill->count >= 4 && !(hill->count & 1))
+	{
+		real fade = 1.0f;
+		long player_index;
+		s_color_bits color;
+		s_marker_list list;
+
+		if (local_player != NONE)
+		{
+			player_index = g_4e8c20->entries[local_player];
+			if (player_index != NONE)
+			{
+				s_player_unit_2be *player = (s_player_unit_2be *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
+
+				if (player->unit_index != NONE)
+				{
+					point3f position;
+					real dx;
+					real dy;
+					real distance;
+
+					function_b9dd0(player->unit_index, &position);
+					dx = hill->center_x - position.x;
+					dy = hill->center_y - position.y;
+					distance = dx * dx;
+					distance += dy * dy;
+					distance = (real)sqrt(distance) / hill->radius - 1.0f;
+					if (0.0f > distance)
+					{
+						fade = 0.0f;
+					}
+					else if (distance > 1.0f)
+					{
+						fade = 1.0f;
+					}
+					else
+					{
+						fade = distance;
+					}
+				}
+			}
+		}
+		player_index = NONE;
+		if (local_player != NONE)
+		{
+			player_index = g_4e8c20->entries[local_player];
+		}
+		hill_color(player_index, &color);
+		list.b0 = 1;
+		list.b1 = 0;
+		list.l4 = 1;
+		list.position = *(point3f *)&hill->center_x;
+		list.r14 = 0.0f;
+		list.r18 = 0.1f;
+		list.r1c = 0.0f;
+		list.l20 = NONE;
+		list.color24 = color;
+		list.color30 = color;
+		list.r3c = fade;
+		list.r40 = 1.0f;
+		list.count = 1;
+		list.items[0].kind = 6;
+		list.items[0].a = color;
+		list.items[0].b = color;
+		list.items[0].r = 1.0f;
+		list.items[0].index = NONE;
+		function_24e59f(&list);
+	}
+}
+
 // @retail 0x2be880
 bool function_2be880(long player_index, s_polygon_2be *polygon)
 {
