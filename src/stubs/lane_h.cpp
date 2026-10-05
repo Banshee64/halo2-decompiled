@@ -148,3 +148,10 @@ bool __stdcall function_64060(struct s_game_variant *variant)
 {
 	return false;
 }
+
+struct s_network_session_player;
+
+// @stub 0x805d0
+void __fastcall function_805d0(s_network_session_player *player)
+{
+}

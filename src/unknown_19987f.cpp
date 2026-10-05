@@ -65,7 +65,7 @@ bool function_19a84e(long *a, long *b)
 // @retail 0x19989d
 long function_19989d(void)
 {
-	long result = NONE;
+	volatile long result = NONE;
 	long value = network_session_interface_get_value_18();
 	byte *data = network_session_interface_get_data_4db0();
 	long a;
@@ -348,6 +348,49 @@ bool function_19a935(void)
 	return network_session_interface_get_value_18() == 2;
 }
 
+bool network_session_manager_get_session(c_class_58d20 **session);
+bool network_session_interface_get_id(s_session_id *id, byte *key);
+void __fastcall function_805d0(s_network_session_player *player);
+
+/* when the session or the local member changed, refreshes the properties of
+   the players on the other machines */
+// @retail 0x19b304
+void function_19b304(void)
+{
+	c_class_58d20 *session;
+	long host_member_index;
+	long member_value;
+	dword player_mask;
+	s_network_session_player *players;
+	s_session_id id;
+
+	if (network_session_manager_get_session(&session)
+		&& network_session_get_membership(session, &member_value, &host_member_index, NULL, NULL, NULL, NULL, NULL, &player_mask, &players)
+		&& network_session_interface_get_id(&id, NULL))
+	{
+		if (!g_4ee4c4.session_id_valid || memcmp(&id, g_4ee4c4.session_id, sizeof(id)) != 0 || member_value != g_4ee4c4.membership_value)
+		{
+			long index;
+
+			for (index = 0; index < 16; index++)
+			{
+				s_network_session_player *player = &players[index];
+
+				if ((player_mask & (1 << index)) && player->member_index != host_member_index && !(player->user_flags & 3) && player->user_flags != 0xbad00000)
+				{
+					function_805d0(player);
+				}
+			}
+		}
+		g_4ee4c4.session_id_valid = true;
+		g_4ee4c4.membership_value = member_value;
+		memcpy(g_4ee4c4.session_id, &id, sizeof(id));
+	}
+	else
+	{
+		g_4ee4c4.session_id_valid = false;
+	}
+}
 // @retail 0x19b3e3
 long function_19b3e3(void)
 {
