@@ -3,6 +3,7 @@
    four way sign in, and leaving the game for the dashboard */
 
 #include "unknown_11c920.h"
+#include <xtl.h>
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 
@@ -13,6 +14,7 @@ long minimal_storage_size_in_blocks();
 void __stdcall function_18f1c0(long a);
 void function_148823();
 void function_1906b4(void);
+void function_236946();
 
 /* a callback (of 0x19ae0f, not written yet): its controller stays on the
    stack */
@@ -22,6 +24,22 @@ bool __stdcall function_23690b(long controller)
 	long *controller_reference = &controller;
 
 	function_18f1c0(0);
+	return true;
+}
+
+/* the dashboard's network configuration */
+// @retail 0x236917
+bool __stdcall function_236917(long controller)
+{
+	function_2238f4(2, 0, 0, 0);
+	return true;
+}
+
+// @retail 0x236926
+bool __stdcall function_236926(long controller)
+{
+	Sleep(0);
+	function_236946();
 	return true;
 }
 

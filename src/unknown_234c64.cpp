@@ -271,25 +271,34 @@ void c_window_channel::v10()
 
 /* ---- helpers the window manager calls ---- */
 
+static __forceinline c_class_1a2c81 *widget_parent_for_user(c_class_1a2c81 *screen, long user)
+{
+	long users = 1 << user;
+	do
+	{
+		if (users & (short)screen->user_flags)
+			break;
+		screen = screen->parent;
+	}
+	while (screen);
+	return screen;
+}
+
 // @retail 0x23515d
 bool function_23515d(c_window_channel *channel, s_event *event)
 {
-	if (!function_235246(channel))
-		return true;
-
-	c_class_1a2c81 *screen = channel->focus;
-	if (screen)
+	if (function_235246(channel))
 	{
-		while (!((1 << ((long *)event)[1]) & screen->user_flags))
+		c_class_1a2c81 *screen = channel->focus;
+		if (screen)
 		{
-			screen = screen->next;
-			if (!screen)
-				break;
+			screen = widget_parent_for_user(screen, event->unknown04);
 		}
 		if (screen)
 			return screen->v10((s_widget_event *)event);
+		return false;
 	}
-	return false;
+	return true;
 }
 
 // @retail 0x235246

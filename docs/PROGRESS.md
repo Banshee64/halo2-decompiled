@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5445 functions match
+
+```
+matched 5445 of 11318 game functions (545940 of 2784283 bytes, 19.61%)
+```
+
+**Codex UI-core lane**: 8 new matches, none lost. Two of them are the function rows split by the never-returning-call change. The others are window-manager widget helpers, a lobby handler, and a lane H caller.
+
+## 2026-10-05: 5437 functions match
+
+```
+matched 5437 of 11318 game functions (544930 of 2784283 bytes, 19.57%)
+```
+
+**Codex lane C**, round 13: 5 new matches, none lost. They cover rotation unpacking, an animation field setter, a marker lookup, a node count and a small accessor.
+
 ## 2026-10-05: 5432 functions match
 
 ```

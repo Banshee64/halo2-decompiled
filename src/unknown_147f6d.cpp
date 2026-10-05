@@ -1264,6 +1264,56 @@ c_class_1473c9 *__stdcall function_14752c(s_screen_parameters *parameters);
 c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *parameters);
 extern dword g_54d5b8;
 extern dword g_54d5bc;
+
+struct s_controller_event;
+bool function_155f60(void);
+void function_14954a(s_event const *event);
+bool function_23515d(c_window_channel *channel, s_event *event);
+
+/* sends input to the shared windows, then the controller's windows */
+// @retail 0x147dbe
+void function_147dbe(s_controller_event *event)
+{
+	s_event *message = (s_event *)event;
+
+	if (function_155f60())
+	{
+		function_14954a(message);
+	}
+	else
+	{
+		long index = 4;
+		for (;;)
+		{
+			bool handled = false;
+			if (index == 4 && function_1473b6(&g_54d598.window_0))
+				handled = function_23515d(&g_54d598.window_0, message);
+			else if (function_1473b6(&g_54d598.windows_1[index]))
+				handled = function_23515d(&g_54d598.windows_1[index], message);
+			else if (index == 4 && function_1473b6(&g_54d598.window_2))
+				handled = function_23515d(&g_54d598.window_2, message);
+			else if (function_1473b6(&g_54d598.windows_3[index]))
+				handled = function_23515d(&g_54d598.windows_3[index], message);
+			else if (index == 4 && function_1473b6(&g_54d598.window_4))
+				handled = function_23515d(&g_54d598.window_4, message);
+			else if (function_1473b6(&g_54d598.windows_5[index]) && !function_1473b6(&g_54d598.windows_3[index]))
+				handled = function_23515d(&g_54d598.windows_5[index], message);
+
+			if (handled)
+				break;
+			if (index == 4)
+			{
+				index = function_1910b8(message->unknown04);
+				if (index != NONE)
+					continue;
+			}
+			function_14954a(message);
+			break;
+		}
+	}
+	g_54d5bc = g_54d5b8;
+}
+
 /* unknown_14741b.cpp */
 extern bool g_54e7cd;
 /* the legal screen shows once */
