@@ -609,7 +609,9 @@ c_campaign_options_list::c_campaign_options_list(word user_flags) :
 
 /* 0x2b166d is written below but kept out of the build: with it, LTCG moves
    0x19a76d's argument from eax to ecx, and 0x199a92 and 0x2c9d38 lose their
-   matches. It can't match anyway until 0x124360 (a callee with a register
+   matches. Retried once 0x19a76d and 0x19a728 matched: both lose their
+   matches again, with 0x199a92 and 0x2c9d38. It can't match anyway until
+   0x124360 (a callee with a register
    convention, stubbed for now) is written. The list's constructor needs
    a handler, so an empty one stands in. */
 #if 0

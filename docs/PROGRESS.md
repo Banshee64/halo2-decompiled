@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5169 functions match
+
+```
+matched 5169 of 11321 game functions (508526 of 2785198 bytes, 18.26%)
+```
+
+42 new matches, none lost:
+- **Lane D**, round 12: network voice, session and observer code.
+- **Lane H**, round 8: input, widgets and the game variant code. 0x19a76d now matches, which finally settles its calling convention.
+- **The first Codex-assisted commit:** four near misses fixed (0x1b7900, 0x1bba20, 0x223b20 and 0x248d50).
+
 ## 2026-10-05: 5127 functions match
 
 ```
