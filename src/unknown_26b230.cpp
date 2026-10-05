@@ -206,7 +206,7 @@ bool function_26b8a0(long prop_index, long actor_index)
 	return result;
 }
 
-PRIVATE __forceinline s_clump *clump_iterator_next(s_record_pool_iterator *iterator)
+PRIVATE __forceinline s_clump *next_clump_in_pool(s_record_pool_iterator *iterator)
 {
 	s_clump *result = NULL;
 	if (g_4f55d0->active)
@@ -233,7 +233,7 @@ long function_26b900(long prop_index, long actor_index, long clump_index)
 			iterator.index = NONE;
 		}
 
-		while ((other = clump_iterator_next(&iterator)) != NULL)
+		while ((other = next_clump_in_pool(&iterator)) != NULL)
 		{
 			if (clump_index != iterator.datum_index && (short)function_20f040(other->team) == side)
 			{
