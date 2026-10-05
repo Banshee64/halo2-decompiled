@@ -21,10 +21,6 @@ void function_114c60(long unit_index) { }
 // @stub 0xe4bd0
 void function_e4bd0(long biped_index) { }
 
-// @stub 0xc8bb0
-void function_c8bb0(long unit_index, long a, long *object_index, long *seat_index, long *result, real *distance,
-	bool *flag) { }
-
 /* outside the unit range */
 // @stub 0x114240
 void function_114240(long unit_index) { }
@@ -104,3 +100,7 @@ struct s_unit_move_result;
 bool function_1d48f0(s_havok_component *component, short rigid_body_index, long type, point3f const *target,
 	vector3f const *offset, s_unit_move_result *result, long a5, real radius, long a7, point3f const *root_point,
 	long root_index) { return false; }
+
+/* outside the unit range */
+// @stub 0x1c9500
+bool function_1c9500(long unit_index, long actor_index, long a) { return false; }

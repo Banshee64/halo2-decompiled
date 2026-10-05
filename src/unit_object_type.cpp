@@ -154,7 +154,8 @@ struct s_unit
 	long unknown2d0;
 	byte unknown2d4[4];
 	real unknown2d8;
-	byte unknown2dc[0x2e4 - 0x2dc];
+	real unknown2dc;
+	byte unknown2e0[0x2e4 - 0x2e0];
 	real unknown2e4;
 	short unknown2e8;
 	byte unknown2ea[0x33e - 0x2ea];
@@ -203,6 +204,7 @@ UNIT_OFFSET_CHECK(grenade_counts, 0x23e);
 UNIT_OFFSET_CHECK(unknown2a0, 0x2a0);
 UNIT_OFFSET_CHECK(unknown2bc, 0x2bc);
 UNIT_OFFSET_CHECK(unknown2d8, 0x2d8);
+UNIT_OFFSET_CHECK(unknown2dc, 0x2dc);
 UNIT_OFFSET_CHECK(unknown2e8, 0x2e8);
 UNIT_OFFSET_CHECK(unknown346, 0x346);
 UNIT_OFFSET_CHECK(flags_348, 0x348);
@@ -278,8 +280,8 @@ bool function_e4050(long object_index);
 bool function_e6900(long unit_index, s_unit_request *request);
 void function_ccf20(long unit_index);
 void function_b58c0(long index, dword mask);
-void function_c8bb0(long unit_index, long a, long *object_index, long *seat_index, long *result, real *distance,
-	bool *flag);
+void function_c8bb0(long unit_index, long vehicle_index, long *object_index, short *seat_index, short *priority,
+	real *distance, bool *flag);
 bool function_d1080(long unit_index, transform4x3f *matrix, s_unit_camera_data *camera);
 void function_e69c0(long unit_index, long type);
 void function_114240(long unit_index);
@@ -462,6 +464,12 @@ bool function_1d48f0(s_havok_component *component, short rigid_body_index, long 
 	long root_index);
 void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward, vector3f const *up);
 vector3f *function_11d000(vector3f const *v, vector3f *out);
+long function_baf40(long object_index);
+bool function_16a7c0(point3f const *from, point3f const *to, long ignore_object_index, long ignore_unit_index,
+	point3f *result);
+bool function_1cb920(void *data, long mode);
+bool function_1c9500(long unit_index, long actor_index, long a);
+bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *a, bool *b);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -918,15 +926,15 @@ void function_cea00(long unit_index)
 short __stdcall function_c8ef0(long unit_index, long a, long *object_index, short *seat_index)
 {
 	long found_object_index = NONE;
-	long found_seat_index = NONE;
-	long result = 0;
+	short found_seat_index = NONE;
+	short result = 0;
 	real distance = 3.4028235e38f;
 	bool flag = false;
 
 	function_c8bb0(unit_index, a, &found_object_index, &found_seat_index, &result, &distance, &flag);
 	*object_index = found_object_index;
-	*seat_index = (short)found_seat_index;
-	return (short)result;
+	*seat_index = found_seat_index;
+	return result;
 }
 
 /* a number of ticks that shrinks with the difficulty: eight seconds' worth
@@ -4330,6 +4338,268 @@ bool __stdcall function_cba50(long unit_index, vector3f *direction, bool looking
 		direction->k = matrix.up.k * up_scale + left_scale * matrix.left.k + matrix.forward.k * forward_scale;
 	}
 	return clamped;
+}
+
+/* where a unit's view or weapon is: its aim (when asked, the unit's own),
+   a point projected onto the aim line from its center, moved by offsets
+   along the aim and its left and up, then held clear of the world from
+   its center; and its root object's velocity */
+// @retail 0xc8290
+void __stdcall function_c8290(vector3f *aim, point3f *point, long unit_index, vector3f *velocity, real const *offsets,
+	bool project, bool use_aim, bool clip)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	point3f center;
+
+	if (project || clip)
+	{
+		function_cafc0(unit_index, &center);
+	}
+	if (use_aim)
+	{
+		*aim = unit->unknown168;
+	}
+	if (project)
+	{
+		real along = aim->i * (point->x - center.x) + aim->k * (point->z - center.z) + aim->j * (point->y - center.y);
+
+		point->x = aim->i * along + center.x;
+		point->y = aim->j * along + center.y;
+		point->z = aim->k * along + center.z;
+	}
+	if (offsets)
+	{
+		vector3f left;
+		vector3f up;
+
+		left.i = aim->k * g_4687b0->j - g_4687b0->k * aim->j;
+		left.j = g_4687b0->k * aim->i - aim->k * g_4687b0->i;
+		left.k = aim->j * g_4687b0->i - aim->i * g_4687b0->j;
+		if (function_30bf0(&left) == 0.0f)
+		{
+			left = *g_4687ac;
+		}
+		up.i = aim->j * left.k - aim->k * left.j;
+		up.j = aim->k * left.i - aim->i * left.k;
+		up.k = aim->i * left.j - aim->j * left.i;
+		function_30bf0(&up);
+		point->x += aim->i * offsets[0];
+		point->y += aim->j * offsets[0];
+		point->z += aim->k * offsets[0];
+		point->x += left.i * offsets[1];
+		point->y += left.j * offsets[1];
+		point->z += left.k * offsets[1];
+		point->x += up.i * offsets[2];
+		point->y += up.j * offsets[2];
+		point->z += up.k * offsets[2];
+	}
+	if (clip)
+	{
+		point3f clipped;
+
+		if (function_16a7c0(&center, point, function_baf40(unit_index), NONE, &clipped))
+		{
+			*point = clipped;
+		}
+	}
+	long root_index = NONE;
+	for (long index = unit_index; index != NONE; index = UNIT_GET(index)->parent_index)
+	{
+		root_index = index;
+	}
+	function_ba1d0(root_index, velocity, 0);
+}
+
+/* the unit's wandering direction: its actor's (else the default vector)
+   turned about the world's up by the angle +0x2d8, which drifts by a
+   random turn rate (+0x2dc) kept away from its limits */
+// @retail 0xd0080
+void function_d0080(long unit_index, vector3f *direction)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	bool from_actor = false;
+
+	if (unit->actor_index != NONE && function_1e3370(unit->actor_index, direction))
+	{
+		from_actor = true;
+	}
+	else
+	{
+		*direction = *g_4687a8;
+	}
+	real high = 1.0f;
+	real low = 1.0f;
+	if (from_actor)
+	{
+		real a = (0.7853982f - unit->unknown2d8) * 4.2441316f;
+		real b = (unit->unknown2d8 + 0.7853982f) * 4.2441316f;
+
+		if (1.0f > a)
+		{
+			high = a;
+		}
+		if (1.0f > b)
+		{
+			low = b;
+		}
+	}
+	real c = (6.2831855f - unit->unknown2dc) * 0.53051645f;
+	real d = (unit->unknown2dc + 6.2831855f) * 0.53051645f;
+	if (high > c)
+	{
+		high = c;
+	}
+	if (low > d)
+	{
+		low = d;
+	}
+	real turn;
+	if (low > high)
+	{
+		if (-1.0f > high)
+		{
+			turn = -0.62831855f;
+		}
+		else
+		{
+			real scale = 1.0f > high ? high : 1.0f;
+			real random = (real)random_next(&g_4e7408->unknown0) * (1.0f / 65535.0f);
+
+			turn = random * (scale * 0.62831855f - -0.62831855f) - 0.62831855f;
+		}
+	}
+	else if (-1.0f > low)
+	{
+		turn = 0.62831855f;
+	}
+	else
+	{
+		real scale = 1.0f > low ? low : 1.0f;
+		real lower = scale * -0.62831855f;
+		real random = (real)random_next(&g_4e7408->unknown0) * (1.0f / 65535.0f);
+
+		turn = random * (0.62831855f - lower) + lower;
+	}
+	unit->unknown2dc += turn;
+	unit->unknown2d8 += g_510c54->rate * unit->unknown2dc;
+	if (-3.1415927f > unit->unknown2d8)
+	{
+		unit->unknown2d8 += 6.2831855f;
+	}
+	else if (unit->unknown2d8 > 3.1415927f)
+	{
+		unit->unknown2d8 -= 6.2831855f;
+	}
+	real sine = (real)sin(unit->unknown2d8);
+	real cosine = (real)cos(unit->unknown2d8);
+	vector3f const *axis = g_4687b0;
+	real along = (axis->i * direction->i + axis->j * direction->j + axis->k * direction->k) * (1.0f - cosine);
+	real x = direction->i;
+	real y = direction->j;
+	real z = direction->k;
+
+	direction->i = axis->i * along + x * cosine - (y * axis->k - z * axis->j) * sine;
+	direction->j = axis->j * along + y * cosine - (z * axis->i - axis->k * x) * sine;
+	direction->k = z * cosine + axis->k * along - (axis->j * x - axis->i * y) * sine;
+}
+
+/* the best seat for the unit to enter among the object's and its riders'
+   seats (0xc8a40): one it can reach (0xc6fb0) with an entry animation
+   (0xc7160) its animation graph has, ranked by 0xc92c0's priority and
+   then distance (non-driver seats count half again as far once a
+   driver's seat is found) */
+// @retail 0xc8bb0
+void function_c8bb0(long unit_index, long vehicle_index, long *object_index, short *seat_index, short *priority,
+	real *distance, bool *flag)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	s_unit *vehicle = UNIT_GET(vehicle_index);
+	s_object_seat seats[0x40];
+	short count = 0;
+
+	function_c8a40(vehicle_index, seats, &count, 0x40);
+	if (unit->unknown13c != NONE && (vehicle->flags_134 >> 12) & 1)
+	{
+		return;
+	}
+	for (long i = 0; i < count; i++)
+	{
+		s_object_seat *entry = &seats[i];
+		long candidate_index = entry->object_index;
+		s_unit *candidate = UNIT_GET(candidate_index);
+
+		if (unit->unknown13c != NONE && (candidate->flags_134 >> 12) & 1)
+		{
+			continue;
+		}
+		short seat = entry->seat_index;
+		dword flags = *(dword *)&entry->definition->flags;
+		if (unit->unknown13c == NONE ? (flags >> 17) & 1 : (flags >> 16) & 1)
+		{
+			continue;
+		}
+		if (!function_c6fb0(candidate_index, unit_index, seat))
+		{
+			continue;
+		}
+		point3f marker_position;
+		point3f entry_position;
+		if (function_c7160(unit_index, seat, (long)&marker_position, candidate_index, (long)&entry_position) == NONE)
+		{
+			continue;
+		}
+		real dx = unit->unknown030.x - entry_position.x;
+		real dy = unit->unknown030.y - entry_position.y;
+		real dz = unit->unknown030.z - entry_position.z;
+		real entry_distance = (real)sqrt(dz * dz + dy * dy + dx * dx);
+		dx = unit->unknown030.x - marker_position.x;
+		dy = unit->unknown030.y - marker_position.y;
+		dz = unit->unknown030.z - marker_position.z;
+		real marker_distance = (real)sqrt(dz * dz + dy * dy + dx * dx);
+		real nearest = entry_distance > marker_distance ? marker_distance : entry_distance;
+
+		if ((flags >> 9) & 1 && candidate->unknown248 == NONE)
+		{
+			continue;
+		}
+		long label = entry->definition->label;
+		if (label == NONE || !function_1cb920(UNIT_ANIMATION(UNIT_GET(unit_index)), label))
+		{
+			continue;
+		}
+		long blocker_index = NONE;
+		bool blocked_by_driver = false;
+		short rank;
+		if (function_c92c0(unit_index, candidate_index, seat, &blocker_index, &blocked_by_driver))
+		{
+			rank = blocked_by_driver ? 3 : 2;
+		}
+		else
+		{
+			long actor_index;
+
+			if (blocker_index == NONE || (actor_index = UNIT_GET(blocker_index)->actor_index) == NONE ||
+				!function_1c9500(unit_index, actor_index, 0))
+			{
+				continue;
+			}
+			rank = 1;
+		}
+		if (rank <= 0)
+		{
+			continue;
+		}
+		bool driver = (flags >> 2) & 1;
+		real scale = *flag && !driver ? 1.5f : 1.0f;
+		if (*seat_index == NONE || rank > *priority || *distance > scale * nearest)
+		{
+			*object_index = candidate_index;
+			*seat_index = seat;
+			*priority = rank;
+			*distance = nearest;
+			*flag = driver;
+		}
+	}
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
