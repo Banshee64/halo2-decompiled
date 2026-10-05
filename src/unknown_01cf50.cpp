@@ -629,11 +629,11 @@ struct s_cache_key
 long function_1e8f0(s_cache_key const *a, s_cache_key const *b)
 {
 	/* Both pointers are stack arguments in the cache callback interface. */
-	s_cache_key const *const *left_reference = &a;
+	s_cache_key const *const *local_6e666f = &a;
 	s_cache_key const *const *right_reference = &b;
 	word right_flags = (*right_reference)->flags;
-	word left_flags = (*left_reference)->flags;
-	if ((bool)(right_flags & 1) == (bool)(left_flags & 1) && (*left_reference)->key == (*right_reference)->key &&
+	word left_flags = (*local_6e666f)->flags;
+	if ((bool)(right_flags & 1) == (bool)(left_flags & 1) && (*local_6e666f)->key == (*right_reference)->key &&
 		(short)((left_flags ^ right_flags) & ~1) == 0)
 		return 1;
 	return 0;

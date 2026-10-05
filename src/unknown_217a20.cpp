@@ -45,10 +45,10 @@ const word *function_217960(int language);
 const word *function_2179c0(int language);
 
 // @retail 0x217a80
-void function_217a80(long language, long string_id, word *buffer)
+void function_217a80(long language, long string_handle_2, word *buffer)
 {
 	const word *text = L"";
-	switch (string_id)
+	switch (string_handle_2)
 	{
 	case 0x1b0006e8: text = function_217a20(language); break;
 	case 0x1b0006e9: text = function_217620(language); break;
