@@ -85,7 +85,7 @@ void function_25600(long object_index, long string_handle, real seconds)
 			caption->string_handle = string_handle;
 			caption->object_index = object_index;
 			real value = seconds;
-			real limit = 0.0f;
+			real limit;
 			if (value != 0.0f)
 			{
 				limit = 10.0f;
@@ -101,6 +101,8 @@ void function_25600(long object_index, long string_handle, real seconds)
 					return;
 				}
 			}
+			else
+				limit = 0.0f;
 			caption->seconds = limit;
 		}
 		else

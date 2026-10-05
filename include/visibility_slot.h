@@ -24,8 +24,14 @@ struct s_slot
 	byte data[24];
 };
 
-/* 511 slots: the table ends where g_5233ec begins */
-extern s_slot g_51f40c[511];
-extern dword g_5233f0[3][16];
+/* The count and the three bitsets follow the 511 slots in retail. */
+struct s_visibility_storage
+{
+	s_slot slots[511];
+	long count;
+	dword bitsets[3][16];
+};
+
+extern s_visibility_storage g_51f40c;
 
 #endif
