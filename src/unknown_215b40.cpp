@@ -1,4 +1,5 @@
 #include "unknown_11c920.h"
+#include "unknown_19d220.h"
 #include <string.h>
 
 // @flags /O2 /Ob1 /Gr
@@ -191,7 +192,8 @@ void function_216760(void)
 		entry.type = 0;
 		name[0] = 0;
 		word const *default_name = function_217a20(g_55c280);
-		wcsncpy(name, default_name, 0xff);
+		word const *const *name_reference = &default_name;
+		wcsncpy(name, *name_reference, 0xff);
 		name[0xff] = 0;
 		function_1a0750((s_player_profile *)entry.data);
 		wcsncpy((word *)(entry.data + 8), name, 0x1f);
@@ -200,4 +202,137 @@ void function_216760(void)
 		long index = files->count++;
 		files->entries[index] = entry;
 	}
+}
+
+long saved_game_file_type_from_variant(s_game_variant *variant);
+
+// @retail 0x217080
+void __stdcall function_217080(s_game_variant const *variant)
+{
+	s_game_variant const *const *variant_reference = &variant;
+	if (g_51ea14 && ((s_cached_location_table *)g_51ea14)->count != 0x65)
+	{
+		union
+		{
+			s_cached_location_entry entry;
+			unsigned __int64 words[0x1e8 / 8];
+		} value;
+		*(s_game_variant *)value.entry.data = **variant_reference;
+		value.entry.type = saved_game_file_type_from_variant((s_game_variant *)value.entry.data);
+		s_cached_location_table *files = (s_cached_location_table *)g_51ea14;
+		s_cached_location_entry *destination = &files->entries[files->count++];
+		*destination = value.entry;
+	}
+}
+
+typedef bool (__stdcall *t_location_compare)(long, long, void const *);
+void sort_4byte(long *elements, unsigned long count, void *unused, t_location_compare compare, void const *context);
+bool function_1249f0(long memory_unit, char *drive_letter);
+
+// @retail 0x2163d0
+bool __stdcall function_2163d0(long first, long second, void const *context)
+{
+	bool result;
+	dword first_cached = (dword)first >> 21;
+	dword second_cached = (dword)second >> 21;
+	if (!((first_cached ^ second_cached) & 1))
+		result = first > second;
+	else
+		result = (bool)((byte)first_cached & 1);
+	return result;
+}
+
+// @retail 0x215900
+void __stdcall function_215900(long controller, long type, word *capacity, long *indices, long include_cached)
+{
+	(void)&controller;
+	(void)&type;
+	(void)&capacity;
+	(void)&indices;
+	(void)&include_cached;
+	long count = 0;
+	if (g_51ea14)
+	{
+		long units = controller == NONE || controller == 0xff ? 1 : 3;
+		long unit = 0;
+		for (long pass = 0; pass < units && count < *capacity; pass++)
+		{
+			char drive_letter;
+			if (function_1249f0(unit, &drive_letter))
+			{
+				s_location_record_table *table = (s_location_record_table *)((byte *)g_51ea14 + 0xbef8) + unit;
+				long index = 0;
+				do
+				{
+					if (index >= table->count)
+						break;
+					struct
+					{
+						char path[0x14];
+						word name[0x12];
+						long type;
+						byte unknown3c[4];
+					} entry;
+					memcpy(&entry, &table->entries[index], sizeof(entry));
+					long old_index = index++;
+					if (entry.type == type)
+					{
+						long generation = *(long *)((byte *)g_51ea14 + 0x4befc);
+						indices[count++] = (type & 0xf) | ((unit & 0xf) << 4) |
+							((old_index & 0x1fff) << 8) | ((generation & 0x1ff) << 22);
+					}
+				} while (count < *capacity);
+			}
+			if (controller == 0xff)
+				unit++;
+			else
+			{
+				switch (controller)
+				{
+				case NONE: unit++; break;
+				case 0: unit = pass + 1; break;
+				case 1: unit = pass + 3; break;
+				case 2: unit = pass + 5; break;
+				case 3: unit = pass + 7; break;
+				default: __assume(0); break;
+				}
+			}
+		}
+		if ((byte)include_cached)
+		{
+			s_cached_location_table *files = (s_cached_location_table *)g_51ea14;
+			long cached_count = files->count;
+			for (long index = 0; count < *capacity && index < cached_count; index++)
+			{
+				if (files->entries[index].type == type)
+				{
+					long generation = *(long *)((byte *)files + 0x4befc);
+					indices[count++] = (type & 0xf) | ((index & 0x1fff) << 8) |
+						(1 << 21) | ((generation & 0x1ff) << 22);
+				}
+			}
+			sort_4byte(indices, count, &cached_count, function_2163d0, NULL);
+		}
+	}
+	*capacity = (word)count;
+}
+
+bool function_2161d0(long file_index, void *buffer, long size);
+bool function_19d650(s_game_variant *variant);
+
+// @retail 0x212bc0
+bool function_212bc0(long file_index, s_game_variant *variant)
+{
+	volatile bool result = false;
+	if (file_index != NONE && function_2161d0(file_index, variant, sizeof(*variant)))
+	{
+		union
+		{
+			s_game_variant value;
+			unsigned __int64 words[0x130 / 8];
+		} copy;
+		copy.value = *variant;
+		return function_19d650(&copy.value);
+	}
+	return result;
 }
