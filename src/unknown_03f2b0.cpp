@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "physical_memory.h"
 #include <string.h>
+#include <xtl.h>
 
 void *g_509438;
 
@@ -12,6 +13,45 @@ void *g_509438;
 void function_43990(void)
 {
 	physical_memory_new_frame((s_physical_object *)g_509448);
+}
+
+extern D3DResource *g_509444;
+
+// @retail 0x439d0
+void *function_439d0(long index)
+{
+    s_physical_object *manager = (s_physical_object *)g_509448;
+    s_physical_block *block = &((s_physical_block *)((s_physical_object *)g_509448)->blocks->data)[index & 0xffff];
+    D3DResource *resource = g_509444;
+    long offset = block->offset << manager->page_shift;
+    block->time = manager->time;
+    D3DDevice_FlushVertexCache();
+    return (void *)((resource->Data | 0x80000000) + offset);
+}
+
+void function_1cdd0(real const *bounds, byte flags);
+bool function_13d9f0(long type);
+
+// @retail 0x4d7c0
+void function_4d7c0(dword const *source, word const *type)
+{
+    (void)&type;
+    long index = source[1];
+    if (index != NONE)
+    {
+        byte *tag = g_4e3b44[index & 0xffff].bytes;
+        if (*(long *)(tag + 0x14) > 0)
+        {
+            byte *entries = *(byte **)(tag + 0x28);
+            long flags = *(word *)(entries + ((source[3] >> 9) & 0x1ff) * 0x5c + 0x1a);
+            real const *bounds = *(real **)(tag + 0x18);
+            if (function_13d9f0(*type))
+                flags |= 1;
+            function_1cdd0(bounds, (byte)flags);
+            return;
+        }
+    }
+    function_1cdd0(0, 0);
 }
 
 struct s_unknown_13bf00;
@@ -460,6 +500,60 @@ bool function_3e9c0(long object_index)
         }
     }
     return result;
+}
+
+s_record_pool *g_4e030c;
+
+struct s_render_entry_110
+{
+    long unknown00;
+    long tag;
+    byte unknown08[0x4c - 8];
+    long object;
+    long unknown50;
+    short index;
+    byte unknown56[0x110 - 0x56];
+};
+
+// @retail 0x31520
+bool function_31520(long index)
+{
+    bool result = false;
+    if (index != NONE)
+    {
+        s_render_entry_110 *entry = &((s_render_entry_110 *)g_4e030c->data)[index & 0xffff];
+        byte *tag = g_4e3b44[entry->tag & 0xffff].bytes;
+        bool active = false;
+        if (entry->index != NONE)
+            active = function_3e9c0(entry->object);
+        dword flags = *(dword *)tag;
+        if ((!(flags & 0x20) || active) && (!(flags & 0x40) || !active))
+            result = true;
+    }
+    return result;
+}
+
+// @retail 0x4c0d0
+void function_4c0d0(long object_index, byte *output, long mode)
+{
+    (void)&mode;
+    byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+    byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+    byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+    if ((signed char)object[0xb1] != -1 && mode == 1)
+    {
+        for (long i = 0; i < *(long *)(model + 0x70); ++i)
+        {
+            byte *variant = *(byte **)(model + 0x54) + (signed char)object[0xb1] * 0x38;
+            signed char index = (signed char)variant[i + 4];
+            if (index != -1)
+                ((short *)(output + 0xc2))[i] = *(short *)(*(byte **)(variant + 0x18) + index * 20 + 0x10);
+            else
+                ((short *)(output + 0xc2))[i] = 0;
+        }
+    }
+    else
+        memset(output + 0xc2, 0, 0xa0);
 }
 
 #include "unknown_123b30.h"

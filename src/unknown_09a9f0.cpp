@@ -459,3 +459,258 @@ void c_device_type::v10(s_creation_request *request, long parameter, long size, 
 	function_11c9c0(buffer, size, "device creation: relevance=%5.3f", relevance);
 }
 
+
+// @retail 0xa02e0
+long c_item_type::v27(long a, long b, long c, long d)
+{
+ // Preserve the local definition pointer stored in the retail stack frame.
+ c_object_type_definition *volatile definition = this;
+ byte *object = (byte *)OBJECT(a);
+ long result = function_a5e70(a, b & 0x3ff, d);
+ if (b & 0x400)
+ {
+  bool flag = (object[0xc1] & 1) != 0;
+  if (flag != *(bool *)(d + 0x90))
+  {
+   *(bool *)(d + 0x90) = flag;
+   result |= 0x400;
+  }
+ }
+ return result;
+}
+
+// @retail 0xa0be0
+long c_projectile_type::v27(long a, long b, long c, long d)
+{
+ // Preserve the local definition pointer stored in the retail stack frame.
+ c_object_type_definition *volatile definition = this;
+ long result = function_a5e70(a, b & 0x3ff, d);
+ if (b & 0x400)
+ {
+  byte *object = (byte *)OBJECT(a);
+  bool flag = (object[0xc1] & 1) != 0;
+  if (flag != *(bool *)(d + 0x90))
+  {
+   *(bool *)(d + 0x90) = flag;
+   result |= 0x400;
+  }
+ }
+ return result;
+}
+
+class c_handle_table_450cd0;
+bool function_99640(c_handle_table_450cd0 *self, long handle);
+
+// @retail 0xa0e50
+bool c_projectile_type::v8(long a, long b)
+{
+ bool result = true;
+ long identifier = *(long *)(*(long *)(a + 0x14) + 0x14);
+ if (identifier != NONE)
+ {
+  byte *table = *(byte **)(*(long *)(*(long *)b + 4) + 8);
+  if (!function_99640((c_handle_table_450cd0 *)(table + 0x30), identifier))
+   return false;
+ }
+ return result;
+}
+
+// @retail 0xa3df0
+long c_device_type::v27(long a, long b, long c, long d)
+{
+ // Preserve the local definition pointer stored in the retail stack frame.
+ c_object_type_definition *volatile definition = this;
+ byte *object = (byte *)OBJECT(a);
+ dword flags = b;
+ long result = function_a5e70(a, flags & 0x3ff, d);
+ if ((flags & 0x400) && *(real *)(d + 0x90) != *(real *)(object + 0x140))
+ {
+  *(real *)(d + 0x90) = *(real *)(object + 0x140);
+  result |= 0x400;
+ }
+ if (flags & 0x800)
+ {
+  long index = *(long *)(object + 0x13c);
+  if (index != NONE)
+  {
+   byte *entry = g_4e0328.groups->data + (index & 0xffff) * 12;
+   if (*(real *)(d + 0x94) != *(real *)(entry + 4))
+   {
+    *(real *)(d + 0x94) = *(real *)(entry + 4);
+    result |= 0x800;
+   }
+  }
+ }
+ return result;
+}
+
+#include "unknown_1946f0.h"
+void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+void simulation_read_position(s_bitstream *stream, real *position, long bits);
+void scenario_object_name_encode(long object_name, s_bitstream *stream);
+
+struct s_z_impact_payload
+{
+ long object_name;
+ real scale_a;
+ real scale_b;
+ vector3f direction;
+ vector3f position;
+ vector3f normal;
+ word field_30;
+ byte unknown32[2];
+ bool field_34;
+ dword field_38;
+};
+
+PRIVATE inline void z_write_impact_scale(s_bitstream *stream, real value)
+{
+ real scaled = value * 126.0f;
+ long quantized;
+ __asm
+ {
+  fld scaled
+  fistp quantized
+ }
+ function_195720(stream, quantized, 7);
+}
+
+PRIVATE inline real z_read_impact_scale(s_bitstream *stream)
+{
+ long value = function_1959c0(stream, 7);
+ real result;
+ if (value == 0) result = 0.0f;
+ else if (value >= 126) result = 1.0f;
+ else result = ((126 - value) * 0.0f + value * 1.0f) * (1.0f / 126.0f);
+ return result;
+}
+
+struct s_z_impact_scenario
+{
+ byte unknown000[0x3d8];
+ long count;
+ long *names;
+};
+
+PRIVATE __forceinline long z_impact_read_name(s_bitstream *stream)
+{
+ long result = NONE;
+ long index = function_1959c0(stream, 9) - 1;
+ if (index != NONE)
+ {
+  s_z_impact_scenario *scenario = (s_z_impact_scenario *)g_4e0350;
+  result = NONE;
+  if (scenario && scenario->count > 0)
+   if ((index < 0 ? 0 : (index > scenario->count - 1 ? scenario->count - 1 : index)) == index)
+    result = scenario->names[index];
+ }
+ return result;
+}
+
+// @retail 0xa18c0
+void c_projectile_impact_effect_event::v9(long a, void const *data, s_bitstream *stream)
+{
+ s_z_impact_payload const *event = (s_z_impact_payload const *)data;
+ scenario_object_name_encode(event->object_name, stream);
+ z_write_impact_scale(stream, event->scale_a);
+ z_write_impact_scale(stream, event->scale_b);
+ function_194bc0(stream, &event->direction);
+ simulation_write_position((real const *)&event->position, 12, stream, true);
+ function_194bc0(stream, &event->normal);
+ function_1955d0(stream, &event->field_30, 16);
+}
+
+// @retail 0xa1ba0
+void c_projectile_object_impact_effect_event::v9(long a, void const *data, s_bitstream *stream)
+{
+ s_z_impact_payload const *event = (s_z_impact_payload const *)data;
+ scenario_object_name_encode(event->object_name, stream);
+ z_write_impact_scale(stream, event->scale_a);
+ z_write_impact_scale(stream, event->scale_b);
+ function_194bc0(stream, &event->direction);
+ simulation_write_position((real const *)&event->position, 12, stream, true);
+ function_194bc0(stream, &event->normal);
+ function_1955d0(stream, &event->field_30, 16);
+ stream_write_checked(stream, event->field_38, 8);
+ stream_write_bit(stream, event->field_34);
+}
+
+// @retail 0xa1960
+bool c_projectile_impact_effect_event::v10(long a, void *data, s_bitstream *stream)
+{
+ s_z_impact_payload *event = (s_z_impact_payload *)data;
+ event->object_name = z_impact_read_name(stream);
+ event->scale_a = z_read_impact_scale(stream);
+ event->scale_b = z_read_impact_scale(stream);
+ long packed_direction_1 = function_1959c0(stream, 17);
+ function_24f6b0(packed_direction_1, &event->direction);
+ simulation_read_position(stream, (real *)&event->position, 12);
+ long packed_direction_2 = function_1959c0(stream, 17);
+ function_24f6b0(packed_direction_2, &event->normal);
+ function_195820(stream, &event->field_30, 16);
+ return true;
+}
+
+// @retail 0xa1cc0
+bool c_projectile_object_impact_effect_event::v10(long a, void *data, s_bitstream *stream)
+{
+ s_z_impact_payload *event = (s_z_impact_payload *)data;
+ event->object_name = z_impact_read_name(stream);
+ event->scale_a = z_read_impact_scale(stream);
+ event->scale_b = z_read_impact_scale(stream);
+ long packed_direction_3 = function_1959c0(stream, 17);
+ function_24f6b0(packed_direction_3, &event->direction);
+ simulation_read_position(stream, (real *)&event->position, 12);
+ long packed_direction_4 = function_1959c0(stream, 17);
+ function_24f6b0(packed_direction_4, &event->normal);
+ function_195820(stream, &event->field_30, 16);
+ event->field_38 = function_1959c0(stream, 8);
+ event->field_34 = function_1957d0(stream);
+ return true;
+}
+
+void __stdcall function_107520(long object_index);
+void function_107370(long device_index, real value);
+bool __stdcall function_1071e0(long group_index, real value);
+
+// @retail 0xa3fd0
+void function_a3fd0(long index, bool immediate, bool set_position, real position, bool set_power, real power)
+{
+ byte *object = (byte *)OBJECT(index);
+ if (set_position && !(position < 0.0f || position > 1.0f))
+ {
+  *(real *)(object + 0x140) = position;
+  *(real *)(object + 0x144) = 0.0f;
+  function_107520(index);
+  long group = *(long *)(object + 0x13c);
+  if (group != NONE)
+   *(real *)(g_4e0328.groups->data + (group & 0xffff) * 12 + 4) = position;
+ }
+ if (set_power && !(power < 0.0f || power > 1.0f))
+ {
+  long group = *(long *)(object + 0x13c);
+  if (group != NONE)
+  {
+   if (immediate)
+    function_107370(index, power);
+   else
+    function_1071e0(group, power);
+  }
+ }
+}
+
+void *function_122c10(long group_tag, long tag_index);
+void function_fd0e0(long definition_index, real scale_a, real scale_b, vector3f const *direction,
+ point3f const *point, vector3f const *normal, long index, bool attached, long object_index,
+ short node_index, bool alternate);
+
+// @retail 0xa1a80
+bool c_projectile_impact_effect_event::v11(long a, long const *entities, long c, void const *data)
+{
+ s_z_impact_payload const *event = (s_z_impact_payload const *)data;
+ if (event->object_name != NONE && function_122c10(0x70726f6a, event->object_name) &&
+  !(event->scale_a < 0.0f || event->scale_a > 1.0f || event->scale_b < 0.0f || event->scale_b > 1.0f))
+  function_fd0e0(event->object_name, event->scale_a, event->scale_b, &event->direction,
+   (point3f const *)&event->position, &event->normal, event->field_30, false, NONE, NONE, false);
+ return true;
+}

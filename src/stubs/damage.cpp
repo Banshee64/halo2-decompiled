@@ -33,9 +33,6 @@ void function_baff0(long object_index, point3f const *origin, point3f *arg_14954
 void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, float d, float e, long f) { }
 // @stub 0x184250
 void __stdcall function_184250(s_type_1e6529 const *data) { }
-/* an object's model states */
-// @stub 0xba690
-void function_ba690(long object_index, unsigned char **states, long *state_count, long *a, long *b) { }
 struct s_damage_report;
 // @stub 0x119280
 void function_119280(long object_index, unsigned long flags) { }

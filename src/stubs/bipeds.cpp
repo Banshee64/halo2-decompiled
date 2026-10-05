@@ -59,8 +59,6 @@ void function_bfa40(long object_index, long a) { }
 // @stub 0x1faf80
 void function_1faf80(vector3f *facing, long arg_159e6d, void const *definition_flight, vector3f const *control, real rate, real *turn) { }
 
-// @stub 0xbf5d0
-bool function_bf5d0(long object_index) { return 0; }
 
 // @stub 0xe63b0
 bool function_e63b0(vector3f const *aim, bool flag) { return 0; }

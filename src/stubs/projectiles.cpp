@@ -17,9 +17,6 @@ void __stdcall function_1e2930(long object_index, long actor_index) { }
 // @stub 0xa83e0
 void function_a83e0(long object_index, long parent_index, point3f const *point, long node_index, union vector3f const *forward) { }
 struct s_damage_owner;
-/* an object's damage owner */
-// @stub 0xbc190
-void function_bc190(long object_index, s_damage_owner *owner) { }
 // @stub 0xa84e0
 void __stdcall function_a84e0(long projectile_index, short *material_index, union vector3f const *vector, unsigned long flags) { }
 // @stub 0x1ca690

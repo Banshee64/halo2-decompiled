@@ -381,17 +381,18 @@ void function_a9a70(long index, s_z_copy_state *state)
 {
 	byte *object = (byte *)((s_object_header *)g_4e0300->data)[index & 0xffff].object;
 	vector3f const *position = (vector3f const *)(object + 0x64);
+	vector3f *saved = &state->position;
 	vector3f difference;
-	vector3d_from_points3d((point3f const *)&state->position, (point3f const *)position, &difference);
-	if (sqrt(length_sq3f(&difference)) > 0.05000000074505806f)
+	vector3d_from_points3d((point3f const *)saved, (point3f const *)position, &difference);
+	if (sqrt(difference.i * difference.i + (difference.j * difference.j + difference.k * difference.k)) > 0.05000000074505806f)
 	{
-		state->position.i = state->position.i * 0.550000011920929f + position->i * 0.44999998807907104f;
-		state->position.j = state->position.j * 0.550000011920929f + position->j * 0.44999998807907104f;
-		state->position.k = state->position.k * 0.550000011920929f + position->k * 0.44999998807907104f;
+		saved->i = saved->i * 0.550000011920929f + position->i * 0.44999998807907104f;
+		saved->j = saved->j * 0.550000011920929f + position->j * 0.44999998807907104f;
+		saved->k = saved->k * 0.550000011920929f + position->k * 0.44999998807907104f;
 	}
 	else
 	{
-		state->position = *position;
+		*saved = *position;
 		state->flags &= ~1;
 	}
 }
@@ -447,3 +448,64 @@ bool function_a76b0(long index, long which)
 	return result;
 }
 
+
+bool function_e4050(long object_index);
+bool function_cc410(long unit_index);
+
+// @retail 0xaa970
+bool function_aa970(long index)
+{
+ s_object_header *header = &((s_object_header *)g_4e0300->data)[index & 0xffff];
+ bool result = false;
+ if (!header->unknown03[0])
+ {
+  s_object_view *object = header->object;
+  if ((TEST_FIELD_BIT(object->flag2) && !function_e4050(index)) || function_cc410(index) ||
+   (bool)((*(dword *)((byte *)object + 0x134) >> 27) & 1))
+   result = true;
+ }
+ return result;
+}
+
+#include "unknown_0d0690.h"
+
+// @retail 0xaa9e0
+void function_aa9e0(long index, point3f const *previous_position, vector3f const *velocity)
+{
+ s_record_pool *objects = g_4e0300;
+ s_object_header *header = &((s_object_header *)objects->data)[index & 0xffff];
+ if (header->unknown03[0] == 1)
+ {
+  byte *object = (byte *)header->object;
+  real elapsed = g_510c54->rate;
+  if (previous_position)
+  {
+   real x = *(real *)(object + 0x64) - previous_position->x;
+   real y = *(real *)(object + 0x68) - previous_position->y;
+   real z = *(real *)(object + 0x6c) - previous_position->z;
+   *(real *)(object + 0x270) += x;
+   *(real *)(object + 0x274) += y;
+   *(real *)(object + 0x278) += z;
+  }
+  vector3f difference;
+  if (velocity)
+  {
+   difference.i = (velocity->i - *(real *)(object + 0x88)) * elapsed;
+   difference.j = (velocity->j - *(real *)(object + 0x8c)) * elapsed;
+   difference.k = (velocity->k - *(real *)(object + 0x90)) * elapsed;
+  }
+  s_object_child_iterator iterator;
+  function_d0620(index, &iterator);
+  while (function_d0690(&iterator))
+  {
+   byte *child = (byte *)((s_object_header *)objects->data)[iterator.child_index & 0xffff].object;
+   if (velocity)
+   {
+    *(real *)(child + 0x270) += difference.i;
+    *(real *)(child + 0x274) += difference.j;
+    *(real *)(child + 0x278) += difference.k;
+   }
+   *(dword *)(child + 0x134) |= 0x10000000;
+  }
+ }
+}

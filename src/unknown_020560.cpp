@@ -83,6 +83,69 @@ void __stdcall function_18900(s_render_state_source const *source, word const *r
 		D3DDevice_SetRenderStateNotInline((D3DRENDERSTATETYPE)entry[0], *(dword const *)(entry + 1));
 }
 
+struct s_render_reset_state
+{
+    long index;
+    byte unknown04[8];
+    long fields[5];
+    s_packed_render_states *states;
+    byte *block;
+    byte unknown28[0x40 - 0x28];
+    long index40;
+    byte unknown44[0x1320 - 0x44];
+    struct { long index; byte unknown04[12]; real value; byte unknown14[0x2c]; } slots[4];
+};
+
+// @retail 0x16b10
+void function_16b10(s_render_reset_state *state)
+{
+    if (state->block)
+        function_18900((s_render_state_source const *)state, (word const *)(state->block + 0x11c));
+    state->fields[0] = 0;
+    state->fields[1] = 0;
+    state->fields[2] = 0;
+    state->fields[3] = 0;
+    state->fields[4] = 0;
+    state->states = 0;
+    state->block = 0;
+    state->index = NONE;
+    state->index40 = NONE;
+    for (long i = 0; i < 4; i++)
+    {
+        state->slots[i].index = NONE;
+        state->slots[i].value = 3.0f;
+    }
+}
+
+extern byte *g_485a80;
+
+// @retail 0x16f60
+void function_16f60(byte *state, word const *range)
+{
+    (void)&range;
+    long i = 0;
+    byte *values = *(byte **)(*(byte **)(state + 0xc) + 8);
+    byte *entry = *(byte **)(*(byte **)(state + 0x10) + 0x24) + (*range & 0x1ff) * 4;
+    for (; i < (*range >> 9); entry += 4, ++i)
+    {
+        byte *slot = state + 0x320 + entry[0] * 0x40;
+        long *source = (long *)(values + entry[3] * 12);
+        if (source[0] != NONE)
+        {
+            *(long *)slot = source[0];
+            *(real *)(slot + 0x18) = (real)source[1];
+            *(long *)(slot + 0x14) = source[2];
+        }
+        else
+        {
+            *(long *)slot = *(long *)(g_485a80 + 0x64);
+            *(real *)(slot + 0x18) = 0.0f;
+            *(real *)(slot + 0x14) = 0.0f;
+        }
+        *(real *)(slot + 0x10) = 3.0f;
+    }
+}
+
 // @retail 0x15370
 void function_15370(short mode)
 {

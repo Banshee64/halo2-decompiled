@@ -5,6 +5,91 @@
 #include "globals.h"
 #include <string.h>
 
+real g_4670e4 = 0.85f;
+long g_4ba01c;
+byte g_4ba020, g_4ba021, g_4ba022, g_4ba023, g_4ba024, g_4ba025;
+real g_4ba028, g_4ba02c;
+
+// @retail 0x2c490
+void function_2c490(long mode)
+{
+    bool enabled;
+    real value;
+    switch (mode)
+    {
+    case 2:
+        g_4670e4 = 0.3f;
+        g_4ba02c = 0.5f;
+        value = 0.8f;
+        g_4ba01c = 3;
+        enabled = false;
+        g_4ba021 = true;
+        break;
+    case 3:
+        g_4670e4 = 0.3f;
+        g_4ba02c = 0.5f;
+        value = 0.8f;
+        g_4ba01c = 3;
+        enabled = false;
+        g_4ba021 = true;
+        break;
+    case 4:
+        g_4670e4 = 0.25f;
+        g_4ba02c = 0.25f;
+        value = 0.7f;
+        g_4ba01c = 2;
+        enabled = false;
+        g_4ba021 = true;
+        break;
+    default:
+        g_4670e4 = 0.85f;
+        value = 1.0f;
+        enabled = true;
+        g_4ba021 = false;
+        g_4ba02c = 1.0f;
+        g_4ba01c = 4;
+        break;
+    }
+    g_4ba020 = enabled;
+    g_4ba022 = enabled;
+    g_4ba024 = enabled;
+    g_4ba023 = enabled;
+    g_4ba025 = enabled;
+    g_4ba028 = value;
+}
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+struct s_scalar_object_header
+{
+    byte unknown00[8];
+    byte *object;
+};
+
+// @retail 0x33670
+real function_33670(long index)
+{
+    byte *object = (byte *)function_badc0(index, NONE);
+    real result = 0.0f;
+    while (object)
+    {
+        if (!object[0xaa])
+        {
+            byte *current = ((s_scalar_object_header *)g_4e0300->data)[index & 0xffff].object;
+            result = *(real *)(current + 0x2b0);
+            result = result < 0.0f ? 0.0f : result > 1.0f ? 1.0f : result;
+            break;
+        }
+        long parent = *(long *)(object + 0x14);
+        if (parent == NONE)
+            break;
+        index = parent;
+        object = ((s_scalar_object_header *)g_4e0300->data)[index & 0xffff].object;
+    }
+    return result;
+}
+
 union s_transition_scalar
 {
 	real value;

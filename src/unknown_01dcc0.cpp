@@ -1,5 +1,6 @@
 // @flags /O2 /Ob1 /Gr
 #include "unknown_11c920.h"
+#include <xtl.h>
 
 /* 0x98-byte entries starting at 0x4b4b58 */
 struct s_unknown_01dcc0
@@ -19,6 +20,43 @@ struct s_unknown_01dcc0
 };
 
 s_unknown_01dcc0 g_4b4b58[32];
+
+void function_12d520(long address);
+
+// @retail 0x1db90
+void __stdcall function_1db90(void *unused, long index)
+{
+    (void)&unused;
+    (void)&index;
+    s_unknown_01dcc0 *entry = &g_4b4b58[index];
+    if (entry->data)
+    {
+        index = 0;
+        bool busy;
+        do
+        {
+            busy = D3DResource_IsBusy((D3DResource *)&entry->sub_header) != 0;
+            if (!busy)
+            {
+                for (long i = 0; i < entry->element_count; ++i)
+                {
+                    if (D3DResource_IsBusy((D3DResource *)&entry->elements[i]))
+                    {
+                        busy = true;
+                        break;
+                    }
+                }
+            }
+            ++index;
+        } while (index <= 100000 && busy);
+        function_12d520((long)entry->data);
+        entry->width = 0;
+        entry->height = 0;
+        entry->data = 0;
+        entry->flag95 = 0;
+        *(long *)entry->unknown00 = 0;
+    }
+}
 
 // @retail 0x25960
 long function_25960(void)
@@ -112,4 +150,79 @@ bool function_01de20(long index)
 		result = true;
 	}
 	return result;
+}
+
+
+dword function_1d6f0(bool linear, bool alternate, dword format, long width, long height);
+long g_55e6c0;
+
+// @retail 0x1df20
+bool function_1df20(long index, long kind, long width, long height, bool alternate, bool linear, long count, void *data)
+{
+    (void)&kind;
+    (void)&width;
+    (void)&height;
+    (void)&alternate;
+    (void)&linear;
+    (void)&count;
+    (void)&data;
+    if (data)
+    {
+        s_unknown_01dcc0 *entry = &g_4b4b58[index];
+        if (entry->data || entry->flag95)
+            return false;
+        *(long *)entry->unknown00 = kind;
+        entry->width = width;
+        entry->height = height;
+        entry->data = data;
+        *(long *)entry->unknown8c = 0;
+        entry->element_count = count < 0 ? 0 : count > 4 ? 4 : count;
+        *(long *)entry->unknown7c = 0;
+        entry->sub_header[1] = 0;
+        entry->sub_header[2] = 0;
+        dword packed = ((((dword)width * 4) / 64) << 24) - 0x1000000;
+        packed |= ((dword)height << 12) - 0x1000;
+        packed |= width - 1;
+        entry->flag94 = linear;
+        entry->sub_header[0] = 0x40001;
+        entry->sub_header[4] = linear ? packed : 0;
+        entry->sub_header[3] = function_1d6f0(linear, alternate, count, width, height);
+        D3DResource_Register((D3DResource *)entry->sub_header, data);
+        long offset = 0;
+        long shift = 0;
+        long size = ((width + 63) & ~63) * height * 4;
+        for (long i = 0; i < entry->element_count; ++i, shift += 2)
+        {
+            long bytes = size >> shift;
+            long *element = entry->elements[i];
+            element[0] = 0x50001;
+            element[1] = entry->sub_header[1] + offset;
+            element[2] = entry->sub_header[2];
+            element[4] = entry->sub_header[4];
+            element[3] = function_1d6f0(linear, alternate, 1, width >> i, height >> i);
+            element[5] = (long)entry->sub_header;
+            ++entry->sub_header[0];
+            offset += bytes;
+            *(long *)entry->unknown7c += bytes;
+        }
+    }
+    else if (g_55e6c0 < 10)
+        ++g_55e6c0;
+    return true;
+}
+
+extern long g_485898;
+long function_12d400(long type, long size, long user_data, long update, long release);
+
+// @retail 0x1dc40
+void function_1dc40(long index, long width, long height)
+{
+    (void)&width;
+    (void)&height;
+    long size = ((width + 63) & ~63) * height * 4;
+    long active = g_485898 >= 4 && g_485898 <= 7;
+    void *data = (void *)function_12d400((long)(bool)(byte)active + 1, size, index, 0, (long)function_1db90);
+    if (data)
+        XPhysicalProtect(data, size, PAGE_READWRITE | PAGE_WRITECOMBINE);
+    function_1df20(index, 3, width, height, false, true, 1, data);
 }
