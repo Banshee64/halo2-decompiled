@@ -692,6 +692,18 @@ static inline long channel_slot_next(long index)
 	return result;
 }
 
+/* the sender's name of a message entry ("" for none) */
+inline char const *message_entry_get_name(s_entry const *entry)
+{
+	char const *name = "";
+
+	if (entry)
+	{
+		name = entry->name;
+	}
+	return name;
+}
+
 /* opens the notification screen on a slot's message */
 // @retail 0x23591a
 void function_23591a(c_window_channel_459a34 *channel, long index)
@@ -713,7 +725,7 @@ void function_23591a(c_window_channel_459a34 *channel, long index)
 			short bitmap;
 
 			channel->m3c->start_animation(0);
-			((c_screen_45bd40 *)channel->m3c)->set_text(entry ? entry->name : "");
+			((c_screen_45bd40 *)channel->m3c)->set_text(message_entry_get_name(entry));
 			bitmap = 6;
 			switch (channel->slots[index].message.type)
 			{
