@@ -28,7 +28,7 @@ struct s_state_2bd
 {
 	byte unknown00[0x1a0];
 	long l1a0;
-	byte unknown1a4[4];
+	long l1a4;
 	short s1a8;
 	byte unknown1aa[2];
 	point3f p1ac;
@@ -63,18 +63,23 @@ struct s_spline_2bd
 	long count;
 };
 
-/* a polygon of up to 32 vertices inside a circle and a height range */
+/* the hill: a polygon of 32 vertices on a closed spline through up to 16
+   markers, inside a circle and a height range */
 struct s_polygon_2be
 {
-	byte unknown00[0x60];
+	/* the markers (the spline's points) */
+	long ids[16];
+	/* the vertices each spline segment gets */
+	long steps[8];
 	long count;
 	point2f vertices[32];
 	real center_x;
 	real center_y;
-	byte unknown16c[4];
+	real center_z;
 	real radius;
 	real z_min;
 	real z_max;
+	real perimeter;
 };
 
 /* the settings an engine update copies, as the peer sees them */
@@ -104,6 +109,7 @@ point3f *g_468710;
 /* callees */
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 /* ---- the engine classes at 0x45c8f0 and 0x45c9c0 ---- */
 
@@ -137,6 +143,7 @@ class c_engine_peer_a : public c_engine_peer
 public:
 	virtual void q0(long, s_stats_a *);
 	virtual void q1(dword *, long, s_settings_2bd *);
+	virtual bool q2(dword, long, s_settings_2bd *);
 };
 
 class c_engine_peer_b : public c_engine_peer
@@ -225,6 +232,37 @@ void c_engine_peer_a::q1(dword *value, long, s_settings_2bd *settings)
 	*value = result;
 }
 
+void hill_set(s_polygon_2be *hill, long index);
+
+// @retail 0x2bdc00
+bool c_engine_peer_a::q2(dword a, long, s_settings_2bd *settings)
+{
+	dword m = a & 0x1f;
+	bool result = true;
+
+	if (m)
+		result = p43(m, (long)settings) != 0;
+	s_state_2bd *state = g_51ecc8;
+	if (a & 0x20)
+	{
+		long index = settings->s24;
+
+		if (state->l1a0 != index)
+		{
+			state->l1a0 = index;
+			hill_set((s_polygon_2be *)state, index);
+		}
+	}
+	if (a & 0x40)
+	{
+		if (state->s1a8 != settings->s26)
+		{
+			state->s1a8 = settings->s26;
+		}
+	}
+	return result;
+}
+
 // @retail 0x2bdd20
 void function_2bdd20(s_spline_2bd *spline, point3f *points)
 {
@@ -239,7 +277,7 @@ void function_2bdd20(s_spline_2bd *spline, point3f *points)
 }
 
 // @retail 0x2bdd70
-void function_2bdd70(long n, point3f *points, point3f *out, s_spline_2bd *spline)
+void function_2bdd70(point3f *out, s_spline_2bd *spline, long n, point3f *points)
 {
 	long i = n * 2;
 	long previous = i - 1;
@@ -296,6 +334,146 @@ void function_2bde90(real t, point3f *out, point3f *points)
 	out->x = points[3].x * r[3] + points[2].x * r[2] + points[1].x * r[1] + points[0].x * r[0];
 	out->y = points[3].y * r[3] + points[2].y * r[2] + points[1].y * r[1] + points[0].y * r[0];
 	out->z = points[3].z * r[3] + points[2].z * r[2] + points[1].z * r[1] + points[0].z * r[0];
+}
+
+/* ---- the hill's shape ---- */
+
+/* builds the hill's polygon on the spline through its markers, and its
+   center, radius, perimeter and height range (the height range also covers
+   the hill's other markers) */
+// @retail 0x2be050
+void hill_build_polygon(s_polygon_2be *hill, long index)
+{
+	long half = hill->count / 2;
+	long vertex = 0;
+	long marker_ids[8];
+	point3f control[4];
+	point3f point;
+	point3f points[16];
+	long i;
+	long count;
+
+	function_2bdd20((s_spline_2bd *)hill, points);
+	for (i = 0; i < half; i++)
+	{
+		long steps = hill->steps[i];
+
+		function_2bdd70(control, (s_spline_2bd *)hill, i, points);
+		for (long j = 0; j < steps; j++)
+		{
+			function_2bde90((real)j / (real)steps, &point, control);
+			hill->vertices[vertex + j].x = point.x;
+			hill->vertices[vertex + j].y = point.y;
+		}
+		vertex += steps;
+	}
+	hill->perimeter = 0.0f;
+	for (i = 0; i < 32; i++)
+	{
+		long previous = (i != 0) ? i - 1 : 31;
+		real dx = hill->vertices[previous].x - hill->vertices[i].x;
+		real dy = hill->vertices[previous].y - hill->vertices[i].y;
+
+		hill->perimeter += (real)sqrt(dy * dy + dx * dx);
+	}
+	*(point3f *)&hill->center_x = *g_468788;
+	count = hill->count;
+	if (count > 0)
+	{
+		i = 0;
+		do
+		{
+			hill->center_x = points[i].x + hill->center_x;
+			hill->center_y = points[i].y + hill->center_y;
+			hill->center_z = points[i].z + hill->center_z;
+			i++;
+		}
+		while (i < count);
+	}
+	real scale = 1.0f / (real)count;
+	hill->center_x *= scale;
+	hill->center_y *= scale;
+	hill->center_z *= scale;
+	hill->radius = 0.0f;
+	if (count > 0)
+	{
+		i = 0;
+		do
+		{
+			real dx = points[i].x - hill->center_x;
+			real dy = points[i].y - hill->center_y;
+			real distance_squared = dy * dy + dx * dx;
+
+			if (!(hill->radius > distance_squared))
+			{
+				hill->radius = distance_squared;
+			}
+			i++;
+		}
+		while (i < count);
+	}
+	hill->radius = (real)sqrt(hill->radius);
+	hill->z_min = hill->center_z;
+	hill->z_max = hill->center_z;
+	for (i = 0; i < hill->count; i++)
+	{
+		if (hill->z_min > points[i].z)
+		{
+			hill->z_min = points[i].z;
+		}
+		if (!(hill->z_max > points[i].z))
+		{
+			hill->z_max = points[i].z;
+		}
+	}
+	count = function_19ec40(0, 0.0f, (short)(index + 11), NONE, 1, 8, marker_ids, 0.0f);
+	if (count > 0)
+	{
+		i = 0;
+		do
+		{
+			point3f position = g_4e0350->marker_entries[marker_ids[i]].position;
+
+			hill->z_min = hill->z_min > position.z ? position.z : hill->z_min;
+			hill->z_max = hill->z_max > position.z ? hill->z_max : position.z;
+			i++;
+		}
+		while (i < count);
+	}
+	hill->z_min -= 0.1f;
+	hill->z_max += 0.8f;
+}
+
+/* sets up the hill of the index: its markers, the vertices each spline
+   segment gets (32 in all), and its polygon */
+// @retail 0x2bdc70
+void hill_set(s_polygon_2be *hill, long index)
+{
+	if (index != NONE)
+	{
+		long count = function_19ec40(0, 0.0f, (short)(index + 11), NONE, 0, 16, hill->ids, 0.0f);
+
+		if (count >= 4)
+		{
+			long half;
+
+			count -= count & 1;
+			hill->count = count;
+			half = count / 2;
+			for (long i = 0; i < half; i++)
+			{
+				hill->steps[i] = (i + 1) * 32 / half - i * 32 / half;
+			}
+		}
+		if (hill->count >= 4 && !(hill->count & 1))
+		{
+			hill_build_polygon(hill, index);
+		}
+	}
+	else
+	{
+		hill->count = 0;
+	}
 }
 
 /* ---- the hill's color ---- */

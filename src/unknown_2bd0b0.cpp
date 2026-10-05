@@ -49,6 +49,7 @@ class c_game_engine_45c878 : public c_game_engine
 {
 public:
 	virtual bool v23();
+	virtual bool v25();
 	virtual void v28(long);
 	virtual void v36(long);
 	virtual void v37(long);
@@ -112,6 +113,27 @@ bool c_game_engine_45c878::v23()
 		}
 	}
 	function_2bd960();
+	return true;
+}
+
+/* the state as v25 sets it */
+struct s_state_2bd0
+{
+	byte unknown000[0x1a0];
+	long hill_index;
+	long time_to_move;
+};
+
+void hill_set(s_polygon_2be *hill, long index);
+
+// @retail 0x2bd200
+bool c_game_engine_45c878::v25()
+{
+	s_state_2bd0 *state = (s_state_2bd0 *)g_51ecc8;
+
+	state->hill_index = 0;
+	state->time_to_move = g_4e6948->s230 * g_510c54->field_2_3;
+	hill_set((s_polygon_2be *)state, 0);
 	return true;
 }
 
