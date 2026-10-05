@@ -483,7 +483,7 @@ void function_199e3c(long controller);
 short function_1900ff(long controller);
 long function_199f34(void);
 bool function_19a179(long player_index);
-void function_19a7e9(long controller, long value);
+bool function_19a7e9(long controller, long value);
 void function_149ef3(word user_flags, long load);
 c_class_1473c9 *__stdcall function_2b8536(s_screen_parameters *parameters);
 

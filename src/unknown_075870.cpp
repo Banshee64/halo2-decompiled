@@ -9,6 +9,7 @@
 #include "network_configuration.h"
 #include <xtl.h>
 #include <string.h>
+#include <float.h>
 
 struct s_session_machine_address
 {
@@ -575,5 +576,277 @@ void s_network_observer::packet_sent(long connection_index, long size, bool flag
 		channels[channel_index].value4a4 += size;
 		if (flag)
 			channels[channel_index].flag4a1 = true;
+	}
+}
+
+/* whether one of a channel's owners treats it as a host or local channel,
+   once its connection has been up long enough */
+// @retail 0x77940
+bool network_observer_channel_has_host(s_network_observer *observer, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	bool result = false;
+	if (channel->connection_index != NONE)
+	{
+		s_network_connection *connection = function_x7665e0(channel->connection_index);
+		if (connection->state >= 4)
+		{
+			long time = connection->state > 2 ? connection->timers[1].time : 0;
+			if (observer_time_get() - time >= observer->configuration->timeout70)
+			{
+				for (long owner = 0; owner < MAXIMUM_OBSERVER_OWNERS; owner++)
+				{
+					if ((channel->owner_mask & (1 << owner)) && observer->owners[owner].active->channel_is_host_or_local(channel_index))
+						return true;
+				}
+			}
+			return false;
+		}
+	}
+	return result;
+}
+
+/* the video refresh rate (unknown_12b070.cpp) */
+extern short g_485ac0;
+
+/* the game's frame rate: 25 on a 50 Hz display, otherwise 30 */
+static inline real network_frame_rate(void)
+{
+	long refresh = g_485ac0;
+	if (refresh <= 0)
+		refresh = 60;
+	return refresh == 50 ? 25.0f : 30.0f;
+}
+
+/* the first of the configuration's rates (per frame) that a packet of this
+   size per frame reaches, else the last one */
+// @retail 0x78090
+real network_observer_rate_for_size(s_network_observer *observer, long size, bool large, bool limit)
+{
+	real frame_rate = network_frame_rate();
+	long count = large ? observer->configuration->value10c : observer->configuration->value108;
+	real ratio = (real)size / (real)(count * 8 + 0x168);
+	long rate_count = observer->configuration->rate_count;
+	real result = 0.0f;
+	for (long i = 0; i < rate_count - 1; i++)
+	{
+		real rate = observer->configuration->rates[i] * frame_rate;
+		if (ratio >= rate)
+		{
+			result = rate;
+			break;
+		}
+	}
+	if (result == 0.0f)
+		result = observer->configuration->rates[rate_count - 1] * frame_rate;
+	if (limit)
+	{
+		real maximum = frame_rate * 0.5f;
+		if (result > maximum)
+			result = maximum;
+	}
+	return result;
+}
+
+/* whether a rate is below the configured rate or the frame rate */
+// @retail 0x78190
+bool network_observer_rate_below(s_network_observer *observer, real rate, bool check_configured, bool check_frame_rate, bool half)
+{
+	real frame_rate = network_frame_rate();
+	bool result = false;
+	if (check_configured && rate + 0.0001f < observer->configuration->real110 * frame_rate)
+		result = true;
+	if (check_frame_rate)
+	{
+		if (half)
+			frame_rate *= 0.5f;
+		if (rate + 0.0001f < frame_rate)
+			result = true;
+	}
+	return result;
+}
+
+/* the smallest of the configuration's rates (per frame) above a minimum, or
+   the minimum when none is */
+// @retail 0x78210
+real network_observer_rate_above(s_network_observer *observer, real minimum, bool limit)
+{
+	real frame_rate = network_frame_rate();
+	real result = FLT_MAX;
+	for (long i = observer->configuration->rate_count - 1; i >= 0; i--)
+	{
+		real rate = frame_rate * observer->configuration->rates[i];
+		if (rate > minimum && result > rate)
+			result = rate;
+	}
+	if (result == FLT_MAX)
+		result = minimum;
+	if (limit)
+	{
+		real maximum = frame_rate * 0.5f;
+		if (result > maximum)
+			result = maximum;
+	}
+	return result;
+}
+
+/* sets the observer up: its link, its configuration and its owners and
+   channels cleared */
+// @retail 0x75970
+bool network_observer_initialize(s_network_observer *observer, void *unknown04, s_network_observer_configuration *configuration, void *link, void *unknown0c)
+{
+	observer->unknown04 = unknown04;
+	observer->configuration = configuration;
+	observer->unknown0c = unknown0c;
+	observer->link = link;
+	memset(observer->owners, 0, sizeof(observer->owners));
+	network_statistics_initialize(&observer->statistics_sent, observer->configuration->statistics_interval);
+	observer->flag4f3c = true;
+	observer->flag4f3d = false;
+	observer->flag4f3e = false;
+	observer->value4f38 = NONE;
+	observer->time4f30 = observer_time_get();
+	observer->time4f34 = observer_time_get();
+	for (long channel_index = 0; channel_index < MAXIMUM_OBSERVER_CHANNELS; channel_index++)
+	{
+		s_network_observer_channel *channel = &observer->channels[channel_index];
+		memset(channel, 0, sizeof(*channel));
+		channel->connection_index = NONE;
+		channel->qos_handle = NONE;
+	}
+	observer->flag4e00 = false;
+	return true;
+}
+
+/* counts the periods the traffic stayed over or under the configured share
+   of the bandwidth, and tracks the largest and the smoothed value */
+// @retail 0x77f90
+void network_observer_update_bandwidth(s_network_observer *observer, long count, long value, long size)
+{
+	if (count > 0)
+	{
+		bool over;
+		if ((real)size > (real)count * observer->configuration->real1ac)
+			over = true;
+		else
+			over = false;
+		if (observer->value4e10 == NONE || observer->flag4e14 != over)
+		{
+			observer->flag4e14 = over;
+			observer->value4e10 = observer_time_get();
+		}
+		if (observer_time_since(observer->value4e10) >= observer->configuration->time1b0)
+		{
+			observer->counts4e18[observer->flag4e14]++;
+			observer->value4e10 = observer_time_get();
+		}
+	}
+	if (value > observer->value4e08)
+		observer->value4e08 = value;
+	if (observer->value4e0c != NONE && value > observer->value4e0c)
+		observer->value4e0c += (value - observer->value4e0c) >> observer->configuration->shift1b4;
+}
+
+/* clears a direction's traffic (as unknown_092870.cpp's helper) */
+static inline void observer_statistics_reset(s_network_statistics *statistics)
+{
+	statistics->packets = 0;
+	statistics->bytes = 0;
+	statistics->period_start = 0;
+	memset(&statistics->current, 0, sizeof(statistics->current));
+	statistics->sample_index = 0;
+	memset(statistics->samples, 0, sizeof(statistics->samples));
+	memset(&statistics->total, 0, sizeof(statistics->total));
+}
+
+static inline void observer_channel_clear_flag48c(s_network_observer_channel *channel)
+{
+	if (channel->flag48c)
+		channel->flag48c = false;
+}
+
+/* starts the bandwidth estimate over */
+// @retail 0x75af0
+void network_observer_reset_bandwidth(s_network_observer *observer)
+{
+	observer->value4e20 = observer->configuration->value138;
+	observer->value4e24 = 0x400;
+	observer->flag4e14 = false;
+	observer->value4e08 = NONE;
+	observer->value4e0c = NONE;
+	observer->value4e10 = NONE;
+	memset(observer->counts4e18, 0, sizeof(observer->counts4e18));
+	observer_statistics_reset(&observer->statistics_sent);
+	observer->value4e28 = observer->value4e04 / 1024 - observer->configuration->value134;
+	observer->value4e28 = observer->value4e28 > observer->value4e20 ? observer->value4e28 : observer->value4e20;
+	observer->time4f08 = observer_time_get();
+	observer->time4f0c = observer_time_get();
+	observer->value4f10 = 0;
+	observer->value4f14 = 0;
+	observer->flag4f18 = false;
+	observer->value4f1c = 0;
+	observer->value4f20 = 0;
+	observer->real4f24 = 0.0f;
+	observer->real4f28 = 0.0f;
+	observer->time4f30 = NONE;
+	observer->time4f34 = NONE;
+	observer->value4f38 = NONE;
+	observer->flag4f3c = true;
+	observer->time4f2c = observer_time_get();
+	long channel_index = 0;
+	do
+	{
+		if (observer->channels[channel_index].state)
+			observer_channel_clear_flag48c(&observer->channels[channel_index]);
+		channel_index++;
+	} while (channel_index < MAXIMUM_OBSERVER_CHANNELS);
+}
+
+/* a probe target (as unknown_07b4c0.cpp's) */
+struct s_qos_target
+{
+	XNKID kid;
+	XNKEY key;
+	XNADDR xna;
+};
+
+/* src/unknown_07b4c0.cpp */
+long qos_lookup(long kind, long count, long bits_per_second, s_qos_target *targets);
+bool qos_is_complete(long handle);
+
+/* probes a channel's machine once, with the first of its owners' secure
+   keys, and keeps the result */
+// @retail 0x77480
+void network_observer_channel_probe(s_network_observer *observer, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	if (channel->state && channel->qos_handle == NONE && !(channel->flags & 8))
+	{
+		for (long owner = 0; owner < MAXIMUM_OBSERVER_OWNERS; owner++)
+		{
+			if ((channel->owner_mask & (1 << owner)) && observer->owners[owner].key_index != NONE)
+			{
+				s_qos_target target;
+				*(s_network_session_id *)&target.kid = observer->owners[owner].id;
+				target.key = *(XNKEY *)observer->owners[owner].key;
+				target.xna = *(XNADDR *)channel->remote_id;
+				channel->qos_handle = qos_lookup(0, 1, NONE, &target);
+				break;
+			}
+		}
+	}
+	long handle = channel->qos_handle;
+	if (handle != NONE && qos_is_complete(handle))
+	{
+		s_qos_result *result = &channel->field_x31a738;
+		if (qos_target_result(handle, result, 0))
+		{
+			channel->flags |= 0x10;
+			channel->field_x31a738.data = NULL;
+			channel->field_x31a738.data_size = 0;
+		}
+		qos_release(channel->qos_handle);
+		channel->qos_handle = NONE;
+		channel->flags |= 8;
 	}
 }

@@ -21,12 +21,6 @@ void function_147dbe(s_controller_event *event)
 struct s_event;
 struct s_event_response;
 
-// @stub 0x53750
-bool function_53750(long player_index)
-{
-	return false;
-}
-
 // @stub 0x22acb4
 bool function_22acb4(long player_index)
 {
@@ -138,4 +132,17 @@ bool __stdcall function_19bfd0(struct s_content_item *item)
 bool __stdcall function_64060(struct s_game_variant *variant)
 {
 	return false;
+}
+
+struct s_network_session_player;
+
+// @stub 0x805d0
+void __fastcall function_805d0(s_network_session_player *player)
+{
+}
+
+// @stub 0x687e0
+long function_687e0(void)
+{
+	return 0;
 }

@@ -206,16 +206,22 @@ struct s_simulation_player_update
 /* what the world belongs to (the simulation watcher, g_4cf780): its valid
    players; unknown1c is the mask of the machines in the game and unknown24
    their addresses */
+class c_class_58d20;
+
 struct s_simulation_world_owner
 {
 	byte unknown00[4];
 	c_simulation_world *world;
-	byte unknown08[0x18 - 8];
+	byte unknown08[4];
+	c_class_58d20 *session;
+	long unknown10;
+	long unknown14;
 	long unknown18;
 	long unknown1c;
-	byte unknown20[4];
+	long unknown20;
 	dword unknown24[0x18];
-	byte unknown84[4];
+	bool unknown84;
+	byte unknown85[3];
 	s_type_c67652 players;
 	long unknownbcc;
 	dword unknownbd0[0x18];
@@ -324,6 +330,20 @@ public:
 	void delete_all_players(void);
 	void delete_all_actors(void);
 };
+
+/* the world's record of a player, if it has one */
+static __forceinline s_simulation_world_player *world_player_get(c_simulation_world *world, long player_index)
+{
+	s_simulation_world_player *result = NULL;
+	long index = player_index & 0xffff;
+	if (index >= 0 && index < sizeof(world->players) / sizeof(world->players[0]))
+	{
+		s_simulation_world_player *player = &world->players[index];
+		if (player->player_index != NONE)
+			result = player;
+	}
+	return result;
+}
 
 /* a client world filling its join buffer with the authority's join data
    (buffer_size counts the bytes so far) */

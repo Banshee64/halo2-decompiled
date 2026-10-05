@@ -27,7 +27,7 @@ __int64 timing_counter_resume(timing_counter *c)
 
 	if (c->stopped)
 	{
-		c->stopped = false;
+		((volatile timing_counter *)c)->stopped = false;
 		c->start = read_tsc();
 	}
 	return total;

@@ -15,6 +15,8 @@
 #include "globals.h"
 #include "unknown_059ad0.h"
 #include "network_voice.h"
+#include "unknown_067e10.h"
+#include "network_session_manager.h"
 
 c_voice_xhv g_476fc8;
 s_voice_globals g_4c9878;
@@ -580,7 +582,7 @@ dword voice_get_port_flags(long port)
 }
 
 // @retail 0x53b90
-bool voice_port_flag1(long port)
+inline bool voice_port_flag1(long port)
 {
 	bool result = false;
 	if (voice_available())
@@ -1348,4 +1350,217 @@ long voice_player_get_bandwidth(long player)
 	if (voice_is_enabled())
 		result = voice_channels_get_bandwidth(&g_525a00, player);
 	return result;
+}
+
+/* ---- talking and the outgoing chat data ---- */
+
+static inline bool voice_xhv_chat_data_ready(c_voice_xhv *xhv, long port)
+{
+	bool result = false;
+	if (xhv->initialized)
+		result = xhv->chat_data_ready[port];
+	return result;
+}
+
+/* whether a player is talking: a local player's port has chat data this
+   frame, a remote one is talking in the engine */
+// @retail 0x53750
+bool function_53750(long player)
+{
+	bool result = false;
+	if (voice_available())
+	{
+		if (voice_get_local_player_mask() & (1 << player))
+		{
+			long port = voice_get_player_unknown14(player);
+			if (port != NONE)
+				return voice_xhv_chat_data_ready(&g_476fc8, port);
+		}
+		else
+		{
+			return voice_xhv_is_talking(&g_476fc8, player);
+		}
+	}
+	return result;
+}
+
+/* the engine's chat data for a local port: routed to the members its
+   player talks to, then queued on the player's channel */
+// @retail 0x53a20
+void __stdcall function_53a20(DWORD port, DWORD size, VOID *data)
+{
+	if (voice_available())
+	{
+		long player = voice_find_player(port);
+		if (player != NONE && !voice_port_flag1(player) && !voice_port_flag2(player))
+		{
+			dword players = voice_player_values_get(&g_5259b8, player);
+			if (players)
+			{
+				s_voice_route route;
+				bool flag;
+				route.members = 0;
+				route.unknown02 = 0;
+				flag = false;
+				voice_routing_get_route(&g_527104, players, &route);
+				if (route.members)
+				{
+					long channel = voice_find_player(port);
+					if (channel != NONE)
+					{
+						if (g_527104.settings.initialized && g_527104.settings.unknown44[channel])
+							flag = true;
+						voice_channels_add_packet(&g_525a00, channel, (s_voice_packet_header *)&route, data, size, &flag);
+					}
+				}
+			}
+		}
+	}
+}
+
+/* the members of the session that the other session also has */
+struct s_voice_membership
+{
+	long value4c;
+	long value50;
+	long member_count;
+	s_session_member members[16];
+};
+
+/* src/unknown_059ad0.cpp */
+long network_session_find_member(c_class_58d20 *session, const s_session_member_identity *identity);
+
+// @retail 0x53c70
+dword function_53c70(void)
+{
+	dword mask = 0;
+	if (voice_available() && g_4c9878.session_kind == 2)
+	{
+		c_class_58d20 *session;
+		c_class_58d20 *other;
+		other = NULL;
+		session = NULL;
+		if (function_596a0(&session) && function_59670(&other))
+		{
+			s_voice_membership *membership = NULL;
+			if (session->state && session->value4c != NONE)
+				membership = (s_voice_membership *)&session->value4c;
+			for (long i = 0; i < membership->member_count; i++)
+			{
+				if (network_session_find_member(other, (const s_session_member_identity *)membership->members[i].words) != NONE)
+					mask |= 1 << i;
+			}
+		}
+	}
+	return mask;
+}
+
+/* src/network_session_interface.cpp */
+byte *network_session_interface_get_data_4db0(void);
+
+// @retail 0x53d90
+inline bool function_53d90(void)
+{
+	byte *data = network_session_interface_get_data_4db0();
+	if (data && *(long *)(data + 0x44) == 7)
+		return true;
+	return false;
+}
+
+// @retail 0x53d40
+bool function_53d40(void)
+{
+	bool flag = false;
+	if (g_55e4d0[g_4e9ae8->engine_index])
+		flag = TEST_FIELD_BIT(g_4e6948->flags184.bit0);
+	bool other = function_53d90();
+	if (flag || other)
+		return true;
+	return false;
+}
+
+/* src/unknown_067e10.cpp */
+bool function_696d0(c_simulation_world *world, long player_index);
+
+/* whether the simulation world has a player marked (its flag25) */
+// @retail 0x54df0
+bool function_54df0(long player_index)
+{
+	bool result = false;
+	if (voice_available() && g_4e6948 && g_4e6948->flag1120)
+	{
+		c_simulation_world *world = (c_simulation_world *)g_4cf77c;
+		if (world)
+			result = world_player_get(world, player_index) && function_696d0(world, player_index);
+	}
+	return result;
+}
+
+/* src/game_in_progress.cpp, src/unknown_067e10.cpp */
+bool function_138800();
+bool function_68250(void);
+
+/* chooses the voice mode from the session manager's state */
+// @retail 0x544e0
+void voice_update_mode(void)
+{
+	long state = 0;
+	if (g_527330.initialized)
+		state = g_527330.state;
+	switch (state)
+	{
+	case 3:
+		if (!function_138800() || !function_68250())
+			g_4c9878.mode = 2;
+		else
+			g_4c9878.mode = 1;
+		break;
+	case 1:
+	case 2:
+	case 4:
+	case 5:
+	case 6:
+	case 9:
+		g_4c9878.mode = 2;
+		break;
+	case 8:
+		if (function_138800() && function_68250())
+		{
+			g_4c9878.mode = 1;
+			break;
+		}
+	case 7:
+		{
+			byte *data = network_session_interface_get_data_4db0();
+			if (data && (data[0x48] & 1))
+				g_4c9878.mode = 3;
+			else
+				g_4c9878.mode = 2;
+		}
+		break;
+	default:
+		g_4c9878.mode = 0;
+		break;
+	}
+}
+
+/* whether two players may hear each other in team voice: on the same team,
+   or always outside it */
+// @retail 0x57b60
+long voice_players_share_team(long other, long player)
+{
+	if (voice_available() && g_4c9878.mode == 3)
+	{
+		s_network_session_player *players = voice_get_players_inlined();
+		dword mask = voice_get_player_mask_inlined();
+		if ((mask & (1 << other)) && (mask & (1 << player)))
+		{
+			long other_team = (char)players[other].propertiesa8[0x7c];
+			long team = (char)players[player].propertiesa8[0x7c];
+			if (other_team != NONE && team != NONE && other_team == team)
+				return true;
+		}
+		return false;
+	}
+	return true;
 }

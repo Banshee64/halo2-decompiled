@@ -29,11 +29,6 @@ long __stdcall function_1a03a0(long controller_index, word *name)
 	return 0;
 }
 
-// @stub 0x19060a
-void function_19060a(long profile_index, long controller_index)
-{
-}
-
 // @stub 0x120e20
 void function_120e20(long controller_index, long *profile_index)
 {
@@ -48,10 +43,6 @@ long function_122db0(char const *map_name)
 
 /* callee of screen 0x24fd74's helpers (unknown_250155.cpp); lane H */
 
-// @stub 0x19a7e9
-void function_19a7e9(long controller, long value)
-{
-}
 
 /* callee of the window manager's main screen (unknown_147f6d.cpp); lane F's
    finished range, open */
