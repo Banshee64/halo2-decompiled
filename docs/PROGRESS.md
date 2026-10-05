@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5448 functions match
+
+```
+matched 5448 of 11318 game functions (546434 of 2784283 bytes, 19.63%)
+```
+
+**Codex lane C**, round 14: 3 new matches, none lost. They are an animation flag reader, its caller in the weapons code, and a Havok translation helper.
+
 ## 2026-10-05: 5445 functions match
 
 ```
