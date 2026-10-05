@@ -69,11 +69,6 @@ void function_2359ce(c_window_channel_459a34 *channel)
 
 /* callees of the screen widget code */
 
-// @stub 0x22fba9
-void function_22fba9(c_class_1473c9 *screen)
-{
-}
-
 // @stub 0x219070
 byte __stdcall function_219070(long set_index)
 {
@@ -150,11 +145,6 @@ real __stdcall function_122dd0(byte *map_name, long unknown)
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
 
-// @stub 0x148523
-void function_148523()
-{
-}
-
 /* UI lane round 5: callees of the press start screen */
 
 
@@ -201,11 +191,6 @@ long __stdcall function_6cc10(long controller_index)
 /* UI lane round 7: my own, not written yet */
 // @stub 0x238f3f
 void __stdcall function_238f3f(long controller_index, void *message, unsigned __int64 value)
-{
-}
-
-// @stub 0x23902b
-void __stdcall function_23902b(void *message, long controller_index, unsigned __int64 value)
 {
 }
 

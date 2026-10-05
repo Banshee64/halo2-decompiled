@@ -309,7 +309,7 @@ void c_widget::v12(long a)
 	short y;
 	s_bounds bounds;
 
-	function_2363d4(a, &x, &y);
+	function_2363d4((short_rectangle2d const *)a, &x, &y);
 	if (function_22f0ff(this))
 	{
 		return;

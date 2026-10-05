@@ -129,6 +129,62 @@ void function_238f11(long controller_index)
 	parameters.load(&parameters);
 }
 
+struct s_online_game_invite;
+void online_friends_answer_game_invite(DWORD controller_index, const XONLINE_FRIEND *friend_, long answer);
+void online_game_invite_answer(DWORD controller_index, const s_online_game_invite *invite, long answer);
+
+/* the game invitation of a message */
+struct s_game_invite_message_view
+{
+	byte unknown00[0x24];
+	dword title_id;
+	byte unknown28[8];
+	FILETIME time;
+};
+
+/* declines the game invitation of the message from the selected player;
+   without the message's session it declines the friend's own invitation */
+// @retail 0x23902b
+void __stdcall function_23902b(void *message, long controller_index, unsigned __int64 session_id)
+{
+	s_game_invite_message_view *invite = (s_game_invite_message_view *)message;
+	s_online_selection selection;
+
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	switch (selection.type)
+	{
+	case 1:
+		if (invite && session_id)
+		{
+			XONLINE_FRIEND friend_;
+
+			online_friend_from_user(&friend_, &selection.user);
+			friend_.dwFriendState |= XONLINE_FRIENDSTATE_FLAG_ONLINE | XONLINE_FRIENDSTATE_FLAG_RECEIVEDINVITE;
+			friend_.dwTitleID = invite->title_id;
+			friend_.gameinviteTime = invite->time;
+			*(unsigned __int64 *)&friend_.sessionID = session_id;
+			selection.friend_ = friend_;
+			selection.type = 2;
+			online_game_invite_answer(controller_index, (s_online_game_invite *)&selection.friend_, 1);
+		}
+		break;
+	default:
+		if (invite && session_id)
+		{
+			selection.friend_.dwFriendState |= XONLINE_FRIENDSTATE_FLAG_RECEIVEDINVITE;
+			*(unsigned __int64 *)&selection.friend_.sessionID = session_id;
+			selection.friend_.dwTitleID = invite->title_id;
+			selection.friend_.gameinviteTime = invite->time;
+			online_game_invite_answer(controller_index, (s_online_game_invite *)&selection.friend_, 1);
+		}
+		else
+		{
+			online_friends_answer_game_invite(controller_index, &selection.friend_, 1);
+		}
+		break;
+	}
+}
+
 /* invites the selected player to the game */
 // @retail 0x2390f8
 void function_2390f8(long controller_index)

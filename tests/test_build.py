@@ -282,6 +282,23 @@ def test_destructor_marker_with_a_class_marks_its_implicit_destructor():
     assert 'void standin_s_0(void) { ((c_screen *)standin_s_arguments)->c_screen::~c_screen(); }' in tu
 
 
+def test_vcall_marker_names_the_compilers_thunk_and_gets_no_standin():
+    text = ('// @retail 0x234c5f vcall 0x5c\n'
+            '// @retail 0x1010\nvoid f(long a)\n{\n}\n')
+    thunk, f = scan(text, 'src/l.cpp')
+    assert (thunk.retail, thunk.name, thunk.kind, thunk.params, thunk.stub) == (
+        0x234c5f, "`vcall'{0x5c}", 'vcall', [], False)
+    tu = build.tu_source('/abs/src/l.cpp', [thunk, f], 'l')
+    # the source's own code emits the thunk; the other stand-ins keep their numbers
+    assert 'standin_l_0' not in tu and 'void standin_l_1(void) { f(' in tu
+    assert build.standin_names([thunk, f])[('src/l.cpp', 0x1010)] == 'standin_l_1'
+
+
+def test_vcall_marker_is_not_for_stubs():
+    with pytest.raises(SystemExit, match='"vcall" marks'):
+        scan('// @stub 0x234c5f vcall 0x5c\n', 'src/stubs/s.cpp')
+
+
 def test_no_vtable_standin_for_a_class_with_a_marked_constructor():
     text = ('// @retail 0x1000\nc_child::c_child()\n{\n}\n'
             '// @retail 0x1010\nvoid c_child::update()\n{\n}\n')
