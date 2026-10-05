@@ -19,6 +19,7 @@ unknown_0cd660.cpp, unknown_0d0690.cpp, unknown_0d0e00.cpp). */
 #include "unknown_1c62f0.h"
 #include "unknown_0d0690.h"
 #include "sound_sources.h"
+#include <math.h>
 #include <string.h>
 
 /* the unit (the object fields, then the unit's own; the fields read here) */
@@ -30,7 +31,9 @@ struct s_unit
 	long next_sibling_index;
 	long first_child_index;
 	long parent_index;
-	byte unknown018[0xaa - 0x18];
+	byte unknown018[0x70 - 0x18];
+	vector3f forward;
+	byte unknown07c[0xaa - 0x7c];
 	byte type;
 	byte unknownab[0xd4 - 0xab];
 	long unknown0d4;
@@ -47,13 +50,16 @@ struct s_unit
 	long unknown13c;
 	byte unknown140[0x168 - 0x140];
 	vector3f unknown168;
-	byte unknown174[0x18c - 0x174];
+	byte unknown174[0x184 - 0x174];
+	real unknown184;
+	byte unknown188[0x18c - 0x188];
 	real unknown18c;
 	real unknown190;
 	byte unknown194[0x1ec - 0x194];
 	long unknown1ec;
 	long unknown1f0;
-	byte unknown1f4[0x1fc - 0x1f4];
+	byte unknown1f4;
+	byte unknown1f5[0x1fc - 0x1f5];
 	short parent_seat_index;
 	byte unknown1fe[0x210 - 0x1fe];
 	short unknown210;
@@ -63,7 +69,7 @@ struct s_unit
 	char unknown216;
 	char unknown217;
 	long weapon_object_indices[4];
-	byte unknown228[0x238 - 0x228];
+	long unknown228[4];
 	long unknown238;
 	char current_grenade_index;
 	char next_grenade_index;
@@ -78,11 +84,23 @@ struct s_unit
 	byte unknown288[0x2a8 - 0x288];
 	long unknown2a8;
 	long unknown2ac;
-	byte unknown2b0[0x2bc - 0x2b0];
+	real unknown2b0;
+	byte unknown2b4[4];
+	real unknown2b8;
 	char unknown2bc;
 	byte unknown2bd;
 	short unknown2be;
-	byte unknown2c0[0x33e - 0x2c0];
+	byte unknown2c0[0x2c8 - 0x2c0];
+	word unknown2c8;
+	short unknown2ca;
+	real unknown2cc;
+	long unknown2d0;
+	byte unknown2d4[4];
+	real unknown2d8;
+	byte unknown2dc[0x2e4 - 0x2dc];
+	real unknown2e4;
+	short unknown2e8;
+	byte unknown2ea[0x33e - 0x2ea];
 	short unknown33e;
 	byte unknown340[0x348 - 0x340];
 	byte flags_348;
@@ -182,6 +200,16 @@ bool function_10f630(long object_index, long *first, long *second);
 void function_b7360(long object_index);
 bool function_c9040(long unit_index, long a, short seat_index, vector3f const *forward);
 long function_1e4a10(long index);
+void function_c5740(long unit_index, long a);
+void function_1520f0(long player_index);
+long __stdcall function_cdeb0(long unit_index, long state_name, long a, long b);
+bool function_100f00(long weapon_index);
+bool function_1e3370(long actor_index, void *unknown);
+void function_10cec0(long unit_index, long weapon_index, long parent_marker_name, long marker_name);
+void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real unknown2cc, long a, bool b);
+bool unit_has_weapon_definition(long unit_index, long definition_index);
+bool __stdcall function_cd0c0(long unit_index, long weapon_index, short mode);
+void function_10cd50(long weapon_index);
 
 /* the damage data (as vehicles.cpp reads it) */
 struct s_type_1e6529
@@ -1261,5 +1289,519 @@ void function_c96b0(long unit_index, long *result, real a, real b)
 	else if (b > *(real *)(definition + 0x104) || a > *(real *)(definition + 0x104))
 	{
 		*result = 1;
+	}
+}
+
+/* marks the unit's weapon slot changed: the object +0xd4 names gets the
+   slot's two bits, then the counter steps */
+static void unit_weapon_slot_changed(long unit_index, long slot_index)
+{
+	long index = UNIT_GET(unit_index)->unknown0d4;
+
+	if (index != NONE)
+	{
+		function_b58c0(index, (1 << (slot_index + 0x12)) | (1 << (slot_index + 0xe)));
+	}
+	function_cea00(unit_index);
+}
+
+/* puts a weapon in the unit's slot, or empties the slot and gets rid of
+   the weapon there by mode (mode 4 keeps it) */
+// @retail 0xcea70
+void __stdcall function_cea70(long mode, long weapon_index, short slot_index, long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (weapon_index != NONE)
+	{
+		function_10ca80(weapon_index, unit_index);
+		function_10cd50(weapon_index);
+		unit->weapon_object_indices[slot_index] = weapon_index;
+		unit->unknown228[slot_index] = 0;
+	}
+	else
+	{
+		long old_weapon_index = unit->weapon_object_indices[slot_index];
+
+		unit->weapon_object_indices[slot_index] = NONE;
+		if (mode != 4)
+		{
+			function_ce470(mode, old_weapon_index, unit_index);
+		}
+	}
+	unit_weapon_slot_changed(unit_index, slot_index);
+}
+
+/* attaches the weapon to the unit at its hand's marker (the unit
+   definition's +0x158 or +0x15c), at the unit's marker +0x160 when the
+   weapon has it, else at the weapon definition's +0x284 */
+// @retail 0xd0870
+void __stdcall function_d0870(long weapon_index, long unit_index, bool secondary)
+{
+	byte *unit_definition = UNIT_DEFINITION_GET(UNIT_GET(unit_index));
+	byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+	long parent_marker_name;
+
+	if (!secondary)
+	{
+		parent_marker_name = *(long *)(unit_definition + 0x158);
+	}
+	else
+	{
+		parent_marker_name = *(long *)(unit_definition + 0x15c);
+	}
+	long marker_name = *(long *)(unit_definition + 0x160);
+	if (marker_name == NONE || marker_name == 0)
+	{
+		marker_name = *(long *)(weapon_definition + 0x284);
+	}
+	else
+	{
+		s_object_marker marker;
+
+		if (!function_b8d30(weapon_index, marker_name, &marker, 1, true))
+		{
+			marker_name = *(long *)(weapon_definition + 0x284);
+		}
+	}
+	function_10cec0(unit_index, weapon_index, parent_marker_name, marker_name);
+}
+
+/* drops every weapon the unit holds (mode 1: deletes them) */
+// @retail 0xccf20
+void function_ccf20(long unit_index)
+{
+	long *slot = UNIT_GET(unit_index)->weapon_object_indices;
+
+	for (long i = 0; i < 4; i++, slot++)
+	{
+		if (*slot != NONE)
+		{
+			s_unit *unit = UNIT_GET(unit_index);
+			long weapon_index = unit->weapon_object_indices[(short)i];
+
+			unit->weapon_object_indices[(short)i] = NONE;
+			function_ce470(1, weapon_index, unit_index);
+			unit_weapon_slot_changed(unit_index, (short)i);
+		}
+	}
+}
+
+/* counts down the unit's timers: +0x2e8 (clearing +0x2e4), +0x2ca (then
+   runs 0x1c9c80 with +0x2c8..+0x2d0) and +0x1f4 (then 0xcffc0); whether
+   any ran */
+// @retail 0xc6740
+bool function_c6740(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	bool result = false;
+
+	if (unit->unknown2e8 > 0)
+	{
+		if (--unit->unknown2e8 == 0)
+		{
+			unit->unknown2e4 = 0.0f;
+		}
+		result = true;
+	}
+	if (unit->unknown2ca > 0)
+	{
+		if (--unit->unknown2ca == 0)
+		{
+			function_1c9c80(unit_index, unit->unknown2d0, unit->unknown2c8, unit->unknown2cc, 0, true);
+			unit->unknown2c8 = 0;
+			unit->unknown2d0 = NONE;
+			unit->unknown2cc = 0.0f;
+		}
+		result = true;
+	}
+	if (unit->unknown1f4 > 0)
+	{
+		if (--unit->unknown1f4 == 0)
+		{
+			function_cffc0(unit_index);
+		}
+		return true;
+	}
+	return result;
+}
+
+/* creates the unit definition's starting weapons (+0x1c0, +0x1c4) and
+   gives them to the unit; deletes those it cannot take (or, in state 2,
+   already has) */
+// @retail 0xccab0
+void function_ccab0(long unit_index)
+{
+	byte *definition = UNIT_DEFINITION_GET(UNIT_GET(unit_index));
+
+	for (long i = 0; i < *(long *)(definition + 0x1c0); i++)
+	{
+		long tag_index = *(long *)(*(byte **)(definition + 0x1c4) + i * 8 + 4);
+
+		if (tag_index != NONE)
+		{
+			byte data[0xc4];
+
+			function_b7930(data, tag_index, unit_index, 0);
+			long weapon_index = function_b7b40(data);
+			if (weapon_index != NONE)
+			{
+				if ((g_4e6948->state == 2 &&
+					unit_has_weapon_definition(unit_index, UNIT_GET(weapon_index)->definition_index)) ||
+					!function_cd0c0(unit_index, weapon_index, 1))
+				{
+					function_b8540(weapon_index);
+				}
+			}
+		}
+	}
+}
+
+/* lowers both of the unit's weapons (requests 8 and 0x12), then drops them */
+// @retail 0xccff0
+void __stdcall function_ccff0(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	s_unit_request request;
+
+	unit->unknown216 = NONE;
+	if (unit->current_weapon_index != NONE)
+	{
+		memset(&request, 0, sizeof(request));
+		request.type = 8;
+		request.type17.unknown4 = true;
+		function_e6900(unit_index, &request);
+	}
+	unit->unknown217 = NONE;
+	if (unit->next_weapon_index != NONE)
+	{
+		memset(&request, 0, sizeof(request));
+		request.type = 0x12;
+		request.type17.unknown4 = true;
+		function_e6900(unit_index, &request);
+	}
+	function_ccf20(unit_index);
+}
+
+/* takes an amount from the unit's +0x2b0 and caps +0x2b8 (a quarter by
+   default), unless its state +0x2bc is set (then 0xc5740 runs) */
+// @retail 0xd0e60
+void function_d0e60(long unit_index, real amount, real limit)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (unit->unknown2bc)
+	{
+		function_c5740(unit_index, 0);
+		return;
+	}
+	if (limit == 0.0f)
+	{
+		limit = 0.25f;
+	}
+	if (limit > unit->unknown2b8)
+	{
+		limit = unit->unknown2b8;
+	}
+	unit->unknown2b8 = limit;
+	unit->unknown2b0 -= amount;
+	if ((unit->flags_134 >> 3) & 1 && 0.05f > unit->unknown2b0)
+	{
+		unit->unknown2b0 = 0.05f;
+	}
+	if (UNIT_GET(unit_index)->unknown0d4 != NONE)
+	{
+		function_b58c0(UNIT_GET(unit_index)->unknown0d4, 0x800000);
+	}
+}
+
+/* which hands the unit holds weapons in, and whether its seat lacks bit 5 */
+struct s_unit_weapon_hands
+{
+	byte unknown00[8];
+	bool one;
+	bool two;
+	bool seat_allows;
+	byte unknown0b;
+};
+
+// @retail 0xcb430
+void function_cb430(long unit_index, s_unit_weapon_hands *hands)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	memset(hands, 0, sizeof(*hands));
+	s_unit *current = UNIT_GET(unit_index);
+	short index = current->current_weapon_index;
+	if (index != NONE && current->weapon_object_indices[index] != NONE)
+	{
+		s_unit *next = UNIT_GET(unit_index);
+		short next_index = next->next_weapon_index;
+
+		if (next_index != NONE && next->weapon_object_indices[next_index] != NONE)
+		{
+			hands->two = true;
+		}
+		else
+		{
+			hands->one = true;
+		}
+	}
+	if (unit->parent_index != NONE && unit->parent_seat_index != NONE)
+	{
+		s_unit *parent = UNIT_GET(unit->parent_index);
+
+		hands->seat_allows = !((*(dword *)&UNIT_SEATS(UNIT_DEFINITION_GET(parent))[unit->parent_seat_index].flags >> 5) & 1);
+	}
+}
+
+/* asks the unit sharing the seat group of the unit's seat to get out
+   (request 0x20); returns false */
+// @retail 0xd0f30
+bool __stdcall function_d0f30(long unit_index, bool a, bool b)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	long parent_index = unit->parent_index;
+
+	if (parent_index != NONE)
+	{
+		s_unit *parent = UNIT_GET(parent_index);
+
+		if ((1 << parent->type) & 3)
+		{
+			short seat_index = unit->parent_seat_index;
+
+			if (seat_index != NONE)
+			{
+				short other_seat_index = *(short *)((byte *)&UNIT_SEATS(UNIT_DEFINITION_GET(parent))[seat_index] + 0x3e);
+
+				if (other_seat_index != NONE)
+				{
+					long occupant_index = function_c8f60(parent_index, other_seat_index);
+
+					if (occupant_index != NONE && occupant_index != unit_index)
+					{
+						s_unit_request request;
+
+						request.type = 0x20;
+						request.type17.unknown4 = a;
+						request.type17.unknown5 = b;
+						if (function_e6900(occupant_index, &request))
+						{
+							function_cc810(parent_index);
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+/* lowers the weapon in one of the unit's hands (request 8, or 0x12 for the
+   second hand) */
+// @retail 0xcd4e0
+bool __stdcall function_cd4e0(long unit_index, short hand, bool flag)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	char *indices = &unit->current_weapon_index + hand;
+	bool result = false;
+
+	if (indices[0] != NONE && indices[4] != NONE)
+	{
+		s_unit_request request;
+
+		memset(&request, 0, sizeof(request));
+		indices[4] = NONE;
+		request.type = hand != 0 ? 0x12 : 8;
+		request.type17.unknown4 = flag;
+		if (!function_e6900(unit_index, &request))
+		{
+			return false;
+		}
+		if (hand)
+		{
+			function_cea00(unit_index);
+		}
+		if (unit->unknown13c != NONE)
+		{
+			function_1520f0(unit->unknown13c);
+		}
+		return true;
+	}
+	return result;
+}
+
+/* the weapon the unit, or the first rider down its children with bit 27 of
+   its definition's +0xbc, holds; which unit holds it */
+// @retail 0xcbd80
+long __stdcall function_cbd80(long object_index, long *holder_index)
+{
+	s_unit *unit = UNIT_GET(object_index);
+	short index = unit->current_weapon_index;
+	long weapon_index = index != NONE ? unit->weapon_object_indices[index] : NONE;
+
+	if (weapon_index != NONE)
+	{
+		if (holder_index)
+		{
+			*holder_index = object_index;
+		}
+		return weapon_index;
+	}
+	for (long child_index = UNIT_GET(object_index)->first_child_index; child_index != NONE;
+		child_index = UNIT_GET(child_index)->next_sibling_index)
+	{
+		s_unit *child = UNIT_GET(child_index);
+
+		if ((1 << child->type) & 3 && (*(dword *)(UNIT_DEFINITION_GET(child) + 0xbc) >> 27) & 1)
+		{
+			weapon_index = function_cbd80(child_index, holder_index);
+			if (weapon_index != NONE)
+			{
+				break;
+			}
+		}
+	}
+	return weapon_index;
+}
+
+/* empties a weapon slot of the unit (deleting the weapon in mode 4, when
+   it is used up, or in state 2 when it is neither kept nor fit), and
+   resets the hands that would have taken it */
+// @retail 0xce920
+void function_ce920(long unit_index, long slot_index, long mode, bool flag)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	long weapon_index = unit->weapon_object_indices[(short)slot_index];
+
+	if (weapon_index != NONE)
+	{
+		if (g_4e6948->mode == 4 || UNIT_GET(weapon_index)->unknown184 >= 1.0f ||
+			(g_4e6948->state == 2 && !function_100f00(weapon_index) && !function_101640(weapon_index)))
+		{
+			mode = 1;
+		}
+		function_cea70(mode, NONE, (short)slot_index, unit_index);
+		for (long hand = 0; hand < 2; hand++)
+		{
+			if ((short)slot_index == (&unit->unknown216)[hand])
+			{
+				if (flag)
+				{
+					(&unit->unknown216)[hand] = (char)function_cdeb0(unit_index, NONE, (&unit->current_weapon_index)[hand], 0);
+				}
+				else
+				{
+					(&unit->unknown216)[hand] = NONE;
+				}
+			}
+		}
+	}
+}
+
+/* a motion in three phases: an acceleration, a coast and a deceleration */
+struct s_unit_motion
+{
+	bool done;
+	byte unknown01[0xc - 0x1];
+	real acceleration;
+	real acceleration_time;
+	real coast_time;
+	real deceleration;
+	real deceleration_time;
+};
+
+/* advances a position and velocity along the motion for a time; whether
+   time remains after its last phase */
+// @retail 0xc7750
+bool function_c7750(s_unit_motion const *motion, real position, real velocity, real time, real *out_velocity,
+	real *out_position)
+{
+	bool result = motion->done;
+
+	if (!result && time > 0.0f)
+	{
+		real step = motion->acceleration_time;
+
+		if (step > 0.0f)
+		{
+			if (time <= step)
+			{
+				step = time;
+			}
+			real change = motion->acceleration * step;
+			position = (change * 0.5f + velocity) * step + position;
+			velocity = change + velocity;
+			time -= step;
+		}
+		if (time > 0.0f)
+		{
+			step = motion->coast_time;
+			if (step > 0.0f)
+			{
+				if (time <= step)
+				{
+					step = time;
+				}
+				position = step * velocity + position;
+				time -= step;
+			}
+			if (time > 0.0f)
+			{
+				step = motion->deceleration_time;
+				if (step > 0.0f)
+				{
+					if (time <= step)
+					{
+						step = time;
+					}
+					real change = motion->deceleration * step;
+					position = (change * 0.5f + velocity) * step + position;
+					velocity = change + velocity;
+					time -= step;
+				}
+				if (time > 0.0f)
+				{
+					result = true;
+				}
+			}
+		}
+	}
+	*out_position = position;
+	*out_velocity = velocity;
+	return result;
+}
+
+/* once: sets the unit's flag 21 and a random angle at +0x2d8 around its
+   actor's direction (or its own facing) */
+// @retail 0xcfec0
+void function_cfec0(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (!((unit->flags_134 >> 21) & 1))
+	{
+		real range;
+		byte unknown[8];
+
+		unit->flags_134 |= 0x200000;
+		if (unit->actor_index != NONE && function_1e3370(unit->actor_index, unknown))
+		{
+			unit->unknown2d8 = 0.0f;
+			range = 0.43633232f;
+		}
+		else
+		{
+			real angle = (real)atan2(unit->forward.j, unit->forward.i);
+
+			if (angle > 3.1415927f)
+			{
+				angle -= 6.2831855f;
+			}
+			unit->unknown2d8 = angle;
+			range = 1.7453293f;
+		}
+		unit->unknown2d8 += function_259d0(&g_4e7408->unknown0, 0, 0, -range, range);
 	}
 }

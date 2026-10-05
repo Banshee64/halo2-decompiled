@@ -4,9 +4,6 @@
 /* stubs for the unit object type (unit_object_type.cpp): functions it
    calls that are not written yet */
 
-// @stub 0xccab0
-void function_ccab0(long unit_index) { }
-
 // @stub 0xc49b0
 bool __stdcall function_c49b0(long unit_index) { return false; }
 
@@ -18,9 +15,6 @@ bool __stdcall function_c60c0(long unit_index) { return false; }
 
 // @stub 0xc5eb0
 bool function_c5eb0(long unit_index) { return false; }
-
-// @stub 0xc6740
-bool function_c6740(long unit_index) { return false; }
 
 // @stub 0xc6990
 void function_c6990(long unit_index) { }
@@ -38,9 +32,6 @@ void function_114c60(long unit_index) { }
 /* in the biped range (PR #28 writes it) */
 // @stub 0xe4bd0
 void function_e4bd0(long biped_index) { }
-
-// @stub 0xccf20
-void function_ccf20(long unit_index) { }
 
 // @stub 0xc8bb0
 void function_c8bb0(long unit_index, long a, long *object_index, long *seat_index, long *result, real *distance,
@@ -77,3 +68,16 @@ void function_10cdf0(long object_index) { }
 
 // @stub 0x10ca80
 void function_10ca80(long object_index, long a) { }
+
+// @stub 0xc5740
+void function_c5740(long unit_index, long a) { }
+
+/* outside the unit range */
+// @stub 0x1e3370
+bool function_1e3370(long actor_index, void *unknown) { return false; }
+
+// @stub 0x10cec0
+void function_10cec0(long unit_index, long weapon_index, long parent_marker_name, long marker_name) { }
+
+// @stub 0x1c9c80
+void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real unknown2cc, long a, bool b) { }

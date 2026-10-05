@@ -24,9 +24,6 @@ bool function_a76b0(long unit_index, long flag) { return 0; }
 // @stub 0xa91c0
 void function_a91c0(long unit_index, long projectile_index, point3f const *origin, vector3f const *forward) { }
 
-// @stub 0xd0e60
-void function_d0e60(long unit_index, long a, long b) { }
-
 // @stub 0x1ff360
 void function_1ff360(long actor_index, point3f const *target, vector3f *velocity) { }
 
@@ -54,9 +51,6 @@ void function_10cd50(long weapon_index) { }
 // @stub 0x10fd40
 void function_10fd40(long unit_index, long action_name, long state_name, bool flag) { }
 
-// @stub 0xd0870
-void __stdcall function_d0870(long unit_index, bool secondary) { }
-
 // @stub 0xfff40
 void __stdcall function_fff40(long a, long b) { }
 
@@ -68,9 +62,6 @@ bool function_1140b0(long unit_index, long name) { return 0; }
 
 // @stub 0x100350
 void function_100350(long weapon_index) { }
-
-// @stub 0xce920
-void function_ce920(long unit_index, long slot_index, long mode, bool flag) { }
 
 // @stub 0xcd7b0
 bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes) { return 0; }
@@ -140,9 +131,6 @@ transform4x3f *function_ba160(long object_index, transform4x3f *matrix) { return
 
 // @stub 0xa8b90
 void __stdcall function_a8b90(long unit_index) { }
-
-// @stub 0xd0f30
-void __stdcall function_d0f30(long unit_index, long a, long b) { }
 
 // @stub 0x152140
 void function_152140(long player_index) { }

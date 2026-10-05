@@ -747,7 +747,7 @@ bool function_a76b0(long unit_index, long flag);
 void function_cafc0(long unit_index, point3f *position);
 void function_a91c0(long unit_index, long projectile_index, point3f const *origin, vector3f const *forward);
 void __stdcall function_b8540(long object_index);
-void function_d0e60(long unit_index, long a, long b);
+void function_d0e60(long unit_index, real amount, real limit);
 point3f *function_b9dd0(long object_index, point3f *result);
 void function_1ff360(long actor_index, point3f const *target, vector3f *velocity);
 void function_b75a0(long object_index, point3f const *point, vector3f const *forward, vector3f const *up,
@@ -1179,7 +1179,7 @@ bool function_e8510(long unit_index, bool immediate, bool silent, bool primary)
 
 void function_10fd40(long unit_index, long action_name, long state_name, bool flag);
 bool function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
-void __stdcall function_d0870(long unit_index, bool secondary);
+void __stdcall function_d0870(long weapon_index, long unit_index, bool secondary);
 void __stdcall function_fff40(long a, long b);
 
 /* a unit's weapon animations: its vehicle seat's weapon's, or the
@@ -1258,7 +1258,7 @@ void __stdcall function_e8720(long unit_index, long unknown, bool immediate, boo
 					return;
 				}
 
-				function_d0870(unit_index, hand != 0);
+				function_d0870(weapon_index, unit_index, hand != 0);
 				(&unit->current_weapon_index)[hand] = (char)slot;
 				unit->weapon_ready_times[slot] = g_510c54->game_time;
 
@@ -2798,7 +2798,7 @@ bool __stdcall unit_action_vehicle_board(long unit_index, s_unit_request *reques
 	return true;
 }
 
-void __stdcall function_d0f30(long unit_index, long a, long b);
+bool __stdcall function_d0f30(long unit_index, bool a, bool b);
 long function_10f720(long object_index, bool first);
 
 /* boarding finished: the unit moves to the boarded seat (or just leaves
