@@ -2,8 +2,27 @@
 #include "unknown_11c920.h"
 #include "loop_allocator.h"
 #include "network_voice.h"
+#include "unknown_12b400.h"
 
-byte g_476fbc[4];
+/* the memory source the voice pool is built from (0x476fbc, vtable 0x4508fc):
+   whole pages from the top of the physical memory map; releasing does
+   nothing */
+class c_physical_memory_source : public c_memory_source
+{
+public:
+	virtual void *allocate(long size);
+	virtual void release(void *block) {}
+
+	long unknown04;
+};
+
+c_physical_memory_source g_476fbc;
+
+// @retail 0x531b0
+void *c_physical_memory_source::allocate(long size)
+{
+	return physical_memory_malloc_fixed(size, PAGE_READWRITE);
+}
 
 void voice_xhv_reset_masks(c_voice_xhv *xhv);
 void voice_xhv_reset_port_modes(c_voice_xhv *xhv);
@@ -16,7 +35,7 @@ void __stdcall function_53310(long stage)
 	long type;
 	long size = 0;
 	long mode = 0;
-	c_memory_source *source = (c_memory_source *)g_476fbc;
+	c_memory_source *source = &g_476fbc;
 	s_loop_allocator *loop;
 
 	if (stage > 1)

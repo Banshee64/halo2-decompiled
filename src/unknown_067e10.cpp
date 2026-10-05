@@ -124,8 +124,8 @@ void function_69610(c_simulation_world *world)
 // @retail 0x696d0
 bool function_696d0(c_simulation_world *world, long player_index)
 {
-	s_simulation_world_player *player = &world->players[(word)player_index];
 	bool result = false;
+	s_simulation_world_player *player = &world->players[player_index & 0xffff];
 	if (player->player_index != NONE)
 		result = player->flag25;
 	return result;
