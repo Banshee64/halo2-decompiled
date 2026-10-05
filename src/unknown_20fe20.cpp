@@ -11,6 +11,57 @@
 #include "unknown_20fe20.h"
 #include <math.h>
 
+struct s_audio_weighted_entry
+{
+	byte unknown00[0x10];
+	real weight;
+};
+
+// @retail 0x20f0a0
+short function_20f0a0(s_audio_weighted_entry *entries, short count)
+{
+	short result = NONE;
+	if (count == 1)
+	{
+		result = 0;
+	}
+	else
+	{
+		real maximum = 0.0f;
+		real total = 0.0f;
+		for (short i = 0; i < count; i++)
+		{
+			if (entries[i].weight > maximum)
+				maximum = entries[i].weight;
+		}
+		for (short j = 0; j < count; j++)
+		{
+			if (entries[j].weight >= maximum * 0.8f)
+				total += entries[j].weight;
+			else
+				entries[j].weight = 0.0f;
+		}
+		real random = function_x82e52f(&g_4e7408->unknown0, NULL, 0);
+		real choice = total * random;
+		real cumulative = 0.0f;
+		for (short k = 0; k < count; k++)
+		{
+			if (entries[k].weight > 0.0f)
+			{
+				real weight = entries[k].weight;
+				weight += cumulative;
+				cumulative = weight;
+				if (cumulative >= choice)
+				{
+					result = k;
+					break;
+				}
+			}
+		}
+	}
+	return result;
+}
+
 /* ---- shared views ---- */
 struct s_header_view
 {
@@ -465,6 +516,76 @@ void function_210e80(void)
 		object->value1dc = 0;
 	}
 }
+struct s_object_mapping_entry
+{
+	long identifier;
+	short index;
+	byte type;
+	byte source;
+	short value1da;
+	short value1dc;
+};
+
+struct s_object_mapping_block
+{
+	long count;
+	s_object_mapping_entry *entries;
+};
+
+struct s_object_mapping_root
+{
+	byte unknown000[0x220];
+	s_object_mapping_block *mappings;
+};
+
+struct s_mapped_object_view
+{
+	byte unknown000[0xa4];
+	long identifier;
+	short index;
+	byte type;
+	byte source;
+	byte unknown0ac[0x1da - 0xac];
+	short value1da;
+	short value1dc;
+};
+
+// @retail 0x210f00
+void function_210f00(void)
+{
+	function_210e80();
+	s_object_mapping_block *mappings = ((s_object_mapping_root *)g_4e0348)->mappings;
+	for (long i = 0; i < mappings->count; i++)
+	{
+		s_object_mapping_entry *entry = &mappings->entries[i];
+		struct
+		{
+			s_object *object;
+			s_type_f1af8e iterator;
+		} state;
+		function_bae80(&state.iterator, 0x80, 0);
+		while ((state.object = function_baeb0(&state.iterator)) != NULL)
+		{
+			s_mapped_object_view *object = (s_mapped_object_view *)OBJECT_FROM_INDEX(state.iterator.object_index);
+			bool matches = true;
+			matches &= entry->identifier == object->identifier;
+			matches &= entry->source == object->source;
+			matches &= entry->type == object->type;
+			if (matches)
+			{
+				if (entry->source == 0)
+					matches &= entry->index == object->index;
+				if (matches)
+				{
+					object->value1da = entry->value1da;
+					object->value1dc = entry->value1dc;
+					break;
+				}
+			}
+		}
+	}
+}
+
 /* ---- the particle direction cells and the noise table (0x4f93bc) ---- */
 
 struct s_cell
