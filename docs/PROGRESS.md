@@ -2,6 +2,18 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5602 functions match
+
+```
+matched 5602 of 11318 game functions (562650 of 2784283 bytes, 20.21%)
+```
+
+**Contributor pull requests**, merged after independent review: 30 new matches, none lost.
+- @Banshee64: the unit object type (#33, 22 matches), cloth simulation (#48), flexible chain callbacks (#50, 7 matches), and 0x23e340's seventh argument (#51).
+- @coldspear: synthetic class names in the linkmap tests (#45).
+
+**Provenance clean-up.** A rescan found identifiers that recent merges had brought in and that match non-permitted sources exactly. 40 names were renamed to behavioural names or placeholders. The rescan now also covers names that appear only in comments and docs.
+
 ## 2026-10-05: 5572 functions match
 
 ```
