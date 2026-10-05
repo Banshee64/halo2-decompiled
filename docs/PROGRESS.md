@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5890 functions match
+
+```
+matched 5890 of 11318 game functions (596443 of 2784283 bytes, 21.42%)
+```
+
+22 new matches, none lost:
+- **Codex lane W**, round 5 (22): more core utilities in the 0x11000–0x4ffff range.
+
 ## 2026-10-05: 5868 functions match
 
 ```
