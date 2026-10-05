@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "unknown_0259d0.h"
 #include "bitstream.h"
+#include <string.h>
 
 /* src/unknown_11eed0.cpp */
 void function_11f4f0(long bits, real const *in, real_bounds const *ranges, long *out);
@@ -151,4 +152,40 @@ void simulation_read_relative_position(long bits, real *position, s_bitstream *s
 	for (long i = 0; i < 3; i++)
 		quantized[i] = function_1959c0(stream, bits);
 	function_11f580(bits, position, (real const *)g_440214, quantized);
+}
+
+/* the machines of a game: a mask and their addresses */
+struct s_simulation_machine_list
+{
+	dword mask;
+	byte addresses[16][6];
+};
+
+/* writes the machines of a game */
+// @retail 0x87c00
+void simulation_write_machines(s_simulation_machine_list const *machines, s_bitstream *stream)
+{
+	stream_write_checked(stream, machines->mask, 16);
+	for (long i = 0; i < 16; i++)
+	{
+		if (machines->mask & (1 << i))
+			function_1955d0(stream, machines->addresses[i], 48);
+	}
+}
+
+/* reads the machines of a game; false when the stream ran out */
+// @retail 0x87c80
+bool simulation_read_machines(s_bitstream *stream, s_simulation_machine_list *machines)
+{
+	machines->mask = function_1959c0(stream, 16);
+	for (long i = 0; i < 16; i++)
+	{
+		if (machines->mask & (1 << i))
+			function_195820(stream, machines->addresses[i], 48);
+		else
+			memset(machines->addresses[i], 0, sizeof(machines->addresses[i]));
+	}
+	if (!stream_overflowed(stream))
+		return true;
+	return false;
 }
