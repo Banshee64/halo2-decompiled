@@ -1,6 +1,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_0259d0.h"
+#include "object_queries.h"
 #include <math.h>
 #include <string.h>
 
@@ -356,7 +357,9 @@ struct s_rotation_matrix
 
 struct s_view_setup
 {
-	byte unknown00[0x20];
+	point3f position;
+	s_location location;
+	byte unknown14[0x20 - 0x14];
 	vector3f forward;
 	vector3f up;
 	real field_of_view;
@@ -439,4 +442,19 @@ void function_171d90(s_view_setup *view)
 	real dy = original.j * inv - view->forward.j;
 	real dx = inv * original.i - view->forward.i;
 	view->deviation = (real)sqrt(dz * dz + dy * dy + dx * dx);
+}
+
+void function_11bed0(s_location *location, point3f const *point);
+
+// @retail 0x1726d0
+void function_1726d0(s_view_setup *view, point3f const *position, vector3f const *forward, vector3f const *up)
+{
+	memset(view, 0, sizeof(*view));
+	view->position = *position;
+	view->forward = *forward;
+	view->up = *up;
+	view->field_of_view = g_54e854;
+	view->aspect = 1.3333334f;
+	function_11bed0(&view->location, position);
+	function_171d90(view);
 }
