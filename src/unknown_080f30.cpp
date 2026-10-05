@@ -35,20 +35,41 @@ struct s_pending_definition
 long pending_message_request_validate(s_pending_message_header *request, const s_pending_payload_header *payload, dword size)
 {
 	long result = 1;
+	s_pending_definition *definition;
 	if (size < sizeof(*payload))
-		return 10;
+	{
+		result = 10;
+		goto done;
+	}
 	if (payload->size != size)
-		return 10;
+	{
+		result = 10;
+		goto done;
+	}
 	if (payload->size != (dword)request->size && request->kind != 4)
-		return 9;
+	{
+		result = 9;
+		goto done;
+	}
 	if (payload->size > (dword)request->size && request->kind == 4)
-		return 9;
-	s_pending_definition *definition = (s_pending_definition *)request->unknown00;
+	{
+		result = 9;
+		goto done;
+	}
+	definition = (s_pending_definition *)request->unknown00;
 	if (payload->version < definition->version)
-		return 11;
+	{
+		result = 11;
+		goto done;
+	}
 	if (payload->version > definition->version)
-		return 12;
-	result = pending_message_payload_crc(payload, size) == payload->crc ? result : 8;
+	{
+		result = 12;
+		goto done;
+	}
+	if (pending_message_payload_crc(payload, size) != payload->crc)
+		result = 8;
+done:
 	return result;
 }
 

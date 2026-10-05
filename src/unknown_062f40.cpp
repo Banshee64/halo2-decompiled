@@ -23,8 +23,10 @@ struct s_reservation_session
 // @retail 0x62f40
 bool function_062f40(s_reservation_session *session, const void *identity, s_reservation **reservation_out)
 {
+	s_reservation *reservation = session->reservations;
+	s_reservation *end = reservation + MAXIMUM_RESERVATIONS;
 	bool result = false;
-	for (s_reservation *reservation = session->reservations; reservation < session->reservations + MAXIMUM_RESERVATIONS; reservation++)
+	for (; reservation < end; reservation++)
 	{
 		if (reservation->active && !memcmp(identity, reservation->identity, 12))
 		{
