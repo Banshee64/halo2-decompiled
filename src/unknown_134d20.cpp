@@ -120,7 +120,31 @@ bool interpolator_exists(long name)
 }
 
 /* the state of an interpolator by name (no retail function: always inlined) */
-__forceinline s_interpolator_state *interpolator_find(long name)
+inline s_interpolator_state *interpolator_find(long name)
+{
+	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
+	long index = NONE;
+	if (globals && g_4e0350 && name)
+	{
+		s_scenario_interpolators_view *scenario = (s_scenario_interpolators_view *)g_4e0350;
+		for (long i = 0; i < scenario->interpolator_count; i++)
+		{
+			long interpolator_name = scenario->interpolators[i].name;
+			if (interpolator_name && interpolator_name == name)
+			{
+				globals->last_name = name;
+				index = i;
+				break;
+			}
+		}
+	}
+	if (index != NONE)
+		return &globals->states[index];
+	return NULL;
+}
+
+/* the same lookup with a single result, for the one caller that needs this shape */
+__forceinline s_interpolator_state *interpolator_find_flagged(long name)
 {
 	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
 	s_interpolator_state *result = NULL;
@@ -150,7 +174,7 @@ long function_135180(long name, real target, real seconds)
 {
 	long index = interpolator_start(name, target, seconds);
 	if (index != NONE)
-		interpolator_find(name)->flag1 = true;
+		interpolator_find_flagged(name)->flag1 = true;
 	return index;
 }
 
