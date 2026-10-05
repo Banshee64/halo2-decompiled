@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5306 functions match
+
+```
+matched 5306 of 11318 game functions (529115 of 2784283 bytes, 19.00%)
+```
+
+**Codex lane O**, round 3: 5 new matches, none lost. They cover particle emitter transforms, a list refresh, a HUD marker test and direction encoding.
+
 ## 2026-10-05: 5301 functions match
 
 ```
