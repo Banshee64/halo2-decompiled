@@ -88,11 +88,9 @@ void c_y_menu_players_list::v3()
 	data = g_global_4acf62.field_8_2;
 	if (g_global_4acf62.field_8_2)
 	{
-		long count = g_global_4acf62.field_8_2->actual_count;
-
-		if (item_count != count)
+		if (item_count != g_global_4acf62.field_8_2->actual_count)
 		{
-			item_count = count;
+			item_count = g_global_4acf62.field_8_2->actual_count;
 			function_24c0c4((c_widget *)this);
 		}
 	}

@@ -2591,12 +2591,14 @@ void c_invert_look_settings_edit_list::handle_item(s_controller_reference **cont
 {
 	switch (*(short *)item)
 	{
+	case 1:
+		g_54e5d0.settings.controller_flags.invert_look = false;
+		break;
 	case 0:
 		g_54e5d0.settings.controller_flags.invert_look = true;
 		break;
 	default:
-		g_54e5d0.settings.controller_flags.invert_look = false;
-		break;
+		__assume(0);
 	}
 	if (value188)
 	{
@@ -2702,12 +2704,14 @@ void c_auto_level_settings_edit_list::handle_item(s_controller_reference **contr
 {
 	switch (*(short *)item)
 	{
+	case 1:
+		g_54e5d0.settings.controller_flags.auto_level = false;
+		break;
 	case 0:
 		g_54e5d0.settings.controller_flags.auto_level = true;
 		break;
 	default:
-		g_54e5d0.settings.controller_flags.auto_level = false;
-		break;
+		__assume(0);
 	}
 	if (value188)
 	{
