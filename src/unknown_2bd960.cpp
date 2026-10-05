@@ -7,6 +7,8 @@
 #include "engine_peer.h"
 #include "unknown_1523c0.h"
 #include "game_engine_events.h"
+#include "marker_list.h"
+#include "data_array.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -27,7 +29,7 @@ struct s_state_2bd
 {
 	byte unknown00[0x1a0];
 	long l1a0;
-	byte unknown1a4[4];
+	long l1a4;
 	short s1a8;
 	byte unknown1aa[2];
 	point3f p1ac;
@@ -49,7 +51,18 @@ struct s_state_2bf
 		long l60[4];
 	};
 	long l70[8];
-	byte unknown90[0x110 - 0x90];
+	/* each player's progress taking a territory: the time spent inside it
+	   or outside, the territory left and the one inside (a), and the
+	   progress shown (b) */
+	struct
+	{
+		short time_inside;
+		short time_outside;
+		byte previous;
+		byte a;
+		byte b;
+		byte unknown7;
+	} entries90[16];
 	word w110;
 	word w112;
 	word w114;
@@ -62,18 +75,23 @@ struct s_spline_2bd
 	long count;
 };
 
-/* a polygon of up to 32 vertices inside a circle and a height range */
+/* the hill: a polygon of 32 vertices on a closed spline through up to 16
+   markers, inside a circle and a height range */
 struct s_polygon_2be
 {
-	byte unknown00[0x60];
+	/* the markers (the spline's points) */
+	long ids[16];
+	/* the vertices each spline segment gets */
+	long steps[8];
 	long count;
 	point2f vertices[32];
 	real center_x;
 	real center_y;
-	byte unknown16c[4];
+	real center_z;
 	real radius;
 	real z_min;
 	real z_max;
+	real perimeter;
 };
 
 /* the settings an engine update copies, as the peer sees them */
@@ -82,6 +100,15 @@ struct s_settings_2bd
 	byte unknown00[0x24];
 	short s24;
 	short s26;
+};
+
+/* the settings an engine update copies, as the territories' peer sees them */
+struct s_settings_2c0
+{
+	byte unknown00[0x24];
+	long holders[8];
+	byte a[16];
+	byte b[16];
 };
 
 struct s_stats_a
@@ -103,6 +130,7 @@ point3f *g_468710;
 /* callees */
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 /* ---- the engine classes at 0x45c8f0 and 0x45c9c0 ---- */
 
@@ -117,7 +145,9 @@ public:
 	virtual void v0(long, long, bool, long);
 	virtual bool v5(long, long);
 	virtual bool v23();
+	virtual bool v25();
 	virtual void v28(long);
+	virtual void v32(long);
 	virtual void v34();
 	virtual bool v38(long, long);
 };
@@ -125,6 +155,7 @@ public:
 class c_game_engine_b : public c_game_engine
 {
 public:
+	virtual void v2(long, long);
 	virtual bool v5(long, long);
 	virtual long v20(long, long, long, long, long);
 };
@@ -136,12 +167,14 @@ class c_engine_peer_a : public c_engine_peer
 public:
 	virtual void q0(long, s_stats_a *);
 	virtual void q1(dword *, long, s_settings_2bd *);
+	virtual bool q2(dword, long, s_settings_2bd *);
 };
 
 class c_engine_peer_b : public c_engine_peer
 {
 public:
 	virtual void q0(long, s_stats_b *);
+	virtual void q1(dword *, long, s_settings_2c0 *);
 };
 
 // @retail 0x2bd960
@@ -224,6 +257,37 @@ void c_engine_peer_a::q1(dword *value, long, s_settings_2bd *settings)
 	*value = result;
 }
 
+void hill_set(s_polygon_2be *hill, long index);
+
+// @retail 0x2bdc00
+bool c_engine_peer_a::q2(dword a, long, s_settings_2bd *settings)
+{
+	dword m = a & 0x1f;
+	bool result = true;
+
+	if (m)
+		result = p43(m, (long)settings) != 0;
+	s_state_2bd *state = g_51ecc8;
+	if (a & 0x20)
+	{
+		long index = settings->s24;
+
+		if (state->l1a0 != index)
+		{
+			state->l1a0 = index;
+			hill_set((s_polygon_2be *)state, index);
+		}
+	}
+	if (a & 0x40)
+	{
+		if (state->s1a8 != settings->s26)
+		{
+			state->s1a8 = settings->s26;
+		}
+	}
+	return result;
+}
+
 // @retail 0x2bdd20
 void function_2bdd20(s_spline_2bd *spline, point3f *points)
 {
@@ -238,7 +302,7 @@ void function_2bdd20(s_spline_2bd *spline, point3f *points)
 }
 
 // @retail 0x2bdd70
-void function_2bdd70(long n, point3f *points, point3f *out, s_spline_2bd *spline)
+void function_2bdd70(point3f *out, s_spline_2bd *spline, long n, point3f *points)
 {
 	long i = n * 2;
 	long previous = i - 1;
@@ -295,6 +359,356 @@ void function_2bde90(real t, point3f *out, point3f *points)
 	out->x = points[3].x * r[3] + points[2].x * r[2] + points[1].x * r[1] + points[0].x * r[0];
 	out->y = points[3].y * r[3] + points[2].y * r[2] + points[1].y * r[1] + points[0].y * r[0];
 	out->z = points[3].z * r[3] + points[2].z * r[2] + points[1].z * r[1] + points[0].z * r[0];
+}
+
+/* ---- the hill's shape ---- */
+
+/* builds the hill's polygon on the spline through its markers, and its
+   center, radius, perimeter and height range (the height range also covers
+   the hill's other markers) */
+// @retail 0x2be050
+void hill_build_polygon(s_polygon_2be *hill, long index)
+{
+	long half = hill->count / 2;
+	long vertex = 0;
+	long marker_ids[8];
+	point3f control[4];
+	point3f point;
+	point3f points[16];
+	long i;
+	long count;
+
+	function_2bdd20((s_spline_2bd *)hill, points);
+	for (i = 0; i < half; i++)
+	{
+		long steps = hill->steps[i];
+
+		function_2bdd70(control, (s_spline_2bd *)hill, i, points);
+		for (long j = 0; j < steps; j++)
+		{
+			function_2bde90((real)j / (real)steps, &point, control);
+			hill->vertices[vertex + j].x = point.x;
+			hill->vertices[vertex + j].y = point.y;
+		}
+		vertex += steps;
+	}
+	hill->perimeter = 0.0f;
+	for (i = 0; i < 32; i++)
+	{
+		long previous = (i != 0) ? i - 1 : 31;
+		real dx = hill->vertices[previous].x - hill->vertices[i].x;
+		real dy = hill->vertices[previous].y - hill->vertices[i].y;
+
+		hill->perimeter += (real)sqrt(dy * dy + dx * dx);
+	}
+	*(point3f *)&hill->center_x = *g_468788;
+	count = hill->count;
+	if (count > 0)
+	{
+		i = 0;
+		do
+		{
+			hill->center_x = points[i].x + hill->center_x;
+			hill->center_y = points[i].y + hill->center_y;
+			hill->center_z = points[i].z + hill->center_z;
+			i++;
+		}
+		while (i < count);
+	}
+	real scale = 1.0f / (real)count;
+	hill->center_x *= scale;
+	hill->center_y *= scale;
+	hill->center_z *= scale;
+	hill->radius = 0.0f;
+	if (count > 0)
+	{
+		i = 0;
+		do
+		{
+			real dx = points[i].x - hill->center_x;
+			real dy = points[i].y - hill->center_y;
+			real distance_squared = dy * dy + dx * dx;
+
+			if (!(hill->radius > distance_squared))
+			{
+				hill->radius = distance_squared;
+			}
+			i++;
+		}
+		while (i < count);
+	}
+	hill->radius = (real)sqrt(hill->radius);
+	hill->z_min = hill->center_z;
+	hill->z_max = hill->center_z;
+	for (i = 0; i < hill->count; i++)
+	{
+		if (hill->z_min > points[i].z)
+		{
+			hill->z_min = points[i].z;
+		}
+		if (!(hill->z_max > points[i].z))
+		{
+			hill->z_max = points[i].z;
+		}
+	}
+	count = function_19ec40(0, 0.0f, (short)(index + 11), NONE, 1, 8, marker_ids, 0.0f);
+	if (count > 0)
+	{
+		i = 0;
+		do
+		{
+			point3f position = g_4e0350->marker_entries[marker_ids[i]].position;
+
+			hill->z_min = hill->z_min > position.z ? position.z : hill->z_min;
+			hill->z_max = hill->z_max > position.z ? hill->z_max : position.z;
+			i++;
+		}
+		while (i < count);
+	}
+	hill->z_min -= 0.1f;
+	hill->z_max += 0.8f;
+}
+
+/* sets up the hill of the index: its markers, the vertices each spline
+   segment gets (32 in all), and its polygon */
+// @retail 0x2bdc70
+void hill_set(s_polygon_2be *hill, long index)
+{
+	if (index != NONE)
+	{
+		long count = function_19ec40(0, 0.0f, (short)(index + 11), NONE, 0, 16, hill->ids, 0.0f);
+
+		if (count >= 4)
+		{
+			long half;
+
+			count -= count & 1;
+			hill->count = count;
+			half = count / 2;
+			for (long i = 0; i < half; i++)
+			{
+				hill->steps[i] = (i + 1) * 32 / half - i * 32 / half;
+			}
+		}
+		if (hill->count >= 4 && !(hill->count & 1))
+		{
+			hill_build_polygon(hill, index);
+		}
+	}
+	else
+	{
+		hill->count = 0;
+	}
+}
+
+/* ---- the hill's color ---- */
+
+/* a player, as the hill's color reads it */
+struct s_player_2be
+{
+	byte unknown00[0x88];
+	byte type;
+	byte unknown89[0xc0 - 0x89];
+	char team;
+	byte unknownc1[0x21c - 0xc1];
+};
+
+struct s_player_iterator_2be
+{
+	s_player_2be *player;
+	s_record_pool *data;
+	long index;
+	long absolute_index;
+};
+
+bool function_19f300(long *iterator);
+extern color3f *g_468714;
+extern long g_4b9ed8;
+color3f *function_7f720(color3f *color, short team_index);
+
+static inline s_player_2be *player_get_2be(long index)
+{
+	return (s_player_2be *)(g_4e8c24->data + (index & 0xffff) * 0x21c);
+}
+
+/* whether the game is played in teams */
+static inline bool game_is_team_game_2be()
+{
+	bool result = false;
+
+	if (g_55e4d0[g_4e9ae8->engine_index])
+	{
+		result = TEST_FIELD_BIT(g_4e6948->flags184.bit0);
+	}
+	return result;
+}
+
+/* the local player's marker color */
+static __forceinline void local_marker_color_2be(s_color_bits *color)
+{
+	s_color_bits *marker = (s_color_bits *)&g_468c80[0].red;
+
+	if (g_4b9ed8 != NONE)
+	{
+		long local_player_index = g_4e8c20->entries[g_4b9ed8];
+
+		if (local_player_index != NONE)
+		{
+			s_player_2be *player = (s_player_2be *)(g_4e8c24->data + (local_player_index & 0xffff) * 0x21c);
+
+			if (player->type == 1 || player->type == 3)
+			{
+				marker = (s_color_bits *)&g_468c80[1].red;
+			}
+		}
+	}
+	*color = *marker;
+}
+
+/* the hill's color as the player sees it: neutral when nobody, or both the
+   player's team and another, stand on it; else the color of the team on it */
+// @retail 0x2be3b0
+void hill_color(long player_index, s_color_bits *color)
+{
+	if (player_index != NONE)
+	{
+		s_player_2be *player = player_get_2be(player_index);
+		bool friendly = false;
+		bool enemy = false;
+		long occupant = NONE;
+		s_player_iterator_2be iterator;
+
+		iterator.data = g_4e8c24;
+		iterator.absolute_index = NONE;
+		iterator.index = NONE;
+		while (function_19f300((long *)&iterator))
+		{
+			if ((1 << (byte)iterator.index) & (word)g_51ecc8->s1a8)
+			{
+				if (iterator.player->team == player->team)
+				{
+					occupant = iterator.index;
+					friendly = true;
+				}
+				else
+				{
+					occupant = iterator.index;
+					enemy = true;
+				}
+			}
+		}
+		if (friendly)
+		{
+			if (enemy)
+			{
+				*color = *(s_color_bits *)g_468714;
+				return;
+			}
+		}
+		else if (!enemy)
+		{
+			*color = *(s_color_bits *)g_468714;
+			return;
+		}
+		if (game_is_team_game_2be())
+		{
+			color3f team_color;
+			long team = player_get_2be(occupant)->team;
+
+			*color = *(s_color_bits *)function_7f720(&team_color, team);
+		}
+		else
+		{
+			local_marker_color_2be(color);
+		}
+	}
+	else
+	{
+		local_marker_color_2be(color);
+	}
+}
+
+/* a player's unit, as the hill's marker reads it */
+struct s_player_unit_2be
+{
+	byte unknown00[0x2c];
+	long unit_index;
+	byte unknown30[0x21c - 0x30];
+};
+
+/* the hill's marker for the local player: in the hill's color, faded by how
+   far the player stands outside it */
+// @retail 0x2be6d0
+void hill_marker(long local_player, s_polygon_2be *hill)
+{
+	if (hill->count >= 4 && !(hill->count & 1))
+	{
+		real fade = 1.0f;
+		long player_index;
+		s_color_bits color;
+		s_marker_list list;
+
+		if (local_player != NONE)
+		{
+			player_index = g_4e8c20->entries[local_player];
+			if (player_index != NONE)
+			{
+				s_player_unit_2be *player = (s_player_unit_2be *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
+
+				if (player->unit_index != NONE)
+				{
+					point3f position;
+					real dx;
+					real dy;
+					real distance;
+
+					function_b9dd0(player->unit_index, &position);
+					dx = hill->center_x - position.x;
+					dy = hill->center_y - position.y;
+					distance = dx * dx;
+					distance += dy * dy;
+					distance = (real)sqrt(distance) / hill->radius - 1.0f;
+					if (0.0f > distance)
+					{
+						fade = 0.0f;
+					}
+					else if (distance > 1.0f)
+					{
+						fade = 1.0f;
+					}
+					else
+					{
+						fade = distance;
+					}
+				}
+			}
+		}
+		player_index = NONE;
+		if (local_player != NONE)
+		{
+			player_index = g_4e8c20->entries[local_player];
+		}
+		hill_color(player_index, &color);
+		list.b0 = 1;
+		list.b1 = 0;
+		list.l4 = 1;
+		list.position = *(point3f *)&hill->center_x;
+		list.r14 = 0.0f;
+		list.r18 = 0.1f;
+		list.r1c = 0.0f;
+		list.l20 = NONE;
+		list.color24 = color;
+		list.color30 = color;
+		list.r3c = fade;
+		list.r40 = 1.0f;
+		list.count = 1;
+		list.items[0].kind = 6;
+		list.items[0].a = color;
+		list.items[0].b = color;
+		list.items[0].r = 1.0f;
+		list.items[0].index = NONE;
+		function_24e59f(&list);
+	}
 }
 
 // @retail 0x2be880
@@ -370,6 +784,165 @@ bool c_game_engine_a::v23()
 	return true;
 }
 
+struct s_team_entry;
+s_team_entry *function_15e410(short team);
+void function_15e130(long object_index);
+void __stdcall function_b8540(long a);
+void function_b58c0(long index, dword mask);
+
+/* a team's entry, as the territories read it */
+struct s_team_entry_2bf
+{
+	long item_index;
+};
+
+/* the players' unit, as the territories read it */
+struct s_player_unit_2bf
+{
+	byte unknown00[0x2c];
+	long unit_index;
+};
+
+/* a player iterator: the current player before the iterator (0x19f240) */
+struct s_player_iterator_2bf
+{
+	s_player_unit_2bf *player;
+	s_record_pool *data;
+	long index;
+	long absolute_index;
+};
+
+bool function_19f240(long *iterator);
+
+/* marks the parts of the engine's globals in the mask changed */
+static inline void game_engine_globals_changed_mask_2bf(dword mask)
+{
+	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->value24 != NONE)
+	{
+		function_b58c0(g_4e9ae8->value24, mask);
+	}
+}
+
+/* marks the engine's globals changed */
+static inline void game_engine_globals_changed_2bf()
+{
+	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->value24 != NONE)
+	{
+		function_b58c0(g_4e9ae8->value24, 0x20);
+	}
+}
+
+/* drops the team's item at the territory */
+static inline void territory_drop_team_item_2bf(long team)
+{
+	s_team_entry_2bf *entry = (s_team_entry_2bf *)function_15e410((short)team);
+
+	if (entry)
+	{
+		long item_index = entry->item_index;
+
+		if (item_index != NONE)
+		{
+			function_15e130(item_index);
+			function_b8540(item_index);
+		}
+	}
+}
+
+/* releases every territory that is held */
+// @retail 0x2bf3d0
+bool c_game_engine_a::v25()
+{
+	for (long i = 0; i < (short)g_51eccc->w114; i++)
+	{
+		s_state_2bf *state = g_51eccc;
+
+		if ((short)state->w60[i] != NONE && state->l70[i] != NONE)
+		{
+			state->l70[i] = NONE;
+			game_engine_globals_changed_2bf();
+			territory_drop_team_item_2bf(i);
+		}
+	}
+	return true;
+}
+
+/* releases the territories the team holds */
+// @retail 0x2bf4e0
+void c_game_engine_a::v32(long team)
+{
+	if (g_4e6948->mode != 4)
+	{
+		for (long i = 0; i < (short)g_51eccc->w114; i++)
+		{
+			s_state_2bf *state = g_51eccc;
+
+			if ((short)state->w60[i] != NONE && state->l70[i] == team && state->l70[i] != NONE)
+			{
+				state->l70[i] = NONE;
+				game_engine_globals_changed_2bf();
+				territory_drop_team_item_2bf(i);
+			}
+		}
+	}
+}
+
+/* a list of points to show (0x1004 bytes) */
+struct s_point_list_2bf
+{
+	long count;
+	struct
+	{
+		point3f position;
+		real values[5];
+	} items[0x80];
+};
+
+/* the values the points get (unknown_157450.cpp) */
+extern dword g_502258[0x27];
+
+/* adds a point to the list, unless it is full */
+static __forceinline void point_list_add_2bf(s_point_list_2bf *list, point3f position, real a, real b, real c, real d, real e)
+{
+	if (list->count < 0x80)
+	{
+		long index = list->count++;
+
+		list->items[index].position = position;
+		list->items[index].values[0] = a;
+		list->items[index].values[1] = b;
+		list->items[index].values[2] = c;
+		list->items[index].values[3] = d;
+		list->items[index].values[4] = e;
+	}
+}
+
+/* adds the territories the player's team holds to the list */
+// @retail 0x2bf740
+void c_game_engine_b::v2(long list_pointer, long player_index)
+{
+	s_point_list_2bf *list = (s_point_list_2bf *)list_pointer;
+	s_state_2bf *state = g_51eccc;
+
+	for (long i = 0; i < (short)g_51eccc->w114; i++)
+	{
+		short marker = (short)state->w60[i];
+
+		if (marker != NONE)
+		{
+			long holder = state->l70[i];
+
+			if (holder == player_index ||
+				(holder != NONE && datum_get_inlined(g_4e8c24, holder) &&
+				player_get_2be(holder)->team == player_get_2be(player_index)->team))
+			{
+				point_list_add_2bf(list, g_4e0350->marker_entries[marker].position,
+					*(real *)&g_502258[35], *(real *)&g_502258[36], *(real *)&g_502258[0], *(real *)&g_502258[1], *(real *)&g_502258[37]);
+			}
+		}
+	}
+}
+
 // @retail 0x2bf5b0
 void c_game_engine_a::v34()
 {
@@ -436,6 +1009,107 @@ struct s_weapon_definition_2bf
 
 /* whether the object can be picked up: not a weapon whose definition says
    value290 is 1 */
+/* each player's progress taking the territory they stand in, or leaving
+   the one they stood in */
+// @retail 0x2bfc40
+void territories_update_players()
+{
+	s_player_iterator_2bf iterator;
+
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		s_state_2bf *state = g_51eccc;
+		long player = iterator.index & 0xffff;
+
+		if (iterator.player->unit_index != NONE)
+		{
+			point3f position;
+			bool inside = false;
+
+			function_b9dd0(iterator.player->unit_index, &position);
+			for (long i = 0; i < (short)state->w114; i++)
+			{
+				short marker = (short)state->w60[i];
+
+				if (marker != NONE)
+				{
+					point3f center = g_4e0350->marker_entries[marker].position;
+					real dx = position.x - center.x;
+					real dy = position.y - center.y;
+					real distance_squared = dy * dy + dx * dx;
+
+					if (state->f0[i] * state->f0[i] > distance_squared &&
+						state->f40[i] > position.z - center.z &&
+						state->f20[i] > center.z - position.z)
+					{
+						inside = true;
+						if ((char)state->entries90[player].a != i)
+						{
+							state->entries90[player].a = (byte)i;
+							if ((char)state->entries90[player].previous != i)
+							{
+								state->entries90[player].time_inside = 0;
+								state->entries90[player].time_outside = 0;
+								state->entries90[player].b = 0;
+							}
+							state->entries90[player].previous = 0xff;
+							game_engine_globals_changed_mask_2bf(1 << (player + 6));
+						}
+					}
+				}
+			}
+			if (!inside)
+			{
+				long time;
+				long total;
+
+				if (state->entries90[player].a != 0xff)
+				{
+					state->entries90[player].previous = state->entries90[player].a;
+					state->entries90[player].a = 0xff;
+					game_engine_globals_changed_mask_2bf(1 << (player + 6));
+				}
+				if (state->entries90[player].time_inside > 0)
+				{
+					time = state->entries90[player].time_inside + -3;
+					time = time > 0 ? time : 0;
+					state->entries90[player].time_outside = 0;
+					state->entries90[player].time_inside = (short)time;
+					total = (short)state->w110;
+				}
+				else if (state->entries90[player].time_outside > 0)
+				{
+					time = state->entries90[player].time_outside + -3;
+					time = time > 0 ? time : 0;
+					state->entries90[player].time_inside = 0;
+					state->entries90[player].time_outside = (short)time;
+					total = (short)state->w112;
+				}
+				else
+				{
+					continue;
+				}
+				state->entries90[player].b = (byte)((short)time * 63 / total);
+				game_engine_globals_changed_mask_2bf(1 << (player + 6));
+			}
+		}
+		else
+		{
+			state->entries90[player].previous = 0xff;
+			if (state->entries90[player].a != 0xff)
+			{
+				state->entries90[player].a = 0xff;
+				state->entries90[player].time_inside = 0;
+				state->entries90[player].time_outside = 0;
+				state->entries90[player].b = 0;
+				game_engine_globals_changed_mask_2bf(1 << (player + 6));
+			}
+		}
+	}
+}
 // @retail 0x2bfbe0
 bool c_game_engine_a::v38(long player_index, long object_index)
 {
@@ -531,4 +1205,54 @@ void c_engine_peer_b::q0(long, s_stats_b *stats)
 	memset(stats, 0, sizeof(s_stats_b));
 	memset(stats->b, 0xff, sizeof(stats->b));
 	p41((s_stats *)stats);
+}
+
+/* copies the territories' holders and the entries the mask selects into
+   the settings, and returns the mask of what changed */
+// @retail 0x2c0450
+void c_engine_peer_b::q1(dword *value, long unused, s_settings_2c0 *settings)
+{
+	long result = 0;
+	dword m = *value & 0x1f;
+
+	if (m)
+		p42(m, &result, (long)settings);
+	s_state_2bf *state = g_51eccc;
+	if (*value & 0x20)
+	{
+		bool changed = false;
+
+		for (long i = 0; i < (short)state->w114; i++)
+		{
+			if ((short)state->w60[i] != NONE)
+			{
+				long holder = state->l70[i] == NONE ? NONE : state->l70[i] & 0xffff;
+
+				if (settings->holders[i] != holder)
+				{
+					settings->holders[i] = holder;
+					changed = true;
+				}
+			}
+		}
+		if (changed)
+			result |= 0x20;
+		else
+			result &= ~0x20;
+	}
+	for (long j = 0; j < 16; j++)
+	{
+		dword bit = 1 << (j + 6);
+
+		if (*value & bit)
+		{
+			if (settings->a[j] != state->entries90[j].a || settings->b[j] != state->entries90[j].b)
+			{
+				settings->a[j] = state->entries90[j].a;
+				settings->b[j] = state->entries90[j].b;
+				result |= bit;
+			}
+		}
+	}
+	*value = result;
 }

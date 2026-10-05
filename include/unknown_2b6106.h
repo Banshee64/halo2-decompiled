@@ -16,6 +16,7 @@ public:
 	c_y_menu_player_selected_list(word user_flags);
 
 	virtual void v1();
+	virtual void v20(c_class_1a2c81 *item, long unused);
 
 	void handle_item(s_controller_reference **controller, long *item);
 

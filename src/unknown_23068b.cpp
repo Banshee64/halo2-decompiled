@@ -10,6 +10,7 @@
 #include "globals.h"
 #include "unknown_19b510.h"
 #include "unknown_2b116a.h"
+#include "unknown_24b5bc.h"
 
 void function_148a58();
 void profile_edit_end();
@@ -154,6 +155,7 @@ class c_profile_edit_menu_screen : public c_screen_with_menu
 public:
 	c_profile_edit_menu_screen(long a, long b, word user_flags);
 
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	c_player_profile_edit_list list;
@@ -751,6 +753,41 @@ c_profile_edit_menu_screen::c_profile_edit_menu_screen(long a, long b, word user
 	list(user_flags)
 {
 	value9b4 = false;
+}
+
+void function_19060a(long profile_index, long controller_index);
+void function_14800c(long channel, long index);
+
+/* leaving the screen gives a new profile to the controller that made it and
+   stops editing */
+// @retail 0x2b7abe
+bool c_profile_edit_menu_screen::v10(s_widget_event *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			if (value9b4)
+			{
+				long controller = event->controller_index;
+
+				if (TEST_FIELD_BIT(g_54e8e0[controller].flag4))
+				{
+					player_slot_profile_get(controller)->set_profile(g_54e5d0.profile_index);
+				}
+				else
+				{
+					function_19060a(g_54e5d0.profile_index, controller);
+				}
+			}
+			profile_edit_end();
+			function_14800c(v20(), v21());
+			return true;
+		}
+	}
+	return c_class_1473c9::v10(event);
 }
 
 // @retail 0x237791

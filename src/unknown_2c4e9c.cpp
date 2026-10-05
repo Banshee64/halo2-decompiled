@@ -135,6 +135,7 @@ class c_list_45d078 : public c_class_1474e8
 public:
 	c_list_45d078(word user_flags);
 
+	virtual void v17();
 	virtual long get_item_count();
 	/* shows the setting's name and its current value */
 	virtual void v20(c_class_1a2c81 *item, long unused);
@@ -174,6 +175,57 @@ void c_list_45d078::handle_item(s_controller_reference **controller, long *item)
 	{
 		function_2c8474(*datum->value, 3, 4, user_flags, alternate);
 	}
+}
+
+/* the tag references a category's options are read from (the list
+   function_236a3a finds by its id) */
+struct s_option_reference
+{
+	long group;
+	long index;
+};
+
+struct s_option_reference_list
+{
+	long id;
+	byte unknown04[4];
+	long count;
+	s_option_reference *references;
+};
+
+struct s_reference_list;
+s_reference_list *function_236a3a(long id);
+
+/* one item per option of the category: each holds its option's tag */
+// @retail 0x2c7b7d
+void c_list_45d078::v17()
+{
+	value68c = (long)(s_option_reference_list *)function_236a3a(value688);
+	if (value68c && ((s_option_reference_list *)value68c)->count > 0)
+	{
+		data = user_interface_data_new("variant category options list", ((s_option_reference_list *)value68c)->count, 8);
+		function_16b790(data);
+		for (long i = 0; i < data->maximum_count; i++)
+		{
+			s_option_reference *reference = &((s_option_reference_list *)value68c)->references[i];
+			long *value = 0;
+			s_list_45d078_datum *datum = &((s_list_45d078_datum *)data->data)[record_pool_allocate(data) & 0xffff];
+
+			if (reference->index != NONE)
+			{
+				value = (long *)g_4e3b44[reference->index & 0xffff].data;
+			}
+			datum->value = value;
+		}
+		delegate_register(&item_handlers, &handler);
+	}
+	else
+	{
+		data = user_interface_data_new("EMPTY variant category options list", 1, 8);
+		function_16b790(data);
+		((s_list_45d078_datum *)data->data)[record_pool_allocate(data) & 0xffff].value = 0;
+	}
+	((c_widget *)this)->c_widget::v1();
 }
 
 // @retail 0x2c7b29 deleting c_list_45d078
@@ -1611,18 +1663,9 @@ c_screen_45d2b8::c_screen_45d2b8(long screen_id, long a, long b, word user_flags
 // @retail 0x2c87fe
 bool c_screen_45d2b8::v10(s_widget_event *event)
 {
-	switch (event->type)
+	if (event->type == 5 && (event->param == 1 || event->param == 13) && changed)
 	{
-	case 5:
-		switch (event->param)
-		{
-		case 1:
-		case 13:
-			if (changed)
-				memcpy(&g_54e5d0.settings, settings, sizeof(g_54e5d0.settings));
-			break;
-		}
-		break;
+		memcpy(&g_54e5d0.settings, settings, sizeof(g_54e5d0.settings));
 	}
 	return c_class_1473c9::v10(event);
 }
@@ -1733,7 +1776,7 @@ screen_load_proc c_screen_45d328::get_load_proc()
 // @retail 0x2c8a7a destructor c_screen_45d328
 
 struct s_widget_view_2b0a;
-void function_2b12ca(s_widget_view_2b0a *widget, short a, short b, void const *bounds);
+void function_2b12ca(s_widget_view_2b0a *widget, short b, short a, void const *bounds);
 
 // @retail 0x2cb174
 void c_screen_45d328::v3()
@@ -1750,9 +1793,11 @@ void c_screen_45d328::v3()
 			case 0:
 				g_54e5d0.settings.unknown11d[0] = (byte)datum;
 				break;
-			default:
+			case 1:
 				g_54e5d0.settings.unknown11d[1] = (byte)datum;
 				break;
+			default:
+				__assume(0);
 			}
 		}
 		emblem = (s_widget_view_2b0a *)find_child(9, 0, false);
@@ -1774,9 +1819,11 @@ void c_screen_45d328::v19()
 	case 0:
 		emblem = g_54e5d0.settings.unknown11d[0];
 		break;
-	default:
+	case 1:
 		emblem = g_54e5d0.settings.unknown11d[1];
 		break;
+	default:
+		__assume(0);
 	}
 	list.select_item(emblem);
 	c_class_1473c9::v19();
@@ -2142,33 +2189,30 @@ void c_multiplayer_settings_edit_list::handle_item(s_controller_reference **cont
 {
 	if (record_pool_lookup(data, *item))
 	{
-		screen_load_proc load;
-
 		switch (*(short *)item)
 		{
 		case 0:
-			load = function_2c8a8f;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c8a8f);
 			break;
 		case 1:
-			load = function_2c8998;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c8998);
 			break;
 		case 2:
-			load = function_2c89a8;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c89a8);
 			break;
 		case 3:
-			load = function_2c89b9;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c89b9);
 			break;
 		case 4:
-			load = function_2c89ca;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c89ca);
 			break;
 		case 5:
-			load = function_2c8858;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c8858);
 			break;
 		default:
-			load = function_2c8896;
+			function_149ef3(1 << (*controller)->controller_index, (long)function_2c8896);
 			break;
 		}
-		function_149ef3(1 << (*controller)->controller_index, (long)load);
 	}
 }
 
@@ -2544,12 +2588,14 @@ void c_invert_look_settings_edit_list::handle_item(s_controller_reference **cont
 {
 	switch (*(short *)item)
 	{
+	case 1:
+		g_54e5d0.settings.controller_flags.invert_look = false;
+		break;
 	case 0:
 		g_54e5d0.settings.controller_flags.invert_look = true;
 		break;
 	default:
-		g_54e5d0.settings.controller_flags.invert_look = false;
-		break;
+		__assume(0);
 	}
 	if (value188)
 	{
@@ -2655,12 +2701,14 @@ void c_auto_level_settings_edit_list::handle_item(s_controller_reference **contr
 {
 	switch (*(short *)item)
 	{
+	case 1:
+		g_54e5d0.settings.controller_flags.auto_level = false;
+		break;
 	case 0:
 		g_54e5d0.settings.controller_flags.auto_level = true;
 		break;
 	default:
-		g_54e5d0.settings.controller_flags.auto_level = false;
-		break;
+		__assume(0);
 	}
 	if (value188)
 	{
@@ -2853,9 +2901,11 @@ void c_choose_emblem_list::handle_item(s_controller_reference **controller, long
 	case 0:
 		g_54e5d0.settings.unknown11d[0] = (byte)emblem;
 		break;
-	default:
+	case 1:
 		g_54e5d0.settings.unknown11d[1] = (byte)emblem;
 		break;
+	default:
+		__assume(0);
 	}
 	function_14800c(v11(), v12());
 }
@@ -3024,6 +3074,32 @@ c_difficulty_list::c_difficulty_list(word user_flags) :
 		record_pool_allocate(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+void function_121100(long *value);
+void function_1210a0(long *value);
+void function_24c1c5(c_widget *widget, char direction);
+
+/* focuses the difficulty last played */
+// @retail 0x2c9cad
+void c_difficulty_list::v1()
+{
+	long difficulty;
+	long i;
+
+	((c_widget *)this)->c_widget::v9();
+	if (alternate)
+	{
+		function_121100(&difficulty);
+	}
+	else
+	{
+		function_1210a0(&difficulty);
+	}
+	for (i = difficulty; i > 0; i--)
+	{
+		function_24c1c5((c_widget *)this, 1);
+	}
 }
 
 // @retail 0x2c9ce7
@@ -3810,5 +3886,179 @@ void c_choose_model_list::v20(c_class_1a2c81 *widget, long index)
 	if (text)
 	{
 		text->function_253b1a(function_2365e0(widget_item(widget)->value70 & 0xffff));
+	}
+}
+
+/* shows the setting's name and the edited profile's value of it */
+// @retail 0x2c8548
+void c_controller_settings_edit_list::v20(c_class_1a2c81 *widget, long index)
+{
+	c_text_widget_45a5e0 *name = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+	c_text_widget_45a5e0 *value = (c_text_widget_45a5e0 *)widget->find_child(6, 1, false);
+	long name_handle;
+	long value_handle;
+
+	switch ((short)widget_item(widget)->value70)
+	{
+	case 0:
+		name_handle = 0x130003dd;
+		switch (g_54e5d0.settings.thumbstick_layout)
+		{
+		case 0:
+			value_handle = 0x7000001;
+			break;
+		case 1:
+			value_handle = 0x80002f5;
+			break;
+		case 2:
+			value_handle = 0x60002f6;
+			break;
+		case 3:
+			value_handle = 0xf0002f7;
+			break;
+		default:
+			value_handle = 0;
+			break;
+		}
+		break;
+	case 1:
+		name_handle = 0xf0003de;
+		switch (g_54e5d0.settings.button_layout)
+		{
+		case 0:
+			value_handle = 0x7000001;
+			break;
+		case 1:
+			value_handle = 0x90003e4;
+			break;
+		case 2:
+			value_handle = 0x50003e5;
+			break;
+		case 3:
+			value_handle = 0xb0003e6;
+			break;
+		default:
+			value_handle = 0;
+			break;
+		}
+		break;
+	case 2:
+	{
+		byte sensitivity = g_54e5d0.settings.look_sensitivity;
+
+		name_handle = 0x100003df;
+		switch (sensitivity < 1 ? (short)1 : (sensitivity > 10 ? (short)10 : (short)sensitivity))
+		{
+		case 1:
+			value_handle = 0x120003cf;
+			break;
+		case 2:
+			value_handle = 0x120003d0;
+			break;
+		case 3:
+			value_handle = 0x120003d1;
+			break;
+		case 4:
+			value_handle = 0x120003d2;
+			break;
+		case 5:
+			value_handle = 0x120003d3;
+			break;
+		case 6:
+			value_handle = 0x120003d4;
+			break;
+		case 7:
+			value_handle = 0x120003d5;
+			break;
+		case 8:
+			value_handle = 0x120003d6;
+			break;
+		case 9:
+			value_handle = 0x120003d7;
+			break;
+		case 10:
+			value_handle = 0x130003d8;
+			break;
+		default:
+			value_handle = 0;
+			break;
+		}
+		break;
+	}
+	case 3:
+		name_handle = 0xb0003e0;
+		value_handle = TEST_FIELD_BIT(g_54e5d0.settings.controller_flags.invert_look) ? 0x6000308 : 0x7000309;
+		break;
+	case 4:
+		name_handle = 0xb0003e1;
+		value_handle = TEST_FIELD_BIT(g_54e5d0.settings.controller_flags.auto_level) ? 0x6000308 : 0x7000309;
+		break;
+	case 5:
+		name_handle = 0x90003e2;
+		value_handle = TEST_FIELD_BIT(g_54e5d0.settings.controller_flags.vibration) ? 0x3000182 : 0x2000181;
+		break;
+	default:
+		name_handle = NONE;
+		value_handle = 0;
+		break;
+	}
+	if (name)
+	{
+		name->function_253b1a(name_handle);
+	}
+	if (value)
+	{
+		value->function_253b1a(value_handle);
+	}
+}
+
+long function_149b5a(byte index);
+long function_149da5(byte index);
+
+/* shows the setting's name and the edited profile's value of it */
+// @retail 0x2c8bf5
+void c_multiplayer_settings_edit_list::v20(c_class_1a2c81 *widget, long index)
+{
+	c_text_widget_45a5e0 *name = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+	c_text_widget_45a5e0 *value = (c_text_widget_45a5e0 *)widget->find_child(6, 1, false);
+
+	if (name && value)
+	{
+		long string_handle;
+
+		switch ((short)widget_item(widget)->value70)
+		{
+		case 0:
+			name->function_253b1a(0xc0002f8);
+			string_handle = function_2365e0((char)g_54e5d0.settings.model);
+			break;
+		case 4:
+			name->function_253b1a(0x120002fc);
+			string_handle = function_14986f(*(s_player_color *)&g_54e5d0.settings.colors[3]);
+			break;
+		case 3:
+			name->function_253b1a(0x120002fb);
+			string_handle = function_14986f(*(s_player_color *)&g_54e5d0.settings.colors[2]);
+			break;
+		case 2:
+			name->function_253b1a(0x120002fa);
+			string_handle = function_14986f(*(s_player_color *)&g_54e5d0.settings.colors[1]);
+			break;
+		case 1:
+			name->function_253b1a(0x120002f9);
+			string_handle = function_14986f(*(s_player_color *)&g_54e5d0.settings.colors[0]);
+			break;
+		case 5:
+			name->function_253b1a(0x110002fd);
+			string_handle = function_149b5a(g_54e5d0.settings.unknown11d[0]);
+			break;
+		case 6:
+			name->function_253b1a(0x110002fe);
+			string_handle = function_149da5(g_54e5d0.settings.unknown11d[1]);
+			break;
+		default:
+			return;
+		}
+		value->function_253b1a(string_handle);
 	}
 }
