@@ -21,12 +21,6 @@ void function_147dbe(s_controller_event *event)
 struct s_event;
 struct s_event_response;
 
-// @stub 0x22acb4
-bool function_22acb4(long player_index)
-{
-	return false;
-}
-
 // @stub 0x159130
 void function_159130(long score, unsigned short *buffer)
 {

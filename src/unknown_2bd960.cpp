@@ -7,6 +7,7 @@
 #include "engine_peer.h"
 #include "unknown_1523c0.h"
 #include "game_engine_events.h"
+#include "marker_list.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -295,6 +296,133 @@ void function_2bde90(real t, point3f *out, point3f *points)
 	out->x = points[3].x * r[3] + points[2].x * r[2] + points[1].x * r[1] + points[0].x * r[0];
 	out->y = points[3].y * r[3] + points[2].y * r[2] + points[1].y * r[1] + points[0].y * r[0];
 	out->z = points[3].z * r[3] + points[2].z * r[2] + points[1].z * r[1] + points[0].z * r[0];
+}
+
+/* ---- the hill's color ---- */
+
+/* a player, as the hill's color reads it */
+struct s_player_2be
+{
+	byte unknown00[0x88];
+	byte type;
+	byte unknown89[0xc0 - 0x89];
+	char team;
+	byte unknownc1[0x21c - 0xc1];
+};
+
+struct s_player_iterator_2be
+{
+	s_player_2be *player;
+	s_record_pool *data;
+	long index;
+	long absolute_index;
+};
+
+bool function_19f300(long *iterator);
+extern color3f *g_468714;
+extern long g_4b9ed8;
+color3f *function_7f720(color3f *color, short team_index);
+
+static inline s_player_2be *player_get_2be(long index)
+{
+	return (s_player_2be *)(g_4e8c24->data + (index & 0xffff) * 0x21c);
+}
+
+/* whether the game is played in teams */
+static inline bool game_is_team_game_2be()
+{
+	bool result = false;
+
+	if (g_55e4d0[g_4e9ae8->engine_index])
+	{
+		result = TEST_FIELD_BIT(g_4e6948->flags184.bit0);
+	}
+	return result;
+}
+
+/* the local player's marker color */
+static __forceinline void local_marker_color_2be(s_color_bits *color)
+{
+	s_color_bits *marker = (s_color_bits *)&g_468c80[0].red;
+
+	if (g_4b9ed8 != NONE)
+	{
+		long local_player_index = g_4e8c20->entries[g_4b9ed8];
+
+		if (local_player_index != NONE)
+		{
+			s_player_2be *player = (s_player_2be *)(g_4e8c24->data + (local_player_index & 0xffff) * 0x21c);
+
+			if (player->type == 1 || player->type == 3)
+			{
+				marker = (s_color_bits *)&g_468c80[1].red;
+			}
+		}
+	}
+	*color = *marker;
+}
+
+/* the hill's color as the player sees it: neutral when nobody, or both the
+   player's team and another, stand on it; else the color of the team on it */
+// @retail 0x2be3b0
+void hill_color(long player_index, s_color_bits *color)
+{
+	if (player_index != NONE)
+	{
+		s_player_2be *player = player_get_2be(player_index);
+		bool friendly = false;
+		bool enemy = false;
+		long occupant = NONE;
+		s_player_iterator_2be iterator;
+
+		iterator.data = g_4e8c24;
+		iterator.absolute_index = NONE;
+		iterator.index = NONE;
+		while (function_19f300((long *)&iterator))
+		{
+			if ((1 << (byte)iterator.index) & (word)g_51ecc8->s1a8)
+			{
+				if (iterator.player->team == player->team)
+				{
+					occupant = iterator.index;
+					friendly = true;
+				}
+				else
+				{
+					occupant = iterator.index;
+					enemy = true;
+				}
+			}
+		}
+		if (friendly)
+		{
+			if (enemy)
+			{
+				*color = *(s_color_bits *)g_468714;
+				return;
+			}
+		}
+		else if (!enemy)
+		{
+			*color = *(s_color_bits *)g_468714;
+			return;
+		}
+		if (game_is_team_game_2be())
+		{
+			color3f team_color;
+			long team = player_get_2be(occupant)->team;
+
+			*color = *(s_color_bits *)function_7f720(&team_color, team);
+		}
+		else
+		{
+			local_marker_color_2be(color);
+		}
+	}
+	else
+	{
+		local_marker_color_2be(color);
+	}
 }
 
 // @retail 0x2be880

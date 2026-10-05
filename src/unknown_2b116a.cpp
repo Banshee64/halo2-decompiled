@@ -2582,6 +2582,7 @@ class c_custom_game_maps_screen : public c_screen_with_menu
 public:
 	c_custom_game_maps_screen(long a, long b, word user_flags, long screen_id, bool alternate);
 
+	virtual void v3();
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
@@ -2625,6 +2626,59 @@ void c_custom_game_maps_screen::v19()
 {
 	list.coop = alternate;
 	c_class_1473c9::v19();
+}
+
+long function_11cae0(void);
+struct s_entry_c;
+s_entry_c *function_19c5f0(long key);
+
+/* a map list item's datum */
+struct s_map_item_2c9
+{
+	short salt;
+	bool downloaded;
+	byte unknown03;
+	long map_id;
+};
+
+/* a map's definition: its bitmap and its description in each language */
+struct s_map_definition_2c9
+{
+	long map_id;
+	byte unknown04[4];
+	long bitmap_tag_index;
+	byte unknown0c[0x24c - 0xc];
+	wchar_t descriptions[8][0x80];
+};
+
+/* shows the focused map's bitmap and description */
+// @retail 0x2c9b7c
+void c_custom_game_maps_screen::v3()
+{
+	c_class_1a2c81 *bitmap = find_child(8, 1, false);
+	c_class_1a2c81 *text = find_child(6, 2, false);
+	s_record_pool *data = list.data;
+	s_map_item_2c9 *datum = (s_map_item_2c9 *)record_pool_lookup(data, list.get_focused_datum());
+
+	if (datum)
+	{
+		s_map_definition_2c9 *map = (s_map_definition_2c9 *)function_19c5f0(datum->map_id);
+
+		if (map)
+		{
+			if (bitmap)
+			{
+				function_2b0a7b((s_widget_view_2b0a *)bitmap, function_137550(map->bitmap_tag_index, 0));
+			}
+			if (text)
+			{
+				wchar_t *description = map->descriptions[function_11cae0()];
+
+				text->function_22f52e()->set_text((word *)description);
+			}
+		}
+	}
+	c_class_1a2c81::v3();
 }
 
 // @retail 0x2bb35f
