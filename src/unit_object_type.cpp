@@ -88,11 +88,12 @@ struct s_unit
 	vector3f unknown150;
 	vector3f unknown15c;
 	vector3f unknown168;
-	byte unknown174[0x180 - 0x174];
+	vector3f unknown174;
 	vector3f unknown180;
 	real unknown18c;
 	real unknown190;
-	byte unknown194[0x1a4 - 0x194];
+	byte unknown194[4];
+	vector3f unknown198;
 	vector3f unknown1a4;
 	vector3f unknown1b0;
 	char unknown1bc;
@@ -207,6 +208,8 @@ UNIT_OFFSET_CHECK(unknown243, 0x243);
 UNIT_OFFSET_CHECK(unknown2c4, 0x2c4);
 UNIT_OFFSET_CHECK(unknown268, 0x268);
 UNIT_OFFSET_CHECK(unknown26c, 0x26c);
+UNIT_OFFSET_CHECK(unknown174, 0x174);
+UNIT_OFFSET_CHECK(unknown198, 0x198);
 UNIT_OFFSET_CHECK(unknown1fa, 0x1fa);
 UNIT_OFFSET_CHECK(unknown1f8, 0x1f8);
 UNIT_OFFSET_CHECK(unknownb4, 0xb4);
@@ -549,6 +552,12 @@ void function_113d20(long unit_index, real time);
 bool function_113df0(long unit_index);
 void function_113d60(long unit_index, real time);
 bool __stdcall function_110ab0(long unit_index);
+real function_11ce20(vector3f const *a, vector3f const *b);
+real function_1201a0(vector3f *v, vector3f const *fallback);
+void function_11f0d0(vector3f *position, vector3f *forward, vector3f const *target, real rate, real max_angle, real scale);
+void function_bba20(long object_index);
+void function_c7840(vector3f const *desired, vector3f *current, transform4x3f const *frame, real rate, vector3f *velocity,
+	real const *limits, real yaw_rate, real pitch_rate);
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
 	real blend, long flags, long mode);
 bool function_1012c0(long weapon_index);
@@ -6260,6 +6269,149 @@ bool __stdcall function_c58f0(long unit_index)
 		function_d1540(unit_index);
 	}
 	return changed;
+}
+
+/* a frame from a forward and an up: left = up x forward, at the default
+   point (the frame 0xc7840 limits a turn in) */
+static void unit_turn_frame(transform4x3f *frame, vector3f const *forward, vector3f const *up)
+{
+	frame->scale = 1.0f;
+	frame->forward = *forward;
+	frame->left.i = up->j * forward->k - up->k * forward->j;
+	frame->left.j = up->k * forward->i - up->i * forward->k;
+	frame->left.k = up->i * forward->j - up->j * forward->i;
+	frame->up = *up;
+	frame->position = *g_468788;
+}
+
+/* the angle a turn covered in a tick as a share of its rate, 0 to 1 */
+static real unit_turn_share(real angle, real step)
+{
+	real share = angle / step;
+
+	if (0.0f > share)
+	{
+		return 0.0f;
+	}
+	if (share > 1.0f)
+	{
+		return 1.0f;
+	}
+	return share;
+}
+
+/* turns the unit's aim (+0x168) toward its desired aim (+0x15c) and its
+   look (+0x18c) toward +0x180 at the definition's rates (scaled while it
+   is in state 1 at +0x1bc), within its aim and look limits when they are
+   on (0xc7840); records the aim's turn speeds (+0x243, +0x1f8); whether
+   either moved */
+// @retail 0xc60c0
+bool __stdcall function_c60c0(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *definition = UNIT_DEFINITION_GET(unit);
+
+	if ((*(dword *)(definition + 0xbc) >> 10) & 1 || (unit->flags_10a >> 2) & 1)
+	{
+		return false;
+	}
+	vector3f old_aim = unit->unknown168;
+	vector3f old_look = *(vector3f *)&unit->unknown18c;
+	real scale = unit->unknown1bc == 1 ? *(real *)(definition + 0x14c) : 1.0f;
+	real yaw_rate = *(real *)(definition + 0x144) * scale;
+	real pitch_rate = *(real *)(definition + 0x148) * scale;
+	byte *state = (byte *)unit + unit->unknown33e;
+
+	if (yaw_rate == 0.0f && pitch_rate == 0.0f)
+	{
+		unit->unknown168 = unit->unknown15c;
+		if (function_c4970(unit_index))
+		{
+			function_cba50(unit_index, &unit->unknown168, false);
+		}
+		unit->unknown174 = *g_4687a4;
+	}
+	else if ((state[0] >> 5) & 1)
+	{
+		vector3f forward;
+		vector3f up;
+		transform4x3f frame;
+
+		function_b9fc0(unit_index, &forward, &up);
+		unit_turn_frame(&frame, &forward, &up);
+		function_c7840(&unit->unknown15c, &unit->unknown168, &frame, g_510c54->rate, &unit->unknown174,
+			(real const *)(state + 4), yaw_rate, pitch_rate);
+	}
+	else
+	{
+		function_11f0d0(&unit->unknown168, &unit->unknown15c, &unit->unknown174, g_510c54->rate, yaw_rate, pitch_rate);
+	}
+	real yaw_share;
+	real pitch_share;
+	if (*(real *)(definition + 0x144) == 0.0f)
+	{
+		yaw_share = 0.0f;
+		pitch_share = 0.0f;
+	}
+	else
+	{
+		real step = g_510c54->rate * *(real *)(definition + 0x144);
+		vector3f old_flat;
+		vector3f new_flat;
+
+		yaw_share = unit_turn_share(function_11ce20(&old_aim, &unit->unknown168), step);
+		old_flat = old_aim;
+		new_flat = unit->unknown168;
+		old_flat.k = 0.0f;
+		new_flat.k = 0.0f;
+		function_1201a0(&old_flat, g_4687b0);
+		function_1201a0(&new_flat, g_4687b0);
+		pitch_share = unit_turn_share(function_11ce20(&new_flat, &old_flat), step);
+	}
+	unit->unknown243 = (byte)(long)(yaw_share * 255.0f);
+	unit->unknown1f8 = (byte)(long)(pitch_share * 255.0f);
+	real look_yaw_rate = *(real *)(definition + 0x150) * scale;
+	real look_pitch_rate = *(real *)(definition + 0x154) * scale;
+	if (look_yaw_rate == 0.0f && look_pitch_rate == 0.0f)
+	{
+		*(vector3f *)&unit->unknown18c = unit->unknown180;
+		function_cba50(unit_index, (vector3f *)&unit->unknown18c, true);
+		unit->unknown198 = *g_4687a4;
+	}
+	else if ((state[0] >> 6) & 1)
+	{
+		vector3f forward;
+		vector3f up;
+		vector3f left;
+		transform4x3f frame;
+
+		function_b9fc0(unit_index, &forward, &up);
+		forward = unit->unknown168;
+		left.i = up.j * forward.k - up.k * forward.j;
+		left.j = up.k * forward.i - up.i * forward.k;
+		left.k = up.i * forward.j - up.j * forward.i;
+		up.i = forward.j * left.k - forward.k * left.j;
+		up.j = forward.k * left.i - forward.i * left.k;
+		up.k = forward.i * left.j - forward.j * left.i;
+		unit_turn_frame(&frame, &forward, &up);
+		function_c7840(&unit->unknown180, (vector3f *)&unit->unknown18c, &frame, g_510c54->rate, &unit->unknown198,
+			(real const *)(state + 0x14), look_yaw_rate, look_pitch_rate);
+	}
+	else
+	{
+		function_11f0d0((vector3f *)&unit->unknown18c, &unit->unknown180, &unit->unknown198, g_510c54->rate,
+			look_yaw_rate, look_pitch_rate);
+	}
+	if (0.0001f > (real)fabs(old_aim.i - unit->unknown168.i) && 0.0001f > (real)fabs(old_aim.j - unit->unknown168.j) &&
+		0.0001f > (real)fabs(old_aim.k - unit->unknown168.k) &&
+		0.0001f > (real)fabs(old_look.i - ((vector3f *)&unit->unknown18c)->i) &&
+		0.0001f > (real)fabs(old_look.j - ((vector3f *)&unit->unknown18c)->j) &&
+		0.0001f > (real)fabs(old_look.k - ((vector3f *)&unit->unknown18c)->k))
+	{
+		return false;
+	}
+	function_bba20(unit_index);
+	return true;
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
