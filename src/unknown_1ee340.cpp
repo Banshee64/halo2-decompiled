@@ -2,6 +2,16 @@
 #include "globals.h"
 #include <xmmintrin.h>
 #include <float.h>
+#include "unknown_1eb350.h"
+#include "havok_reference.h"
+
+struct c_transformed_point
+{
+	__m128 value;
+	void transform(const void *matrix, const __m128 *point);
+};
+
+void __cdecl function_2fe730(const void *points, long count, long stride, void *output);
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -19,7 +29,17 @@ struct c_vertex_shape
 	virtual void gather_vertices(const word *indices, long count, __m128 *out);
 	virtual void get_first_vertex(__m128 *out);
 	virtual void v3() {}
+	virtual void get_bounds(const void *matrix, real expansion, void *output);
 };
+
+// @retail 0x1eded0
+void c_vertex_shape::get_bounds(const void *matrix, real expansion, void *output)
+{
+	c_transformed_point points[8];
+	for (long i = 0; i < vertex_count; i++)
+		points[i].transform(matrix, &vertices()[i]);
+	function_2fe730(points, vertex_count, sizeof(c_transformed_point), output);
+}
 
 // @retail 0x1ee340
 void c_vertex_shape::get_first_vertex(__m128 *out)
@@ -151,4 +171,42 @@ long c_count_interface::get_count()
 long c_count_interface::test_count()
 {
 	return get_count() > 0 ? 0 : -1;
+}
+
+struct c_shape_owner : c_shape_library_base_a
+{
+	byte field_8[0x14 - 8];
+	c_havok_reference_counted *object;
+	virtual ~c_shape_owner();
+};
+
+c_shape_owner *g_51e9d4;
+
+// @retail 0x1ee530 deleting c_shape_owner
+
+// @retail 0x1ee560
+c_shape_owner::~c_shape_owner()
+{
+	havok_reference_remove(object);
+	object = 0;
+	g_51e9d4 = 0;
+}
+
+#include "unknown_1efac0.h"
+
+struct c_shape_global_owner : c_a
+{
+	virtual ~c_shape_global_owner();
+	void operator delete(void *block)
+	{
+		g_480118->allocate((long)block, ((c_shape_global_owner *)block)->flags, 0x22);
+	}
+};
+
+c_shape_global_owner *g_51e9d0;
+
+// @retail 0x1eefe0 deleting
+c_shape_global_owner::~c_shape_global_owner()
+{
+	g_51e9d0 = 0;
 }

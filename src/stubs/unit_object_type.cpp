@@ -34,9 +34,6 @@ void function_10cdf0(long object_index) { }
 void function_10ca80(long object_index, long a) { }
 
 /* outside the unit range */
-// @stub 0x1e3370
-bool function_1e3370(long actor_index, void *unknown) { return false; }
-
 // @stub 0x10cec0
 void function_10cec0(long unit_index, long weapon_index, long parent_marker_name, long marker_name) { }
 
