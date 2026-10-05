@@ -16,6 +16,7 @@ class c_legalese_screen : public c_screen_with_menu
 public:
 	c_legalese_screen(long a, long b, word user_flags);
 
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	c_legalese_acceptance_list list;
@@ -181,6 +182,39 @@ void c_legalese_acceptance_list::v20(c_class_1a2c81 *widget, long index)
 		}
 		text->function_253b1a(string_handle);
 	}
+}
+
+void __stdcall function_1483c3(long reason);
+void function_2238f4(long page, dword context, dword parameter1, dword parameter2);
+
+// @retail 0x2305d0
+void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch ((short)*item)
+	{
+	case 0:
+		function_2238f4(0, 0, 0, 0);
+		break;
+	case 1:
+		function_1483c3(0);
+		break;
+	}
+}
+
+// @retail 0x2305f5
+bool c_legalese_screen::v10(s_widget_event *event)
+{
+	bool result;
+	if (event->type == 6)
+	{
+		function_1483c3(0);
+		result = true;
+	}
+	else
+	{
+		result = c_class_1473c9::v10(event);
+	}
+	return result;
 }
 
 // @retail 0x2307c8

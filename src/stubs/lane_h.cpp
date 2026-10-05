@@ -12,11 +12,6 @@ void __stdcall function_18fcc4(long controller, s_player_profile *profile, long 
 {
 }
 
-// @stub 0x147dbe
-void function_147dbe(s_controller_event *event)
-{
-}
-
 
 struct s_event;
 struct s_event_response;
