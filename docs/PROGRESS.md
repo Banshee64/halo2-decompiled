@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6063 functions match
+
+```
+matched 6063 of 11318 game functions (617294 of 2784283 bytes, 22.17%)
+```
+
+16 new matches, none lost:
+- **Codex lane W**, round 7 (8): more core utilities, and its new callee makes @Banshee64's 0x117060 match.
+- **Codex lane C**, round 15 (8): AI, actor and havok helpers in the 0x1c0000–0x1dffff range; one lane A caller (0x2a10d0) now matches too.
+
 ## 2026-10-05: 6047 functions match
 
 ```
