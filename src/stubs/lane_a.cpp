@@ -301,12 +301,6 @@ void function_1e3400(long actor_index, long squad_index)
 {
 }
 
-// @stub 0x2052d0
-bool function_2052d0(long squad_index, long squad_group_index)
-{
-	return false;
-}
-
 // @stub 0x201ad0
 void function_201ad0(long squad_index, long vehicle_index)
 {
