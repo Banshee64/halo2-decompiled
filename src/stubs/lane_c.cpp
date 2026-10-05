@@ -137,8 +137,6 @@ struct real_quaternion_transform;
 
 
 
-// @stub 0x2624d0
-bool function_2624d0(s_261d20_entry *entry, s_reference reference) { return false; }
 
 // @stub 0x260160
 bool function_260160(long actor_index, s_261d20_entry *entry, s_prop_search *search) { return false; }

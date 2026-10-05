@@ -2,6 +2,26 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5625 functions match
+
+```
+matched 5625 of 11318 game functions (564812 of 2784283 bytes, 20.29%)
+```
+
+**Codex lane V**, round 1: 23 new matches, none lost. The region, 0x260000–0x26e36f, is newly opened. The work covers props, clump iteration, AI state callbacks and a rebuilt callback table.
+
+## 2026-10-05: 5602 functions match
+
+```
+matched 5602 of 11318 game functions (562650 of 2784283 bytes, 20.21%)
+```
+
+**Contributor pull requests**, merged after independent review: 30 new matches, none lost.
+- @Banshee64: the unit object type (#33, 22 matches), cloth simulation (#48), flexible chain callbacks (#50, 7 matches), and 0x23e340's seventh argument (#51).
+- @coldspear: synthetic class names in the linkmap tests (#45).
+
+**Provenance clean-up.** A rescan found identifiers that recent merges had brought in and that match non-permitted sources exactly. 40 names were renamed to behavioural names or placeholders. The rescan now also covers names that appear only in comments and docs.
+
 ## 2026-10-05: 5572 functions match
 
 ```
@@ -592,7 +612,7 @@ matched 4647 of 11321 game functions (421089 of 2785198 bytes, 15.12%)
 ```
 
 **Lane A**, round 11: 25 new matches, none lost. They are script built-in
-evaluators and helpers. `scenario_location_from_point` (0x11bed0) now takes
+evaluators and helpers. `location_for_point` (0x11bed0) now takes
 its arguments in Halo CE's order, which matches two more callers.
 
 ## 2026-10-04: 4622 functions match; past 15%
@@ -1000,7 +1020,7 @@ matched 2423 of 11317 game functions (191340 of 2783395 bytes, 6.87%)
 ```
 
 - **lane D**, round 4: the network session manager and voice chat. It also
-  found the source of a dead stack store in retail's inlined `is_host` check:
+  found the source of a dead stack store in retail's inlined `host_check` check:
   a `volatile` local on the non-host path. That one change matched the check
   and the session setters it is inlined into.
 - **lane L**, round 1 (`0x120000`): the async job queue and worker thread,
