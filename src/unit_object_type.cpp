@@ -6414,6 +6414,225 @@ bool __stdcall function_c60c0(long unit_index)
 	return true;
 }
 
+/* a direction from a yaw and a pitch */
+static void unit_direction_from_angles(vector3f *direction, real yaw, real pitch)
+{
+	real cosine = (real)cos(pitch);
+
+	direction->i = (real)cos(yaw) * cosine;
+	direction->j = (real)sin(yaw) * cosine;
+	direction->k = (real)sin(pitch);
+}
+
+/* a world vector in a frame's axes, and back */
+static void unit_vector_to_frame(vector3f *out, transform4x3f const *frame, vector3f const *v)
+{
+	out->i = frame->forward.i * v->i + frame->forward.k * v->k + frame->forward.j * v->j;
+	out->j = frame->left.j * v->j + frame->left.i * v->i + frame->left.k * v->k;
+	out->k = frame->up.i * v->i + frame->up.k * v->k + frame->up.j * v->j;
+}
+
+static void unit_vector_from_frame(vector3f *out, transform4x3f const *frame, vector3f const *v)
+{
+	out->i = frame->up.i * v->k + frame->left.i * v->j + frame->forward.i * v->i;
+	out->j = frame->up.j * v->k + frame->left.j * v->j + frame->forward.j * v->i;
+	out->k = frame->up.k * v->k + frame->left.k * v->j + frame->forward.k * v->i;
+}
+
+/* turns a direction toward a desired one within yaw and pitch limits (in
+   a frame, when given), keeping an angular velocity: plans both angles'
+   motions under a speed limit and an acceleration (0xc7300), evens them
+   (0xc75d0), steps them (0xc7750), snapping when both are done */
+// @retail 0xc7840
+void function_c7840(vector3f const *desired, vector3f *current, transform4x3f const *frame, real rate, vector3f *velocity,
+	real const *limits, real max_speed, real acceleration)
+{
+	vector3f local_current;
+	vector3f local_desired;
+
+	if (frame)
+	{
+		unit_vector_to_frame(&local_current, frame, current);
+		unit_vector_to_frame(&local_desired, frame, desired);
+	}
+	else
+	{
+		local_current = *current;
+		local_desired = *desired;
+	}
+	bool wraps = limits[1] - limits[0] - 6.2831855f > -0.0001f;
+	real current_yaw = (real)atan2(local_current.j, local_current.i);
+	real current_pitch = (real)atan2(local_current.k,
+		(real)sqrt(local_current.j * local_current.j + local_current.i * local_current.i));
+	real desired_yaw = (real)atan2(local_desired.j, local_desired.i);
+	real desired_pitch = (real)atan2(local_desired.k,
+		(real)sqrt(local_desired.j * local_desired.j + local_desired.i * local_desired.i));
+	bool unchanged = true;
+
+	if (wraps)
+	{
+		if (limits[0] > desired_yaw)
+		{
+			desired_yaw += 6.2831855f;
+		}
+		else if (desired_yaw > limits[1])
+		{
+			desired_yaw -= 6.2831855f;
+		}
+	}
+	else if (limits[0] > desired_yaw)
+	{
+		desired_yaw = limits[0];
+		unchanged = false;
+	}
+	else if (desired_yaw > limits[1])
+	{
+		desired_yaw = limits[1];
+		unchanged = false;
+	}
+	if (limits[2] > desired_pitch)
+	{
+		desired_pitch = limits[2];
+		unchanged = false;
+	}
+	else if (desired_pitch > limits[3])
+	{
+		desired_pitch = limits[3];
+		unchanged = false;
+	}
+	vector3f target;
+	if (unchanged)
+	{
+		target = *desired;
+	}
+	else
+	{
+		unit_direction_from_angles(&target, desired_yaw, desired_pitch);
+		if (frame)
+		{
+			vector3f world;
+
+			unit_vector_from_frame(&world, frame, &target);
+			target = world;
+			function_30bf0(&target);
+		}
+	}
+	real yaw_speed = 0.0f;
+	real pitch_speed = 0.0f;
+	real speed = (real)sqrt(velocity->i * velocity->i + velocity->k * velocity->k + velocity->j * velocity->j);
+	if (!(0.0001f > (real)fabs(speed)) && speed != 0.0f)
+	{
+		real inverse = 1.0f / speed;
+		vector3f axis;
+		vector3f predicted;
+		real angle = speed * rate;
+		real sine = (real)sin(angle);
+		real cosine = (real)cos(angle);
+
+		axis.i = inverse * velocity->i;
+		axis.j = velocity->j * inverse;
+		axis.k = velocity->k * inverse;
+		real along = (axis.i * local_current.i + axis.k * local_current.k + axis.j * local_current.j) * (1.0f - cosine);
+		predicted.i = local_current.i * cosine + along * axis.i -
+			(local_current.j * axis.k - local_current.k * axis.j) * sine;
+		predicted.j = axis.j * along + local_current.j * cosine - (local_current.k * axis.i - axis.k * local_current.i) * sine;
+		predicted.k = axis.k * along + local_current.k * cosine - (axis.j * local_current.i - axis.i * local_current.j) * sine;
+		real inverse_rate = 1.0f / rate;
+		yaw_speed = ((real)atan2(predicted.j, predicted.i) - current_yaw) * inverse_rate;
+		pitch_speed = ((real)atan2(predicted.k, (real)sqrt(predicted.i * predicted.i + predicted.j * predicted.j)) -
+			current_pitch) * inverse_rate;
+	}
+	real yaw_offset = current_yaw - desired_yaw;
+	real pitch_offset = current_pitch - desired_pitch;
+	if (wraps)
+	{
+		if (yaw_offset > 3.1415927f)
+		{
+			yaw_offset -= 6.2831855f;
+		}
+		else if (-3.1415927f > yaw_offset)
+		{
+			yaw_offset += 6.2831855f;
+		}
+	}
+	s_unit_motion yaw_motion;
+	s_unit_motion pitch_motion;
+	function_c7300(yaw_offset, yaw_speed, max_speed, acceleration, &yaw_motion);
+	function_c7300(pitch_offset, pitch_speed, max_speed, acceleration, &pitch_motion);
+	function_c75d0(&yaw_motion, &pitch_motion, acceleration);
+	bool yaw_done = function_c7750(&yaw_motion, yaw_offset, yaw_speed, rate, &yaw_speed, &yaw_offset);
+	bool pitch_done = function_c7750(&pitch_motion, pitch_offset, pitch_speed, rate, &pitch_speed, &pitch_offset);
+	if (yaw_done && pitch_done)
+	{
+		*current = target;
+		*velocity = *g_4687a4;
+		return;
+	}
+	real yaw = yaw_offset + desired_yaw;
+	real pitch = pitch_offset + desired_pitch;
+	if (wraps)
+	{
+		if (limits[0] > yaw)
+		{
+			yaw += 6.2831855f;
+		}
+		else if (yaw > limits[1])
+		{
+			yaw -= 6.2831855f;
+		}
+	}
+	else if (limits[0] > yaw)
+	{
+		yaw = limits[0];
+	}
+	else if (yaw > limits[1])
+	{
+		yaw = limits[1];
+	}
+	if (limits[2] > pitch)
+	{
+		pitch = limits[2];
+	}
+	else if (pitch > limits[3])
+	{
+		pitch = limits[3];
+	}
+	vector3f direction;
+	vector3f next;
+	unit_direction_from_angles(&direction, yaw, pitch);
+	unit_direction_from_angles(&next, yaw_speed * rate + yaw, pitch_speed * rate + pitch);
+	real dot = next.i * direction.i + next.k * direction.k + next.j * direction.j;
+	if (-1.0f > dot)
+	{
+		dot = -1.0f;
+	}
+	else if (dot > 1.0f)
+	{
+		dot = 1.0f;
+	}
+	velocity->i = direction.j * next.k - direction.k * next.j;
+	velocity->j = direction.k * next.i - direction.i * next.k;
+	velocity->k = direction.i * next.j - direction.j * next.i;
+	function_30bf0(velocity);
+	real turn = (real)acos(dot) / rate;
+	if (turn > max_speed)
+	{
+		turn = max_speed;
+	}
+	velocity->i *= turn;
+	velocity->j *= turn;
+	velocity->k *= turn;
+	if (frame)
+	{
+		unit_vector_from_frame(current, frame, &direction);
+		function_30bf0(current);
+	}
+	else
+	{
+		*current = direction;
+	}
+}
+
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
 typedef char unit_motion_offset_check[offsetof(s_unit_motion, deceleration_time) == 0x1c ? 1 : -1];
 typedef char unit_motion_position_check[offsetof(s_unit_motion, position) == 0x4 ? 1 : -1];

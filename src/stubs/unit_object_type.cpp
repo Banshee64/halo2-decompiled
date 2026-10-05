@@ -137,6 +137,3 @@ bool function_113df0(long unit_index) { return false; }
 // @stub 0x113d60
 void function_113d60(long unit_index, real time) { }
 
-// @stub 0xc7840
-void function_c7840(vector3f const *desired, vector3f *current, transform4x3f const *frame, real rate, vector3f *velocity,
-	real const *limits, real yaw_rate, real pitch_rate) { }
