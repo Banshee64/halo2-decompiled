@@ -472,6 +472,79 @@ void __stdcall function_2395dc(XONLINE_FRIEND *friend_, long controller_index, l
 		break;
 	}
 }
+/* joins the selected friend's game through Live */
+// @retail 0x238eb5
+void __stdcall function_238eb5(long controller_index, long mode)
+{
+	s_online_selection selection;
+
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	if (selection.type == 2)
+	{
+		((s_online_selection *)&g_54d598.settings)->join_pending = true;
+		function_2395dc(&selection.friend_, controller_index, mode);
+	}
+}
+
+// @retail 0x238ea7
+void __stdcall function_238ea7(long controller_index)
+{
+	function_238eb5(controller_index, 0);
+}
+struct s_name_request;
+void __stdcall function_148893(s_name_request *request, long mode);
+struct s_online_game_invite;
+void online_game_invite_answer(DWORD controller_index, const s_online_game_invite *invite, long answer);
+
+/* a game invite message: its title and when it was sent */
+struct s_invite_message_view
+{
+	byte unknown00[0x24];
+	DWORD title_id;
+	byte unknown28[0x30 - 0x28];
+	FILETIME time;
+};
+
+/* joins the game a message invites the selected player to */
+// @retail 0x238f3f
+void __stdcall function_238f3f(long controller_index, void *message, unsigned __int64 session_id)
+{
+	void **message_reference = &message;
+	s_online_selection selection;
+	s_invite_message_view *invite;
+
+	((s_online_selection *)&g_54d598.settings)->join_pending = false;
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	invite = (s_invite_message_view *)message;
+	if (selection.type == 1)
+	{
+		XONLINE_FRIEND friend_;
+
+		if (!invite || !session_id)
+		{
+			return;
+		}
+		online_friend_from_user(&friend_, &selection.user);
+		friend_.dwFriendState |= 0x8000001;
+		selection.friend_ = friend_;
+		*(unsigned __int64 *)&selection.friend_.sessionID = session_id;
+		selection.friend_.dwTitleID = invite->title_id;
+		selection.friend_.gameinviteTime = invite->time;
+		selection.type = 2;
+		invite = NULL;
+		online_game_invite_answer(controller_index, (s_online_game_invite *)&selection.friend_, 0);
+		selection.friend_.dwFriendState = 1;
+		function_148893((s_name_request *)&selection, 1);
+	}
+	if (invite && session_id)
+	{
+		*(unsigned __int64 *)&selection.friend_.sessionID = session_id;
+		selection.friend_.dwTitleID = invite->title_id;
+		selection.friend_.gameinviteTime = invite->time;
+		function_148893((s_name_request *)&selection, 1);
+	}
+	function_2395dc(&selection.friend_, controller_index, 0);
+}
 /* the player a clan task acts on: the id and what follows it */
 #pragma pack(push, 4)
 struct s_clan_task_target

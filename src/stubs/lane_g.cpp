@@ -194,10 +194,6 @@ long __stdcall function_6cc10(long controller_index)
 
 
 /* UI lane round 7: my own, not written yet */
-// @stub 0x238f3f
-void __stdcall function_238f3f(long controller_index, void *message, unsigned __int64 value)
-{
-}
 
 
 struct s_widget_item;
