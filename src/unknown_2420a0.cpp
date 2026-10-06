@@ -1813,7 +1813,7 @@ bool function_2447f0()
 					continue;
 				function_b9dd0(entry->object_index, &position);
 				marker = *marker_position(marker_index);
-				if (distance_sq3f(&position, &marker) <= 0.04f)
+				if (distance_sq3f(&position, &marker) <= 0.2f * 0.2f)
 					continue;
 			}
 

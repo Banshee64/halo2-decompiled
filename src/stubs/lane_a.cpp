@@ -41,11 +41,6 @@ void __stdcall function_bb670(short name_index, bool flag)
 {
 }
 
-// @stub 0xba410
-void __stdcall function_ba410(long object_index, long a, long b)
-{
-}
-
 // @stub 0x1e1a00
 void __stdcall function_1e1a00(long index, long value)
 {
@@ -83,10 +78,7 @@ void __stdcall function_13c250(long object_index, long a, long b)
 }
 
 
-// @stub 0xba6f0
-void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag)
-{
-}
+
 
 // retail .rdata 0x44f70c, 0x44f710
 real const g_44f70c = 0.0f;
