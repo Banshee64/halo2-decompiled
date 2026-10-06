@@ -4,6 +4,10 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "pending_messages.h"
+#include <xtl.h>
+#include <xonline.h>
+#include <string.h>
 
 /* what a handler is given */
 struct s_bungienet_user_request
@@ -31,15 +35,15 @@ struct s_controller_voice_view
 };
 
 
-/* a block bungie.net sent: its flags (bit 1: present) and its length */
-struct s_bungienet_block_globals
+/* The request header and its payload have separate lifetimes. */
+extern s_pending_message_header g_479750;
+struct s_user_settings_payload
 {
-	dword flags;
-	short length;
+ dword header[4];
+ long voice_setting;
+ byte field_14[0x300];
 };
-
-s_bungienet_block_globals g_479754;
-long g_4d8810;
+s_user_settings_payload g_4d8800;
 
 void function_18fe9e(long index);
 
@@ -65,7 +69,7 @@ bool __stdcall bungienet_user_voice_reset(s_bungienet_user_request *request)
 
 static inline bool bungienet_block_available(void)
 {
-	if (g_479754.length != 0 && (g_479754.flags & 2))
+	if (g_479750.kind != 0 && (g_479750.flags & 2))
 		return true;
 	return false;
 }
@@ -73,7 +77,7 @@ static inline bool bungienet_block_available(void)
 static inline long bungienet_user_voice_setting(short kind)
 {
 	if (kind == 1 && bungienet_block_available())
-		return g_4d8810;
+		return g_4d8800.voice_setting;
 	return 1;
 }
 
@@ -93,8 +97,86 @@ bool __stdcall bungienet_user_voice_apply(s_bungienet_user_request *request)
 	return true;
 }
 
-s_bungienet_user_handler g_4672a8[2] =
+struct s_user_settings_definition
 {
-	{ 0, bungienet_user_voice_reset },
-	{ 0, bungienet_user_voice_apply },
+ long kind;
+ const wchar_t *filename;
+ long version;
+ s_bungienet_user_handler handlers[2];
 };
+
+s_user_settings_definition g_46729c =
+{
+ 1, L"bungienet_user.dat", 1,
+ { {0, bungienet_user_voice_reset}, {0, bungienet_user_voice_apply} }
+};
+s_pending_message_header g_479750 =
+{
+ (dword)&g_46729c, 0, 0, 1, 0, 0, NONE,
+ {NONE, NONE, 0}, NONE, &g_4d8800, sizeof(g_4d8800)
+};
+
+bool pending_message_request_receive(s_pending_message_header *header, long controller,
+ s_pending_message_values values, short value06);
+
+static inline XUID *user_settings_identity(XONLINE_USER *user)
+{
+ XUID *result = 0;
+ if (user) result = &user->xuid;
+ return result;
+}
+
+static __forceinline long user_settings_next_controller(long index)
+{
+ switch (index + 1)
+ {
+ case 0: return 0;
+ case 1: return 1;
+ case 2: return 2;
+ case 3: return 3;
+ default: return NONE;
+ }
+}
+
+static __forceinline void user_settings_request(long controller, XUID *identity)
+{
+ if (identity && g_479750.state == 0)
+ {
+  g_479750.flags &= ~2;
+  pending_message_request_receive(&g_479750, controller,
+   *(s_pending_message_values *)identity, 0);
+ }
+}
+
+// @retail 0x8c660
+void function_8c660(void)
+{
+ XONLINE_USER users[4];
+ memset(users, 0, sizeof(users));
+ XONLINE_USER *signed_in = XOnlineGetLogonUsers();
+ if (signed_in) memcpy(users, signed_in, sizeof(users));
+ for (long controller = 0; controller != NONE; controller = user_settings_next_controller(controller))
+ {
+  XONLINE_USER *user = &users[controller];
+  HRESULT status = user->hr;
+  XUID *identity = user_settings_identity(user);
+  if (identity && identity->qwUserID && SUCCEEDED(status))
+  {
+   if (!XOnlineIsUserGuest(identity->dwUserFlags))
+   {
+    if (controller_voice_view_get(controller)->voice_setting == 0)
+     user_settings_request(controller, identity);
+   }
+   else
+   {
+    s_controller_voice_view *slot = controller_voice_view_get(controller);
+    long old_setting = slot->voice_setting;
+    bool changed = false;
+    if (old_setting != 1) changed = true;
+    slot->voice_setting = 1;
+    if (changed) function_18fe9e(controller);
+   }
+  }
+
+ }
+}

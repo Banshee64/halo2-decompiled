@@ -918,3 +918,92 @@ bool function_869a0(c_simulation_view *view, void *block)
  }
  return result;
 }
+
+
+bool function_68670(byte *source, long size, void *block);
+
+// @retail 0x865d0
+void __stdcall function_865d0(c_simulation_view *view)
+{
+ // Keep the retail stack argument under whole-program optimization.
+ c_simulation_view *const *view_reference = &view;
+ while (view->established() && view->unknownac != 0)
+ {
+  s_network_connection *connection = function_x7665e0(view->unknown3c);
+  if (connection->state != 5 || !(connection->flags & 0x10)) break;
+  s_network_stream_header *stream = network_stream_get(connection->stream_index);
+  if ((512 - (stream->window.next - stream->window.end)) * 32 < 0x600) break;
+  struct { short kind; short size; long value; } header;
+  byte payload[1024];
+  s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
+  buffer->read_wrapped(buffer->start, sizeof(header), &header);
+  buffer->start = (buffer->start + (long)sizeof(header)) % buffer->size;
+  buffer->used -= sizeof(header);
+  if (header.size > 0)
+  {
+   long size = header.size;
+   buffer->read_wrapped(buffer->start, size, payload);
+   buffer->start = (buffer->start + size) % buffer->size;
+   buffer->used -= size;
+  }
+  switch (header.kind)
+  {
+  case 0:
+   {
+    long value = header.value;
+    view_send_message(view, 0x29, sizeof(value), &value);
+   }
+   break;
+  case 1:
+   {
+    struct { long offset; long size; byte bytes[0x10000]; } message;
+    message.offset = 0;
+    message.size = 0;
+    message.offset = header.value;
+    message.size = header.size;
+    if (message.size > 0) memcpy(message.bytes, payload, message.size);
+    view_send_message(view, 0x2a, message.size + 8, &message);
+   }
+   break;
+  case 2:
+   {
+    union { __int64 alignment; byte bytes[0x4048]; } block;
+    memset(&block, 0, sizeof(block));
+    if (!function_68670(payload, header.size, &block))
+    {
+     if (!view->failure_reason)
+     {
+      view->set_state(0, NONE);
+      view->failure_reason = 5;
+     }
+     return;
+    }
+    view_send_message(view, 0x27, sizeof(block), &block);
+   }
+   break;
+  default: __assume(0);
+  }
+  view->unknownac--;
+ }
+}
+
+
+// @retail 0x860b0
+void function_860b0(c_simulation_view *view, void *block)
+{
+ if (view->state == 5)
+ {
+  union { __int64 alignment; byte bytes[0x4048]; } message;
+  memcpy(&message, block, sizeof(message));
+  view_send_message(view, 0x27, sizeof(message), &message);
+ }
+ else if (view->buffer)
+ {
+  if (function_869a0(view, block)) function_865d0(view);
+  else if (!view->failure_reason)
+  {
+   view->set_state(0, NONE);
+   view->failure_reason = 5;
+  }
+ }
+}
