@@ -1467,3 +1467,214 @@ void function_69040(c_class_6a600 *world, s_player_action *actions, dword mask)
   view->send_player_update(mask, (const s_simulation_player_state *)actions);
  }
 }
+
+
+bool function_862e0(c_simulation_view *view);
+
+static __forceinline bool view_needs_join_buffer(short type)
+{
+ bool result;
+ switch (type)
+ {
+ case 2: result = true; break;
+ case 4: result = false; break;
+ default: __assume(0);
+ }
+ return result;
+}
+
+// @retail 0x6a040
+long function_6a040(c_class_6a600 *world, c_simulation_view *view)
+{
+ long result = 0;
+ if (view->state < 3)
+ {
+  bool ready = view_needs_join_buffer(view->type);
+  if (!ready)
+  {
+   dword current = view->player_mask;
+   dword players = function_696f0(world);
+   ready = (current & players) == players;
+  }
+  if (ready) view->set_state(3, view->state_id);
+ }
+ if (view->state == 3)
+ {
+  if (!view_needs_join_buffer(view->type))
+  {
+   view->data->unknown39 = true;
+   view->set_state(4, view->state_id);
+  }
+  else if (g_510c54->game_time == 0)
+   view->set_state(4, view->state_id);
+  else
+  {
+   bool available = true;
+   long count = 0;
+   s_view_iterator iterator = {4, 0};
+   c_simulation_view *other;
+   while (world_next_view(world, &iterator, &other))
+    if (other->buffer) count++;
+   if (count >= g_network_configuration.valued08) available = false;
+   long time = *(long *)world->unknown1208;
+   if ((time == NONE || function_75890(time) >= g_network_configuration.valued14) && available)
+   {
+    if (function_862e0(view))
+     view->set_state(4, view->state_id);
+    else
+    {
+     long attempts = view->unknown90;
+     *(long *)world->unknown1208 = function_75870();
+     if (attempts >= g_network_configuration.valued10) result = 3;
+    }
+   }
+  }
+ }
+ if (view->state == 4)
+ {
+  if (!view->function_85cb0()) return 0;
+  dword current = view->player_mask;
+  dword players = function_696f0(world);
+  bool ready = (current & players) == players;
+  if (!ready) return 0;
+  result = 1;
+ }
+ if (result == 1)
+ {
+  if (view->state == 4 && world->unknown18 == 4)
+  {
+   if (!view_needs_join_buffer(view->type))
+    view->has_pending_entity();
+   else if (view->buffer)
+    view->release_buffer();
+   view->set_state(5, view->state_id);
+  }
+ }
+ else if (result == 3 && view->failure_reason == 0)
+ {
+  if (view->state != 0 || view->state_id != NONE)
+  {
+   struct { long state; long id; } message;
+   memset(&message, 0, sizeof(message));
+   view->state = 0;
+   view->state_id = NONE;
+   message.state = 0;
+   message.id = NONE;
+   if (view->channel_index != NONE)
+    network_observer_send_message(view->observer, 3, view->channel_index, false, 0x25, sizeof(message), &message);
+   view->update_established();
+  }
+  view->failure_reason = 3;
+ }
+ return result;
+}
+
+
+// @retail 0x69d50
+void function_69d50(c_class_6a600 *world)
+{
+ if (world->state != 1)
+ {
+  s_view_iterator iterator = {0x14, 0};
+  c_simulation_view *view;
+  while (world_next_view(world, &iterator, &view))
+  {
+   if (!view->failure_reason && !view->flag78 && view->state != 5)
+   {
+    if (view->established()) function_6a040(world, view);
+    else function_6a2a0(world, view);
+   }
+  }
+ }
+}
+
+// @retail 0x69c80
+void function_69c80(c_class_6a600 *world)
+{
+ dword machines = world->owner->unknown1c;
+ dword attempted = 0;
+ dword completed = 0;
+ long elapsed = world_time_since(world->unknown1c);
+ for (long i = 0; i < 16; i++)
+ {
+  dword bit = 1 << i;
+  if ((machines & bit) && i != *(long *)((byte *)world + 0x14))
+  {
+   c_simulation_view *view = function_6ace0(world, i);
+   attempted |= bit;
+   if (view && !view->failure_reason)
+   {
+    if (view->established())
+    {
+     if ((world->unknown20 & bit) && function_6a040(world, view)) completed |= bit;
+    }
+    else function_6a2a0(world, view);
+   }
+  }
+ }
+ if (!(attempted & (world->unknown20 & ~completed)) || elapsed >= g_network_configuration.valued0c)
+  function_6b2a0(world);
+}
+
+
+void function_860b0(c_simulation_view *view, void *block);
+
+// @retail 0x69880
+void function_69880(c_class_6a600 *world, void *block)
+{
+ // Keep the retail stack argument under whole-program optimization.
+ void *const *block_reference = &block;
+ s_view_iterator iterator = {4, 0};
+ c_simulation_view *view;
+ while (world_next_view(world, &iterator, &view))
+  function_860b0(view, block);
+}
+
+// @retail 0x68f30
+void function_68f30(c_class_6a600 *world)
+{
+ if (world->state != 3 && world->state != 5)
+ {
+  long state = world->unknown18;
+  if (!(state >= 4 && state <= 6) && state != 3 && state != 1)
+   function_69c50(world);
+  if (world->unknown18 == 3) function_69c80(world);
+  if (world->unknown18 == 4) function_69d50(world);
+  if (world->unknown18 == 5) function_69dd0(world);
+  function_6a2e0(world);
+ }
+ else
+ {
+  long state = world->unknown18;
+  if (!(state >= 4 && state <= 6) && state != 3 && state != 1)
+   function_69eb0(world);
+  if (world->unknown18 == 3) function_69f10(world);
+  if (world->unknown18 != 4 && world->unknown18 != 1) function_69f90(world);
+  state = world->unknown18;
+  if ((state >= 4 && state <= 6) || state == 3) function_69fe0(world);
+  function_6a560(world, false);
+ }
+ s_view_iterator iterator = {0xffffffff, 0};
+ c_simulation_view *view;
+ while (world_next_view(world, &iterator, &view)) view->update_baseline();
+}
+
+
+void function_69a00(const byte *input, c_class_6a600 *world, dword mask);
+void function_69b50(const byte *input, c_class_6a600 *world, dword mask);
+
+// @retail 0x684e0
+void function_684e0(byte *block)
+{
+ c_class_6a600 *world = SIMULATION_WORLD;
+ if (world->state != 3 && world->state != 5)
+ {
+  if (world->state == 2) function_69880(world, block);
+  else if (world->state == 4)
+  {
+   function_69a00(block + 0xc, world, *(dword *)(block + 8));
+   function_69b50(block + 0x610, world, *(dword *)(block + 0x5cc));
+  }
+ }
+ SIMULATION_WORLD->unknown28 = *(long *)block + 1;
+}

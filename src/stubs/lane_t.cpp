@@ -45,10 +45,6 @@ void function_8df50(void)
 {
 }
 
-// @stub 0x8dfc0
-void function_8dfc0(void)
-{
-}
 
 // @stub 0x2232a0
 void function_2232a0(void)

@@ -4670,3 +4670,58 @@ bool __stdcall function_05cb80(c_class_58d20 *session, const void *message)
 	network_session_host_lost(session);
 	return false;
 }
+
+void network_session_expire_reservations(c_class_58d20 *session);
+
+// @retail 0x5a090
+void function_5a090(c_class_58d20 *session)
+{
+ if (session->state != 0 && session->state != 10)
+ {
+  switch (session->state)
+  {
+  case 1: function_617c0(session); break;
+  case 2: network_session_update_leaving_join_timeout(session); break;
+  case 4: network_session_update_leaving_timeout(session); break;
+  case 6: network_session_close(session); break;
+  case 7: function_61ac0(session); break;
+  case 8: function_61e00(session); break;
+  case 9: function_61ef0(session); break;
+  }
+  long state = session->state;
+  if (state == 5 || state == 6 || state == 7 || state == 8)
+  {
+   network_session_expire_reservations(session);
+   if (session->state != 7 && session->state != 6 && session->state != 8)
+   {
+    for (long i = 0; i < session->member_count; i++)
+    {
+     s_network_session_member_state *member = &session->member_states[i];
+     if (member->flag1 && session->observer->channels[member->unknown04].state == 1)
+      network_session_disband_member(session, i);
+    }
+   }
+  }
+  else
+  {
+   volatile long unused = state;
+   if ((session->state > 2 && session->state <= 8))
+   {
+    if (session->observer->channels[session->member_states[session->member_index].unknown04].state == 1)
+     network_session_host_lost(session);
+    if ((session->state > 2 && session->state <= 8)) function_62990(session);
+   }
+  }
+  function_62240(session);
+  state = session->state;
+  if (state == 5 || state == 6 || state == 7 || state == 8)
+  {
+   function_62640(session);
+   function_627e0(session);
+  }
+  else
+  {
+   volatile long unused = state;
+  }
+ }
+}

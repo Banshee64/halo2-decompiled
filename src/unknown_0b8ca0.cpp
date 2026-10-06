@@ -56,7 +56,7 @@ struct s_object_view
 	byte unknown0b8[0xc0 - 0xb8];
 	byte unknown0c0 : 6;
 	byte physics_active : 1;
-	byte : 1;
+	byte flag7c0 : 1;
 	byte physics_disabled : 1;
 	byte : 7;
 	byte unknown0c2[0xd4 - 0xc2];
@@ -98,6 +98,8 @@ void function_b7360(long object_index);
 void havok_component_rigid_bodies_activate(s_havok_component *component);
 
 void function_be650(long *list, long object_index);
+
+__declspec(noinline) void function_b9890(long object_index);
 
 // @retail 0xb9890
 void function_b9890(long object_index)
@@ -417,3 +419,109 @@ void function_b9fc0(long object_index, vector3f *forward, vector3f *up)
         if (up) object_rotate_ab(matrix, (vector3f *)((byte *)object + 0x7c), up);
     }
 }
+
+
+void function_cc590(long object_index);
+void function_b9a90(long object_index);
+
+void __stdcall function_b9a50(long object_index);
+
+extern void (__stdcall *g_468664[8])(long object_index);
+void __stdcall function_b8540(long object_index);
+
+// @retail 0xb83b0
+void __stdcall function_b83b0(long object_index, bool unused)
+{
+    s_object_view *object = OBJECT_GET(object_index);
+    function_b8540(object_index);
+    for (dword i = 0; i < 8; i++)
+        g_468664[i](object_index);
+    long child = *(long *)((byte *)object + 0x10);
+    while (child != NONE)
+    {
+        s_object_view *local_f86fb0 = OBJECT_GET(child);
+        long next = *(long *)((byte *)local_f86fb0 + 0xc);
+        bool attached = false;
+        if (g_4e6948->mode == 4)
+            attached = local_f86fb0->field_x10a40f != NONE;
+        if (attached)
+            function_b9a50(child);
+        else
+            function_b83b0(child, false);
+        child = next;
+    }
+}
+
+void __stdcall function_b87b0(long object_index);
+void object_widgets_delete(long object_index);
+void function_bee60(long object_index);
+void function_146bf0();
+void havok_object_detach(long object_index);
+void function_278f00();
+void function_108bf0(long object_index);
+void __stdcall function_bc300(long object_index);
+
+// @retail 0xb8460
+void __stdcall function_b8460(long object_index, bool detach)
+{
+    s_object_view *object = OBJECT_GET(object_index);
+    if (detach)
+    {
+        if (object->parent_index != NONE)
+            function_b9890(object_index);
+        function_b7300(object_index);
+        if (TEST_FIELD_BIT(object->flag8))
+            function_b87b0(object_index);
+    }
+    object_widgets_delete(object_index);
+    function_bee60(object_index);
+    long child = *(long *)((byte *)object + 0x10);
+    while (child != NONE)
+    {
+        long next = *(long *)((byte *)OBJECT_GET(child) + 0xc);
+        function_b8460(child, false);
+        child = next;
+    }
+    bool physics = TEST_FIELD_BIT(OBJECT_GET(object_index)->physics_active);
+    if (physics)
+        function_146bf0();
+    havok_object_detach(object_index);
+    if (physics)
+    {
+        function_278f00();
+        function_146bf0();
+    }
+    function_108bf0(object_index);
+    function_bc300(object_index);
+}
+
+
+void __stdcall function_bef30(long object_index, long remove, long add, long siblings, long own_flags);
+void __stdcall function_b98e0(long object_index, transform4x3f const *matrix);
+void __stdcall function_b8600(long object_index, long location);
+void __stdcall function_b8890(long object_index);
+void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity);
+
+// @retail 0xb9a90
+void function_b9a90(long object_index)
+{
+    s_record_pool *objects = g_4e0300;
+    s_object_view *object = ((s_object_header_view *)objects->data)[object_index & 0xffff].object;
+    s_object_view *parent = ((s_object_header_view *)objects->data)[object->parent_index & 0xffff].object;
+    bool connected = function_b9d20(object->parent_index);
+    s_object_view *node_parent = ((s_object_header_view *)objects->data)[object->parent_index & 0xffff].object;
+    transform4x3f const *matrix = (transform4x3f *)((byte *)node_parent + node_parent->node_matrices_offset) + *(char *)((byte *)object + 0x18);
+    if (connected)
+        function_bef30(object_index, 1, 0, 0, 0);
+    function_b9890(object_index);
+    function_b98e0(object_index, matrix);
+    if (connected)
+        function_b8600(object_index, 0);
+    if (!TEST_FIELD_BIT(object->flag7c0) && !((1 << OBJECT_HEADER_GET(object_index)->type) & 0x80))
+        function_b8890(object_index);
+    function_b77d0(object_index, (vector3f *)((byte *)parent + 0x88), (vector3f *)((byte *)parent + 0x94));
+    function_b7290(object_index);
+    function_b7360(object_index);
+    *(dword *)((byte *)object + 4) &= ~0x4000000;
+}
+
