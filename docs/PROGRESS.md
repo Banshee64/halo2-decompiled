@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6224 functions match
+
+```
+matched 6224 of 11318 game functions (644727 of 2784283 bytes, 23.16%)
+```
+
+4 new matches, none lost:
+- **Codex lane B**, round 8 (4): actor slot handlers in the 0x1b0000–0x1bffff and 0x1f0000–0x1fffff ranges.
+
 ## 2026-10-05: 6220 functions match
 
 ```
