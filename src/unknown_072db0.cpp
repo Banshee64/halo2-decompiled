@@ -873,7 +873,7 @@ long function_74970(long value, long previous)
 		{
 			if (level == previous - 1 && value > (g_network_configuration.value774[level] + g_network_configuration.value774[level + 1]) / 2)
 				level = previous;
-			break;
+			return level;
 		}
 		level++;
 	}
@@ -1262,4 +1262,534 @@ long c_helper_b::v5(long size, void *data)
 	if (stream.bit_position <= (stream.size_in_bytes << 3))
 		result = (stream.bit_position + 7) / 8;
 	return result;
+}
+
+struct s_address_table;
+long function_199250(s_address_table *table, byte const *address);
+long function_199290(byte *results);
+char *function_1537a0(byte const *address);
+
+struct s_rating_summary
+{
+    long values[16];
+    char identity[64];
+    char name[64];
+};
+
+// @retail 0x741f0
+void __stdcall function_741f0(s_match_player_rating_collection *collection, s_query_batch *batch)
+{
+    long key = collection->key;
+    s_surface_description *variant = function_192e60(key);
+    batch->attribute_count = 0;
+    batch->operation_count = 0;
+    long players[3] = { variant->field_8, variant->field_8 + 32, variant->field_8 + 64 };
+    if (variant->type != 5)
+    {
+        for (long i = 0; i < 16; i++)
+        {
+            const s_match_player_rating_entry *player = &collection->players[i];
+            long skill = player->unknown9a;
+            long value = player->value;
+            if (player->active && player->team != NONE && !(player->flags & 3) &&
+                *(const dword *)((const byte *)player + 0xa) != 0xbad00000 &&
+                player->key == key && skill != NONE && value != NONE)
+            {
+                long change = function_74800(collection, i);
+                value += change;
+                long level = function_74970(value, skill);
+                long lower = value >= 0 ? function_74970(value, 0) : 0;
+                const byte *stats = (const byte *)collection + 0xf44 + i * 0x36a;
+                long third = *(const word *)(stats + 8) & 0x7fff;
+                long first = *(const word *)stats & 0x7fff;
+                long second = *(const word *)(stats + 6) & 0x7fff;
+                const s_query_identity *identity = (const s_query_identity *)((const byte *)player + 2);
+                for (long group = 0; group < 5; group++)
+                {
+                    if (g_509454[group].players[key].state == 3 &&
+                        memcmp((const byte *)&g_509454[group] + 4, identity, 12) == 0)
+                    {
+                        function_74a00(group, key, 0, change);
+                        function_749b0(group, key, 1, level);
+                        if (first) function_74a00(group, key, 3, first);
+                        if (second) function_74a00(group, key, 4, second);
+                        if (third) function_74a00(group, key, 5, third);
+                        function_74a60(group, key, 2, level);
+                        function_739a0(group, key);
+                    }
+                }
+                s_rating_summary summary = { 0 };
+                summary.values[2] = function_199290((byte *)collection);
+                summary.values[3] = function_199250((s_address_table *)collection, g_4cf7cc);
+                summary.values[0] = *(long *)((byte *)collection + 0x130);
+                summary.values[1] = *(long *)((byte *)collection + 0x134);
+                summary.values[4] = key;
+                strncpy(summary.identity, function_1537a0((const byte *)identity), 64);
+                summary.identity[63] = 0;
+                const word *source = (const word *)((const byte *)player + 0x10);
+                char *destination = summary.name;
+                long remaining = 64;
+                word character;
+                do
+                {
+                    character = *source++;
+                    *destination++ = remaining == 1 ? 0 : (character <= 127 ? (char)character : '?');
+                } while (character && --remaining > 0);
+                summary.values[5] = *(const short *)((const byte *)player + 0xa2);
+                summary.values[6] = player->rank;
+                summary.values[7] = value;
+                summary.values[8] = change;
+                summary.values[9] = level;
+                summary.values[10] = first;
+                summary.values[11] = second;
+                summary.values[12] = third;
+                summary.values[13] = player->team;
+                summary.values[14] = collection->teams[player->team].unknown02;
+                summary.values[15] = collection->teams[player->team].rank;
+                function_73e00(batch, identity, change, first, second, third, lower, level, 3, players);
+            }
+        }
+    }
+    else
+    {
+        for (long i = 0; i < variant->width; i++)
+        {
+            const s_match_rating_entry *team = &collection->teams[i];
+            const s_query_identity *identity = (const s_query_identity *)team->unknown0c;
+            if (team->active && memcmp(identity, g_440070, 12) != 0 &&
+                team->skill != NONE && team->value != NONE)
+            {
+                long change = function_74720((const s_match_rating_collection *)collection, i);
+                long value = team->value + change;
+                long level = function_74970(value, team->skill);
+                long lower = value >= 0 ? function_74970(value, 0) : 0;
+                const byte *stats = (const byte *)collection + 0x49e4 + i * 0x5a;
+                function_73e00(batch, identity, change,
+                    *(const word *)stats & 0x7fff, *(const word *)(stats + 6) & 0x7fff,
+                    *(const word *)(stats + 8) & 0x7fff, lower, level, 3, players);
+            }
+        }
+    }
+    function_739a0(NONE, key);
+}
+
+struct s_cache_property
+{
+    long unknown00;
+    long type;
+    long unknown08;
+    long unknown0c;
+};
+struct s_cache_property_record
+{
+    byte identity[12];
+    long type;
+    long count;
+    s_cache_property *properties;
+};
+void function_80940(s_cache_property_record *records, long record_capacity,
+    s_cache_property *properties, long property_capacity, long buffer_capacity,
+    byte *buffers, long *record_count, long *property_count, long *buffer_count);
+void function_80bf0(s_cache_property_record *records, long record_capacity,
+    s_cache_property *properties, long property_capacity, byte *buffers,
+    long *record_count, long *property_count, long *buffer_count);
+void function_80aa0(s_cache_property_record *records, long count);
+void function_80d70(s_cache_property_record *records, long count);
+long online_stats_read(word count, XONLINE_STAT_SPEC *specs);
+bool online_stats_read_result(long task_index, XONLINE_STAT_SPEC *specs, word count, byte *extra_buffer, word extra_size);
+long online_stats_write(XONLINE_STAT_SPEC const *specs, word count);
+bool online_stats_write_succeeded(long task_index);
+long online_task_poll(long task_index);
+
+long g_50c460;
+long g_50c464;
+long g_50c468;
+long g_50c46c;
+long g_50c470;
+s_cache_property_record g_50c474[80];
+long g_50cbf4;
+s_cache_property g_50cbf8[480];
+byte g_50e9fc[2048];
+long g_50f1fc;
+long g_50f200;
+long g_50f204;
+long g_50f208;
+s_cache_property_record g_50f20c[32];
+long g_50f50c;
+s_cache_property g_50f510[128];
+byte g_50fd14[2048];
+
+static inline long query_time_now()
+{
+    return g_510548 ? g_51054c : GetTickCount();
+}
+static __forceinline void query_restore_pending()
+{
+    for (long group = 0; group < 5; group++)
+        for (long player = 0; player < 16; player++)
+        {
+            long *state = &g_509454[group].players[player].state;
+            if (*state == 2) *state = 1;
+            else if (*state == 5) *state = 4;
+        }
+}
+static inline bool query_variant_available(long index)
+{
+    return g_47d8f4.count && (g_47d8f4.flags & 2) && function_1934f0(&g_551ae8[index]);
+}
+
+// @retail 0x74aa0
+void function_074aa0(void)
+{
+    if (g_467214 != NONE && online_task_get_logon_status(g_467214) == 1)
+    {
+        for (long group = 0; group < 4; group++)
+        {
+            s_session_interface_user *user = &g_4cd868.users[group];
+            s_search_value_group *values = &g_509454[group];
+            bool valid = false;
+            bool team = false;
+            if (user->valid)
+            {
+                byte properties[0x90];
+                XUID identity = user->xuid;
+                memcpy(properties, user->properties, sizeof(properties));
+                s_player_slot_flags *slot = (s_player_slot_flags *)
+                    ((byte *)&g_54e8e0[user->unknown10] + 0x470);
+                if (!(slot->flags & 3) && !(*(dword *)((byte *)&identity + 8) & 3) &&
+                    *(dword *)((byte *)&identity + 8) != 0xbad00000)
+                {
+                    valid = true;
+                    team = memcmp(properties + 0x70, g_440070, 12) != 0;
+                    if (memcmp((byte *)values + 4, &identity, 12) != 0 ||
+                        memcmp((byte *)values + 0x10, properties + 0x70, 12) != 0)
+                    {
+                        memcpy((byte *)values + 4, &user->xuid, 12);
+                        memcpy((byte *)values + 0x10, properties + 0x70, 12);
+                        for (long i = 0; i < 16; i++) values->players[i].state = 0;
+                    }
+                    for (long i = 0; i < 16; i++)
+                    {
+                        if (query_variant_available(i))
+                        {
+                            if ((g_551ae8[i].type != 5 || team) && !values->players[i].state)
+                                values->players[i].state = 1;
+                        }
+                        else
+                            values->players[i].state = 0;
+                    }
+                }
+            }
+            if (!valid)
+                for (long i = 0; i < 16; i++) values->players[i].state = 0;
+        }
+        long delay;
+        if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state != 3)
+            delay = 300000;
+        else
+            delay = g_50c460 <= 3 ? 2000 : 300000;
+        if (!g_50c464 && g_47d8f4.count && (g_47d8f4.flags & 2) &&
+            (!g_50c468 || query_time_now() - g_50c468 > delay))
+        {
+            long records_used = 0;
+            long properties_used = 0;
+            long now = query_time_now();
+            for (long group = 0; group < 5; group++)
+            {
+                long added = 0;
+                for (long i = 0; i < 16 && added < 4; i++)
+                {
+                    s_search_player_values *player = &g_509454[group].players[i];
+                    if ((player->state == 1 ||
+                        (player->state == 4 && now - player->time >= g_network_configuration.valuec74)) &&
+                        query_variant_available(i))
+                    {
+                        const byte *identity = (const byte *)&g_509454[group] + (g_551ae8[i].type == 5 ? 0x10 : 4);
+                        bool duplicate = false;
+                        if (g_551ae8[i].type == 5)
+                            for (long j = 0; j < records_used; j++)
+                                if (!memcmp(g_50c474[j].identity, identity, 12) &&
+                                    g_50c474[j].type == g_551ae8[i].field_8)
+                                { duplicate = true; break; }
+                        if (!duplicate)
+                        {
+                            s_cache_property_record *record = &g_50c474[records_used++];
+                            memcpy(record->identity, identity, 12);
+                            record->type = g_551ae8[i].field_8;
+                            record->count = 6;
+                            record->properties = &g_50cbf8[properties_used];
+                            for (long j = 0; j < 6; j++)
+                            {
+                                *(word *)&record->properties[j].unknown00 = (word)(j + 1);
+                                record->properties[j].type = 1;
+                            }
+                            properties_used += 6;
+                            added++;
+                            player->state = player->state == 1 ? 2 : 5;
+                        }
+                    }
+                }
+            }
+            if (records_used < 80 && properties_used < 480)
+            {
+                long records = 0, properties = 0, buffers;
+                function_80940(&g_50c474[records_used], 80 - records_used,
+                    &g_50cbf8[properties_used], 480 - properties_used, 32, g_50e9fc,
+                    &records, &properties, &buffers);
+                records_used += records;
+                properties_used += properties;
+            }
+            if (records_used > 0 && properties_used > 0)
+            {
+                long task = online_stats_read((word)records_used, (XONLINE_STAT_SPEC *)g_50c474);
+                g_50c468 = query_time_now();
+                if (task != NONE)
+                {
+                    g_50c46c = task;
+                    g_50c470 = records_used;
+                    g_50cbf4 = properties_used;
+                    g_50c464 = 1;
+                }
+                else
+                {
+                    query_restore_pending();
+                    g_50c460++;
+                }
+            }
+        }
+        if (g_50c464 == 1)
+        {
+            long state = online_task_poll(g_50c46c);
+            if (state == 2)
+            {
+                bool failed = false;
+                if (online_stats_read_result(g_50c46c, (XONLINE_STAT_SPEC *)g_50c474,
+                    (word)g_50c470, g_50e9fc, sizeof(g_50e9fc)))
+                {
+                    for (long group = 0; group < 5; group++)
+                        for (long i = 0; i < 16; i++)
+                        {
+                            s_search_player_values *player = &g_509454[group].players[i];
+                            if (player->state != 2 && player->state != 5) continue;
+                            if (!query_variant_available(i)) { player->state = 1; continue; }
+                            long received = 0;
+                            for (long record_index = 0; record_index < g_50c470; record_index++)
+                            {
+                                s_cache_property_record *record = &g_50c474[record_index];
+                                const byte *identity = (const byte *)&g_509454[group] +
+                                    (g_551ae8[i].type == 5 ? 0x10 : 4);
+                                if (!memcmp(identity, record->identity, 12) && record->type == g_551ae8[i].field_8)
+                                    for (dword property_index = 0; property_index < (dword)record->count; property_index++)
+                                    {
+                                        s_cache_property *property = &record->properties[property_index];
+                                        long value = property->type ? property->unknown08 : 0;
+                                        long index;
+                                        if (function_75790(record->type, &index))
+                                        {
+                                            long field = *(word *)&property->unknown00 - 1;
+                                            long bounded = value;
+                                            if (bounded < g_46722c[field][0]) bounded = g_46722c[field][0];
+                                            else if (bounded > g_46722c[field][1]) bounded = g_46722c[field][1];
+                                            s_search_value *destination = &g_509454[group].players[index].values[field];
+                                            if (!destination->valid || destination->value != bounded)
+                                            { destination->value = bounded; destination->valid = true; }
+                                        }
+                                        received++;
+                                    }
+                            }
+                            if (received == 6) player->state = 3;
+                            else
+                            {
+                                if (player->state == 2) player->state = 1;
+                                else if (player->state == 5) player->state = 4;
+                                failed = true;
+                            }
+                        }
+                    function_80aa0(g_50c474, g_50c470);
+                }
+                else { query_restore_pending(); failed = true; }
+                function_6b640(g_50c46c);
+                g_50c46c = NONE;
+                g_50c464 = 0;
+                g_50c468 = query_time_now();
+                if (failed) g_50c460++;
+                else g_50c460 = 0;
+            }
+            else if (state < 0 || state > 1)
+            {
+                query_restore_pending();
+                g_50c464 = 0;
+                function_6b640(g_50c46c);
+                g_50c46c = NONE;
+                g_50c468 = query_time_now();
+                g_50c460++;
+            }
+        }
+        if (!g_50f1fc && (!g_50f200 || query_time_now() - g_50f200 > 300000))
+        {
+            long records = 0, properties = 0, buffers;
+            function_80bf0(g_50f20c, 32, g_50f510, 128, g_50fd14, &records, &properties, &buffers);
+            if (records > 0 && properties > 0)
+            {
+                long task = online_stats_write((XONLINE_STAT_SPEC *)g_50f20c, (word)records);
+                g_50f200 = query_time_now();
+                if (task != NONE)
+                {
+                    g_50f204 = task;
+                    g_50f208 = records;
+                    g_50f50c = properties;
+                    g_50f1fc = 1;
+                }
+            }
+        }
+        if (g_50f1fc == 1)
+        {
+            long state = online_task_poll(g_50f204);
+            if (state == 2)
+            {
+                if (online_stats_write_succeeded(g_50f204))
+                    function_80d70(g_50f20c, g_50f208);
+            }
+            else if (state >= 0 && state <= 1) return;
+            function_6b640(g_50f204);
+            g_50f1fc = 0;
+            g_50f204 = NONE;
+            g_50f200 = query_time_now();
+        }
+    }
+    else
+    {
+        for (long group = 0; group < 5; group++)
+            for (long i = 0; i < 16; i++) g_509454[group].players[i].state = 0;
+        if (g_50c464 == 1) { function_6b640(g_50c46c); g_50c464 = 0; }
+        if (g_50f1fc == 1) { function_6b640(g_50f204); g_50f1fc = 0; }
+        g_50c468 = 0;
+        g_50f200 = 0;
+    }
+}
+
+long online_round_report(XNKID const *session_id, ULONGLONG const *round_key,
+    long count, XONLINE_STAT_PROC const *procedures, bool flag0, bool flag1);
+
+// @retail 0x73ca0
+void function_73ca0(byte *results)
+{
+    byte storage[0xc090];
+    bool local_host = false;
+    bool valid = true;
+    if (results)
+    {
+        s_surface_description *variant = function_192e60(*(long *)(results + 4));
+        if (!variant || g_510540.a != *(long *)(results + 0x130) ||
+            g_510540.b != *(long *)(results + 0x134))
+            valid = false;
+        for (long i = 0; i < 16 && valid; i++) {}
+        if (valid)
+        {
+            long local = function_199250((s_address_table *)results, g_4cf7cc);
+            if (local == NONE) valid = false;
+            else if (!results[2]) local_host = local == function_199290(results);
+        }
+    }
+    else valid = false;
+    long count = 0;
+    const XONLINE_STAT_PROC *procedures = NULL;
+    if (valid)
+    {
+        s_query_batch *batch = (s_query_batch *)storage;
+        function_741f0((s_match_player_rating_collection *)results, batch);
+        count = batch->operation_count;
+        procedures = (const XONLINE_STAT_PROC *)batch->operations;
+    }
+    s_session_id session_id = g_510528;
+    s_session_id round_key = g_510520;
+    long task = online_round_report((const XNKID *)&session_id, (const ULONGLONG *)&round_key,
+        count, procedures, local_host, g_51051d);
+    if (task != NONE)
+    {
+        g_510530 = task;
+        g_510518 = 3;
+    }
+    else
+        function_73dc0(2);
+}
+
+bool online_task_service_unavailable(long task_index);
+long online_round_extend(ULONGLONG const *round_key, XNKID const *session_id, word seconds);
+
+// @retail 0x755d0
+void function_755d0(void)
+{
+    if (g_467214 == NONE || online_task_get_logon_status(g_467214) != 1)
+        return;
+    if (g_510518 == 2 && g_51051c)
+        function_73ca0(NULL);
+    long state = g_510518;
+    if (state == 3 || state == 1)
+    {
+        long task = g_510530;
+        long status = online_task_poll(task);
+        if (status == 2)
+        {
+            switch (state)
+            {
+            case 1:
+                g_510518 = 2;
+                g_510534 = function_75870();
+                break;
+            case 3:
+                g_510518 = 0;
+                g_510514 = 0;
+                break;
+            }
+            function_6b640(g_510530);
+            g_510530 = NONE;
+        }
+        else if (status < 0 || status > 1)
+        {
+            function_6b640(task);
+            g_510530 = NONE;
+            switch (g_510518)
+            {
+            case 1: function_73dc0(1); break;
+            case 3: function_73dc0(2); break;
+            }
+        }
+    }
+    if (g_510518 == 2)
+    {
+        long task = g_510538;
+        if (task == NONE)
+        {
+            long interval = g_network_configuration.value374 * 1000 / 3;
+            long last = g_510534;
+            if (query_time_now() - last >= interval)
+            {
+                s_session_id session_id = g_510528;
+                s_session_id round_key = g_510520;
+                long created = online_round_extend((const ULONGLONG *)&round_key,
+                    (const XNKID *)&session_id, (word)g_network_configuration.value374);
+                if (created != NONE)
+                    g_510538 = created;
+            }
+        }
+        else
+        {
+            long status = online_task_poll(task);
+            if (status >= 0 && status <= 1)
+                return;
+            long time;
+            if (status == 2)
+                time = function_75870();
+            else
+            {
+                if (status != 3 || !online_task_service_unavailable(task))
+                    function_73dc0(3);
+                time = query_time_now();
+            }
+            g_510534 = time;
+            function_6b640(g_510538);
+            g_510538 = NONE;
+        }
+    }
 }

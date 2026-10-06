@@ -338,6 +338,23 @@ void function_b7290(long object_index)
 	}
 }
 
+void __stdcall function_1c38a0(long object_index);
+
+// @retail 0xb7300
+void function_b7300(long object_index)
+{
+	s_object_header_view *header = OBJECT_HEADER_GET(object_index);
+	if (header->flags & 1)
+	{
+		s_object_view *object = header->object;
+		header->flags &= ~5;
+		if ((1 << header->type) & 0x1883)
+			function_1c38a0(object_index);
+		if (TEST_FIELD_BIT(object->flag14))
+			((s_object_list_view *)g_4de2f4)->count--;
+	}
+}
+
 
 real function_30bf0(vector3f *vector);
 vector3f *function_11d090(vector3f const *vector, vector3f *out);

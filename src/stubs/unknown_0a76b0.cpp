@@ -64,8 +64,6 @@ void __stdcall function_b9a50(long unit_index) { }
 // @stub 0xe56f0
 void __stdcall function_e56f0(long unit_index, point3f const *point) { }
 
-// @stub 0xb8890
-void __stdcall function_b8890(long unit_index) { }
 
 // @stub 0xe5750
 void function_e5750(long unit_index) { }
@@ -77,8 +75,6 @@ void function_1e54d0(void *state, long a) { }
 // @stub 0x201520
 void function_201520(short value, word type, long a, long b, long c) { }
 
-// @stub 0xb8840
-void function_b8840(long unit_index) { }
 
 // @stub 0xe5690
 void __stdcall function_e5690(long unit_index, point3f const *point) { }

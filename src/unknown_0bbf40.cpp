@@ -425,6 +425,39 @@ struct s_wake_header_bbf40
 	s_object_tree_0bbf40 *object;
 };
 
+void object_widgets_new(long object_index);
+void __stdcall function_beca0(long object_index);
+void __stdcall function_bd090(long object_index);
+bool __stdcall function_bdef0(long object_index);
+
+// @retail 0xbe690
+void function_be690(long object_index)
+{
+	s_wake_header_bbf40 *header = (s_wake_header_bbf40 *)g_4e0300->data + (object_index & 0xffff);
+	if (header->type != 5)
+		object_widgets_new(object_index);
+	else
+		*(long *)((byte *)header->object + 0xdc) = NONE;
+	function_beca0(object_index);
+}
+
+// @retail 0xbd020
+void __stdcall function_bd020(long object_index)
+{
+	s_object_tree_0bbf40 *object = ((s_object_tree_header_0bbf40 *)g_4e0300->data)[object_index & 0xffff].object;
+	function_bd090(object_index);
+	function_bdef0(object_index);
+	long child_index = object->first_child_index;
+	while (child_index != NONE)
+	{
+		s_object_tree_0bbf40 *child = ((s_object_tree_header_0bbf40 *)g_4e0300->data)[child_index & 0xffff].object;
+		char type = *(char *)((byte *)child + 0xaa);
+		if (!((1 << type) & 0x80))
+			function_bd020(child_index);
+		child_index = child->next_object_index;
+	}
+}
+
 void function_b7360(long object_index);
 
 // @retail 0xbc7b0

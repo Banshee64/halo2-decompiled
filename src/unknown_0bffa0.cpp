@@ -56,6 +56,73 @@ void function_c0040()
 	g_5107e8->time4 = 0;
 }
 
+void __stdcall function_c2d00(long light_index);
+void __stdcall function_c3260(long light_index, bool clear_object_flag);
+
+// @retail 0xc00a0
+void function_c00a0()
+{
+	s_record_pool_iterator iterator;
+	iterator.data = g_4e030c;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	byte *light;
+	while ((light = data_iterator_next_inlined(&iterator)) != 0)
+	{
+		if (*(long *)(light + 0x4c) == NONE && *(long *)(light + 0x58) == NONE)
+			function_c2d00(iterator.datum_index);
+	}
+}
+
+// @retail 0xc01c0
+void function_c01c0()
+{
+	s_record_pool_iterator iterator;
+	iterator.data = g_4e030c;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	byte *light;
+	while ((light = data_iterator_next_inlined(&iterator)) != 0)
+	{
+		if (*(long *)(light + 0x4c) == NONE)
+			function_c3260(iterator.datum_index, true);
+	}
+}
+
+struct s_light_object_ab
+{
+	long tag_index;
+	dword : 6;
+	dword flag6 : 1;
+	dword : 25;
+};
+
+struct s_light_object_header_ab
+{
+	byte unknown00[8];
+	s_light_object_ab *object;
+};
+
+// @retail 0xc1670
+void __stdcall function_c1670(long object_index)
+{
+	s_light_object_ab *object = ((s_light_object_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+	if (TEST_FIELD_BIT(object->flag6))
+	{
+		s_record_pool_iterator iterator;
+		iterator.data = g_4e030c;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		byte *light;
+		while ((light = data_iterator_next_inlined(&iterator)) != 0)
+		{
+			if (*(long *)(light + 0x58) == object_index)
+				function_c3260(iterator.datum_index, false);
+		}
+	}
+	*(volatile dword *)((byte *)object + 4) &= ~0x40;
+}
+
 struct s_light_ab
 {
 	short salt;

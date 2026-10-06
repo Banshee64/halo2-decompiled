@@ -6,10 +6,12 @@
 
 /* object callees of 0xb7680 */
 
-// @stub 0xbd020
-void __stdcall function_bd020(long object_index)
-{
-}
+// @stub 0xbd090
+void __stdcall function_bd090(long object_index) { }
+// @stub 0xbdef0
+bool __stdcall function_bdef0(long object_index) { return false; }
+// @stub 0xbeca0
+void __stdcall function_beca0(long object_index) { }
 
 /* the unit's weapon state change (lane S's 0x1058b0 calls it) */
 

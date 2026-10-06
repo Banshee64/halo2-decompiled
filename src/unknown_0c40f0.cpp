@@ -153,6 +153,11 @@ void function_c40f0(long tag_index, long object_index, real value)
 }
 
 
+struct s_liquid_element_ab
+{
+    byte unknown00[0xec];
+};
+
 struct s_liquid_definition_ab
 {
     byte unknown00[2];
@@ -160,6 +165,7 @@ struct s_liquid_definition_ab
     long enabled;
     byte unknown08[0x68 - 8];
     long count;
+    s_liquid_element_ab *elements;
 };
 struct s_liquid_creation_header_ab
 {
@@ -327,6 +333,37 @@ void function_c3e90()
             }
         next:
             index = liquid_datum_ab(pool, function_16bc00(pool, index == NONE ? 0 : (index & 0xffff) + 1));
+        }
+    }
+}
+
+struct s_random_draw_definition;
+void __stdcall function_507e0(s_random_draw *draw, const s_random_draw_definition *definition, real elapsed);
+
+// @retail 0xc3f90
+void __stdcall function_c3f90(real step)
+{
+    real const *step_reference = &step;
+    if (g_4e031c && g_4e031c->valid)
+    {
+        real time;
+        if (g_510c54 && g_510c54->active)
+            time = (real)g_510c54->game_time * g_510c54->rate;
+        else
+            time = 0.0f;
+        long index = liquid_datum_ab(g_4e031c, function_16bc00(g_4e031c, 0));
+        while (index != NONE)
+        {
+            s_c40f0_datum *liquid = &((s_c40f0_datum *)g_4e031c->data)[index & 0xffff];
+            s_liquid_definition_ab *definition = (s_liquid_definition_ab *)g_4e3b44[liquid->tag_index & 0xffff].bytes;
+            if (liquid->time > time)
+                liquid->time = time;
+            if ((liquid->flags & 1) && liquid->object_index != NONE)
+            {
+                for (long i = 0; i < definition->count; i++)
+                    function_507e0((s_random_draw *)(liquid->entries + i * 0x50), (const s_random_draw_definition *)&definition->elements[i], *step_reference);
+            }
+            index = liquid_datum_ab(g_4e031c, function_16bc00(g_4e031c, index == NONE ? 0 : (index & 0xffff) + 1));
         }
     }
 }
