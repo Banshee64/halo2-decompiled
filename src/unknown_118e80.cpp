@@ -62,8 +62,8 @@ struct s_forward_object
 	char speed_mode;
 	byte unknown147;
 	vector3f control;
-	vector3f desired_forward;
-	vector3f desired_up;
+	vector3f requested_forward;
+	vector3f requested_up;
 	vector3f turn_velocity;
 	real turn;
 	char mode;
@@ -219,7 +219,7 @@ void function_1197b0(long object_index)
 	s_facing_definition_1197b0 *definition = (s_facing_definition_1197b0 *)g_4e3b44[object->definition_index & 0xffff].bytes;
 	if ((bool)((definition->flags >> 4) & 1))
 	{
-		function_1faf80(&object->desired_forward, object_index, definition->settings, &object->control, 0.9f, &object->turn);
+		function_1faf80(&object->requested_forward, object_index, definition->settings, &object->control, 0.9f, &object->turn);
 		return;
 	}
 	real max_angle = definition->max_angle;
@@ -232,20 +232,20 @@ void function_1197b0(long object_index)
 	vector3f forward, turn_velocity;
 	if (max_angle == 0.0f && acceleration == 0.0f)
 	{
-		forward = object->desired_forward;
+		forward = object->requested_forward;
 		turn_velocity = *g_4687a4;
 	}
 	else
 	{
 		function_118e80(object_index, &forward);
 		turn_velocity = object->turn_velocity;
-		function_11f0d0(&turn_velocity, &forward, &object->desired_forward, g_510c54->rate, max_angle, acceleration);
+		function_11f0d0(&turn_velocity, &forward, &object->requested_forward, g_510c54->rate, max_angle, acceleration);
 	}
 	vector3f temporary_velocity = *g_4687a4;
 	vector3f up;
 	world_up_1197b0(object_index, &up);
 	vector3f new_forward, target_up, left1, left2, forward2;
-	function_11d180(&left1, &forward, &target_up, &object->desired_up, &new_forward);
+	function_11d180(&left1, &forward, &target_up, &object->requested_up, &new_forward);
 	function_11d180(&left2, &forward, &up, &up, &forward2);
 	if (function_11ce20(&up, &target_up) > max_angle * g_510c54->rate)
 	{
@@ -277,12 +277,12 @@ void function_119020(long object_index, vector3f const *impulse)
 	s_forward_object *object = ((s_forward_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	s_impulse_definition_119020 *definition = (s_impulse_definition_119020 *)g_4e3b44[object->definition_index & 0xffff].bytes;
 	function_b9b90(object_index, false);
-	vector3f old_velocity;
-	function_ba1d0(object_index, &old_velocity, NULL);
+	vector3f velocity_before_impulse;
+	function_ba1d0(object_index, &velocity_before_impulse, NULL);
 	vector3f velocity;
-	velocity.i = impulse->i + old_velocity.i;
-	velocity.j = impulse->j + old_velocity.j;
-	velocity.k = impulse->k + old_velocity.k;
+	velocity.i = impulse->i + velocity_before_impulse.i;
+	velocity.j = impulse->j + velocity_before_impulse.j;
+	velocity.k = impulse->k + velocity_before_impulse.k;
 	if (TEST_FIELD_BIT(object->frozen) || (bool)((definition->flags >> 3) & 1) || object->mode == 2)
 	{
 		vector3f axis;
