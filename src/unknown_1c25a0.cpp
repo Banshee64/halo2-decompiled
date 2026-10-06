@@ -1044,3 +1044,65 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 	}
 	return result;
 }
+
+
+void function_bba20(long object_index);
+
+// @retail 0x1c4a20
+void function_1c4a20(hkEntity const *entity)
+{
+	long component_index = havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX);
+	s_havok_component *component = havok_component_get(component_index);
+	if (TEST_FIELD_BIT(component->flag5))
+		function_bba20(component->object_index);
+}
+
+
+struct s_world_bounds_query
+{
+	hkVector4 lower;
+	hkVector4 upper;
+	hkVector4 half_extent;
+	long flags;
+};
+
+class c_world_bounds_search
+{
+public:
+	virtual void slot00() = 0;
+	virtual void slot01() = 0;
+	virtual void slot02() = 0;
+	virtual void slot03() = 0;
+	virtual void slot04() = 0;
+	virtual void slot05() = 0;
+	virtual void slot06() = 0;
+	virtual void slot07() = 0;
+	virtual void slot08() = 0;
+	virtual void slot09() = 0;
+	virtual void slot0a() = 0;
+	virtual void slot0b() = 0;
+	virtual void slot0c() = 0;
+	virtual void slot0d() = 0;
+	virtual void slot0e() = 0;
+	virtual void search(s_world_bounds_query const *query, c_world_contact_filter *filter) = 0;
+};
+
+struct s_world_bounds_view
+{
+	byte unknown00[0xc4];
+	c_world_bounds_search *search;
+};
+
+// @retail 0x1c55e0
+void function_1c55e0(real const *bounds)
+{
+	s_world_bounds_query query;
+	real lower_x = bounds[0];
+	query.upper.set(bounds[1], bounds[3], bounds[5]);
+	query.lower.set(lower_x, bounds[2], bounds[4]);
+	query.flags = 0;
+	__m128 half = _mm_set_ss(0.5f);
+	query.half_extent.m_quad = _mm_mul_ps(_mm_shuffle_ps(half, half, 0), _mm_sub_ps(query.upper.m_quad, query.lower.m_quad));
+	c_world_contact_update filter;
+	((s_world_bounds_view *)g_51e9a4)->search->search(&query, &filter);
+}

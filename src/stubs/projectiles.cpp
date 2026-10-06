@@ -21,8 +21,6 @@ struct s_damage_owner;
 void __stdcall function_a84e0(long projectile_index, short *material_index, union vector3f const *vector, unsigned long flags) { }
 // @stub 0x1ca690
 void __stdcall function_1ca690(long object_index, void const *data, long a, long b, long c) { }
-// @stub 0x1ca9f0
-void __stdcall function_1ca9f0(long object_index, long unknown) { }
 struct s_collision_result_1697c0;
 struct s_type_1e6529;
 // @stub 0x184060

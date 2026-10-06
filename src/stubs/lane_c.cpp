@@ -146,3 +146,21 @@ void __stdcall function_290250(long tag_index, long ticks, long object_index, lo
 	transform4x3f const *matrix)
 {
 }
+
+
+// @stub 0x2d9160
+void __cdecl function_2d9160(void *array, long capacity, long element_size) { }
+
+
+class c_component_rotation
+{
+public:
+	hkVector4 value;
+	void set(hkRotation const &rotation);
+};
+
+// @stub 0x2da2d0
+void c_component_rotation::set(hkRotation const &rotation) { }
+
+// @stub 0x2db880
+void __cdecl function_2db880(hkVector4 const *position, c_component_rotation const *rotation, real frequency, hkRigidBody *body) { }
