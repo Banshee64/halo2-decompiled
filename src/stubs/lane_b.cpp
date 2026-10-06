@@ -37,12 +37,6 @@ struct s_location_view;
 // @stub 0x267770
 void function_267770(long prop_index, long actor_index) { }
 
-// @stub 0x204ec0
-void function_204ec0(s_squad_iterator *iterator, short encounter_index, short a, bool b) { }
-
-// @stub 0x205010
-short function_205010(s_squad_iterator *iterator) { return 0; }
-
 
 struct s_prop_node_view;
 
@@ -217,4 +211,3 @@ bool __stdcall function_1bfb10(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1bff80
 bool __stdcall function_1bff80(long actor_index, s_slot *slot) { return 0; }
-

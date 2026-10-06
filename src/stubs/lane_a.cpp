@@ -113,12 +113,6 @@ real const g_44f710 = -64.0f;
 /* the saved game files manager (0x216000-0x218000) */
 struct s_saved_game_file_location;
 
-// @stub 0x216f80
-bool function_216f80(long type, s_saved_game_file_location *location)
-{
-	return false;
-}
-
 // @stub 0x28e2b0
 void function_28e2b0(long field_1c)
 {
@@ -173,11 +167,6 @@ long __stdcall function_1e0160(long squad_index, long entry_index, long unit_ind
 
 // @stub 0x201df0
 void function_201df0(void)
-{
-}
-
-// @stub 0x290bf0
-void function_290bf0(long field_1c, short team)
 {
 }
 

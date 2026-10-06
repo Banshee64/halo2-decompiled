@@ -56,10 +56,6 @@ void function_6cb60(void)
 {
 }
 
-// @stub 0x7f0d0
-void __stdcall function_7f0d0(const unsigned char *data)
-{
-}
 
 
 // @stub 0x73ca0

@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6203 functions match
+
+```
+matched 6203 of 11318 game functions (641123 of 2784283 bytes, 23.03%)
+```
+
+25 new matches, none lost:
+- **Codex lane AC**, round 1 (25): interface destructors, tracking hooks, iterators and actor helpers in the new 0x2729b0–0x29ffff range.
+
+## 2026-10-05: 6178 functions match
+
+```
+matched 6178 of 11318 game functions (639613 of 2784283 bytes, 22.97%)
+```
+
+3 new matches, none lost:
+- **Codex lane U**, round 7 (3): two more helpers in the 0x200000–0x217fff range, and a prototype fix that makes lane B's 0x1bcc90 match.
+
+## 2026-10-05: 6175 functions match
+
+```
+matched 6175 of 11318 game functions (638810 of 2784283 bytes, 22.94%)
+```
+
+8 new matches, none lost:
+- **Codex lane Y**, round 4 (8): session and gateway stream helpers in the 0x70000–0x7ffff range.
+
 ## 2026-10-05: 6167 functions match
 
 ```

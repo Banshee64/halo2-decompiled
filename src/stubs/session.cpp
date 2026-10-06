@@ -52,8 +52,4 @@ void __stdcall function_06dc60(c_session_client *client, long n)
 {
 }
 
-// @stub 0x7b140
-void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local)
-{
-}
 

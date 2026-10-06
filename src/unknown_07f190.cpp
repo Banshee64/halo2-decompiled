@@ -110,6 +110,110 @@ struct s_estimate_configuration
 	long step;
 };
 
+extern bool g_510819;
+void function_7f410(void);
+
+struct s_bandwidth_sample
+{
+	byte unknown00[0x10];
+	long value;
+};
+
+// @retail 0x7f0d0
+void __stdcall function_7f0d0(const byte *data)
+{
+	const s_bandwidth_sample *sample = (const s_bandwidth_sample *)data;
+	if (!g_4cf8ec)
+	{
+		memcpy(g_4cf8f0, g_51099c, sizeof(g_4cf8f0));
+		g_4cf8ec = true;
+		function_7f410();
+	}
+	if (g_4cf8f0[0] >= 8)
+	{
+		g_4cf8f0[0] = 7;
+		memmove(g_4cf8f0 + 1, g_4cf8f0 + 2, 7 * sizeof(long));
+	}
+	g_4cf8f0[1 + g_4cf8f0[0]] = sample->value;
+	g_4cf8f0[0]++;
+	function_7f410();
+	if (g_4cf964 && sample->value > g_4cf968 + ((s_estimate_configuration *)g_4cf8e8)->unknown1c)
+	{
+		g_4cf8f0[26]++;
+		function_7f410();
+	}
+	memcpy(g_51099c, g_4cf8f0, sizeof(g_4cf8f0));
+	g_510819 = true;
+}
+
+bool network_observer_get_bandwidth(s_network_observer *observer, long *sent, real *ratio, long *received);
+
+// @retail 0x7f2a0
+void function_7f2a0(void)
+{
+	if (g_4cf95d)
+	{
+		long sent;
+		long received;
+		real ratio;
+		if (network_observer_get_bandwidth(g_4cf8e4, &sent, &ratio, &received))
+		{
+			long last = g_4cf960;
+			long now = g_510548 ? g_51054c : GetTickCount();
+			bool elapsed = now - last >= ((s_estimate_configuration *)g_4cf8e8)->unknown10;
+			bool acceptable = ratio < *(real *)&((s_estimate_configuration *)g_4cf8e8)->unknown14;
+			if (!g_4cf8ec)
+			{
+				memcpy(g_4cf8f0, g_51099c, sizeof(g_4cf8f0));
+				g_4cf8ec = true;
+				function_7f410();
+			}
+			if (elapsed && (acceptable || (sent >= g_4cf968 && received >= g_4cf968)))
+			{
+				if (g_4cf8f0[9] >= 8)
+				{
+					g_4cf8f0[9] = 7;
+					memmove(g_4cf8f0 + 10, g_4cf8f0 + 11, 7 * sizeof(long));
+					memmove(g_4cf8f0 + 18, g_4cf8f0 + 19, g_4cf8f0[9] * sizeof(long));
+				}
+				g_4cf8f0[10 + g_4cf8f0[9]] = sent;
+				g_4cf8f0[18 + g_4cf8f0[9]] = received;
+				g_4cf8f0[9]++;
+				g_4cf8f0[26] = 0;
+				memcpy(g_51099c, g_4cf8f0, sizeof(g_4cf8f0));
+				g_510819 = true;
+				function_7f410();
+			}
+		}
+		network_observer_reset_bandwidth(g_4cf8e4);
+		g_4cf95d = false;
+	}
+}
+
+// @retail 0x7f070
+void function_7f070(void)
+{
+	if (g_4cf95c && g_4e6948 && g_4e6948->flag1120)
+	{
+		long mode = g_4e6948->mode;
+		if (mode >= 4 && mode <= 5)
+		{
+			switch (mode)
+			{
+			case 2:
+			case 4:
+				break;
+			default:
+				if (!g_4cf95d)
+					function_7f260();
+				return;
+			}
+		}
+	}
+	if (g_4cf95d)
+		function_7f2a0();
+}
+
 // @retail 0x7f410
 void function_7f410(void)
 {

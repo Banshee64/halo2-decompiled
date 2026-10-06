@@ -96,6 +96,82 @@ struct s_audio_queue;
 extern s_audio_queue *g_4f939c;
 extern s_record_pool *g_4f9398;
 long function_20f040(short team);
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+struct s_audio_object_state
+{
+	byte unknown000[0x10a];
+	byte unused0 : 2;
+	byte blocked : 1;
+	byte unused1 : 5;
+};
+
+// @retail 0x20f960
+long function_20f960(long index, s_audio_priority_table *table, bool *expired)
+{
+	(void)&expired;
+	volatile bool result = false;
+	byte *record = g_4f9398->data + (index & 0xffff) * 0x54;
+	s_audio_priority_definition *definition = &table->entries[*(short *)(record + 2)];
+	long time = g_510c54->game_time;
+	if (expired)
+		*expired = false;
+	if (!*((byte *)g_4f55d0 + 0x20) || *(short *)((byte *)g_4f55d0 + 0x22) > 0)
+		goto rejected;
+	{
+		real seconds = g_510c54->field_2_3 * *(real *)((byte *)definition + 0x20);
+		long ticks;
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+		if (time - *(long *)(record + 0x10) > ticks)
+			goto report_expiration;
+	}
+	{
+		byte *object = *(byte **)(g_4e0300->data + (*(long *)(record + 4) & 0xffff) * 12 + 8);
+		result = true;
+		if (TEST_FIELD_BIT(((s_audio_object_state *)object)->blocked))
+			goto rejected;
+		long actor_index = *(long *)(object + 0x12c);
+		if (actor_index == NONE)
+			goto done;
+		byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+		if (*(short *)(actor + 0x86) > *(short *)((byte *)definition + 0x16) ||
+			time - *(long *)(actor + 0x4c) < g_510c54->field_2_3 * 3)
+			goto rejected;
+		short type = *(short *)(record + 0x24);
+		if (type >= 0 && type < 200 && *(long *)(record + 0x28) != NONE)
+		{
+			switch (type)
+			{
+			case 138:
+			case 142:
+			case 150:
+			case 159:
+			case 194:
+			case 196:
+			case 198:
+				{
+					s_audio_object_state *target = (s_audio_object_state *)function_badc0(*(long *)(record + 0x28), NONE);
+					if (!target || TEST_FIELD_BIT(target->blocked))
+						goto rejected;
+				}
+				break;
+			}
+		}
+		goto done;
+	}
+rejected:
+	result = false;
+report_expiration:
+	if (expired)
+		*expired = *(long *)(g_4f9398->data + (index & 0xffff) * 0x54 + 0x2c) != 0;
+done:
+	return result;
+}
 
 // @retail 0x20f1a0
 real function_20f1a0(long object_index, short type)
@@ -317,6 +393,83 @@ void function_20fe20(s_node_owner *owner)
 			link = &node->next;
 		}
 	}
+}
+
+void function_20fda0(long node_index);
+
+PRIVATE inline long audio_queue_delay(void)
+{
+	real seconds = (real)g_510c54->field_2_3 * 0.2f;
+	long ticks;
+	__asm
+	{
+		fld seconds
+		fistp ticks
+	}
+	return ticks;
+}
+
+// @retail 0x20f6a0
+bool function_20f6a0(s_node_owner *owner, long node_index)
+{
+	(void)&owner;
+	(void)&node_index;
+	volatile bool result = false;
+	byte *record = (byte *)NODE(node_index);
+	long filter = *(long *)((byte *)owner + 0x7d8);
+	if (filter == NONE || *(long *)(record + 4) == filter || *(long *)(record + 0x28) == filter)
+	{
+		long previous = NONE;
+		long next = NONE;
+		for (long index = owner->first; index != NONE; )
+		{
+			byte *other = (byte *)NODE(index);
+			function_20f5a0((s_audio_priority_record *)record, (s_audio_priority_record *)other);
+			if (*(long *)(record + 0x14) <= *(long *)(other + 0x14))
+			{
+				next = index;
+				break;
+			}
+			previous = index;
+			index = *(long *)(other + 0x50);
+		}
+		if (*(long *)(record + 0x14) - *(long *)(record + 0x10) <= *(short *)(record + 0x1e) &&
+			(!record[0xe] || *(long *)(record + 0x44) == NONE || *(long *)(record + 0x44) == previous))
+		{
+			s_node *before = previous == NONE ? NULL : NODE(previous);
+			if (before)
+				before->next = node_index;
+			else
+				owner->first = node_index;
+			*(long *)(record + 0x50) = next;
+			owner->count++;
+			byte *last = (byte *)NODE(node_index);
+			while (next != NONE)
+			{
+				byte *other = (byte *)NODE(next);
+				long time = *(long *)(other + 0x14);
+				if (time < *(long *)(last + 0x14) + audio_queue_delay())
+					time = *(long *)(last + 0x14) + audio_queue_delay();
+				*(long *)(other + 0x14) = time;
+				function_20f5a0((s_audio_priority_record *)other, (s_audio_priority_record *)last);
+				if (!other[0x48])
+				{
+					if (*(long *)(other + 0x14) - *(long *)(other + 0x10) > *(short *)(other + 0x1e) ||
+						(other[0xe] && *(long *)(other + 0x44) != NONE && *(long *)(other + 0x44) != previous))
+						function_20fda0(next);
+					else
+					{
+						last = other;
+						previous = next;
+					}
+				}
+				next = *(long *)(other + 0x50);
+			}
+			result = true;
+		}
+	}
+	function_20fe20(owner);
+	return result;
 }
 
 /* ---- the tables of the match globals (0x4e0348) ---- */

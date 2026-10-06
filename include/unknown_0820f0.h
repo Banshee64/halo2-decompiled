@@ -131,7 +131,7 @@ extern long g_4d87d0;
 bool link_remove_entry(s_link *link, long id);
 
 /* not decompiled yet (src/stubs/session.cpp, src/stubs/lane_d.cpp) */
-void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
+bool __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
 void __stdcall function_095580(void *stream, long message_type, long message_size, const void *message);
 
 long network_reliable_stream_allocate(long owner);

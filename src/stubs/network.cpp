@@ -21,11 +21,6 @@ void function_07c5a0(s_bitstream *stream, void const *source)
 {
 }
 
-// @stub 0x7ca70
-bool function_07ca70(s_bitstream *stream, void *destination)
-{
-	return false;
-}
 
 
 // @stub 0x86f90

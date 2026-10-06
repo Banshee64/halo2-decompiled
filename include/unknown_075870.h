@@ -117,6 +117,7 @@ struct s_network_observer : public c_network_connection_listener
 	void packet_sent(long connection_index, long size, bool flag);
 	void connection_updated(long connection_index, long value);
 	void packet_received(long connection_index, long size, long delay);
+	void connection_v03(long connection_index, bool received, bool flag);
 	void *unknown04;
 	void *link;
 	void *unknown0c;

@@ -61,7 +61,7 @@ class c_helper_a
 public:
 	virtual void v0(long a, long b);
 	virtual void v1();
-	virtual void v2() {}
+	virtual void v2();
 	virtual void v3(s_helper_output *out);
 	virtual long v4();
 	virtual long v5(long size, void *data) { return 0; }
@@ -212,6 +212,67 @@ long c_helper_b::v6()
 }
 
 void function_6b640(long task_index);
+
+struct s_xnet_registry_entry
+{
+	bool valid;
+	byte unknown1[7];
+	XNKID kid;
+	XNKEY key;
+};
+
+extern s_xnet_registry_entry g_4cf7d4[8];
+
+// @retail 0x72df0
+void function_72df0(c_helper_a *helper)
+{
+	if (helper->ba)
+	{
+		if (helper->l14 != NONE)
+		{
+			function_6b640(helper->l14);
+			helper->l14 = NONE;
+		}
+		s_xnet_registry_entry *entry = &g_4cf7d4[helper->l2c];
+		if (entry->valid)
+		{
+			XNetUnregisterKey(&entry->kid);
+			entry->valid = false;
+		}
+		helper->ba = false;
+	}
+}
+
+struct s_online_match_session;
+long online_match_session_create(const s_online_match_session *session);
+
+// @retail 0x72e40
+void function_72e40(c_helper_a *helper)
+{
+	long last = helper->l10;
+	if (!last || (long)(g_510548 ? g_51054c : GetTickCount()) - last >= g_network_configuration.valuec90)
+	{
+		if (helper->lc != NONE)
+		{
+			function_6b640(helper->lc);
+			helper->lc = NONE;
+		}
+		if (helper->l14 != NONE)
+		{
+			function_6b640(helper->l14);
+			helper->l14 = NONE;
+		}
+		function_72df0(helper);
+		if (!helper->b30)
+		{
+			memset(&helper->info, 0, sizeof(helper->info));
+			helper->v3(&helper->info.output);
+			helper->lc = online_match_session_create((const s_online_match_session *)&helper->info);
+			if (helper->lc == NONE) memset(&helper->info, 0, sizeof(helper->info));
+			helper->l10 = g_510548 ? g_51054c : GetTickCount();
+		}
+	}
+}
 
 // @retail 0x73310
 void c_helper_a::v1()
@@ -576,7 +637,7 @@ extern s_session_id g_510520;
 extern s_session_id g_510528;
 long g_510534;
 long g_510538;
-long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_key, word seconds);
+long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_key, long seconds);
 
 // @retail 0x73bc0
 void function_73bc0(const s_session_id *session_id, const s_session_id *round_key,
@@ -593,7 +654,7 @@ void function_73bc0(const s_session_id *session_id, const s_session_id *round_ke
 		g_510514 = 4;
 	}
 	long task = online_round_register(free_for_all, (const XNKID *)session_id,
-		(const ULONGLONG *)round_key, (word)g_network_configuration.value374);
+		(const ULONGLONG *)round_key, g_network_configuration.value374);
 	g_510528 = *session_id;
 	g_510520 = *round_key;
 	g_510540.a = first;
@@ -913,4 +974,39 @@ void function_731d0(c_helper_a *helper)
 			helper->listen_time = g_510548 ? g_51054c : GetTickCount();
 		}
 	}
+}
+
+bool online_task_get_finished(long task_index, bool *succeeded);
+
+// @retail 0x73040
+void c_helper_a::v2()
+{
+	bool connected = false;
+	if (g_467214 != NONE && online_task_get_logon_status(g_467214) == 1)
+		connected = true;
+	b9 = connected;
+	bool active = v7();
+	if (!ba && lc == NONE && active)
+		function_72e40(this);
+	function_72f00(this);
+	if (l14 != NONE)
+	{
+		bool succeeded;
+		if (online_task_get_finished(l14, &succeeded))
+		{
+			if (!succeeded) function_72df0(this);
+			if (l14 != NONE)
+			{
+				function_6b640(l14);
+				l14 = NONE;
+			}
+		}
+	}
+	function_72f60(this);
+	if (ba)
+	{
+		if (!active) function_72df0(this);
+		if (ba && l14 == NONE) function_73100(this);
+	}
+	function_731d0(this);
 }

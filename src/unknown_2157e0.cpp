@@ -2,6 +2,7 @@
 #include "unknown_11c920.h"
 #include "loop_allocator.h"
 #include <xtl.h>
+#include <string.h>
 
 // The allocator methods are shared with the memory source at 0x476fbc.
 class c_physical_memory_source : public c_memory_source
@@ -41,6 +42,75 @@ dword g_55c27c;
 
 void function_215880(void *ref);
 bool function_216800(void *a, long b);
+
+bool function_1249f0(long memory_unit, char *drive_letter);
+void function_2172a0(long handle);
+
+// @retail 0x2170e0
+long function_2170e0(long file_index)
+{
+	(void)&file_index;
+	long result = NONE;
+	if (g_55c14f)
+	{
+		s_55c164 *cached = NULL;
+		for (long i = 0; i < g_55c160; i++)
+		{
+			long index = (long)g_55c164[i].field0;
+			if (index != NONE && index == file_index)
+			{
+				cached = &g_55c164[i];
+				break;
+			}
+		}
+		long type = file_index & 15;
+		if ((bool)(((dword)file_index >> 21) & 1))
+		{
+			long generation = *(long *)((byte *)g_51ea14 + 0x4befc);
+			result = ((((file_index >> 8) & 0x1fff) | ((generation & 0x1ff) << 14) | 0x2000) << 8) | (type & 15);
+		}
+		else
+		{
+			void *files = g_51ea14;
+			char drive;
+			if (files && function_1249f0(0, &drive))
+			{
+				s_profile_location_table *table = (s_profile_location_table *)((byte *)files + 0xbef8);
+				s_profile_location_bytes location;
+				location.data[0] = 0;
+				*(word *)(location.data + 0x14) = 0;
+				long next = 0;
+				while (next < table->count)
+				{
+					location = table->entries[next];
+					long current = next++;
+					if (*(long *)(location.data + 0x38) == type &&
+						!strncmp((char const *)cached->unknown04, (char const *)location.data, 20))
+					{
+						long generation = *(long *)((byte *)g_51ea14 + 0x4befc);
+						result = (((generation & 0x1ff) << 14 | (current & 0x1fff)) << 8) | (type & 15);
+						break;
+					}
+				}
+			}
+		}
+		function_2172a0(file_index);
+		if (result != NONE)
+			g_55c164[g_55c160++].field0 = (void *)result;
+	}
+	else
+	{
+		long generation = *(long *)((byte *)g_51ea14 + 0x4befc);
+		if (generation == ((file_index >> 22) & 0x1ff))
+		{
+			if ((bool)(((dword)file_index >> 21) & 1))
+				result = ((((file_index >> 8) & 0x1fff) | ((generation & 0x1ff) << 14) | 0x2000) << 8) | (file_index & 15);
+			else
+				result = file_index;
+		}
+	}
+	return result;
+}
 
 // @retail 0x2157e0
 void __stdcall function_2157e0(long stage)
