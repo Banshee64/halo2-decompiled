@@ -1069,3 +1069,87 @@ real c_projectile_object_impact_effect_event::v7(long a, long b, long c)
  byte const *payload = *(byte const **)(a + 0x18);
  return function_aa7c0((s_relevance_observers const *)b, (point3f const *)(payload + 0x18), *(real *)&c);
 }
+
+
+struct s_z_blend_state
+{
+ real first;
+ real second;
+ long identifier;
+ long slot;
+};
+struct s_z_fire_payload
+{
+ long slot;
+ long object_name;
+ long mode;
+ bool relative;
+ short node;
+ real position[3];
+ vector3f direction;
+ s_z_blend_state blend;
+ bool attached;
+ long identifier;
+ long attachment;
+};
+void simulation_write_relative_position(s_bitstream *stream, long bits, real const *position);
+void simulation_read_relative_position(long bits, real *position, s_bitstream *stream);
+void function_ab5e0(s_z_blend_state const *state, s_bitstream *stream);
+bool function_ab700(s_bitstream *stream, s_z_blend_state *state);
+void function_b5650(long identifier, s_bitstream *stream);
+
+// @retail 0xa28e0
+void c_weapon_fire_event::v9(long a, void const *data, s_bitstream *stream)
+{
+ s_z_fire_payload const *event = (s_z_fire_payload const *)data;
+ stream_write_checked(stream, event->slot + 1, 3);
+ scenario_object_name_encode(event->object_name, stream);
+ stream_write_checked(stream, event->mode, 1);
+ stream_write_bit(stream, event->relative);
+ if (event->relative)
+ {
+  stream_write_checked(stream, event->node, 8);
+  simulation_write_relative_position(stream, 12, event->position);
+ }
+ function_ab5e0(&event->blend, stream);
+ function_194bc0(stream, &event->direction);
+ stream_write_bit(stream, event->attached);
+ if (event->attached)
+ {
+  stream_write_checked(stream, event->attachment, 5);
+  function_b5650(event->identifier, stream);
+ }
+}
+
+// @retail 0xa2a80
+bool c_weapon_fire_event::v10(long a, void *data, s_bitstream *stream)
+{
+ bool result = true;
+ s_z_fire_payload *event = (s_z_fire_payload *)data;
+ event->slot = function_1959c0(stream, 3) - 1;
+ if (event->slot != NONE) result = event->slot >= 0 && event->slot < 4;
+ event->object_name = z_event_read_object_name(stream);
+ event->mode = function_1959c0(stream, 1);
+ result = result && event->mode >= 0 && event->mode < 2;
+ event->relative = function_1957d0(stream);
+ if (event->relative)
+ {
+  event->node = (short)function_1959c0(stream, 8);
+  simulation_read_relative_position(12, event->position, stream);
+ }
+ bool blend_valid = function_ab700(stream, &event->blend);
+ result = result && blend_valid;
+ long direction = function_1959c0(stream, 17);
+ function_24f6b0(direction, &event->direction);
+ event->attached = function_1957d0(stream);
+ if (event->attached)
+ {
+  event->attachment = function_1959c0(stream, 5);
+  long index = function_1959c0(stream, 10);
+  byte salt = (byte)function_1959c0(stream, 4);
+  event->identifier = index | ((dword)salt << 28);
+ }
+ return result;
+}
+
+

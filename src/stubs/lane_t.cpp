@@ -55,10 +55,6 @@ void function_15c000(void)
 }
 
 /* unowned */
-// @stub 0xa77c0
-void function_a77c0(void)
-{
-}
 
 /* the loading screen's callees (loading.cpp) */
 // @stub 0x8df50

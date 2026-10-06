@@ -3,8 +3,6 @@
 #include "unknown_0259d0.h"
 #include "unknown_030290.h"
 
-// @stub 0xa7870
-void __stdcall function_a7870(long object_index) { }
 // @stub 0xb5a70
 void __stdcall function_b5a70(long a, long type, long b, long c, long size, void const *data, long d) { }
 // @stub 0x148b27

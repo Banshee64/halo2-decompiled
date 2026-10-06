@@ -230,6 +230,8 @@ public:
 class c_weapon_fire_event : public c_event_definition
 {
 public:
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
