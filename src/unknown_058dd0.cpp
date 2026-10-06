@@ -1460,6 +1460,176 @@ void function_70b70(c_session_state_matchmaking *state)
 	}
 }
 
+struct s_entry_c;
+struct s_161c90;
+struct s_session_data4db0;
+struct s_network_session_membership;
+struct s_session_summary;
+bool game_variant_choose_map(long index, long *map_id, byte *settings);
+s_entry_c *function_19c5f0(long key);
+long function_161c90(const s_161c90 *settings);
+bool __stdcall network_session_host(c_class_58d20 *session, long mode, long local,
+	const XNKID *kid, const XNKEY *key, long count, const dword *identities,
+	const long *values, const s_session_id *id, long timeout);
+s_network_session_membership *function_5a680(c_class_58d20 *session, long *current_member, long *member_index);
+bool network_session_parameters_set_value49c8(c_class_58d20 *session, long value);
+long network_session_get_language(c_class_58d20 *session);
+bool network_session_parameters_set_language(c_class_58d20 *session, long language);
+bool network_session_host_set_summary(c_class_58d20 *session, const s_session_summary *summary);
+bool network_session_parameters_set_value4dac(c_class_58d20 *session, long value);
+bool network_session_parameters_set_data4db0(c_class_58d20 *session, const s_session_data4db0 *data);
+
+// @retail 0x71480
+bool function_71480(c_session_state_matchmaking *state)
+{
+	s_session_owner *owner = state->owner;
+	c_class_58d20 *session = owner->session_a;
+	c_class_58d20 *other = owner->session_b;
+	bool result = false;
+	if (session->type == 10)
+	{
+		function_70b70(state);
+		long current = session->state;
+		if (current == 5 || current == 6 || current == 7 || current == 8)
+		{
+			if (other->state == 0)
+			{
+				long map_id;
+				byte settings[0x130];
+				s_entry_c *map = NULL;
+				if (!game_variant_choose_map(*(long *)((byte *)state + 0x18), &map_id, settings))
+				{
+					state->mode = 13;
+					result = true;
+				}
+				if (state->mode == 3)
+				{
+					map = function_19c5f0(map_id);
+					if (!map)
+					{
+						state->mode = 12;
+						result = true;
+					}
+				}
+				if (state->mode == 3)
+				{
+					long value = function_161c90((const s_161c90 *)settings);
+					s_parameters_part part;
+					memset(&part, 0, sizeof(part));
+					part.unknown00 = 0;
+					part.unknown40 = 2;
+					const s_session_id *id = NULL;
+					if (session->state && session->flag24)
+						id = (const s_session_id *)&session->unknown1c;
+					s_session_id original = *id;
+					if (network_session_host(other, 2, 0, NULL, NULL,
+						*(long *)((byte *)state + 0x7b4), (const dword *)((byte *)state + 0x7b8),
+						(const long *)((byte *)state + 0x878), &original, NONE))
+					{
+						byte *manager = *(byte **)((byte *)owner + 0x3c);
+						long current_member, member_index;
+						byte *membership = (byte *)function_5a680(other, &current_member, &member_index);
+						if (other->state && other->flag24)
+						{
+							*(s_session_id *)part.unknown04 = *(s_session_id *)&other->unknown1c;
+							memcpy(part.unknown0c, other->data25, 16);
+						}
+						memcpy(part.unknown1c, membership + 12 + member_index * 0x10c, 36);
+						network_session_host_set_data5ddc(session, &part);
+						network_session_parameters_set_value49c8(other, *(long *)((byte *)state + 0x18));
+						network_session_parameters_set_language(other, network_session_get_language(session));
+						other->set_value_4994(*(long *)((byte *)state + 0x938));
+						network_session_parameters_set_value4d08(other, (const char *)map + 0xb4c, NONE, map_id);
+						network_session_host_set_summary(other, (const s_session_summary *)((byte *)state + 0x630));
+						network_session_parameters_set_value4dac(other, value);
+						network_session_parameters_set_data4db0(other, (const s_session_data4db0 *)settings);
+						function_07ad80(8, (byte *)&original);
+						other->set_values_4da0(original.a, original.b);
+						if (*(long *)(manager + 8)) *(long *)(manager + 8) = 0;
+						network_session_set_mode(session, 11);
+						result = true;
+					}
+					else
+					{
+						state->mode = 10;
+						result = true;
+					}
+				}
+			}
+		}
+		else
+		{
+			volatile long unused = current;
+		}
+	}
+	return result;
+}
+
+#pragma pack(push, 4)
+struct s_matchmaking_identity
+{
+	unsigned __int64 user;
+	dword flags;
+};
+struct s_matchmaking_summary
+{
+	long machine_count;
+	s_session_id machine_ids[16];
+	s_matchmaking_identity machine_users[16];
+	long machine_times[16];
+	long player_count;
+	s_matchmaking_identity player_users[16];
+	long first[16];
+	long second[16];
+	long third[16];
+};
+#pragma pack(pop)
+bool network_session_parameters_set_summary(c_class_58d20 *session, const s_session_summary *summary);
+bool network_session_parameters_set_mode(c_class_58d20 *session, long mode);
+
+// @retail 0x70280
+void function_70280(c_session_state_matchmaking *state)
+{
+	c_class_58d20 *session = state->owner->session_a;
+	s_matchmaking_summary summary;
+	memset(&summary, 0, sizeof(summary));
+	dword player_mask = session->player_mask;
+	summary.player_count = 0;
+	for (long i = 0; i < 16; i++)
+	{
+		if (player_mask & (1 << i))
+		{
+			summary.player_users[summary.player_count] = *(s_matchmaking_identity *)&session->players[i].user_id;
+			summary.first[summary.player_count] = NONE;
+			summary.second[summary.player_count] = NONE;
+			summary.third[summary.player_count] = 0;
+			summary.player_count++;
+		}
+	}
+	summary.machine_count = 1;
+	const s_session_id *id = NULL;
+	if (session->state && session->flag24)
+		id = (const s_session_id *)&session->unknown1c;
+	summary.machine_ids[0] = *id;
+	function_7ed20((const s_message_identities *)&session->value4c,
+		(s_message_identity *)&summary.machine_users[0], NULL, NULL);
+	state->mode = 1;
+	long current = session->state;
+	if (current == 5 || current == 6 || current == 7 || current == 8)
+	{
+		network_session_host_set_summary(session, (const s_session_summary *)&summary);
+		network_session_set_mode(session, 6);
+		state->mode = 3;
+	}
+	else
+	{
+		volatile long unused = current;
+		if (network_session_parameters_set_summary(session, (const s_session_summary *)&summary) &&
+			network_session_parameters_set_mode(session, 6))
+			state->mode = 3;
+	}
+}
+
 long g_55e6fc;
 long online_get_nat_type(void);
 long function_75890(long time);
