@@ -42,7 +42,11 @@ static inline bool object_biped_in_state6(long object_index)
 // @retail 0x1dac00
 long function_1dac00(long object_index)
 {
-	return !object_biped_in_state6(object_index);
+	bool local_1 = false;
+	s_animated_object_header *local_0 = animated_object_header_get(object_index);
+	if (((1 << local_0->type) & 1) && local_0->object->state == 6)
+		local_1 = true;
+	return !local_1;
 }
 
 // @retail 0x1dac40

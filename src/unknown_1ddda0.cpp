@@ -414,16 +414,16 @@ void function_1de2c0(s_1de2c0 *arg_0, long arg_1)
   s_1ddda3 const *local_13 = arg_0->field_0->field_3c;
   long local_14 = local_0->field_2;
   long local_15 = local_14;
-  short const *local_16 = g_440b94[arg_0->field_21c * 2 + arg_0->field_21e];
-  long local_17 = local_16[0] * sizeof(real), local_18 = local_16[1] * sizeof(real);
+  long local_16 = arg_0->field_21c * 2 + arg_0->field_21e;
+  long local_17 = g_440b94[local_16][0] * sizeof(real), local_18 = g_440b94[local_16][1] * sizeof(real);
   do
   {
    s_1ddda2 const *local_19 = &local_12[local_15];
    bool local_20 = local_19->field_a == arg_1;
    real const *local_21 = (real const *)&local_13[local_19->field_0[local_20]].field_0;
-   short const *local_22 = g_440b94[*(short const volatile *)&arg_0->field_21c * 2 + *(bool const volatile *)&arg_0->field_21e];
-   point2f local_23 = { local_21[local_22[0]] - arg_0->field_220.x, local_21[local_22[1]] - arg_0->field_220.y };
    real const *local_24 = (real const *)&local_13[local_19->field_0[!local_20]].field_0;
+   long local_22 = *(short const volatile *)&arg_0->field_21c * 2 + *(bool const volatile *)&arg_0->field_21e;
+   point2f local_23 = { local_21[g_440b94[local_22][0]] - arg_0->field_220.x, local_21[g_440b94[local_22][1]] - arg_0->field_220.y };
    point2f local_25 = { *(real const *)((byte const *)local_24 + local_17) - arg_0->field_220.x,
     *(real const *)((byte const *)local_24 + local_18) - arg_0->field_220.y };
    if (local_25.y * local_23.x - local_23.y * local_25.x < 0.0f) return;
