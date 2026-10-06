@@ -298,6 +298,23 @@ void __stdcall function_23d970(s_view_state *state)
 	state->pitch = (real)atan2(g_5022f8.forward.k, sqrt(g_5022f8.forward.j * g_5022f8.forward.j + g_5022f8.forward.i * g_5022f8.forward.i));
 }
 
+PRIVATE __forceinline bool observer_next_index_23dba0(s_record_pool *players, long *index)
+{
+	++*index;
+	if (*index >= 0 && *index < players->high_water_index)
+	{
+		long limit = players->high_water_index;
+		dword *bits = players->bitmap;
+		do
+		{
+			if (bits[*index >> 5] & (1 << (*index & 0x1f)))
+				return true;
+			++*index;
+		} while (*index < limit);
+	}
+	return false;
+}
+
 // @retail 0x23dba0
 bool function_23dba0(long player_index)
 {
@@ -307,7 +324,8 @@ bool function_23dba0(long player_index)
 
 	for (;;)
 	{
-		index = data_find_index(players, index + 1);
+		if (!observer_next_index_23dba0(players, &index))
+			break;
 		if (index == NONE)
 			break;
 		s_player *player = (s_player *)(players->data + players->size * index);
@@ -322,16 +340,19 @@ bool function_23dba0(long player_index)
 long function_23dc40(long player_index, long last_index, bool same_team)
 {
 	s_record_pool *players = g_4e8c24;
-	long team = NONE;
-	long result = NONE;
 	long index = NONE;
+	long team;
 
 	if (same_team)
 		team = PLAYER(players, player_index & 0xffff)->team;
+	else
+		team = NONE;
+	long result = NONE;
 
 	for (;;)
 	{
-		index = data_find_index(players, index + 1);
+		if (!observer_next_index_23dba0(players, &index))
+			break;
 		if (index == NONE)
 			break;
 		s_player *player = (s_player *)(players->data + players->size * index);
@@ -355,19 +376,22 @@ long function_23dc40(long player_index, long last_index, bool same_team)
 // @retail 0x23dd30
 long function_23dd30(void)
 {
-	s_type_f1af8e iterator;
+	struct
+	{
+		s_object *object;
+		s_type_f1af8e iterator;
+	} state;
 	long result = NONE;
 
-	iterator.signature = 0x86868686;
-	iterator.type_mask = 0x40;
-	iterator.flags = 0;
-	iterator.index = 0;
-	iterator.object_index = NONE;
-	s_object *object;
-	while ((object = function_baeb0(&iterator)) != 0)
+	state.iterator.signature = 0x86868686;
+	state.iterator.type_mask = 0x40;
+	state.iterator.flags = 0;
+	state.iterator.index = 0;
+	state.iterator.object_index = NONE;
+	while ((state.object = function_baeb0(&state.iterator)) != 0)
 	{
-		if (object->parent_index == NONE && object->value2c != NONE)
-			result = iterator.object_index;
+		if (state.object->parent_index == NONE && state.object->value2c != NONE)
+			result = state.iterator.object_index;
 	}
 	return result;
 }
@@ -442,6 +466,14 @@ struct s_game_options_flags_view
 	byte flag0 : 1;
 };
 
+PRIVATE inline bool observer_team_mode_23dda0(s_game_options_view *options)
+{
+	bool result = false;
+	if (g_55e4d0[g_4e9ae8->engine_index])
+		result = TEST_FIELD_BIT(((s_game_options_flags_view *)options)->flag0);
+	return result;
+}
+
 // @retail 0x23dda0
 void function_23dda0(s_observer_state *observer)
 {
@@ -451,9 +483,7 @@ void function_23dda0(s_observer_state *observer)
 
 	if (options->state == 2)
 	{
-		same_team = false;
-		if (g_55e4d0[g_4e9ae8->engine_index])
-			same_team = TEST_FIELD_BIT(((s_game_options_flags_view *)options)->flag0);
+		same_team = observer_team_mode_23dda0(options);
 	}
 	else
 	{

@@ -1056,7 +1056,8 @@ void __stdcall parse_stick(long string_handle, word *buffer)
 	if (player_index != NONE)
 	{
 		s_player_view *player = &((s_player_view *)g_4e8c24->data)[player_index & 0xffff];
-		long input_user = player->input_user;
+		s_player_view *const *player_reference = &player;
+		long input_user = (*player_reference)->input_user;
 
 		if (input_user != NONE)
 		{

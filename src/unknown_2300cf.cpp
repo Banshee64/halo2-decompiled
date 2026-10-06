@@ -286,18 +286,29 @@ bool function_23029a(c_class_1473c9 *screen)
 				window_manager_channel_window_in_use(5, index);
 			break;
 		case 1:
-			result = window_manager_channel_window_in_use(3, index) || window_manager_channel_window_in_use(2, index) ||
-				window_manager_channel_window_in_use(4, index) || window_manager_channel_window_in_use(5, index);
-			break;
-		case 2:
-			result = window_manager_channel_window_in_use(4, index) || window_manager_channel_window_in_use(5, index);
-			break;
+			if (window_manager_channel_window_in_use(3, index))
+			{
+				goto channel_busy;
+			}
 		case 3:
-			result = window_manager_channel_window_in_use(2, index) || window_manager_channel_window_in_use(4, index) ||
-				window_manager_channel_window_in_use(5, index);
+			if (window_manager_channel_window_in_use(2, index))
+			{
+				goto channel_busy;
+			}
+		case 2:
+			if (window_manager_channel_window_in_use(4, index) || window_manager_channel_window_in_use(5, index))
+			{
+channel_busy:
+				result = true;
+				break;
+			}
+			result = false;
 			break;
 		case 4:
 			result = window_manager_channel_window_in_use(5, index);
+			break;
+		default:
+			result = false;
 			break;
 		}
 	}
