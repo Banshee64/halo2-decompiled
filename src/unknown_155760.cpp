@@ -439,7 +439,7 @@ void function_155b60(long unit_index)
 }
 
 extern dword g_4e8c38[0x143];
-byte g_4e8c40;
+bool g_4e8c40;
 dword g_47fca0[4][8] =
 {
     { 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -497,4 +497,110 @@ void function_155380(void)
     }
     *(word *)((byte *)g_510c6c + 2) = 0;
     *(long *)((byte *)g_510c6c + 0x3c) = NONE;
+}
+
+struct s_observer_command
+{
+    dword flags;
+    byte unknown004[0x88 - 0x4];
+    real unknown88;
+    byte unknown8c[0x94 - 0x8c];
+    vector3f unknown94;
+    vector3f unknowna0;
+};
+
+struct s_camera_update_input
+{
+    long local_index;
+    long unknown04;
+    real elapsed;
+    byte unknown0c[0x2c - 0xc];
+};
+
+__declspec(noinline) void function_16f190(long user_index, s_observer_command *command);
+
+// @retail 0x1554b0
+void function_1554b0(real elapsed)
+{
+    *(real *)g_4e8c38 = elapsed;
+    for (long index = 0; index < 4; index++)
+    {
+        s_entry_155760 *entry = &g_4e8c44[index];
+        if (index != NONE && g_4e8c20->entries[index] != NONE)
+        {
+            s_camera_update_input input;
+            memset(&input, 0, sizeof(input));
+            ((byte *)entry)[0x55] = 0;
+            ((byte *)entry)[0x56] = 0;
+            input.local_index = index;
+            input.elapsed = *(real *)g_4e8c38;
+            switch (g_4e8c3c)
+            {
+            case 0:
+            case 1:
+                function_155c60(index, g_4e8c40);
+                break;
+            case 2:
+                function_155d80(index, g_4e8c40);
+                break;
+            case 3:
+                break;
+            case 4:
+                if (g_4e8c40)
+                {
+                    entry->value10 = 0.0f;
+                    entry->value14 = 0.0f;
+                    entry->proc = function_23c110;
+                    entry->value10c = 1.0f;
+                    entry->flag108 = 0;
+                }
+                break;
+            }
+            s_observer_command command;
+            g_4e8c40 = 0;
+            memset(&command, 0, sizeof(command));
+            if (entry->proc)
+            {
+                if (entry->proc == function_16c840)
+                {
+                    long first = NONE;
+                    for (long user = 0; user < 4; user++)
+                    {
+                        if (g_4e8c20->entries[user] != NONE)
+                        {
+                            first = user;
+                            break;
+                        }
+                    }
+                    if (index != first) goto command_ready;
+                }
+                ((void (__stdcall *)(void *, void *, s_observer_command *))entry->proc)(&entry->value10, &input, &command);
+            }
+        command_ready:
+            s_observer_command *stored = (s_observer_command *)((byte *)entry + 0x5c);
+            if (command.flags & 1)
+            {
+                if (entry->value != 0.0f)
+                {
+                    if (entry->value < 0.2f && entry->proc == function_23c110)
+                    {
+                        entry->value = 0.0f;
+                        command.unknown94.i = 0.0f;
+                        command.unknown8c[0] = 3;
+                        command.unknowna0.i = 0.0f;
+                        command.unknown8c[3] = 3;
+                    }
+                    else if (!(command.unknown88 > entry->value))
+                        command.unknown88 = entry->value;
+                    real remaining = entry->value - elapsed;
+                    if (remaining < 0.0f) remaining = 0.0f;
+                    entry->value = remaining;
+                }
+                *stored = command;
+            }
+            else
+                stored->flags &= ~1;
+            function_16f190(index, stored);
+        }
+    }
 }
