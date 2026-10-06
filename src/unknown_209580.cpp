@@ -82,6 +82,73 @@ long function_209e70(short script_index)
 
 extern s_record_pool *g_4f9394;
 
+int function_11c920(char const *left, char const *right);
+
+struct s_named_thread
+{
+	byte unknown00[4];
+	long script_index;
+	byte unknown08[0x418 - 8];
+};
+
+struct s_script_name_entry
+{
+	char name[32];
+	byte unknown20[8];
+};
+
+struct s_script_name_table
+{
+	byte unknown000[0x1bc];
+	s_script_name_entry *entries;
+};
+
+// @retail 0x209f00
+long __stdcall function_209f00(char const *name)
+{
+	s_record_pool *records = g_4f9384;
+	long index = data_datum_index(records, function_16bc00(records, 0));
+	while (index != NONE)
+	{
+		s_named_thread *thread = &((s_named_thread *)records->data)[index & 0xffff];
+		long script_index = thread->script_index;
+		if (script_index != NONE)
+		{
+			char const *script_name = ((s_script_name_table *)g_4e0350)->entries[script_index].name;
+			if (!function_11c920(script_name, name))
+				return index;
+			records = g_4f9384;
+		}
+		long next = index == NONE ? 0 : (index & 0xffff) + 1;
+		index = data_datum_index(records, data_next_absolute_index_inlined(records, next));
+	}
+	return NONE;
+}
+
+extern s_record_pool *g_4f55d8;
+extern s_record_pool *g_4f55d4;
+void function_20a850(void);
+
+PRIVATE __forceinline void script_pool_disconnect(s_record_pool *data)
+{
+	if (!data->flag1)
+	{
+		data->flag1 = true;
+		data->data = NULL;
+		data->valid = false;
+	}
+}
+
+// @retail 0x20a7d0
+void function_20a7d0(void)
+{
+	function_20a850();
+	script_pool_disconnect(g_4f9394);
+	function_209290();
+	g_4f55d8->valid = false;
+	g_4f55d4->valid = false;
+}
+
 // @retail 0x20a850
 void function_20a850(void)
 {

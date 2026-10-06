@@ -10,6 +10,181 @@
 #include "unknown_1428b0.h"
 #include "unknown_20fe20.h"
 #include <math.h>
+#include <string.h>
+#include <stdlib.h>
+
+void function_210e20(void);
+void function_210f00(void);
+
+// @retail 0x210df0
+void function_210df0(void)
+{
+	memset(g_4f93a4, 0xff, 0x40);
+	function_210f00();
+	function_210e20();
+}
+
+struct s_audio_priority_record
+{
+	short salt;
+	short type;
+	long object_index;
+	byte unknown08[0x14 - 8];
+	long time;
+	byte unknown18[4];
+	short duration;
+	byte unknown1e[4];
+	short priority;
+	byte unknown24[0x40 - 0x24];
+	bool forced;
+	byte unknown41[3];
+	long parent;
+};
+
+struct s_audio_priority_definition
+{
+	byte unknown00[0x1a];
+	short priority;
+	byte unknown1c[0x60 - 0x1c];
+};
+
+struct s_audio_priority_table
+{
+	long count;
+	s_audio_priority_definition *entries;
+};
+
+PRIVATE inline s_audio_priority_table *audio_priority_table(void)
+{
+	s_audio_priority_table *result = NULL;
+	byte *globals = (byte *)g_4e034c;
+	if (globals && *(long *)(globals + 0xc8) > 0)
+	{
+		long index = *(long *)(*(byte **)(globals + 0xcc) + 0x64);
+		if (index != NONE)
+			result = (s_audio_priority_table *)g_4e3b44[index & 0xffff].bytes;
+	}
+	return result;
+}
+
+// @retail 0x20f5a0
+void function_20f5a0(s_audio_priority_record *current, s_audio_priority_record const *previous)
+{
+	s_audio_priority_table *table = audio_priority_table();
+	if (current->time >= previous->time && current->time < previous->time + previous->duration)
+	{
+		bool close = abs(current->time - previous->time) < 3;
+		s_audio_priority_definition *definition = &table->entries[current->type];
+		if ((previous->forced && previous->object_index == current->object_index && current->priority < 11) ||
+			(definition->priority < previous->priority &&
+			 (previous->forced || current->priority <= previous->priority || !close) &&
+			 (previous->forced || current->priority != previous->priority || !close || current->parent == NONE || previous->parent != NONE)))
+		{
+			real seconds = g_510c54->field_2_3 * 0.2f;
+			long delay;
+			__asm
+			{
+				fld seconds
+				fistp delay
+			}
+			current->time = previous->time + previous->duration + delay;
+		}
+	}
+}
+
+struct s_audio_queue;
+extern s_audio_queue *g_4f939c;
+extern s_record_pool *g_4f9398;
+long function_20f040(short team);
+
+// @retail 0x20f1a0
+real function_20f1a0(long object_index, short type)
+{
+	(void)&type;
+	real result = 1.0f;
+	s_audio_priority_table *table = audio_priority_table();
+	if (table)
+	{
+		byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+		short team = *(short *)(object + 0x138);
+		short side = (short)function_20f040(team);
+		byte *queue = (byte *)g_4f939c + side * 0x7dc;
+		long index = *(long *)(queue + 0x7d0);
+		long time = g_510c54->game_time;
+		real seconds = g_510c54->field_2_3 * *(real *)((byte *)&table->entries[type] + 0x24);
+		long delay;
+		__asm
+		{
+			fld seconds
+			fistp delay
+		}
+		time += delay;
+		long found = NONE;
+		for (; index != NONE; )
+		{
+			byte *node = g_4f9398->data + (index & 0xffff) * 0x54;
+			if (*(long *)(node + 0x14) > time)
+				break;
+			found = index;
+			index = *(long *)(node + 0x50);
+		}
+		if (found != NONE && *(long *)(g_4f9398->data + (found & 0xffff) * 0x54 + 4) == object_index)
+			result = 0.5f;
+	}
+	return result;
+}
+
+long function_1caa10(long object_index);
+long function_cbd50(long unit_index, short weapon_index);
+
+PRIVATE __forceinline bool audio_object_type_matches(byte *object, long type)
+{
+	byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+	return *(long *)(definition + 0x5c) > 0 && *(long *)(*(byte **)(definition + 0x60) + 4) == type;
+}
+
+// @retail 0x20c2f0
+bool __stdcall function_20c2f0(long object_index, long type, real *scale)
+{
+	bool result = false;
+	if (object_index != NONE)
+	{
+		byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+		if (audio_object_type_matches(object, type))
+			goto found;
+		if ((1 << *(byte *)(object + 0xaa)) & 3)
+		{
+			if (*(short *)(object + 0x1fc) != NONE)
+			{
+				long parent = *(long *)(object + 0x14);
+				if (*(byte *)(g_4e0300->data + (parent & 0xffff) * 12 + 3) == 1)
+				{
+					long related = function_1caa10(parent);
+					if (related != NONE)
+					{
+						byte *other = *(byte **)(g_4e0300->data + (related & 0xffff) * 12 + 8);
+						if (audio_object_type_matches(other, type))
+							goto found;
+					}
+				}
+			}
+			object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+			long weapon = function_cbd50(object_index, *(char *)(object + 0x212));
+			if (weapon != NONE)
+			{
+				byte *other = *(byte **)(g_4e0300->data + (weapon & 0xffff) * 12 + 8);
+				if (audio_object_type_matches(other, type))
+					goto found;
+			}
+		}
+		return false;
+		found:
+		if (scale)
+			*scale *= 2.0f;
+		return true;
+	}
+	return result;
+}
 
 struct s_audio_weighted_entry
 {
@@ -627,6 +802,67 @@ long g_4fa0c0;
 short g_4f9cbc;
 s_cell g_4f9cc0[8];
 vector3f g_4f93bc[24][8];
+
+void function_211fd0(vector3f *out, real const *position, real time, real scale);
+
+struct s_cell_effect_tag
+{
+	real unknown00[4];
+	real noise_scale;
+	real noise_period;
+	real damping;
+};
+
+// @retail 0x211b70
+void function_211b70(short index, real const *position, byte flags, vector3f *out)
+{
+	(void)&position;
+	byte const *flags_reference = &flags;
+	byte mode = *flags_reference;
+	if (index >= 0 && index < g_4f9cbc)
+	{
+		s_cell *cell = &g_4f9cc0[index];
+		if (cell->active)
+		{
+			s_cell_globals *globals = (s_cell_globals *)g_4e0348;
+			s_cell_effect_tag *tag = (s_cell_effect_tag *)g_4e3b44[globals->sources[index].tag_index & 0xffff].bytes;
+			real noise_scale = 0.0f;
+			if (!(mode & 1))
+				noise_scale = tag->noise_scale;
+			vector3f noise;
+			function_211fd0(&noise, position, tag->noise_scale * cell->interpolation, tag->noise_period);
+			out->i = cell->direction.i * (1.0f - noise_scale) + noise.i;
+			out->j = cell->direction.j * (1.0f - noise_scale) + noise.j;
+			out->k = cell->direction.k * (1.0f - noise_scale) + noise.k;
+			if (mode & 2)
+			{
+				out->i *= 1.0f - tag->damping;
+				out->j *= 1.0f - tag->damping;
+				out->k *= 1.0f - tag->damping;
+			}
+		}
+		else
+			*out = *g_4687a4;
+	}
+	else
+		*out = *g_4687a4;
+}
+
+// @retail 0x211b30
+bool function_211b30(byte const *location, real const *position, byte flags, vector3f *out)
+{
+	(void)&position;
+	(void)&flags;
+	short cluster = *(short const *)(location + 4);
+	long index = NONE;
+	if (cluster != NONE)
+	{
+		byte *clusters = *(byte **)((byte *)g_4e0348 + 0xa0);
+		index = (word)*(short *)(clusters + cluster * 0xb0 + 0x76);
+	}
+	function_211b70((short)index, position, flags, out);
+	return false;
+}
 
 PRIVATE real random_step(void)
 {

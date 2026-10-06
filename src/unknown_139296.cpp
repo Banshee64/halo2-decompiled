@@ -333,6 +333,18 @@ real function_200891(s_interface_pulse const *pulse, bool rising)
 	return result;
 }
 
+// @retail 0x2008fc
+real function_2008fc(s_interface_pulse const *pulse, bool enabled)
+{
+	(void)&enabled;
+	real result;
+	if (enabled)
+		result = function_200891(pulse, true);
+	else
+		result = 1.0f;
+	return result;
+}
+
 PRIVATE __forceinline s_new_hud_user *pulse_user(long index)
 {
 	return &((s_new_hud_globals *)g_510c4c)->users[index];

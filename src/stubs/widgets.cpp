@@ -17,12 +17,6 @@ void __stdcall function_215e60(long index)
 {
 }
 
-// @stub 0x216120
-bool function_216120(word *string, long type)
-{
-	return false;
-}
-
 // @stub 0x1a03a0
 long __stdcall function_1a03a0(long controller_index, word *name)
 {

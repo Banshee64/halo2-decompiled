@@ -3,6 +3,34 @@
 
 #include "unknown_11c920.h"
 #include <string.h>
+#include <xtl.h>
+
+extern void *g_51ea14;
+extern long g_55c280;
+bool function_1249f0(long memory_unit, char *drive_letter);
+char *function_216400(long memory_unit, char *buffer, short capacity);
+bool function_216da0(wchar_t *name, long type, wchar_t const *display_name, long language);
+
+// @retail 0x216120
+bool function_216120(word *string, long type)
+{
+	(void)&type;
+	bool result = false;
+	char drive;
+	if (string && *string && g_51ea14 && function_1249f0(0, &drive))
+	{
+		char path[256] = "";
+		word name[128];
+		char root[8];
+		name[0] = 0;
+		if (function_216da0(name, type, string, g_55c280))
+		{
+			if (XCreateSaveGame(function_216400(0, root, 8), name, 3, 0, path, sizeof(path)) != 0)
+				result = true;
+		}
+	}
+	return result;
+}
 
 enum
 {
