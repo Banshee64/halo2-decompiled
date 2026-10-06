@@ -100,7 +100,91 @@ struct short_rect_pair
 };
 
 short_rect_pair g_485a8a;
+
+// @retail 0x17000
+void function_17000(byte *context, word const *range)
+{
+	word const *const *range_reference = &range;
+	dword *banks[2] = { (dword *)(context + 0x1530), (dword *)(context + 0x1630) };
+	dword *masks[2] = { (dword *)(context + 0x1730), (dword *)(context + 0x1734) };
+	byte *definition = *(byte **)(context + 0xc);
+	byte *instance = *(byte **)(context + 0x10);
+	dword *values = *(dword **)(definition + 0x18);
+	byte *record = *(byte **)(instance + 0x24) + (**range_reference & 0x1ff) * 4;
+	for (long i = 0; i < (**range_reference >> 9); ++i, record += 4)
+	{
+		word packed = *(word *)record;
+		long bank = (packed >> 4) & 1;
+		dword *base = banks[bank];
+		dword *mask = masks[bank];
+		long slot = packed & 15;
+		dword *out = base + slot * 4;
+		*mask |= 1 << slot;
+		dword *source = values + record[3] * 4;
+		switch (((dword)*(word *)record >> 5) & 31)
+		{
+		case 0: case 5: out[0] = source[0]; break;
+		case 1: case 6: out[1] = source[1]; break;
+		case 2: case 7: out[2] = source[2]; break;
+		case 3: case 8: out[3] = source[3]; break;
+		case 4: case 16: case 17:
+			out[0] = source[0]; out[1] = source[1]; out[2] = source[2]; break;
+		case 9: case 11:
+			out[0] = source[0]; out[1] = source[1]; break;
+		case 10: case 12:
+			out[2] = source[2]; out[3] = source[3]; break;
+		case 13: case 18: case 19: case 20:
+			out[0] = source[0]; out[1] = source[1]; out[2] = source[2]; out[3] = source[3]; break;
+		case 14: case 15:
+			out[0] = source[0]; out[1] = source[1]; out[3] = source[3]; break;
+		}
+	}
+}
+
 const real g_45dd7c = 480.0f, g_45dd80 = 640.0f;
+
+struct s_2f6b0_point
+{
+	short x, y;
+};
+
+// @retail 0x2f6b0
+void function_2f6b0(s_2f6b0_point const *position, s_2f6b0_point const *grid,
+	s_2f6b0_point const *span, short_rect *outer, short_rect *inner)
+{
+	(void)&grid;
+	(void)&span;
+	(void)&outer;
+	short_rect full = g_485a8a.a;
+	short_rect bounds = g_485a8a.b;
+	s_2f6b0_point step;
+	step.x = (bounds.v3 - bounds.v1) / grid->x;
+	step.y = (bounds.v2 - bounds.v0) / grid->y;
+	short x = bounds.v1;
+	short y = bounds.v0;
+	bounds.v1 = x + (word)position->x * step.x;
+	bounds.v3 = x + (word)(span->x + position->x) * step.x;
+	bounds.v0 = y + (word)position->y * step.y;
+	bounds.v2 = y + (word)(span->y + position->y) * step.y;
+	*outer = bounds;
+	*inner = bounds;
+	if (position->x == 0)
+		outer->v1 = full.v1;
+	else
+		inner->v1 += 4;
+	if (position->x + span->x >= grid->x)
+		outer->v3 = full.v3;
+	else
+		inner->v3 -= 4;
+	if (position->y == 0)
+		outer->v0 = full.v0;
+	else
+		inner->v0 += 4;
+	if (position->y + span->y >= grid->y)
+		outer->v2 = full.v2;
+	else
+		inner->v2 -= 4;
+}
 
 // @retail 0x16a30
 void function_016a30(real scale, short y, short x)

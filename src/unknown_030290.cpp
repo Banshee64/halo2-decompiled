@@ -9,6 +9,59 @@
 #define k_real_epsilon 0.0001f
 #define k_real_max 3.4028234663852886e+38f
 
+struct s_31f50_object
+{
+	byte unknown00[0xc];
+	long child;
+	long next;
+	byte unknown14[0x1c];
+	point3f center;
+	real radius;
+};
+
+struct s_31f50_header
+{
+	byte unknown00[8];
+	s_31f50_object *object;
+};
+
+PRIVATE inline real bounds_vector_length(vector3f const *vector)
+{
+	return (real)sqrt(vector->k * vector->k + vector->j * vector->j + vector->i * vector->i);
+}
+
+// @retail 0x31f50
+void __stdcall function_31f50(long index, point3f const *origin, vector3f const *axis, real *radial, real *axial)
+{
+	if (index != NONE)
+	{
+		s_31f50_object *object = ((s_31f50_header *)g_4e0300->data)[index & 0xffff].object;
+		vector3f perpendicular;
+		vector3f parallel;
+		vector3f delta;
+		delta.i = object->center.x - origin->x;
+		delta.j = object->center.y - origin->y;
+		delta.k = object->center.z - origin->z;
+		real projection = axis->k * delta.k + axis->j * delta.j + axis->i * delta.i;
+		parallel.i = axis->i * projection;
+		parallel.j = axis->j * projection;
+		parallel.k = axis->k * projection;
+		perpendicular.i = delta.i - parallel.i;
+		perpendicular.j = delta.j - parallel.j;
+		perpendicular.k = delta.k - parallel.k;
+		real width = bounds_vector_length(&perpendicular);
+		real length = bounds_vector_length(&parallel);
+		if (object->radius + width > *radial)
+			*radial = object->radius + width;
+		if (object->radius + length > *axial)
+			*axial = object->radius + length;
+		if (object->child != NONE)
+			function_31f50(object->child, origin, axis, radial, axial);
+		if (object->next != NONE)
+			function_31f50(object->next, origin, axis, radial, axial);
+	}
+}
+
 /* ---- globals ---- */
 #define BIT(n) ((bool)((g_4ba014 >> (n)) & 1))
 byte *g_4858c4;
@@ -382,4 +435,3 @@ real function_31b40(vector3f *vector, vector3f const *axis)
 	*vector = result;
 	return function_30bf0(vector);
 }
-

@@ -735,6 +735,16 @@ void function_445d0(void)
 }
 
 long g_4b6298;
+bool g_4b6294;
+
+void function_1ef70(void);
+
+// @retail 0x1ee50
+void function_1ee50(void)
+{
+	function_1ef70();
+	g_4b6294 = false;
+}
 
 // @retail 0x1ef70
 void function_1ef70(void)
@@ -821,4 +831,3 @@ bool function_39780(bool alternate)
 	D3DDevice_SetPixelShaderProgram(&definition);
 	return true;
 }
-

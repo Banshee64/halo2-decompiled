@@ -12,6 +12,133 @@ struct s_buffer_pair
 };
 
 s_buffer_pair g_5093c0;
+
+void *g_5093b0;
+
+short bitmap_get_mipmap_count(short width, short height, short depth, short format,
+	bool linear, short maximum_levels);
+bool function_0158f0(byte linear, short format, long width, long height,
+	long levels, long usage_index, D3DTexture **out);
+bool function_0159b0(long edge, short format, long levels, long usage_index,
+	D3DCubeTexture **out);
+bool function_015a60(short format, long width, long height, long depth,
+	long levels, long usage_index, D3DVolumeTexture **out);
+
+// @retail 0x1d000
+bool function_1d000(byte *bitmap)
+{
+	short width = *(short *)(bitmap + 4);
+	short height = *(short *)(bitmap + 6);
+	char depth = *(char *)(bitmap + 8);
+	short format = *(short *)(bitmap + 0xc);
+	bool linear = (bitmap[0xe] & 0x10) != 0;
+	void **texture = (void **)(bitmap + 0x50);
+	*texture = NULL;
+	short levels = bitmap_get_mipmap_count(width, height, depth, format, linear,
+		*(short *)(bitmap + 0x14));
+	*(short *)(bitmap + 0x14) = levels;
+	if (g_5093b0)
+	{
+		switch (*(short *)(bitmap + 0xa))
+		{
+		case 0:
+			return function_0158f0(linear, format, width, height, levels, 0,
+				(D3DTexture **)texture);
+		case 1:
+			return function_015a60(format, width, height, depth, levels, 0,
+				(D3DVolumeTexture **)texture);
+		default:
+			return function_0159b0(width, format, levels, 0,
+				(D3DCubeTexture **)texture);
+		}
+	}
+	return true;
+}
+
+struct s_1c330_output
+{
+	long stream;
+	long offset;
+	long format;
+	byte flag_c, flag_d;
+	short unknown0e;
+};
+
+long function_35790(long format);
+long function_35850(long format);
+
+// @retail 0x1c330
+void function_1c330(byte *context, s_1c330_output *output)
+{
+	(void)&context;
+	(void)&output;
+	memset(output, 0, 16 * sizeof(*output));
+	long i;
+	for (i = 0; i < 16; ++i)
+		output[i].format = 2;
+	long mapping[21];
+	memset(mapping, 0xff, sizeof(mapping));
+	byte *selection = context + *(long *)(context + 0x80) * 16;
+	long tag = *(long *)(selection + 4);
+	if (tag != NONE)
+	{
+		byte *definition = g_4e3b44[tag & 0xffff].bytes;
+		byte *entry = *(byte **)(definition + 8) + *(long *)(selection + 8) * 0x1c;
+		dword count = *(dword *)(entry + 4);
+		dword j = 0;
+		if (count > 0)
+		{
+			word *indices = *(word **)(entry + 8);
+			do
+			{
+				mapping[*indices] = j;
+				++j;
+				++indices;
+			} while (j < count);
+		}
+	}
+	else
+	{
+		mapping[0] = 0;
+		mapping[3] = 3;
+		mapping[14] = 9;
+	}
+	for (long stream = 0; stream < *(long *)(context + 0x2d0) ||
+		(*(long *)(context + 0x2d0) == 0 && (dword)stream < 16); ++stream)
+	{
+		char *source = *(char **)(context + 0x8c + stream * 4);
+		if (source)
+		{
+			long offset = 0;
+			for (dword element = 0; element < 10; ++element)
+			{
+				char *pair = source + 1 + element * 2;
+				if (pair[0] >= 0)
+				{
+					long target = mapping[pair[0]];
+					if (target >= 0)
+					{
+						s_1c330_output *entry = &output[target];
+						entry->stream = stream;
+						entry->offset = offset;
+						entry->format = function_35790(pair[1]);
+						entry->flag_c = false;
+						entry->flag_d = false;
+					}
+					long size = function_35850(pair[1]);
+					offset = (byte)size + offset;
+				}
+				else if (pair[0] == -2)
+					offset += pair[1];
+				else
+					break;
+			}
+			*(char **)(context + 0xcc + stream * 4) = source;
+			*(char **)(context + 0x8c + stream * 4) = NULL;
+			context[0x20c] = 0;
+		}
+	}
+}
 long g_5093c8;
 long g_5093cc;
 
@@ -45,6 +172,51 @@ D3DSurface *g_509384;
 D3DTexture *g_50938c;
 D3DSurface *g_509390, *g_509394, *g_509398, *g_50939c, *g_5093a0, *g_5093a4, *g_5093a8;
 short g_485602;
+
+// @retail 0x14980
+void function_14980(void)
+{
+	if (g_50935c)
+	{
+		D3DResource_Release(g_50935c);
+		g_50935c = NULL;
+	}
+	if (g_509360)
+	{
+		D3DResource_Release(g_509360);
+		g_509360 = NULL;
+	}
+	if (g_509364)
+	{
+		D3DResource_Release(g_509364);
+		g_509364 = NULL;
+	}
+	long i = 0;
+	do
+	{
+		if (g_509354[i])
+		{
+			if (!VirtualFree(g_509354[i], 0, MEM_RELEASE)) GetLastError();
+			g_509354[i] = NULL;
+		}
+		++i;
+	} while (i < 2);
+	if (g_509368)
+	{
+		if (!VirtualFree(g_509368, 0, MEM_RELEASE)) GetLastError();
+		g_509368 = NULL;
+	}
+	if (g_50936c)
+	{
+		if (!VirtualFree(g_50936c, 0, MEM_RELEASE)) GetLastError();
+		g_50936c = NULL;
+	}
+	if (g_509370)
+	{
+		if (!VirtualFree(g_509370, 0, MEM_RELEASE)) GetLastError();
+		g_509370 = NULL;
+	}
+}
 real g_4670c8 = 1.0f;
 extern byte g_485607, g_5093fc;
 extern word g_485648, g_48564a, g_48564c, g_48564e;
@@ -954,6 +1126,37 @@ void function_14ac0(void)
 }
 
 long g_4858b8;
+
+// @retail 0x1d4b0
+void function_1d4b0(long format, bool alternate, bool *linear, long *result)
+{
+	*linear = false;
+	switch (format)
+	{
+	case 0x10: case 0x11: case 0x12: case 0x13: case 0x16: case 0x17:
+	case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f: case 0x20:
+	case 0x35: case 0x37: case 0x3d: case 0x3e: case 0x3f: case 0x40: case 0x41:
+		*linear = true;
+		break;
+	}
+	*result = NONE;
+	switch (format)
+	{
+	case 25: *result = 0; break;
+	case 0: *result = 1; break;
+	case 1: *result = 2; break;
+	case 26: *result = 3; break;
+	case 5: *result = 6; break;
+	case 2: *result = 8; break;
+	case 4: *result = 9; break;
+	case 7: *result = 10; break;
+	case 6: *result = 11; break;
+	case 12: *result = 14; break;
+	case 14: *result = 15; break;
+	case 15: *result = 16; break;
+	case 11: *result = alternate ? 17 : 18; break;
+	}
+}
 real g_485adc, g_485ae0;
 
 extern byte *g_50934c;
@@ -1116,6 +1319,33 @@ struct s_shader_constant_state
     long unknown1730;
     dword changed;
 };
+
+struct s_18d70_state
+{
+	byte unknown00[0x1530];
+	real values[16][4];
+	byte unknown1630[0x100];
+	dword changed;
+};
+
+// @retail 0x18d70
+void function_18d70(s_18d70_state *state)
+{
+	dword remaining = state->changed;
+	while (remaining)
+	{
+		long index;
+		__asm
+		{
+			bsf ecx, remaining
+			mov index, ecx
+		}
+		D3DDevice_SetVertexData4f(index, state->values[index][0], state->values[index][1],
+			state->values[index][2], state->values[index][3]);
+		remaining &= ~(1 << index);
+		state->changed &= ~(1 << index);
+	}
+}
 
 // @retail 0x18e80
 void function_18e80(s_shader_constant_state *state)
