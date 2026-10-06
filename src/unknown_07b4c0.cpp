@@ -405,17 +405,17 @@ bool __stdcall function_07c110(s_bitstream *stream, void *session)
 	for (long i = 0; valid && i < count; i++)
 	{
 		s_description_identity identity;
-		char player_name[32];
+		char local_392e35[32];
 		s_player_appearance appearance;
 		function_195820(stream, &identity, 96);
-		function_195820(stream, player_name, 256);
+		function_195820(stream, local_392e35, 256);
 		long value = function_1959c0(stream, 32);
 		long index = function_1959c0(stream, 5);
 		function_7efa0(stream, &appearance);
 		if (i < description->fieldbc)
 		{
 			*(s_description_identity *)(data + 0xbe + i * 12) = identity;
-			utf8_string_to_utf16_string(player_name, (word *)(data + 0x17e + i * 64), 32);
+			utf8_string_to_utf16_string(local_392e35, (word *)(data + 0x17e + i * 64), 32);
 			*(long *)(data + 0x580 + i * 4) = value;
 			*(short *)(data + 0x5c0 + i * 2) = (short)(index - 1);
 			*(s_player_appearance *)(data + 0x5e0 + i * 16) = appearance;
@@ -485,26 +485,26 @@ void __stdcall function_07ba10(s_bitstream *stream, void *session)
 	{
 		s_description_identity identity;
 		s_player_appearance appearance;
-		char player_name[32];
+		char local_392e35[32];
 		long value = 0;
 		short index = NONE;
 		if (i < description->fieldbc)
 		{
 			identity = *(const s_description_identity *)(data + 0xbe + i * 12);
-			memcpy(player_name, data + 0x17e + i * 64, sizeof(player_name));
-			utf16_string_to_utf8_string((const word *)(data + 0x17e + i * 64), player_name, 32);
+			memcpy(local_392e35, data + 0x17e + i * 64, sizeof(local_392e35));
+			utf16_string_to_utf8_string((const word *)(data + 0x17e + i * 64), local_392e35, 32);
 			value = *(const long *)(data + 0x580 + i * 4);
 			index = *(const short *)(data + 0x5c0 + i * 2);
 			appearance = *(const s_player_appearance *)(data + 0x5e0 + i * 16);
 		}
 		else
 		{
-			memset(player_name, 0, sizeof(player_name));
+			memset(local_392e35, 0, sizeof(local_392e35));
 			memset(&identity, 0, sizeof(identity));
 			memset(&appearance, 0, sizeof(appearance));
 		}
 		function_1955d0(stream, &identity, 96);
-		function_1955d0(stream, player_name, 256);
+		function_1955d0(stream, local_392e35, 256);
 		function_195720(stream, value, 32);
 		stream_write_checked(stream, index + 1, 5);
 		function_7ee10(stream, &appearance);
