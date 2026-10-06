@@ -236,3 +236,19 @@ bool function_2168b0(s_saved_game_file_location *location, long file_index)
 	}
 	return result;
 }
+
+
+extern long g_55c150;
+bool g_55c14d;
+struct s_save_list_2164c0;
+void function_2164c0(long memory_unit, s_save_list_2164c0 *list);
+
+// @retail 0x215790
+void function_215790(void)
+{
+    if (g_55c14d && g_51ea14 && (g_55c150 & 1))
+    {
+        function_2164c0(0, (s_save_list_2164c0 *)((byte *)g_51ea14 + 0xbef8));
+        g_55c150 &= ~1;
+    }
+}

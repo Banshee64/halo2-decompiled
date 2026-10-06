@@ -204,3 +204,17 @@ long function_2116f0(long unit_index, long filter_range, long seat_type, long oc
 
 	return result_count;
 }
+
+
+bool function_290190(long object_index, point3f *position);
+
+// @retail 0x211680
+bool function_211680(long object_index, point3f *position)
+{
+    point3f *const *position_reference = &position;
+    byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+    bool result = false;
+    if (!*(long *)(object + 0x134))
+        result = function_290190(object_index, *position_reference);
+    return result;
+}

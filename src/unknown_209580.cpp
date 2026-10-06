@@ -172,3 +172,26 @@ void function_20a850(void)
 		index = data_datum_index(expressions, data_next_absolute_index_inlined(expressions, next));
 	}
 }
+
+
+extern long g_4686c0;
+void function_2a09c0(void);
+void function_2090a0(void);
+
+// @retail 0x20a750
+void function_20a750(void)
+{
+    byte *scenario = (byte *)g_4e0350;
+    if (g_4686c0 == NONE ? NULL : scenario)
+    {
+        if (g_4f9394->flag1)
+            function_16b6b0(g_4f9394, *(long *)(scenario + 0x238), *(byte **)(scenario + 0x23c));
+        if (*(long *)(scenario + 0x1b8) || *(long *)(scenario + 0x1d0) <= 0)
+            function_2a09c0();
+    }
+    g_4f55d8->valid = true;
+    record_pool_release_all(g_4f55d8);
+    g_4f55d4->valid = true;
+    record_pool_release_all(g_4f55d4);
+    function_2090a0();
+}
