@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6489 functions match
+
+```
+matched 6489 of 11318 game functions (699767 of 2784283 bytes, 25.13%)
+```
+
+6489 new matches, none lost:
+- Codex lane Z round 8: four more event senders (0xa8c10, 0xa8cf0, 0xa8dd0, 0xa9120).
+
 ## 2026-10-06: 6485 functions match
 
 ```
