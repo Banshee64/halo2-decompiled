@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6567 functions match
+
+```
+matched 6567 of 11318 game functions (708667 of 2784283 bytes, 25.45%)
+```
+
+6567 new matches, none lost:
+- Codex lane Q round 6: 0x150820, 0x151c10 and 0x151c90.
+
 ## 2026-10-06: 6564 functions match
 
 ```

@@ -16,7 +16,7 @@ struct s_event;
 class c_engine_peer
 {
 public:
-	virtual void p0() {}
+	virtual long p0() { return 0; }
 	virtual bool p1() { return false; }
 	virtual void p2() {}
 	virtual void p3() {}
@@ -46,7 +46,7 @@ public:
 	virtual bool p27(short, short) { return false; }
 	virtual void p28() {}
 	virtual void p29(long, long, long) {}
-	virtual void p30(long, long, long) {}
+	virtual void p30(long, long, long, long) {}
 	virtual long p31(long, long, long) { return 0; }
 	virtual void p32() {}
 	virtual void p33() {}

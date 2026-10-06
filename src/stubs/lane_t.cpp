@@ -20,12 +20,6 @@ void function_3f660(transform4x3f const *matrix)
 {
 }
 
-/* lane Q's region */
-// @stub 0x1554b0
-void function_1554b0(long unknown)
-{
-}
-
 // @stub 0x16ebf0
 void function_16ebf0(long user_index)
 {

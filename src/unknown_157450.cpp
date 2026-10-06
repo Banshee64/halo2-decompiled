@@ -3226,17 +3226,17 @@ bool function_15db30(long player_index);
 long function_15ee30(long player_index)
 {
 	long const *player_reference = &player_index;
-	bool tied;
-	bool override_status = false;
-	long result = game_engine_get()->p37(*player_reference, &override_status);
-	if (override_status || result == NONE)
+	struct { byte padding[2]; bool override_status; bool tied; } status;
+	status.override_status = false;
+	long result = game_engine_get()->p37(*player_reference, &status.override_status);
+	if (status.override_status || result == NONE)
 	{
 		bool leading;
 		if (g_4e6948->flag1128)
 		{
-			function_159460(*player_reference, &leading, &tied);
+			function_159460(*player_reference, &leading, &status.tied);
 			if (leading)
-				result = tied ? 9 : 8;
+				result = status.tied ? 9 : 8;
 			else
 				result = 10;
 		}
@@ -3277,9 +3277,9 @@ long function_15ee30(long player_index)
 					else if (result == NONE)
 					{
 						bool unlimited = g_4e6948->score_to_win == 0;
-						function_159460(*player_reference, &leading, &tied);
+						function_159460(*player_reference, &leading, &status.tied);
 						if (leading)
-							result = !tied ? (unlimited ? 25 : 5) : (unlimited ? 26 : 6);
+							result = !status.tied ? (unlimited ? 25 : 5) : (unlimited ? 26 : 6);
 						else
 							result = unlimited ? 27 : 7;
 					}
@@ -3578,4 +3578,489 @@ long function_15a640(long tag_index)
     return result;
     }
     return tag_index;
+}
+
+#include "object_markers.h"
+long function_1469f0(real seconds);
+
+struct s_player_death_state
+{
+    byte active;
+    byte unknown01[3];
+    point3f position;
+    short ticks;
+    short initial_ticks;
+    byte unknown14[4];
+};
+
+static inline long death_seconds_to_ticks(real seconds)
+{
+    real scaled = (real)g_510c54->field_2_3 * seconds;
+    long result;
+    __asm { fld scaled }
+    __asm { fistp result }
+    return result;
+}
+
+// @retail 0x15ce70
+void function_15ce70(long attacker_index, long victim_index, bool betrayal, byte damage)
+{
+    if (!game_engine_get()) return;
+    s_engine_player *victim = engine_player_get(victim_index);
+    long damage_type = damage & 0x3f;
+    long damage_modifier = damage >> 6;
+    long award = NONE;
+    bool special = damage_type == 3 || damage_type == 0x1a || damage_type == 0x18 || damage_type == 0x17 || damage_type == 0x14;
+    long elapsed = g_510c54->game_time - ((s_engine_round_clock *)g_4e9ae8)->start_time;
+    if (elapsed < 0) elapsed = 0;
+    *(long *)((byte *)victim + 0x1b4) = elapsed;
+    if (attacker_index != NONE)
+    {
+        s_engine_player *attacker = engine_player_get(attacker_index);
+        bool different = attacker_index != victim_index;
+        bool same_team = false;
+        if (game_engine_get()) same_team = game_engine_get()->p27(attacker->team, victim->team);
+        if (!different)
+            *(long *)victim->unknown168 += death_seconds_to_ticks((real)*(long *)((byte *)g_4e6948 + 0x1c0));
+        else if (!same_team && !victim->value164)
+            *(long *)attacker->unknown168 += function_1469f0((real)*(long *)((byte *)g_4e6948 + 0x1e8));
+    }
+    if (g_4e6948->state == 2 && g_4e6948->mode != 4 && function_15b2f0() && victim->value1ac != NONE)
+    {
+        long lives = victim->value1ac - 1;
+        if (lives <= 0) lives = 0;
+        victim->value1ac = (short)lives;
+        function_a7840((short)victim_index, 0x20);
+    }
+    s_player_death_state *state = (s_player_death_state *)&function_xaee93d()->players[(short)victim_index];
+    long interval = death_seconds_to_ticks((real)engine_options()->value1bc);
+    long minimum = death_seconds_to_ticks(1.0f);
+    long penalty = *(long *)victim->unknown168;
+    long delay = penalty > minimum ? penalty : minimum;
+    long total = penalty + interval;
+    if (total <= minimum) total = minimum;
+    long mode = 2;
+    if (function_x340af0()) mode = *(long *)((byte *)g_4e6948 + 0x1e4);
+    switch (mode)
+    {
+    case 0:
+        function_15d6c0(victim_index, total, delay);
+        break;
+    case 1:
+        {
+            long now = g_510c54->game_time - ((s_engine_round_clock *)g_4e9ae8)->start_time;
+            if (now < 0) now = 0;
+            long next = (now / interval + 1) * interval;
+            while (next < now + delay) next += interval;
+            victim->value164 = next - now;
+        }
+        break;
+    case 2:
+        victim->value164 = total;
+        break;
+    }
+    *(long *)victim->unknown168 = 0;
+    if (victim->unit_index != NONE)
+    {
+        s_object_marker marker;
+        state->active = 1;
+        function_b8d30(victim->unit_index, 0x4000095, &marker, 1, false);
+        state->position = marker.matrix.position;
+    }
+    else
+    {
+        state->active = 0;
+        state->position.x = 0.0f;
+        state->position.y = 0.0f;
+        state->position.z = 500.0f;
+    }
+    state->ticks = (short)victim->value164;
+    state->initial_ticks = (short)victim->value164;
+    if (game_engine_get())
+    {
+        long object = function_xaee93d()->slots[(short)victim_index];
+        if (object != NONE) function_b58c0(object, 1);
+    }
+    long subtype = NONE;
+    if (damage_type != 0x29)
+    {
+        if (victim->flags & 2) subtype = 0xb;
+        else if (attacker_index == NONE)
+        {
+            if (damage_type == 1) subtype = 0x22;
+            else if (damage_type != 0x19) subtype = 0xd;
+        }
+        else if (attacker_index == victim_index) subtype = damage_type == 1 ? 0x22 : 1;
+        else if (betrayal) subtype = 2;
+        else if (special)
+        {
+            award = 0;
+            subtype = damage_modifier == 2 ? 0x2b : 0x24;
+            if (damage_modifier != 2 && damage_modifier == 1) award = 0xe;
+        }
+        else if (damage_type == 2 || damage_modifier == 3)
+        {
+            subtype = 0x23;
+            award = 1;
+            if (damage_modifier == 1) award = 0xe;
+        }
+        else if (damage_type == 0x16 && damage_modifier == 2)
+        {
+            subtype = 0x29;
+            award = 2;
+        }
+        else
+        {
+            subtype = damage_type == 0xd || damage_type == 0xe ? 0x2a : 0;
+            if (damage_modifier == 1) award = 0xe;
+        }
+    }
+    long override_type = game_engine_get()->p31(attacker_index, victim_index, betrayal);
+    if (override_type != NONE) subtype = override_type;
+    if (subtype != NONE)
+    {
+        s_event event;
+        game_engine_event_initialize_inline(&event, 0, subtype);
+        if (attacker_index != NONE)
+        {
+            event.cause_player_index = attacker_index;
+            event.cause_team = engine_player_get(attacker_index)->team;
+        }
+        game_engine_event_set_effect_player_inline(&event, victim_index);
+        game_engine_event_send_inline(&event);
+    }
+    if (attacker_index != NONE && attacker_index != victim_index && !betrayal)
+    {
+        long index = attacker_index & 0xffff;
+        short chain = *(short *)((byte *)&game_engine_get_statborg()->players[index] + 0x14);
+        short streak = *(short *)((byte *)&game_engine_get_statborg()->players[index] + 0x12);
+        short victim_streak = *(short *)((byte *)&game_engine_get_statborg()->players[victim_index & 0xffff] + 0x12);
+        if (chain >= 7) function_1970a0(index, 5, 1);
+        else if (chain == 6) function_1970a0(index, 4, 1);
+        else if (chain == 5) function_1970a0(index, 3, 1);
+        else if (chain == 4) function_1970a0(index, 2, 1);
+        else if (chain == 3) function_1970a0(index, 1, 1);
+        else if (chain == 2) function_1970a0(index, 0, 1);
+        if (streak == 5) function_1970a0(index, 0xd, 1);
+        else if (streak == 10) function_1970a0(index, 0xe, 1);
+        else if (streak == 15) function_1970a0(index, 0xf, 1);
+        else if (streak == 20) function_1970a0(index, 0x10, 1);
+        else if (streak == 25) function_1970a0(index, 0x11, 1);
+        if (damage_type == 0xd || damage_type == 0xe) function_1970a0(index, 6, 1);
+        if (damage_type == 2 || damage_modifier == 3) function_1970a0(index, 7, 1);
+        if (damage_type == 0x16 && damage_modifier == 2) function_1970a0(index, 0xc, 1);
+        if (special) function_1970a0(index, damage_modifier == 2 ? 9 : 8, 1);
+        long message = NONE;
+        if (chain >= 7) { message = 9; award = 8; }
+        else if (chain == 6) { message = 8; award = 7; }
+        else if (chain == 5) { message = 7; award = 6; }
+        else if (chain == 4) { message = 2; award = 5; }
+        else if (chain == 3) { message = 1; award = 4; }
+        else if (chain == 2) { message = 0; award = 3; }
+        else if (streak == 5) { message = 3; award = 9; }
+        else if (streak == 10) { message = 4; award = 10; }
+        else if (streak == 15) { message = 10; award = 11; }
+        else if (streak == 20) { message = 11; award = 12; }
+        else if (streak > 20 && streak % 5 == 0) { message = 12; award = 13; }
+        else if (victim_streak >= 5) message = 6;
+        if (message != NONE)
+        {
+            s_event event;
+            game_engine_event_initialize_inline(&event, 1, message);
+            game_engine_event_set_cause_player(&event, attacker_index);
+            game_engine_event_set_effect_player(&event, victim_index);
+            function_19eb90(&event);
+        }
+    }
+    game_engine_get()->p30(attacker_index, victim_index, betrayal, award);
+}
+
+#include "unknown_07f720.h"
+#include <wchar.h>
+
+extern color3f *g_468714;
+dword __cdecl pack_color3f(color3f const *color);
+bool function_15eaf0(void);
+bool function_161e10(long team);
+void game_engine_format_time(long seconds, word *text);
+bool function_162b10(long object_index);
+real function_242140(long object_index);
+
+struct s_player_score_display
+{
+    long type;
+    bool teams;
+    byte unknown05[3];
+    long limit;
+    word name[32];
+    bool timer;
+    byte unknown4d;
+    word timer_text[8];
+    byte unknown5e[2];
+    color3f color;
+    bool leading;
+    byte unknown6d[3];
+    long player_index;
+    long score;
+    word score_text[8];
+    bool rival;
+    byte unknown89[3];
+    long rival_index;
+    color3f rival_color;
+    long rival_score;
+    word rival_text[8];
+    bool charge;
+    byte unknownb1[3];
+    real charge_fraction;
+    long zone_count;
+    dword zone_colors[8];
+    real zone_progress[8];
+};
+
+struct s_player_zone_progress
+{
+    byte unknown00;
+    char zone;
+    byte progress;
+    byte unknown03[5];
+};
+struct s_score_zone_view
+{
+    byte unknown00[0x15c];
+    short indices[8];
+    long holders[8];
+    byte unknown18c[4];
+    s_player_zone_progress players[16];
+    short count;
+};
+
+// @retail 0x15f3a0
+bool function_15f3a0(long local_index, s_player_score_display *display)
+{
+    s_statborg *stats = game_engine_statborg_inline();
+    long player_index = NONE;
+    if (local_index != NONE) player_index = g_4e8c20->entries[local_index];
+    bool result = true;
+    memset(display, 0, sizeof(*display));
+    if (player_index != NONE && stats)
+    {
+        s_engine_player *player = engine_player_get(player_index);
+        bool rounds = false;
+        if (*(long *)((byte *)g_4e6948 + 0x18c) == 1) rounds = true;
+        if (player->team != NONE)
+        {
+            unicode_string_snprintf(display->name, 32, (word const *)L"%s", (word *)((byte *)g_4e6948 + 0x140));
+            c_engine_peer *engine = game_engine_get();
+            if (engine)
+            {
+                switch (engine->p0())
+                {
+                case 1: display->type = 2; break;
+                case 9: display->type = 3; break;
+                default: display->type = 1; break;
+                }
+            }
+            else display->type = 0;
+            if (engine_options()->value190 == 0) display->timer = false;
+            else
+            {
+                display->timer = true;
+                function_15ea80(0xe423, display->timer_text, 8);
+            }
+            if (rounds)
+            {
+                switch (*(long *)((byte *)g_4e6948 + 0x188))
+                {
+                case 0: display->limit = 1; break;
+                case 1: display->limit = 2; break;
+                case 2: display->limit = 4; break;
+                case 3: display->limit = 6; break;
+                case 4: display->limit = 2; break;
+                case 5: display->limit = 3; break;
+                case 6: display->limit = 4; break;
+                default: __assume(0);
+                }
+            }
+            else display->limit = *(long *)((byte *)g_4e6948 + 0x18c);
+            display->teams = function_15eaf0();
+            if (display->teams)
+            {
+                long field = rounds ? 7 : 0;
+                long score = ((short *)&stats->teams[player->team])[field];
+                display->player_index = NONE;
+                display->rival_index = NONE;
+                long best_score = -32768;
+                long best = NONE;
+                for (long team = 0; team < 8; team++)
+                {
+                    if (team != player->team && function_161e10(team))
+                    {
+                        long candidate = ((short *)&stats->teams[team])[field];
+                        if (candidate > best_score) { best = team; best_score = candidate; }
+                    }
+                }
+                if (best != NONE)
+                {
+                    word text[256];
+                    text[0] = 0;
+                    function_159130(best_score, text);
+                    wcsncpy((wchar_t *)display->rival_text, (wchar_t const *)text, 7);
+                    display->rival_text[7] = 0;
+                    color3f color;
+                    display->rival_color = *function_7f720(&color, (short)best);
+                    display->rival_score = best_score;
+                    display->leading = score > best_score;
+                    display->rival = true;
+                }
+                else { display->rival = false; display->leading = true; }
+                word text[256];
+                text[0] = 0;
+                long mode = g_4e6948->mode_180;
+                if ((mode >= 3 && mode <= 4) || mode == 8) game_engine_format_time(score, text);
+                else function_1630e0(text, (word const *)L"%d", score);
+                wcsncpy((wchar_t *)display->score_text, (wchar_t const *)text, 7);
+                display->score_text[7] = 0;
+                display->score = score;
+                color3f color;
+                display->color = *function_7f720(&color, player->team);
+            }
+            else
+            {
+                long field = rounds ? 7 : 0;
+                long score = ((short *)&stats->players[player_index & 0xffff])[field];
+                display->player_index = player_index;
+                long best = NONE;
+                long best_score = -32768;
+                s_engine_player_iterator iterator;
+                iterator.data = g_4e8c24;
+                iterator.index = NONE;
+                iterator.absolute_index = NONE;
+                while (function_19f240((long *)&iterator))
+                {
+                    if (iterator.index != player_index)
+                    {
+                        long candidate = ((short *)&stats->players[iterator.index & 0xffff])[field];
+                        if (candidate > best_score) { best = iterator.index; best_score = candidate; }
+                    }
+                }
+                if (best != NONE)
+                {
+                    s_engine_player *other = engine_player_get(best);
+                    word text[256];
+                    text[0] = 0;
+                    function_159130(best_score, text);
+                    wcsncpy((wchar_t *)display->rival_text, (wchar_t const *)text, 7);
+                    display->rival_text[7] = 0;
+                    color3f colors[4];
+                    function_7f790(display->teams ? other->team : NONE, false, (s_player_appearance *)((byte *)other + 0x84), colors);
+                    display->rival_color = colors[0];
+                    display->rival_score = best_score;
+                    display->rival_index = best;
+                    display->leading = score > best_score;
+                    display->rival = true;
+                }
+                else { display->rival = false; display->leading = true; }
+                word text[256];
+                text[0] = 0;
+                function_159130(score, text);
+                wcsncpy((wchar_t *)display->score_text, (wchar_t const *)text, 7);
+                display->score_text[7] = 0;
+                display->score = score;
+                color3f colors[4];
+                function_7f790(display->teams ? player->team : NONE, false, (s_player_appearance *)((byte *)player + 0x84), colors);
+                display->color = colors[0];
+            }
+            if (!rounds && display->limit == 0)
+            {
+                long highest = display->rival_score > display->score ? display->rival_score : display->score;
+                display->limit = highest < 1 ? 1 : highest;
+            }
+            if (g_4e6948->mode_180 == 8)
+            {
+                display->zone_count = 0;
+                dword present = 0;
+                s_engine_player_iterator iterator;
+                iterator.data = g_4e8c24;
+                iterator.index = NONE;
+                iterator.absolute_index = NONE;
+                while (function_19f240((long *)&iterator)) present |= 1 << iterator.index;
+                s_score_zone_view *zones = (s_score_zone_view *)g_4e9ae8;
+                for (long zone = 0; zone < zones->count; zone++)
+                {
+                    if (zones->indices[zone] != NONE)
+                    {
+                        long holder = zones->holders[zone];
+                        byte progress = 0;
+                        if (holder != NONE)
+                        {
+                            s_engine_player *owner = engine_player_get(holder);
+                            color3f color = *g_468714;
+                            if (owner->team != NONE)
+                            {
+                                color3f team_color;
+                                color = *function_7f720(&team_color, owner->team);
+                            }
+                            for (long p = 0; p < 16; p++)
+                                if (((word)present & (1 << p)) && zones->players[p].zone == zone && progress <= zones->players[p].progress)
+                                    progress = zones->players[p].progress;
+                            display->zone_colors[display->zone_count] = pack_color3f(&color);
+                            display->zone_progress[display->zone_count] = 1.0f - (real)progress * (1.0f / 63.0f);
+                        }
+                        else
+                        {
+                            long best = NONE;
+                            for (long p = 0; p < 16; p++)
+                                if (((word)present & (1 << p)) && zones->players[p].zone == zone && zones->players[p].progress > progress)
+                                { best = p; progress = zones->players[p].progress; }
+                            if (best != NONE)
+                            {
+                                s_engine_player *owner = 0;
+                                if (best >= 0 && best < g_4e8c24->high_water_index)
+                                {
+                                    s_engine_player *entry = (s_engine_player *)(g_4e8c24->data + g_4e8c24->size * best);
+                                    if (entry->salt) owner = entry;
+                                }
+                                color3f color = *g_468714;
+                                if (owner->team != NONE)
+                                {
+                                    color3f team_color;
+                                    color = *function_7f720(&team_color, owner->team);
+                                }
+                                display->zone_colors[display->zone_count] = pack_color3f(&color);
+                                display->zone_progress[display->zone_count] = (real)progress * (1.0f / 63.0f);
+                            }
+                            else
+                            {
+                                display->zone_colors[display->zone_count] = 0;
+                                display->zone_progress[display->zone_count] = 0.0f;
+                            }
+                        }
+                        display->zone_count++;
+                    }
+                }
+            }
+            else display->zone_count = 0;
+        }
+        else result = false;
+        if (player->unit_index != NONE)
+        {
+            long weapon = NONE;
+            byte *unit = ((byte **)(g_4e0300->data + (player->unit_index & 0xffff) * 12))[2];
+            short slot = *(char *)(unit + 0x212);
+            if (slot != NONE) weapon = ((long *)(unit + 0x218))[slot];
+            if (function_162b10(weapon))
+            {
+                real charge = function_242140(weapon);
+                if (charge > 0.0f) { display->charge = true; display->charge_fraction = charge; }
+            }
+            else if (g_4e6948->mode_180 == 8)
+            {
+                s_player_zone_progress *progress = &((s_score_zone_view *)g_4e9ae8)->players[player_index & 0xffff];
+                if (progress->progress && progress->zone != NONE)
+                { display->charge = true; display->charge_fraction = (real)progress->progress * (1.0f / 63.0f); }
+            }
+        }
+    }
+    else result = false;
+    return result;
 }
