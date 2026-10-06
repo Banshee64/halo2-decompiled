@@ -81,7 +81,7 @@ void function_1c54b0(long object_index, char const *variants);
 void function_1c5710(long object_index);
 
 // @retail 0xba410
-void __stdcall function_ba410(long object_index, long region_name, long variant_name)
+void __stdcall function_ba410(long object_index, long region_name, long arg_dbe893)
 {
     char previous[16];
     s_object_blocks_header_ab *header = (s_object_blocks_header_ab *)g_4e0300->data + (object_index & 0xffff);
@@ -100,8 +100,8 @@ void __stdcall function_ba410(long object_index, long region_name, long variant_
         {
             if (i == region_index || !region_name)
             {
-                long variant = function_16d220(i, definition->model_index, (string_handle)variant_name);
-                if (variant != NONE || !variant_name)
+                long variant = function_16d220(i, definition->model_index, (string_handle)arg_dbe893);
+                if (variant != NONE || !arg_dbe893)
                 {
                     regions[i] = (char)variant;
                     s_region_change_ab *change = (s_region_change_ab *)(regions + count * 2) + i;
