@@ -17,7 +17,8 @@ struct s_animation_data
 // @retail 0x28c470
 void function_28c470()
 {
-	short *a = (short *)((byte *)g_sampling_settings.field_30 + g_5044b4 * 8 + 0x20);
+	long index = g_5044b4;
+	short *a = (short *)((byte *)g_sampling_settings.field_30 + index * 8 + 0x20);
 	quaternionf *result = &g_5044c0->rotation;
 
 	__asm
