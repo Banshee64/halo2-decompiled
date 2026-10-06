@@ -14,7 +14,3 @@ void __stdcall function_1d24a0(s_havok_component *component, float position) { }
 // @stub 0xbf600
 void __stdcall function_bf600(long user, float frame, s_animation_frame_event const *event) { }
 /* an object's forward and up vectors */
-/* the machine's and the crate's callback at +0x4c: asks the object's Havok
-   component (another file's) */
-// @stub 0x11bd60
-bool __stdcall function_11bd60(long object_index, long a, long b, long c) { return false; }

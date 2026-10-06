@@ -474,7 +474,7 @@ void function_cafc0(long unit_index, point3f *position);
 real function_11cf50(vector3f const *a, vector3f const *b);
 void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
 void function_b9a90(long object_index);
-void function_11bf90(long object_index, point3f *point);
+long function_11bf90(long object_index, point3f *point);
 void function_b75a0(long object_index, point3f const *point, vector3f const *forward, vector3f const *up,
 	s_location const *location, bool unknown);
 void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity);

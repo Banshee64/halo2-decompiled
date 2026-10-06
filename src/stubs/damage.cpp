@@ -34,8 +34,6 @@ void __stdcall function_184250(s_type_1e6529 const *data) { }
 struct s_damage_report;
 // @stub 0x119280
 void function_119280(long object_index, unsigned long flags) { }
-// @stub 0x119020
-void function_119020(long creature_index, union vector3f const *impulse) { }
 // @stub 0x1e9fa0
 void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, unsigned short team, unsigned char kind) { }
 // @stub 0xa80f0

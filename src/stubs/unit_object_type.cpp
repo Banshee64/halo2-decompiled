@@ -11,9 +11,6 @@ void function_114c60(long unit_index) { }
 /* in the biped range (PR #28 writes it) */
 
 /* outside the unit range */
-// @stub 0x114240
-void function_114240(long unit_index) { }
-
 
 // @stub 0xa9440
 void function_a9440(long unit_index, long player_index) { }
@@ -41,9 +38,6 @@ void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real u
 void function_a8950(long unit_index, long definition_index) { }
 
 /* outside the unit range */
-// @stub 0x11bf90
-void function_11bf90(long object_index, point3f *point) { }
-
 /* in the biped range (PR #28 writes it) */
 
 /* outside the unit range */
@@ -69,9 +63,6 @@ bool function_1d48f0(s_havok_component *component, short rigid_body_index, long 
 /* outside the unit range */
 
 /* outside the unit range */
-
-// @stub 0x114ec0
-void function_114ec0(long unit_index, long a) { }
 
 /* outside the unit range */
 // @stub 0xa8a30
@@ -103,9 +94,6 @@ void function_1147e0(long unit_index, bool a, real b, real c, long definition_in
 // @stub 0x1c95d0
 void function_1c95d0(long unit_index, long attacker_index, short type, real amount) { }
 
-
-// @stub 0x1143d0
-bool function_1143d0(long unit_index) { return false; }
 
 struct s_unit_melee_hit;
 // @stub 0xa9260

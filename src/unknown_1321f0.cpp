@@ -597,3 +597,368 @@ dword function_1332f0(s_bit_vector_pool const *data, word flags)
 
 	return result;
 }
+
+extern long g_4de2fc;
+extern long g_4de300[0x800];
+bool function_bec70(long object_index);
+
+struct s_visibility_object
+{
+	long definition;
+	union
+	{
+		dword flags;
+		struct { dword low_flags : 31; dword flag31 : 1; };
+	};
+	byte unknown08[0x30 - 8];
+	point3f center;
+	real radius;
+	byte unknown40[0x10];
+	point3f alternate_center;
+	real alternate_radius;
+};
+struct s_visibility_object_header
+{
+	byte unknown00[8];
+	s_visibility_object *object;
+};
+
+// @retail 0x133050
+void function_133050(s_bit_vector_pool *data, long object_index, short section, bool flag_a, bool flag_b)
+{
+	if (g_4de300[object_index & 0xffff] != g_4de2fc)
+	{
+		bool first = true;
+		bool second = true;
+		bool contained = true;
+		s_visibility_object *object = ((s_visibility_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		c_entry_list *filter = (c_entry_list *)data->filter;
+		if (filter)
+			filter = *(c_entry_list **)((byte *)filter + 0x14);
+		point3f const *center;
+		real radius;
+		if (!data->mode)
+		{
+			center = &object->center;
+			radius = object->radius;
+		}
+		else
+		{
+			center = &object->alternate_center;
+			radius = object->alternate_radius;
+		}
+		bool visible = function_132e60(data, center, radius, filter, object_index, section, flag_b, &contained, &first, &second) || ((char)data->flags2a60 >> 7) != 0;
+		if (data->mode && second)
+			second = !(object->flags & 0x10000);
+		if (visible)
+		{
+			bool in_front;
+			bool behind;
+			function_132fd0(data, center, &behind, &in_front, radius);
+			dword flags = function_132b10(in_front, first, second, flag_a, flag_b, contained, behind);
+			long entry = NONE;
+			if (!(flags & 0x800) && TEST_FIELD_BIT(object->flag31))
+				entry = function_134300(data, section);
+			if (data->lists[2]->add(object_index, (short)flags, 0, (short)entry))
+				function_bec70(object_index);
+		}
+	}
+	else
+	{
+		c_entry_list *list = data->lists[2];
+		short index = NONE;
+		bool found = false;
+		for (long i = 0; i < list->count && !found; i++)
+		{
+			found = list->longs_a[(short)i] == object_index;
+			index = (short)i;
+		}
+		if (!(list->shorts_b[index] & 0x800))
+		{
+			short entry = list->shorts_d[index];
+			if (entry != NONE)
+				data->entries[entry][section >> 5] |= 1 << (section & 31);
+		}
+		if (flag_a)
+		{
+			list = data->lists[2];
+			for (long i = 0; i < list->count; i++)
+			{
+				if (list->longs_a[(short)i] == object_index)
+				{
+					short *flags = &list->shorts_b[(short)i];
+					*flags |= 0x400;
+					break;
+				}
+			}
+		}
+		if (flag_b)
+		{
+			list = data->lists[2];
+			for (long i = 0; i < list->count; i++)
+			{
+				if (list->longs_a[(short)i] == object_index)
+				{
+					short *flags = &list->shorts_b[(short)i];
+					*flags |= 0x200;
+					break;
+				}
+			}
+		}
+	}
+}
+
+extern long g_4e7c1c;
+long g_4e7c20[1024];
+bool function_16e210(long cluster_index, long value);
+
+struct s_visible_cluster
+{
+	byte unknown00[0x24];
+	word surface_count;
+	byte unknown26[0x54 - 0x26];
+	real bounds[3][2];
+	byte unknown6c[0x98 - 0x6c];
+	long instance_count;
+	word *instances;
+	byte unknowna0[0xb0 - 0xa0];
+};
+struct s_visible_instance
+{
+	byte unknown00[0x34];
+	short definition;
+	byte unknown36[6];
+	point3f center;
+	real radius;
+	byte unknown4c[0x58 - 0x4c];
+};
+struct s_visibility_bsp
+{
+	byte unknown00[0xa0];
+	s_visible_cluster *clusters;
+	byte unknowna4[0x13c - 0xa4];
+	byte *definitions;
+	long instance_count;
+	s_visible_instance *instances;
+};
+
+__forceinline bool visibility_append(c_entry_list *list, long index, short flags, short entry)
+{
+	if ((word)list->count < list->maximum_count - 1)
+	{
+		list->longs_a[(word)list->count] = index;
+		list->shorts_b[(word)list->count] = flags;
+		list->longs_c[(word)list->count] = 0;
+		list->shorts_d[(word)list->count] = entry;
+		list->count++;
+		return true;
+	}
+	return false;
+}
+
+// @retail 0x134390
+void __stdcall function_134390(s_bit_vector_pool *data)
+{
+	if (data->flags2a60 & 0x20)
+		return;
+	for (long i = 0; (short)i < ((s_sort_context *)data->context)->count; i++)
+	{
+		s_sort_entry *item = &((s_sort_context *)data->context)->entries[(short)i];
+		s_visibility_bsp *bsp = (s_visibility_bsp *)g_4e0348;
+		s_visible_cluster *cluster = &bsp->clusters[item->value];
+		data->flags[item->value >> 5] |= 1 << (item->value & 31);
+		((byte *)data->indices)[item->value] = (byte)i;
+		if (cluster->surface_count > 0)
+		{
+			long cluster_index = item->value;
+			s_visible_cluster *bounds = &bsp->clusters[cluster_index];
+			point3f center;
+			center.x = (bounds->bounds[0][0] + bounds->bounds[0][1]) * 0.5f;
+			center.y = (bounds->bounds[1][0] + bounds->bounds[1][1]) * 0.5f;
+			center.z = (bounds->bounds[2][0] + bounds->bounds[2][1]) * 0.5f;
+			real x = bounds->bounds[0][1] - center.x;
+			real y = bounds->bounds[1][1] - center.y;
+			real z = bounds->bounds[2][1] - center.z;
+			double radius = sqrt((double)z * z + (double)y * y + (double)x * x);
+			bool behind = true;
+			bool in_front = true;
+			if (data->flags2a60 & 0x200)
+			{
+				real distance = plane_distance_to_point(&data->plane, &center);
+				behind = distance < 0.0f;
+				in_front = distance > 0.0f;
+				if (fabs(distance) <= radius)
+					behind = in_front = true;
+			}
+			if (data->filter && (data->flags2a60 & 1))
+			{
+				c_entry_list *list = *(c_entry_list **)((byte *)data->filter + 0xc);
+				short index = NONE;
+				for (long j = 0; j < (word)list->count; j++)
+				{
+					if (list->longs_a[j] == cluster_index)
+					{
+						index = (short)j;
+						break;
+					}
+				}
+				if (index == NONE)
+					continue;
+			}
+			short flags = (function_16e210(cluster_index, g_4b9f8c) ? 0x400 : 0) |
+				(behind ? 0x8000 : 0) | 0x3000 | (in_front ? 0x4000 : 0);
+			visibility_append(data->lists[0], cluster_index, flags, NONE);
+		}
+		for (long j = 0; j < cluster->instance_count; j++)
+		{
+			word instance_index = cluster->instances[j];
+			s_visibility_bsp *current_bsp = (s_visibility_bsp *)g_4e0348;
+			s_visible_instance *instance = &current_bsp->instances[instance_index];
+			byte *definition = current_bsp->definitions + instance->definition * 0xc8;
+			if (g_4e7c20[(short)instance_index] != g_4e7c1c)
+			{
+				c_entry_list *filter = data->filter ? *(c_entry_list **)((byte *)data->filter + 0x18) : NULL;
+				if (*(word *)(definition + 0x24) > 0)
+				{
+					bool contained, first, second;
+					if (function_132e60(data, &instance->center, instance->radius, filter, instance_index, (short)i, false, &contained, &first, &second) || (char)data->flags2a60 < 0)
+					{
+						bool behind = true;
+						bool in_front = true;
+						if (data->flags2a60 & 0x200)
+						{
+							real distance = plane_distance_to_point(&data->plane, &instance->center);
+							behind = distance < 0.0f;
+							in_front = distance > 0.0f;
+							if (fabs(distance) <= instance->radius)
+								behind = in_front = true;
+						}
+						short flags = (function_16e210(item->value, g_4b9f8c) ? 0x400 : 0) |
+							(in_front ? 0x4000 : 0) | (second ? 0x2000 : 0) | (first ? 0x1000 : 0) |
+							(contained ? 0x800 : 0) | (behind ? 0x8000 : 0);
+						long entry = NONE;
+						if (!(flags & 0x800))
+							entry = function_134300(data, (short)i);
+						if (visibility_append(data->lists[3], instance_index, flags, (short)entry))
+							g_4e7c20[(short)instance_index] = g_4e7c1c;
+					}
+				}
+			}
+			else
+			{
+				c_entry_list *list = data->lists[3];
+				short index = NONE;
+				bool found = false;
+				for (long k = 0; k < list->count && !found; k++)
+				{
+					found = list->longs_a[(short)k] == instance_index;
+					index = (short)k;
+				}
+				if (!(list->shorts_b[index] & 0x800))
+					data->entries[list->shorts_d[index]][(short)i >> 5] |= 1 << ((short)i & 31);
+				if (function_16e210(item->value, g_4b9f8c))
+					list->shorts_b[index] |= 0x400;
+			}
+		}
+	}
+}
+
+#include <xmmintrin.h>
+extern void *g_4de2e0;
+extern void *g_4de2e4;
+extern void *g_4de2d4;
+extern void *g_4de2d8;
+extern void *g_4e0310;
+extern void *g_4e0314;
+extern bool g_4b9ee9;
+extern long g_4b9eec;
+extern long g_4b9ed4;
+long function_c3950(long object_index, long *indices, long maximum);
+
+struct s_visibility_link
+{
+	long salt;
+	long object_index;
+	long next;
+};
+__forceinline long visibility_next(s_record_pool *pool, long *next)
+{
+	long result = NONE;
+	if (*next != NONE)
+	{
+		s_visibility_link *link = (s_visibility_link *)(pool->data + (*next & 0xffff) * pool->size);
+		*next = link->next;
+		if (*next != NONE)
+			_mm_prefetch((char const *)(pool->data + (*next & 0xffff) * pool->size), _MM_HINT_T0);
+		result = link->object_index;
+	}
+	return result;
+}
+
+// @retail 0x132220
+void __stdcall function_132220(s_bit_vector_pool *data)
+{
+	s_sort_context *context = (s_sort_context *)data->context;
+	short extra_cluster = NONE;
+	for (long i = 0; i < context->count; i++)
+	{
+		short cluster = context->entries[i].value;
+		s_record_pool *pool = (s_record_pool *)g_4de2e4;
+		bool selected = function_16e210(cluster, g_4b9f8c);
+		long next;
+		long index;
+		if (!(data->flags2a60 & 0x40))
+		{
+			next = ((long *)g_4de2e0)[cluster];
+			for (index = visibility_next(pool, &next); index != NONE; index = visibility_next(pool, &next))
+			{
+				if (!(data->flags2a60 & 0x400) || *((byte *)((s_visibility_object_header *)g_4e0300->data)[index & 0xffff].object + 0xaa) == 7)
+				{
+					function_133050(data, index, (short)i, selected, false);
+					pool = (s_record_pool *)g_4de2e4;
+				}
+			}
+			next = ((long *)g_4de2d4)[context->entries[i].value];
+			for (index = visibility_next((s_record_pool *)g_4de2d8, &next); index != NONE; index = visibility_next((s_record_pool *)g_4de2d8, &next))
+				function_133050(data, index, (short)i, selected, false);
+		}
+		if (data->mode == 0 && !(data->flags2a60 & 0x10))
+		{
+			next = ((long *)g_4e0310)[context->entries[i].value];
+			for (index = visibility_next((s_record_pool *)g_4e0314, &next); index != NONE; index = visibility_next((s_record_pool *)g_4e0314, &next))
+				function_132a30(data, index, i, false);
+		}
+		if (extra_cluster == NONE && data->mode == 0 && g_4b9ee9 && g_4b9eec != NONE && g_4686c4 != NONE)
+		{
+			byte *bsp = (byte *)g_4e0348;
+			if (*(long *)(bsp + 0xac) > 0)
+				extra_cluster = (*(short **)(bsp + 0xb0))[g_4b9eec];
+		}
+		context = (s_sort_context *)data->context;
+	}
+	if (data->mode == 0 && !(data->flags2a60 & 0x10) && data->location.cluster_index != NONE)
+	{
+		long indices[4];
+		long count = function_c3950(g_4b9ed4, indices, 4);
+		for (long i = 0; i < count; i++)
+		{
+			long index = indices[i];
+			s_132a30_light *light = &((s_132a30_light *)g_4e030c->data)[index & 0xffff];
+			if (*(short *)((byte *)light + 0x48) == NONE && function_c3140(index) && light->stamp != g_4e0308)
+			{
+				if (data->lists[1]->add(index, 0, 0, NONE))
+					function_c3110(index);
+			}
+		}
+	}
+	if (extra_cluster != NONE && !(data->flags2a60 & 0x40))
+	{
+		long next = ((long *)g_4de2e0)[extra_cluster];
+		long index;
+		for (index = visibility_next((s_record_pool *)g_4de2e4, &next); index != NONE; index = visibility_next((s_record_pool *)g_4de2e4, &next))
+			function_133050(data, index, NONE, false, true);
+		next = ((long *)g_4de2d4)[extra_cluster];
+		for (index = visibility_next((s_record_pool *)g_4de2d8, &next); index != NONE; index = visibility_next((s_record_pool *)g_4de2d8, &next))
+			function_133050(data, index, NONE, false, true);
+	}
+}

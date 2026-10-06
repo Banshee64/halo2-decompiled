@@ -634,7 +634,29 @@ PRIVATE void machine_release_rigid_bodies(long machine_index)
 	}
 }
 
-bool __stdcall function_11bd60(long object_index, long a, long b, long c);
+struct s_component_property_view
+{
+	byte unknown00[4];
+	dword flags;
+	byte unknown08[0x1a - 8];
+	byte value1a;
+	byte value1b;
+	bool function_1d3550(long key, bool *positive, real *value) const;
+};
+
+// @retail 0x11bd60
+bool __stdcall function_11bd60(long object_index, long key, long positive, long value)
+{
+	long index = MACHINE_GET(object_index)->havok_component_index;
+	bool result = false;
+	if (index != NONE)
+	{
+		s_component_property_view *component = (s_component_property_view *)((byte *)g_51e9b8->data + (index & 0xffff) * 0xa0);
+		if (component->function_1d3550(key, (bool *)positive, (real *)value))
+			result = true;
+	}
+	return result;
+}
 
 /* the machine object type definition (through its last callback) */
 struct s_machine_type_definition

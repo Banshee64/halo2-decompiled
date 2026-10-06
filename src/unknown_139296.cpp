@@ -819,3 +819,87 @@ void function_13925f(long string_handle, word *buffer)
 		function_1a0180(definition->string_list, string_handle, buffer);
 	}
 }
+
+struct s_weapon_status_magazine
+{
+	bool active;
+	bool idle;
+	short loaded;
+	short loaded_maximum;
+	short unloaded;
+	short total_maximum;
+};
+
+struct s_weapon_status
+{
+	real value;
+	real heat;
+	bool flag8;
+	bool flag9;
+	byte unknown0a[2];
+	real fraction;
+	bool charging;
+	bool target_available;
+	bool target_charging;
+	bool target_ready;
+	real target_fraction;
+	point3f target_position;
+	short magazine_count;
+	s_weapon_status_magazine magazines[2];
+};
+
+
+void function_100520(long weapon_index, s_weapon_status *status);
+
+struct s_hud_weapon_record
+{
+	long object_index;
+	bool valid;
+	byte unknown05;
+	short loaded;
+	short unloaded;
+	short loaded_maximum;
+	short total_maximum;
+	byte unknown0e[2];
+	real heat;
+	real value;
+	real fraction;
+	byte unknown1c[4];
+	bool flag20;
+	bool flag21;
+	bool flag22;
+	bool flag23;
+	bool flag24;
+	bool flag25;
+	bool flag26;
+	byte unknown27;
+	real target_fraction;
+	point3f target_position;
+};
+
+// @retail 0x13afa9
+void function_13afa9(long object_index, s_hud_weapon_record *record, long *definition_out)
+{
+	s_13b164_object *object = ((s_13b164_header *)g_4e0300->data)[object_index & 0xffff].object;
+	s_weapon_status status;
+	function_100520(object_index, &status);
+	record->flag20 = status.flag8;
+	record->loaded = status.magazines[0].loaded;
+	record->loaded_maximum = status.magazines[0].loaded_maximum;
+	record->unloaded = status.magazines[0].unloaded;
+	record->total_maximum = status.magazines[0].total_maximum;
+	record->flag21 = status.magazines[0].active;
+	record->flag22 = status.flag9;
+	record->flag23 = status.charging;
+	record->flag24 = status.target_available;
+	record->flag25 = status.target_charging;
+	record->value = status.value;
+	record->heat = status.heat;
+	record->fraction = status.fraction;
+	record->object_index = object_index;
+	record->flag26 = status.target_ready;
+	record->valid = true;
+	record->target_fraction = status.target_fraction;
+	record->target_position = status.target_position;
+	*definition_out = *(long *)((byte *)g_4e3b44[(*(long *)object) & 0xffff].data + 0x2b4);
+}
