@@ -330,9 +330,9 @@ void c_y_menu_recent_players_list::v20(c_class_1a2c81 *item, long index)
             function_2b01a2(*(signed char *)((byte *)datum + 0x5a), &layout);
             memcpy(layout.value48, values, sizeof(values));
             layout.flags |= 2;
-            word *player_name = (word *)((byte *)datum + 0x10);
+            word *name_text = (word *)((byte *)datum + 0x10);
             layout.flags |= 1;
-            layout.value4 = (long)player_name;
+            layout.value4 = (long)name_text;
         }
         else
         {
