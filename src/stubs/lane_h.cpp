@@ -64,10 +64,6 @@ void function_6cb60(void)
 
 
 
-// @stub 0x73ca0
-void function_73ca0(unsigned char *results)
-{
-}
 
 // @stub 0xb3e90
 void __stdcall function_b3e90(unsigned char *results)

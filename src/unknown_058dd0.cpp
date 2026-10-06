@@ -1749,3 +1749,74 @@ void function_71ff0(c_session_state_matchmaking *state, long value,
 		}
 	}
 }
+
+long function_75870(void);
+long function_75890(long time);
+
+bool network_session_host_become_leader(c_class_58d20 *session);
+
+// @retail 0x72700
+bool c_session_state_start_match::update()
+{
+    s_session_owner *o = owner;
+    c_class_58d20 *a = o->session_a;
+    c_class_58d20 *b = o->session_b;
+    bool result = function_06dfa0();
+    if (!result && !o->failed && SESSION_STATE_IS_LIVE(b->state))
+    {
+        if (b->type == 4)
+        {
+            function_06df60(o, 8, 0, 0);
+            mode = 2;
+        }
+        else if (b->type == 2 || b->type == 3)
+        {
+            bool ready = false;
+            if (function_06e720(b) && function_06e6b0(b, &unknown14))
+            {
+                if (!unknown18)
+                    unknown18 = function_75870();
+                long remaining = 10000 - function_75890(unknown18);
+                if (remaining < 0)
+                    remaining = 0;
+                network_session_host_become_leader(b);
+                network_session_start_countdown(b, (remaining + 999) / 1000, true, 0, NULL);
+                ready = remaining == 0;
+            }
+            else
+                unknown18 = 0;
+            if (mode == 3)
+            {
+                if (ready)
+                {
+                    network_session_set_mode(b, 4);
+                    result = true;
+                }
+            }
+            else
+            {
+                c_class_58d20 *primary = o->session_a;
+                network_session_leave(b, false);
+                network_session_leave(primary, false);
+            }
+        }
+        else if (b->type == 5)
+        {
+            function_06df60(o, 9, 0, 0);
+            mode = 2;
+        }
+        else
+        {
+            function_06df60(o, 1, 0, 0);
+            mode = 1;
+        }
+    }
+    long state = a->state;
+    if (state == 5 || state == 6 || state == 7 || state == 8)
+        network_session_host_set_value49f8(a, mode);
+    else
+    {
+        volatile long unused = state;
+    }
+    return result;
+}
