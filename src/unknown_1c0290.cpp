@@ -236,7 +236,7 @@ bool __stdcall function_1c0670(long actor_index, s_slot *slot)
 			{
 				function_2628f0(actor_index, g_470fa0);
 				if (actor->unknown4ac != 2 || actor->unknown4c8 != NONE ||
-					function_210a30(&target, &actor->unknown4b8) > 0.01f)
+					function_210a30(&target, &actor->unknown4b8) > 0.1f * 0.1f)
 				{
 					function_1f86a0(actor_index);
 					actor->unknown4ac = 0;

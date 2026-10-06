@@ -577,7 +577,7 @@ void network_message_types_register_session_membership(c_type_659ceb *collection
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_membership_update, "membership-update", 0x489c, function_0adef0, function_0ae7f0);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_peer_properties, "peer-properties", 0xd0, function_0aedb0, function_0af050);
-	REGISTER_MESSAGE_TYPE(collection, _network_message_type_delegate_leader, "delegate-leader", 0x2c, function_0af1f0, function_0af220);
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_delegate_leader, "delegate-leadership", 0x2c, function_0af1f0, function_0af220);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_boot_machine, "boot-machine", 0x2c, function_0af1f0, function_0af220);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_player_add, "player-add", 0xb0, function_0af270, function_0af320);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_player_refuse, "player-refuse", 0x18, function_0af3c0, function_0af430);
