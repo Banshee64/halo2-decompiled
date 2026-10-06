@@ -162,6 +162,48 @@ long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG
 	return task_index;
 }
 
+/* submits the completed round's statistics */
+// @retail 0x925c0
+long online_round_report(XNKID const *session_id, ULONGLONG const *round_key, long count, XONLINE_STAT_PROC const *procedures, bool flag0, bool flag1)
+{
+	long task_index = NONE;
+	for (long i = 0; i < count; i++)
+	{
+		XUID const *user = NULL;
+		word kind = procedures[i].wProcedureID;
+		if (kind == 0x8001 || kind == 0x8003 || kind == 0x8007)
+			user = &procedures[i].Update.xuid;
+		if (user->dwUserFlags == 0xbad00000 || (user->dwUserFlags & 3))
+			goto done;
+	}
+	if (count <= 1000)
+	{
+		if (online_logon_connected())
+			task_index = online_task_new_inline();
+		s_type_9df9da *task = online_task_try_and_get(task_index);
+		if (task)
+		{
+			XONLINE_ARB_ID id;
+			id.SessionID = *session_id;
+			id.qwRoundID = *round_key;
+			dword flags = (flag0 ? 1 : 0) | (flag1 ? 2 : 0);
+			if (SUCCEEDED(XOnlineArbitrationReport(&id, flag1 ? 0 : count, procedures, NULL, flags, NULL, (PXONLINETASK_HANDLE)&task->handle)))
+			{
+				task->flags = 1;
+				task->type = 0x12;
+				task->controller_index = NONE;
+			}
+			else
+			{
+				function_6b640(task_index);
+				task_index = NONE;
+			}
+		}
+	}
+done:
+	return task_index;
+}
+
 /* whether the task failed because the service is not available */
 // @retail 0x92750
 bool online_task_service_unavailable(long task_index)

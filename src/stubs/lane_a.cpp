@@ -20,10 +20,6 @@ void function_13bff0(void)
 {
 }
 
-// @stub 0x1deed0
-void object_lists_garbage_collect(void)
-{
-}
 
 // @stub 0xbbfc0
 void __stdcall function_bbfc0(real a, real b, real c, real d, real e)

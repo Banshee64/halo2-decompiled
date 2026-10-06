@@ -74,12 +74,6 @@ void c_class_2c9e69::fill()
 {
 }
 
-// @stub 0x120e70
-long __stdcall function_120e70(byte *buffer)
-{
-	return 0;
-}
-
 /* unknown_2b116a.cpp's list (only the member the stub defines) */
 class c_potential_squad_leader_player_list
 {
@@ -93,12 +87,6 @@ void c_potential_squad_leader_player_list::handle_item(s_controller_reference **
 }
 
 /* UI lane round 3: callees of user_interface_text_parser.cpp */
-
-// @stub 0x122dd0
-real __stdcall function_122dd0(byte *map_name, long unknown)
-{
-	return 0.f;
-}
 
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 

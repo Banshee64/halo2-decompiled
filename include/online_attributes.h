@@ -7,6 +7,9 @@
 
 #include "unknown_11c920.h"
 
+struct _XONLINE_ATTRIBUTE_SPEC;
+extern _XONLINE_ATTRIBUTE_SPEC const g_44050c[7];
+
 struct s_entry_pair
 {
 	long a;

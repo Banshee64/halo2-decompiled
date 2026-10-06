@@ -2,6 +2,35 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6294 functions match
+
+```
+matched 6294 of 11318 game functions (659320 of 2784283 bytes, 23.68%)
+```
+
+4 new matches, none lost:
+- **Codex lane U**, round 8 (4): game variant, saved-game and image helpers in the 0x200000–0x217fff range.
+
+## 2026-10-06: 6290 functions match
+
+```
+matched 6290 of 11318 game functions (658972 of 2784283 bytes, 23.67%)
+```
+
+10 new matches, none lost:
+- **Codex lane X**, round 4 (7): actor, prop and shape helpers in the 0x1e0000–0x1effff range.
+- **Codex lane C**, round 17 (3): cluster and object list helpers in the 0x1c0000–0x1dffff range.
+
+## 2026-10-06: 6280 functions match
+
+```
+matched 6280 of 11318 game functions (657692 of 2784283 bytes, 23.62%)
+```
+
+6 new matches, none lost:
+- **Codex lane J** (4): network stream and session search helpers in the 0x90000–0x9ffff range.
+- **Codex lane L** (2): a font helper in the 0x120000–0x12ffff range, and its caller 0x22d7ce.
+
 ## 2026-10-06: 6274 functions match
 
 ```

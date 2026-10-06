@@ -80,8 +80,6 @@ struct s_havok_component;
 // @stub 0x1d1260
 void function_1d1260(s_havok_component *component) { }
 
-// @stub 0x1d01c0
-void __stdcall function_1d01c0(s_havok_component *component) { }
 // @stub 0x3126f0
 void hkRigidBody::setTransform(hkTransform const &transform) { }
 /* callees of the slot handler callbacks (unknown_0259a0.h) */
@@ -195,3 +193,18 @@ void c_component_rotation::set(hkRotation const &rotation) { }
 
 // @stub 0x2db880
 void __cdecl function_2db880(hkVector4 const *position, c_component_rotation const *rotation, real frequency, hkRigidBody *body) { }
+
+
+class c_contact_rule_fallback
+{
+public:
+ hkBool accepts(long a, long b);
+};
+
+// @stub 0x2df8a0
+hkBool c_contact_rule_fallback::accepts(long a, long b)
+{
+ hkBool result;
+ result.m_bool = 0;
+ return result;
+}

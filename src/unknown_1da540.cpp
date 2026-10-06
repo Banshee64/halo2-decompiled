@@ -158,3 +158,99 @@ bool function_1da550(long object_index, long contact_index, s_collision_damage_e
 	}
 	return result;
 }
+
+
+struct s_damage_owner;
+void object_get_damage_owner(long object_index, s_damage_owner *owner);
+void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_index, vector3f const *direction);
+long function_1dac00(long object_index);
+bool havok_component_unknown10_recent(s_havok_component const *component);
+void havok_component_unknown10_expire(s_havok_component *component);
+
+struct s_collision_damage_limits
+{
+	byte unknown00[0x80];
+	real minimum_speed;
+	real maximum_speed;
+	real minimum_damage;
+	real maximum_damage;
+};
+
+struct s_collision_damage_event
+{
+	long definition_index;
+	dword flags;
+	byte owner[12];
+	long owner_object;
+	byte unknown18[0x24 - 0x18];
+	point3f position;
+	point3f origin;
+	byte unknown3c[0x54 - 0x3c];
+	real damage;
+	byte unknown58[0x7c - 0x58];
+	short material;
+	byte unknown7e[6];
+	byte kind;
+	byte unknown85[3];
+
+	s_collision_damage_event() : material(NONE) {}
+};
+
+PRIVATE inline bool collision_damage_recent_inlined(s_havok_component const *component)
+{
+ long game_time = g_510c54->game_time;
+ real seconds = g_510c54->field_2_3 * 0.35f;
+ long ticks;
+ __asm
+ {
+  fld seconds
+  fistp ticks
+ }
+ return game_time - component->unknown10 < ticks;
+}
+
+// @retail 0x1da9e0
+bool function_1da9e0(long object_index, point3f const *position, real speed_a, real speed_b,
+	real impulse, bool use_owner, long owner_index)
+{
+	(void)&position;
+	(void)&impulse;
+	(void)&use_owner;
+	(void)&owner_index;
+	s_havok_object *object = havok_object_get(object_index);
+	s_collision_damage_limits *limits = (s_collision_damage_limits *)g_4e3b44[*(long *)object & 0xffff].bytes;
+	bool result = false;
+	real speed = speed_a > speed_b ? speed_a : speed_b;
+	if (object->havok_component_index != NONE)
+	{
+		s_havok_component *component = havok_component_get(object->havok_component_index);
+		if (impulse > 4.0f || collision_damage_recent_inlined(component))
+		{
+			if (speed > limits->minimum_speed && limits->maximum_speed - limits->minimum_speed >= 0.001f && (byte)function_1dac00(object_index))
+			{
+				real lower = limits->minimum_damage;
+				real upper = limits->maximum_damage;
+				s_collision_damage_event event;
+				function_d6660((s_type_1e6529 *)&event, ((s_collision_damage_globals *)g_4e034c)->definition->damage_index);
+				real amount = (speed - limits->minimum_speed) * (upper - lower) / (limits->maximum_speed - limits->minimum_speed) + lower;
+				event.kind = 2;
+				event.damage = lower > amount ? lower : amount > upper ? upper : amount;
+				event.origin = *position;
+				event.position = *position;
+				if (use_owner)
+				{
+					object_get_damage_owner(owner_index, (s_damage_owner *)event.owner);
+					event.owner_object = owner_index;
+				}
+				else
+					object_get_damage_owner(component->object_index, (s_damage_owner *)event.owner);
+				event.flags |= 0x100;
+				function_d7b80((s_type_1e6529 *)&event, component->object_index, NONE, NONE, NONE, NULL);
+				if (havok_component_unknown10_recent(component))
+					havok_component_unknown10_expire(component);
+				result = true;
+			}
+		}
+	}
+	return result;
+}

@@ -11,6 +11,8 @@
 #include <math.h>
 #include <new>
 #include <float.h>
+#include "havok_reference.h"
+#include "unknown_122870.h"
 
 void __cdecl function_2d91d0(void *array, long element_size);
 
@@ -1423,4 +1425,263 @@ void function_1d2070(hkEntity const *entity, s_havok_component *component, long 
 			component->unknown94 = NULL;
 		}
 	}
+}
+
+
+class c_contact_link_allocator
+{
+public:
+	virtual void slot0() = 0;
+	virtual void slot1() = 0;
+	virtual void slot2() = 0;
+	virtual void slot3() = 0;
+	virtual void *allocate(long size, long category) = 0;
+};
+
+struct s_contact_link_array : s_havok_array08
+{
+ s_contact_link_array()
+ {
+  data = NULL;
+  size = 0;
+  capacity_and_flags = 0x80000000;
+ }
+ static void *operator new(size_t size)
+ {
+  return ((c_contact_link_allocator *)g_480118)->allocate(size, 0x12);
+ }
+};
+
+// @retail 0x1d1e40
+void function_1d1e40(hkEntity const *entity, s_havok_component *component, long component_index, long kind, long shape_index)
+{
+	(void)&component;
+	(void)&kind;
+	(void)&shape_index;
+	long other_component = havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX);
+	long body_index = havok_entity_property_get(entity, HAVOK_PROPERTY_2002);
+	if (other_component != NONE && other_component != component_index &&
+		function_1d1d00(shape_index, other_component, component_index))
+	{
+		long other_object_index = havok_component_get(other_component)->object_index;
+		if (!component->unknown94)
+		{
+			component->unknown94 = new s_contact_link_array;
+		}
+		s_havok_array08 *array = component->unknown94;
+		s_component_contact_link *link;
+		for (long i = 0; i < array->size; ++i)
+		{
+			link = (s_component_contact_link *)&array->data[i];
+			if (link->object_index == other_object_index && link->kind == kind &&
+				link->body_index == body_index && link->shape_index == shape_index)
+				goto found;
+		}
+		{
+			s_component_collision_object *object = ((s_component_collision_header *)g_4e0300->data)[component->object_index & 0xffff].object;
+			s_component_transform_definition *definition = (s_component_transform_definition *)g_4e3b44[object->definition_index & 0xffff].bytes;
+			s_component_collision_model_link *model = (s_component_collision_model_link *)g_4e3b44[definition->model_index & 0xffff].bytes;
+			s_component_collision_model *physics = (s_component_collision_model *)g_4e3b44[model->physics_model_index & 0xffff].bytes;
+			s_component_collision_rule *rule = &physics->rules[physics->shapes[shape_index].rule_index];
+			if (array->size == (array->capacity_and_flags & 0x7fffffff))
+				function_2d91d0(array, 8);
+			link = (s_component_contact_link *)&array->data[array->size++];
+			link->kind = (char)kind;
+			link->shape_index = (char)shape_index;
+			link->body_index = (char)body_index;
+			link->count = 0;
+			link->object_index = other_object_index;
+			if (rule->flags & 0x01000000)
+			{
+				s_component_collision_header *header = &((s_component_collision_header *)g_4e0300->data)[other_object_index & 0xffff];
+				if ((1 << header->type) & 1)
+				{
+					s_component_linked_object *other_object = (s_component_linked_object *)header->object;
+					if (other_object->linked_object == NONE)
+						other_object->linked_object = component->object_index;
+				}
+			}
+		}
+found:
+		++link->count;
+	}
+}
+
+
+PRIVATE inline void component_property_replace(hkEntity *entity, dword key, hkPropertyValue value)
+{
+ if (havok_entity_property_exists(entity, key))
+  entity->removeProperty(key);
+ entity->addProperty(key, value);
+}
+
+PRIVATE inline void component_body_release(c_havok_reference_counted *body)
+{
+ --body->reference_count;
+ if (body->reference_count == 0)
+ {
+  long value = (long)body;
+#define COMPONENT_MEMORY_LIMIT ((long)0x80061000 + (cache_file_globals.loaded ? cache_file_globals.header.unknown1c : 0))
+  if ((value < (long)0x80061000 ? (long)0x80061000 : value > COMPONENT_MEMORY_LIMIT ? COMPONENT_MEMORY_LIMIT : value) == value)
+   body->reference_count = 1;
+  else
+   delete body;
+#undef COMPONENT_MEMORY_LIMIT
+ }
+}
+
+// @retail 0x1d01c0
+void __stdcall function_1d01c0(s_havok_component *component)
+{
+ (void)&component;
+ for (long i = 0; i < component->unknown7c.size; ++i)
+ {
+  s_havok_component_element0c *entry = &component->unknown7c.data[i];
+  havok_reference_remove((c_havok_reference_counted *)entry->contact);
+  entry->contact = NULL;
+ }
+ for (long i = 0; i < component->rigid_bodies.size; ++i)
+ {
+  s_havok_component_rigid_body *entry = &component->rigid_bodies.data[i];
+  hkRigidBody *body = entry->rigid_body;
+  component_property_replace((hkEntity *)body, HAVOK_PROPERTY_COMPONENT_INDEX, NONE);
+  component_property_replace((hkEntity *)body, HAVOK_PROPERTY_2002, NONE);
+  component_body_release((c_havok_reference_counted *)body);
+  entry->rigid_body = NULL;
+  long capacity = *(long *)entry->unknown50;
+  if (!(capacity & 0x80000000))
+   g_480118->allocate((long)entry->nodes, capacity & 0x7fffffff, 0x12);
+ }
+ component->unknown04 = 0;
+ component->unknown1c = false;
+ component->unknown18 = (char)0xff;
+ component->unknown19 = (char)0xff;
+ component->rigid_bodies.size = 0;
+ component->unknown7c.size = 0;
+ if (component->rigid_body)
+ {
+  havok_reference_remove((c_havok_reference_counted *)component->rigid_body);
+  component->rigid_body = NULL;
+ }
+ if (component->unknown9c)
+ {
+  havok_reference_remove((c_havok_reference_counted *)component->unknown9c);
+  component->unknown9c = 0;
+ }
+}
+
+
+struct rigid_transform_scaled
+{
+ quaternionf rotation;
+ point3f position;
+ real scale;
+};
+
+struct s_component_node_object
+{
+ long definition_index;
+ byte unknown04[0x116 - 4];
+ short matrices_offset;
+};
+
+struct s_component_node_link
+{
+ byte unknown00[6];
+ short parent;
+ short sibling;
+ short child;
+};
+
+struct s_component_node_physics
+{
+ byte unknown00[0xcc];
+ s_component_node_link *nodes;
+};
+
+struct s_component_node_default
+{
+ byte unknown00[0xc];
+ point3f position;
+ quaternionf rotation;
+ byte unknown28[0x60 - 0x28];
+};
+
+struct s_component_node_render_model
+{
+ byte unknown00[0x4c];
+ s_component_node_default *nodes;
+};
+
+void function_141590(transform4x3f const *in, transform4x3f *out);
+matrix3x3 *function_141e10(matrix3x3 *out, quaternionf const *rotation);
+void orientation_from_matrix4x3(transform4x3f const *matrix, rigid_transform_scaled *out);
+
+PRIVATE inline transform4x3f *component_node_matrices(long object_index)
+{
+ s_component_node_object *object = (s_component_node_object *)havok_object_get(object_index);
+ return (transform4x3f *)((byte *)object + object->matrices_offset);
+}
+
+// @retail 0x1d3d20
+void function_1d3d20(s_havok_component *component, long node_index, dword *updated, dword const *restore,
+ rigid_transform_scaled *orientations, long unknown)
+{
+ (void)&node_index;
+ long current_node = node_index;
+ (void)&updated;
+ (void)&restore;
+ (void)&orientations;
+ (void)&unknown;
+ s_component_node_object *object = (s_component_node_object *)havok_object_get(component->object_index);
+ s_component_transform_definition *definition = (s_component_transform_definition *)g_4e3b44[object->definition_index & 0xffff].bytes;
+ s_component_transform_model *model = (s_component_transform_model *)g_4e3b44[definition->model_index & 0xffff].bytes;
+ long physics_index = ((s_component_collision_model_link *)model)->physics_model_index;
+ s_component_node_physics *physics = (s_component_node_physics *)g_4e3b44[physics_index & 0xffff].bytes;
+ s_component_node_render_model *render_model = (s_component_node_render_model *)g_4e3b44[model->render_model_index & 0xffff].bytes;
+ s_component_node_link *node = &physics->nodes[current_node];
+ short parent = node->parent;
+ if (parent != NONE)
+ {
+  dword mask = 1 << (current_node & 31);
+  if (updated[current_node >> 5] & mask)
+  {
+   if (orientations)
+   {
+    transform4x3f *matrices = component_node_matrices(component->object_index);
+    transform4x3f inverse;
+    transform4x3f relative;
+    function_141590(&matrices[parent], &inverse);
+    function_142a60(&inverse, &matrices[(short)current_node], &relative);
+    orientation_from_matrix4x3(&relative, &orientations[current_node]);
+   }
+  }
+  else if (restore[current_node >> 5] & mask)
+  {
+   s_component_node_default *initial = &render_model->nodes[current_node];
+   transform4x3f *matrices = component_node_matrices(component->object_index);
+   transform4x3f *matrix = &matrices[(short)current_node];
+   function_141e10(&matrix->rotation, &initial->rotation);
+   matrix->position.x = 0.0f;
+   matrix->position.y = 0.0f;
+   matrix->position.z = 0.0f;
+   matrix->scale = 1.0f;
+   matrix->position = initial->position;
+   function_142a60(&matrices[parent], matrix, matrix);
+   updated[current_node >> 5] |= mask;
+   if (orientations)
+   {
+    orientations[current_node].rotation = initial->rotation;
+    orientations[current_node].position = initial->position;
+    orientations[current_node].scale = 1.0f;
+   }
+  }
+ }
+ long child = node->child;
+ while (child != NONE)
+ {
+  s_component_node_link *next = &physics->nodes[child];
+  function_1d3d20(component, child, updated, restore, orientations, unknown);
+  child = next->sibling;
+ }
 }

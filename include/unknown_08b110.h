@@ -40,13 +40,15 @@ struct s_item_450cb8
 
 /* ---- the interface of 0x450c94 and 0x450d1c ---- */
 
+struct s_node_450d1c;
+
 class c_interface_450c94
 {
 public:
 	virtual bool v0() { return false; }
 	virtual long v1(long a1, long max_count, void *entries) { return 0; }
 	virtual long v2();
-	virtual void v3() {}
+	virtual void v3(s_node_450d1c *node, long a2, long a3, long key, s_bitstream *stream, long reserved_bits) {}
 	virtual void v4(long a1, s_counter_450c94 *a2);
 	virtual void v5() {}
 	virtual void v6(s_block_450c94 *block) {}
@@ -300,7 +302,7 @@ class c_manager_450d1c
 public:
 	virtual long v0(long type, dword *items, long count, long *produced, dword *data, s_bitstream *stream) { return 0; }
 	virtual void v1(long type, dword *items, long count, dword *data) {}
-	virtual void v2() {}
+	virtual void v2(long type, long size, void const *data, s_bitstream *stream) {}
 	virtual void v3(s_node_450d1c *node) {}
 	virtual void v4(s_node_450d1c *node, long a1, real *a2, long *a3) {}
 };
@@ -338,6 +340,7 @@ public:
 	c_vtable_450d1c() : unknown08(0) {}
 	virtual bool v0();
 	virtual long v1(long a1, long max_count, void *entries);
+	virtual void v3(s_node_450d1c *node, long a2, long a3, long key, s_bitstream *stream, long reserved_bits);
 	virtual long v5(dword a1, s_bitstream *stream, long max_blocks, s_block_450c94 *blocks, long *count);
 	virtual void v6(s_block_450c94 *block);
 	virtual void v7(void *a1);
@@ -490,7 +493,7 @@ class c_handle_table_450cd0;
 struct s_bitstream;
 bool function_98620(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits);
 bool function_986d0(c_handle_table_450cd0 *self, long index, s_bitstream *stream, long reserved_bits);
-void function_98750(c_handle_table_450cd0 *self, long a1, long a5, long a3, long a6);
+bool function_98750(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits);
 bool function_988f0(c_handle_table_450cd0 *self, long index, s_bitstream *stream, long reserved_bits);
 bool function_989f0(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits);
 
