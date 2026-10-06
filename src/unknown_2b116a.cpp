@@ -5370,7 +5370,7 @@ class c_screen_45b0b8 : public c_screen_with_menu
 public:
     c_screen_45b0b8(long a, long b, word user_flags);
     virtual screen_load_proc get_load_proc();
-    c_list_45af88 profile_list;
+    c_list_45af88 profile_choices;
     s_profile_list_entry selected;
     bool value19b4;
 };
@@ -5383,11 +5383,11 @@ screen_load_proc c_screen_45b0b8::get_load_proc()
 
 // @retail 0x2b1a1c
 c_screen_45b0b8::c_screen_45b0b8(long a, long b, word user_flags) :
-    c_screen_with_menu(0xc1, a, b, user_flags, &profile_list),
-    profile_list(user_flags)
+    c_screen_with_menu(0xc1, a, b, user_flags, &profile_choices),
+    profile_choices(user_flags)
 {
     value19b4 = false;
-    profile_list.field_89 = true;
+    profile_choices.field_89 = true;
     memset(&selected, 0, sizeof(selected));
 }
 
@@ -5425,7 +5425,7 @@ struct s_friend_request { byte data[0x6a2]; };
 bool friend_request_get(s_friend_request *request);
 bool friends_list_task_running();
 bool function_230265(c_class_1473c9 *screen);
-void friends_lists_get_user(XUID const *xuid, bool *is_friend, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *details);
+void friends_lists_get_user(XUID const *xuid, bool *listed_friend, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *details);
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
 bool network_session_interface_has_user(XUID const *xuid);
 bool online_title_is_this_title(DWORD title_id);
@@ -5452,10 +5452,10 @@ PRIVATE __declspec(noinline) void update_player_actions_2b55ae(c_y_menu_player_s
     if (xuid && xuid->qwUserID)
     {
         record_pool_release_all(list->data);
-        bool is_friend, is_player, same_title;
+        bool listed_friend, is_player, same_title;
         dword flags;
         DWORD title;
-        friends_lists_get_user(xuid, &is_friend, &is_player, &flags, &title, &same_title, 0);
+        friends_lists_get_user(xuid, &listed_friend, &is_player, &flags, &title, &same_title, 0);
         bool from_friends = selection.type == 2;
         bool self = xuid_equal(xuid, (XUID *)identity, false);
         bool online = (bool)(flags & 1);
@@ -5473,7 +5473,7 @@ PRIVATE __declspec(noinline) void update_player_actions_2b55ae(c_y_menu_player_s
         bool protected_player = in_session && player != NONE && function_19ab77(player);
         s_friend_request request;
         bool request_valid = friend_request_get(&request);
-        bool regular_friend = is_friend && !(flags & 0x30);
+        bool regular_friend = listed_friend && !(flags & 0x30);
         bool regular_player = is_player && !(flags & 0xc00);
         bool allow_join = function_19a250();
         bool pending = list->value3a0 == 1 && !online_messages_find_flagged_from(xuid, controller) && (flags & 0x10);
@@ -5484,9 +5484,9 @@ PRIVATE __declspec(noinline) void update_player_actions_2b55ae(c_y_menu_player_s
         bool feedback = !self && (list->value3a0 == 3 || list->value3a0 == 4);
         bool offer = !has_player && !self && ((list->value3a0 == 4 && in_session) || (list->value3a0 != 3 && invite));
         bool promote = host && !self && (flags & 0x100);
-        bool add_friend = !is_friend && !self;
-        bool cancel_friend = is_friend && (flags & 0x20) && (list->value3a0 == 1 || list->value3a0 == 3);
-        bool remove_friend = is_friend && !(flags & 0x30) && list->value3a0 == 1;
+        bool add_friend = !listed_friend && !self;
+        bool cancel_friend = listed_friend && (flags & 0x20) && (list->value3a0 == 1 || list->value3a0 == 3);
+        bool remove_friend = listed_friend && !(flags & 0x30) && list->value3a0 == 1;
         long rank = *(long *)(local_status.data + 0x1c);
         bool add_member = request_valid && !is_player && !self && rank >= 1 && list->value3a0 != 4 && list->value3a0 != 2;
         bool pending_member = false;
