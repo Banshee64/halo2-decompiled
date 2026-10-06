@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6290 functions match
+
+```
+matched 6290 of 11318 game functions (658972 of 2784283 bytes, 23.67%)
+```
+
+10 new matches, none lost:
+- **Codex lane X**, round 4 (7): actor, prop and shape helpers in the 0x1e0000–0x1effff range.
+- **Codex lane C**, round 17 (3): cluster and object list helpers in the 0x1c0000–0x1dffff range.
+
 ## 2026-10-06: 6280 functions match
 
 ```
