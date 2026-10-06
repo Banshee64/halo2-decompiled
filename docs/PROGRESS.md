@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6449 functions match
+
+```
+matched 6449 of 11318 game functions (693834 of 2784283 bytes, 24.92%)
+```
+
+6449 new matches, none lost:
+- Codex lane X round 5: 0x1e17d0, 0x1e2150, 0x1e3400 and 0x1e4570, and lane V's 0x26abd0 through 0x1e2150's argument order.
+- Codex lane T round 7: 0x16f570.
+
 ## 2026-10-06: 6443 functions match
 
 ```

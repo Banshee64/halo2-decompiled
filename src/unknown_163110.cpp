@@ -299,6 +299,276 @@ struct s_plane
 	real d;
 };
 
+struct s_frustum_1648d0
+{
+	long identifier;
+	byte unknown04[4];
+	long plane_index;
+	byte unknown0c[4];
+	box2f rectangle;
+	byte unknown20[4];
+	point3f points[5];
+	s_bounds3d bounds;
+	s_plane planes[6];
+	vector3f directions[4];
+};
+
+struct s_camera_163db0
+{
+	byte unknown00[0x38];
+	transform4x3f matrix;
+	bool has_plane;
+	byte unknown6d[7];
+	s_plane plane;
+	byte unknown84[4];
+	real depth;
+};
+
+struct box3f;
+box3f *function_11f770(box3f *rectangle, long count, point3f const points[]);
+int __stdcall function_1429d0(transform4x3f const *matrix, long count, point3f const *source, point3f *destination);
+real function_30bf0(vector3f *vector);
+
+bool g_47ff86 = true;
+
+PRIVATE inline void transform_plane_163db0(transform4x3f const *matrix, s_plane *plane)
+{
+	real x = plane->normal.i;
+	real y = plane->normal.j;
+	real z = plane->normal.k;
+	plane->normal.i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+	plane->normal.j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+	plane->normal.k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
+	plane->d = matrix->position.y * plane->normal.j + plane->d * matrix->scale + matrix->position.z * plane->normal.k + matrix->position.x * plane->normal.i;
+}
+
+PRIVATE inline double plane_error_163db0(s_plane const *plane, point3f const *point)
+{
+	return fabs(plane->normal.k * point->z + plane->normal.j * point->y + plane->normal.i * point->x - plane->d);
+}
+
+// @retail 0x163db0
+bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier)
+{
+	bool valid = false;
+	if (rectangle->x1 > rectangle->x0 && rectangle->y1 > rectangle->y0)
+	{
+		result->rectangle = *rectangle;
+		result->identifier = identifier;
+		real x0 = result->rectangle.x0 * camera->depth;
+		real x1 = result->rectangle.x1 * camera->depth;
+		real y0 = result->rectangle.y0 * camera->depth;
+		real y1 = result->rectangle.y1 * camera->depth;
+		result->points[1].x = x0;
+		result->points[1].y = y0;
+		result->points[1].z = 0.0f - camera->depth;
+		result->points[3].x = x1;
+		result->points[3].y = y0;
+		result->points[3].z = 0.0f - camera->depth;
+		result->points[0].x = x0;
+		result->points[0].y = y1;
+		result->points[0].z = 0.0f - camera->depth;
+		result->points[2].x = x1;
+		result->points[2].y = y1;
+		result->points[2].z = 0.0f - camera->depth;
+		function_1429d0(&camera->matrix, 4, result->points, result->points);
+		result->points[4] = camera->matrix.position;
+		result->bounds = *g_4687e0;
+		function_11f770((box3f *)&result->bounds, 5, result->points);
+		result->planes[0].normal.i = -1.0f;
+		result->planes[0].normal.j = 0.0f;
+		result->planes[0].normal.k = 0.0f - result->rectangle.x0;
+		function_30bf0(&result->planes[0].normal);
+		result->planes[0].d = 0.0f;
+		transform_plane_163db0(&camera->matrix, &result->planes[0]);
+		result->planes[1].normal.i = 1.0f;
+		result->planes[1].normal.j = 0.0f;
+		result->planes[1].normal.k = result->rectangle.x1;
+		function_30bf0(&result->planes[1].normal);
+		result->planes[1].d = 0.0f;
+		transform_plane_163db0(&camera->matrix, &result->planes[1]);
+		result->planes[2].normal.i = 0.0f;
+		result->planes[2].normal.j = -1.0f;
+		result->planes[2].normal.k = 0.0f - result->rectangle.y0;
+		function_30bf0(&result->planes[2].normal);
+		result->planes[2].d = 0.0f;
+		transform_plane_163db0(&camera->matrix, &result->planes[2]);
+		result->planes[3].normal.i = 0.0f;
+		result->planes[3].normal.j = 1.0f;
+		result->planes[3].normal.k = result->rectangle.y1;
+		function_30bf0(&result->planes[3].normal);
+		result->planes[3].d = 0.0f;
+		transform_plane_163db0(&camera->matrix, &result->planes[3]);
+		if (camera->has_plane)
+		{
+			result->planes[4].normal.i = 0.0f - camera->plane.normal.i;
+			result->planes[4].normal.j = 0.0f - camera->plane.normal.j;
+			result->planes[4].normal.k = 0.0f - camera->plane.normal.k;
+			result->planes[4].d = 0.0f - camera->plane.d;
+		}
+		else
+		{
+			result->planes[4].normal.i = 0.0f;
+			result->planes[4].normal.j = 0.0f;
+			result->planes[4].normal.k = 1.0f;
+			result->planes[4].d = 0.0f;
+			transform_plane_163db0(&camera->matrix, &result->planes[4]);
+		}
+		result->planes[5].normal.i = 0.0f;
+		result->planes[5].normal.j = 0.0f;
+		result->planes[5].normal.k = -1.0f;
+		result->planes[5].d = camera->depth;
+		transform_plane_163db0(&camera->matrix, &result->planes[5]);
+		for (long i = 0; i < 4; ++i)
+		{
+			result->directions[i].i = result->points[i].x - result->points[4].x;
+			result->directions[i].j = result->points[i].y - result->points[4].y;
+			result->directions[i].k = result->points[i].z - result->points[4].z;
+		}
+		char const *error = 0;
+		if (!(plane_error_163db0(&result->planes[0], &result->points[1]) < 0.01f &&
+			plane_error_163db0(&result->planes[2], &result->points[1]) < 0.01f &&
+			plane_error_163db0(&result->planes[5], &result->points[1]) < 0.01f))
+			error = "_pyramid_bottom_left world-vertex off planes";
+		if (!(plane_error_163db0(&result->planes[1], &result->points[3]) < 0.01f &&
+			plane_error_163db0(&result->planes[2], &result->points[3]) < 0.01f &&
+			plane_error_163db0(&result->planes[5], &result->points[3]) < 0.01f))
+			error = "_pyramid_bottom_right world-vertex off planes";
+		if (!(plane_error_163db0(&result->planes[0], &result->points[0]) < 0.01f &&
+			plane_error_163db0(&result->planes[3], &result->points[0]) < 0.01f &&
+			plane_error_163db0(&result->planes[5], &result->points[0]) < 0.01f))
+			error = "_pyramid_top_left world-vertex off planes";
+		if (!(plane_error_163db0(&result->planes[1], &result->points[2]) < 0.01f &&
+			plane_error_163db0(&result->planes[3], &result->points[2]) < 0.01f &&
+			plane_error_163db0(&result->planes[5], &result->points[2]) < 0.01f))
+			error = "_pyramid_top_right world-vertex off planes";
+		if (!(plane_error_163db0(&result->planes[0], &result->points[4]) < 0.01f &&
+			plane_error_163db0(&result->planes[1], &result->points[4]) < 0.01f &&
+			plane_error_163db0(&result->planes[2], &result->points[4]) < 0.01f &&
+			plane_error_163db0(&result->planes[3], &result->points[4]) < 0.01f))
+			error = "_pyramid_tip world-vertex off planes";
+		if (g_47ff86 && error)
+			g_47ff86 = false;
+		valid = true;
+	}
+	return valid;
+}
+
+struct s_clip_1648d0
+{
+	byte unknown00[0x10];
+	real x0, x1, y0, y1;
+	real margin;
+};
+
+struct s_projection_1648d0
+{
+	s_bounds3d bounds;
+	s_bounds3d unknown18;
+	point2f hull[12];
+	short hull_count;
+};
+
+struct s_plane_block_1648d0
+{
+	byte unknown00[0xc];
+	s_plane *planes;
+};
+
+struct s_bsp_1648d0
+{
+	byte unknown00[0x18];
+	s_plane_block_1648d0 *block;
+};
+
+PRIVATE inline void project_ray_1648d0(point3f const *origin, vector3f const *direction,
+	s_plane const *plane, point3f *out)
+{
+	real dot = direction->j * plane->normal.j;
+	dot += direction->k * plane->normal.k;
+	dot += plane->normal.i * direction->i;
+	real distance;
+	if (dot != 0.0f)
+	{
+		real offset = origin->y * plane->normal.j;
+		offset += origin->z * plane->normal.k;
+		offset += plane->normal.i * origin->x;
+		distance = (offset - plane->d) * (-1.0f / dot);
+	}
+	else
+		distance = 0.0f;
+	out->x = direction->i * distance + origin->x;
+	out->y = direction->j * distance + origin->y;
+	out->z = direction->k * distance + origin->z;
+}
+
+bool function_1652e0(s_view *view, real margin, const point3f *points, long point_count, point3f *projected_points, short *projected_count, s_bounds3d *bounds, bool use_plane0, bool use_plane1);
+long function_239cb0(long count, point3f const *points, point2f *hull);
+
+// @retail 0x1648d0
+bool function_1648d0(s_frustum_1648d0 const *source, s_view *view,
+	s_clip_1648d0 const *clip, s_projection_1648d0 *result, bool make_hull)
+{
+	long pyramid_edges[8][2] = { {0, 1}, {1, 3}, {3, 2}, {2, 0}, {4, 0}, {4, 1}, {4, 2}, {4, 3} };
+	long box_edges[12][2] = { {0, 1}, {1, 3}, {3, 2}, {2, 0}, {4, 5}, {5, 7}, {7, 6}, {6, 4}, {4, 0}, {5, 1}, {6, 2}, {7, 3} };
+	point3f points[8];
+	long (*edges)[2];
+	long edge_count;
+	if (source->plane_index != NONE)
+	{
+		s_plane const *plane = &((s_bsp_1648d0 *)g_4e0348)->block->planes[source->plane_index];
+		project_ray_1648d0(&source->points[4], &source->directions[0], plane, &points[4]);
+		points[0] = source->points[0];
+		project_ray_1648d0(&source->points[4], &source->directions[1], plane, &points[5]);
+		points[1] = source->points[1];
+		project_ray_1648d0(&source->points[4], &source->directions[2], plane, &points[6]);
+		points[2] = source->points[2];
+		project_ray_1648d0(&source->points[4], &source->directions[3], plane, &points[7]);
+		points[3] = source->points[3];
+		edges = box_edges;
+		edge_count = 12;
+	}
+	else
+	{
+		memcpy(points, source->points, 5 * sizeof(point3f));
+		edges = pyramid_edges;
+		edge_count = 8;
+	}
+	real margin = 1.52588e-5f > clip->margin ? 1.52588e-5f : clip->margin;
+	s_bounds3d bounds = *g_4687e0;
+	point3f segments[24];
+	point3f projected[24];
+	short projected_count;
+	long point_count = 0;
+	for (long i = 0; i < edge_count; ++i)
+	{
+		segments[point_count++] = points[edges[i][0]];
+		segments[point_count++] = points[edges[i][1]];
+	}
+	function_1652e0(view, margin, segments, point_count, projected, &projected_count, &bounds, true, true);
+	result->bounds = *g_4687e0;
+	result->unknown18 = *g_4687e0;
+	result->hull_count = 0;
+	if (projected_count >= 4)
+	{
+		box2f clipped;
+		clipped.x0 = bounds.x0 > clip->x0 ? bounds.x0 : clip->x0;
+		clipped.x1 = bounds.x1 > clip->x1 ? clip->x1 : bounds.x1;
+		clipped.y0 = bounds.y0 > clip->y0 ? bounds.y0 : clip->y0;
+		clipped.y1 = bounds.y1 > clip->y1 ? clip->y1 : bounds.y1;
+		if (!(clipped.x0 > clipped.x1 || clipped.y0 > clipped.y1))
+		{
+			*(box2f *)&result->bounds = clipped;
+			if (make_hull)
+				result->hull_count = (short)function_239cb0(projected_count, projected, result->hull);
+			result->bounds.z0 = bounds.z0;
+			result->bounds.z1 = bounds.y1;
+			return true;
+		}
+	}
+	return false;
+}
+
 // @retail 0x1652e0
 bool function_1652e0(s_view *view, real margin, const point3f *points, long point_count, point3f *projected_points, short *projected_count, s_bounds3d *bounds, bool use_plane0, bool use_plane1)
 {

@@ -11,11 +11,7 @@ struct s_biped_physics_result;
 struct s_biped_physics_move;
 struct s_biped_ground_collision;
 
-// @stub 0x1e5af0
-void function_1e5af0(s_biped_physics_output *output, void *physics, vector3f const *up, vector3f const *forward) { }
 
-// @stub 0x1ec500
-bool function_1ec500(long arg_159e6d) { return 0; }
 
 // @stub 0x1e5a60
 void function_1e5a60(s_biped_physics_result *result, s_biped_physics_input const *input, void *physics) { }

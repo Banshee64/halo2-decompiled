@@ -379,7 +379,7 @@ void function_1e2150(long actor_index, long object_index)
  {
   s_slot *slot = &actor->slots[i];
   t_slot_release callback = g_46eeb8[slot->type]->release28;
-  if (callback) callback(actor_index, i < 4 ? slot : NULL, object_index);
+  if (callback) callback(actor_index, i < 4 ? &actor->slots[i] : NULL, object_index);
  }
 }
 
@@ -443,4 +443,167 @@ void function_1e23c0(long actor_index)
    *(short *)(view + 0x8a) = 0;
   }
  }
+}
+
+bool function_1e13f0(long actor_index);
+void function_203d70(long actor_index, short squad_index, bool keep_team);
+void function_203ed0(long actor_index, bool keep_count);
+void function_203f60(long actor_index);
+void function_203fb0(long actor_index);
+
+// @retail 0x1e3400
+void function_1e3400(long actor_index, long squad_index)
+{
+ const long *squad_reference = &squad_index;
+ s_actor_view *actor = actor_get(actor_index);
+ function_1e22d0(actor_index, false);
+ if (*((byte *)actor + 0xa))
+  function_203fb0(actor_index);
+ else if (*(long *)((byte *)actor + 0x30) != NONE)
+  function_203ed0(actor_index, false);
+ if (function_1e13f0(actor_index))
+ {
+  if ((short)*squad_reference != NONE)
+  {
+   function_203d70(actor_index, (short)*squad_reference, true);
+   return;
+  }
+ }
+ else
+  *(long *)((byte *)actor + 0x34) = (short)*squad_reference;
+ function_203f60(actor_index);
+}
+
+void function_26def0(long actor_index, long owner_index);
+void function_25aa10(long actor_index, long object_index);
+
+// @retail 0x1e17d0
+void function_1e17d0(long actor_index, long object_index)
+{
+ const long *object_reference = &object_index;
+ s_actor_view *actor = actor_get(actor_index);
+ if (actor->unknown26c == *object_reference)
+ {
+  actor->unknown26c = NONE;
+  *((byte *)actor + 0x266) = 0;
+  *((byte *)actor + 0x267) = 0;
+  *(short *)((byte *)actor + 0x270) = 0;
+ }
+ if (actor->unknown274 == *object_reference)
+ {
+  actor->unknown274 = NONE;
+  actor->unknown268 = 0;
+ }
+ if (*(long *)((byte *)actor + 0x5ac) == *object_reference)
+ {
+  *(long *)((byte *)actor + 0x5ac) = NONE;
+  *(short *)((byte *)actor + 0x5b0) = NONE;
+ }
+ if (*(long *)((byte *)actor + 0x348) == *object_reference)
+  *(long *)((byte *)actor + 0x348) = NONE;
+ if (*(long *)((byte *)actor + 0x300) == *object_reference)
+ {
+  *(long *)((byte *)actor + 0x300) = NONE;
+  *(short *)((byte *)actor + 0x304) = 0;
+ }
+ if (*(long *)((byte *)actor + 0x2e8) == *object_reference)
+  *(long *)((byte *)actor + 0x2e8) = NONE;
+ if (*(long *)((byte *)actor + 0x7e4) == *object_reference)
+  *(long *)((byte *)actor + 0x7e4) = NONE;
+ if (*(long *)((byte *)actor + 0x3f8) == *object_reference)
+  function_26def0(actor_index, NONE);
+ for (short i = 0; i <= actor->current; ++i)
+ {
+  s_slot *slot = &actor->slots[i];
+  t_slot_release callback = g_46eeb8[slot->type]->release2c;
+  if (callback) callback(actor_index, i < 4 ? &actor->slots[i] : NULL, *object_reference);
+ }
+ function_25aa10(actor_index, *object_reference);
+}
+
+void function_26dc20(long actor_index);
+void function_11bed0(s_location *location, point3f const *point);
+struct s_bsp3d;
+extern s_bsp3d *g_4e033c;
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+
+struct s_actor_leaf_view
+{
+ short cluster;
+ byte field_2[6];
+};
+struct s_actor_bsp_view
+{
+ byte field_0[0x30];
+ s_actor_leaf_view *leaves;
+};
+
+// @retail 0x1e1500
+bool function_1e1500(long actor_index)
+{
+ const long *index_reference = &actor_index;
+ s_actor_view *actor = actor_get(*index_reference);
+ function_1e23c0(*index_reference);
+ function_1e22d0(*index_reference, false);
+ s_actor_view *state = actor_get(*index_reference);
+ if (*(long *)((byte *)state + 0x3f8) != NONE)
+ {
+  if (*(long *)((byte *)state + 0x3f4) != NONE)
+   function_26dc20(*index_reference);
+  *(long *)((byte *)state + 0x3f8) = NONE;
+  *(short *)((byte *)state + 0x3fc) = 0;
+ }
+ bool result = function_1e13f0(*index_reference);
+ if (result)
+ {
+  *(short *)((byte *)actor + 0x3e) = g_4686c4;
+  point3f point;
+  point.x = *(real *)((byte *)actor + 0x238) + g_4687b0->i * 0.1f;
+  point.y = *(real *)((byte *)actor + 0x23c) + g_4687b0->j * 0.1f;
+  point.z = *(real *)((byte *)actor + 0x240) + g_4687b0->k * 0.1f;
+  function_11bed0((s_location *)((byte *)actor + 0x250), &point);
+  long prop_index = actor_get(*index_reference)->first_prop_index;
+  while (prop_index != NONE)
+  {
+   s_prop_node_view *prop = (s_prop_node_view *)(g_502418->data + (prop_index & 0xffff) * 0x3c);
+   prop_index = prop->next_index;
+   byte *block = (byte *)function_25d690((s_prop_datum *)prop);
+   byte *view = NULL;
+   if (prop->view_index != NONE)
+   {
+    byte *entry = g_502414->data + (prop->view_index & 0xffff) * 0x124;
+    if (entry) view = entry + 0x70;
+   }
+   point.x = *(real *)(block + 4) + g_4687b0->i * 0.1f;
+   point.y = *(real *)(block + 8) + g_4687b0->j * 0.1f;
+   point.z = *(real *)(block + 12) + g_4687b0->k * 0.1f;
+   short bsp_index = g_4686c4;
+   if (bsp_index == NONE)
+   {
+    *(long *)(block + 0x28) = NONE;
+    *(short *)(block + 0x2c) = NONE;
+   }
+   else
+   {
+    long leaf = function_14a280(g_4e033c, &point, 0);
+    *(long *)(block + 0x28) = leaf;
+    *(short *)(block + 0x2c) = leaf == NONE ? NONE : ((s_actor_bsp_view *)g_4e0348)->leaves[leaf].cluster;
+   }
+   *(short *)(block + 0x2e) = bsp_index;
+   *(long *)(block + 0x44) = NONE;
+   if (view && *(short *)(view + 0x70) == 1)
+   {
+    view[0x68] = false;
+    view[0x69] = false;
+    view[0x4c] = false;
+    *(short *)(view + 0x70) = 0;
+    view[0x6c] = true;
+    view[0x6d] = true;
+    view[0x88] = false;
+    *(short *)(view + 0x90) = 0;
+    *(short *)(view + 0x8a) = 0;
+   }
+  }
+ }
+ return result;
 }

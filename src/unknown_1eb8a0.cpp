@@ -630,3 +630,29 @@ bool function_1ed430(void *ragdoll, vector3f *direction, long *value)
 	}
 	return result;
 }
+
+struct s_volume_list_view
+{
+ byte field_0[0x230];
+ long count;
+ short *volumes;
+};
+bool function_11c5b0(long object_index, long trigger_volume_index);
+
+// @retail 0x1ec500
+bool function_1ec500(long object_index)
+{
+ s_volume_list_view *scenario = (s_volume_list_view *)g_4e0350;
+ bool result = false;
+ if (scenario->count > 0)
+ {
+  long index = (g_510c54->game_time + (object_index & 0xffff)) % scenario->count;
+  if (!(g_51e9c8->bits[index >> 5] & (1 << (index & 31))))
+  {
+   short volume = scenario->volumes[index];
+   if (volume != NONE)
+    result = function_11c5b0(object_index, volume);
+  }
+ }
+ return result;
+}

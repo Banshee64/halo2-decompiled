@@ -20,6 +20,3 @@ bool __stdcall function_e6830(long unit_index) { return 0; }
 
 
 
-
-// @stub 0x168f40
-bool __stdcall function_168f40(long flags, s_vehicle_ray const *ray, long ignore_object_index, long ignore_unit_index) { return 0; }
