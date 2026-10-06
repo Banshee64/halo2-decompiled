@@ -554,6 +554,41 @@ struct s_player_29f5b0
 	byte unknown030[0x21c - 0x30];
 };
 
+long function_1ded60(void);
+
+inline void append_object_29f480(long list_index, long object_index)
+{
+	s_object_list_datum *list = &((s_object_list_datum *)g_4f55d8->data)[list_index & 0xffff];
+	long reference_index = record_pool_allocate(g_4f55d4);
+	if (reference_index != NONE)
+	{
+		s_object_reference_1dee50 *reference = (s_object_reference_1dee50 *)(g_4f55d4->data +
+			(reference_index & 0xffff) * g_4f55d4->size);
+		reference->object_index = object_index;
+		reference->next_reference_index = list->first_reference_index;
+		list->first_reference_index = reference_index;
+	}
+	list->count++;
+}
+
+// @retail 0x29f480
+long function_29f480(void)
+{
+	long list_index = function_1ded60();
+	s_record_pool *players = g_4e8c24;
+	long player_index = data_datum_index(players, function_16bc00(players, 0));
+	while (player_index != NONE)
+	{
+		s_player_29f5b0 *player = &((s_player_29f5b0 *)g_4e8c24->data)[player_index & 0xffff];
+		if (player->unit_index != NONE)
+			append_object_29f480(list_index, player->unit_index);
+		players = g_4e8c24;
+		player_index = data_datum_index(players, data_find_index(players,
+			player_index == NONE ? 0 : (player_index & 0xffff) + 1));
+	}
+	return list_index;
+}
+
 /* moves the unit of every player outside a trigger volume to a cutscene
    flag */
 // @retail 0x29f5b0

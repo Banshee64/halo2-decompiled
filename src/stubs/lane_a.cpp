@@ -5,12 +5,6 @@
 
 long const g_444ae0 = 0;
 
-// @stub 0x29f480
-long function_29f480(void)
-{
-	return NONE;
-}
-
 // @stub 0x29fe10
 void __stdcall function_29fe10(long index)
 {
@@ -113,11 +107,6 @@ real const g_44f710 = -64.0f;
 /* the saved game files manager (0x216000-0x218000) */
 struct s_saved_game_file_location;
 
-// @stub 0x28e2b0
-void function_28e2b0(long field_1c)
-{
-}
-
 // @stub 0x203360
 void function_203360(long squad_index)
 {
@@ -142,11 +131,6 @@ bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_gro
 bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad_index)
 {
 	return false;
-}
-
-// @stub 0x290040
-void function_290040(long field_1c)
-{
 }
 
 // @stub 0x202e90

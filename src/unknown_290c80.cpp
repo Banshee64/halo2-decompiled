@@ -6,6 +6,8 @@
 #include "unknown_2551c0.h"
 #include "globals.h"
 #include "object_iterator.h"
+#include "unknown_123b30.h"
+#include <string.h>
 
 struct s_290c50_iterator
 {
@@ -91,6 +93,32 @@ inline s_object_ai_data *object_ai_data(s_handler_object_view *object)
 	return object->flags134 ? NULL : (s_object_ai_data *)((byte *)object + object->ai_offset);
 }
 
+__forceinline s_object_ai_data *object_ai_data_checked(s_handler_object_view *object)
+{
+	s_object_ai_data *result;
+	if (!object->flags134)
+		result = (s_object_ai_data *)((byte *)object + object->ai_offset);
+	else
+		result = NULL;
+	return result;
+}
+
+__forceinline s_handler_object_view *next_object_290040(s_ai_object_iterator *iterator)
+{
+	s_handler_object_view *object = NULL;
+	if (iterator->next_index != NONE)
+	{
+		object = handler_object_get(iterator->next_index);
+		iterator->index = iterator->next_index;
+		s_object_ai_data *data;
+		if (!object->flags134 && (data = (s_object_ai_data *)((byte *)object + object->ai_offset)) != NULL)
+			iterator->next_index = data->next_object_index;
+		else
+			iterator->next_index = NONE;
+	}
+	return object;
+}
+
 // @retail 0x28fdf0
 void function_28fdf0(long perception_index)
 {
@@ -137,12 +165,41 @@ void function_28fd90(long perception_index, long index)
 	}
 }
 
+void function_b7360(long object_index);
+
+// @retail 0x28e2b0
+void function_28e2b0(long perception_index, bool flag)
+{
+	struct s_flags
+	{
+		byte unknown00[0x10a];
+		word bits0_4 : 5;
+		word bit5 : 1;
+		word bit6 : 1;
+		word others : 9;
+	};
+	long object_index = perception_get(perception_index)->object_index;
+	while (object_index != NONE)
+	{
+		s_handler_object_view *object = handler_object_get(object_index);
+		s_object_ai_data *data = object_ai_data(object);
+		if (!data)
+			break;
+		if (flag)
+			((s_flags *)object)->bit6 = true;
+		else
+			((s_flags *)object)->bit5 = true;
+		function_b7360(object_index);
+		object_index = data->next_object_index;
+	}
+}
+
 // @retail 0x290190
 bool function_290190(long object_index, point3f *position)
 {
 	bool result = false;
 	s_handler_object_view *object = handler_object_get(object_index);
-	s_object_ai_data *data = object_ai_data(object);
+	s_object_ai_data *data = object_ai_data_checked(object);
 	if (data && data->position_pending)
 	{
 		*position = data->position58;
@@ -162,6 +219,18 @@ struct s_290b90_entry
 };
 
 s_290b90_entry *g_5044c4;
+
+// @retail 0x28d930
+void function_28d930(void)
+{
+	g_5044c8 = data_new_inlined("swarm", 32, 0x34, 0, g_510c2c);
+	g_5044c4 = (s_290b90_entry *)function_123d40(NULL, NULL, 0x190);
+	for (long i = 0; i < 5; i++)
+	{
+		g_5044c4[i].count = 0;
+		g_5044c4[i].key = NONE;
+	}
+}
 
 // @retail 0x290b90
 void function_290b90(long key)
@@ -198,6 +267,32 @@ void function_28e160(long actor_index)
 			data = object_ai_data(object);
 			if (data)
 				data->index04 = NONE;
+		}
+	}
+}
+
+// @retail 0x28e090
+void __stdcall function_28e090(long actor_index, long perception_index)
+{
+	s_handler_actor_view *actor = (s_handler_actor_view *)actor_get(actor_index);
+	s_perception_datum *perception = perception_get(perception_index);
+	if (actor->perception_index != perception_index)
+	{
+		if (actor->perception_index != NONE)
+			function_28e160(actor_index);
+		long old_actor = *(long *)((byte *)perception + 4);
+		if (old_actor != NONE)
+			function_28e160(old_actor);
+		actor->perception_index = perception_index;
+		*(long *)((byte *)perception + 4) = actor_index;
+		s_ai_object_iterator iterator;
+		iterator.next_index = perception_get(perception_index)->object_index;
+		s_handler_object_view *object;
+		while ((object = next_object_290040(&iterator)) != NULL)
+		{
+			s_object_ai_data *data = object_ai_data_checked(object);
+			if (data)
+				data->index04 = actor_index;
 		}
 	}
 }
@@ -257,7 +352,7 @@ void function_28d9d0(void)
 	s_handler_object_view *object;
 	while ((object = (s_handler_object_view *)function_baeb0(&iterator)) != NULL)
 	{
-		s_object_ai_data *data = object_ai_data(object);
+		s_object_ai_data *data = object_ai_data_checked(object);
 		if (data)
 		{
 			data->index08 = NONE;
@@ -266,4 +361,53 @@ void function_28d9d0(void)
 		}
 	}
 	g_5044c8->valid = false;
+}
+
+struct s_28ff90_state
+{
+	dword flags0;
+	dword flags4;
+	byte unknown08[0x10];
+	vector3f forward;
+	vector3f up;
+};
+
+void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
+
+struct s_28ff90_object
+{
+	byte unknown00[0x12c];
+	word reset : 1;
+	word others : 15;
+	byte unknown12e[0x13c - 0x12e];
+	s_28ff90_state state;
+};
+
+struct s_28ff90_header
+{
+	byte unknown00[8];
+	s_28ff90_object *object;
+};
+
+// @retail 0x28ff90
+void function_28ff90(long object_index)
+{
+	s_28ff90_state state;
+	memset(&state, 0, sizeof(state));
+	state.forward = *g_4687a8;
+	state.flags0 = 0x6000086;
+	state.flags4 = 0x400000c;
+	state.up = *g_4687b0;
+	function_b9fc0(object_index, &state.forward, &state.up);
+	((s_28ff90_header *)g_4e0300->data)[object_index & 0xffff].object->state = state;
+	((s_28ff90_header *)g_4e0300->data)[object_index & 0xffff].object->reset = false;
+}
+
+// @retail 0x290040
+void function_290040(long perception_index)
+{
+	s_ai_object_iterator iterator;
+	iterator.next_index = perception_get(perception_index)->object_index;
+	while (next_object_290040(&iterator))
+		function_28ff90(iterator.index);
 }
