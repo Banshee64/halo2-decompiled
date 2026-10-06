@@ -221,3 +221,37 @@ s_slot_handler_2 g_47eeb8 =
 	},
 	(t_slot_proc)function_1bff80, 0, function_1c0230
 };
+
+long function_1e4a50(long index);
+short function_1bf890(long actor_index, long object_index, short seat_index, bool vertical);
+
+// @retail 0x1bfb10
+bool __stdcall function_1bfb10(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    s_slot_object_view *unit = object_get(prop_node_get(actor->prop_index)->object_index);
+    long vehicle_index = unit->parent_index;
+    bool result = false;
+    s_slot_vehicle_board *state = (s_slot_vehicle_board *)slot;
+    if (object_header_get(vehicle_index)->type == 1)
+    {
+        byte *movement = (byte *)function_1e4a50(actor->unknown054);
+        byte *boarding = (byte *)function_1e4ad0(actor->unknown054);
+        bool vertical = (boarding[0] & 1) && (actor->unknown229 || (movement && (movement[0] & 0x20)));
+        short seat = function_1bf890(actor_index, vehicle_index, unit->unknown1fc, vertical);
+        if (seat != NONE)
+        {
+            state->prop_index = actor->prop_index;
+            state->vehicle_index = unit->parent_index;
+            state->seat_index = unit->unknown1fc;
+            state->vehicle_seat_index = seat;
+            state->boarding = false;
+            state->requested = false;
+            state->unknown1b = false;
+            state->unknown1a = vertical;
+            return true;
+        }
+        return false;
+    }
+    return result;
+}

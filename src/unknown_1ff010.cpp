@@ -4,6 +4,7 @@
 #include "unknown_0259d0.h"
 #include "unknown_1e3920.h"
 #include "unknown_2551c0.h"
+#include "object_markers.h"
 
 /* the actor's props as targets */
 
@@ -284,4 +285,95 @@ finished:
 	if (count_out)
 		*count_out = count;
 	return result;
+}
+
+long function_1e1f20(long actor_index);
+point3f *function_b9dd0(long object_index, point3f *result);
+void function_1fc710(long actor_index, point3f *position);
+real function_30bf0(vector3f *v);
+real function_11ce20(vector3f const *a, vector3f const *b);
+
+// @retail 0x1ffe00
+bool __stdcall function_1ffe00(long actor_index, long object_index)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    s_slot_object_view *object = object_get(object_index);
+    byte *definition = g_4e3b44[object->tag_index & 0xffff].bytes;
+    bool result = false;
+    byte *weapon_settings = NULL;
+    long weapon_index = function_1e1f20(actor_index);
+    if (weapon_index != NONE)
+        weapon_settings = (byte *)function_1e5280(actor_index, object_get(weapon_index)->tag_index);
+    real best_score = 0.0f;
+    long best = NONE;
+    if (object->type != 0 || object->player_index == NONE)
+    {
+        point3f center;
+        function_b9dd0(object_index, &center);
+        if (weapon_settings)
+        {
+            real z = center.z - actor->position.z;
+            real x = center.x - actor->position.x;
+            real y = center.y - actor->position.y;
+            real range = *(real *)(weapon_settings + 0x20);
+            if (z * z + x * x + y * y < range * range)
+            {
+                long model_index = *(long *)(definition + 0x38);
+                if (model_index != NONE)
+                {
+                    byte *model = g_4e3b44[model_index & 0xffff].bytes;
+                    if (*(long *)(model + 0x68) > 0)
+                    {
+                        point3f origin;
+                        function_1fc710(actor_index, &origin);
+                        for (short i = 0; i < *(long *)(model + 0x68); i++)
+                        {
+                            byte *entry = *(byte **)(model + 0x6c) + i * 0x1c;
+                            long name = *(long *)entry;
+                            short region = *(short *)(entry + 0xc);
+                            if (region >= 0)
+                            {
+                                byte *current = (byte *)object_get(object_index);
+                                if (region >= (*(short *)(current + 0x120) >> 3))
+                                    continue;
+                                byte *regions = current + *(short *)(current + 0x122);
+                                if (regions[region * 8 + 2] == 0xff)
+                                    continue;
+                            }
+                            s_object_marker marker;
+                            if (function_b8d30(object_index, name, &marker, 1, false))
+                            {
+                                vector3f direction;
+                                direction.i = origin.x - marker.matrix.position.x;
+                                direction.j = origin.y - marker.matrix.position.y;
+                                direction.k = origin.z - marker.matrix.position.z;
+                                if (function_30bf0(&direction) != 0.0f)
+                                {
+                                    real angle = function_11ce20(&direction, &marker.matrix.forward);
+                                    if (angle < 1.5707963705062866f && angle < *(real *)(entry + 8))
+                                    {
+                                        real score = 1.0f - angle * 0.6366197466850281f;
+                                        if (name == *(long *)((byte *)actor + 0x33c))
+                                            score += 0.3f;
+                                        if (score > best_score)
+                                        {
+                                            best_score = score;
+                                            best = name;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (best != NONE)
+                        {
+                            *(long *)((byte *)actor + 0x33c) = best;
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    *(long *)((byte *)actor + 0x33c) = 0;
+    return result;
 }

@@ -50,8 +50,6 @@ void function_1d35d0(long rigid_body_index, s_havok_component *component, real s
 real function_1d1230(long rigid_body_index, s_havok_component *component) { return 0; }
 
 
-// @stub 0x1faf80
-void function_1faf80(vector3f *facing, long arg_159e6d, void const *definition_flight, vector3f const *control, real rate, real *turn) { }
 
 
 // @stub 0xe63b0

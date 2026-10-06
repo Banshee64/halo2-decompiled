@@ -1518,7 +1518,7 @@ struct s_collision_result_1697c0;
 bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 point3f *function_b9dd0(long object_index, point3f *result);
-long function_1fa3a0(long a, long b, long c, point3f const *point);
+long function_1fa3a0(long a, long b, long object_index, long c, point3f const *point);
 extern vector3f *g_4687bc;
 
 /* the ground under the vehicle, found once a tick (for the vehicle types
@@ -1561,7 +1561,7 @@ void function_f1070(long vehicle_index, long *location, long *unknown3c0, point3
 			vehicle->unknown3cc = collision.unknown48;
 			if (collision.unknown50 != NONE)
 			{
-				vehicle->unknown3c0 = function_1fa3a0(collision.unknown3c, collision.unknown50, collision.unknown48,
+				vehicle->unknown3c0 = function_1fa3a0(collision.unknown3c, collision.unknown50, collision.unknown40, collision.unknown48,
 					&collision.point);
 			}
 			else
