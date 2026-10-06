@@ -1,5 +1,6 @@
 #include "unknown_11c920.h"
 #include <string.h>
+#include <xmmintrin.h>
 #include "globals.h"
 #include "data_array.h"
 #include "physical_memory.h"
@@ -140,6 +141,191 @@ long physical_memory_used_pages(s_physical_object *physical, long age)
 		{
 			result += block->pages;
 		}
+	}
+	return result;
+}
+
+struct s_physical_block_view;
+struct s_physical_allocator_view;
+bool function_13d320(s_physical_allocator_view const *allocator, s_physical_block_view const *a, s_physical_block_view const *b);
+
+struct s_block_candidate
+{
+	long previous;
+	dword time;
+	long offset;
+	long pages;
+};
+
+// @retail 0x13d370
+long __stdcall function_13d370(s_physical_object *physical, long size, long type)
+{
+	long pages = size >> physical->page_shift;
+	if (size & ((1 << physical->page_shift) - 1))
+		pages++;
+	long result = NONE;
+	long limit_index = type < 0 ? 0 : (type > 8 ? 8 : type);
+	if (pages < physical->limits[limit_index] || limit_index <= 0)
+	{
+		s_block_candidate candidates[256];
+		s_block_candidate best;
+		bool have_best = false;
+		long head = 0;
+		long tail = 0;
+		long offset = 0;
+		long previous = NONE;
+		long current = physical->first;
+		long oldest = NONE;
+		dword oldest_time;
+		while (offset < physical->page_count)
+		{
+			long next_tail = (tail + 1) % 256;
+			if (next_tail != head)
+			{
+				s_block_candidate *candidate = &candidates[tail];
+				candidate->previous = previous;
+				candidate->time = 0;
+				candidate->offset = offset;
+				candidate->pages = 0;
+				tail = next_tail;
+			}
+			long segment_pages;
+			dword segment_time = 0;
+			bool busy = false;
+			if (current == NONE)
+			{
+				segment_pages = physical->page_count - offset;
+				offset = physical->page_count;
+			}
+			else
+			{
+				s_physical_block *block = &((s_physical_block *)physical->blocks->data)[current & 0xffff];
+				if (offset == block->offset)
+				{
+					segment_pages = block->pages;
+					segment_time = block->time;
+					busy = physical->busy_proc && physical->busy_proc(current);
+					if ((dword)(block->time + type) >= (dword)physical->time)
+						busy = true;
+					else if (!busy && (oldest == NONE || (dword)block->time < oldest_time))
+					{
+						oldest = current;
+						oldest_time = block->time;
+					}
+					previous = current;
+					current = block->next;
+					offset = block->pages + block->offset;
+					_mm_prefetch((char *)&((s_physical_block *)physical->blocks->data)[current & 0xffff], _MM_HINT_T0);
+				}
+				else
+				{
+					segment_pages = block->offset - offset;
+					offset = block->offset;
+				}
+			}
+			if (busy)
+				head = tail;
+			else
+			{
+				for (long i = head; i != tail; )
+				{
+					s_block_candidate *candidate = &candidates[i];
+					long next = (i + 1) % 256;
+					_mm_prefetch((char *)&candidates[next], _MM_HINT_T0);
+					if (segment_time > candidate->time)
+						candidate->time = segment_time;
+					candidate->pages += segment_pages;
+					if (candidate->pages >= pages)
+					{
+						bool better = false;
+						if (have_best)
+						{
+							switch (physical->state)
+							{
+							case 0:
+								better = candidate->time < best.time || (candidate->time == best.time && candidate->pages < best.pages);
+								break;
+							case 1:
+								better = function_13d320((s_physical_allocator_view *)physical, (s_physical_block_view *)candidate, (s_physical_block_view *)&best);
+								break;
+							default:
+								{
+									dword age = physical->time - candidate->time;
+									dword best_age = physical->time - best.time;
+									better = (long)(best.pages * age) > (long)(candidate->pages * best_age);
+								}
+								break;
+							}
+						}
+						if (!have_best || better)
+						{
+							best = *candidate;
+							have_best = true;
+						}
+						head = (head + 1) % 256;
+					}
+					i = next;
+				}
+			}
+		}
+		if (have_best)
+		{
+			s_record_pool_iterator iterator;
+			iterator.data = physical->blocks;
+			iterator.index = NONE;
+			iterator.datum_index = NONE;
+			s_physical_block *block;
+			while ((block = (s_physical_block *)data_iterator_next_inlined(&iterator)) != NULL)
+			{
+				if (block->offset < best.offset + pages && block->offset + block->pages > best.offset)
+					physical->block_delete(iterator.datum_index);
+			}
+			if (physical->blocks->actual_count == physical->blocks->maximum_count && oldest != NONE)
+			{
+				if (best.previous == oldest)
+					best.previous = ((s_physical_block *)physical->blocks->data)[oldest & 0xffff].previous;
+				physical->block_delete(oldest);
+			}
+			result = record_pool_allocate(physical->blocks);
+			if (result != NONE)
+			{
+				s_physical_block *blocks = (s_physical_block *)physical->blocks->data;
+				s_physical_block *entry = &blocks[result & 0xffff];
+				if (best.previous == NONE)
+				{
+					entry->previous = NONE;
+					if (physical->first == NONE)
+						physical->last = result;
+					else
+						blocks[physical->first & 0xffff].previous = result;
+					entry->next = physical->first;
+					physical->first = result;
+				}
+				else
+				{
+					s_physical_block *before = &blocks[best.previous & 0xffff];
+					if (before->next == NONE)
+					{
+						entry->previous = physical->last;
+						physical->last = result;
+					}
+					else
+					{
+						s_physical_block *after = &blocks[before->next & 0xffff];
+						entry->previous = after->previous;
+						after->previous = result;
+					}
+					entry->next = before->next;
+					before->next = result;
+				}
+				entry->offset = best.offset;
+				entry->pages = pages;
+				entry->time = physical->time;
+				return result;
+			}
+		}
+		if (type == limit_index)
+			physical->limits[limit_index] = physical->limits[limit_index] < pages ? physical->limits[limit_index] : pages;
 	}
 	return result;
 }

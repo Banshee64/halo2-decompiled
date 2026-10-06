@@ -373,6 +373,60 @@ void function_3f500(long cluster_index)
 
 #include "geometry_cache.h"
 
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+// @retail 0x2d000
+long function_2d000(long object_index, long tag, long instance)
+{
+	long result = 3;
+	byte *map = (byte *)g_4e0348;
+	byte *definition = g_4e0344 ? (byte *)g_4e0344->bsp : NULL;
+	if (g_4e0344 && g_4e0344->count > 0 && map &&
+		*(long *)(definition + 0x1c) != NONE &&
+		*(long *)(definition + 4) == *(long *)(map + 8))
+	{
+		if (tag != NONE)
+		{
+			if (instance == 0x7ff)
+				result = 2;
+			else
+			{
+				byte *data = g_4e3b44[tag & 0xffff].bytes;
+				byte *tags = *(byte **)(definition + 0x5c);
+				if (*(long *)(data + 8) == *(long *)(tags + instance * 12 + 8))
+				{
+					byte *mappings = *(byte **)(definition + 0x64);
+					long section = *(word *)(mappings + instance * 12 + 2);
+					byte *sections = *(byte **)(definition + 0x44);
+					if (function_12de70((s_geometry_block_info *)(sections + section * 0x38 + 0xc), 3))
+						result = 1;
+				}
+			}
+		}
+		else if (instance == 0x7ff)
+			result = 0;
+		else
+		{
+			byte *mappings = *(byte **)(definition + 0x54);
+			long section = *(word *)(mappings + instance * 12 + 2);
+			byte *sections = *(byte **)(definition + 0x44);
+			if (function_12de70((s_geometry_block_info *)(sections + section * 0x38 + 0xc), 3))
+			{
+				byte *instances = *(byte **)((byte *)g_4e0348 + 0x144);
+				result = *(short *)(instances + instance * 0x58 + 0x56) != 0;
+			}
+		}
+	}
+	else if (tag != NONE && object_index != NONE)
+	{
+		byte *object = (byte *)function_badc0(object_index, NONE);
+		if (object && (object[7] & 1))
+			result = 2;
+	}
+	return result;
+}
+
 struct s_geometry_section
 {
     byte unknown00[0x38];
@@ -590,9 +644,11 @@ point3f *function_3f220(dword a, dword b, dword c, point3f *out)
 {
     dword const *reference = &c;
     point3f value;
+    real z;
     value.x = (real)a * 8.0f * g_45dd38;
     value.y = (real)b * 8.0f * g_45dd38;
-    value.z = (real)*reference * 8.0f * g_45dd44;
+    z = (real)*reference * 8.0f;
+    value.z = z * g_45dd44;
     *out = value;
     return out;
 }
@@ -700,6 +756,108 @@ void *function_449e0(short index, bool load, bool instance)
 	return result;
 }
 
+struct s_geometry_visibility_list
+{
+	dword *indices;
+	long count;
+};
+
+PRIVATE __forceinline byte *visible_entry_geometry(s_44940_entry *entry)
+{
+	if (entry->tag != NONE)
+	{
+		byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+		byte *sections = *(byte **)(definition + 0x28);
+		return *(byte **)(sections + ((entry->flags >> 9) & 0x1ff) * 0x5c + 0x34);
+	}
+	byte *structure = (byte *)g_4e0348;
+	byte *section;
+	if (!((entry->unknown00 >> 12) & 1))
+		section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+	else
+	{
+		byte *instances = *(byte **)(structure + 0x144);
+		short index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+		section = *(byte **)(structure + 0x13c) + index * 0xc8;
+	}
+	return *(byte **)(section + 0x50);
+}
+
+// @retail 0x458d0
+void function_458d0(short index, bool ranges, s_geometry_visibility_list const *first, s_geometry_visibility_list const *second)
+{
+	short const *index_reference = &index;
+	(void)&ranges; (void)&first; (void)&second;
+	s_44940_entry *entry = &g_4ba138[*index_reference];
+	byte *geometry = visible_entry_geometry(entry);
+	dword *mask = *(dword **)(entry->unknown10 + 4);
+	if (first->count > 0 || second->count > 0)
+		entry->unknown00 |= 1;
+	for (long i = 0; i < first->count; ++i)
+	{
+		if (!ranges)
+		{
+			dword bit = (word)first->indices[i];
+			mask[bit >> 5] |= 1 << (bit & 31);
+		}
+		else
+		{
+			word *mapping = *(word **)(geometry + 0x34);
+			long offset = *(long *)(geometry + 8);
+			long end = mapping[(short)first->indices[i + 1] + offset];
+			for (long j = mapping[(short)first->indices[i] + offset]; j <= end; ++j)
+			{
+				dword bit = (*(word **)(geometry + 0x34))[(short)j];
+				mask[bit >> 5] |= 1 << (bit & 31);
+			}
+			++i;
+		}
+	}
+	for (long i = 0; i < second->count; ++i)
+	{
+		dword bit = (word)second->indices[i];
+		mask[bit >> 5] |= 1 << (bit & 31);
+	}
+}
+
+PRIVATE __forceinline void mark_visible_part(byte *geometry, long index, dword *mask)
+{
+	byte *part = *(byte **)(geometry + 4) + index * 0x48;
+	for (long bit = *(short *)(part + 0xa); bit < *(short *)(part + 0xa) + *(short *)(part + 0xc); ++bit)
+		mask[bit >> 5] |= 1 << (bit & 31);
+}
+
+// @retail 0x45a80
+void function_45a80(short index, bool ranges, s_geometry_visibility_list const *first, s_geometry_visibility_list const *second)
+{
+	short const *index_reference = &index;
+	(void)&ranges; (void)&first; (void)&second;
+	s_44940_entry *entry = &g_4ba138[*index_reference];
+	byte *geometry = visible_entry_geometry(entry);
+	dword *mask = *(dword **)(entry->unknown10 + 4);
+	if (first->count > 0 || second->count > 0)
+		entry->unknown00 |= 1;
+	for (long i = 0; i < first->count; ++i)
+	{
+		if (!ranges)
+			mark_visible_part(geometry, (word)first->indices[i], mask);
+		else
+		{
+			word *mapping = *(word **)(geometry + 0x34);
+			long offset = *(long *)geometry + 2 * *(long *)(geometry + 8);
+			long end = mapping[(short)first->indices[i + 1] + offset];
+			for (long j = mapping[(short)first->indices[i] + offset]; j <= end; ++j)
+			{
+				long part = (*(word **)(geometry + 0x34))[(short)j + 2 * *(long *)(geometry + 8)];
+				mark_visible_part(geometry, part, mask);
+			}
+			++i;
+		}
+	}
+	for (long i = 0; i < second->count; ++i)
+		mark_visible_part(geometry, second->indices[i], mask);
+}
+
 struct s_3d4f0_entry
 {
 	long tag;
@@ -733,13 +891,14 @@ void function_3d4f0(bool cached, short cache_index, long *flags,
 	}
 	else
 	{
-		byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		long offset = (object_index & 0xffff) * sizeof(s_render_object_header);
+		byte *object = *(byte **)(offset + (dword)g_4e0300->data + 8);
 		byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
 		byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
 		long model_tag = *(long *)(model + 4);
 		byte *geometry = g_4e3b44[model_tag & 0xffff].bytes;
 		*tag = model_tag;
-		object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		object = *(byte **)(offset + (dword)g_4e0300->data + 8);
 		**count_reference = (dword)(long)*(short *)(object + 0x114) / sizeof(transform4x3f);
 		*transforms = (transform4x3f *)(object + *(short *)(object + 0x116));
 		**count_reference = *(dword *)(geometry + 0x48);
@@ -786,4 +945,163 @@ bool function_460d0(dword const *mask, short index, long part_index)
 			result = (mask[i >> 5] & (1 << (i & 31))) != 0;
 	}
 	return result;
+}
+
+// @retail 0x4c2b0
+bool function_4c2b0(long tag, byte const *wanted, signed char *current, long level,
+    bool request, signed char *sections, bool *fallback)
+{
+    (void)&wanted; (void)&current; (void)&level;
+    (void)&request; (void)&sections; (void)&fallback;
+    byte *definition = g_4e3b44[tag & 0xffff].bytes;
+    *fallback = false;
+    word available = 0;
+    bool result = true;
+    for (long i = 0; i < *(long *)(definition + 0x1c); ++i)
+    {
+        long selection = wanted[i];
+        byte *group = *(byte **)(definition + 0x20) + i * 16;
+        if (selection != NONE && selection < *(long *)(group + 8))
+        {
+            byte *variant = *(byte **)(group + 0xc) + selection * 16;
+            short section = ((short *)(variant + 4))[level];
+            s_geometry_block_info *block = (s_geometry_block_info *)(*(byte **)(definition + 0x28) + section * 0x5c + 0x38);
+            if (request)
+            {
+                if (function_12de70(block, 3)) available |= 1 << i;
+            }
+            else
+            {
+                if (function_12de70(block, 0)) available |= 1 << i;
+            }
+        }
+    }
+    for (long i = 0; i < *(long *)(definition + 0x1c); ++i)
+    {
+        byte *group = *(byte **)(definition + 0x20) + i * 16;
+        if (available & (1 << i))
+        {
+            byte *variant = *(byte **)(group + 0xc) + (signed char)wanted[i] * 16;
+            sections[i] = (signed char)((short *)(variant + 4))[level];
+            current[i] = wanted[i];
+        }
+        else if (wanted[i] != 0xff)
+        {
+            if (current[i] != -1)
+            {
+                byte *variant = *(byte **)(group + 0xc) + current[i] * 16;
+                short section = ((short *)(variant + 4))[level];
+                if (function_12de70((s_geometry_block_info *)(*(byte **)(definition + 0x28) + section * 0x5c + 0x38), 0))
+                {
+                    sections[i] = (signed char)((short *)(variant + 4))[level];
+                    *fallback = true;
+                }
+                else result = false;
+            }
+            else
+            {
+                *fallback = true;
+                sections[i] = -1;
+            }
+        }
+        else sections[i] = -1;
+    }
+    return result;
+}
+
+struct s_light_shape_ab;
+bool function_c3140(long index);
+bool function_c17f0(long light_index, s_light_shape_ab *shape, bool respect_engine);
+extern short g_485602;
+
+// @retail 0x31590
+bool function_31590(long index, s_light_shape_ab *shape)
+{
+    bool result = false;
+    volatile bool enabled = false;
+    if (index != NONE && function_c3140(index))
+    {
+        s_render_entry_110 *entry = &((s_render_entry_110 *)g_4e030c->data)[index & 0xffff];
+        byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+        bool visible;
+        if (function_31520(index))
+        {
+            result = function_c17f0(index, shape, true);
+            visible = true;
+            if ((*(dword *)definition & 0x400) && g_485602 != 2)
+                visible = false;
+        }
+        else
+            visible = enabled;
+        result &= visible;
+        result &= true;
+        result &= *(short *)((byte *)entry + 0x48) != NONE ||
+            ((*(dword *)definition & 0x20) && (*(dword *)definition & 0x40000));
+    }
+    return result;
+}
+
+#include <math.h>
+struct s_camera;
+struct s_tag_data;
+real function_50650(real cosine);
+real function_13bb90(s_tag_data const *function, real input, real range);
+long function_30830(point3f const *a, s_camera const *camera, vector3f const *d,
+    point2f const *scale, bool perspective, bool negate, point2f *out);
+
+// @retail 0x4ff50
+void function_4ff50(byte const *definition, byte const *state, bool facing, real time,
+    real cosine, real *strength, real *horizontal, real *vertical, real *out)
+{
+    if (*(long const *)(definition + 0x38) > 0)
+    {
+        byte const *curve = *(byte **)(definition + 0x3c);
+        if (facing)
+        {
+            real angle = function_50650(cosine) * 0.6366197466850281f;
+            if (angle < 0.0f) angle = 0.0f;
+            else if (angle > 1.0f) angle = 1.0f;
+            real lower = curve ? *(real const *)(curve + 0x14) * 0.6366197466850281f : 0.0f;
+            if (0.0f > lower) lower = 0.0f;
+            else if (lower > 0.9998999834060669f) lower = 0.9998999834060669f;
+            real value = (angle - lower) / (1.0f - lower);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            *strength = value;
+            if (value > 0.0f)
+            {
+                if (curve && *(real const *)(curve + 0x18) > 0.0f)
+                    *strength = (real)pow(value, *(real const *)(curve + 0x18));
+                else
+                    *strength = 1.0f;
+            }
+            if (*strength > 0.0f)
+            {
+                point2f projected;
+                if (function_30830((point3f const *)(state + 8), NULL, (vector3f const *)(state + 0x14),
+                    NULL, true, true, &projected) && (projected.x != 0.0f || projected.y != 0.0f))
+                {
+                    double direction = atan2(projected.y, projected.x);
+                    *horizontal = (real)cos(direction);
+                    *vertical = (real)sin(direction);
+                }
+            }
+        }
+        if (curve)
+        {
+            real base = *(real const *)(curve + 0x10);
+            if (*strength > 0.0f)
+            {
+                real value = function_13bb90((s_tag_data const *)curve, time, 0.0f);
+                out[0] = base - (base - value) * *strength;
+                value = function_13bb90((s_tag_data const *)(curve + 8), time, 0.0f);
+                out[1] = base - (base - value) * *strength;
+            }
+            else
+            {
+                out[0] = base;
+                out[1] = base;
+            }
+        }
+    }
 }

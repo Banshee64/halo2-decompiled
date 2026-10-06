@@ -349,18 +349,21 @@ bool function_bf5d0(long object_index)
 extern long g_4de2fc;
 extern long g_4de300[0x800];
 
+static __forceinline bool object_stamp_ab(long index, long stamp)
+{
+    bool result = false;
+    if (g_4de300[index] != stamp)
+    {
+        g_4de300[index] = stamp;
+        result = true;
+    }
+    return result;
+}
+
 // @retail 0xbec70
 bool function_bec70(long object_index)
 {
-	long stamp = g_4de2fc;
-	object_index &= 0xffff;
-	bool result = false;
-	if (g_4de300[object_index] != stamp)
-	{
-		g_4de300[object_index] = stamp;
-		result = true;
-	}
-	return result;
+    return object_stamp_ab(object_index & 0xffff, g_4de2fc);
 }
 
 extern long *g_4de2d0;
@@ -421,6 +424,39 @@ struct s_wake_header_bbf40
 	byte unknown04[4];
 	s_object_tree_0bbf40 *object;
 };
+
+void object_widgets_new(long object_index);
+void __stdcall function_beca0(long object_index);
+void __stdcall function_bd090(long object_index);
+bool __stdcall function_bdef0(long object_index);
+
+// @retail 0xbe690
+void function_be690(long object_index)
+{
+	s_wake_header_bbf40 *header = (s_wake_header_bbf40 *)g_4e0300->data + (object_index & 0xffff);
+	if (header->type != 5)
+		object_widgets_new(object_index);
+	else
+		*(long *)((byte *)header->object + 0xdc) = NONE;
+	function_beca0(object_index);
+}
+
+// @retail 0xbd020
+void __stdcall function_bd020(long object_index)
+{
+	s_object_tree_0bbf40 *object = ((s_object_tree_header_0bbf40 *)g_4e0300->data)[object_index & 0xffff].object;
+	function_bd090(object_index);
+	function_bdef0(object_index);
+	long child_index = object->first_child_index;
+	while (child_index != NONE)
+	{
+		s_object_tree_0bbf40 *child = ((s_object_tree_header_0bbf40 *)g_4e0300->data)[child_index & 0xffff].object;
+		char type = *(char *)((byte *)child + 0xaa);
+		if (!((1 << type) & 0x80))
+			function_bd020(child_index);
+		child_index = child->next_object_index;
+	}
+}
 
 void function_b7360(long object_index);
 
@@ -516,15 +552,9 @@ long __stdcall function_bc280(short size)
 	return index;
 }
 
-// @retail 0xbc300
-void __stdcall function_bc300(long object_index)
+static __forceinline void object_free_block_ab(s_loop_allocator *loop, void *object)
 {
-	s_object_memory_header_ab *header = (s_object_memory_header_ab *)g_4e0300->data + (object_index & 0xffff);
-	header->flags = 0;
-	if (header->object)
-	{
-		s_loop_allocator *loop = (s_loop_allocator *)g_4de2ec;
-		s_loop_block *block = (s_loop_block *)header->object - 1;
+		s_loop_block *block = (s_loop_block *)object - 1;
 		loop->free += block->size;
 		if (block->previous)
 			block->previous->next = block->next;
@@ -534,6 +564,16 @@ void __stdcall function_bc300(long object_index)
 			block->next->previous = block->previous;
 		else
 			loop->last = block->previous;
+}
+
+// @retail 0xbc300
+void __stdcall function_bc300(long object_index)
+{
+	s_object_memory_header_ab *header = (s_object_memory_header_ab *)g_4e0300->data + (object_index & 0xffff);
+	header->flags = 0;
+	if (header->object)
+	{
+		object_free_block_ab((s_loop_allocator *)g_4de2ec, header->object);
 		header->object = 0;
 	}
 	record_pool_release(g_4e0300, object_index);
@@ -565,4 +605,140 @@ bool function_bc380(long object_index, long block_offset, long size, long alignm
 		return true;
 	}
 	return result;
+}
+
+long function_baf80(long object_index);
+void function_b7360(long object_index);
+void __stdcall function_bc7b0(long object_index);
+
+// @retail 0xbba20
+void function_bba20(long object_index)
+{
+	s_object_header_0bbf40 *headers = (s_object_header_0bbf40 *)g_4e0300->data;
+	s_object_header_0bbf40 *header = &headers[object_index & 0xffff];
+	if (*((signed char *)header + 2) < 0)
+	{
+		object_index = function_baf80(object_index);
+		header = &headers[object_index & 0xffff];
+	}
+	if (*((byte *)header + 2) & 1)
+	{
+		function_b7360(object_index);
+		*((byte *)header + 2) |= 4;
+	}
+	function_bc7b0(object_index);
+}
+
+
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+static __forceinline byte *object_bytes_ab(long index)
+{
+    return (byte *)((s_object_header_0bbf40 *)g_4e0300->data)[index & 0xffff].object;
+}
+
+// @retail 0xbeb30
+bool __stdcall function_beb30(long object_index)
+{
+    byte *object = object_bytes_ab(object_index);
+    byte *unit = (byte *)function_badc0(object_index, 3);
+    long player = NONE;
+    if (unit) player = *(long *)(unit + 0x13c);
+    bool result = player != NONE;
+    if (!result)
+    {
+        long index = *(long *)(object + 0x10);
+        while (index != NONE)
+        {
+            byte *child = object_bytes_ab(index);
+            if (function_beb30(index)) return true;
+            index = *(long *)(child + 0xc);
+        }
+        index = *(long *)(object + 0x14);
+        while (index != NONE)
+        {
+            byte *parent = object_bytes_ab(index);
+            byte *header = datum_get_inlined(g_4e0300, index);
+            if (header && ((1 << header[3]) & 3))
+            {
+                byte *parent_unit = *(byte **)(header + 8);
+                if (parent_unit && *(long *)(parent_unit + 0x13c) != NONE) return true;
+            }
+            index = *(long *)(parent + 0x14);
+        }
+        if (((1 << object[0xaa]) & 0x1c) && (bool)(((dword)object[0x12c] >> 3) & 1))
+            return true;
+    }
+    return result;
+}
+
+struct s_post_physics_object_ab
+{
+    byte unknown00[0xc];
+    long sibling;
+    long child;
+    byte unknown14[0xb4 - 0x14];
+    long component;
+    byte unknownb8[0xc0 - 0xb8];
+    word : 1;
+    word flag1 : 1;
+    word flag2 : 1;
+    word : 3;
+    word flag6 : 1;
+    word : 9;
+    byte unknownc2[0x114 - 0xc2];
+    short nodes_size;
+};
+struct s_post_physics_header_ab
+{
+    short salt;
+    byte flags;
+    byte type;
+    byte unknown04[4];
+    s_post_physics_object_ab *object;
+};
+void __stdcall function_bc5e0(long object_index);
+void __stdcall function_1d3920(byte *component, dword *mask, real value);
+void function_108cd0(long object_index);
+void __stdcall function_bef30(long object_index, long remove, long add, long siblings, long own_flags);
+
+// @retail 0xbc820
+void __stdcall function_bc820(long object_index)
+{
+    (void)&object_index;
+    dword mask[8];
+    s_post_physics_header_ab *header = &((s_post_physics_header_ab *)g_4e0300->data)[object_index & 0xffff];
+    s_post_physics_object_ab *object = header->object;
+    if (object->component != NONE)
+        function_bc5e0(object_index);
+    if (!((1 << header->type) & 0x80))
+        function_bd090(object_index);
+    else if (object->component != NONE && TEST_FIELD_BIT(object->flag6))
+    {
+        byte *component = g_51e9b8->data + (object->component & 0xffff) * 0xa0;
+        if ((bool)((*(dword *)(component + 4) >> 15) & 1))
+        {
+            long count = (dword)(long)object->nodes_size / sizeof(transform4x3f);
+            memset(mask, 0, ((count + 31) >> 5) * sizeof(dword));
+            function_1d3920(component, mask, 0.0f);
+        }
+    }
+    function_108cd0(object_index);
+    if (TEST_FIELD_BIT(object->flag2))
+        object->flag1 = true;
+    else
+        object->flag1 = false;
+    object->flag2 = false;
+    bool moved = function_bdef0(object_index);
+    if ((header->flags & 0x40) && !moved)
+        function_bef30(object_index, 1, 1, 0, 0);
+    long child = object->child;
+    while (child != NONE)
+    {
+        function_bc820(child);
+        child = ((s_post_physics_header_ab *)g_4e0300->data)[child & 0xffff].object->sibling;
+    }
+    function_be1d0(object_index);
 }

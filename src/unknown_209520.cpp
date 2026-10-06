@@ -9,6 +9,7 @@
 #include "data_array.h"
 #include "hs.h"
 #include <stddef.h>
+#include <string.h>
 
 /* a frame of a thread's stack: the expression it evaluates and where its
    value goes; the frame's own data follows it */
@@ -117,6 +118,149 @@ inline s_hs_script *hs_script_get(long script_index)
 {
 	return &((s_hs_scenario_view *)g_4e0350)->scripts[script_index];
 }
+
+long function_209e70(short script_index);
+void __stdcall function_209c80(long thread_index);
+void function_209ae0(long thread_index, long value);
+
+// @retail 0x208c40
+void __stdcall function_208c40(short function_index, long thread_index, bool initialize)
+{
+	s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+	s_hs_expression *name = hs_expression_get(expression->value);
+	s_hs_expression *argument = hs_expression_get(*(long *)((byte *)name + 8));
+	long target = function_209e70((short)argument->value);
+	if (target != NONE)
+		function_209c80(target);
+	function_209ae0(thread_index, 0);
+}
+
+s_type_f4462a const g_44b1f8 = { _hs_type_void, 2, function_208c40, "<script name>", 0, { 0 } };
+
+// @retail 0x208750
+void __stdcall function_208750(short function_index, long thread_index, bool initialize)
+{
+	s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+	s_hs_expression *name = hs_expression_get(expression->value);
+	long argument_index = *(long *)((byte *)name + 8);
+	long target = thread_index;
+	if (argument_index != NONE)
+	{
+		long script_index;
+		function_2099f0(thread_index, &script_index, argument_index);
+		target = function_209e70((short)script_index);
+	}
+	if (target != NONE)
+		hs_thread_get(target)->sleep_until = -2;
+	function_209ae0(thread_index, 0);
+}
+
+s_type_f4462a const g_44b1d8 = { _hs_type_void, 2, function_208750, "[<script>]", 0, { 0 } };
+
+long *__stdcall function_209d50(long thread_index, short parameter_count, short const *parameter_types, bool initialize);
+
+extern short const g_445710[62] =
+{
+	0, 0, 0, 0, 0, 1, 4, 2, 4, 4, 2, 4, 4, 2, 2, 2,
+	2, 2, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 4,
+	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2,
+	2, 2, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2
+};
+
+// @retail 0x208570
+void __stdcall function_208570(short function_index, long thread_index, bool initialize)
+{
+	s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+	s_hs_expression *name = hs_expression_get(expression->value);
+	s_hs_expression *argument = hs_expression_get(*(long *)((byte *)name + 8));
+	short type = argument->type;
+	short types[2];
+	types[1] = type;
+	types[0] = type;
+	long *values = function_209d50(thread_index, 2, types, initialize);
+	if (values)
+	{
+		script_value result;
+		bool comparison;
+		switch (type)
+		{
+		case _hs_type_real:
+		{
+			real left = (real)*(real *)&values[0];
+			real right = (real)*(real *)&values[1];
+			switch (function_index)
+			{
+			case 15: comparison = left > right; break;
+			case 16: comparison = left < right; break;
+			case 17: comparison = left >= right; break;
+			case 18: comparison = left <= right; break;
+			default: comparison = false; break;
+			}
+			break;
+		}
+		case _hs_type_long_integer:
+		{
+			real left = (real)*(long *)&values[0];
+			real right = (real)*(long *)&values[1];
+			switch (function_index)
+			{
+			case 15: comparison = left > right; break;
+			case 16: comparison = left < right; break;
+			case 17: comparison = left >= right; break;
+			case 18: comparison = left <= right; break;
+			default: comparison = false; break;
+			}
+			break;
+		}
+		default:
+		{
+			real left = (real)*(short *)&values[0];
+			real right = (real)*(short *)&values[1];
+			switch (function_index)
+			{
+			case 15: comparison = left > right; break;
+			case 16: comparison = left < right; break;
+			case 17: comparison = left >= right; break;
+			case 18: comparison = left <= right; break;
+			default: comparison = false; break;
+			}
+			break;
+		}
+		}
+		result.b = comparison;
+		function_209ae0(thread_index, result.d);
+	}
+}
+
+s_type_f4462a const g_44b188 = { _hs_type_boolean, 2, function_208570, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b198 = { _hs_type_boolean, 2, function_208570, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b1a8 = { _hs_type_boolean, 2, function_208570, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b1b8 = { _hs_type_boolean, 2, function_208570, "<number> <number>", 0, { 0 } };
+
+// @retail 0x2084c0
+void __stdcall function_2084c0(short function_index, long thread_index, bool initialize)
+{
+	script_value result;
+	s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+	s_hs_expression *name = hs_expression_get(expression->value);
+	s_hs_expression *argument = hs_expression_get(*(long *)((byte *)name + 8));
+	short type = argument->type;
+	short types[2];
+	types[1] = type;
+	types[0] = type;
+	long *arguments = function_209d50(thread_index, 2, types, initialize);
+	if (arguments)
+	{
+		bool equal = memcmp(&arguments[0], &arguments[1], g_445710[type]) == 0;
+		if (function_index == 14)
+			equal = !equal;
+		result.b = equal;
+		function_209ae0(thread_index, result.d);
+	}
+}
+
+s_type_f4462a const g_44b168 = { _hs_type_boolean, 2, function_2084c0, "<expression> <expression>", 0, { 0 } };
+s_type_f4462a const g_44b178 = { _hs_type_boolean, 2, function_2084c0, "<expression> <expression>", 0, { 0 } };
 
 // @retail 0x209520
 long function_209520(short script_index)
@@ -245,6 +389,378 @@ static inline long *hs_frame_allocate_value(long thread_index)
 	return value;
 }
 
+// @retail 0x207ef0
+void __stdcall function_207ef0(short function_index, long thread_index, bool initialize)
+{
+	long *condition = hs_frame_allocate_value(thread_index);
+	long *branch = hs_frame_allocate_value(thread_index);
+	long *value = hs_frame_allocate_value(thread_index);
+	if (initialize)
+	{
+		*condition = 0;
+		*branch = NONE;
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		function_2099f0(thread_index, condition, *(long *)((byte *)name + 8));
+	}
+	else if (*branch == NONE)
+	{
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		s_hs_expression *test = hs_expression_get(*(long *)((byte *)name + 8));
+		if (*(bool *)condition)
+			*branch = *(long *)((byte *)test + 8);
+		else
+		{
+			s_hs_expression *then_expression = hs_expression_get(*(long *)((byte *)test + 8));
+			*branch = *(long *)((byte *)then_expression + 8);
+			if (*branch == NONE)
+			{
+				function_209ae0(thread_index, 0);
+				return;
+			}
+		}
+		function_2099f0(thread_index, value, *branch);
+	}
+	else
+		function_209ae0(thread_index, *value);
+}
+
+s_type_f4462a const g_44b0b8 = { _hs_type_passthrough, 2, function_207ef0, "<boolean> <then> [<else>]", 0, { 0 } };
+
+// @retail 0x208310
+void __stdcall function_208310(short function_index, long thread_index, bool initialize)
+{
+	s_hs_frame *const *frame_reference = &hs_thread_get(thread_index)->frame;
+	s_hs_frame *frame = *frame_reference;
+	short *count = (short *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size += sizeof(short);
+	long *next = hs_frame_allocate_value(thread_index);
+	real *result;
+	real *value = (real *)hs_frame_allocate_value(thread_index);
+	result = (real *)hs_frame_allocate_value(thread_index);
+	if (initialize)
+	{
+		*count = 0;
+		s_hs_expression *expression = hs_expression_get((*frame_reference)->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		*next = *(long *)((byte *)name + 8);
+	}
+	else
+	{
+		real operand = *value;
+		if (*count == 0)
+			*result = operand;
+		else switch (function_index)
+		{
+		case 7: *result += operand; break;
+		case 8: *result -= operand; break;
+		case 9: *result *= operand; break;
+		case 10: *result /= operand; break;
+		case 11: *result = *result > operand ? operand : *result; break;
+		case 12: *result = *result > operand ? *result : operand; break;
+		}
+		(*count)++;
+	}
+	if (*next != NONE)
+	{
+		function_2099f0(thread_index, (long *)value, *next);
+		*next = *(long *)((byte *)hs_expression_get(*next) + 8);
+	}
+	else
+	{
+		script_value returned;
+		returned.r = *result;
+		function_209ae0(thread_index, returned.d);
+	}
+}
+
+s_type_f4462a const g_44b108 = { _hs_type_real, 2, function_208310, "<number(s)>", 0, { 0 } };
+s_type_f4462a const g_44b118 = { _hs_type_real, 2, function_208310, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b128 = { _hs_type_real, 2, function_208310, "<number(s)>", 0, { 0 } };
+s_type_f4462a const g_44b138 = { _hs_type_real, 2, function_208310, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b148 = { _hs_type_real, 2, function_208310, "<number(s)>", 0, { 0 } };
+s_type_f4462a const g_44b158 = { _hs_type_real, 2, function_208310, "<number(s)>", 0, { 0 } };
+
+// @retail 0x2081e0
+void __stdcall function_2081e0(short function_index, long thread_index, bool initialize)
+{
+	long *next = hs_frame_allocate_value(thread_index);
+	long *value = hs_frame_allocate_value(thread_index);
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	bool *result = (bool *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size++;
+	bool conjunction = function_index == 5;
+	if (initialize)
+	{
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		*next = *(long *)((byte *)name + 8);
+		*result = conjunction;
+	}
+	else if (conjunction)
+		*result = *result && *(bool *)value;
+	else
+		*result = *result || *(bool *)value;
+	if (*next != NONE && *result == conjunction)
+	{
+		function_2099f0(thread_index, value, *next);
+		*next = *(long *)((byte *)hs_expression_get(*next) + 8);
+	}
+	else
+	{
+		script_value returned;
+		returned.b = *result;
+		function_209ae0(thread_index, returned.d);
+	}
+}
+
+s_type_f4462a const g_44b0e8 = { _hs_type_boolean, 2, function_2081e0, "<boolean(s)>", 0, { 0 } };
+s_type_f4462a const g_44b0f8 = { _hs_type_boolean, 2, function_2081e0, "<boolean(s)>", 0, { 0 } };
+
+// @retail 0x2087e0
+void __stdcall function_2087e0(short function_index, long thread_index, bool initialize)
+{
+	long *delay = hs_frame_allocate_value(thread_index);
+	long *script = hs_frame_allocate_value(thread_index);
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	short *state = (short *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size += sizeof(short);
+	if (initialize)
+	{
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		function_2099f0(thread_index, delay, *(long *)((byte *)name + 8));
+		*state = 0;
+	}
+	else
+	{
+		if (*state == 0)
+		{
+			s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+			s_hs_expression *name = hs_expression_get(expression->value);
+			s_hs_expression *argument = hs_expression_get(*(long *)((byte *)name + 8));
+			long script_expression = *(long *)((byte *)argument + 8);
+			*state = 1;
+			if (script_expression != NONE)
+			{
+				function_2099f0(thread_index, script, script_expression);
+				return;
+			}
+			*script = NONE;
+		}
+		if (*state != 0)
+		{
+			long target = thread_index;
+			if (*(short *)script != NONE)
+				target = function_209e70(*(short *)script);
+			if (target != NONE && *(short *)delay >= 0)
+			{
+				real seconds = (real)*(short *)delay * 0.03333333507180214f * (real)g_510c54->field_2_3;
+				long ticks;
+				__asm
+				{
+					fld seconds
+					fistp ticks
+				}
+				if (ticks > 0)
+				{
+					s_hs_thread *thread = hs_thread_get(target);
+					long until = g_510c54->game_time + ticks;
+					if (thread->sleep_until != NONE)
+					{
+						if (target != thread_index && !(thread->flags & 2))
+						{
+							thread->flags |= 2;
+							*(long *)thread->unknown0c = thread->sleep_until;
+						}
+						hs_thread_get(target)->sleep_until = until;
+					}
+				}
+			}
+			function_209ae0(thread_index, 0);
+		}
+	}
+}
+
+s_type_f4462a const g_44b1c8 = { _hs_type_void, 2, function_2087e0, "<short> [<script>]", 0, { 0 } };
+
+PRIVATE inline long hs_delay_ticks(long delay)
+{
+	real seconds = (real)delay * 0.03333333507180214f * (real)g_510c54->field_2_3;
+	long ticks;
+	__asm
+	{
+		fld seconds
+		fistp ticks
+	}
+	return ticks;
+}
+
+// @retail 0x2089b0
+void __stdcall function_2089b0(short function_index, long thread_index, bool initialize)
+{
+	s_hs_thread *thread = hs_thread_get(thread_index);
+	long *condition = hs_frame_allocate_value(thread_index);
+	long *interval = hs_frame_allocate_value(thread_index);
+	long *timeout = hs_frame_allocate_value(thread_index);
+	long *start = hs_frame_allocate_value(thread_index);
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	short *state = (short *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size += sizeof(short);
+	s_hs_expression *expression = hs_expression_get(thread->frame->expression_index);
+	s_hs_expression *name = hs_expression_get(expression->value);
+	s_hs_expression *test = hs_expression_get(*(long *)((byte *)name + 8));
+	long optional = *(long *)((byte *)test + 8);
+	if (initialize)
+	{
+		*(bool *)condition = false;
+		*start = g_510c54->game_time;
+		*state = 0;
+		*(short *)interval = 30;
+		*timeout = NONE;
+		if (optional != NONE)
+		{
+			function_2099f0(thread_index, interval, optional);
+			return;
+		}
+	}
+	if (*state == 0)
+	{
+		*state = 1;
+		if (optional != NONE)
+		{
+			long next = *(long *)((byte *)hs_expression_get(optional) + 8);
+			if (next != NONE)
+			{
+				function_2099f0(thread_index, timeout, next);
+				return;
+			}
+		}
+	}
+	else if (*state != 1)
+		return;
+	long duration = *timeout == NONE ? NONE : hs_delay_ticks(*timeout);
+	if (*(bool *)condition || (duration != NONE && g_510c54->game_time >= *start + duration))
+		function_209ae0(thread_index, 0);
+	else
+	{
+		expression = hs_expression_get(thread->frame->expression_index);
+		name = hs_expression_get(expression->value);
+		function_2099f0(thread_index, condition, *(long *)((byte *)name + 8));
+		long ticks = hs_delay_ticks(*(short *)interval);
+		if (ticks < 1)
+			ticks = 1;
+		thread->sleep_until = g_510c54->game_time + ticks;
+		if (duration != NONE)
+			thread->sleep_until = thread->sleep_until < *start + duration ? thread->sleep_until : *start + duration;
+	}
+}
+
+s_type_f4462a const g_44b1e8 = { _hs_type_void, 2, function_2089b0, "<boolean> [<short>]", 0, { 0 } };
+
+// @retail 0x207cf0
+void __stdcall function_207cf0(short function_index, long thread_index, bool initialize)
+{
+	s_hs_frame *const *frame_reference = &hs_thread_get(thread_index)->frame;
+	s_hs_frame *frame = *frame_reference;
+	short size = frame->size;
+	short *count = (short *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + size);
+	frame->size = size + sizeof(short);
+	dword *used = (dword *)hs_frame_allocate_value(thread_index);
+	long *result = hs_frame_allocate_value(thread_index);
+	if (initialize)
+	{
+		s_hs_expression *expression = hs_expression_get((*frame_reference)->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		long next = *(long *)((byte *)name + 8);
+		*count = 0;
+		while (next != NONE)
+		{
+			next = *(long *)((byte *)hs_expression_get(next) + 8);
+			(*count)++;
+		}
+		memset(used, 0, ((*count + 31) >> 5) * sizeof(dword));
+	}
+	short choice_count = *count;
+	g_4e7408->unknown0 = g_4e7408->unknown0 * 0x19660d + 0x3c6ef35f;
+	short first = (short)(((g_4e7408->unknown0 >> 16) * choice_count) >> 16);
+	short offset = 0;
+	for (; offset < *count; offset++)
+	{
+		short selected = (first + offset) % *count;
+		if (!(used[selected >> 5] & (1 << (selected & 31))))
+		{
+			s_hs_expression *expression = hs_expression_get((*frame_reference)->expression_index);
+			s_hs_expression *name = hs_expression_get(expression->value);
+			long next = *(long *)((byte *)name + 8);
+			for (short i = 0; i < selected; i++)
+				next = *(long *)((byte *)hs_expression_get(next) + 8);
+			function_2099f0(thread_index, result, next);
+			used[selected >> 5] |= 1 << (selected & 31);
+			break;
+		}
+	}
+	if (offset == *count)
+		function_209ae0(thread_index, *result);
+}
+
+s_type_f4462a const g_44b0a8 = { _hs_type_passthrough, 2, function_207cf0, "<expression(s)>", 0, { 0 } };
+
+// @retail 0x207c20
+void __stdcall function_207c20(short function_index, long thread_index, bool initialize)
+{
+	long *next = hs_frame_allocate_value(thread_index);
+	long *result = hs_frame_allocate_value(thread_index);
+	if (initialize)
+	{
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		*next = *(long *)((byte *)name + 8);
+		*result = 0;
+	}
+	if (*next != NONE)
+	{
+		function_2099f0(thread_index, result, *next);
+		*next = *(long *)((byte *)hs_expression_get(*next) + 8);
+	}
+	else
+		function_209ae0(thread_index, *result);
+}
+
+s_type_f4462a const g_44b098 = { _hs_type_passthrough, 2, function_207c20, "<expression(s)>", 0, { 0 } };
+
+extern short const g_4456d4[6] = { -1, 3, 2, 4, 0x380, 0x40 };
+
+// @retail 0x208f10
+void __stdcall function_208f10(short function_index, long thread_index, bool initialize)
+{
+	s_hs_thread *thread = hs_thread_get(thread_index);
+	s_hs_frame *frame = thread->frame;
+	long *value = (long *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size += sizeof(long);
+	if (initialize)
+	{
+		s_hs_expression *expression = hs_expression_get(thread->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		function_2099f0(thread_index, value, *(long *)((byte *)name + 8));
+	}
+	else
+	{
+		long object_index = *value;
+		if (object_index != NONE)
+		{
+			byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+			long type_mask = 1 << object[0xaa];
+			if (!(g_4456d4[(short)(function_index - 23)] & type_mask))
+				object_index = NONE;
+		}
+		function_209ae0(thread_index, object_index);
+	}
+}
+
+s_type_f4462a const g_44b218 = { _hs_type_unit, 2, function_208f10, "<object>", 0, { 0 } };
+
 /* calls a script from an expression: evaluates its root into the frame, or
    returns the value computed */
 // @retail 0x209bf0
@@ -346,4 +862,259 @@ long function_209490(long expression_index)
 		}
 	}
 	return result;
+}
+
+
+extern s_record_pool *g_4f55d8;
+void function_20a490(short global_index);
+
+// @retail 0x208070
+void __stdcall function_208070(short function_index, long thread_index, bool initialize)
+{
+    s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+    s_hs_expression *expression = hs_expression_get(frame->expression_index);
+    s_hs_expression *name = hs_expression_get(expression->value);
+    long variable_index = *(long *)((byte *)name + 8);
+    s_hs_expression *nodes = (s_hs_expression *)g_4f9394->data;
+    frame->size += 4;
+    s_hs_expression *variable = &nodes[variable_index & 0xffff];
+    long *global_index = &variable->value;
+    word initial_index = (word)*global_index;
+    long definition_index = initial_index & 0x7fff;
+    short type = (initial_index & 0x8000) ? g_473468[definition_index]->type :
+        ((s_hs_scenario_view *)g_4e0350)->globals[definition_index].type;
+    if (initialize)
+    {
+        if (type == _hs_type_object_list)
+        {
+            long list_index = function_209bc0(*global_index);
+            if (list_index != NONE)
+                (*(short *)(g_4f55d8->data + (list_index & 0xffff) * 12 + 4))--;
+        }
+        long index = variable->value;
+        long slot = (index & 0x8000) ? (index & 0x7fff) : (index & 0x7fff) + 0x41d;
+        long *value = (long *)&((s_hs_global_value *)g_4f9380->data)[slot].value;
+        function_2099f0(thread_index, value, *(long *)((byte *)hs_expression_get(variable_index) + 8));
+    }
+    else
+    {
+        function_20a490(*global_index);
+        if (type == _hs_type_object_list)
+        {
+            long list_index = function_209bc0(*global_index);
+            if (list_index != NONE)
+                (*(short *)(g_4f55d8->data + (list_index & 0xffff) * 12 + 4))++;
+        }
+        short index = *global_index;
+        function_20a2e0(index);
+        long slot = (index & 0x8000) ? (index & 0x7fff) : (index & 0x7fff) + 0x41d;
+        function_209ae0(thread_index, ((s_hs_global_value *)g_4f9380->data)[slot].value.d);
+    }
+}
+
+s_type_f4462a const g_44b0d8 = { _hs_type_passthrough, 2, function_208070, "<variable name> <expression>", 0, { 0 } };
+
+extern long g_4686c0;
+long function_16b990(s_record_pool *data, long index);
+
+// @retail 0x2090a0
+void function_2090a0(void)
+{
+    g_4f9384->valid = true;
+    record_pool_release_all(g_4f9384);
+    g_4f9388 = true;
+    g_4f938c = NONE;
+    if (g_4686c0 != NONE && g_4e6948->mode != 4)
+    {
+        byte *scenario = (byte *)g_4e0350;
+        long thread_index = function_2097c0(NONE, 1);
+        s_hs_thread *thread = hs_thread_get(thread_index);
+        for (long i = 0; i < *(long *)(scenario + 0x1c0); i++)
+        {
+            byte *global = *(byte **)((byte *)g_4e0350 + 0x1c4) + i * 0x28;
+            long slot = (i & 0x8000) ? (i & 0x7fff) : (i & 0x7fff) + 0x41d;
+            long value_index = function_16b990(g_4f9380, slot);
+            s_hs_global_value *value = &((s_hs_global_value *)g_4f9380->data)[value_index & 0xffff];
+            thread->script_index = NONE;
+            thread->frame->size = 0;
+            function_2099f0(thread_index, (long *)&value->value, *(long *)(global + 0x24));
+            if (thread->flags & 1)
+            {
+                function_209850(thread_index);
+                if (*(short *)(global + 0x20) == _hs_type_object_list)
+                {
+                    function_20a2e0((short)i);
+                    long index = (short)i;
+                    long value_slot = (index & 0x8000) ? (index & 0x7fff) : (index & 0x7fff) + 0x41d;
+                    long list_index = ((s_hs_global_value *)g_4f9380->data)[value_slot].value.d;
+                    if (list_index != NONE)
+                        (*(short *)(g_4f55d8->data + (list_index & 0xffff) * 12 + 4))++;
+                }
+            }
+            function_20a490((short)i);
+        }
+        record_pool_release(g_4f9384, thread_index);
+        for (long i = 0; i < *(long *)(scenario + 0x1b8); i++)
+        {
+            s_hs_script *script = &((s_hs_scenario_view *)scenario)->scripts[i];
+            if (script->type == 0 || script->type == 1 || script->type == 2)
+                function_2097c0(i, 0);
+        }
+    }
+}
+
+
+void function_209290(void);
+
+// @retail 0x2093d0
+long __stdcall function_2093d0(long expression_index, bool option)
+{
+    (void)&expression_index;
+    (void)&option;
+    long result = NONE;
+    if (expression_index != NONE)
+    {
+        bool initialized = false;
+        if (!g_4f9388)
+        {
+            function_2090a0();
+            initialized = true;
+        }
+        if (g_4f9388)
+        {
+            long thread_index = function_2097c0(NONE, 2);
+            if (thread_index != NONE)
+            {
+                s_hs_thread *thread = hs_thread_get(thread_index);
+                if (option)
+                    thread->flags |= 4;
+                else
+                    thread->flags &= ~4;
+                function_2099f0(thread_index, &thread->result, expression_index);
+                if (thread->flags & 1)
+                    function_209850(thread_index);
+                else
+                    result = thread->result;
+            }
+        }
+        if (initialized)
+            function_209290();
+    }
+    return result;
+}
+
+
+typedef void (__stdcall *t_script_value_formatter)(long, long, char *, long);
+void __stdcall function_208cc0(long unused, bool value, char *buffer, long maximum_count);
+void __stdcall function_208d10(long unused, real value, char *buffer, long maximum_count);
+void __stdcall function_208d40(long unused, short value, char *buffer, long maximum_count);
+void __stdcall function_208d70(long unused, long value, char *buffer, long maximum_count);
+void __stdcall function_208da0(long unused, char const *value, char *buffer, long maximum_count);
+void __stdcall function_208dd0(short table_index, short name_index, char *buffer, long maximum_count);
+
+// Retail's complete value formatter table, including the unsupported types.
+PRIVATE t_script_value_formatter const g_46fd70[62] =
+{
+    0, 0, 0, 0, 0,
+    (t_script_value_formatter)function_208cc0,
+    (t_script_value_formatter)function_208d10,
+    (t_script_value_formatter)function_208d40,
+    (t_script_value_formatter)function_208d70,
+    (t_script_value_formatter)function_208da0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+// @retail 0x208e10
+void __stdcall function_208e10(short function_index, long thread_index, bool initialize)
+{
+    char buffer[1024];
+    s_hs_thread *thread = hs_thread_get(thread_index);
+    s_hs_frame *frame = thread->frame;
+    long *value = (long *)((byte *)frame + 0xe + frame->size);
+    frame->size += 4;
+    s_hs_expression *nodes = (s_hs_expression *)g_4f9394->data;
+    if (initialize)
+    {
+        s_hs_expression *expression = &nodes[thread->frame->expression_index & 0xffff];
+        s_hs_expression *name = &nodes[expression->value & 0xffff];
+        function_2099f0(thread_index, value, *(long *)((byte *)name + 8));
+    }
+    else
+    {
+        s_hs_expression *expression = &nodes[thread->frame->expression_index & 0xffff];
+        s_hs_expression *name = &nodes[expression->value & 0xffff];
+        s_hs_expression *argument = &nodes[*(long *)((byte *)name + 8) & 0xffff];
+        if ((thread->flags & 4) && g_46fd70[argument->type])
+            g_46fd70[argument->type](argument->type, *value, buffer, sizeof(buffer));
+        function_209ae0(thread_index, 0);
+    }
+}
+
+s_type_f4462a const g_44b208 = { _hs_type_void, 2, function_208e10, "<expression>", 0, { 0 } };
+
+
+extern s_record_pool *g_4f55d4;
+bool function_1dee00(long list_index, long object_index);
+void function_2963b0(s_record_pool *pool, long index);
+
+// @retail 0x2095e0
+void __stdcall function_2095e0(long object_index)
+{
+    byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+    if ((bool)((*(dword *)(object + 4) >> 28) & 1))
+    {
+        s_record_pool_iterator iterator;
+        iterator.data = g_4f9380;
+        iterator.index = NONE;
+        s_hs_global_value *value;
+        while ((value = (s_hs_global_value *)data_iterator_next_inlined(&iterator)) != NULL)
+        {
+            long index = iterator.datum_index;
+            bool external = (short)index < 0x41d;
+            if (!external)
+                index -= 0x41d;
+            short global_index = (index & 0x7fff) | (external ? 0x8000 : 0);
+            short type = (global_index & 0x8000) ? g_473468[global_index & 0x7fff]->type :
+                ((s_hs_scenario_view *)g_4e0350)->globals[global_index & 0x7fff].type;
+            if (type >= _hs_type_object && type <= _hs_type_scenery)
+            {
+                function_20a2e0(global_index);
+                long slot = (global_index & 0x8000) ? (global_index & 0x7fff) : (global_index & 0x7fff) + 0x41d;
+                if (((s_hs_global_value *)iterator.data->data)[slot].value.d == (dword)object_index)
+                {
+                    value->value.d = NONE;
+                    function_20a490(global_index);
+                }
+            }
+            else if (type == _hs_type_object_list)
+            {
+                function_20a2e0(global_index);
+                long slot = (global_index & 0x8000) ? (global_index & 0x7fff) : (global_index & 0x7fff) + 0x41d;
+                long list_index = ((s_hs_global_value *)iterator.data->data)[slot].value.d;
+                if (function_1dee00(list_index, object_index))
+                {
+                    if (list_index != NONE)
+                    {
+                        byte *list = g_4f55d8->data + (list_index & 0xffff) * 12;
+                        if (*(short *)(list + 6) != 0)
+                            continue;
+                        function_2963b0(g_4f55d4, *(long *)(list + 8));
+                        record_pool_release(g_4f55d8, list_index);
+                    }
+                    value->value.d = NONE;
+                    function_20a490(global_index);
+                }
+            }
+        }
+    }
 }

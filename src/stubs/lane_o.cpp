@@ -3,12 +3,6 @@
 #include "unknown_0259d0.h"
 #include "unknown_030290.h"
 
-// @stub 0xa7870
-void __stdcall function_a7870(long object_index) { }
-// @stub 0xbacc0
-bool function_bacc0(long object_index, long index, point3f const *point) { return false; }
-// @stub 0xb5a70
-void __stdcall function_b5a70(long a, long type, long b, long c, long size, void const *data, long d) { }
 // @stub 0x148b27
 void __stdcall function_148b27(long index) { }
 // @stub 0x15e360
@@ -17,7 +11,3 @@ void __stdcall function_15e360(point3f const *point) { }
 void function_1396c7(long a, point2f *point) { }
 // @stub 0x1fa30
 void function_1fa30(word const *text, short_rectangle2d *bounds) { }
-// @stub 0x15f120
-bool function_15f120(long player_index, word *text, long maximum_count, long a) { return false; }
-// @stub 0x13e9c0
-void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale) { }

@@ -69,46 +69,52 @@ bool function_986d0(c_handle_table_450cd0 *self, long index, s_bitstream *stream
 	return result;
 }
 
+/* kind 3: creation of an entity and the entities linked to it */
 // @retail 0x98750
-bool function_98750(c_handle_table_450cd0 *arg_0, long arg_1, long arg_2, long arg_3, long arg_4)
+bool function_98750(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits)
 {
-	s_bitstream *local_0 = (s_bitstream *)arg_2;
-	bool local_1 = true;
-	long local_2 = 0;
-	long local_3[4];
-	long local_4 = arg_0->entries[arg_1].handle;
-	s_handle_peers *local_5 = arg_0->table;
-	while (local_4 != NONE)
+	c_handle_table_450cd0 *const *self_reference = &self;
+	volatile bool result = true;
+	long handles[4];
+	long count = 0;
+	long handle = (*self_reference)->entries[index].handle;
+	s_handle_peers *peers = self->table;
+	while (handle != NONE)
 	{
-		local_3[local_2] = local_4;
-		local_4 = local_5->peers[local_4 & 0x3ff].unknown04;
-		local_2++;
+		handles[count] = handle;
+		handle = peers->peers[handle & 0x3ff].unknown04;
+		count++;
 	}
-	long local_6[4];
-	memset(local_6, 0, sizeof(local_6));
-	stream_push_position(local_0);
-	function_195720(local_0, 3, 3);
-	stream_write_checked(local_0, local_2 - 2, 2);
-	long local_7;
-	for (local_7 = 0; local_7 < local_2 && local_1; local_7++)
+	long released[4];
+	memset(released, 0, sizeof(released));
+	stream_push_position(stream);
+	function_195720(stream, 3, 3);
+	stream_write_checked(stream, count - 2, 2);
+	long i;
+	for (i = 0; i < count;)
 	{
-		long local_8 = local_3[local_7];
-		function_b5650(local_8, local_0);
-		local_1 = local_1 && arg_0->table->owner->v0(local_8, arg_0->entries[local_8 & 0x3ff].unknown04, arg_3, local_0, arg_4, &local_6[local_7]);
+		handle = handles[i];
+		function_b5650(handle, stream);
+		if (result && self->table->owner->v0(handle, self->entries[handle & 0x3ff].unknown04, a3, stream, reserved_bits, &released[i]))
+			result = true;
+		else
+			result = false;
+		i++;
+		if (!result)
+			break;
 	}
-	if (local_1 && stream_has_room(local_0, arg_4))
+	if (result && stream_has_room(stream, reserved_bits))
 	{
-		local_0->checkpoint_count--;
-		for (local_7 = 0; local_7 < local_2; local_7++)
+		stream->checkpoint_count--;
+		for (i = 0; i < count; i++)
 		{
-			long local_8 = local_3[local_7];
-			function_98ac0(arg_0, local_8);
-			if (local_6[local_7])
-				function_98bf0(local_8, arg_0, local_6[local_7]);
+			function_98ac0(self, handles[i]);
+			if (released[i])
+				function_98bf0(handles[i], self, released[i]);
 		}
 		return true;
 	}
-	function_194710(local_0, true);
+	function_194710(stream, true);
 	return false;
 }
 
@@ -211,7 +217,7 @@ void c_handle_table_450cd0::v3(long a1, long a2, long a3, long a4, long a5, long
 			function_986d0(this, a1, (s_bitstream *)a5, a6);
 			break;
 		case 3:
-			function_98750(this, a1, a5, a3, a6);
+			function_98750(this, (s_bitstream *)a5, a1, a3, a6);
 			break;
 		case 4:
 			function_988f0(this, a1, (s_bitstream *)a5, a6);

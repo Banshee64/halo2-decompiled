@@ -219,3 +219,74 @@ bool function_20b5c0(long definition_index)
 	}
 	return result;
 }
+
+
+struct s_tag_iterator
+{
+    long unknown00;
+    long unknown04;
+    long datum_index;
+    long next_index;
+    long group_tag;
+};
+long function_122c70(s_tag_iterator *iterator);
+
+struct s_sound_timer_flags
+{
+    byte unknown00[0xa];
+    byte unused : 5;
+    byte timed : 1;
+    byte remaining : 2;
+};
+
+// @retail 0x20b660
+void function_20b660(void)
+{
+    real period_real = g_510c54->field_2_3 * 56.25f;
+    long period;
+    __asm
+    {
+        fld period_real
+        fistp period
+    }
+    if (g_4e6948->state == 1 && g_510c54->game_time % (short)period == 0)
+    {
+        s_tag_iterator iterator;
+        iterator.next_index = 0;
+        iterator.group_tag = 'snd!';
+        long index;
+        while ((index = function_122c70(&iterator)) != NONE)
+        {
+            byte *globals = (byte *)g_4e034c;
+            byte *definition = g_4e3b44[index & 0xffff].bytes;
+            byte *sound_globals = *(long *)(globals + 0xc0) ? *(byte **)(globals + 0xc4) : NULL;
+            byte *tag = g_4e3b44[*(long *)(sound_globals + 4) & 0xffff].bytes;
+            byte *category = *(byte **)(tag + 4) + (signed char)definition[2] * 0x5c;
+            if (TEST_FIELD_BIT(((s_sound_timer_flags *)category)->timed) && definition[0xa] == 1)
+            {
+                s_permutation_set *set = &g_51ebd4->sets[*(short *)(definition + 8)];
+                long bit_index = function_219430((s_animation_state *)set, (s_animation_ref *)definition);
+                if (bit_index != NONE)
+                {
+                    long count = set->count;
+                    dword v = count;
+                    long bits = 0;
+                    if (v > 1)
+                    {
+                        v--;
+                        while (v != 1) { v >>= 1; bits++; }
+                    }
+                    bits++;
+                    long offset = bit_index + count + (short)bits;
+                    short timer = 0;
+                    for (long i = 0; i < 5; i++)
+                        SET_BIT(timer, i, BIT_VECTOR_TEST(g_51e9ec, offset + i));
+                    if (timer > 0)
+                        timer--;
+                    for (long i = 0; i < 5; i++)
+                        BIT_VECTOR_SET(g_51e9ec, offset + i, timer & (1 << i));
+                }
+            }
+        }
+    }
+}

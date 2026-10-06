@@ -1044,3 +1044,601 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 	}
 	return result;
 }
+
+
+void function_bba20(long object_index);
+
+// @retail 0x1c4a20
+void function_1c4a20(hkEntity const *entity)
+{
+	long component_index = havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX);
+	s_havok_component *component = havok_component_get(component_index);
+	if (TEST_FIELD_BIT(component->flag5))
+		function_bba20(component->object_index);
+}
+
+
+struct s_world_bounds_query
+{
+	hkVector4 lower;
+	hkVector4 upper;
+	hkVector4 half_extent;
+	long flags;
+};
+
+class c_world_bounds_search
+{
+public:
+	virtual void slot00() = 0;
+	virtual void slot01() = 0;
+	virtual void slot02() = 0;
+	virtual void slot03() = 0;
+	virtual void slot04() = 0;
+	virtual void slot05() = 0;
+	virtual void slot06() = 0;
+	virtual void slot07() = 0;
+	virtual void slot08() = 0;
+	virtual void slot09() = 0;
+	virtual void slot0a() = 0;
+	virtual void slot0b() = 0;
+	virtual void slot0c() = 0;
+	virtual void slot0d() = 0;
+	virtual void slot0e() = 0;
+	virtual void search(s_world_bounds_query const *query, c_world_contact_filter *filter) = 0;
+};
+
+struct s_world_bounds_view
+{
+	byte unknown00[0xc4];
+	c_world_bounds_search *search;
+};
+
+// @retail 0x1c55e0
+void function_1c55e0(real const *bounds)
+{
+	s_world_bounds_query query;
+	real lower_x = bounds[0];
+	query.upper.set(bounds[1], bounds[3], bounds[5]);
+	query.lower.set(lower_x, bounds[2], bounds[4]);
+	query.flags = 0;
+	__m128 half = _mm_set_ss(0.5f);
+	query.half_extent.m_quad = _mm_mul_ps(_mm_shuffle_ps(half, half, 0), _mm_sub_ps(query.upper.m_quad, query.lower.m_quad));
+	c_world_contact_update filter;
+	((s_world_bounds_view *)g_51e9a4)->search->search(&query, &filter);
+}
+
+
+class hkShape;
+bool function_182180(hkShape const *shape);
+
+class c_contact_shape_container
+{
+public:
+ virtual void slot00() = 0;
+ virtual void slot01() = 0;
+ virtual void slot02() = 0;
+ virtual void slot03() = 0;
+ virtual void slot04() = 0;
+ virtual void slot05() = 0;
+ virtual void slot06() = 0;
+ virtual void slot07() = 0;
+ virtual void slot08() = 0;
+ virtual void slot09() = 0;
+ virtual void slot0a() = 0;
+ virtual void slot0b() = 0;
+ virtual void slot0c() = 0;
+ virtual c_contact_shape_view *child(long key, void *buffer) = 0;
+};
+
+class c_contact_rule_fallback
+{
+public:
+ hkBool accepts(long a, long b);
+};
+
+class c_contact_rule_filter
+{
+public:
+ virtual hkBool accepts(void const *query, s_contact_body_view const *a, s_contact_body_view const *b,
+  c_contact_shape_container *container, long key);
+};
+
+// @retail 0x1c32d0
+hkBool c_contact_rule_filter::accepts(void const *query, s_contact_body_view const *a, s_contact_body_view const *b,
+ c_contact_shape_container *container, long key)
+{
+ __m128 buffer[16];
+ s_contact_body_view const *root = a;
+ while (root->parent)
+  root = root->parent;
+ if ((hkEntity *)g_47f048 == root->entity)
+ {
+  c_contact_shape_view *shape = key != NONE ? container->child(key, buffer) : b->shape;
+  if (shape->type() == 0x15)
+   shape = *(c_contact_shape_view **)((byte *)shape + 0xc);
+  if (shape->type() == 0x17)
+   shape = *(c_contact_shape_view **)((byte *)shape + 0x30);
+  if (shape->type() != 0x18 && function_182180((hkShape *)shape))
+  {
+   long metadata = shape->metadata;
+   if (metadata && contact_metadata_pin(metadata, 1, 16) != metadata)
+   {
+    byte flag = *(byte *)(metadata + 0x1f) & 1;
+    volatile byte saved_flag = flag;
+    if (flag)
+    {
+     root = a;
+     while (root->parent)
+      root = root->parent;
+     if (root->type == 1 && root->entity && ((hkRigidBody *)root->entity)->m_motion->getType() == 7)
+     {
+      hkBool result;
+      result.m_bool = 0;
+      return result;
+     }
+    }
+   }
+  }
+ }
+ s_contact_body_view const *root_b = b;
+ while (root_b->parent)
+  root_b = root_b->parent;
+ long key_b = root_b->unknown1c;
+ root = a;
+ while (root->parent)
+  root = root->parent;
+ return ((c_contact_rule_fallback *)((byte *)this - 0xc))->accepts(root->unknown1c, key_b);
+}
+
+
+long function_183c60(long object_index, long node_index);
+void havok_component_rigid_body_linear_velocity_change(long index, s_havok_component *component, vector3f const *change);
+void havok_component_rigid_body_linear_velocity_add(long index, s_havok_component *component, vector3f const *change);
+void havok_component_rigid_body_point_impulse_apply(long index, s_havok_component *component, point3f const *point, vector3f const *change);
+
+struct s_contact_scale_definition
+{
+ byte unknown00[0x14];
+ real scale;
+};
+
+PRIVATE inline void contact_vector_set(vector3f *out, real i, real j, real k)
+{
+ out->i = i;
+ out->j = j;
+ out->k = k;
+}
+
+PRIVATE inline void contact_motion_vector(vector3f *out, hkVector4 const *value)
+{
+ contact_vector_set(out, (*value)(0), (*value)(1), (*value)(2));
+}
+
+// @retail 0x1c4c50
+bool __stdcall function_1c4c50(long object_index, long node_index, point3f const *point,
+ vector3f const *change_a, vector3f const *change_b, long *result_object, vector3f *linear, vector3f *angular)
+{
+ // Retail keeps all eight inputs on the stack.
+ (void)&object_index;
+ (void)&node_index;
+ (void)&point;
+ (void)&change_a;
+ (void)&change_b;
+ (void)&result_object;
+ (void)&linear;
+ (void)&angular;
+ s_velocity_object_header *headers = (s_velocity_object_header *)g_4e0300->data;
+ s_havok_object *object = headers[object_index & 0xffff].object;
+ volatile bool result = false;
+ if (object->havok_component_index != NONE)
+ {
+  long root_index = function_baf80(object_index);
+  s_havok_object *root = headers[root_index & 0xffff].object;
+  vector3f a;
+  vector3f b;
+  if (change_a)
+   a = *change_a;
+  if (change_b)
+   b = *change_b;
+  if (root->havok_component_index != NONE)
+  {
+   s_havok_component *component = havok_component_get(root->havok_component_index);
+   if (root_index != object_index)
+   {
+    s_contact_scale_definition *definition = (s_contact_scale_definition *)g_4e3b44[*(long *)object & 0xffff].bytes;
+    if (definition->scale > 0.001f)
+    {
+     s_contact_scale_definition *root_definition = (s_contact_scale_definition *)g_4e3b44[*(long *)root & 0xffff].bytes;
+     real scale = root_definition->scale / definition->scale;
+     if (change_a)
+     {
+      a.i *= scale;
+      a.j *= scale;
+      a.k *= scale;
+     }
+     if (change_b)
+     {
+      b.i *= scale;
+      b.j *= scale;
+      b.k *= scale;
+     }
+    }
+   }
+   if (!havok_component_any_rigid_body_active(component))
+    havok_component_rigid_bodies_activate(component);
+   long indices[64];
+   long count;
+   if (node_index != NONE && root_index == object_index)
+   {
+    long index = function_183c60(root_index, node_index);
+    if (index != NONE)
+    {
+     count = 1;
+     indices[0] = index;
+     goto selected;
+    }
+   }
+   count = component->rigid_bodies.size;
+   for (long i = 0; i < count; ++i)
+    indices[i] = i;
+selected:
+   for (long i = 0; i < count; ++i)
+   {
+    long index = indices[i];
+    hkRigidBody *body = havok_component_rigid_body_get(index, component);
+    if (!body->m_fixed && body->m_motion->getType() != 6)
+    {
+     if (point)
+     {
+      if (change_a)
+      {
+       if (!TEST_FIELD_BIT(component->flag1))
+        havok_component_rigid_body_point_impulse_apply(index, component, point, &a);
+       else
+        havok_component_rigid_body_linear_velocity_change(index, component, &a);
+      }
+     }
+     else if (change_a)
+      havok_component_rigid_body_linear_velocity_change(index, component, &a);
+     if (change_b && !TEST_FIELD_BIT(component->flag1))
+      havok_component_rigid_body_linear_velocity_add(index, component, &b);
+     if (havok_component_main_rigid_body_index_get(component) == index)
+     {
+      *result_object = component->object_index;
+      body = havok_component_rigid_body_get(index, component);
+      if (!body->m_fixed)
+       contact_motion_vector(linear, &body->m_motion->m_linear_velocity);
+      else
+       *linear = *g_4687a4;
+      body = havok_component_rigid_body_get(index, component);
+      if (!body->m_fixed)
+       contact_motion_vector(angular, &body->m_motion->m_angular_velocity);
+      else
+       *angular = *g_4687a4;
+      result = true;
+     }
+    }
+   }
+  }
+ }
+ return result;
+}
+
+class c_world_callback_registration
+{
+public:
+    void remove(void *callback);
+};
+
+c_havok_reference_counted *g_51e9a8;
+c_havok_reference_counted *g_51e9ac;
+
+// @retail 0x1c34a0
+void function_1c34a0(void)
+{
+    if (g_51e9a8)
+    {
+        ((c_world_callback_registration *)g_51e9a4)->remove(g_51e9a8);
+        delete g_51e9a8;
+        g_51e9a8 = NULL;
+    }
+    havok_reference_remove((c_havok_reference_counted *)g_51e9a4);
+    g_51e9a4 = NULL;
+    havok_reference_remove(g_51e9ac);
+    g_51e9ac = NULL;
+}
+
+#include <float.h>
+
+class c_contact_query_allocator
+{
+public:
+    virtual void slot0() = 0;
+    virtual void slot1() = 0;
+    virtual void slot2() = 0;
+    virtual void slot3() = 0;
+    virtual void *allocate(long size, long kind) = 0;
+};
+
+PRIVATE __forceinline void *contact_query_allocate(long size)
+{
+    void *block = ((c_contact_query_allocator *)g_480118)->allocate(size, 0x2c);
+    ((c_havok_reference_counted *)block)->allocation_size = (word)size;
+    return block;
+}
+
+struct c_contact_query_bounds_info
+{
+    long filter;
+    void *shape;
+    long unknown08;
+    s_havok_array properties;
+    byte unknown18[8];
+    hkVector4 lower, upper;
+    c_contact_query_bounds_info();
+    ~c_contact_query_bounds_info()
+    {
+        if (!(properties.capacity_and_flags & 0x80000000))
+            g_480118->allocate((long)properties.data, (properties.capacity_and_flags & 0x7fffffff) * 8, 0x12);
+    }
+};
+
+struct c_contact_query_transform_info
+{
+    long filter;
+    void *shape;
+    long unknown08;
+    s_havok_array properties;
+    byte unknown18[8];
+    hkTransform transform;
+    c_contact_query_transform_info();
+    ~c_contact_query_transform_info()
+    {
+        if (!(properties.capacity_and_flags & 0x80000000))
+            g_480118->allocate((long)properties.data, (properties.capacity_and_flags & 0x7fffffff) * 8, 0x12);
+    }
+};
+
+class c_contact_query_bounds_volume
+{
+public:
+    c_contact_query_bounds_volume(c_contact_query_bounds_info const *info);
+    byte unknown00[0x80];
+    s_contact_body_view **bodies;
+    long count;
+    byte unknown88[8];
+    static void *operator new(size_t size) { return contact_query_allocate(size); }
+};
+
+class c_contact_query_transform_volume
+{
+public:
+    c_contact_query_transform_volume(c_contact_query_transform_info const *info);
+    byte unknown00[0xd0];
+    static void *operator new(size_t size) { return contact_query_allocate(size); }
+};
+
+class c_contact_query_dispatch
+{
+public:
+    virtual void slot00() = 0;
+    virtual void slot01() = 0;
+    virtual void slot02() = 0;
+    virtual void slot03() = 0;
+    virtual void slot04() = 0;
+    virtual void slot05() = 0;
+    virtual void slot06() = 0;
+    virtual void slot07() = 0;
+    virtual void slot08() = 0;
+    virtual void slot09() = 0;
+    virtual void slot0a() = 0;
+    virtual void slot0b() = 0;
+    virtual void query(c_contact_callback *callback) = 0;
+};
+
+class c_contact_query_world
+{
+public:
+    void add(void *volume);
+    void remove(void *volume);
+};
+
+struct s_contact_query_object
+{
+    byte unknown00[0x30];
+    point3f center;
+    real radius;
+};
+
+extern real g_47f05c;
+
+PRIVATE __forceinline void contact_query_center(s_contact_query_object const *object, point3f *center)
+{
+    *center = object->center;
+}
+
+// @retail 0x1c5710
+void function_1c5710(long object_index)
+{
+    c_contact_query_bounds_info info;
+    s_contact_query_object *object = (s_contact_query_object *)havok_object_get(object_index);
+    real radius = g_47f05c * 2.0f + object->radius;
+    point3f center;
+    contact_query_center(object, &center);
+    info.lower.set(center.x - radius, center.y - radius, center.z - radius);
+    info.upper.set(center.x + radius, center.y + radius, center.z + radius);
+    c_contact_query_bounds_volume *volume = new c_contact_query_bounds_volume(&info);
+    ((c_contact_query_world *)g_51e9a4)->add(volume);
+    for (long i = 0; i < volume->count; ++i)
+    {
+        s_contact_body_view *body = volume->bodies[i];
+        if (body->type == 1 && body->entity && !((hkRigidBody *)body->entity)->m_fixed)
+            ((hkRigidBody *)body->entity)->activate();
+    }
+    ((c_contact_query_world *)g_51e9a4)->remove(volume);
+    havok_reference_remove((c_havok_reference_counted *)volume);
+}
+
+// @retail 0x1c5210
+bool function_1c5210(transform4x3f const *matrix, long excluded_component, void *shape, long filter)
+{
+    (void)&shape;
+    (void)&excluded_component;
+    (void)&filter;
+    c_contact_query_transform_info info;
+    info.transform.m_rotation.m_col0.set(matrix->forward.i, matrix->forward.j, matrix->forward.k);
+    info.transform.m_rotation.m_col1.set(matrix->left.i, matrix->left.j, matrix->left.k);
+    info.transform.m_rotation.m_col2.set(matrix->up.i, matrix->up.j, matrix->up.k);
+    hkVector4 position;
+    position.set(matrix->position.x, matrix->position.y, matrix->position.z);
+    info.shape = shape;
+    c_contact_exclusion callback;
+    callback.found = false;
+    callback.found_other = false;
+    callback.excluded_component = excluded_component;
+    info.filter = filter;
+    info.transform.m_translation = position;
+    c_contact_query_transform_volume *volume = new c_contact_query_transform_volume(&info);
+    _control87(0x9001f, 0x8001f);
+    _mm_setcsr(_mm_getcsr() | 0x1f80);
+    ((c_contact_query_world *)g_51e9a4)->add(volume);
+    ((c_contact_query_dispatch *)volume)->query(&callback);
+    bool result = callback.found_other;
+    ((c_contact_query_world *)g_51e9a4)->remove(volume);
+    _mm_setcsr(_mm_getcsr() & 0xffffffc0);
+    _clearfp();
+    _control87(0x9001f, 0xfffff);
+    havok_reference_remove((c_havok_reference_counted *)volume);
+    return result;
+}
+
+class hkMemory;
+extern hkMemory *g_479894;
+extern hkMemory *g_479898;
+extern c_havok_fixed_memory *g_4798a0;
+short g_51ecb0;
+
+struct s_fixed_memory_statistics
+{
+    long header_size, allocated_size, unknown08, allocation_count, unknown10;
+};
+struct s_fixed_memory_statistics_16
+{
+    long header_size, allocated_size, allocation_count, unknown0c;
+};
+struct s_physics_pool_statistics
+{
+    long allocated, pages, used_pages, page_size, free_size;
+    real used_fraction;
+    struct s_entry { long size, stride, count, used; } entries[16];
+    long metadata_size, entry_count;
+};
+struct s_2797a0_groups;
+struct s_2797a0_iterator
+{
+    byte unknown00;
+    bool second;
+    byte unknown02[2];
+    long group;
+    long index;
+    s_2797a0_groups *groups;
+    long mode;
+};
+
+class c_physics_statistics_allocator
+{
+public:
+    virtual void slot0() = 0;
+    virtual void slot1() = 0;
+    virtual void slot2() = 0;
+    virtual void slot3() = 0;
+    virtual void slot4() = 0;
+    virtual void slot5() = 0;
+    virtual void slot6() = 0;
+    virtual void statistics(long *result) = 0;
+};
+
+bool function_2797a0(s_2797a0_iterator *iterator);
+void fixed_memory_get_statistics(c_havok_fixed_memory *memory, s_fixed_memory_statistics *statistics);
+void fixed_memory_get_statistics_16(c_havok_fixed_memory *memory, s_fixed_memory_statistics_16 *statistics);
+void function_22c390(hkMemory *memory, s_fixed_memory_statistics_16 *statistics);
+void function_22cb00(hkMemory *memory, s_physics_pool_statistics *statistics);
+long function_1d3880(s_havok_component const *component, long *constraints, long *contacts, long *other, long *bodies);
+
+// @retail 0x1c4590
+void __stdcall function_1c4590(long flags)
+{
+    byte *world = (byte *)g_51e9a4;
+    long active_islands = *(long *)(world + 0xc);
+    long inactive_islands = *(long *)(world + 0x18);
+    long fixed_entities = *(long *)(*(byte **)(world + 0x2c) + 0x40);
+    long allocator_statistics[4];
+    ((c_physics_statistics_allocator *)g_480118)->statistics(allocator_statistics);
+    long active_entities = 0, inactive_entities = 0;
+    s_2797a0_iterator iterator;
+    ++g_51ecb0;
+    iterator.groups = (s_2797a0_groups *)g_51e9a4;
+    iterator.mode = 0;
+    iterator.second = false;
+    iterator.group = NONE;
+    iterator.index = NONE;
+    iterator.unknown00 = 1;
+    while (function_2797a0(&iterator))
+        ++active_entities;
+    iterator.groups = (s_2797a0_groups *)g_51e9a4;
+    iterator.mode = 1;
+    iterator.second = false;
+    iterator.group = NONE;
+    iterator.index = NONE;
+    iterator.unknown00 = 1;
+    while (function_2797a0(&iterator))
+        ++inactive_entities;
+    --g_51ecb0;
+    havok_printf("Havok Performance Stats");
+    havok_printf("\t simulation islands (active/inactive):   %d/%d", active_islands, inactive_islands);
+    havok_printf("\t fixed entities:                         %d", fixed_entities);
+    havok_printf("\t dynamic entities (active/inactive):     %d/%d", active_entities, inactive_entities);
+    s_fixed_memory_statistics physical;
+    s_fixed_memory_statistics_16 scratch, startup;
+    s_physics_pool_statistics pool;
+    fixed_memory_get_statistics(g_4798a0, &physical);
+    fixed_memory_get_statistics_16(g_47989c, &scratch);
+    function_22cb00(g_479898, &pool);
+    function_22c390(g_479894, &startup);
+    havok_printf("Havok Memory (total %.2f KB, debug %.2f KB, percent used %.3f)", 1045.109375, (startup.unknown0c + scratch.unknown0c + pool.metadata_size) * (1.0f / 1024.0f), pool.used_fraction * 100.0f);
+    havok_printf("Startup pool: mem(%.2f KB/%.2f KB), allocs(%d)", startup.allocated_size * (1.0f / 1024.0f), startup.header_size * (1.0f / 1024.0f), startup.allocation_count);
+    havok_printf("Overflow pool: mem(%.2f KB/%.2f KB), allocs(%d))", scratch.allocated_size * (1.0f / 1024.0f), scratch.header_size * (1.0f / 1024.0f), scratch.allocation_count);
+    havok_printf("2nd Overflow pool: mem(%.2f KB/%.2f KB), allocs(%d))", physical.allocated_size * (1.0f / 1024.0f), physical.header_size * (1.0f / 1024.0f), physical.allocation_count);
+    havok_printf("Runtime Pool(%.2f KB): usage==pages(%d/%d)*size(%.2f KB)+last(%.2f KB)", (pool.allocated - pool.metadata_size) * (1.0f / 1024.0f), pool.used_pages, pool.pages, pool.page_size * (1.0f / 1024.0f), (pool.page_size - pool.free_size) * (1.0f / 1024.0f));
+    for (long i = 0; i < pool.entry_count; ++i)
+    {
+        s_physics_pool_statistics::s_entry *entry = &pool.entries[i];
+        havok_printf("\t b%d(%d) (%d / %d (*%d))", i, entry->size, entry->used, entry->count, entry->stride);
+    }
+    long contacts_total = 0, bodies_total = 0, constraints_total = 0, other_total = 0;
+    long contacts_maximum = 0, bodies_maximum = 0, constraints_maximum = 0, other_maximum = 0;
+    long index = NONE;
+    for (;;)
+    {
+        index = data_next_absolute_index_inlined(g_51e9b8, index + 1);
+        if (index == NONE)
+            break;
+        s_havok_component *component = (s_havok_component *)(g_51e9b8->data + g_51e9b8->size * index);
+        if (!component)
+            break;
+        long contacts, constraints, other, bodies;
+        function_1d3880(component, &contacts, &constraints, &other, &bodies);
+        contacts_total += contacts;
+        bodies_total += bodies;
+        constraints_total += constraints;
+        other_total += other;
+        if (contacts_maximum <= contacts) contacts_maximum = contacts;
+        if (bodies_maximum <= bodies) bodies_maximum = bodies;
+        if (constraints_maximum <= constraints) constraints_maximum = constraints;
+        if (other_maximum <= other) other_maximum = other;
+    }
+    havok_printf("Havok Component Meta Information Resource Stats");
+    havok_printf("HEAP meta contact point memory %.2f KB (max %d), meta rigid body memory %.2f KB (max %d)", contacts_total * (1.0f / 1024.0f), contacts_maximum, bodies_total * (1.0f / 1024.0f), bodies_maximum);
+    havok_printf("HEAP meta phantom memory %.2f KB (max %d), meta constaint memory %.2f KB (max %d)", other_total * (1.0f / 1024.0f), other_maximum, constraints_total * (1.0f / 1024.0f), constraints_maximum);
+    havok_printf("TOAL HEAP meta memory %.2f KB", (contacts_total + bodies_total + constraints_total + other_total) * (1.0f / 1024.0f));
+}

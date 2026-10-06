@@ -20,11 +20,6 @@ void __stdcall function_2548f0(point2f const *center, real scale)
 {
 }
 
-// @stub 0x11e130
-real function_11e130(point3f const *a0, vector3f const *a, point3f const *b0, vector3f const *b)
-{
-	return 0.0f;
-}
 
 struct s_slot;
 
@@ -61,10 +56,6 @@ void __stdcall function_1aab50(long actor_index, s_slot *slot)
 {
 }
 
-// @stub 0x26def0
-void function_26def0(long actor_index)
-{
-}
 
 // @stub 0x1acda0
 void __stdcall function_1acda0(long actor_index, s_slot *slot)

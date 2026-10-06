@@ -195,3 +195,40 @@ bool function_1a0660(long file_index, s_player_profile *profile)
 		return false;
 	return function_216240(file_index, profile, sizeof(s_player_profile), profile->name);
 }
+
+void __stdcall function_215900(long controller, long type, word *capacity, long *indices, long include_cached);
+word *function_215b50(long file_index, word *name);
+
+// @retail 0x1a0560
+bool function_1a0560(wchar_t const *name, s_player_profile_settings *settings, long *file_index)
+{
+	long count = 4096;
+	wchar_t local_0[128];
+	long indices[4096];
+	bool result = false;
+	if (file_index)
+		*file_index = NONE;
+	if (*name)
+	{
+		function_215900(255, 0, (word *)&count, indices, 1);
+		for (long index = 0; index < (word)count; index++)
+		{
+			wchar_t const *local_1 = (wchar_t *)function_215b50(indices[index], (word *)local_0);
+			if (!_wcsicmp(local_1, name))
+			{
+				result = true;
+				if (settings)
+					result = function_1a0540(settings, indices[index]);
+				if (result && file_index)
+					*file_index = indices[index];
+				break;
+			}
+		}
+	}
+	else if (settings)
+	{
+		function_1a07b0((s_player_profile *)settings, 0);
+		result = true;
+	}
+	return result;
+}

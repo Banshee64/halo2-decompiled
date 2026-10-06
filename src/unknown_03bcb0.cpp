@@ -6,6 +6,40 @@
 #include "unknown_03bcb0.h"
 #include <xtl.h>
 #include "globals.h"
+#include "geometry_cache.h"
+
+struct s_3c9a0_matrix
+{
+	real scale;
+	vector3f forward, left, up;
+	point3f position;
+};
+
+real function_30bf0(vector3f *vector);
+
+PRIVATE inline void matrix_cross(vector3f const *a, vector3f const *b, vector3f *out)
+{
+	real i = b->k * a->j - a->k * b->j;
+	real j = a->k * b->i - b->k * a->i;
+	real k = b->j * a->i - b->i * a->j;
+	out->i = i;
+	out->j = j;
+	out->k = k;
+}
+
+// @retail 0x3c9a0
+void function_3c9a0(vector3f const *forward, vector3f const *up, s_3c9a0_matrix *matrix)
+{
+	matrix->scale = 1.0f;
+	matrix->up = *up;
+	matrix_cross(up, forward, &matrix->left);
+	function_30bf0(&matrix->left);
+	matrix_cross(&matrix->left, up, &matrix->forward);
+	function_30bf0(&matrix->forward);
+	matrix->position.x = 0.0f;
+	matrix->position.y = 0.0f;
+	matrix->position.z = 0.0f;
+}
 
 // @retail 0x3bcb0
 void function_3bcb0(s_bitmap_data *bitmap)
@@ -80,6 +114,129 @@ PRIVATE __forceinline byte *record_format_groups(long tag_index)
 	else
 		reference = *(long **)(g_4e3b44[tag_index & 0xffff].bytes + 0x24);
 	return *(byte **)(g_4e3b44[*reference & 0xffff].bytes + 0x5c);
+}
+
+long function_30cd0(bool a, bool b);
+long function_30d10(bool a, bool b, bool c);
+long function_30da0(bool a, bool b);
+long function_30e00(bool a);
+bool function_0226d0(void);
+
+// @retail 0x15d70
+long function_15d70(long tag, long stage, long pass, bool first, bool second)
+{
+	(void)&pass; (void)&first; (void)&second;
+	byte *definition = g_4e3b44[tag & 0xffff].bytes;
+	long result = 0;
+	byte *groups = record_format_groups(tag);
+	long group = *(word *)(*(byte **)(groups + 4) + pass * 10) & 0x1ff;
+	word range = (*(word **)(groups + 0xc))[group + stage];
+	if (range >> 9)
+	{
+		switch (stage)
+		{
+		case 3: result = function_0226d0() ? NONE : 3; break;
+		case 10: result = function_30cd0(second, first); break;
+		case 11: result = function_30d10(*(word *)(definition + 0x3e) != 0, true, second); break;
+		case 12: result = function_30da0(*(word *)(definition + 0x3e) != 0, true); break;
+		case 13: result = function_30e00(*(word *)(definition + 0x3e) != 0); break;
+		}
+	}
+	else
+		result = NONE;
+	return result;
+}
+
+long function_4cbb0(long tag_index, dword block_index);
+
+PRIVATE __forceinline byte *record_material(long tag, long pass, long stage, long entry)
+{
+	byte *groups = record_format_groups(tag);
+	long group = *(word *)(*(byte **)(groups + 4) + pass * 10) & 0x1ff;
+	long first = (*(word **)(groups + 0xc))[group + stage] & 0x1ff;
+	long material = *(long *)(*(byte **)(groups + 0x14) + (first + entry) * 10 + 4);
+	return *(byte **)(*(byte **)(g_4e3b44[material & 0xffff].bytes + 0x20) + 4);
+}
+
+// @retail 0x4dfa0
+bool __stdcall function_4dfa0(long tag, long context, long pass, long stage, long entry, long handle, s_sort_record *out)
+{
+	(void)&tag; (void)&context; (void)&pass; (void)&stage;
+	(void)&entry; (void)&handle; (void)&out;
+	byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
+	byte *record = *(byte **)(table + 0x1c) + (((dword)handle >> 8) & 0x3fffff) * 24;
+	s_geometry_block_info *block = (s_geometry_block_info *)(*(byte **)(table + 0x14) + *(short *)(record + 6) * 0x2c);
+	if (function_12de70(block, 3) && *(word *)(record + 0xe) > 0)
+	{
+		out->unknown04 = 0;
+		out->group = 4;
+		out->subkey = 0xffff;
+		out->value0c = handle;
+		byte *material = record_material(tag, pass, stage, entry);
+		out->value10 = (dword)material;
+		out->value08 = 0;
+		out->unknown14 = 0;
+		return function_4cbb0(*(long *)(material + 0x100), 0) != 0;
+	}
+	return false;
+}
+
+// @retail 0x4de20
+bool __stdcall function_4de20(long tag, long context, long pass, long stage, long entry, long handle, s_sort_record *out)
+{
+	(void)&tag; (void)&context; (void)&pass; (void)&stage;
+	(void)&entry; (void)&handle; (void)&out;
+	out->unknown04 = 0;
+	if (stage == 1) return false;
+	byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
+	byte *record = *(byte **)(table + 0x1c) + (((dword)handle >> 8) & 0x3fffff) * 24;
+	long record_tag = (*(long **)((byte *)g_4e0350 + 0x37c))[(signed char)record[0] * 2 + 1];
+	byte *definition = g_4e3b44[record_tag & 0xffff].bytes;
+	s_geometry_block_info *block = (s_geometry_block_info *)(*(byte **)(table + 0x14) + *(short *)(record + 6) * 0x2c);
+	if (function_12de70((s_geometry_block_info *)(definition + 0x38), 3) && function_12de70(block, 3))
+	{
+		byte index = out->unknown04;
+		out->group = 1;
+		out->subkey = 0xffff;
+		out->value0c = handle;
+		byte *material = record_material(tag, pass, stage, entry) + index * 0x132;
+		out->value10 = (dword)material;
+		out->value08 = 1;
+		out->unknown14 = 0;
+		return function_4cbb0(*(long *)(material + 0x100), 1) != 0;
+	}
+	return false;
+}
+
+// @retail 0x4e0d0
+bool __stdcall function_4e0d0(long tag, long context, long pass, long stage, long entry, long handle, s_sort_record *out)
+{
+	(void)&tag; (void)&context; (void)&pass; (void)&stage;
+	(void)&entry; (void)&handle; (void)&out;
+	byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
+	byte *blocks = *(byte **)(table + 0x14);
+	byte *record = *(byte **)(table + 0x1c) + (((dword)handle >> 8) & 0x3fffff) * 24;
+	long record_tag = (*(long **)((byte *)g_4e0350 + 0x37c))[(signed char)record[0] * 2 + 1];
+	byte *definition = g_4e3b44[record_tag & 0xffff].bytes;
+	byte *part = *(byte **)(definition + 0x14) + record[1] * 20;
+	if (function_12de70((s_geometry_block_info *)(blocks + *(short *)(record + 6) * 0x2c), 3) && *(word *)(record + 0xe) > 0)
+	{
+		out->unknown04 = 0;
+		out->group = 4;
+		out->subkey = 0xffff;
+		out->value0c = handle;
+		byte *material = record_material(tag, pass, stage, entry);
+		out->value10 = (dword)material;
+		switch (part[4])
+		{
+		case 3: out->value08 = 7; break;
+		case 4: out->value08 = 8; break;
+		default: out->value08 = 0; break;
+		}
+		out->unknown14 = 0;
+		return function_4cbb0(*(long *)(material + 0x100), out->value08) != 0;
+	}
+	return false;
 }
 
 typedef bool (__stdcall *t_record_fill)(long, void *, long, long, long, void *, s_sort_record *);
@@ -282,6 +439,16 @@ void function_40f60(void *submission, surface_render_test fill, surface_render_d
 	}
 }
 
+bool __stdcall function_4cbf0(long, long, long, long, long, long, void *);
+void __stdcall function_4d0b0(long, long, long, long, long, long, void *);
+
+// @retail 0x41020
+void __stdcall function_41020(void *submission)
+{
+	void *const *submission_reference = &submission;
+	function_40f60(*submission_reference, function_4cbf0, function_4d0b0);
+}
+
 extern long g_467130;
 void *g_467134 = (void *)NONE;
 s_record_sources *g_467138;
@@ -303,4 +470,436 @@ void function_44550(void)
         (mode != 16 || g_48574c == 3 || g_485a75 || g_485a76))
         function_3bc30(g_467134, g_467138, mode);
     g_4858b0 = NONE;
+}
+
+extern bool g_4ba019;
+extern real g_485b28[7];
+
+// @retail 0x1bf50
+bool function_1bf50(long tag, long level, real distance, long *out)
+{
+    long selected = 0;
+    byte *groups = record_format_groups(tag);
+    long count = *(long *)groups;
+    if (g_4ba019)
+        distance *= 2.0f;
+    if (level != 5)
+    {
+        real threshold = g_485b28[level] * distance;
+        for (selected = 0; selected < count; ++selected)
+        {
+            byte *entries = *(byte **)(record_format_groups(tag) + 4);
+            if (threshold >= *(real *)(entries + selected * 10 + 6))
+                break;
+        }
+    }
+    *out = selected;
+    if (selected < 0)
+        *out = 0;
+    else
+        *out = selected > count - 1 ? count - 1 : selected;
+    return *out < count;
+}
+
+void function_1cf50(void);
+
+struct s_4daa0_part
+{
+    byte unknown00[6];
+    word first, count;
+    short subpart, subpart_count;
+};
+struct s_4daa0_subpart
+{
+    word first, count;
+    dword unknown04;
+};
+struct s_4daa0_geometry
+{
+    byte unknown00[0xc];
+    s_4daa0_subpart *subparts;
+    byte unknown10[0x14];
+    word *indices;
+};
+
+// @retail 0x4daa0
+long function_4daa0(bool filtered, bool strip, s_4daa0_geometry const *geometry,
+    s_4daa0_part const *part, dword const *mask)
+{
+    long result = 0;
+    if (!filtered)
+    {
+        long count = part->count;
+        word *indices = geometry->indices + part->first;
+        function_1cf50();
+        D3DDevice_DrawIndexedVertices(strip ? D3DPT_TRIANGLESTRIP : D3DPT_TRIANGLELIST, count, indices);
+        return count;
+    }
+    if (strip)
+    {
+        for (long i = part->subpart; i < part->subpart + part->subpart_count; ++i)
+        {
+            if (mask[i >> 5] & (1 << (i & 31)))
+            {
+                s_4daa0_subpart const *subpart = &geometry->subparts[i];
+                long count = subpart->count;
+                result += count;
+                word *indices = geometry->indices + subpart->first;
+                function_1cf50();
+                D3DDevice_DrawIndexedVertices(D3DPT_TRIANGLESTRIP, count, indices);
+            }
+        }
+    }
+    else
+    {
+        long first = NONE;
+        long last = NONE;
+        for (long i = part->subpart; i < part->subpart + part->subpart_count; ++i)
+        {
+            if (mask[i >> 5] & (1 << (i & 31)))
+            {
+                s_4daa0_subpart const *subpart = &geometry->subparts[i];
+                if (first == NONE)
+                {
+                    first = subpart->first;
+                    last = first + subpart->count - 1;
+                }
+                else if (subpart->first != last + 1)
+                {
+                    word *indices = geometry->indices + first;
+                    function_1cf50();
+                    D3DDevice_DrawIndexedVertices(D3DPT_TRIANGLELIST, last - first + 1, indices);
+                    result += last - first + 1;
+                    first = subpart->first;
+                    last = first + subpart->count - 1;
+                }
+                else
+                    last = subpart->first + subpart->count - 1;
+            }
+        }
+        if (first != NONE)
+        {
+            word *indices = geometry->indices + first;
+            function_1cf50();
+            D3DDevice_DrawIndexedVertices(D3DPT_TRIANGLELIST, last - first + 1, indices);
+            result += last - first + 1;
+        }
+    }
+    return result;
+}
+
+void function_40e30(short group, long tag, real distance, long level, word kind,
+    dword and_mask, dword or_mask, t_record_fill fill, dword value, void *context);
+
+struct s_cache_record;
+s_cache_record *function_1e2d0(void);
+long function_40e10(bool first, bool second);
+
+struct s_frame_offset
+{
+    point3f position;
+    vector3f forward;
+    vector3f up;
+};
+extern s_frame_offset g_485618;
+
+typedef void (__stdcall *t_41490_callback)(void *);
+
+struct s_41490_record
+{
+    long type;
+    real depth;
+    long flags;
+    byte active;
+    byte unknown0d[0x13];
+    void (__stdcall *callback)(void *);
+    long tag;
+    void *context;
+    byte unknown2c[0x38];
+    point3f position;
+};
+
+// @retail 0x41490
+void function_41490(long tag, short group, word kind, real distance, t_record_fill fill,
+    dword value, t_41490_callback callback, void *context, point3f const *position)
+{
+    byte *definition = g_4e3b44[tag & 0xffff].bytes;
+    long pass;
+    function_1bf50(tag, *(word *)(definition + 0x3c), distance, &pass);
+    byte *groups = record_format_groups(tag);
+    dword flags = *(dword *)(*(byte **)(groups + 4) + pass * 10 + 2);
+    if (flags & 0x10006e)
+        function_40e30(group, tag, distance, *(word *)(definition + 0x3c), kind,
+            0xffffffff, 0, fill, value, context);
+    if ((flags & 0x8000) && group == 0)
+    {
+        s_41490_record *record = (s_41490_record *)function_1e2d0();
+        if (record)
+        {
+            vector3f delta;
+            delta.i = position->x - g_485618.position.x;
+            delta.j = position->y - g_485618.position.y;
+            delta.k = position->z - g_485618.position.z;
+            record->context = context;
+            record->tag = tag;
+            record->type = function_40e10((bool)(definition[0x16] & 1), (bool)((definition[0x16] >> 1) & 1));
+            record->flags = 0;
+            record->callback = callback;
+            real depth = delta.k * g_485618.forward.k;
+            depth += g_485618.forward.i * delta.i;
+            depth += g_485618.forward.j * delta.j;
+            record->depth = 0.0f - depth;
+            record->position = *position;
+        }
+    }
+}
+
+#include <math.h>
+dword __cdecl pack_color3f(color3f const *color);
+
+// @retail 0x3d000
+void function_3d000(real const *state)
+{
+    real direction[4] = { 1.0f, -1.0f, -1.0f, 0.5f };
+    D3DDevice_SetVertexShaderConstant(-75, direction, 1);
+    double sine = sin(state[30]);
+    direction[0] = (real)(cos(state[29]) * sine);
+    direction[1] = (real)(sin(state[29]) * sine);
+    direction[2] = (real)cos(state[30]);
+    direction[3] = state[25];
+    real mapped[4];
+    mapped[0] = (real)((direction[0] + 1.0) * 0.5);
+    mapped[1] = (real)((direction[1] + 1.0) * 0.5);
+    mapped[2] = (real)((direction[2] + 1.0) * 0.5);
+    mapped[3] = 0.4970000088214874f;
+    D3DDevice_SetVertexShaderConstant(-73, mapped, 1);
+    if (state[34] > 0.0001f && state[40] > 0.0001f && state[41] > 0.0001f &&
+        state[41] - state[40] > 0.0001f)
+    {
+        double inverse = 1.0 / state[34];
+        real low = (real)(inverse * state[40] * 16777215.0);
+        real high = (real)(inverse * state[41] * 16777215.0);
+        direction[0] = 1.0f / (high - low);
+        direction[1] = 0.0f - direction[0] * low;
+        direction[2] = 0.0f;
+        direction[3] = 0.0f;
+    }
+    else
+    {
+        direction[0] = 0.0f;
+        direction[1] = 0.0f;
+        direction[2] = 0.0f;
+        direction[3] = 0.0f;
+    }
+    D3DDevice_SetVertexShaderConstant(-72, direction, 1);
+    D3DDevice_SetRenderState(D3DRS_TEXTUREFACTOR, pack_color3f((color3f const *)(state + 22)));
+    real parameters[4];
+    memcpy(parameters, state + 36, sizeof(parameters));
+    if (parameters[2] > 0.0001f)
+        parameters[2] = 1.0f / parameters[2];
+    if (parameters[3] > 0.0001f)
+        parameters[3] = 1.0f / parameters[3];
+    parameters[1] = 0.0f - state[37];
+    D3DDevice_SetVertexShaderConstant(-74, parameters, 1);
+    parameters[0] = state[13];
+    parameters[1] = state[14];
+    parameters[2] = state[15];
+    parameters[3] = 1.0f;
+    D3DDevice_SetVertexShaderConstant(-71, parameters, 1);
+}
+
+
+#include <string.h>
+#include "visibility_slot.h"
+struct s_shader_cache;
+extern byte g_51f0f0[0x2d8];
+extern byte *g_485a80;
+extern long g_4858b8;
+void function_1c590(s_shader_cache *state, long tag, long index);
+void __stdcall function_1c710(void *state);
+void function_14bc0(short index, short element, bool use_depth);
+void function_12d50(real const *projection, bool scaled, real *output);
+point3f g_4c1b08[4];
+
+// @retail 0x3bf20
+long __stdcall function_3bf20(s_slot *slot, byte *data)
+{
+    g_4670bc = true;
+    function_16b10((s_render_reset_state *)g_485b48);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x14), 0);
+    function_1c710(g_51f0f0);
+    function_14bc0((short)g_4858b8, 0, true);
+    D3DPIXELSHADERDEF program;
+    memset(&program, 0, sizeof(program));
+    program.PSRGBOutputs[0] = 0xc0;
+    program.PSAlphaOutputs[0] = 0xc0;
+    program.PSCombinerCount = 0x11101;
+    program.PSTextureModes = 0;
+    program.PSInputTexture = 0;
+    program.PSDotMapping = 0;
+    program.PSCompareMode = 0;
+    program.PSRGBInputs[0] = 0xc4200000;
+    program.PSAlphaInputs[0] = 0xd4301010;
+    program.PSConstant0[0] = 0;
+    program.PSConstant1[0] = 0;
+    program.PSC0Mapping = 0xffffffff;
+    program.PSC1Mapping = 0xffffffff;
+    program.PSFinalCombinerConstants = 0x1ff;
+    D3DDevice_SetPixelShaderProgram(&program);
+    function_12d50(NULL, false, NULL);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(1, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(1, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(3, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(3, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
+    D3DDevice_SetRenderState(D3DRS_ZENABLE, 2);
+    D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0);
+    D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
+    D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 1);
+    D3DDevice_SetRenderState(D3DRS_STENCILFUNC, D3DCMP_ALWAYS);
+    D3DDevice_SetRenderState(D3DRS_STENCILREF, 0);
+    D3DDevice_SetRenderState(D3DRS_STENCILMASK, 0xffffffff);
+    D3DDevice_SetRenderState(D3DRS_STENCILWRITEMASK, 0xffffffff);
+    D3DDevice_SetRenderState(D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP);
+    D3DDevice_SetRenderState(D3DRS_STENCILZFAIL, D3DSTENCILOP_ZERO);
+    D3DDevice_SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO);
+    D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
+    D3DDevice_SetRenderState(D3DRS_ZWRITEENABLE, 0);
+    D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+    D3DDevice_SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
+    D3DDevice_Begin(D3DPT_QUADLIST);
+    D3DDevice_SetVertexDataColor(9, 0xffffffff);
+    D3DDevice_SetVertexData4f(0, g_4c1b08[0].x, g_4c1b08[0].y, g_4c1b08[0].z, 1.0f);
+    D3DDevice_SetVertexDataColor(9, 0xffffffff);
+    D3DDevice_SetVertexData4f(0, g_4c1b08[3].x, g_4c1b08[3].y, g_4c1b08[3].z, 1.0f);
+    D3DDevice_SetVertexDataColor(9, 0xffffffff);
+    D3DDevice_SetVertexData4f(0, g_4c1b08[2].x, g_4c1b08[2].y, g_4c1b08[2].z, 1.0f);
+    D3DDevice_SetVertexDataColor(9, 0xffffffff);
+    D3DDevice_SetVertexData4f(0, g_4c1b08[1].x, g_4c1b08[1].y, g_4c1b08[1].z, 1.0f);
+    D3DDevice_End();
+    D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x1010101);
+    D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
+    D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 0);
+    return 0x4b000;
+}
+
+
+
+#include <math.h>
+extern vector3f g_4b9dac;
+s_3c9a0_matrix g_4c1b9c;
+
+PRIVATE __forceinline void set_bump_component(long stage, D3DTEXTURESTAGESTATETYPE component, real value)
+{
+    D3DDevice_SetTextureStageState(stage, component, *(dword *)&value);
+}
+
+// @retail 0x3c650
+void function_3c650(byte const *state)
+{
+    double angle = atan2(g_4b9dac.i, g_4b9dac.j) + *(real const *)(state + 0x8c);
+    real sine = (real)sin(angle);
+    real cosine = (real)cos(angle);
+    vector3f const *axis = g_4687b0;
+    real xx = axis->i * axis->i;
+    real yy = axis->j * axis->j;
+    real zz = axis->k * axis->k;
+    real xs = axis->i * sine;
+    real ys = axis->j * sine;
+    real zs = axis->k * sine;
+    real inverse = 1.0f - cosine;
+    g_4c1b9c.scale = 1.0f;
+    g_4c1b9c.forward.i = (1.0f - xx) * cosine + xx;
+    g_4c1b9c.forward.j = inverse * axis->i * axis->j + zs;
+    g_4c1b9c.forward.k = inverse * axis->i * axis->k - ys;
+    g_4c1b9c.left.i = inverse * axis->i * axis->j - zs;
+    g_4c1b9c.left.j = (1.0f - yy) * cosine + yy;
+    g_4c1b9c.left.k = inverse * axis->k * axis->j + xs;
+    g_4c1b9c.up.i = inverse * axis->i * axis->k + ys;
+    g_4c1b9c.up.j = inverse * axis->k * axis->j - xs;
+    g_4c1b9c.up.k = (1.0f - zz) * cosine + zz;
+    g_4c1b9c.position.x = g_4c1b9c.position.y = g_4c1b9c.position.z = 0.0f;
+    set_bump_component(1, D3DTSS_BUMPENVMAT00, *(real const *)(state + 0x68) * g_4c1b9c.forward.i);
+    set_bump_component(1, D3DTSS_BUMPENVMAT01, *(real const *)(state + 0x68) * g_4c1b9c.forward.j);
+    set_bump_component(1, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x68) * g_4c1b9c.left.i);
+    set_bump_component(1, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x68) * g_4c1b9c.left.j);
+    set_bump_component(2, D3DTSS_BUMPENVMAT00, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.forward.i);
+    set_bump_component(2, D3DTSS_BUMPENVMAT01, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.forward.j);
+    set_bump_component(2, D3DTSS_BUMPENVMAT11, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.i);
+    set_bump_component(2, D3DTSS_BUMPENVMAT10, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.j);
+    set_bump_component(3, D3DTSS_BUMPENVMAT00, *(real const *)(state + 0x70) * g_4c1b9c.forward.i);
+    set_bump_component(3, D3DTSS_BUMPENVMAT01, *(real const *)(state + 0x70) * g_4c1b9c.forward.j);
+    set_bump_component(3, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x70) * g_4c1b9c.left.i);
+    set_bump_component(3, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x70) * g_4c1b9c.left.j);
+}
+
+
+
+extern byte g_485ac2;
+extern word g_485648, g_48564a, g_48564c, g_48564e;
+real g_485640;
+real g_4c1b38[3][4];
+s_3c9a0_matrix g_4c1b68;
+
+// @retail 0x3ca90
+void function_3ca90(byte const *state)
+{
+	real angle = *(real const *)(state + 0x7c);
+	if (angle == 0.0f) return;
+	real height = *(real const *)(state + 0x84);
+	real offset = *(real const *)(state + 0xa8);
+	point3f camera = g_485618.position;
+	real distance = camera.z - height;
+	if (distance < 0.0f) distance = 0.0f - distance;
+	if (distance < 0.0001f) distance = 0.0001f;
+	vector3f forward = g_4b9dac;
+	s_3c9a0_matrix basis;
+	function_3c9a0(&forward, g_4687b0, &basis);
+	basis.scale = distance;
+	basis.position.x = camera.x;
+	basis.position.y = camera.y;
+	basis.position.z = height - distance * offset;
+	g_4c1b68 = basis;
+	real aspect = ((real)(short)g_48564e - (real)(short)g_48564a) / ((short)g_48564c - (short)g_485648);
+	real tangent = (real)(tan((double)angle * 0.5f) * *(real const *)(state + 0x80));
+	if (!(g_4e6948 && g_4e6948->flag && g_4e6948->index != NONE && g_4e6948->state == 3) && g_485ac2)
+		aspect *= 1.5f;
+	real half_angle = g_485640 * 0.5f;
+	if (!(half_angle < 0.7806857824325562f)) half_angle = 0.7806857824325562f;
+	real view_tangent = (real)(tan((double)half_angle) * aspect);
+	real width_scale = view_tangent / tangent;
+	if (width_scale <= 1.0f) width_scale = 1.0f;
+	else if (width_scale > 1.0f) width_scale *= 1.13f;
+	width_scale *= distance;
+	g_4c1b38[0][0] = basis.forward.i * distance;
+	g_4c1b38[0][1] = basis.left.i * width_scale;
+	g_4c1b38[0][2] = basis.up.i;
+	g_4c1b38[0][3] = basis.position.x;
+	g_4c1b38[1][0] = basis.forward.j * distance;
+	g_4c1b38[1][1] = basis.left.j * width_scale;
+	g_4c1b38[1][2] = basis.up.j;
+	g_4c1b38[1][3] = basis.position.y;
+	g_4c1b38[2][0] = basis.forward.k * distance;
+	g_4c1b38[2][1] = basis.left.k * width_scale;
+	g_4c1b38[2][2] = basis.up.k;
+	g_4c1b38[2][3] = basis.position.z;
+	real near_x = (real)tan((double)angle * 0.04f * -12.0f);
+	double tangent2 = tan((double)angle * 0.5f) * *(real const *)(state + 0x80);
+	real near_y = (real)(sqrt((double)near_x * near_x + 1.0f) * tangent2);
+	real far_x = *(real const *)(state + 0x88);
+	real far_y = (real)(sqrt((double)far_x * far_x + 1.0f) * tangent2);
+	point3f corners[4];
+	for (long i = 0; i < 4; ++i)
+	{
+		real x = i < 2 ? near_x : far_x;
+		real y = i == 0 ? 0.0f - near_y : i == 1 ? near_y : i == 2 ? far_y : 0.0f - far_y;
+		corners[i].x = g_4c1b38[0][1] * y + g_4c1b38[0][0] * x + basis.up.i * 0.0f + camera.x;
+		corners[i].y = g_4c1b38[1][1] * y + g_4c1b38[1][0] * x + basis.up.j * 0.0f + camera.y;
+		corners[i].z = g_4c1b38[2][1] * y + g_4c1b38[2][0] * x + basis.up.k * 0.0f + basis.position.z;
+	}
+	memcpy(g_4c1b08, corners, sizeof(corners));
 }

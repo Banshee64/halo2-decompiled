@@ -220,3 +220,112 @@ bool function_1e13f0(long actor_index)
 	}
 	return result;
 }
+
+void function_268810(long clump_index);
+
+// @retail 0x1e11b0
+bool function_1e11b0(long actor_index, bool active)
+{
+ s_actor_view *actor = actor_get(actor_index);
+ bool result = true;
+ if (actor->unknown009 != active)
+ {
+  if (active)
+  {
+   if (function_1e13f0(actor_index))
+   {
+    long clump_index = actor->unknown07c;
+    if (clump_index != NONE && !*(bool *)(g_502420->data + (clump_index & 0xffff) * 0x50 + 0x1c))
+     function_268810(clump_index);
+    actor->unknown009 = true;
+    ++*(short *)((byte *)g_4f55d0 + 0x36a);
+   }
+   else result = false;
+  }
+  else
+  {
+   actor->unknown009 = false;
+   *(long *)((byte *)actor + 0x10) = g_510c54->game_time;
+   --*(short *)((byte *)g_4f55d0 + 0x36a);
+  }
+ }
+ return result;
+}
+
+// @retail 0x1e12b0
+bool function_1e12b0(long actor_index, const dword *clusters)
+{
+ const dword *const *cluster_reference = &clusters;
+ s_actor_view *actor = actor_get(actor_index);
+ bool result = false;
+ if (function_1e13f0(actor_index))
+ {
+  if (actor->unknown007)
+  {
+   long perception_index = *(long *)actor->unknown01c;
+   if (perception_index != NONE)
+   {
+    long object_index = perception_get(perception_index)->object_index;
+    while (object_index != NONE)
+    {
+     s_actor_object_query *object = actor_query_object(object_index);
+     long current = object_index;
+     byte *links = object->flags134 == 0 ? (byte *)object + object->link_offset : NULL;
+     object_index = links ? *(long *)(links + 0xc) : NONE;
+     long cluster = *(short *)((byte *)actor_query_object(actor_query_root(current)) + 0x2c);
+     if (cluster != NONE)
+     {
+      result = ((*cluster_reference)[cluster >> 5] & (1 << (cluster & 31))) != 0;
+      if (result) break;
+     }
+    }
+   }
+  }
+  else
+  {
+   long cluster = *(short *)((byte *)actor_query_object(function_baf80(actor->unknown018)) + 0x2c);
+   if (cluster != NONE)
+    result = ((*cluster_reference)[cluster >> 5] & (1 << (cluster & 31))) != 0;
+  }
+ }
+ return result;
+}
+
+bool function_1e32e0(long actor_index, bool flag);
+void __stdcall function_2628f0(long actor_index, s_reference reference);
+void function_26def0(long actor_index, long owner_index);
+
+struct s_actor_options
+{
+ byte field_0[0x24];
+ dword flags;
+ short mode;
+};
+
+// @retail 0x1e4570
+void function_1e4570(long actor_index, const s_actor_options *options)
+{
+ const long *index_reference = &actor_index;
+ s_actor_view *actor = actor_get(*index_reference);
+ bool second = false;
+ bool first = second;
+ bool third = second;
+ function_2628f0(*index_reference, g_470fa0);
+ *((bool *)actor + 0x227) = false;
+ if (options)
+ {
+  first = (bool)((options->flags >> 6) & 1);
+  second = (bool)((options->flags >> 7) & 1);
+  third = (bool)((options->flags >> 8) & 1);
+  if (options->mode > 0)
+   function_1e4500(*index_reference, options->mode - 1);
+ }
+ *((bool *)actor + 0x224) = third;
+ *((bool *)actor + 0x223) = second;
+ function_1e32e0(*index_reference, first);
+ if (*((bool *)actor + 0x224) && actor->unknown26c != NONE &&
+  actor->unknown018 != NONE && *(long *)((byte *)actor + 0x858) == NONE)
+  function_e68c0(0x1d, actor->unknown018);
+ if (*(long *)((byte *)actor + 0x3f4) != NONE)
+  function_26def0(*index_reference, NONE);
+}

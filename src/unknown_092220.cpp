@@ -134,7 +134,7 @@ bool online_stats_write_succeeded(long task_index)
 }
 
 // @retail 0x924e0
-long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_key, word seconds)
+long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_key, long seconds)
 {
 	long task_index = online_task_new_if_logged_on();
 	if (task_index != NONE)
@@ -162,76 +162,46 @@ long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG
 	return task_index;
 }
 
-
-PRIVATE __forceinline bool function_925ee(XUID const *arg_0)
-{
-	dword local_0 = arg_0->dwUserFlags;
-	return local_0 == 0xbad00000 || (local_0 & 3);
-}
-
+/* submits the completed round's statistics */
 // @retail 0x925c0
-long function_925c0(XNKID const *arg_0, ULONGLONG const *arg_1, long arg_2, XONLINE_STAT_PROC const *arg_3, bool arg_4, bool arg_5)
+long online_round_report(XNKID const *session_id, ULONGLONG const *round_key, long count, XONLINE_STAT_PROC const *procedures, bool flag0, bool flag1)
 {
-	long local_0 = NONE;
-	for (long local_1 = 0; local_1 < arg_2; local_1++)
+	long task_index = NONE;
+	for (long i = 0; i < count; i++)
 	{
-		XUID const *local_2 = 0;
-		if (arg_3[local_1].wProcedureID == 0x8001 || arg_3[local_1].wProcedureID == 0x8003 || arg_3[local_1].wProcedureID == 0x8007)
-			local_2 = (XUID const *)((byte const *)&arg_3[local_1] + 8);
-		if (function_925ee(local_2))
-			goto local_6;
+		XUID const *user = NULL;
+		word kind = procedures[i].wProcedureID;
+		if (kind == 0x8001 || kind == 0x8003 || kind == 0x8007)
+			user = &procedures[i].Update.xuid;
+		if (user->dwUserFlags == 0xbad00000 || (user->dwUserFlags & 3))
+			goto done;
 	}
-	if (arg_2 > 1000)
-		goto local_6;
-
+	if (count <= 1000)
 	{
 		if (online_logon_connected())
-			{
-			local_0 = record_pool_allocate(g_4cf78c);
-			if (local_0 != NONE)
-			{
-				s_type_9df9da *local_10 = (s_type_9df9da *)g_4cf78c->data + (local_0 & 0xffff);
-				local_10->handle = 0;
-				local_10->type = NONE;
-				local_10->controller_index = NONE;
-				local_10->flags = 0;
-			}
-		}
-		else
-			local_0 = NONE;
-		s_record_pool *local_7 = g_4cf78c;
-		if (local_0 != NONE)
+			task_index = online_task_new_inline();
+		s_type_9df9da *task = online_task_try_and_get(task_index);
+		if (task)
 		{
-			s_type_9df9da *local_3 = 0;
-			long local_8 = local_0 & 0xffff;
-			if (local_8 < local_7->high_water_index)
+			XONLINE_ARB_ID id;
+			id.SessionID = *session_id;
+			id.qwRoundID = *round_key;
+			dword flags = (flag0 ? 1 : 0) | (flag1 ? 2 : 0);
+			if (SUCCEEDED(XOnlineArbitrationReport(&id, flag1 ? 0 : count, procedures, NULL, flags, NULL, (PXONLINETASK_HANDLE)&task->handle)))
 			{
-				s_type_9df9da *local_9 = (s_type_9df9da *)(local_7->data + local_7->size * local_8);
-				if (local_9->salt != 0 && local_9->salt == (local_0 >> 16))
-					local_3 = local_9;
+				task->flags = 1;
+				task->type = 0x12;
+				task->controller_index = NONE;
 			}
-			if (local_3)
+			else
 			{
-				XONLINE_ARB_ID local_4;
-				local_4.SessionID = *arg_0;
-				local_4.qwRoundID = *arg_1;
-				dword local_5 = (arg_4 ? 1 : 0) | (arg_5 ? 2 : 0);
-				if (SUCCEEDED(XOnlineArbitrationReport(&local_4, arg_5 ? 0 : arg_2, arg_3, NULL, local_5, NULL, (PXONLINETASK_HANDLE)&local_3->handle)))
-				{
-					local_3->flags = 1;
-					local_3->type = 0x12;
-					local_3->controller_index = NONE;
-				}
-				else
-				{
-					function_6b640(local_0);
-					local_0 = NONE;
-				}
+				function_6b640(task_index);
+				task_index = NONE;
 			}
 		}
 	}
-local_6:
-	return local_0;
+done:
+	return task_index;
 }
 
 /* whether the task failed because the service is not available */

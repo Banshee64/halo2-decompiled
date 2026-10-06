@@ -1713,7 +1713,7 @@ static inline void event_write_direction(s_bitstream *stream, vector3f const *di
 }
 
 void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
-void simulation_read_position(s_bitstream *arg_0, real *arg_1, long arg_2);
+void simulation_read_position(s_bitstream *stream, real *position, long bits);
 
 struct s_surface_damage_event_data
 {
@@ -1756,16 +1756,53 @@ void c_unit_grenade_release_event_definition::v9(long a, void const *data, s_bit
 }
 
 // @retail 0x9f410
-bool c_unit_grenade_release_event_definition::v10(long arg_0, void *arg_1, s_bitstream *arg_2)
+bool c_unit_grenade_release_event_definition::v10(long a, void *data, s_bitstream *stream)
 {
-	s_unit_grenade_release_event_data *local_0 = (s_unit_grenade_release_event_data *)arg_1;
-	local_0->type = (short)function_1959c0(arg_2, 1);
-	simulation_read_position(arg_2, &local_0->position.i, 16);
-	dword local_1 = function_1959c0(arg_2, 17);
-	function_24f6b0(local_1, &local_0->velocity);
-	if (local_0->type >= 0 && local_0->type < 2)
+	s_unit_grenade_release_event_data *event = (s_unit_grenade_release_event_data *)data;
+	event->type = (short)function_1959c0(stream, 1);
+	simulation_read_position(stream, &event->position.i, 16);
+	dword direction = function_1959c0(stream, 17);
+	function_24f6b0(direction, &event->velocity);
+	if (event->type >= 0 && event->type < 2)
 		return true;
 	return false;
+}
+
+static inline long event_scenario_object_name(long index)
+{
+	s_event_scenario_view *scenario = (s_event_scenario_view *)g_4e0350;
+	long result = NONE;
+	if (scenario && scenario->object_name_count > 0)
+	{
+		if ((index < 0 ? 0 : (index > scenario->object_name_count - 1 ? scenario->object_name_count - 1 : index)) == index)
+			result = scenario->object_names[index];
+	}
+	return result;
+}
+
+// @retail 0x9cbc0
+bool c_breakable_surface_damage_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_surface_damage_event_data *event = (s_surface_damage_event_data *)data;
+	event->index0 = function_1959c0(stream, 10) - 1;
+	event->index4 = function_1959c0(stream, 8) - 1;
+	event->index8 = function_1959c0(stream, 17) - 1;
+	function_195820(stream, event->payload, 64);
+	event->no_direction = function_1957d0(stream);
+	if (!event->no_direction)
+	{
+		dword direction = function_1959c0(stream, 17);
+		function_24f6b0(direction, &event->direction);
+	}
+	else
+		event->direction = *g_4687b0;
+	simulation_read_position(stream, &event->position.i, 13);
+	long object_name = NONE;
+	long index = function_1959c0(stream, 9) - 1;
+	if (index != NONE)
+		object_name = event_scenario_object_name(index);
+	event->object_name = object_name;
+	return true;
 }
 
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))
@@ -1938,41 +1975,3 @@ void c_damage_aftermath_event_definition::v8(long a, long b, long c, long size, 
 {
 	function_11c9c0(buffer, size, "damage aftermath: relevance=%5.3f", v7(a, b, c));
 }
-
-PRIVATE inline long function_9cbc0(long arg_0)
-{
-	s_event_scenario_view *local_0 = (s_event_scenario_view *)g_4e0350;
-	long local_1 = NONE;
-	if (local_0 && local_0->object_name_count > 0)
-	{
-		if ((arg_0 < 0 ? 0 : (arg_0 > local_0->object_name_count - 1 ? local_0->object_name_count - 1 : arg_0)) == arg_0)
-			local_1 = local_0->object_names[arg_0];
-	}
-	return local_1;
-}
-
-// @retail 0x9cbc0
-bool c_breakable_surface_damage_event_definition::v10(long arg_0, void *arg_1, s_bitstream *arg_2)
-{
-	s_surface_damage_event_data *local_0 = (s_surface_damage_event_data *)arg_1;
-	local_0->index0 = function_1959c0(arg_2, 10) - 1;
-	local_0->index4 = function_1959c0(arg_2, 8) - 1;
-	local_0->index8 = function_1959c0(arg_2, 17) - 1;
-	function_195820(arg_2, local_0->payload, 64);
-	local_0->no_direction = function_1957d0(arg_2);
-	if (!local_0->no_direction)
-	{
-		dword local_1 = function_1959c0(arg_2, 17);
-		function_24f6b0(local_1, &local_0->direction);
-	}
-	else
-		local_0->direction = *g_4687b0;
-	simulation_read_position(arg_2, &local_0->position.i, 13);
-	long local_2 = NONE;
-	long local_3 = function_1959c0(arg_2, 9) - 1;
-	if (local_3 != NONE)
-		local_2 = function_9cbc0(local_3);
-	local_0->object_name = local_2;
-	return true;
-}
-

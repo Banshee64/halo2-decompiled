@@ -71,3 +71,131 @@ void function_10e480(long object_index, long tag_index, s_vibration_curve_set *c
 		function_10de40(curves, (s_vibration_output *)vibration->output, time, blend, skip_special);
 	}
 }
+
+#include "unknown_1cafc0.h"
+
+struct s_vibration_sample_view
+{
+	byte unknown00[2];
+	byte countdown;
+	byte unknown03[0x30 - 3];
+	c_type_709360 base_animation;
+	c_type_709360 weighted_animation;
+	byte unknown38[8];
+	real frame;
+	char frames[12];
+	char signed_weights[12];
+	c_type_709360 animation_id;
+	byte unknown60[0x6e - 0x60];
+	byte weights[13];
+};
+
+extern real g_54764c;
+struct s_anim_data;
+void function_20adf0(s_anim_data *data, byte *dest);
+
+// @retail 0x10ec00
+void function_10ec00(long object_index, s_animation_state *state, long unused, dword const *node_mask,
+	long node_count, real_quaternion_transform *transforms, byte *dest)
+{
+	(void)&unused;
+	s_vibration_object_view *object = ((s_vibration_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	s_vibration_sample_view *vibration = (s_vibration_sample_view *)((byte *)object + object->vibration_offset);
+	c_type_709360 animation_id = vibration->animation_id;
+	if (animation_id.index != NONE)
+	{
+		c_animation_channel channel;
+		if (state->channel_play(&channel, animation_id, 0x40))
+		{
+			s_animation *animation = NULL;
+			if (channel.animation_id.index != NONE)
+				animation = function_1daea0(graph_tag_get(channel.graph_tag_index), channel.animation_id);
+			bool sampled = false;
+			for (long i = 0; i < 13; i++)
+			{
+				real frame = i * 2.0f + vibration->frame;
+				if (frame >= 0.0f && frame < animation->frame_count && vibration->weights[i])
+				{
+					real weight = vibration->weights[i] * g_54764c;
+					channel.set_frame_position(frame);
+					channel.sample(weight, node_mask, node_count, transforms);
+					sampled = true;
+				}
+			}
+			if (sampled)
+			{
+				s_animation_data data;
+				function_1ddb40(&data, graph_tag_get(channel.graph_tag_index), channel.animation_id);
+				function_20adf0((s_anim_data *)&data, dest);
+			}
+		}
+	}
+}
+
+#include <math.h>
+extern real g_547648;
+void c_animation_channel_data_get(c_animation_channel const *channel, s_animation_data *data);
+
+// @retail 0x10e530
+void function_10e530(long object_index, s_animation_state *state, long unused, dword const *node_mask,
+	long node_count, real_quaternion_transform *transforms, byte *dest)
+{
+	(void)&unused;
+	s_vibration_object_view *object = ((s_vibration_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	s_vibration_sample_view *vibration = (s_vibration_sample_view *)((byte *)object + object->vibration_offset);
+	if (vibration->frame > 0.0001f)
+	{
+		c_animation_channel channel;
+		c_type_709360 animation_id = vibration->base_animation;
+		if (animation_id.index != NONE && state->channel_play(&channel, animation_id, 0))
+		{
+			channel.set_frame_position(0.0f);
+			channel.sample(vibration->frame, node_mask, node_count, transforms);
+			s_animation_data data;
+			function_1ddb40(&data, graph_tag_get(channel.graph_tag_index), channel.animation_id);
+			function_20adf0((s_anim_data *)&data, dest);
+		}
+		animation_id = vibration->weighted_animation;
+		if (animation_id.index != NONE && state->channel_play(&channel, animation_id, 0))
+		{
+			s_animation *animation = channel.function_1c6440();
+			bool sampled = false;
+			for (long i = 0; i < 12; i++)
+			{
+				real weight = vibration->signed_weights[i] * g_547648 * vibration->frame;
+				if (vibration->frames[i] < animation->frame_count && !(fabs(weight) < 0.0001f))
+				{
+					channel.set_frame_position((real)vibration->frames[i]);
+					channel.sample(weight, node_mask, node_count, transforms);
+					sampled = true;
+				}
+			}
+			if (sampled)
+			{
+				s_animation_data data;
+				function_1ddb40(&data, graph_tag_get(channel.graph_tag_index), channel.animation_id);
+				function_20adf0((s_anim_data *)&data, dest);
+			}
+		}
+	}
+	else if (vibration->frame != 0.0f)
+	{
+		if (vibration->base_animation.index != NONE)
+			state->animation_touch(vibration->base_animation);
+		if (vibration->weighted_animation.index != NONE)
+			state->animation_touch(vibration->weighted_animation);
+	}
+	else if (vibration->weighted_animation.index != NONE && vibration->countdown > 0 && vibration->countdown < 7)
+	{
+		c_animation_channel channel;
+		if (state->channel_play(&channel, vibration->weighted_animation, 0) && channel.function_1c6440()->frame_count > 17)
+		{
+			real weight = vibration->countdown < 3 ? vibration->countdown * (1.0f / 3.0f) : (7 - vibration->countdown) * 0.25f;
+			channel.set_frame_position(17.0f);
+			channel.sample(weight, node_mask, node_count, transforms);
+			s_animation_data data;
+			c_animation_channel_data_get(&channel, &data);
+			function_20adf0((s_anim_data *)&data, dest);
+		}
+	}
+}

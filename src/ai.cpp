@@ -1026,3 +1026,429 @@ bool function_1ca670(void)
 {
 	return function_1ca2d0(true) != NONE;
 }
+
+
+void function_200240(long object_index, long target_index);
+
+// @retail 0x1ca9f0
+void __stdcall function_1ca9f0(long object_index, long target_index)
+{
+	(void)&object_index;
+	(void)&target_index;
+	if (g_4f55d0->active)
+		function_200240(object_index, target_index);
+}
+
+
+void hash_table_initialize(hash_table *table);
+void function_200b30(void);
+void function_20b9b0(void);
+void function_295970(void);
+extern s_record_pool *g_5044c8;
+extern long g_502428;
+extern long g_50242c;
+
+PRIVATE inline void ai_pool_reset(s_record_pool *pool)
+{
+	pool->valid = true;
+	record_pool_release_all(pool);
+}
+
+// @retail 0x1c79e0
+void function_1c79e0(void)
+{
+	if (g_4e6948->state == 2)
+		g_4f55d0->active = false;
+	else
+	{
+		ai_globals_initialize_for_new_map();
+		ai_pool_reset(g_4f55f0);
+		hash_table_initialize((hash_table *)g_557c6c);
+		ai_pool_reset(g_5044c8);
+		ai_pool_reset(g_50241c);
+		ai_pool_reset(g_502418);
+		ai_pool_reset(g_502414);
+		function_200b30();
+		memset(g_5044cc, 0, 0x20);
+		ai_pool_reset(g_502420);
+		ai_pool_reset(g_502424);
+		ai_pool_reset(g_51eca4);
+		ai_pool_reset(g_502408);
+		ai_pool_reset(g_502404);
+		g_502428 = NONE;
+		g_50242c = NONE;
+		function_20b9b0();
+		memset(g_5044d0, 0, 0x10);
+		ai_pool_reset(g_51ecb4);
+		function_295970();
+		*(short *)((byte *)g_4f55d0 + 0x3e) = 0;
+		*(short *)((byte *)g_4f55d0 + 0x3c) = 0;
+		memset((byte *)g_4f55d0 + 0x40, 0, 0x300);
+		g_4f55d0->active = true;
+	}
+}
+
+
+long function_25d810(long object_index, long actor_index, bool create);
+
+// @retail 0x1c89b0
+short __stdcall function_1c89b0(long actor_index, short maximum_count, s_ai_capsule_view *capsules)
+{
+ (void)&actor_index;
+ (void)&maximum_count;
+ (void)&capsules;
+ s_actor_view *actor = actor_get(actor_index);
+ long count = 0;
+ if (actor->unknown07c != NONE)
+ {
+  long next = element_502420_get(actor->unknown07c)->first_actor_index;
+  while (next != NONE)
+  {
+   long index = next;
+   s_actor_view *other = actor_get(index);
+   next = other->next_index;
+   if (index != actor_index && (short)count < maximum_count && other->unknown018 != NONE && other->unknown26c == NONE)
+   {
+    long object_index = other->unknown018;
+    if (((s_ai_object_header *)g_4e0300->data)[object_index & 0xffff].type == 0)
+     function_1c8940(&capsules[(short)count++], object_index, NONE);
+   }
+  }
+ }
+ long next = actor_get(actor_index)->first_prop_index;
+ while (next != NONE)
+ {
+  long index = next;
+  s_prop_node_view *node = &((s_prop_node_view *)g_502418->data)[index & 0xffff];
+  next = node->next_index;
+  s_prop_state_view *state = prop_node_state(node);
+  s_ai_prop_target *target = &((s_ai_prop_target *)g_50241c->data)[node->unknown08 & 0xffff];
+  if (!target->unknown23 && !*((bool *)state + 0x5e) && node->unknown24 == 1 && state->unknown3c == NONE)
+  {
+   long object_index = node->object_index;
+   if (((1 << object_get(object_index)->type) & 1) && (short)count < maximum_count)
+    function_1c8940(&capsules[(short)count++], object_index, index);
+  }
+ }
+ if (!team_is_enemy(actor->unknown024, 1))
+ {
+  s_record_pool_iterator iterator;
+  iterator.data = g_4e8c24;
+  iterator.index = NONE;
+  s_ai_player_datum *player;
+  while ((player = (s_ai_player_datum *)data_iterator_next_inlined(&iterator)) != NULL)
+  {
+   long object_index = player->unit_index;
+   if (object_index == NONE)
+    continue;
+   s_ai_object_header *headers = (s_ai_object_header *)g_4e0300->data;
+   if (headers[object_index & 0xffff].type != 0)
+    continue;
+   long parent = object_get(object_index)->parent_index;
+   if (parent != NONE)
+   {
+    long root = function_baf40(parent);
+    if (headers[root & 0xffff].type == 1)
+     parent = root;
+    if (parent == actor->unknown26c)
+     continue;
+   }
+   long prop_index = function_25d810(object_index, actor_index, false);
+   object_index = player->unit_index;
+   s_ai_capsule_view *capsule = &capsules[(short)count];
+   real height;
+   real radius;
+   function_df5f0(object_index, &capsule->center, &height, &radius);
+   capsule->active = height == 0.0f ? 1 : 0;
+   capsule->value10 = 0.0f;
+   capsule->value14 = 0.0f;
+   capsule->height = height;
+   capsule->radius = radius + 0.15f;
+   capsule->value1c = prop_index;
+   capsule->object_index = object_index;
+   ++count;
+  }
+ }
+ return (short)count;
+}
+
+struct s_actor_creation_definition
+{
+    dword flags;
+    short type;
+};
+
+struct s_actor_creation_tag
+{
+    byte unknown00[8];
+    long parent_index;
+    byte unknown0c[0x34 - 0xc];
+    long count;
+    dword *flags;
+};
+
+bool function_1a80e0(long index, short type, s_slot *data, short slot);
+
+// @retail 0x1dfb90
+long __stdcall function_1dfb90(long definition_index)
+{
+    long const *definition_reference = &definition_index;
+    long result = NONE;
+    if (*definition_reference != NONE)
+    {
+        s_record_pool *pool = g_4f55f0;
+        result = record_pool_allocate(pool);
+        if (result != NONE)
+        {
+            byte *actor = pool->data + (result & 0xffff) * 0x888;
+            s_actor_creation_definition *definition = (s_actor_creation_definition *)function_1e4990(*definition_reference);
+            *(long *)(actor + 0x54) = *definition_reference;
+            *(bool *)(actor + 7) = (bool)(definition->flags & 1);
+            *(short *)(actor + 4) = definition->type;
+            *(long *)(actor + 0x18) = NONE;
+            *(long *)(actor + 0x1c) = NONE;
+            *(long *)(actor + 0x30) = NONE;
+            *(long *)(actor + 0x28) = NONE;
+            *(long *)(actor + 0x34) = NONE;
+            *(short *)(actor + 0x2c) = NONE;
+            *(byte *)(actor + 0x8) = 1;
+            *(long *)(actor + 0x10) = NONE;
+            *(long *)(actor + 0x14) = NONE;
+            *(byte *)(actor + 0xa) = 0;
+            *(byte *)(actor + 0x3c) = 0;
+            *(byte *)(actor + 0x9) = 0;
+            *(byte *)(actor + 0xc) = 0;
+            *(long *)(actor + 0x4c) = g_510c54->game_time;
+            *(short *)(actor + 0x42) = 0;
+            *(short *)(actor + 0x46) = 0;
+            *(long *)(actor + 0x58) = NONE;
+            for (long i = 0; i < 8; ++i)
+                ((long *)(actor + 0x5c))[i] = NONE;
+            *(short *)(actor + 0x3e) = g_4686c4;
+            *(long *)(actor + 0x7c) = NONE;
+            *(long *)(actor + 0x32c) = NONE;
+            *(s_reference *)(actor + 0x418) = g_470fa0;
+            *(byte *)(actor + 0x3f2) = 0;
+            *(long *)(actor + 0x3f4) = NONE;
+            *(long *)(actor + 0x3f8) = NONE;
+            *(short *)(actor + 0x3fc) = NONE;
+            s_actor_view *actor_view = (s_actor_view *)(pool->data + (result & 0xffff) * 0x888);
+            actor_view->unknown3fe = 3;
+            long reference_index = 0;
+            do
+            {
+                actor_view->unknown400[reference_index].reference = g_470fa0;
+                ++reference_index;
+            } while (reference_index < 4);
+            *(short *)(actor + 0x84) = 3;
+            *(short *)(actor + 0x86) = 1;
+            *(long *)(actor + 0x88) = 0;
+            *(byte *)(actor + 0x220) = 0;
+            *(byte *)(actor + 0x221) = 0;
+            *(bool *)(actor + 0x229) = (bool)((definition->flags >> 1) & 1);
+            *(byte *)(actor + 0x227) = 0;
+            *(byte *)(actor + 0x228) = 0;
+            *(byte *)(actor + 0x222) = 0;
+            *(byte *)(actor + 0x22a) = 0;
+            *(byte *)(actor + 0x223) = 0;
+            *(byte *)(actor + 0x225) = 0;
+            *(byte *)(actor + 0x226) = 0;
+            *(byte *)(actor + 0x224) = 0;
+            memset(actor + 0x90, 0, 0x100);
+            long slot_index = 0;
+            do
+            {
+                *(short *)(actor + 0x90 + slot_index * 0x40) = NONE;
+                *(long *)(actor + 0x98 + slot_index * 0x40) = NONE;
+                ++slot_index;
+            } while (slot_index < 4);
+            *(short *)(actor + 0x190) = NONE;
+            function_1a80e0(result, *(bool *)(actor + 7) ? 0x72 : 1, NULL, 0);
+            for (long i = 0; i < 14; ++i)
+                ((long *)(actor + 0x1e8))[i] = NONE;
+            long memory_index = 0;
+            do
+            {
+                *(short *)(actor + 0x1c4 + memory_index * 0xc) = NONE;
+                ++memory_index;
+            } while (memory_index < 3);
+            memory_index = 0;
+            do
+            {
+                *(short *)(actor + 0x194 + memory_index * 0xc) = NONE;
+                ++memory_index;
+            } while (memory_index < 4);
+            *(long *)(actor + 0x858) = NONE;
+            *(long *)(actor + 0x85c) = NONE;
+            *(long *)(actor + 0x28c) = NONE;
+            *(long *)(actor + 0x26c) = NONE;
+            *(long *)(actor + 0x274) = NONE;
+            *(byte *)(actor + 0x2e0) = 0;
+            *(byte *)(actor + 0x266) = 0;
+            *(byte *)(actor + 0x268) = 0;
+            *(byte *)(actor + 0x267) = 0;
+            *(short *)(actor + 0x270) = 0;
+            memset(actor + 0x3d4, 0, 0x1c);
+            *(long *)(actor + 0x3e8) = NONE;
+            *(byte *)(actor + 0x3e4) = 0;
+            actor_view = (s_actor_view *)(g_4f55f0->data + (result & 0xffff) * 0x888);
+            actor_view->unknown50c = false;
+            actor_view->unknown5ac = NONE;
+            actor_view->unknown5b0 = NONE;
+            actor_view->unknown5b4 = 0;
+            actor_view->unknown5b6 = 0;
+            actor_view->unknown4ac = 0;
+            actor_view->unknown504 = 0;
+            *(short *)(actor + 0x6fe) = 1;
+            *(byte *)(actor + 0x714) = 1;
+            *(byte *)(actor + 0x5d0) = 0;
+            *(byte *)(actor + 0x5d1) = 0;
+            *(long *)(actor + 0x634) = NONE;
+            *(short *)(actor + 0x6fc) = 0;
+            *(short *)(actor + 0x700) = 0;
+            *(long *)(actor + 0x718) = NONE;
+            *(real *)(actor + 0x71c) = 0.0f;
+            *(short *)(actor + 0x720) = 0;
+            *(short *)(actor + 0x702) = 0;
+            *(short *)(actor + 0x704) = 0;
+            *(short *)(actor + 0x706) = 0;
+            *(long *)(actor + 0x734) = 0;
+            *(long *)(actor + 0x724) = NONE;
+            *(short *)(actor + 0x7c4) = 0;
+            *(long *)(actor + 0x7c8) = NONE;
+            *(long *)(actor + 0x7e0) = NONE;
+            *(byte *)(actor + 0x7cc) = 0;
+            *(real *)(actor + 0x7ac) = 0.0f;
+            *(real *)(actor + 0x710) = 1.0f;
+            *(byte *)(actor + 0x6d0) = 0;
+            *(short *)(actor + 0x686) = 0;
+            *(byte *)(actor + 0x6c0) = 0;
+            *(long *)(actor + 0x6c4) = NONE;
+            *(vector3f *)(actor + 0x6e0) = *g_4687a8;
+            *(vector3f *)(actor + 0x6d4) = *g_4687a8;
+            *(vector3f *)(actor + 0x6ec) = *g_4687a8;
+            *(byte *)(actor + 0x6f8) = 1;
+            *(short *)(actor + 0x6fa) = 0;
+            *(byte *)(actor + 0x605) = 0;
+            *(short *)(actor + 0x61e) = 0;
+            *(long *)(actor + 0x6c8) = 0;
+            *(byte *)(actor + 0x6cc) = 0;
+            memset(actor + 0x654, 0, 0x28);
+            *(byte *)(actor + 0x5d8) = 0;
+            *(short *)(actor + 0x5da) = 0;
+            *(point3f *)(actor + 0x5dc) = *g_468788;
+            *(long *)(actor + 0x7f8) = NONE;
+            *(short *)(actor + 0x5e8) = 0;
+            *(byte *)(actor + 0x604) = 0;
+            *(long *)(actor + 0x338) = NONE;
+            *(long *)(actor + 0x33c) = 0;
+            *(byte *)(actor + 0x340) = 0;
+            *(long *)(actor + 0x350) = NONE;
+            *(long *)(actor + 0x344) = NONE;
+            *(long *)(actor + 0x348) = NONE;
+            *(byte *)(actor + 0x354) = 0;
+            *(long *)(actor + 0x2e8) = NONE;
+            *(short *)(actor + 0x2ec) = NONE;
+            *(short *)(actor + 0x2ee) = NONE;
+            *(byte *)(actor + 0x2f0) = 0;
+            *(short *)(actor + 0x2f4) = g_510c54->field_2_3 * 10;
+            *(short *)(actor + 0x2f2) = NONE;
+            *(long *)(actor + 0x2f8) = 0;
+            *(long *)(actor + 0x2fc) = NONE;
+            *(long *)(actor + 0x300) = NONE;
+            *(short *)(actor + 0x304) = 0;
+            *(short *)(actor + 0x306) = 0;
+            *(long *)(actor + 0x308) = NONE;
+            *(byte *)(actor + 0x30c) = 0;
+            *(short *)(actor + 0x30e) = 0;
+            *(short *)(actor + 0x310) = NONE;
+            *(real *)(actor + 0x318) = 0.0f;
+            *(short *)(actor + 0x31c) = NONE;
+            *(short *)(actor + 0x31e) = 0;
+            *(short *)(actor + 0x320) = 0;
+            long tag_index = actor_get(result)->unknown054;
+            while (tag_index != NONE)
+            {
+                s_actor_creation_tag *tag = (s_actor_creation_tag *)g_4e3b44[tag_index & 0xffff].bytes;
+                if (tag->count > 0)
+                {
+                    if (tag->flags && (bool)((*tag->flags >> 3) & 1))
+                        ++*(short *)((byte *)g_5047f4 + 6);
+                    break;
+                }
+                tag_index = tag->parent_index;
+            }
+        }
+    }
+    return result;
+}
+
+
+bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
+long function_11ea30(point3f const *a, vector3f const *u, point3f const *b, vector3f const *v, real radius);
+
+// @retail 0x1c8d20
+bool function_1c8d20(long actor_index, point3f const *origin, long excluded_object,
+    vector3f const *direction, long *blocking_index)
+{
+    bool result = true;
+    long blocker = NONE;
+    s_ai_capsule_view capsules[32];
+    short count = function_1c89b0(actor_index, 32, capsules);
+    for (short i = 0; i < count; i++)
+    {
+        if (capsules[i].object_index == excluded_object)
+            continue;
+        char intersects;
+        if (capsules[i].active)
+            intersects = function_11e5e0(&capsules[i].center, origin, direction, capsules[i].radius);
+        else
+            intersects = (char)function_11ea30(&capsules[i].center,
+                (vector3f *)&capsules[i].value10, origin, direction, capsules[i].radius);
+        if (intersects)
+        {
+            blocker = capsules[i].value1c;
+            result = false;
+            break;
+        }
+    }
+    if (blocking_index)
+        *blocking_index = blocker;
+    return result;
+}
+
+
+bool function_1df5d0(short team_a, short team_b);
+real __stdcall function_265d30(long actor_index, long prop_index);
+
+// @retail 0x1c9a00
+void function_1c9a00(void)
+{
+    s_actor_iterator iterator;
+    function_x66da2b(&iterator, true);
+    s_actor_view *actor;
+    while ((actor = (s_actor_view *)function_1e46c0(&iterator)) != NULL)
+    {
+        long next = actor_get(iterator.actor_index)->first_prop_index;
+        while (next != NONE)
+        {
+            long index = next;
+            s_prop_node_view *node = &((s_prop_node_view *)g_502418->data)[index & 0xffff];
+            s_ai_prop_target *target = &((s_ai_prop_target *)g_50241c->data)[node->unknown08 & 0xffff];
+            byte *object = (byte *)((s_ai_object_header *)g_4e0300->data)[node->object_index & 0xffff].object;
+            next = node->next_index;
+            byte *state = NULL;
+            if (node->view_index != NONE)
+            {
+                byte *view = g_502414->data + (node->view_index & 0xffff) * 0x124;
+                if (view)
+                    state = view + 0x70;
+            }
+            *(short *)((byte *)target + 0x20) = *(short *)(object + 0x138);
+            target->unknown23 = function_1df560(actor->unknown024, *(short *)((byte *)target + 0x20));
+            target->unknown24 = function_1df5d0(actor->unknown024, *(short *)((byte *)target + 0x20));
+            if (state)
+                *(real *)(state + 0x3c) = function_265d30(iterator.actor_index, index);
+        }
+    }
+}

@@ -6,6 +6,7 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "slot_handler.h"
 #include <string.h>
 
 /* a condition of a trigger (0x38 bytes) */
@@ -37,6 +38,95 @@ extern void *g_5044cc;
 
 bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_group_index, bool *result);
 bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad_index);
+
+struct s_290d90_entry
+{
+	long inverted : 1;
+	dword others : 31;
+	short trigger_index;
+	short unknown06;
+};
+
+struct s_290d90_group
+{
+	short result;
+	short combine_mode;
+	real delay;
+	short value;
+	short unknown0a;
+	long count;
+	s_290d90_entry *entries;
+};
+
+bool function_290e20(short trigger_index, long squad_index, long squad_group_index);
+
+// @retail 0x290d90
+bool function_290d90(s_290d90_group *group, long squad_index, long squad_group_index)
+{
+	short count = 0;
+	short needed;
+	if (group->combine_mode == 0)
+		needed = 1;
+	else
+		needed = (short)group->count;
+	for (short i = 0; i < group->count; i++)
+	{
+		s_290d90_entry *entry = &group->entries[i];
+		if (entry->trigger_index != NONE &&
+			function_290e20(entry->trigger_index, squad_index, squad_group_index) != (bool)entry->inverted)
+		{
+			count++;
+			if (count >= needed)
+				break;
+		}
+	}
+	return count >= needed;
+}
+
+struct s_290cd0_definition
+{
+	byte unknown00[0x74];
+	long count;
+	s_290d90_group *groups;
+};
+
+struct s_290cd0_scenario
+{
+	byte unknown00[0x244];
+	s_290cd0_definition *definitions;
+};
+
+// @retail 0x290cd0
+short function_290cd0(short index, long squad_index, long squad_group_index, short *ticks, short *value)
+{
+	s_290cd0_definition *definition = &((s_290cd0_scenario *)g_4e0350)->definitions[index];
+	long result = NONE;
+	for (short i = 0; i < definition->count; i++)
+	{
+		s_290d90_group *group = &definition->groups[i];
+		if (function_290d90(group, squad_index, squad_group_index))
+		{
+			result = group->result;
+			if (value)
+			{
+				short adjusted = group->value;
+				*value = adjusted == 0 ? (short)NONE : (short)(adjusted + 0x6e);
+			}
+			if (ticks)
+			{
+				real scaled = g_510c54->field_2_3 * group->delay;
+				long rounded;
+				__asm
+				{
+					fld scaled
+					fistp rounded
+				}
+				*ticks = (short)rounded;
+			}
+		}
+	}
+	return (short)result;
+}
 
 // @retail 0x291790
 short ai_trigger_find_by_name(char const *name)

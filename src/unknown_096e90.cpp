@@ -86,6 +86,95 @@ long c_vtable_450d1c::v1(long a1, long max_count, void *entries)
 	return count;
 }
 
+void function_b5650(long identifier, s_bitstream *stream);
+void function_194710(s_bitstream *stream, bool discard);
+
+static __forceinline void sender_write_type(s_bitstream *stream, dword type)
+{
+	if (type >= 32)
+	{
+		char message[256];
+		message[0] = 0;
+		csprintf_256(message, "%u exceeds max value of %u", type, 32);
+	}
+	function_195720(stream, type, 5);
+}
+
+// @retail 0x97240
+void c_vtable_450d1c::v3(s_node_450d1c *node, long a2, long a3, long key, s_bitstream *stream, long reserved_bits)
+{
+	s_request_450d1c *request = 0;
+	if (requests != 0 && requests->key == key)
+		request = requests;
+	if (!unknown09)
+	{
+		if (!request)
+		{
+			s_request_450d1c *block = (s_request_450d1c *)function_96e90(sizeof(s_request_450d1c));
+			if (block)
+			{
+				block->key = NONE;
+				block->links = 0;
+				block->next = 0;
+				block->next = requests;
+				requests = block;
+				request_count++;
+				request = block;
+				block->links = 0;
+				block->key = key;
+			}
+			else
+				unknown09 = 1;
+		}
+		if (!unknown09 && request)
+		{
+			s_link_450d1c *link = (s_link_450d1c *)function_96e90(sizeof(s_link_450d1c));
+			if (link)
+			{
+				link->node = 0;
+				link->next = 0;
+				stream->checkpoints[stream->checkpoint_count] = stream->bit_position;
+				stream->checkpoint_count++;
+				stream_write_bit(stream, true);
+				sender_write_type(stream, node->unknown04);
+				long const *items = &node->unknown10;
+				long remaining = 2;
+				do
+				{
+					long item = *items++;
+					stream_write_bit(stream, item != NONE);
+					if (item != NONE)
+						function_b5650(item, stream);
+				} while (--remaining);
+				if (node->size > 0)
+					owner->manager->v2(node->unknown04, node->size, node->data, stream);
+				if ((stream->size_in_bytes << 3) - stream->bit_position >= reserved_bits)
+				{
+					stream->checkpoint_count--;
+					link->next = request->links;
+					request->links = link;
+					link->node = node;
+					pending--;
+					unknown24++;
+					node->done_mask |= 1 << player;
+				}
+				else
+				{
+					function_194710(stream, true);
+					long info;
+					if (!g_4d87f8->allocator->get_info(link, &info))
+						info = NONE;
+					s_allocator_globals *globals = g_4d87f8;
+					globals->allocator->release(link, NONE);
+					globals->count--;
+				}
+			}
+			else
+				unknown09 = 1;
+		}
+	}
+}
+
 // @retail 0x974c0
 long c_vtable_450d1c::v5(dword a1, s_bitstream *stream, long max_blocks, s_block_450c94 *blocks, long *count_out)
 {
@@ -311,91 +400,3 @@ long c_vtable_450cf4::v3(long a1, long a2)
 {
 	return unknown24;
 }
-
-void function_b5650(long arg_0, s_bitstream *arg_1);
-void function_194710(s_bitstream *arg_0, bool arg_1);
-
-
-
-// @retail 0x97240
-void c_vtable_450d1c::v3(void *arg_0, long arg_1, long arg_2, long arg_3, s_bitstream *arg_4, long arg_5)
-{
-	s_request_450d1c *local_0 = 0;
-	if (requests != 0 && requests->key == arg_3)
-		local_0 = requests;
-	if (!unknown09)
-	{
-		if (local_0 == 0)
-		{
-			local_0 = (s_request_450d1c *)function_96e90(sizeof(s_request_450d1c));
-			if (local_0)
-			{
-				local_0->key = NONE;
-				local_0->links = 0;
-				local_0->next = 0;
-				local_0->next = requests;
-				requests = local_0;
-				request_count++;
-				local_0->links = 0;
-				local_0->key = arg_3;
-			}
-			else
-				unknown09 = true;
-		}
-		if (!unknown09 && local_0)
-		{
-			s_link_450d1c *local_1 = (s_link_450d1c *)function_96e90(sizeof(s_link_450d1c));
-			if (local_1)
-			{
-				local_1->node = 0;
-				local_1->next = 0;
-				arg_4->checkpoints[arg_4->checkpoint_count] = arg_4->bit_position;
-				arg_4->checkpoint_count++;
-				stream_write_bit(arg_4, true);
-				s_node_450d1c *local_2 = (s_node_450d1c *)arg_0;
-				dword local_7 = local_2->unknown04;
-				if (local_7 >= 32)
-				{
-					char local_8[256];
-					local_8[0] = 0;
-					csprintf_256(local_8, "%u exceeds max value of %u", local_7, 32);
-				}
-				function_195720(arg_4, local_7, 5);
-				for (long local_3 = 0; local_3 < 2; local_3++)
-				{
-					long local_4 = (&local_2->unknown10)[local_3];
-					if ((arg_4->size_in_bytes << 3) - arg_4->bit_position >= 1 && local_4 != NONE)
-						arg_4->data[arg_4->bit_position / 8] |= (byte)(1 << (arg_4->bit_position % 8));
-					arg_4->bit_position++;
-					if (local_4 != NONE)
-						function_b5650(local_4, arg_4);
-				}
-				if (local_2->size > 0)
-					owner->manager->v2(local_2->unknown04, local_2->size, local_2->data, arg_4);
-				if ((arg_4->size_in_bytes << 3) - arg_4->bit_position >= arg_5)
-				{
-					arg_4->checkpoint_count--;
-					local_1->next = local_0->links;
-					local_0->links = local_1;
-					local_1->node = local_2;
-					pending--;
-					unknown24++;
-					local_2->done_mask |= 1 << player;
-				}
-				else
-				{
-					function_194710(arg_4, true);
-					long local_5;
-					if (!g_4d87f8->allocator->get_info(local_1, &local_5))
-						local_5 = NONE;
-					s_allocator_globals *local_6 = g_4d87f8;
-					local_6->allocator->release(local_1, NONE);
-					local_6->count--;
-				}
-			}
-			else
-				unknown09 = true;
-		}
-	}
-}
-

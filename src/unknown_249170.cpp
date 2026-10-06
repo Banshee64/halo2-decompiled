@@ -61,7 +61,7 @@ PRIVATE __forceinline void particle_random_fraction(dword *seed, real &result)
 	result = function_x82e52f(seed, NULL, 0);
 }
 
-PRIVATE inline point2f const *particle_spawn_extents(s_particle_system_datum const *system)
+PRIVATE __forceinline point2f const *particle_spawn_extents(s_particle_system_datum const *system)
 {
 	if (system->effect_index != NONE)
 		return (point2f const *)&((s_effect_datum *)g_4ea93c->data)[system->effect_index & 0xffff].unknown74;
@@ -99,8 +99,9 @@ void function_249170(real const *values, s_particle_spawn_state *particle, s_par
 		particle_random_fraction(&g_4e7408->seed, azimuth);
 		azimuth *= 6.2831855f;
 		real radius = function_246cd0(&definition->radius, values);
+		real sine = (real)sin(azimuth);
 		particle->velocity.i = 0.f;
-		particle->velocity.j = (real)sin(azimuth);
+		particle->velocity.j = sine;
 		particle->velocity.k = (real)cos(azimuth);
 		particle->position.x = 0.f;
 		particle->position.y = particle->velocity.j * radius;
@@ -168,12 +169,14 @@ void function_249170(real const *values, s_particle_spawn_state *particle, s_par
 		point2f const *extents = particle_spawn_extents(system);
 		real polar = function_246cd0(&definition->angle, values) * 0.017453292f;
 		dword *seed = &g_4e7408->seed;
-		bool side = (real)(random_next(seed) & 1) == 0.f;
+		bool side = 0.f == (real)(long)(random_next(seed) & 1);
 		particle->position.x = 0.f;
 		particle->velocity.i = (real)cos(polar);
+		random_next(seed);
+		dword local_sign = *seed;
 		if (side)
 		{
-			real sign = (random_next(seed) & 1) ? -1.f : 1.f;
+			real sign = ((byte)(local_sign >> 16) & 1) ? -1.f : 1.f;
 			particle->position.y = extents->x * sign;
 			particle->position.z = function_259d0(seed, NULL, 0, -extents->y, extents->y);
 			particle->velocity.j = (real)sin(polar) * sign;
@@ -181,7 +184,7 @@ void function_249170(real const *values, s_particle_spawn_state *particle, s_par
 		}
 		else
 		{
-			real sign = (random_next(seed) & 1) ? -1.f : 1.f;
+			real sign = ((byte)(local_sign >> 16) & 1) ? -1.f : 1.f;
 			particle->position.y = function_259d0(seed, NULL, 0, -extents->x, extents->x);
 			particle->position.z = extents->y * sign;
 			particle->velocity.j = 0.f;

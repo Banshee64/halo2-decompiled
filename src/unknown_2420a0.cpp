@@ -170,7 +170,7 @@ void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
 void function_157670();
 void function_15e4d0();
-color3f *function_7f720(color3f *color, long team_index);
+color3f *function_7f720(color3f *color, short team_index);
 bool function_bacc0(long object_index, long index, point3f const *point);
 bool function_138860();
 bool function_138880();
@@ -734,8 +734,15 @@ struct s_line_list
 	s_line_b lines_b[0x100];
 };
 
+PRIVATE inline void function_244d51(point3f *arg_0, real arg_1, real arg_2, real arg_3)
+{
+	arg_0->x = arg_1;
+	arg_0->y = arg_2;
+	arg_0->z = arg_3;
+}
+
 // @retail 0x244ca0
-void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, short f, point3f const *position, real height, real radius)
+void function_244ca0(real height, real radius, s_line_list *list, long a, long b, long c, byte d, byte e, short f, point3f const *position)
 {
 	if (list->count_a < 0x100)
 	{
@@ -765,9 +772,7 @@ void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, 
 			line->d = d;
 			line->e = e;
 			line->f = f;
-			line->position.x = position->x;
-			line->position.y = position->y;
-			line->position.z = z;
+			function_244d51(&line->position, position->x, position->y, z);
 			line->r1c = radius;
 		}
 
@@ -781,9 +786,7 @@ void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, 
 			line->d = d;
 			line->e = e;
 			line->f = f;
-			line->position.x = position->x;
-			line->position.y = position->y;
-			line->position.z = z;
+			function_244d51(&line->position, position->x, position->y, z);
 			line->r1c = 0.0f;
 			line->r20 = 0.0f;
 			line->r24 = height;
@@ -1813,7 +1816,7 @@ bool function_2447f0()
 					continue;
 				function_b9dd0(entry->object_index, &position);
 				marker = *marker_position(marker_index);
-				if (distance_sq3f(&position, &marker) <= 0.04f)
+				if (distance_sq3f(&position, &marker) <= 0.2f * 0.2f)
 					continue;
 			}
 

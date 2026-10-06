@@ -46,6 +46,66 @@ struct s_online_match_session_info
 	byte unknown3c[0x68 - 0x3c];
 };
 
+struct s_long7
+{
+	long values[7];
+};
+void function_0b4a40(s_long7 *out, const __int64 *in);
+
+struct s_online_match_result
+{
+	XNKEY key;
+	XNKID id;
+	XNADDR address;
+	DWORD public_filled;
+	DWORD public_open;
+	DWORD private_filled;
+	DWORD private_open;
+	s_long7 properties;
+};
+
+// @retail 0x8fb30
+void function_8fb30(long task_index, s_online_match_result *output, word *capacity)
+{
+	s_type_9df9da *task = online_task_try_get(task_index);
+	if (task && online_logon_connected())
+	{
+		PXONLINE_MATCH_SEARCHRESULT *results;
+		DWORD count;
+		if (SUCCEEDED(XOnlineMatchSearchGetResults((XONLINETASK_HANDLE)task->handle, &results, &count)))
+		{
+			if (*capacity <= count)
+				count = *capacity;
+			long written = 0;
+			for (DWORD i = 0; i < count; i++)
+			{
+				output->key = results[i]->KeyExchangeKey;
+				output->id = results[i]->SessionID;
+				output->address = results[i]->HostAddress;
+				output->public_filled = results[i]->dwPublicFilled;
+				output->public_open = results[i]->dwPublicOpen;
+				output->private_filled = results[i]->dwPrivateFilled;
+				output->private_open = results[i]->dwPrivateOpen;
+				if (results[i]->dwNumAttributes == 7)
+				{
+					__int64 properties[7];
+					if (SUCCEEDED(XOnlineMatchSearchParse(results[i], results[i]->dwNumAttributes, g_44050c, properties)))
+					{
+						function_0b4a40(&output->properties, properties);
+						written++;
+						output++;
+					}
+				}
+			}
+			*capacity = (word)written;
+		}
+		else
+			*capacity = 0;
+	}
+	else
+		*capacity = 0;
+}
+
 // @retail 0x8fa80
 long online_match_search(const s_range_input *input)
 {

@@ -13,6 +13,7 @@
 #include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
+#include <string.h>
 #include "data_array.h"
 #include "globals.h"
 #include "screen_widgets.h"
@@ -97,7 +98,7 @@ struct s_player_ref
 };
 
 /* the players of the statistics, and how many there are */
-s_postgame_player g_55caf0[1];
+s_postgame_player g_55caf0[16];
 long g_51ec08;
 /* the count of the first tab's rows */
 long g_51ec0c;
@@ -541,9 +542,157 @@ struct s_postgame_team
 	word place[0x10];
 };
 
-s_postgame_team g_55dc30[1];
+s_postgame_team g_55dc30[16];
 
-color3f *function_7f720(color3f *color, long team_index);
+bool function_15dea0();
+bool function_15eaf0();
+void function_1990b0(long *device_count, long *devices, long *entry_count, long *entries);
+long function_196a90();
+void function_19eae0(long team, word *buffer);
+void unicode_string_copy(word *destination, word const *source, long maximum_count);
+long function_196bb0(long index);
+void function_159130(long value, word *text);
+long function_196c60(long index);
+void function_159050(long index, word *buffer);
+long function_196a50(long a, long b, long c);
+long function_196a10(long a, long b);
+void *function_196ca0(long index);
+long function_196b70(long index);
+long function_1969a0(long a, long b, long c);
+long function_196bf0(long index);
+long function_196d20(long index);
+bool function_19a0c5();
+long function_196da0(long index);
+void function_196d50(long index, s_input_vector *out);
+void *function_196ce0(long index);
+long function_1969d0(long a, long b, long c);
+
+// @retail 0x232d77
+void function_232d77()
+{
+	if (function_15dea0())
+	{
+		bool teams = function_15eaf0();
+		memset(g_55caf0, 0, sizeof(g_55caf0));
+		memset(g_55dc30, 0, sizeof(g_55dc30));
+		long player_count, team_count;
+		long players[16], team_indices[16];
+		function_1990b0(&player_count, players, &team_count, team_indices);
+		g_51ec08 = player_count;
+		g_51ec0c = team_count;
+		g_50224c = function_196a90();
+		word name[0x100], score[0x100], place[0x100];
+		if (teams)
+		{
+			for (long i = 0; i < team_count; i++)
+			{
+				long team = team_indices[i];
+				name[0] = score[0] = place[0] = 0;
+				function_19eae0(team, name);
+				unicode_string_copy(g_55dc30[i].name, name, 0x20);
+				function_159130(function_196bb0(team), score);
+				unicode_string_copy(g_55dc30[i].score, score, 0x10);
+				g_55dc30[i].unknown60 = (short)function_196c60(team);
+				g_55dc30[i].color_index = (short)team;
+				function_159050(g_55dc30[i].unknown60, place);
+				unicode_string_copy(g_55dc30[i].place, place, 0x10);
+			}
+		}
+		for (long row = 0; row < g_51ec08; row++)
+		{
+			long player = players[row];
+			s_postgame_player *entry = &g_55caf0[row];
+			place[0] = score[0] = 0;
+			for (long column = 0; column < g_51ec08; column++)
+				entry->values[column] = function_196a50(player, players[column], 0);
+			entry->medal_count = 0;
+			entry->medals = 0;
+			bool group13 = false, group0 = false;
+			for (long medal = 31; medal >= 0; medal--)
+			{
+				long count = function_196a10(player, medal);
+				if (count > 0)
+				{
+					bool show = true;
+					if (medal <= 17 && medal >= 13)
+					{
+						show = !group13;
+						group13 = true;
+					}
+					else if (medal <= 5 && medal >= 0)
+					{
+						show = !group0;
+						group0 = true;
+					}
+					if (show)
+						entry->medals |= 1 << medal;
+					entry->medal_count += count;
+				}
+			}
+			unicode_string_copy(entry->name, (word *)function_196ca0(player), 0x20);
+			function_159130(function_196b70(player), place);
+			unicode_string_copy(entry->team_name, place, 0x10);
+			entry->value60 = function_1969a0(player, 7, NONE);
+			entry->value64 = function_1969a0(player, 9, NONE);
+			entry->value68 = function_1969a0(player, 8, NONE);
+			entry->value6c = function_1969a0(player, 11, NONE);
+			entry->value70 = (short)function_196bf0(player);
+			entry->value72 = teams ? (short)function_196d20(player) : NONE;
+			entry->value74 = function_196d20(player) == NONE;
+			entry->value78 = function_19a0c5() ? function_196da0(player) : NONE;
+			function_196d50(player, (s_input_vector *)entry->valued0);
+			function_159050(entry->value70, score);
+			unicode_string_copy(entry->texte0, score, 0x10);
+			entry->id = *(s_id_triplet *)function_196ce0(player);
+			if (g_50224c == 2)
+			{
+				long deaths = function_1969a0(player, 9, NONE) + 1;
+				deaths = deaths > 1 ? deaths : 1;
+				entry->value10c = function_1969a0(player, 13, NONE) / deaths;
+				entry->value110 = function_1969a0(player, 12, NONE);
+			}
+			else if (g_50224c == 1)
+			{
+				entry->value10c = function_1969a0(player, 16, NONE);
+				entry->value110 = function_1969a0(player, 15, NONE);
+			}
+			else if (g_50224c == 3)
+			{
+				entry->value10c = function_1969a0(player, 26, NONE);
+				entry->value110 = function_1969a0(player, 25, NONE);
+			}
+			else if (g_50224c == 4)
+			{
+				entry->value10c = function_1969a0(player, 28, NONE);
+				entry->value110 = function_1969a0(player, 27, NONE);
+			}
+			else if (g_50224c == 7)
+			{
+				entry->value10c = function_1969a0(player, 38, NONE);
+				entry->value110 = function_1969a0(player, 39, NONE);
+			}
+			else if (g_50224c == 8)
+			{
+				entry->value10c = function_1969a0(player, 43, NONE);
+				entry->value110 = function_1969a0(player, 44, NONE);
+			}
+			else if (g_50224c == 9)
+			{
+				entry->value10c = function_1969a0(player, 21, NONE);
+				entry->value110 = function_1969a0(player, 20, NONE);
+			}
+			entry->count = entry->value = entry->value2 = 0;
+			for (long statistic = 5; statistic < 39; statistic++)
+			{
+				entry->count += function_1969d0(player, 4, statistic);
+				entry->value += function_1969d0(player, 5, statistic);
+				entry->value2 += function_1969d0(player, 6, statistic);
+			}
+		}
+	}
+}
+
+color3f *function_7f720(color3f *color, short team_index);
 hsv3f *function_1318d0(const color3f *rgb, hsv3f *hsv);
 color3f *function_131a00(const hsv3f *hsv, color3f *rgb);
 

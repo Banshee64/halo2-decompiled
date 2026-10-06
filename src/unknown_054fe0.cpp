@@ -13,6 +13,23 @@
 #include "online_tasks.h"
 #include "unknown_0662e0.h"
 
+struct s_member_quality_collection;
+void function_7e100(long current, const s_member_quality_collection *collection,
+	long *selected, long *first, long *second, long *level);
+
+// @retail 0x63ec0
+long function_63ec0(void)
+{
+	long result = 0;
+	if (g_527330.initialized)
+	{
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+		if (session->state)
+			function_7e100(session->member_index, (const s_member_quality_collection *)((byte *)session + 0x4c), 0, 0, 0, &result);
+	}
+	return result;
+}
+
 /* one local user's state (0xd0 bytes) */
 #pragma pack(push, 1)
 struct s_session_interface_user
@@ -1360,4 +1377,197 @@ void voice_update_local_properties(long controller_index)
 		memcpy(g_4cd868.users[user_index].properties, properties, sizeof(properties));
 		g_4cd868.users[user_index].unknowna4 = flags;
 	}
+}
+
+struct s_surface_description
+{
+ long type;
+ byte unknown04[0x5e4 - 4];
+ long field5e4;
+ byte unknown5e8[4];
+ long field5ec;
+ long field5f0;
+ long field5f4;
+ byte unknown5f8[4];
+ long field5fc;
+ byte unknown600[0x14];
+};
+struct s_game_variant_globals
+{
+ dword unknown0;
+ dword flags;
+ word count;
+ word state;
+};
+extern s_surface_description g_551ae8[16];
+extern s_game_variant_globals g_47d8f4;
+long game_variant_get_map_status(long index);
+bool function_1934f0(s_surface_description *variant);
+bool function_73a10(long player, long group_index, long field, long *value);
+struct s_cached_player_identity;
+struct s_cached_player_source;
+void function_80490(const s_cached_player_identity *identity, const s_cached_player_source *source,
+ bool local, bool recent);
+
+// @retail 0x65530
+void __stdcall function_65530(long user_index)
+{
+ long levels[16];
+ memset(levels, NONE, sizeof(levels));
+ long maximum = NONE;
+ for (long i = 0; i < 16; i++)
+ {
+  if (game_variant_get_map_status(i) == 1)
+  {
+   s_surface_description *variant = 0;
+   if (i >= 0 && i < 16 && g_47d8f4.count && (g_47d8f4.flags & 2) &&
+    function_1934f0(&g_551ae8[i]))
+    variant = &g_551ae8[i];
+   if (variant && (variant->type == 5 || variant->type == 2 || variant->type == 4))
+   {
+    if (!function_73a10(i, user_index, 1, &levels[i]))
+    {
+     maximum = NONE;
+     break;
+    }
+    if (maximum <= levels[i])
+     maximum = levels[i];
+   }
+  }
+ }
+ s_session_interface_user *user = &g_4cd868.users[user_index];
+ user->properties[0x7f] = (byte)maximum;
+ if (g_4cd868.unknown98 >= 0 && g_4cd868.unknown98 < 16)
+  user->properties[0x7e] = (byte)levels[g_4cd868.unknown98];
+ else
+  user->properties[0x7e] = 0xff;
+ c_class_58d20 *session = network_session_get_live();
+ long variant = NONE;
+ if (session && SESSION_STATE_IS_LIVE(session->state))
+  variant = session->value49c8;
+ long value, level;
+ if (variant != NONE && function_73a10(variant, user_index, 0, &value) &&
+  function_73a10(variant, user_index, 1, &level))
+ {
+  *(long *)&user->properties[0x84] = variant;
+  *(long *)&user->properties[0x8c] = value;
+  *(short *)&user->properties[0x8a] = (short)level;
+ }
+ else
+ {
+  *(long *)&user->properties[0x84] = NONE;
+  *(long *)&user->properties[0x8c] = NONE;
+  *(short *)&user->properties[0x8a] = NONE;
+ }
+ *(word *)&user->properties[0x88] = 0xffff;
+ if (!(user->xuid.dwUserFlags & 3) && user->xuid.dwUserFlags != 0xbad00000)
+  function_80490((const s_cached_player_identity *)&user->xuid,
+   (const s_cached_player_source *)user->properties, true, false);
+}
+
+struct s_message_identities;
+struct s_message_identity;
+bool function_7ed20(const s_message_identities *message, s_message_identity *common, bool *missing, bool *different);
+s_surface_description *function_192e60(long index);
+long function_193250(s_surface_description *variant);
+
+// @retail 0x66050
+long function_66050(c_class_58d20 *session, long variant_index)
+{
+ bool missing = false;
+ bool compatible;
+ long current = session->member_index;
+ compatible = function_7ed20((const s_message_identities *)&session->value4c, 0, &missing, &compatible);
+ s_surface_description *variant = function_192e60(variant_index);
+ volatile long result = 0;
+ if (!variant)
+ {
+  result = 2;
+  return result;
+ }
+ if (variant->type == 5 || variant->type == 2 || variant->type == 4)
+ {
+  for (long i = 0; i < 16; i++)
+   if ((session->player_mask & (1 << i)) && (session->players[i].user_flags & 3))
+   {
+    result = 12;
+    return result;
+   }
+ }
+ for (long i = 0; i < 16; i++)
+  if ((session->player_mask & (1 << i)) && session->players[i].user_flags == 0xbad00000)
+  {
+   result = 13;
+   return result;
+  }
+ for (long member = 0; member < session->member_count; member++)
+ {
+  long state = *(long *)((byte *)&session->members[member] + 0xac + variant_index * 4);
+  if (state != 1)
+  {
+   if (!state)
+    result = 14;
+   else
+    result = state == 3 ? 2 : 11;
+   return result;
+  }
+ }
+ for (long i = 0; i < 16; i++)
+  if ((session->player_mask & (1 << i)) && (signed char)session->players[i].propertiesa8[0x81] < variant->field5e4)
+  {
+   result = 15;
+   return result;
+  }
+ if (variant->type == 5 && !compatible)
+ {
+  result = missing ? 8 : 9;
+  return result;
+ }
+ long minimum;
+ if (variant->type <= 3)
+  minimum = 1;
+ else if (variant->type == 4)
+  minimum = variant->field5fc;
+ else
+  minimum = variant->field5f0;
+ long count = session->player_count;
+ if (count < minimum)
+ {
+  result = 6;
+  return result;
+ }
+ if (count > function_193250(variant))
+ {
+  result = 7;
+  return result;
+ }
+ if (variant->type == 5)
+ {
+  function_7e100(current, (const s_member_quality_collection *)&session->value4c, 0, 0, 0, &current);
+  long required;
+  switch (variant->type)
+  {
+  case 1: required = variant->field5f0; break;
+  case 2: required = variant->field5f0; break;
+  case 3: required = variant->field5ec * variant->field5f4; break;
+  case 4: required = variant->field5ec * variant->field5f4; break;
+  case 5: required = variant->field5ec * variant->field5f4; break;
+  default: __assume(0);
+  }
+  if (current < required)
+   result = 10;
+ }
+ return result;
+}
+
+// @retail 0x63e90
+long __stdcall function_63e90(long index)
+{
+ if (g_527330.initialized)
+ {
+  c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+  if (session->state)
+   return function_66050(session, index);
+ }
+ return 1;
 }

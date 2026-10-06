@@ -6,6 +6,31 @@
 #include "globals.h"
 #include "unknown_0820f0.h"
 #include <xtl.h>
+#include <string.h>
+
+// @retail 0x81390
+s_network_connection::s_network_connection()
+{
+	unknown1c = false;
+	unknown1d = false;
+	link_list = 0;
+	link = 0;
+	handler = 0;
+	handler_count = 0;
+	reliable_stream_index = NONE;
+	stream_index = NONE;
+	memset(handlers, 0, sizeof(handlers));
+	local_sequence = NONE;
+	remote_sequence = NONE;
+	callback = 0;
+	owner = 0;
+	flags = 0;
+	state = 0;
+	close_reason = 0;
+	memset(&address, 0, sizeof(address));
+	handshake_next_time = 0;
+	network_connection_reset_timers(this);
+}
 
 bool g_4d8ba0;
 s_connection_counter g_4e6398;
@@ -742,3 +767,107 @@ void network_connection_callback_initialize(s_connection_callback *callback, c_c
 	}
 	callback->unknown31 = false;
 }
+
+// Disabled: enabling this writer changes previously matched stream callers.
+#if 0
+class c_class_93590;
+void network_link_send_connection_packet(c_class_93590 *link, long connection_index, const s_bitstream *stream,
+ long extra_size, const void *extra, long *size_out);
+void reliable_stream_set_message_size(c_network_reliable_stream *stream, long sequence, long size);
+
+// Disabled retail 0x88980
+void function_88980(bool reliable, s_network_connection *connection, s_bitstream *stream, bool pad,
+ long extra_size, const void *extra, long *packet_size, long *stream_size, long *sent_extra_size)
+{
+ long sequence = NONE;
+ bool wrote = false;
+ long sent = 0;
+ long bytes = 0;
+ long extra_bytes = 0;
+ if (reliable)
+ {
+  sequence = ((c_network_reliable_stream *)network_reliable_stream_get(connection->reliable_stream_index))->allocate_sequence(network_time_now());
+  if (sequence == NONE)
+   goto done;
+ }
+ {
+  stream->mode = 1;
+  stream->unknown08 = 8;
+  memset(stream->data, 0, stream->size_in_bytes);
+  stream->bit_position = 0;
+  stream->checkpoint_count = 0;
+  stream->error = false;
+  stream->unknown2c = 0;
+  stream->unknown30 = 0;
+  long capacity = (stream->size_in_bytes << 3) - stream->bit_position;
+  dword type;
+  if (connection->callback && connection->callback->unknown31)
+  {
+   type = 0;
+   connection->unknown1c = true;
+  }
+  else
+  {
+   type = 1;
+   connection->unknown1c = false;
+  }
+  long reserved[7] = { 0 };
+  long total = 0;
+  s_connection_client_iterator iterator;
+  connection_client_iterator_new(&iterator, type);
+  while (network_connection_next_client(connection, &iterator))
+  {
+   long bits = iterator.client->v3(capacity, capacity - total);
+   total += bits;
+   reserved[iterator.absolute_index] = bits;
+  }
+  total++;
+  if (total > capacity)
+   goto done;
+  connection_client_iterator_new(&iterator, type);
+  while (network_connection_next_client(connection, &iterator))
+  {
+   long bits = reserved[iterator.absolute_index];
+   total -= bits;
+   if (iterator.client->v4(sequence, stream, bits, total))
+    wrote = true;
+   if ((stream->size_in_bytes << 3) - stream->bit_position < total)
+    goto done;
+  }
+  long remaining = (stream->size_in_bytes << 3) - stream->bit_position;
+  if (pad && remaining > 15)
+  {
+   long bits = remaining - 15;
+   long count = (bits + 7) / 8;
+   stream_write_bit(stream, true);
+   stream_write_checked(stream, bits, 14);
+   __declspec(align(8)) byte padding[0x600];
+   memset(padding, 0, count);
+   function_1955d0(stream, padding, bits);
+  }
+  else
+   stream_write_bit(stream, false);
+  long count = (stream->bit_position + 7) / 8;
+  long alignment = stream->unknown08;
+  stream->size_in_bytes = count;
+  if (count % alignment)
+   stream->size_in_bytes = count + alignment - count % alignment;
+  stream->mode = 2;
+  network_link_send_connection_packet((c_class_93590 *)connection->link_list, connection->id, stream, extra_size, extra, &sent);
+  if (sent > 0)
+  {
+   bytes = stream->size_in_bytes;
+   extra_bytes = extra_size;
+  }
+  if (sequence != NONE)
+   reliable_stream_set_message_size((c_network_reliable_stream *)network_reliable_stream_get(connection->reliable_stream_index), sequence, sent);
+  if (connection->owner)
+   connection->owner->v0(connection->id, sent, wrote);
+ }
+ done:
+ if (packet_size) *packet_size = sent;
+ if (stream_size) *stream_size = bytes;
+ if (sent_extra_size) *sent_extra_size = extra_bytes;
+}
+
+#endif

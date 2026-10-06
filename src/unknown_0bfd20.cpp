@@ -74,7 +74,8 @@ void function_0bfe20(dword *flags, long bit, bool value)
 // @retail 0xbfe40
 void function_0bfe40(word *flags, long bit, bool value)
 {
-	if (value)
+	bool const *value_reference = &value;
+	if (*value_reference)
 		*flags |= (word)(1 << bit);
 	else
 		*flags &= (word)~(1 << bit);
@@ -117,14 +118,15 @@ struct s_bit_vector
 // @retail 0xbff10
 bool s_bit_vector::is_empty() const
 {
-	bool result = bits[7] == 0;
-	result = result & (bits[6] == 0);
-	result = result & (bits[5] == 0);
-	result = result & (bits[4] == 0);
-	result = result & (bits[3] == 0);
-	result = result & (bits[2] == 0);
-	result = result & (bits[1] == 0);
-	result = result & (bits[0] == 0);
+	bool result = true;
+	result &= bits[7] == 0;
+	result &= (bits[6] == 0);
+	result &= (bits[5] == 0);
+	result &= (bits[4] == 0);
+	result &= (bits[3] == 0);
+	result &= (bits[2] == 0);
+	result &= (bits[1] == 0);
+	result &= (bits[0] == 0);
 	return result;
 }
 
@@ -151,19 +153,22 @@ bool function_bfc90(long object_index)
 	return result;
 }
 
+static __forceinline void object_short_set_ab(s_record_pool *objects, long index, short value)
+{
+    s_object_hdr *object = ((s_object_header *)objects->data)[index].object;
+    long clamped = value;
+    if (clamped < 0) clamped = 0;
+    else if (clamped > 0x7ffe) clamped = 0x7ffe;
+    object->value104 = (short)clamped;
+}
+
 // @retail 0xbf830
 void function_bf830(long object_index, real shield, short value)
 {
-	s_record_pool *objects = g_4e0300;
-	object_index &= 0xffff;
-	((s_object_header *)objects->data)[object_index].object->shield = shield;
-	s_object_hdr *object = ((s_object_header *)objects->data)[object_index].object;
-	long clamped = value;
-	if (clamped < 0)
-		clamped = 0;
-	else if (clamped > 0x7ffe)
-		clamped = 0x7ffe;
-	object->value104 = (short)clamped;
+    s_record_pool *objects = g_4e0300;
+    object_index &= 0xffff;
+    ((s_object_header *)objects->data)[object_index].object->shield = shield;
+    object_short_set_ab(objects, object_index, value);
 }
 
 // @retail 0xbfcc0
@@ -177,4 +182,46 @@ void function_bfcc0(void)
 	function_bae80(&state.iterator, 0, 0);
 	while ((state.object = function_baeb0(&state.iterator)) != 0)
 		function_0bfd20((word)state.iterator.object_index);
+}
+
+
+struct s_object_model_definition_ab
+{
+    byte unknown00[0x38];
+    long model_index;
+};
+struct s_model_pair_ab
+{
+    byte unknown00[4];
+    long render_index;
+    byte unknown08[4];
+    long animation_index;
+};
+struct s_render_blocks_ab
+{
+    byte unknown00[0x74];
+    long count_a;
+    byte unknown78[4];
+    long count_b;
+};
+
+// @retail 0xbf9a0
+bool function_bf9a0(long object_index, long *render_index, long *animation_index)
+{
+    bool result = false;
+    s_object_hdr *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+    s_object_model_definition_ab *definition = (s_object_model_definition_ab *)g_4e3b44[object->tag_index & 0xffff].bytes;
+    if (definition->model_index != NONE)
+    {
+        s_model_pair_ab *model = (s_model_pair_ab *)g_4e3b44[definition->model_index & 0xffff].bytes;
+        long render = model->render_index;
+        if (render != NONE && model->animation_index != NONE)
+        {
+            s_render_blocks_ab *data = (s_render_blocks_ab *)g_4e3b44[render & 0xffff].bytes;
+            result = data->count_a > 0 && data->count_b > 0;
+            *render_index = render;
+            *animation_index = model->animation_index;
+        }
+    }
+    return result;
 }

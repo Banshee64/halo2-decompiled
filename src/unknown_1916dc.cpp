@@ -1,5 +1,6 @@
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "object_markers.h"
 
 // @flags /O1 /arch:SSE /Gr
 
@@ -107,4 +108,207 @@ void __stdcall function_191fab(long definition_index, long player_index)
 
 		function_24cbbf(player_index, definition->message);
 	}
+}
+
+
+struct s_target_candidate
+{
+    short priority;
+    byte flags;
+    byte unknown03;
+    long object_index;
+};
+struct s_weapon_status;
+struct s_object;
+long function_14de70(long user_index);
+long function_cbd50(long unit_index, short slot);
+short function_ce020(long unit_index);
+short function_cdff0(long unit_index, short grenade_type);
+void function_100520(long weapon_index, s_weapon_status *status);
+bool function_1518f0(s_target_candidate *candidate, dword type_mask);
+s_object *function_badc0(long object_index, dword type_mask);
+long function_11ba10(long control_index);
+void function_24c98c(long index, bool flag);
+void function_24ca1d(long player_index, word const *text, long sound, long tag_index);
+void function_24c9e9(long player_index, long string_handle, long sound, long tag_index);
+
+struct s_object_header_19188c { byte unknown00[8]; byte *object; };
+static inline byte *object_19188c(long index)
+{
+    return ((s_object_header_19188c *)g_4e0300->data)[index & 0xffff].object;
+}
+static inline byte *definition_19188c(long index)
+{
+    return g_4e3b44[*(long *)object_19188c(index) & 0xffff].bytes;
+}
+
+// @retail 0x19188c
+void function_19188c(long user_index)
+{
+    long const *user_reference = &user_index;
+    byte *player = g_4e8c24->data + (function_14de70(*user_reference) & 0xffff) * 0x21c;
+    s_target_candidate *candidate = (s_target_candidate *)((byte *)g_4ed284 + *user_reference * 0x94 + 0x80);
+    short state = *(short *)((byte *)g_4e8c20 + 0x9c);
+    if (state != 0 && *(long *)(player + 0x2c) == NONE)
+    {
+        switch (state)
+        {
+        case 4: function_24c9e9(*user_reference, 0x1a0006a6, 1, *(long *)((byte *)g_510c94 + 0x42c)); break;
+        case 5: function_24c9e9(*user_reference, 0x1a0006a7, 2, *(long *)((byte *)g_510c94 + 0x42c)); break;
+        case 6: function_24c9e9(*user_reference, 0x1a0006a8, 4, *(long *)((byte *)g_510c94 + 0x42c)); break;
+        case 7: function_24c9e9(*user_reference, 0x1b0006a9, 8, *(long *)((byte *)g_510c94 + 0x42c)); break;
+        }
+        return;
+    }
+    if (candidate->priority == 0)
+    {
+        long unit_index = *(long *)(player + 0x2c);
+        if (unit_index == NONE)
+        {
+            function_24c98c(*user_reference, false);
+            return;
+        }
+        long primary = function_cbd50(unit_index, *(char *)(object_19188c(unit_index) + 0x212));
+        long secondary = function_cbd50(unit_index, *(char *)(object_19188c(unit_index) + 0x213));
+        byte *unit = object_19188c(unit_index);
+        long message = 0;
+        bool allow_weapons = true;
+        long parent = *(long *)(unit + 0x14);
+        short seat_index = *(short *)(unit + 0x1fc);
+        if (parent != NONE && seat_index != NONE)
+        {
+            byte *seat = *(byte **)(definition_19188c(parent) + 0x1cc) + seat_index * 0xb0;
+            dword flags = *(dword *)seat;
+            allow_weapons = !((bool)((flags >> 3) & 1) || (bool)((flags >> 2) & 1));
+            if ((bool)((flags >> 11) & 1))
+            {
+                if (function_cdff0(unit_index, function_ce020(unit_index)) > 0 && *(long *)(seat + 0x10))
+                {
+                    s_object_marker marker;
+                    if (function_b8d30(parent, *(long *)(seat + 0x10), &marker, 1, false) == 1)
+                        message = *(long *)(seat + 0x14);
+                }
+                if (message)
+                {
+                    function_24c9e9(*user_reference, message, (parent & 0xffff) + 0x10000, *(long *)((byte *)g_510c94 + 0x434));
+                    return;
+                }
+                message = *(long *)(seat + 0x18);
+                if (message)
+                {
+                    function_24c9e9(*user_reference, message, (parent & 0xffff) + 0x8000, *(long *)((byte *)g_510c94 + 0x434));
+                    return;
+                }
+            }
+        }
+        if (primary != NONE && allow_weapons)
+        {
+            byte status[0x3c];
+            function_100520(primary, (s_weapon_status *)status);
+            bool depleted = function_1916dc((s_type_2d4969 *)status);
+            if (secondary != NONE)
+            {
+                function_100520(secondary, (s_weapon_status *)status);
+                depleted = depleted && function_1916dc((s_type_2d4969 *)status);
+            }
+            if (depleted)
+            {
+                for (long i = 0; i < 4; i++)
+                {
+                    long weapon = ((long *)(unit + 0x218))[i];
+                    if (weapon != NONE && weapon != primary && weapon != secondary)
+                    {
+                        function_100520(weapon, (s_weapon_status *)status);
+                        if (!function_1916dc((s_type_2d4969 *)status))
+                        {
+                            function_24c9e9(*user_reference, *(long *)(definition_19188c(weapon) + 0xec), (weapon & 0xffff) + 0x10, *(long *)((byte *)g_510c94 + 0x434));
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        function_24ca1d(*user_reference, (word const *)L"", NONE, NONE);
+        function_24c98c(*user_reference, false);
+        return;
+    }
+    long object_index = candidate->object_index;
+    long message;
+    long sound = object_index & 0xffff;
+    long tag_index;
+    switch (candidate->priority)
+    {
+    case 8:
+        if (!function_1518f0(candidate, 2)) return;
+        message = *(long *)(definition_19188c(object_index) + 0x21c);
+        sound += 0x1000;
+        tag_index = *(long *)((byte *)g_510c94 + 0x42c);
+        break;
+    case 4:
+    case 5:
+    case 6:
+        if (!function_1518f0(candidate, 3)) return;
+        {
+            byte *definition = definition_19188c(object_index);
+            long seat = *(short *)((byte *)candidate + 2);
+            message = 0;
+            if (seat >= 0 && seat < *(long *)(definition + 0x1c8))
+                message = *(long *)(*(byte **)(definition + 0x1cc) + seat * 0xb0 + 0x84);
+        }
+        sound += 0x800;
+        tag_index = *(long *)((byte *)g_510c94 + 0x42c);
+        break;
+    case 3:
+        if (!function_1518f0(candidate, 0x100)) return;
+        message = function_11ba10(object_index);
+        if (!message) return;
+        sound += 0x400;
+        tag_index = *(long *)((byte *)g_510c94 + 0x42c);
+        break;
+    case 2:
+        if (!function_badc0(object_index, 3)) return;
+        {
+            long weapon = function_cbd50(object_index, *(char *)(object_19188c(object_index) + 0x212));
+            if (weapon == NONE) return;
+            message = *(long *)(definition_19188c(weapon) + 0xf0);
+            if (!message || message == NONE) return;
+        }
+        sound += 0x4000;
+        tag_index = *(long *)((byte *)g_510c94 + 0x42c);
+        break;
+    case 1:
+    case 7:
+        if (!function_1518f0(candidate, 4)) return;
+        {
+            byte *definition = definition_19188c(object_index);
+            byte flags = candidate->flags;
+            tag_index = NONE;
+            if (!(flags & 12))
+            {
+                if (flags & 1)
+                {
+                    message = *(long *)(definition + 0xcc);
+                    sound += 0x100;
+                    tag_index = *(long *)((byte *)g_510c94 + 0x42c);
+                }
+                else if (flags & 2)
+                {
+                    message = *(long *)(definition + 0xd0);
+                    sound += 0x200;
+                    tag_index = *(long *)((byte *)g_510c94 + 0x42c);
+                }
+                else message = *(long *)(definition + 0xcc);
+            }
+            else
+            {
+                if (flags & 1) { message = *(long *)(definition + 0xd4); sound += 0x20; }
+                else if (flags & 2) { message = *(long *)(definition + 0xd8); sound += 0x40; }
+                else { message = *(long *)(definition + 0xdc); sound += 0x80; }
+                tag_index = *(long *)((byte *)g_510c94 + 0x434);
+            }
+        }
+        break;
+    default: return;
+    }
+    function_24c9e9(*user_reference, message, sound, tag_index);
 }

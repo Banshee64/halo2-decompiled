@@ -127,6 +127,15 @@ bool function_11c470(long trigger_volume_index, point3f const *point)
 }
 
 long function_1ded60(void);
+// @retail 0x11c5b0
+bool function_11c5b0(long object_index, long trigger_volume_index)
+{
+	bool result = false;
+	if (object_index != NONE && function_11c470(trigger_volume_index, &OBJECT_GET_11C380(object_index)->center))
+		result = true;
+	return result;
+}
+
 void function_1dedb0(long list_index, long object_index);
 void function_11bed0(s_location *location, point3f const *point);
 short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, point3f const *position, float radius, long *objects, short maximum_count);

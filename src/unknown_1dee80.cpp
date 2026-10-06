@@ -1,5 +1,6 @@
 #include "unknown_11c920.h"
 #include <xmmintrin.h>
+#include <math.h>
 #include "globals.h"
 
 // @flags /O2 /Ob1 /arch:SSE /Gr
@@ -93,4 +94,115 @@ short function_1defb0(long list_index)
 		}
 	}
 	return (short)count;
+}
+
+
+struct s_mutable_object_list
+{
+ word salt;
+ short field_02;
+ short users;
+ short count;
+ long first;
+};
+
+s_record_pool *function_296270(char const *name, long size, long count);
+void function_296330(s_record_pool *pool, long *head, long key);
+bool function_296370(long *head, s_record_pool *pool, long key);
+void function_2963b0(s_record_pool *pool, long index);
+
+// @retail 0x1ded00
+void function_1ded00(void)
+{
+ g_4f55d8 = data_new_inlined("object list header", 0x30, 12, 0, g_510c2c);
+ g_4f55d4 = function_296270("list object", 0, 0x80);
+}
+
+// @retail 0x1dee00
+bool function_1dee00(long list_index, long object_index)
+{
+ s_mutable_object_list *list = &((s_mutable_object_list *)g_4f55d8->data)[list_index & 0xffff];
+ bool result = false;
+ if (function_296370(&list->first, g_4f55d4, object_index))
+ {
+  function_296330(g_4f55d4, &list->first, object_index);
+  --list->count;
+  result = true;
+ }
+ return result;
+}
+
+// @retail 0x1deed0
+void object_lists_garbage_collect(void)
+{
+ s_record_pool *lists = g_4f55d8;
+ long index = data_datum_index(lists, function_16bc00(lists, 0));
+ while (index != NONE)
+ {
+  s_mutable_object_list *list = &((s_mutable_object_list *)lists->data)[index & 0xffff];
+  if (list->users == 0 && index != NONE)
+  {
+   function_2963b0(g_4f55d4, list->first);
+   record_pool_release(lists, index);
+  }
+  index = data_datum_index(lists, data_next_absolute_index_inlined(lists, index == NONE ? 0 : (index & 0xffff) + 1));
+ }
+}
+
+
+// @retail 0x1df080
+void function_1df080(point3f const *points, long count, point3f *center, real *radius)
+{
+ (void)&count;
+ (void)&center;
+ (void)&radius;
+ long a = 0;
+ long b = 0;
+ real maximum = 0.0f;
+ if (count > 1)
+ {
+  for (long i = 0; i < count; ++i)
+  {
+   for (long j = i + 1; j < count; ++j)
+   {
+    vector3f delta;
+    vector3d_from_points3d(&points[j], &points[i], &delta);
+    real distance = length_sq3f(&delta);
+    if (distance > maximum)
+    {
+     maximum = distance;
+     b = j;
+     a = i;
+    }
+   }
+  }
+  real initial_radius = (real)sqrt(maximum) * 0.5f;
+  point3f midpoint;
+  midpoint.x = (points[a].x + points[b].x) * 0.5f;
+  midpoint.y = (points[a].y + points[b].y) * 0.5f;
+  midpoint.z = (points[a].z + points[b].z) * 0.5f;
+  *center = midpoint;
+  real larger_radius = 0.0f;
+  for (long i = 0; i < count; ++i)
+  {
+   real x = center->x - points[i].x;
+   real y = center->y - points[i].y;
+   real z = center->z - points[i].z;
+   real distance = (real)sqrt(x*x + y*y + z*z);
+   if (distance > initial_radius && distance > larger_radius)
+    larger_radius = distance;
+  }
+  if (larger_radius > 0.0f)
+   *radius = larger_radius;
+  else
+   *radius = initial_radius;
+ }
+ else
+ {
+  *radius = 0.0f;
+  if (count == 0)
+   *center = *g_468788;
+  else
+   *center = points[0];
+ }
 }

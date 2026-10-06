@@ -236,7 +236,8 @@ bool function_191300(LPDIRECTSOUND direct_sound)
 		g_510804_pool_size += aligned_size;
 		function_163ba0(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
 		memset(effects->indices, 0xff, sizeof(effects->indices));
-		effects->changed = 0;
+		short *changed = (short *)&effects->changed;
+		*changed = 0;
 		effects->previous_changed = 0;
 		g_510c90 = effects;
 		location.dwI3DL2ReverbIndex = 9;

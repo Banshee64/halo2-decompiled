@@ -735,6 +735,35 @@ void function_445d0(void)
 }
 
 long g_4b6298;
+bool g_4b6294;
+
+void function_1ef70(void);
+
+// @retail 0x1ee60
+void function_1ee60(long primitive)
+{
+	if (g_4b6298 != primitive)
+	{
+		function_1ef70();
+		D3DDevice_SetRenderState(D3DRS_LINEWIDTH, 0x3f800000);
+		switch (primitive)
+		{
+		case 1: D3DDevice::Begin(D3DPT_LINELIST); break;
+		case 2: D3DDevice::Begin(D3DPT_LINESTRIP); break;
+		case 3: D3DDevice::Begin(D3DPT_TRIANGLELIST); break;
+		case 4: D3DDevice::Begin(D3DPT_QUADLIST); break;
+		default: __assume(0);
+		}
+		g_4b6298 = primitive;
+	}
+}
+
+// @retail 0x1ee50
+void function_1ee50(void)
+{
+	function_1ef70();
+	g_4b6294 = false;
+}
 
 // @retail 0x1ef70
 void function_1ef70(void)
@@ -820,5 +849,204 @@ bool function_39780(bool alternate)
 	definition.PSFinalCombinerConstants = 0x1ff;
 	D3DDevice_SetPixelShaderProgram(&definition);
 	return true;
+}
+
+dword __cdecl pack_color4f(color4f const *color);
+
+struct s_1ed70_point
+{
+    short x, y;
+};
+
+// @retail 0x1ed70
+void function_1ed70(color4f const *color, s_1ed70_point const *points, short count)
+{
+    dword packed = pack_color4f(color);
+    function_1ee60(2);
+    D3DDevice_SetVertexDataColor(9, packed);
+    for (short i = 0; i < count; ++i)
+        D3DDevice_SetVertexData2s(0, points[i].x, points[i].y);
+    function_1ef70();
+}
+
+// @retail 0x1ba00
+void function_1ba00(byte *state)
+{
+    byte *definition = *(byte **)(state + 0x20);
+    byte *blocks = *(byte **)(definition + 0x2c);
+    dword *values = *(dword **)(definition + 0x34);
+    byte *selection = *(byte **)(state + 0x24);
+    *(dword *)(state + 0x14fc) = *(dword *)(selection + 0xde);
+    *(dword *)(state + 0x1504) = *(dword *)(selection + 0xe6);
+    *(dword *)(state + 0x1500) = *(dword *)(selection + 0xe2);
+    unsigned long output = 0;
+    bool final = false;
+    long i = 0;
+    if ((*(word *)(*(byte **)(state + 0x24) + 0xf6) >> 9) > 0)
+    do
+    {
+        word range = *(word *)(*(byte **)(state + 0x24) + 0xf6);
+        short *entry = *(short **)(*(byte **)(state + 0x20) + 0x24) + ((range & 0x1ff) + i) * 2;
+        state[0x1520 + i] = (byte)output;
+        long block_index = (word)entry[1] & 0x1ff;
+        byte *block;
+        if (entry[0] == NONE)
+            block = blocks + block_index * 6;
+        else
+            block = blocks + (block_index + *(long *)(state + 0x300 + entry[0] * 4)) * 6;
+        dword *value = values + (*(word *)(block + 4) & 0x1ff) * 8;
+        for (long j = 0; j < (*(word *)(block + 4) >> 9); ++j, value += 8)
+        {
+            if ((block[2] & 1) && j + 1 == (*(word *)(block + 4) >> 9))
+            {
+                *(dword *)(state + 0x1444) = value[0];
+                *(dword *)(state + 0x1448) = value[2];
+                *(dword *)(state + 0x14d0) = value[4];
+                *(dword *)(state + 0x14d4) = value[5];
+                final = true;
+                break;
+            }
+            *(dword *)(state + 0x14ac + output * 4) = value[0];
+            *(dword *)(state + 0x14d8 + output * 4) = value[1];
+            *(dword *)(state + 0x1424 + output * 4) = value[2];
+            *(dword *)(state + 0x148c + output * 4) = value[3];
+            *(dword *)(state + 0x144c + output * 4) = value[4];
+            *(dword *)(state + 0x146c + output * 4) = value[5];
+            ++output;
+        }
+        ++i;
+    } while (i < (*(word *)(*(byte **)(state + 0x24) + 0xf6) >> 9));
+    if (!final)
+    {
+        *(dword *)(state + 0x1444) = 0xc;
+        *(dword *)(state + 0x1448) = 0x2000;
+    }
+    *(dword *)(state + 0x14f8) = (output < 1 ? 1 : output) | 0x11100;
+}
+
+struct s_shader_cache;
+void function_1c590(s_shader_cache *state, long tag, long index);
+void __stdcall function_1c710(void *state);
+extern byte g_51f0f0[0x2d8];
+
+// @retail 0x246a0
+bool __stdcall function_246a0(void *context)
+{
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x1010101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_ZFUNC, D3DCMP_ALWAYS);
+    function_0222d0(D3DRS_ZWRITEENABLE, 0);
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_BORDER);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_BORDER);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_BORDER);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 0x1001;
+    g_484f68.PSConstant0[0] = 0xff4c961c;
+    g_484f68.PSRGBInputs[0] = 0x1080000;
+    g_484f68.PSRGBOutputs[0] = 0x20c0;
+    g_484f68.PSFinalCombinerInputsABCD = 0xc;
+    g_484f68.PSFinalCombinerInputsEFG = 0x2000;
+    D3DDevice_SetPixelShaderProgram(&g_484f68);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+
+typedef long (__stdcall *visibility_draw_callback)(s_slot *slot, byte *data);
+
+// @retail 0x20bb0
+void __stdcall function_20bb0(long player, dword mask, long const *indices, long count, bool query, visibility_draw_callback draw)
+{
+    long frame = (long)g_485aa0;
+    if (g_51f408 && g_5234b0 == frame && g_5234c4 != NONE && g_5234c4 == player)
+    {
+        long set = frame % 3;
+        if (!indices)
+            count = g_51f40c.count;
+        for (long i = 0; i < count; ++i)
+        {
+            long index = indices ? indices[i] : i;
+            s_slot *slot = &g_51f40c.slots[index];
+            if (slot->valid && player == slot->b && (mask & (1 << slot->c)))
+            {
+                if (query)
+                {
+                    long test = index * 3 + set;
+                    HRESULT status = S_OK;
+                    if (g_51f40c.bitsets[set][index >> 5] & (1 << (index & 31)))
+                    {
+                        UINT pixels;
+                        ULONGLONG timestamp;
+                        status = D3DDevice_GetVisibilityTestResult(test, &pixels, &timestamp);
+                        if (status != S_OK)
+                            continue;
+                    }
+                    long total = 0;
+                    if (status == S_OK)
+                    {
+                        D3DDevice_BeginVisibilityTest();
+                        total = draw(slot, slot->data);
+                        status = D3DDevice_EndVisibilityTest(test);
+                        total = PIN(total, 0, 65535);
+                    }
+                    slot->k = total;
+                    if (status == S_OK)
+                        g_51f40c.bitsets[set][index >> 5] |= 1 << (index & 31);
+                }
+                else
+                    draw(slot, slot->data);
+            }
+        }
+    }
+}
+
+
+extern long g_4b9ed4;
+long __stdcall function_3bf20(s_slot *slot, byte *data);
+
+// @retail 0x3c270
+bool __stdcall function_3c270(dword value)
+{
+    s_slot_key key;
+    memset(&key, 0, sizeof(key));
+    long player = g_4b9ed4;
+    key.a = 0;
+    key.b = player;
+    key.c = 5;
+    key.d = 0;
+    key.e = 0;
+    long index = function_0209b0(&key, &value, 4);
+    if (index == NONE) return false;
+    bool valid = false;
+    bool available;
+    real amount;
+    if (g_51f408 && g_51f40c.slots[index].valid)
+    {
+        long frame = ((long)g_485aa0 + 1) % 3;
+        amount = g_51f40c.slots[index].f * g_5234c8;
+        amount = PIN(amount, 0.0f, 1.0f);
+        valid = true;
+        available = (g_51f40c.bitsets[frame][index >> 5] & (1 << (index & 31))) == 0;
+    }
+    else
+    {
+        amount = 0.0f;
+        available = false;
+    }
+    function_20bb0(player, 0x20, &index, 1, true, function_3bf20);
+    if (valid && !available && !(amount > 0.0f)) return false;
+    return true;
 }
 

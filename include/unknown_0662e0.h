@@ -155,14 +155,21 @@ struct s_network_configuration
 	real realcd4;
 	real realcd8;
 	long valuecdc;
-	long valuece0;
-	long valuece4;
-	long valuece8;
-	long valuecec;
-	long valuecf0;
-	long valuecf4;
-	long valuecf8;
-	long valuecfc;
+	union
+	{
+		struct
+		{
+			long valuece0;
+			long valuece4;
+			long valuece8;
+			long valuecec;
+			long valuecf0;
+			long valuecf4;
+			long valuecf8;
+			long valuecfc;
+		};
+		long quality_ranges[4][2];
+	};
 	long valued00;
 	real reald04;
 	long valued08;

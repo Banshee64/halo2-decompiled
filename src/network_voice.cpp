@@ -12,12 +12,16 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <math.h>
 #include "globals.h"
 #include "unknown_059ad0.h"
 #include "network_voice.h"
 #include "unknown_067e10.h"
 #include "unknown_058ee0.h"
 #include "crc.h"
+
+void function_caf90(long unit_index, point3f *position);
+bool juggernaut_is(short player_index);
 
 c_voice_xhv g_476fc8;
 s_voice_globals g_4c9878;
@@ -1230,6 +1234,7 @@ struct s_voice_queue
 	long count;
 	byte unknown08[8];
 	s_voice_entry entries[16];
+	long player_counts[16];
 };
 
 // @retail 0x56000
@@ -1248,6 +1253,107 @@ void voice_queue_compact(s_voice_queue *queue, word mask)
 	queue->count = kept;
 }
 
+// @retail 0x55c40
+long function_55c40(s_voice_queue *queue, long player, byte *cursor, byte *output, long capacity, bool include_mask)
+{
+	long result = 0;
+	if (*(bool *)&queue->unknown00)
+	{
+		dword player_bit = 1 << player;
+		if (!(*(word *)queue->unknown08 & player_bit))
+			return NONE;
+		long clamped = player < 0 ? 0 : player > 15 ? 15 : player;
+		if (clamped != player)
+			return NONE;
+		dword kept = (1 << queue->count) - 1;
+		long written = 0;
+		long entry_size = include_mask ? 13 : 11;
+		capacity -= 2;
+		if (capacity >= entry_size)
+		{
+			for (long i = 0; i < queue->count; i++)
+			{
+				byte *entry = (byte *)&queue->entries[i];
+				if (*(word *)(entry + 6) & player_bit)
+				{
+					if (capacity < entry_size)
+						break;
+					*cursor = entry[4];
+					if (include_mask)
+					{
+						*(word *)(cursor + 1) = *(word *)(entry + 2);
+						if (!*(word *)(cursor + 1))
+							*(word *)(cursor + 1) = (word)(1 << player);
+						cursor += 3;
+					}
+					else
+						cursor++;
+					memcpy(cursor, entry + 8, 10);
+					cursor += 10;
+					*(word *)(entry + 6) &= ~(1 << player);
+					queue->player_counts[player]--;
+					if (!*(word *)(entry + 6))
+						kept &= ~(1 << i);
+					written++;
+					capacity -= entry_size;
+				}
+			}
+			output[1] = (byte)written;
+			output[0] = queue->unknown08[4];
+			result = written * entry_size + 2;
+			if ((word)kept != (1 << queue->count) - 1)
+				voice_queue_compact(queue, (word)kept);
+			*(word *)queue->unknown08 = 0;
+			for (long i = 0; i < queue->count; i++)
+				*(word *)queue->unknown08 |= *(word *)((byte *)&queue->entries[i] + 6);
+		}
+	}
+	return result;
+}
+
+// @retail 0x56380
+long function_56380(byte *output, s_voice_channels *channels, long player, long capacity)
+{
+	long result = 0;
+	long original_capacity = capacity;
+	if (channels->initialized && voice_channels_have_player(channels, player) && capacity >= 15)
+	{
+		long count = 0;
+		long current_player = 0;
+		if (voice_available())
+			current_player = g_4c9878.unknown00;
+		bool include_mask = current_player == player;
+		capacity -= 2;
+		if (include_mask) output[0] |= 1;
+		else output[0] &= ~1;
+		byte *cursor = output + 2;
+		byte *header = cursor;
+		for (long i = 0; i < 16; i++)
+		{
+			s_voice_channel *channel = &channels->channels[i];
+			if (channel->active && (channel->player_mask & (1 << player)) && capacity > 0)
+			{
+				cursor += 2;
+				long written = function_55c40((s_voice_queue *)channel, player, cursor, header, capacity, include_mask);
+				if (written <= 0)
+					break;
+				count++;
+				cursor += written - 2;
+				capacity -= written;
+				header = cursor;
+			}
+		}
+		if (count > 0)
+		{
+			output[1] = (byte)count;
+			return original_capacity - capacity;
+		}
+		output[1] = 0;
+		return 0;
+	}
+	return result;
+}
+
 /* ---- the voice settings of the players (0x527108) ---- */
 
 s_voice_player_values g_5259b8;
@@ -1255,6 +1361,56 @@ s_voice_channels g_525a00;
 /* the routes of the voice packets (0x527104; s_voice_routing is in
    globals.h) */
 s_voice_routing g_527104;
+
+long voice_player_settings_get_active_value(s_voice_player_settings *settings, long player);
+dword function_56c60(s_voice_player_settings *settings, long player);
+
+// @retail 0x55990
+void function_55990(s_voice_player_values *values)
+{
+	if (values->enabled)
+	{
+		dword players = 0;
+		if (voice_available())
+		{
+			byte *membership = (byte *)voice_get_membership();
+			if (membership)
+				players = *(dword *)(membership + 0x10d0);
+		}
+		dword local = voice_get_local_player_mask();
+		dword remote = players & ~local;
+		dword active = 0;
+		if (voice_available())
+			active = g_4c9878.unknownEE;
+		memset(values->values, 0, sizeof(values->values));
+		for (long i = 0; i < 16; i++)
+		{
+			dword bit = 1 << i;
+			if ((local & bit) && (active & bit))
+			{
+				dword muted = 0;
+				if (voice_available())
+					muted = g_4c9878.unknownF0[i];
+				dword mask = remote & ~muted;
+				if (voice_available())
+				{
+					if (g_4c9878.mode == 1)
+						mask &= voice_player_settings_get_active_value(&g_527104.settings, i);
+					else if (g_4c9878.mode == 2 || g_4c9878.mode == 3)
+						mask &= function_56c60(&g_527104.settings, i);
+				}
+				for (long j = 0; j < 16; j++)
+				{
+					dword target = 1 << j;
+					if ((mask & target) &&
+						(voice_test_unknownF0(j, i) || voice_port_flag1(j) || voice_port_flag2(j)))
+						mask &= ~target;
+				}
+				values->values[i] = mask;
+			}
+		}
+	}
+}
 
 // @retail 0x56ae0
 void voice_player_settings_initialize(s_voice_player_settings *settings)
@@ -1787,4 +1943,625 @@ long voice_players_share_team(long other, long player)
 		return false;
 	}
 	return true;
+}
+
+// @retail 0x56c60
+dword function_56c60(s_voice_player_settings *settings, long player)
+{
+	dword result = 0;
+	if (settings->initialized && voice_available())
+	{
+		if (g_4c9878.mode == 2 || g_4c9878.mode == 3)
+		{
+			long mode = g_4c9878.mode;
+			dword mask = 0;
+			byte *membership = (byte *)voice_get_membership();
+			if (membership)
+				mask = *(dword *)(membership + 0x10d0);
+			if (mode == 3)
+			{
+				s_network_session_player *players = (s_network_session_player *)voice_get_players();
+				if (mask & (1 << player))
+				{
+					long team = (char)players[player].propertiesa8[0x7c];
+					for (long i = 0; i < 16; i++)
+					{
+						if (i != player && (mask & (1 << i)))
+						{
+							long other_team = (char)players[i].propertiesa8[0x7c];
+							if (team != NONE && other_team != NONE && team == other_team)
+								result |= 1 << i;
+						}
+					}
+				}
+			}
+			else
+				result = mask;
+		}
+	}
+	return result;
+}
+
+// @retail 0x57270
+bool function_57270(long player, long other)
+{
+	bool result = false;
+	s_network_session_player *players = voice_get_players_inlined();
+	dword local_mask = voice_get_local_player_mask();
+	dword mask = voice_get_player_mask_inlined();
+	if ((mask & (1 << player)) && (mask & (1 << other)) &&
+		(local_mask & (1 << player)) && !(local_mask & (1 << other)))
+	{
+		if (!function_53d40())
+			result = true;
+		else if (function_53d90())
+		{
+			if (!juggernaut_is((short)player) && !juggernaut_is((short)other))
+				result = true;
+		}
+		else
+		{
+			long team = (char)players[player].propertiesa8[0x7c];
+			long other_team = (char)players[other].propertiesa8[0x7c];
+			if (team != NONE && other_team != NONE && team == other_team)
+				result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x57a80
+real function_57a80(long player, long other)
+{
+	point3f first = { 0 };
+	point3f second = { 0 };
+	real result = -1.0f;
+	if (function_54df0(player))
+	{
+		byte *datum = voice_get_world_player(player);
+		if (datum)
+		{
+			long unit = *(long *)(datum + 0x2c);
+			if (unit == NONE)
+				unit = *(long *)(datum + 0x30);
+			if (unit != NONE)
+			{
+				function_caf90(unit, &first);
+				if (function_54df0(other))
+				{
+					datum = voice_get_world_player(other);
+					if (datum && *(long *)(datum + 0x2c) != NONE)
+					{
+						function_caf90(*(long *)(datum + 0x2c), &second);
+						double x = (double)second.x - first.x;
+						double y = (double)second.y - first.y;
+						double z = (double)second.z - first.z;
+						result = (real)sqrt(z * z + x * x + y * y);
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+#include "unknown_0662e0.h"
+
+// @retail 0x53e30
+void function_53e30(void)
+{
+	long selected = NONE;
+	long best = 0;
+	g_4c9878.unknown00 = NONE;
+	if (voice_available())
+	{
+		c_class_58d20 *session = 0;
+		if (voice_get_session(&session))
+		{
+			byte *membership = (byte *)voice_get_membership();
+			long current = voice_get_current_member();
+			long host = voice_get_member_index();
+			if (membership && current != NONE && host != NONE)
+			{
+				if (current == host)
+				{
+					long count = *(long *)(membership + 8);
+					for (long i = 0; i < count; i++)
+					{
+						byte *member = membership + 0xc + i * 0x10c;
+						long quality = *(long *)(member + 0x94);
+						if (i != current && *(long *)(member + 0x98) != 3 &&
+							*(long *)(member + 0x90) >= g_network_configuration.valuee4 &&
+							quality >= g_network_configuration.valuee0 &&
+							*(dword *)(member + 0x9c) == (1U << count) - 1 && quality > best)
+						{
+							selected = i;
+							best = quality;
+						}
+					}
+					if (selected == NONE && !voice_mode_is_1())
+						selected = current;
+					if (session->get_value_5e20() != selected)
+						session->set_value_5e20(selected);
+					g_4c9878.unknown00 = selected;
+				}
+				else
+					g_4c9878.unknown00 = session->get_value_5e20();
+			}
+		}
+	}
+}
+
+// @retail 0x57c20
+long function_57c20(s_voice_player_settings *settings, long player, long other, long mode)
+{
+	long result = 0;
+	s_network_session_player *players = voice_get_players_inlined();
+	if (players)
+	{
+		dword mask = 0;
+		if (settings->initialized)
+			mask = settings->unknown04[player];
+		if (!function_589e0(player) && !function_589e0(other))
+			result = 2;
+		else if (function_589e0(other))
+		{
+			if (mode == 1)
+			{
+				if (!function_53d40())
+					{ result = 1; goto done; }
+				if (function_53d90())
+				{
+					if (!juggernaut_is((short)player) && !juggernaut_is((short)other))
+						{ result = 1; goto done; }
+				}
+				else
+				{
+					long team = (char)players[player].propertiesa8[0x7c];
+					long other_team = (char)players[other].propertiesa8[0x7c];
+					if (team != NONE && other_team != NONE && team == other_team)
+						{ result = 1; goto done; }
+				}
+			}
+			if (mask & (1 << other))
+				result = 3;
+		}
+	}
+done:
+	return result;
+}
+
+static __forceinline bool voice_test_unknown110(long player, long other)
+{
+	bool result = false;
+	if (voice_available())
+		result = (g_4c9878.unknown110[player] & (1 << other)) != 0;
+	return result;
+}
+
+// @retail 0x57d60
+long function_57d60(long mode, long player, long other)
+{
+	long result = 0;
+	if (!voice_test_unknown110(player, other) && !voice_test_unknown110(other, player))
+	{
+		switch (mode)
+		{
+		case 0: { result = 0; goto done; }
+		case 1: result = (voice_get_unknownEE() & (1 << player)) ? 1 : 2; break;
+		case 2: result = 2; break;
+		case 3: result = 3; break;
+		default: return result;
+		}
+		long controller = voice_get_player_unknown14(player);
+		if (controller == NONE)
+			{ result = 0; goto done; }
+		switch (voice_get_port_state(controller))
+		{
+		case 1: if (result != 3) result = 2; break;
+		case 2: { result = 1; goto done; }
+		case 3: { result = 0; goto done; }
+		}
+		if (result == 2 || result == 3)
+		{
+			dword local_mask = voice_get_local_player_mask();
+			for (long local = 0; local < 16; local++)
+				if ((local_mask & (1 << local)) && voice_test_unknown110(local, other))
+					{ result = 0; goto done; }
+		}
+	}
+done:
+	return result;
+}
+
+// @retail 0x577d0
+void __stdcall function_577d0(s_voice_player_settings *settings)
+{
+	dword local_mask = voice_get_local_player_mask();
+	s_network_session_player *players = voice_get_players_inlined();
+	dword mask = voice_get_player_mask_inlined();
+	memset(settings->unknown84, 0, sizeof(settings->unknown84));
+	if (players)
+	{
+		for (long local = 0; local < 16; local++)
+		{
+			if ((local_mask & (1 << local)) && function_54df0(local) && !function_589e0(local))
+			{
+				for (long other = 0; other < 16; other++)
+				{
+					if ((mask & (1 << other)) && !(local_mask & (1 << other)) &&
+						function_54df0(other) && !function_589e0(other))
+					{
+						bool allowed;
+						if (!function_53d40())
+							allowed = true;
+						else if (function_53d90())
+							allowed = !juggernaut_is((short)local) && !juggernaut_is((short)other);
+						else
+						{
+							long team = (char)players[local].propertiesa8[0x7c];
+							long other_team = (char)players[other].propertiesa8[0x7c];
+							allowed = team != NONE && other_team != NONE && team == other_team;
+						}
+						if (allowed)
+							settings->unknown84[local] |= 1 << other;
+					}
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x583c0
+void function_583c0(s_voice_player_settings *settings, dword players, long talker)
+{
+	dword ports = 0;
+	dword talker_bit = 1 << talker;
+	for (long player = 0; player < 16; player++)
+	{
+		long port = voice_get_player_unknown14(player);
+		if (players & (1 << player))
+		{
+			settings->unknown108[player] |= talker_bit;
+			if (port != NONE)
+				ports |= 1 << port;
+		}
+		else
+			settings->unknown108[player] &= ~talker_bit;
+	}
+	for (long port = 0; port != NONE; port = voice_port_next_index(port))
+	{
+		if (ports & (1 << port))
+		{
+			DSMIXBINVOLUMEPAIR pair;
+			memset(&pair, 0, sizeof(pair));
+			DSMIXBINS bins;
+			memset(&bins, 0, sizeof(bins));
+			bins.dwMixBinCount = 1;
+			bins.lpMixBinVolumePairs = &pair;
+			pair.dwMixBin = 2;
+			pair.lVolume = 0;
+			if (g_476fc8.initialized)
+				g_476fc8.engine->SetMixBinMapping(voice_xuid(talker), 4, &bins);
+			if (g_476fc8.initialized)
+				g_476fc8.engine->SetPlaybackPriority(voice_xuid(talker), port, (XHV_PLAYBACK_PRIORITY)0);
+		}
+		else if (g_476fc8.initialized)
+			g_476fc8.engine->SetPlaybackPriority(voice_xuid(talker), port, (XHV_PLAYBACK_PRIORITY)-1);
+	}
+}
+
+static __forceinline long voice_proximity_object(long player_index)
+{
+	long object_index = NONE;
+	if (function_54df0(player_index))
+	{
+		byte *player = voice_get_world_player(player_index);
+		if (player)
+		{
+			if (*(long *)(player + 0x2c) != NONE)
+				object_index = *(long *)(player + 0x2c);
+			else if (*(long *)(player + 0x30) != NONE)
+				object_index = *(long *)(player + 0x30);
+		}
+	}
+	return object_index;
+}
+
+// @retail 0x57080
+void __stdcall function_57080(s_voice_player_values *values)
+{
+	dword players = 0;
+	if (voice_available())
+	{
+		byte *membership = (byte *)voice_get_membership();
+		if (membership)
+			players = *(dword *)(membership + 0x10d0);
+	}
+	dword local = voice_get_local_player_mask();
+	memset(values->values, 0, sizeof(values->values));
+	for (long i = 0; i < 16; i++)
+	{
+		if ((local & (1 << i)) && function_54df0(i))
+		{
+			long object = voice_proximity_object(i);
+			if (object != NONE)
+			{
+				point3f position;
+				function_caf90(object, &position);
+				for (long j = 0; j < 16; j++)
+				{
+					dword bit = 1 << j;
+					if ((players & bit) && !(local & bit) && function_54df0(j))
+					{
+						long other = voice_proximity_object(j);
+						if (other != NONE)
+						{
+							point3f other_position;
+							function_caf90(other, &other_position);
+							real z = other_position.z - position.z;
+							real x = other_position.x - position.x;
+							real y = other_position.y - position.y;
+							real squared = z * z + x * x + y * y;
+							real range = 8.0f;
+							if (g_510c94)
+								range = g_510c94->motion_sensor_range;
+							if (range + 1.5f >= sqrtf(squared))
+								values->values[i] |= bit;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x56790
+void function_56790(long *capacity, dword *remaining, dword allowed, word *selected,
+	bool preserve_one, long excluded, bool *blocked)
+{
+	for (long i = 0; i < 16; i++)
+	{
+		dword bit = 1 << i;
+		if ((bit & *remaining) && (allowed & bit) && *capacity > 0 &&
+			(!preserve_one || excluded != i))
+		{
+			if (*capacity == 1 && preserve_one)
+			{
+				*blocked = *blocked || bit != *remaining;
+				if (*blocked)
+					break;
+			}
+			*selected |= (word)(1 << i);
+			*remaining &= ~bit;
+			(*capacity)--;
+		}
+	}
+}
+
+// @retail 0x53b00
+long __stdcall function_53b00(long player, byte *output, long capacity)
+{
+ long result = 0;
+ if (voice_is_enabled())
+  result = function_56380(output, &g_525a00, player, capacity);
+ return result;
+}
+
+// Disabled pending a source-shape fix: enabling this removes a required
+// caller-local initialization in the matched 0x54890.
+#if 0
+// Retail address: 0x565c0 (disabled).
+void __stdcall function_565c0(s_voice_routing *routing, dword remaining, s_voice_route *output)
+{
+ output->unknown02 = 0;
+ output->members = 0;
+ if (!routing->enabled || !remaining)
+  return;
+ long capacity = voice_get_mode_value();
+ if (capacity <= 0)
+  return;
+ bool preserve = voice_unknown00_valid();
+ long preferred = 0;
+ if (voice_available())
+  preferred = g_4c9878.unknown00;
+ long mode = 0;
+ if (g_4c9878.initialized)
+  mode = g_4c9878.session_kind;
+ dword eligible = voice_get_current_member_value();
+ dword preferred_bit = 1 << preferred;
+ word selected = 0;
+ word deferred = 0;
+ bool blocked = false;
+ if (!(eligible & preferred_bit))
+  preserve = false;
+ if (!(eligible & preferred_bit) || !preserve)
+ {
+  if (mode == 2)
+   capacity = 1;
+ }
+ else if (mode == 1 || mode == 2)
+ {
+  blocked = true;
+  goto finish;
+ }
+ {
+  long kind = voice_get_session_kind();
+  deferred = (word)(remaining & ~eligible);
+  remaining &= eligible;
+  if (deferred)
+   blocked = true;
+  if (kind == 2)
+   function_56790(&capacity, &remaining, function_53c70(), &selected, preserve, preferred, &blocked);
+  if (capacity != 1 || !preserve || !blocked)
+   function_56790(&capacity, &remaining, (dword)-1, &selected, preserve, preferred, &blocked);
+ }
+finish:
+ if (preserve)
+ {
+  if (blocked)
+  {
+   selected |= (word)preferred_bit;
+   deferred |= (word)remaining;
+  }
+  else if (remaining & preferred_bit)
+  {
+   selected |= (word)preferred_bit;
+   deferred |= (word)preferred_bit;
+  }
+ }
+ else
+  deferred = 0;
+ output->members = selected;
+ output->unknown02 = deferred;
+}
+
+#endif
+
+// @retail 0x54590
+void function_54590(void)
+{
+ s_network_session_player *players = voice_get_players_inlined();
+ dword mask = voice_get_player_mask_inlined();
+ char reason[0x80];
+ reason[0] = 0;
+ dword empty[3] = {0, 0, 0};
+ if ((dword)g_4c9878.unknown20 != mask)
+ {
+  strncpy(reason, "session player mask change", sizeof(reason));
+  reason[sizeof(reason) - 1] = 0;
+ }
+ else
+ {
+  long i;
+  for (i = 0; i < 16; i++)
+  {
+   const void *identity = mask & (1 << i) ? (const void *)&players[i] : empty;
+   if (memcmp(&g_4c9878.unknown24[i * 3], identity, sizeof(empty)))
+    break;
+  }
+  if (i == 16)
+   return;
+  voice_sprintf(reason, "player identifier change");
+ }
+ g_4c9878.unknown20 = mask;
+ for (long i = 0; i < 16; i++)
+ {
+  const void *identity = mask & (1 << i) ? (const void *)&players[i] : empty;
+  memcpy(&g_4c9878.unknown24[i * 3], identity, sizeof(empty));
+ }
+ voice_channels_reset(&g_525a00);
+}
+
+struct s_online_mutelist_globals
+{
+ long startup_task;
+ long tasks[4];
+ XONLINE_MUTELISTUSER users[4][MAX_MUTELISTUSERS];
+ long user_counts[4];
+};
+extern s_online_mutelist_globals g_4c99c0;
+void voice_update_local_properties(long controller_index);
+
+// @retail 0x541a0
+void __stdcall function_541a0(long player)
+{
+ long port = voice_get_player_unknown14(player);
+ bool talking = false;
+ if (port != NONE)
+ {
+  s_network_session_player *players = voice_get_players_inlined();
+  bool disabled = g_4c9878.port_states[port] == 3;
+  bool allowed = true;
+  long mode = g_476fc8.initialized ? g_476fc8.port_modes[port] : 0;
+  if (TEST_FIELD_BIT(g_54e8e0[port].flag5))
+   allowed = function_1906da(port);
+  talking = voice_port_can_talk(port) && !disabled && allowed;
+  if (!disabled && allowed)
+  {
+   if (!mode)
+    voice_set_port_mode(port, 2);
+  }
+  else if (mode == 2)
+   voice_set_port_mode(port, 0);
+  if (disabled)
+   g_4c9878.unknown110[player] |= 2;
+  else
+   g_4c9878.unknown110[player] &= ~2;
+  if (talking)
+   g_4c9878.unknown110[player] |= 1;
+  else
+   g_4c9878.unknown110[player] &= ~1;
+  if (!allowed)
+   g_4c9878.unknown110[player] |= 4;
+  else
+   g_4c9878.unknown110[player] &= ~4;
+  if (TEST_FIELD_BIT(g_54e8e0[port].flag5))
+  {
+   long count = g_4c99c0.user_counts[port];
+   if (count != NONE)
+   {
+    XONLINE_MUTELISTUSER *users = g_4c99c0.users[port];
+    if (!users)
+     goto publish_properties;
+    dword player_mask = voice_get_player_mask();
+    dword local_mask = voice_get_local_player_mask();
+    for (long other = 0; other < 16; other++)
+    {
+     if ((player_mask & (1 << other)) && !(local_mask & (1 << other)))
+     {
+      bool muted = false;
+      for (long i = 0; i < count; i++)
+       if (!memcmp(&users[i], &players[other], 12))
+       {
+        muted = true;
+        break;
+       }
+      if (muted)
+       g_4c9878.unknownF0[player] |= (word)(1 << other);
+      else
+       g_4c9878.unknownF0[player] &= (word)~(1 << other);
+     }
+    }
+   }
+  }
+publish_properties:
+  voice_update_local_properties(port);
+ }
+ if (talking)
+  g_4c9878.unknownEE |= (word)(1 << player);
+ else
+  g_4c9878.unknownEE &= (word)~(1 << player);
+}
+
+// @retail 0x54030
+void function_54030(void)
+{
+ if (voice_get_players_inlined())
+ {
+  dword local = voice_get_local_player_mask();
+  dword players = voice_get_player_mask();
+  for (long i = 0; i < 16; i++)
+  {
+   if (players & (1 << i))
+   {
+    if (local & (1 << i))
+    {
+     if (voice_has_remote_talker(i) &&
+      g_476fc8.initialized && (g_476fc8.unknown0c & 4))
+      g_476fc8.engine->UnregisterRemoteTalker(voice_xuid(i));
+     function_541a0(i);
+    }
+    else
+     voice_update_remote_talker(i);
+   }
+   else
+   {
+    if (voice_has_remote_talker(i) &&
+     g_476fc8.initialized && (g_476fc8.unknown0c & 4))
+     g_476fc8.engine->UnregisterRemoteTalker(voice_xuid(i));
+    g_4c9878.unknownEE &= ~(1 << i);
+   }
+  }
+ }
 }
