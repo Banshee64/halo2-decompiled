@@ -4,6 +4,8 @@
 #include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_2551c0.h"
+#include "props.h"
+#include "object_markers.h"
 
 /* the slot state of handler 0x79 */
 struct s_slot_79_state
@@ -48,6 +50,78 @@ s_slot_handler_2 g_47fa48 =
 	},
 	0, 0, slot_proc_nothing
 };
+
+short g_470c50 = -1;
+short __stdcall function_257320(long arg_0, s_slot *arg_1);
+s_slot_handler_0 g_47fa94 = {0x7b, 0, 0x7ff, -2, 0, function_257320};
+bool function_2675b0(long arg_0);
+void *function_1e5280(long actor_index, long key);
+short function_1a6fe0(long owner_index, short type);
+bool function_1ff7d0(long actor_index, point3f const *point, real enemy_radius, real friendly_radius, short *count_out);
+
+// @retail 0x257320
+short __stdcall function_257320(long arg_0, s_slot *arg_1)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	if (local_0->prop_index != NONE && *(short *)((byte *)local_0 + 0x6fe) != 2)
+	{
+		byte *local_1 = (byte *)object_get(local_0->unknown018);
+		s_prop_datum *local_2 = prop_ref_get(local_0->prop_index);
+		s_type_5cfb45 *local_3 = function_25d690(local_2);
+		byte *local_4 = NULL;
+		byte *local_5 = NULL;
+		byte *local_6 = NULL;
+		short local_7 = *(char *)(local_1 + 0x212);
+		bool local_8 = local_3->unknown3c != NONE || function_2675b0(local_0->prop_index);
+		double local_9 = (double)local_3->position.x - local_0->position.x;
+		double local_10 = (double)local_3->position.y - local_0->position.y;
+		real local_11 = (real)sqrt(local_10 * local_10 + local_9 * local_9);
+		point3f const *local_12 = &local_3->position;
+		s_object_marker local_13;
+		long local_14 = *(long *)((byte *)object_get(local_0->unknown018) + 0x218);
+		if (local_14 != NONE && function_b8d30(local_0->unknown018, 0xb000683, &local_13, 1, false) > 0)
+			local_4 = (byte *)function_1e5280(arg_0, object_get(local_14)->tag_index);
+		local_14 = *(long *)((byte *)object_get(local_0->unknown018) + 0x21c);
+		if (local_14 != NONE && function_b8d30(local_0->unknown018, 0xf000684, &local_13, 1, false) > 0)
+			local_5 = (byte *)function_1e5280(arg_0, object_get(local_14)->tag_index);
+		local_14 = *(long *)((byte *)object_get(local_0->unknown018) + 0x21c);
+		if (local_14 != NONE && function_b8d30(local_0->unknown018, 0xe000685, &local_13, 1, false) > 0)
+			local_6 = (byte *)function_1e5280(arg_0, object_get(local_14)->tag_index);
+		long local_15;
+		if (local_4 && ((local_8 && (!local_6 || *(real *)(local_6 + 0x10) > local_11 ||
+			(local_7 == 0 && *(real *)(local_6 + 0x10) * 1.5f > local_11))) ||
+			(!local_5 && (!local_6 || *(real *)(local_6 + 0x10) > local_2->unknown28))))
+		{
+			local_15 = 0;
+		}
+		else if (local_6 && local_11 >= *(real *)(local_6 + 0x10) &&
+			(function_1a6fe0(arg_0, 0x1e) != NONE || local_8))
+		{
+			local_15 = 1;
+		}
+		else if (local_5)
+		{
+			local_15 = 2;
+			if (local_6)
+			{
+				short local_16[2] = {0, 0};
+				if (function_1ff7d0(arg_0, local_12, 2.5f, 3.f, local_16) && local_16[0] > 3)
+					local_15 = 1;
+			}
+		}
+		else if (local_6)
+		{
+			local_15 = 1;
+		}
+		else
+		{
+			return g_470c50;
+		}
+		local_1[0x216] = (byte)local_15;
+		local_1[0x217] = 0xff;
+	}
+	return g_470c50;
+}
 
 // @retail 0x257160
 short __stdcall function_257160(long actor_index)

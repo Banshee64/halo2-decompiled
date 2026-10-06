@@ -194,3 +194,85 @@ int __cdecl function_24fd41(void const *left, void const *right)
 	char b = *(char *)(local_right + 0x7c);
 	return a > b ? 1 : a < b ? -1 : 0;
 }
+
+long function_19a2ce(real *arg_0);
+long function_19a50f(long arg_0);
+long network_session_interface_find_player_49b8();
+bool function_19abe4(long arg_0);
+bool function_19a8ef();
+bool function_199994();
+byte function_199eaa();
+long function_251139();
+long function_63ec0();
+long function_199ebc();
+bool function_251188(long arg_0);
+
+// @retail 0x24ffc9
+void function_24ffc9(c_screen_24fd74 *arg_0, bool arg_1)
+{
+	c_screen_24fd74 *const *local_0 = &arg_0;
+	short local_1;
+	switch ((*local_0)->mode)
+	{
+	case 0: local_1 = 2; break;
+	case 1: local_1 = 2; break;
+	case 2: local_1 = 2; break;
+	default: local_1 = NONE; break;
+	}
+	c_text_widget_45a5e0 *local_2 = (c_text_widget_45a5e0 *)(*local_0)->find_text(local_1);
+	if (local_2)
+	{
+		long local_3 = function_19a2ce(0);
+		long local_4;
+		switch (local_3)
+		{
+		case 10:
+		{
+			long local_5 = network_session_interface_find_player_49b8();
+			if (local_5 != NONE)
+				local_4 = function_19abe4(local_5) ? 0x1200020d : 0x1b00020c;
+			else if (function_19a8ef())
+				local_4 = function_199994() ? 0x1500015d : 0xa000208;
+			else
+				local_4 = arg_1 ? 0x200001f0 : 0x2b00020b;
+			break;
+		}
+		case 8:
+			local_4 = function_199eaa() ? 0x170001ee : 0x100001ed;
+			break;
+		case 7:
+			if (function_199994())
+				local_4 = 0xe0001ec;
+			else
+			{
+				switch (function_251139())
+				{
+				case 2: local_4 = 0xc0001e5; break;
+				case 3: local_4 = 0xc0001e6; break;
+				case 4: local_4 = 0xc0001e7; break;
+				case 5: local_4 = 0xc0001e8; break;
+				case 6: local_4 = 0xc0001e9; break;
+				case 7: local_4 = 0xc0001ea; break;
+				case 8: local_4 = 0xc0001eb; break;
+				default: local_4 = 0xc0001e5; break;
+				}
+			}
+			break;
+		default:
+			local_4 = function_19a50f(local_3);
+			if (local_3 == 9)
+			{
+				long local_5 = function_63ec0();
+				if (function_199ebc() > local_5)
+					local_4 = (*local_0)->get_definition_value(0, 3);
+			}
+			break;
+		}
+		local_2->function_253b1a(local_4);
+		c_class_22cc8e *local_5 = local_2->function_22f52e();
+		if (function_251188(local_3))
+			((byte *)local_5)[0x14] |= 1;
+		else
+			((byte *)local_5)[0x14] &= ~1;
+	}
+}

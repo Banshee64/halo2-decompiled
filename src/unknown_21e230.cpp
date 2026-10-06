@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_21E230.CPP: DirectSound mix bin and filter helpers */
 
 #include "unknown_11c920.h"

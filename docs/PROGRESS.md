@@ -2,6 +2,34 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6460 functions match
+
+```
+matched 6460 of 11318 game functions (695856 of 2784283 bytes, 24.99%)
+```
+
+6460 new matches, none lost:
+- Merge batch r6: the second machine's PRs #98 (lane O round 6: 0x244610, 0x249fa3, 0x24a80d), #97 and #99 (lane AA's last functions, written), #76 (lane K) and #82 (lane I), the last four adding written source only.
+
+## 2026-10-06: 6457 functions match
+
+```
+matched 6457 of 11318 game functions (695776 of 2784283 bytes, 24.99%)
+```
+
+6457 new matches, none lost:
+- Codex lane N round 5: 0x14c320, 0x14c540 and 0x14c630, and five more through them: 0xa94b0, 0x152cf0 and 0x158090 (callers of 0x14cad0, whose parameters it fixed) and 0x24f850 and 0x24f880.
+
+## 2026-10-06: 6449 functions match
+
+```
+matched 6449 of 11318 game functions (693834 of 2784283 bytes, 24.92%)
+```
+
+6449 new matches, none lost:
+- Codex lane X round 5: 0x1e17d0, 0x1e2150, 0x1e3400 and 0x1e4570, and lane V's 0x26abd0 through 0x1e2150's argument order.
+- Codex lane T round 7: 0x16f570.
+
 ## 2026-10-06: 6443 functions match
 
 ```

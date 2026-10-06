@@ -188,7 +188,7 @@ struct c_shape_contact_listener
 {
  long field_4;
  long kind;
- virtual void added(s_contact_body const *, s_contact_body const *) {}
+ virtual void added(s_contact_body const *a, s_contact_body const *b, void *contact);
  virtual void removed(s_contact_body const *a, s_contact_body const *b);
 };
 
@@ -266,4 +266,23 @@ long function_1eb020(long tag_index, long body_index, short *material_index)
  }
  *material_index = *(short *)(data + 6);
  return result;
+}
+
+void function_1d1e40(hkEntity const *entity, s_havok_component *component, long component_index, long kind, long shape_index);
+
+// @retail 0x1eb220
+void c_shape_contact_listener::added(s_contact_body const *a, s_contact_body const *b, void *contact)
+{
+ long contact_kind = kind;
+ hkEntity *first = a->kind == 1 ? a->entity : NULL;
+ hkEntity *second = b->kind == 1 ? b->entity : NULL;
+ if (first && second)
+ {
+  long component_index = havok_entity_component_index_get(first);
+  if (component_index != NONE)
+  {
+   long shape_index = havok_entity_property_2002_get(first);
+   function_1d1e40(second, havok_component_get(component_index), component_index, shape_index, contact_kind);
+  }
+ }
 }

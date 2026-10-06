@@ -75,3 +75,18 @@ struct s_network_session_player;
 void function_1391ed(void)
 {
 }
+
+typedef void *(__stdcall *block_allocate)(void *, long, long);
+typedef void (__stdcall *block_free)(void *, void *);
+
+// @stub 0x2cb5b0
+long __stdcall function_2cb5b0(unsigned char *destination, long *destination_size, unsigned char const *source, long source_size, block_allocate allocate, block_free release, void *opaque)
+{
+    return -1;
+}
+
+// @stub 0x2cb510
+long __stdcall function_2cb510(unsigned char *destination, long *destination_size, unsigned char const *source, long source_size, long level, block_allocate allocate, block_free release, void *opaque)
+{
+    return -1;
+}

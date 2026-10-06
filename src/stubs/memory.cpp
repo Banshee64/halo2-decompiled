@@ -9,8 +9,3 @@ void __stdcall function_81780(long stage)
 {
 }
 
-// @stub 0x249fcc
-void function_249fcc(c_unknown_249fa3 *p)
-{
-}
-

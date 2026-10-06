@@ -4,6 +4,8 @@
 #include "unknown_24b5bc.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
+#include "unknown_2b116a.h"
+#include "loop_allocator.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -97,6 +99,8 @@ class c_screen_24a7bf : public c_screen_with_menu
 {
 public:
 	virtual void v19();
+	virtual void v3();
+	virtual void v25(s_screen_focus *arg_0);
 	s_entry_24a64d *function_24a828();
 	bool function_24a855();
 	c_list_24a64d field_614;
@@ -420,4 +424,164 @@ void c_list_24a64d::function_24a30e(s_controller_reference **arg_0, long *arg_1)
 			}
 		}
 	}
+}
+
+void function_120e20(long arg_0, long *arg_1);
+
+// @retail 0x249fcc
+void function_249fcc(c_unknown_249fa3 *arg_0)
+{
+	c_list_24a64d *local_0 = (c_list_24a64d *)arg_0;
+	long local_1;
+	function_120e20(local_0->get_controller_index(), &local_1);
+	if (local_1 != NONE)
+	{
+		s_list_item_iterator local_2;
+		local_2.iterator.data = local_0->data;
+		local_2.iterator.datum_index = NONE;
+		local_2.iterator.index = NONE;
+		while (function_2b2327(&local_2))
+		{
+			if (((s_datum_24a763 *)local_2.item)->index == local_1)
+			{
+				local_0->select_datum(local_2.iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+// @retail 0x24a80d
+void c_screen_24a7bf::v25(s_screen_focus *arg_0)
+{
+	c_class_1473c9::v25(arg_0);
+	function_249fcc((c_unknown_249fa3 *)&field_614);
+}
+
+void function_2b10a3(dword const *arg_0, c_class_2b0b5e *arg_1, long arg_2);
+
+// @retail 0x24a7ec
+void function_24a7ec(dword const *arg_0, c_class_2b0b5e *arg_1, long arg_2, bool arg_3)
+{
+	if (arg_1)
+	{
+		if (arg_3)
+			arg_1->value6e = false;
+		else
+			function_2b10a3(arg_0, arg_1, arg_2);
+	}
+}
+
+struct s_key_set;
+struct s_entry_b;
+struct s_localized_name;
+void function_1a06f0(s_key_set *arg_0, long *arg_1, long *arg_2);
+long function_19c4e0(long arg_0);
+long function_19c440(long arg_0, long arg_1);
+s_entry_b *function_19c1f0(long arg_0);
+wchar_t *localized_name_get(s_localized_name *arg_0);
+s_text_block *function_253c06(c_class_1a2c81 *arg_0);
+
+// @retail 0x24a886
+void c_screen_24a7bf::v3()
+{
+	c_class_1a2c81::v3();
+	bool local_0 = function_24a855();
+	s_entry_24a64d *local_1 = function_24a828();
+	dword local_2[4];
+	memcpy(local_2, local_1->field_11c, sizeof(local_2));
+	s_widget_item local_3;
+	if (local_0)
+	{
+		local_3.value5e = true;
+		local_3.flags = 0x20;
+	}
+	else
+	{
+		local_3.value4 = (long)local_1->field_0c;
+		memcpy(local_3.value48, local_2, sizeof(local_2));
+		local_3.flags = 3;
+	}
+	function_22f042(&local_3, this, 1);
+	set_child_value6e(6, 3, false);
+	c_text_widget_45a5e0 *local_4 = (c_text_widget_45a5e0 *)find_child(6, 4, false);
+	if (local_4)
+	{
+		long local_5 = 0x7000001;
+		if (!local_0)
+		{
+			switch (((byte *)local_1)[0x105])
+			{
+			case 0: local_5 = 0x7000001; break;
+			case 1: local_5 = 0x80002f5; break;
+			case 2: local_5 = 0x60002f6; break;
+			case 3: local_5 = 0xf0002f7; break;
+			default: local_5 = 0; break;
+			}
+		}
+		local_4->function_253b1a(local_5);
+		local_4->value6e = true;
+	}
+	local_4 = (c_text_widget_45a5e0 *)find_child(6, 5, false);
+	if (local_4)
+	{
+		long local_5 = 0x7000001;
+		if (!local_0)
+		{
+			switch (((byte *)local_1)[0x104])
+			{
+			case 0: local_5 = 0x7000001; break;
+			case 1: local_5 = 0x90003e4; break;
+			case 2: local_5 = 0x50003e5; break;
+			case 3: local_5 = 0xb0003e6; break;
+			default: local_5 = 0; break;
+			}
+		}
+		local_4->function_253b1a(local_5);
+		local_4->value6e = true;
+	}
+	local_4 = (c_text_widget_45a5e0 *)find_child(6, 6, false);
+	if (local_4)
+	{
+		if (!local_0)
+		{
+			long local_5, local_6;
+			function_1a06f0((s_key_set *)((byte *)local_1 + 4), &local_5, &local_6);
+			if (local_5 != function_19c4e0(1))
+				local_5 = function_19c440(1, local_5);
+			if (local_5 != NONE)
+			{
+				s_entry_b *local_7 = function_19c1f0(local_5);
+				if (local_7)
+				{
+					word *local_8 = (word *)localized_name_get((s_localized_name *)local_7);
+					local_4->function_22f52e()->set_text(local_8);
+					goto local_9;
+				}
+			}
+		}
+		local_4->function_253b1a(function_253c06(local_4)->string_handle);
+	}
+local_9:
+	local_4 = (c_text_widget_45a5e0 *)find_child(6, 7, false);
+	if (local_4)
+	{
+		long local_5 = 0x60000b8;
+		if (!local_0)
+		{
+			long local_6, local_7;
+			function_1a06f0((s_key_set *)((byte *)local_1 + 4), &local_6, &local_7);
+			switch (local_7)
+			{
+			case 0: local_5 = 0x400028e; break;
+			case 1: break;
+			case 2: local_5 = 0x600028f; break;
+			case 3: local_5 = 0x9000290; break;
+			}
+		}
+		local_4->function_253b1a(local_5);
+	}
+	set_child_value6e(8, 6, local_0);
+	function_24a7ec(local_2, (c_class_2b0b5e *)find_child(7, 0, false), 0, local_0);
+	function_24a7ec(local_2, (c_class_2b0b5e *)find_child(7, 1, false), 1, local_0);
 }
