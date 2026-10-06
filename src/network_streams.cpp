@@ -168,6 +168,7 @@ public:
 	virtual bool v1(long *reason);
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
+	virtual long v5(long const *identifier, s_bitstream *stream);
 	void advance_acknowledgements();
 	bool get_next_send(long *type, long *sequence, long *size, long *time);
 	long function_965e0(long *sequence, long *size, long *time);
@@ -623,6 +624,7 @@ void reliable_stream_set_message_size(c_network_reliable_stream *stream, long se
 // @retail 0x96710
 long c_network_reliable_stream::read_acknowledgement(long *message_sequence, long sequence, bool valid, long distance)
 {
+	long const *local_0 = &distance;
 	if (!m_acknowledgement_window.valid)
 	{
 		sequence_window_initialize(&m_acknowledgement_window, sequence - 1);
@@ -633,13 +635,13 @@ long c_network_reliable_stream::read_acknowledgement(long *message_sequence, lon
 		delta -= 0x100;
 	else if (delta <= -0x80)
 		delta += 0x100;
-	long acknowledged = delta + newest;
+	long acknowledged = m_acknowledgement_window.newest + delta;
 	if (valid)
 		*message_sequence = acknowledged;
 	else
 		*message_sequence = NONE;
-	m_unknown958 = distance == 0;
-	long oldest = acknowledged - distance;
+	m_unknown958 = *local_0 == 0;
+	long oldest = acknowledged - *local_0;
 	m_unknown954 = oldest > m_unknown954 ? oldest : m_unknown954;
 	if (m_acknowledgement_window.newest <= oldest)
 	{
@@ -650,10 +652,12 @@ long c_network_reliable_stream::read_acknowledgement(long *message_sequence, lon
 		while (m_acknowledgement_window.oldest < oldest)
 			sequence_window_advance(&m_acknowledgement_window, m_acknowledgement_window.oldest + 1);
 	}
-	long result = 0;
-	if (acknowledged < m_acknowledgement_window.oldest || acknowledged == m_acknowledgement_window.oldest && valid)
-		result = 2;
-	return result;
+	if (acknowledged <= m_acknowledgement_window.oldest)
+	{
+		if (acknowledged != m_acknowledgement_window.oldest || valid)
+			return 2;
+	}
+	return 0;
 }
 
 // @retail 0x96860
@@ -736,6 +740,72 @@ long c_network_reliable_stream::function_96910(long sequence, long bit_count, dw
 	if (acknowledged == m_message_window.newest && m_next_sequence == m_message_window.newest && complete)
 		m_unknown959 = true;
 	return result;
+}
+
+// @retail 0x96360
+long c_network_reliable_stream::v5(long const *identifier, s_bitstream *arg_1)
+{
+	long *arg_0 = (long *)identifier;
+	long local_0 = 0;
+	if (v1(0))
+		return 2;
+	bool local_1 = function_1957d0(arg_1);
+	long local_2 = function_1959c0(arg_1, 8);
+	long local_3 = function_1959c0(arg_1, 7);
+	if (arg_1->mode == 4)
+		*arg_0 = local_1 ? m_message_window.newest : NONE;
+	else
+	{
+		local_0 = read_acknowledgement(arg_0, local_2, local_1, local_3);
+		if (local_0)
+			return local_0;
+	}
+	long local_4 = function_1959c0(arg_1, 8);
+	bool local_5 = false;
+	bool local_6 = function_1957d0(arg_1);
+	bool local_7 = function_1957d0(arg_1);
+	dword local_8[4];
+	memset(local_8, 0, sizeof(local_8));
+	long local_9;
+	if (!local_6 && !local_7)
+	{
+		local_9 = 0;
+		local_5 = function_1957d0(arg_1);
+	}
+	else if (local_6 && !local_7)
+	{
+		local_9 = 0;
+		for (long local_10 = 0; local_10 < 8; local_10++)
+		{
+			if (function_1957d0(arg_1))
+			{
+				local_8[0] |= 1 << local_10;
+				local_9 = local_10 + 1;
+			}
+		}
+	}
+	else if (!local_6 && local_7)
+	{
+		long local_10 = function_1959c0(arg_1, 3);
+		local_8[0] |= 1 << local_10;
+		local_9 = local_10 + 1;
+	}
+	else
+	{
+		if (function_1957d0(arg_1))
+			return local_0;
+		local_9 = function_1959c0(arg_1, 7);
+		for (long local_10 = 0; local_10 < local_9; local_10++)
+		{
+			if (function_1957d0(arg_1))
+				local_8[local_10 >> 5] |= 1 << (local_10 & 31);
+			else
+				local_8[local_10 >> 5] &= ~(1 << (local_10 & 31));
+		}
+	}
+	if (arg_1->mode != 4)
+		return function_96910(local_4, local_9, local_8, local_5);
+	return local_0;
 }
 
 // @retail 0x96d80
