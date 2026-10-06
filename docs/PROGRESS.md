@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6264 functions match
+
+```
+matched 6264 of 11318 game functions (653773 of 2784283 bytes, 23.48%)
+```
+
+3 new matches, none lost:
+- **Codex lane S**, round 6 (3): weapon, device and item helpers in the 0x100000–0x10ffff range.
+
 ## 2026-10-06: 6261 functions match
 
 ```
