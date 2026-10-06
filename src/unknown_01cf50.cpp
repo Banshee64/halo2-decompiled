@@ -2037,3 +2037,252 @@ void __stdcall function_35b00(void *payload)
 	if (request->end)
 		request->end(request->data);
 }
+
+typedef bool (__stdcall *t_1f3a0_callback)(s_363a0_vertex *vertices, void *context);
+
+// @retail 0x1f3a0
+void function_1f3a0(short const *rectangle, real x, real y, long width, long height,
+    short u_offset, short v_offset, real scale, dword color,
+    t_1f3a0_callback callback, void *context)
+{
+    s_363a0_vertex vertices[4];
+    short u = rectangle[2] + u_offset;
+    short v = rectangle[3] + v_offset;
+    vertices[0].color = vertices[1].color = vertices[2].color = vertices[3].color = color;
+    vertices[1].x = vertices[2].x = (real)width * scale + x;
+    vertices[0].x = vertices[3].x = x;
+    vertices[2].y = vertices[3].y = (real)height * scale + y;
+    vertices[0].u = vertices[3].u = (real)u;
+    vertices[1].u = vertices[2].u = (real)(u + width);
+    vertices[0].v = vertices[1].v = (real)v;
+    vertices[0].y = vertices[1].y = y;
+    vertices[2].v = vertices[3].v = (real)(v + height);
+    if (!callback || callback(vertices, context))
+        function_363a0(vertices);
+}
+
+void __stdcall function_423c0(void *payload);
+void __stdcall function_4f010(void *payload);
+void __stdcall function_508d0(void *payload);
+extern vector3f g_4b9dac;
+
+struct s_42760_entry
+{
+    real depth;
+    point3f position;
+    byte unknown10[0x10];
+    long type;
+};
+s_42760_entry g_4c152c[32];
+long g_4c19ac;
+
+// @retail 0x42760
+void function_42760(long flags)
+{
+    long count = g_4c19ac;
+    long i = 0;
+    if (count > 0)
+    {
+      do
+      {
+        s_42760_entry *entry = &g_4c152c[i];
+        if (entry->type == 3)
+        {
+            if (g_4b6280.count < 1024)
+            {
+                s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[g_4b6280.count];
+                record->type = 0;
+                record->active = false;
+                ++g_4b6280.count;
+                record->type = 3;
+                record->flags = 0;
+                record->callback = function_423c0;
+                real *depth = &record->depth;
+                point3f *position = &record->position;
+                if (depth) *depth = entry->depth;
+                if (position) *position = entry->position;
+                ((long *)record->payload)[0] = i;
+                ((long *)record->payload)[1] = flags;
+                *depth = 0.0f - *depth;
+            }
+            else if (g_4b6280.available)
+                g_4b6280.available = false;
+        }
+        ++i;
+      } while (i < count);
+    }
+}
+
+struct s_42850_payload
+{
+    long a, b;
+    point3f position;
+    vector3f first, second;
+    real scale, width;
+    vector3f third;
+};
+
+// @retail 0x42850
+void function_42850(long a, long b, point3f const *position,
+    vector3f const *first, vector3f const *second, real scale, real width,
+    vector3f const *third)
+{
+    if (g_4b6280.count < 1024)
+    {
+        s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[g_4b6280.count++];
+        record->type = 0;
+        record->active = false;
+        s_42850_payload *payload = (s_42850_payload *)record->payload;
+        payload->a = a;
+        payload->b = b;
+        payload->position = *position;
+        payload->first = *first;
+        payload->second = *second;
+        payload->scale = scale;
+        payload->width = width;
+        payload->third = *third;
+        vector3f delta;
+        delta.i = position->x - g_4b9da0.x;
+        delta.j = position->y - g_4b9da0.y;
+        delta.k = position->z - g_4b9da0.z;
+        record->type = 3;
+        record->flags = 0;
+        record->callback = function_4f010;
+        real depth = g_4b9dac.k * delta.k;
+        depth += g_4b9dac.j * delta.j;
+        depth += g_4b9dac.i * delta.i;
+        record->depth = 0.0f - depth;
+        record->position = *position;
+    }
+    else if (g_4b6280.available)
+        g_4b6280.available = false;
+}
+
+struct s_429a0_payload
+{
+    byte type, opacity;
+    byte unknown02[2];
+    long a, b, c;
+    point3f position, endpoint;
+    vector3f first, second;
+};
+
+// @retail 0x429a0
+void function_429a0(byte type, long a, long b, long c, point3f const *position,
+    point3f const *endpoint, vector3f const *first, vector3f const *second, real opacity)
+{
+    if (g_4b6280.count < 1024)
+    {
+        s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[g_4b6280.count++];
+        record->type = 0;
+        record->active = false;
+        s_429a0_payload *payload = (s_429a0_payload *)record->payload;
+        payload->type = type;
+        payload->a = a;
+        payload->b = b;
+        payload->c = c;
+        payload->position = *position;
+        payload->endpoint = *(endpoint ? endpoint : position);
+        payload->first = *first;
+        payload->second = *second;
+        long value = (long)(opacity * 256.0f);
+        payload->opacity = (byte)(value < 0 ? 0 : value > 255 ? 255 : value);
+        vector3f delta;
+        delta.i = position->x - g_4b9da0.x;
+        delta.j = position->y - g_4b9da0.y;
+        delta.k = position->z - g_4b9da0.z;
+        record->type = 3;
+        record->flags = 0;
+        record->callback = function_508d0;
+        real depth = g_4b9dac.k * delta.k;
+        depth += g_4b9dac.j * delta.j;
+        depth += g_4b9dac.i * delta.i;
+        record->depth = 0.0f - depth;
+        record->position = *position;
+    }
+    else if (g_4b6280.available)
+        g_4b6280.available = false;
+}
+
+struct s_1c8c0_stream
+{
+    byte format, stride;
+    byte unknown02[2];
+    long offset;
+    byte unknown08[8];
+    long buffer;
+};
+
+PRIVATE __forceinline dword stream_register_mask(byte const *descriptor)
+{
+    dword mask = 0;
+    signed char const *item = (signed char const *)descriptor + 1;
+    while (*item != -1)
+    {
+        if (*item >= 0)
+            mask |= 1 << *item;
+        item += 2;
+    }
+    return mask;
+}
+
+// @retail 0x1c8c0
+bool function_1c8c0(byte const *definition, dword mask,
+    s_1c8c0_stream const *third, s_1c8c0_stream const *second, s_1c8c0_stream const *first)
+{
+    long count = 0;
+    if (*(long const *)(definition + 0x38) > 0)
+    {
+      short i = 0;
+      do
+      {
+        s_stream_description const *stream = (s_stream_description const *)(*(byte *const *)(definition + 0x3c) + i * 32);
+        mask &= ~stream_register_mask(g_43f408[stream->format]);
+        function_1c620((s_shader_cache *)g_51f0f0, stream->buffer, stream->stride, stream->offset, g_43f408[stream->format]);
+        ++count;
+        ++i;
+      } while (i < *(long const *)(definition + 0x38));
+    }
+    if (first)
+    {
+        function_1c620((s_shader_cache *)g_51f0f0, first->buffer, first->stride, first->offset, g_43f408[first->format]);
+        mask &= ~stream_register_mask(g_43f408[first->format]);
+        ++count;
+    }
+    if (second)
+    {
+        function_1c620((s_shader_cache *)g_51f0f0, second->buffer, second->stride, second->offset, g_43f408[48]);
+        mask &= ~stream_register_mask(g_43f408[48]);
+        ++count;
+    }
+    if (third)
+    {
+        function_1c620((s_shader_cache *)g_51f0f0, third->buffer, third->stride, third->offset, g_43f408[third->format]);
+        mask &= ~stream_register_mask(g_43f408[third->format]);
+        ++count;
+    }
+    if (count > 0)
+        function_1c710(g_51f0f0);
+    return mask == 0;
+}
+
+// @retail 0x1caa0
+bool function_1caa0(long tag, byte const *selection, word const *kind, byte const *definition,
+    s_1c8c0_stream const *third, s_1c8c0_stream const *second, s_1c8c0_stream const *first)
+{
+    long mode = *(word const *)(selection + 0x14);
+    signed char index;
+    switch (*kind)
+    {
+    case 1: index = (signed char)selection[0x10]; break;
+    case 2: index = (signed char)selection[0x10]; break;
+    case 3: index = (signed char)selection[0x10]; break;
+    case 4: index = (signed char)selection[0x11]; break;
+    case 5: index = (signed char)selection[0x11]; break;
+    default: index = (signed char)selection[0x10]; break;
+    }
+    long shader = function_1cb20(mode, index, tag);
+    function_1c590((s_shader_cache *)g_51f0f0, tag, shader);
+    dword mask = function_1cb70(tag, shader);
+    return function_1c8c0(definition, mask, third, second, first);
+}

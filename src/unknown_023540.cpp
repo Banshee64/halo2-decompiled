@@ -691,3 +691,161 @@ void function_023ca0(
 		first_cell2 += stride;
 	}
 }
+
+struct s_24c70_range
+{
+    real low, high, average;
+    real smoothed_low, smoothed_high, smoothed_average;
+};
+
+PRIVATE __forceinline real histogram_blend(real previous, real value)
+{
+    real result;
+    if (previous > value)
+        result = previous * (1.0f - 0.16f) + value * 0.16f;
+    else
+        result = previous * (1.0f - 0.16f) + value * 0.16f;
+    return result;
+}
+
+// @retail 0x24c70
+void function_24c70(real const *histogram, s_24c70_range *range)
+{
+    real low, high;
+    real sum = 0.0f;
+    for (long i = 0; i < 256; ++i)
+    {
+        sum += histogram[i];
+        if (sum >= 0.0f)
+        {
+            low = (real)i * (1.0f / 255.0f);
+            break;
+        }
+    }
+    sum = 0.0f;
+    for (long j = 255; j >= 0; --j)
+    {
+        sum += histogram[j];
+        if (sum >= 0.01f)
+        {
+            high = (real)j * (1.0f / 255.0f);
+            break;
+        }
+    }
+    sum = 0.0f;
+    for (long k = 0; k < 256; ++k)
+        sum += (real)k * histogram[k];
+    real average = sum * (1.0f / 255.0f);
+    range->low = low;
+    range->high = high;
+    range->average = average;
+    range->smoothed_low = histogram_blend(range->smoothed_low, low);
+    range->smoothed_high = histogram_blend(range->smoothed_high, high);
+    range->smoothed_average = range->smoothed_average * 0.8f + average * 0.2f;
+    range->smoothed_low = range->smoothed_low < 0.0f ? 0.0f : range->smoothed_low > 0.0f ? 0.0f : range->smoothed_low;
+    range->smoothed_high = range->smoothed_high < 0.7f ? 0.7f : range->smoothed_high > 1.0f ? 1.0f : range->smoothed_high;
+    range->smoothed_average = range->smoothed_average < range->smoothed_low ? range->smoothed_low :
+        range->smoothed_average > range->smoothed_high ? range->smoothed_high : range->smoothed_average;
+}
+
+bool g_4b9d9c;
+real g_4857dc, g_4857e0;
+
+// @retail 0x27520
+bool __stdcall function_27520(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+    (void)&mode; (void)&bounds; (void)&t; (void)&out; (void)&unused;
+    if (g_509400 <= 0.0f)
+        g_509400 = g_485ae0;
+    switch (mode)
+    {
+    case 0:
+        function_350e0(out, bounds, t, g_509400);
+        return true;
+    case 1:
+        out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+        out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+        out[2] = 0.0f;
+        out[3] = 1.0f;
+        return true;
+    case 2:
+        if (!g_4b9d9c) goto scaled;
+    case 3:
+        {
+            real span = g_4857e0 - g_4857dc;
+            real scale = 1.0f / (0.0001f > span ? 0.0001f : span);
+            out[0] = g_48565c * scale;
+            out[1] = 0.0f;
+            out[2] = 0.0f - g_4857dc * scale;
+            out[3] = 0.0f;
+            return true;
+        }
+    case 4:
+scaled:
+        out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+        out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+        out[2] = 0.0f;
+        out[3] = 1.0f;
+        out[0] *= g_4b9d90;
+        out[1] *= g_4b9d90;
+        return true;
+    default:
+        return false;
+    }
+}
+
+extern byte g_4b99b0[0x4c];
+
+// @retail 0x298f0
+bool __stdcall function_298f0(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+    (void)&mode; (void)&bounds; (void)&t; (void)&out; (void)&unused;
+    if (g_509400 <= 0.0f)
+        g_509400 = g_485ae0;
+    switch (mode)
+    {
+    case 0:
+        function_350e0(out, bounds, t, g_509400);
+        return true;
+    case 2:
+        if (g_4b99b0[0x41] && g_4b99b0[1])
+        {
+            out[0] = *(real *)(g_4b99b0 + 0x24);
+            out[1] = 0.0f;
+            out[2] = t[0] * 640.0f;
+            out[3] = 0.0f;
+            return true;
+        }
+    case 3:
+        if (g_4b99b0[0x41] && g_4b99b0[1])
+        {
+            out[0] = 0.0f;
+            out[1] = *(real *)(g_4b99b0 + 0x28);
+            out[2] = t[1] * 480.0f;
+            out[3] = 0.0f;
+            return true;
+        }
+    case 1: case 4:
+        {
+            out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+            out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+            out[2] = 0.0f;
+            out[3] = 1.0f;
+            real strength = *(real *)(g_4b99b0 + 0x3c);
+            if (strength != 0.0f)
+            {
+                real fraction = (5 - mode) * 0.25f;
+                real x = *(real *)(g_4b99b0 + 0x1c) * strength * fraction + 1.0f;
+                real y = *(real *)(g_4b99b0 + 0x20) * strength * fraction + 1.0f;
+                real inverse_x = x > 0.0f ? 1.0f / x : 0.0f;
+                real inverse_y = y > 0.0f ? 1.0f / y : 0.0f;
+                out[0] = (bounds[1] - bounds[0]) * (1.0f - inverse_x) * 0.5f + out[0] * inverse_x;
+                out[1] = (bounds[3] - bounds[2]) * (1.0f - inverse_y) * 0.5f + out[1] * inverse_y;
+                return true;
+            }
+            return mode == 1;
+        }
+    default:
+        return false;
+    }
+}

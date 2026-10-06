@@ -1005,3 +1005,35 @@ bool function_4c2b0(long tag, byte const *wanted, signed char *current, long lev
     }
     return result;
 }
+
+struct s_light_shape_ab;
+bool function_c3140(long index);
+bool function_c17f0(long light_index, s_light_shape_ab *shape, bool respect_engine);
+extern short g_485602;
+
+// @retail 0x31590
+bool function_31590(long index, s_light_shape_ab *shape)
+{
+    bool result = false;
+    volatile bool enabled = false;
+    if (index != NONE && function_c3140(index))
+    {
+        s_render_entry_110 *entry = &((s_render_entry_110 *)g_4e030c->data)[index & 0xffff];
+        byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+        bool visible;
+        if (function_31520(index))
+        {
+            result = function_c17f0(index, shape, true);
+            visible = true;
+            if ((*(dword *)definition & 0x400) && g_485602 != 2)
+                visible = false;
+        }
+        else
+            visible = enabled;
+        result &= visible;
+        result &= true;
+        result &= *(short *)((byte *)entry + 0x48) != NONE ||
+            ((*(dword *)definition & 0x20) && (*(dword *)definition & 0x40000));
+    }
+    return result;
+}

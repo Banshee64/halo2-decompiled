@@ -377,3 +377,125 @@ void function_174d0(byte *context, long group, long stage, long pass, long entry
 		}
 	}
 }
+
+// @retail 0x1b790
+bool function_1b790(byte const *state, long index, real *out, long mode)
+{
+    real const *values = (real const *)(state + 0x320 + index * 0x40);
+    real sx = values[7];
+    real sy = values[8];
+    transform4x3f matrix;
+    memset(&matrix, 0, sizeof(matrix));
+    real sine = 0.0f;
+    real cosine = 1.0f;
+    if (!(fabs(values[13]) < 0.0001f))
+    {
+        volatile real rounded_angle = values[13] * 6.2831854820251465f;
+        real angle = rounded_angle;
+        sine = sinf(angle);
+        cosine = cosf(angle);
+    }
+    matrix.forward.i = sx * cosine;
+    matrix.forward.j = 0.0f - sx * sine;
+    matrix.left.i = sy * sine;
+    matrix.left.j = sy * cosine;
+    matrix.position.x = (1.0f - cosine + sine) * sx * 0.5f + values[10];
+    matrix.position.y = (1.0f - cosine - sine) * values[8] * 0.5f + values[11];
+    matrix.up.k = values[9];
+    matrix.position.z = values[12];
+    switch (mode)
+    {
+    case 5: case 6: case 7: case 8:
+        out[mode - 5] = matrix.forward.i; break;
+    case 9: out[0] = matrix.forward.i; out[1] = matrix.left.j; break;
+    case 10: out[2] = matrix.forward.i; out[3] = matrix.left.j; break;
+    case 11: out[0] = matrix.position.x; out[1] = matrix.position.y; break;
+    case 12: out[2] = matrix.position.x; out[3] = matrix.position.y; break;
+    case 13:
+        out[0] = matrix.forward.i; out[1] = matrix.left.j;
+        out[2] = matrix.position.x; out[3] = matrix.position.y; break;
+    case 14:
+        out[0] = matrix.forward.i; out[1] = matrix.forward.j;
+        out[2] = 0.0f; out[3] = matrix.position.x; break;
+    case 15:
+        out[0] = matrix.left.i; out[1] = matrix.left.j;
+        out[2] = 0.0f; out[3] = matrix.position.y; break;
+    case 16:
+        out[0] = matrix.forward.i; out[1] = matrix.left.j; out[2] = matrix.up.k; break;
+    case 17:
+        out[0] = matrix.position.x; out[1] = matrix.position.y; out[2] = matrix.position.z; break;
+    case 18:
+        out[0] = matrix.forward.i; out[1] = matrix.forward.j;
+        out[2] = matrix.up.i; out[3] = matrix.position.x; break;
+    case 19:
+        out[0] = matrix.left.i; out[1] = matrix.left.j;
+        out[2] = matrix.up.j; out[3] = matrix.position.y; break;
+    case 20:
+        out[0] = matrix.forward.k; out[1] = matrix.left.k;
+        out[2] = matrix.up.k; out[3] = matrix.position.z; break;
+    default: __assume(0);
+    }
+    return true;
+}
+
+struct s_tag_data;
+dword function_13bc00(s_tag_data const *function, real input);
+color3f *unpack_color3f(dword pixel, color3f *color);
+
+// @retail 0x1b580
+bool function_1b580(byte const *definition, long component, long unused, long mode, real *out)
+{
+    s_1b230_function const *curve = (s_1b230_function const *)(definition + 0xc);
+    real value = function_1b230(curve, *(long const *)definition,
+        *(long const *)(definition + 4), *(real const *)(definition + 8));
+    if (component != 4)
+    {
+        byte *data = curve->data;
+        if (!(data[1] & 0xf0))
+        {
+            real low = *(real *)(data + 4);
+            real high = *(real *)(data + 8);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            value = (high - low) * value + low;
+        }
+        switch (mode)
+        {
+        case 1: value = 1.0f - value; break;
+        case 2:
+            value = (real)((cos(value * 6.2831854820251465f) + 1.0f) * 0.5f);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            break;
+        case 3:
+            value = (real)(0.5f - cos(value * 6.2831854820251465f) * 0.5f);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            break;
+        case 4:
+            value = (real)((sin(value * 6.2831854820251465f) + 1.0f) * 0.5f);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            break;
+        case 5:
+            value = (real)(0.5f - sin(value * 6.2831854820251465f) * 0.5f);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            break;
+        }
+        out[component] = value;
+    }
+    else
+    {
+        color3f color;
+        if (curve->data && curve->size > 0)
+            unpack_color3f(function_13bc00((s_tag_data const *)curve, value), &color);
+        else
+            color = *(color3f const *)&g_4686cc->red;
+        out[0] = color.red;
+        out[1] = color.green;
+        /* This path repeats green in the third component. */
+        out[2] = color.green;
+    }
+    return true;
+}
