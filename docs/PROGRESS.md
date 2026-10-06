@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6457 functions match
+
+```
+matched 6457 of 11318 game functions (695776 of 2784283 bytes, 24.99%)
+```
+
+6457 new matches, none lost:
+- Codex lane N round 5: 0x14c320, 0x14c540 and 0x14c630, and five more through them: 0xa94b0, 0x152cf0 and 0x158090 (callers of 0x14cad0, whose parameters it fixed) and 0x24f850 and 0x24f880.
+
 ## 2026-10-06: 6449 functions match
 
 ```
