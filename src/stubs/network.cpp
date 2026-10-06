@@ -9,16 +9,9 @@
 
 
 
-// @stub 0x86f90
-void function_86f90(s_bitstream *stream, s_player_action *action)
-{
-}
 
-// @stub 0x874c0
-bool function_874c0(s_bitstream *stream, s_player_action *action)
-{
-	return false;
-}
+
+
 
 // @stub 0x87d00
 void function_87d00(s_bitstream *stream, void *message)

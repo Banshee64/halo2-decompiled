@@ -2,6 +2,43 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6424 functions match
+
+```
+matched 6424 of 11318 game functions (684019 of 2784283 bytes, 24.57%)
+```
+
+6424 new matches, none lost:
+- Codex lane D round 22: 0x6c4a0 and 0x84560.
+
+## 2026-10-06: 6422 functions match
+
+```
+matched 6422 of 11318 game functions (683641 of 2784283 bytes, 24.55%)
+```
+
+6422 new matches, none lost:
+- Codex lane C round 19: 0x1d05d0.
+
+## 2026-10-06: 6421 functions match
+
+```
+matched 6421 of 11318 game functions (683406 of 2784283 bytes, 24.55%)
+```
+
+6421 new matches, none lost:
+- Codex lane V round 6: 0x268700, 0x2691b0, 0x269de0 and 0x26a480.
+
+## 2026-10-06: 6417 functions match
+
+```
+matched 6417 of 11318 game functions (682868 of 2784283 bytes, 24.53%)
+```
+
+6417 new matches, none lost:
+- Codex lane Q round 5: 0x155b60, 0x155c60 and 0x155d80.
+- Codex lane FP round 1: the inline and call boundaries around 0x214ac0 and 0x214b80 are now explicit, so those two no longer depend on inlining choices elsewhere.
+
 ## 2026-10-06: 6414 functions match
 
 ```

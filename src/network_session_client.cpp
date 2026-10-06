@@ -799,3 +799,58 @@ void function_06f4b0(c_session_state_joining *self)
    state->unknown104 = 16;
  }
 }
+
+bool __stdcall function_59e50(c_class_58d20 *session, long mode, long local,
+ const XNKID *kid, const XNKEY *key, const s_session_member_identity *host,
+ long count, const dword *identities, const long *values, const long *other_values,
+ bool reserve, long timeout, const s_session_id *id, const void *extra);
+
+// @retail 0x6fe90
+bool __stdcall function_6fe90(c_session_state_joining *state, bool all_players, bool reserve)
+{
+ c_class_58d20 *current = state->owner->session_a;
+ c_class_58d20 *joining = state->owner->session_c;
+ network_session_close(joining);
+ long count = 0;
+ __declspec(align(8)) dword identities[16][3];
+ memset(identities, 0, sizeof(identities));
+ if (all_players)
+ {
+  for (long i = 0; i < 16; i++)
+   if (current->player_mask & (1 << i))
+   {
+    memcpy(identities[count], &current->players[i], 12);
+    count++;
+   }
+ }
+ else
+ {
+  count = *(long *)((byte *)state + 0xb0);
+  memcpy(identities, (byte *)state + 0xb4, count * 12);
+ }
+ long first[16];
+ long second[16];
+ for (long j = 0; j < 16; j++)
+ {
+  first[j] = NONE;
+  second[j] = NONE;
+ }
+ s_session_id id = { 0, 0 };
+ if (function_59e50(joining, *(long *)((byte *)state + 0xac), *(long *)((byte *)state + 0x6c),
+  (const XNKID *)((byte *)state + 0x70), (const XNKEY *)((byte *)state + 0x78),
+  (const s_session_member_identity *)((byte *)state + 0x88), count, identities[0], first, second,
+  reserve, g_network_configuration.value180, &id, 0))
+  return true;
+ if (SESSION_STATE_IS_LIVE(current->state))
+ {
+  long value = current->state;
+  if (value == 5 || value == 6 || value == 7 || value == 8)
+   network_session_set_mode(current, 1);
+  else
+  {
+   volatile long unused = value;
+  }
+ }
+ *(long *)((byte *)state + 0x104) = 16;
+ return false;
+}

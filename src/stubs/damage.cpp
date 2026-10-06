@@ -25,8 +25,6 @@ struct s_type_1e6529;
 /* the closest point of an object to an origin, and the surface normal there */
 // @stub 0x183910
 bool function_183910(long component_index, point3f const *origin, point3f *point, vector3f *normal) { return false; }
-// @stub 0x153d10
-void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, float d, float e, long f) { }
 // @stub 0x184250
 void __stdcall function_184250(s_type_1e6529 const *data) { }
 struct s_damage_report;
@@ -37,8 +35,6 @@ void __stdcall function_1e9fa0(void *engine_globals, long object_index, long pla
 // @stub 0xa80f0
 void function_a80f0(long object_index, s_damage_report const *report) { }
 /* called by function_d7b80 (0xd7b80) */
-// @stub 0x155b60
-void function_155b60(long unit_index) { }
 /* called by function_d5de0 (0xd5de0) */
 /* the physics model constraint iterator and the model node search (for
    0xdb810, 0xdbb40) */

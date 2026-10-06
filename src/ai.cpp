@@ -1382,3 +1382,73 @@ long __stdcall function_1dfb90(long definition_index)
     }
     return result;
 }
+
+
+bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
+long function_11ea30(point3f const *a, vector3f const *u, point3f const *b, vector3f const *v, real radius);
+
+// @retail 0x1c8d20
+bool function_1c8d20(long actor_index, point3f const *origin, long excluded_object,
+    vector3f const *direction, long *blocking_index)
+{
+    bool result = true;
+    long blocker = NONE;
+    s_ai_capsule_view capsules[32];
+    short count = function_1c89b0(actor_index, 32, capsules);
+    for (short i = 0; i < count; i++)
+    {
+        if (capsules[i].object_index == excluded_object)
+            continue;
+        char intersects;
+        if (capsules[i].active)
+            intersects = function_11e5e0(&capsules[i].center, origin, direction, capsules[i].radius);
+        else
+            intersects = (char)function_11ea30(&capsules[i].center,
+                (vector3f *)&capsules[i].value10, origin, direction, capsules[i].radius);
+        if (intersects)
+        {
+            blocker = capsules[i].value1c;
+            result = false;
+            break;
+        }
+    }
+    if (blocking_index)
+        *blocking_index = blocker;
+    return result;
+}
+
+
+bool function_1df5d0(short team_a, short team_b);
+real __stdcall function_265d30(long actor_index, long prop_index);
+
+// @retail 0x1c9a00
+void function_1c9a00(void)
+{
+    s_actor_iterator iterator;
+    function_x66da2b(&iterator, true);
+    s_actor_view *actor;
+    while ((actor = (s_actor_view *)function_1e46c0(&iterator)) != NULL)
+    {
+        long next = actor_get(iterator.actor_index)->first_prop_index;
+        while (next != NONE)
+        {
+            long index = next;
+            s_prop_node_view *node = &((s_prop_node_view *)g_502418->data)[index & 0xffff];
+            s_ai_prop_target *target = &((s_ai_prop_target *)g_50241c->data)[node->unknown08 & 0xffff];
+            byte *object = (byte *)((s_ai_object_header *)g_4e0300->data)[node->object_index & 0xffff].object;
+            next = node->next_index;
+            byte *state = NULL;
+            if (node->view_index != NONE)
+            {
+                byte *view = g_502414->data + (node->view_index & 0xffff) * 0x124;
+                if (view)
+                    state = view + 0x70;
+            }
+            *(short *)((byte *)target + 0x20) = *(short *)(object + 0x138);
+            target->unknown23 = function_1df560(actor->unknown024, *(short *)((byte *)target + 0x20));
+            target->unknown24 = function_1df5d0(actor->unknown024, *(short *)((byte *)target + 0x20));
+            if (state)
+                *(real *)(state + 0x3c) = function_265d30(iterator.actor_index, index);
+        }
+    }
+}

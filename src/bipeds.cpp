@@ -3925,7 +3925,7 @@ void __stdcall function_1e55d0(s_biped_physics_move *move, void *physics, s_bipe
 void matrix4x3_from_forward_and_up(transform4x3f *out, vector3f const *forward, vector3f const *up);
 vector3f *function_1427f0(transform4x3f const *matrix, vector3f const *vector,
 	vector3f *out);
-void __stdcall function_1cd8a0(s_animation_state *state, long arg_159e6d, vector3f const *velocity);
+bool __stdcall function_1cd8a0(s_animation_state *state, long arg_159e6d, vector3f const *velocity);
 void __stdcall function_1cdb00(long arg_159e6d, vector3f const *control);
 void function_e6f90(long unit_index);
 void __stdcall function_b87b0(long object_index);

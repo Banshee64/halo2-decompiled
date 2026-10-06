@@ -126,10 +126,6 @@ long __stdcall function_1e0160(long squad_index, long entry_index, long unit_ind
 }
 
 
-// @stub 0x1c9a00
-void function_1c9a00(void)
-{
-}
 
 /* callees of lane A's remaining script functions (other lanes' or not yet decompiled) */
 
