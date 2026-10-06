@@ -92,12 +92,6 @@ void function_23c0e0(long object_index, s_observer_command *command)
 
 /* lane D's region: a machine's connection quality */
 struct s_68a90_entry;
-// @stub 0x68a90
-bool function_68a90(s_68a90_entry *entry, long *quality)
-{
-	return false;
-}
-
 /* in the region: the collision test of one object (not decompiled yet) */
 struct s_collision_result_1697c0;
 // @stub 0x1691a0

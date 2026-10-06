@@ -10,6 +10,37 @@ c_replication_view_storage::c_replication_view_storage()
 {
 }
 
+struct s_z_input_packet;
+struct s_z_transform_state;
+void function_aaef0(s_bitstream *stream, s_z_input_packet const *state);
+void function_ab7f0(s_bitstream *stream, s_z_transform_state const *state);
+void function_194710(s_bitstream *stream, bool discard);
+
+// @retail 0x8b9e0
+void c_vtable_450c94::v3(s_node_450d1c *node, long a2, long a3, long key,
+	s_bitstream *stream, long reserved_bits)
+{
+	long index = (long)node;
+	stream->checkpoints[stream->checkpoint_count++] = stream->bit_position;
+	stream_write_bit(stream, true);
+	stream_write_checked(stream, index, 5);
+	stream_write_bit(stream, (active_mask & (1 << index)) != 0);
+	if (active_mask & (1 << index))
+		function_aaef0(stream, (const s_z_input_packet *)&data18[index]);
+	stream_write_bit(stream, (unknown718 & (1 << index)) != 0);
+	if (unknown718 & (1 << index))
+		function_ab7f0(stream, (const s_z_transform_state *)&data720[index]);
+	if ((stream->size_in_bytes << 3) - stream->bit_position < reserved_bits)
+		function_194710(stream, true);
+	else
+	{
+		stream->checkpoint_count--;
+		active_mask &= ~(1 << index);
+		unknown718 &= ~(1 << index);
+		times[index] = g_510548 ? g_51054c : GetTickCount();
+	}
+}
+
 s_definition_4ced60 g_4ced60[32];
 long g_4cf474;
 real g_4cf478;

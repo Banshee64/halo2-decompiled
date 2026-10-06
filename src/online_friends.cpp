@@ -333,3 +333,60 @@ void online_friend_from_user(XONLINE_FRIEND *friend_, const XONLINE_USER *user)
 	strncpy(gamertag, user->szGamertag, XONLINE_GAMERTAG_SIZE);
 	gamertag[XONLINE_GAMERTAG_SIZE - 1] = 0;
 }
+
+struct s_friend_presence_status
+{
+	long state;
+	dword value04;
+	dword value08;
+	word time0c;
+	word time0e;
+};
+
+// @retail 0x8d230
+bool function_8d230(const XONLINE_FRIEND *friend_, s_friend_presence_status *status)
+{
+	memset(status, 0, sizeof(*status));
+	bool result = false;
+	if ((online_friend_state_get_flags(friend_->dwFriendState, friend_->dwTitleID) & 1) &&
+		online_logon_connected() && XOnlineTitleIdIsSameTitle(friend_->dwTitleID) &&
+		friend_->StateDataSize >= 4)
+	{
+		const byte *data = friend_->StateData;
+		long signature = 0xfcf1;
+		if (*(const word *)data == *(word *)&signature)
+		{
+			byte time = data[2];
+			result = true;
+			if (time <= 59)
+				status->time0c = (word)time + 1;
+			else if (time >= 60 && time <= 83)
+				status->time0c = ((word)time - 47) * 5;
+			else if (time >= 84 && time <= 125)
+				status->time0c = ((word)time - 65) * 10;
+			else if (time == 126)
+				status->time0c = 600;
+			else if (time >= 127 && time <= 186)
+				status->time0e = (word)time - 126;
+			else if (time >= 187 && time <= 210)
+				status->time0e = ((word)time - 174) * 5;
+			else if (time >= 211 && time <= 252)
+				status->time0e = ((word)time - 192) * 10;
+			else
+				status->time0e = 600;
+			byte flags = data[3];
+			if (flags & 1)
+				status->state = (flags & 2) ? 6 : 5;
+			else if (flags & 4)
+				status->state = (flags & 8) ? 4 : 2;
+			else
+				status->state = (((dword)flags & 8) | 4) >> 2;
+			if (friend_->StateDataSize == 4)
+			{
+				status->value04 = (*(const dword *)data >> 28) & 3;
+				status->value08 = *(const dword *)data >> 30;
+			}
+		}
+	}
+	return result;
+}
