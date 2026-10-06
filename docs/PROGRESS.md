@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6371 functions match
+
+```
+matched 6371 of 11318 game functions (675272 of 2784283 bytes, 24.25%)
+```
+
+32 new matches, none lost:
+- **Codex lane AA**, round 1 (25): unit, weapon, object attachment and physics helpers in the new 0x110000–0x11ffff range; its corrected prototypes and new callees also make @Banshee64's 0xce040 and the existing 0xeb5a0 match.
+- **Codex lane P**, round 2 (7): three string and list helpers in the 0x130000–0x13ffff range, and four lane A callers that now match through them.
+
 ## 2026-10-06: 6339 functions match
 
 ```
