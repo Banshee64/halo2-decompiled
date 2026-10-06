@@ -267,14 +267,14 @@ void __stdcall function_c3cf0(short pass, long liquid_index)
             (liquid->time == -1.0f || liquid->time >= time - (1.0f / 3.0f)))
         {
             s_liquid_definition_ab *definition = (s_liquid_definition_ab *)g_4e3b44[liquid->tag_index & 0xffff].bytes;
-            byte first_person = 0;
+            byte local_287b6e = 0;
             s_object_marker marker;
             long count;
             if (function_3e9c0(liquid->object_index))
             {
                 count = first_person_weapon_get_markers(liquid->object_index, definition->enabled,
                     (s_first_person_marker *)&marker, 1);
-                first_person = 1;
+                local_287b6e = 1;
             }
             else
                 count = function_b8d30(liquid->object_index, definition->enabled, &marker, 1, false);
@@ -292,7 +292,7 @@ void __stdcall function_c3cf0(short pass, long liquid_index)
                 else
                     opacity = liquid->value;
                 if (opacity > 0.0f)
-                    function_429a0(first_person, liquid->object_index, liquid->tag_index, liquid_index,
+                    function_429a0(local_287b6e, liquid->object_index, liquid->tag_index, liquid_index,
                         &marker.matrix.position, &liquid->point, &marker.matrix.forward, &marker.matrix.up, opacity);
             }
         }
