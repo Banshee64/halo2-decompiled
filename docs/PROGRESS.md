@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6253 functions match
+
+```
+matched 6253 of 11318 game functions (650189 of 2784283 bytes, 23.35%)
+```
+
+11 new matches, none lost:
+- **Codex lane Z**, round 4 (4): more object type and event helpers in the 0xa0000–0xac48f range.
+- **Codex lane V**, round 4 (7): path and clump helpers in the 0x260000–0x26e36f range.
+
 ## 2026-10-06: 6242 functions match
 
 ```
