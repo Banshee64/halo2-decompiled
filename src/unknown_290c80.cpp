@@ -580,3 +580,37 @@ void function_28fd00(long arg_0)
 		}
 	}
 }
+
+struct s_orientation_request_118f90;
+void function_118f90(s_orientation_request_118f90 *arg_0);
+
+// @retail 0x28f600
+void function_28f600(long arg_0)
+{
+	s_handler_object_view *local_0 = handler_object_get(arg_0);
+	if (!local_0->flags134)
+	{
+		s_object_ai_data *local_1 = (s_object_ai_data *)((byte *)local_0 + local_0->ai_offset);
+		if (local_1)
+		{
+			s_28ff90_state local_2;
+			function_118f90((s_orientation_request_118f90 *)&local_2);
+			if (local_1->position_pending)
+				*((byte *)&local_2 + 8) |= 0x10;
+			else
+				*((byte *)&local_2 + 8) &= ~0x10;
+			*((byte *)&local_2 + 8) |= 8;
+			local_2.forward = *(vector3f *)((byte *)local_1 + 0x80);
+			local_2.up = *(vector3f *)((byte *)local_1 + 0x8c);
+			*(vector3f *)((byte *)&local_2 + 0xc) = *(vector3f *)((byte *)local_1 + 0x98);
+			if (*((byte *)local_1 + 0xa4))
+			{
+				local_2.flags0 = *(long *)((byte *)local_1 + 0xac);
+				local_2.flags4 = *(long *)((byte *)local_1 + 0xa8);
+				*((byte *)&local_2 + 8) |= 1;
+				*((byte *)local_1 + 0xa4) = false;
+			}
+			((s_28ff90_header *)g_4e0300->data)[arg_0 & 0xffff].object->state = local_2;
+		}
+	}
+}

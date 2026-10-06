@@ -53,6 +53,8 @@ struct s_scenario_flocks_view
 
 extern s_record_pool *g_51ecb4;
 
+short __stdcall function_272af0(s_match_globals *arg_0, point3f const *arg_1);
+
 /* a new flock of a scenario flock definition */
 // @retail 0x293070
 long flock_new(short definition_index)
@@ -605,4 +607,46 @@ void function_295600(s_295600_state *state, bool planar, real magnitude,
 		result->k = 0.0f;
 	else
 		result->k = state->previous.k + fraction * (state->current.k - state->previous.k);
+}
+
+// @retail 0x2938c0
+bool function_2938c0(long arg_0)
+{
+	bool local_0 = false;
+	s_flock *local_1 = &((s_flock *)g_51ecb4->data)[arg_0 & 0xffff];
+	long local_2 = local_1->unknown04;
+	while (local_2 != NONE)
+	{
+		long local_3 = local_2;
+		s_flock_object_header *local_4 = &((s_flock_object_header *)g_4e0300->data)[local_3 & 0xffff];
+		s_flock_object *local_5 = local_4->object;
+		s_flock_member *local_6 = flock_object_get_member(local_5);
+		local_2 = local_6 ? local_6->next_object_index : NONE;
+		local_6 = flock_object_get_member(local_5);
+		bool local_7 = (*((byte *)local_4 + 2) & 1) != 0;
+		local_0 |= local_7;
+		if (local_6)
+			*((bool *)local_6 + 0xe) = local_7;
+	}
+	if (local_1->unknown0e)
+	{
+		*(word *)((byte *)local_1 + 0x10) = 0;
+		s_scenario_flocks_view *local_8 = (s_scenario_flocks_view *)g_4e0350;
+		if (local_1->definition_index >= 0 && local_1->definition_index < local_8->flock_count)
+		{
+			s_scenario_flock *local_9 = &local_8->flocks[local_1->definition_index];
+			for (short local_10 = 0; local_10 < *(long *)((byte *)local_9 + 0xc); local_10++)
+			{
+				point3f const *local_11 = (point3f const *)(*(byte **)((byte *)local_9 + 0x10) + local_10 * 0x1c);
+				short local_12 = function_272af0(g_4e0348, local_11);
+				if (((dword *)((byte *)g_4e6948 + 0x11b8))[local_12 >> 5] & (1 << (local_12 & 0x1f)))
+				{
+					local_0 = true;
+					*(word *)((byte *)local_1 + 0x10) |= 1 << local_10;
+				}
+			}
+		}
+	}
+	local_1->unknown0c = local_0;
+	return local_0;
 }

@@ -101,10 +101,10 @@ __forceinline void function_2992ba(short arg_0, bool arg_1, real arg_2, point2f 
 }
 
 // @retail 0x298d90
-void function_298d90(long arg_0, long arg_1, s_298c30 const *arg_2, point2f const *arg_3,
+void function_298d90(volatile long arg_0, long arg_1, s_298c30 const *arg_2, point2f const *arg_3,
 	point2f const *arg_4, point2f const *arg_5, real arg_6, point2f const *arg_7, point2f const *arg_8)
 {
-	(void)&arg_0;
+	(void)arg_0;
 	point2f const *const *local_26 = &arg_3;
 	s_slot_object_view *local_0 = object_get(arg_1);
 	point2f local_1 = { arg_7->x + arg_8->x, arg_7->y + arg_8->y };
@@ -250,6 +250,13 @@ __forceinline void function_29991b(point2f const *arg_0, real arg_1, real arg_2,
 	arg_5->z = arg_4;
 }
 
+__forceinline void function_2994a1(point2f const *arg_0, real arg_1,
+	point2f const *arg_2, point2f *arg_3)
+{
+	arg_3->x = arg_1 * arg_2->x + arg_0->x;
+	arg_3->y = arg_1 * arg_2->y + arg_0->y;
+}
+
 // @retail 0x299460
 bool function_299460(long arg_0, s_298c46 *arg_1, s_298c30 const *arg_2,
 	point3f const *arg_3, vector3f const *arg_4, vector3f const *arg_5,
@@ -260,13 +267,11 @@ bool function_299460(long arg_0, s_298c46 *arg_1, s_298c30 const *arg_2,
 	point2f local_2;
 	if (arg_1->field_0)
 	{
-		local_2.x = arg_5->i * arg_6 + arg_3->x;
-		local_2.y = arg_5->j * arg_6 + arg_3->y;
+		function_2994a1((point2f const *)arg_3, arg_6, (point2f const *)arg_5, &local_2);
 	}
 	else
 	{
-		local_2.x = arg_5->i * -arg_6 + arg_3->x;
-		local_2.y = arg_5->j * -arg_6 + arg_3->y;
+		function_2994a1((point2f const *)arg_3, -arg_6, (point2f const *)arg_5, &local_2);
 	}
 	real local_3 = *(real *)((byte const *)arg_2 + 0x14);
 	short local_4 = function_2108a0(*(long *)((byte *)local_1 + 0x28c));
@@ -277,13 +282,11 @@ bool function_299460(long arg_0, s_298c46 *arg_1, s_298c30 const *arg_2,
 	function_210770(local_4, arg_5, &local_6);
 	if (arg_1->field_0)
 	{
-		local_7.x = local_6.i * arg_6 + local_5->x;
-		local_7.y = local_6.j * arg_6 + local_5->y;
+		function_2994a1((point2f const *)local_5, arg_6, (point2f const *)&local_6, (point2f *)&local_7);
 	}
 	else
 	{
-		local_7.x = local_6.i * -arg_6 + local_5->x;
-		local_7.y = local_6.j * -arg_6 + local_5->y;
+		function_2994a1((point2f const *)local_5, -arg_6, (point2f const *)&local_6, (point2f *)&local_7);
 	}
 	vector3f local_8 = { local_6.i * -1.0f, local_6.j * -1.0f, local_6.k * -1.0f };
 	bool local_9 = false;
@@ -458,6 +461,7 @@ real function_1f9e70(long arg_0, long arg_1, point2f const *arg_2, vector2f cons
 __forceinline void function_29a20e(vector3f *arg_0)
 {
 	real local_0 = (real)sqrt(arg_0->i * arg_0->i + arg_0->j * arg_0->j);
+	arg_0->k = 0.0f;
 	if (!(0.0001f > fabs(local_0)))
 	{
 		real local_1 = 1.0f / local_0;
@@ -479,7 +483,6 @@ void function_29a190(long arg_0, long arg_1, vector3f const *arg_2, vector3f *ar
 	if (arg_8 == 0)
 		*(real *)(local_0 + 0x674) = *(real *)(local_0 + 0x670);
 	vector3f local_5 = *(vector3f *)(local_0 + 0x290);
-	local_5.k = 0.0f;
 	*(bool *)(local_0 + 0x6d1) = false;
 	function_29a20e(&local_5);
 	real local_6 = g_468778->x * local_5.i + g_468778->y * local_5.j;
