@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6175 functions match
+
+```
+matched 6175 of 11318 game functions (638810 of 2784283 bytes, 22.94%)
+```
+
+8 new matches, none lost:
+- **Codex lane Y**, round 4 (8): session and gateway stream helpers in the 0x70000–0x7ffff range.
+
+## 2026-10-05: 6167 functions match
+
+```
+matched 6167 of 11318 game functions (637310 of 2784283 bytes, 22.89%)
+```
+
+3 new matches, none lost:
+- **Codex lane C**, round 16 (3): havok component and actor helpers in the 0x1c0000–0x1dffff range.
+
 ## 2026-10-05: 6164 functions match
 
 ```

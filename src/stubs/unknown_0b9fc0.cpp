@@ -10,9 +10,6 @@ struct s_animation_frame_event;
 /* moves a Havok component's bodies to a device position */
 // @stub 0x1d24a0
 void __stdcall function_1d24a0(s_havok_component *component, float position) { }
-/* keyframes a Havok body to a matrix */
-// @stub 0x1d0ee0
-void function_1d0ee0(long rigid_body_index, s_havok_component *component, transform4x3f const *matrix) { }
 /* a device's animation event callback */
 // @stub 0xbf600
 void __stdcall function_bf600(long user, float frame, s_animation_frame_event const *event) { }

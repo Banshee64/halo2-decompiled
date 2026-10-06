@@ -134,7 +134,7 @@ bool online_stats_write_succeeded(long task_index)
 }
 
 // @retail 0x924e0
-long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_key, word seconds)
+long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_key, long seconds)
 {
 	long task_index = online_task_new_if_logged_on();
 	if (task_index != NONE)
