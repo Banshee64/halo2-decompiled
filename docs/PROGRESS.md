@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6203 functions match
+
+```
+matched 6203 of 11318 game functions (641123 of 2784283 bytes, 23.03%)
+```
+
+25 new matches, none lost:
+- **Codex lane AC**, round 1 (25): interface destructors, tracking hooks, iterators and actor helpers in the new 0x2729b0–0x29ffff range.
+
 ## 2026-10-05: 6178 functions match
 
 ```
