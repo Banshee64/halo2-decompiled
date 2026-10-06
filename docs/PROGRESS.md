@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6564 functions match
+
+```
+matched 6564 of 11318 game functions (707829 of 2784283 bytes, 25.42%)
+```
+
+6564 new matches, none lost:
+- Codex UI-core lane rounds 5 and 6: 27 matches in the UI core (0x22d0e3 to 0x23c0e0, plus 0x1489b5 and 0x148c3e).
+
 ## 2026-10-06: 6537 functions match
 
 ```
