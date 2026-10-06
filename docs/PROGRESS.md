@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6424 functions match
+
+```
+matched 6424 of 11318 game functions (684019 of 2784283 bytes, 24.57%)
+```
+
+6424 new matches, none lost:
+- Codex lane D round 22: 0x6c4a0 and 0x84560.
+
 ## 2026-10-06: 6422 functions match
 
 ```
