@@ -5,8 +5,6 @@
    calls that are not written yet */
 
 /* outside the unit range */
-// @stub 0x114c60
-void function_114c60(long unit_index) { }
 
 /* in the biped range (PR #28 writes it) */
 
