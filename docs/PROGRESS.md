@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6577 functions match
+
+```
+matched 6577 of 11318 game functions (709648 of 2784283 bytes, 25.49%)
+```
+
+6577 new matches, none lost:
+- Codex UI-screens lane round 7: nine screen and list functions (0x2b0b96 to 0x2cad45), and lane O's 0x24a7ec through its callee 0x2b10a3.
+
 ## 2026-10-06: 6567 functions match
 
 ```
