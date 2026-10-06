@@ -395,11 +395,54 @@ c_vertex_shape *c_count_interface::make_transformed_shape(long index, long user_
 	return new (storage) c_vertex_shape((s_shape_source *)owner, 0, shape_value, index, user_data, matrix);
 }
 
+struct s_surface_key_array
+{
+ dword *keys;
+ long count;
+};
+
+struct c_query_transform
+{
+ __m128 axes[3];
+ __m128 position;
+ void inverse_product(const c_query_transform *a, const c_query_transform *b);
+};
+
+struct c_query_point
+{
+ __m128 value;
+ void inverse_transform(const c_query_transform *matrix, const __m128 *point);
+};
+
+struct s_query_bounds
+{
+ __m128 minimum, maximum;
+};
+
+struct c_surface_query_library
+{
+ void query_sphere(const __m128 *sphere, s_surface_key_array *keys);
+ void query_box(const c_query_transform *matrix, const __m128 *extent, real tolerance, s_surface_key_array *keys);
+ void query_bounds(const s_query_bounds *bounds, s_surface_key_array *keys);
+};
+
 struct c_shape_owner : c_shape_library_base_a
 {
 	byte field_8[0x14 - 8];
 	c_havok_reference_counted *object;
 	virtual ~c_shape_owner();
+ virtual void v1() {}
+ virtual void v2() {}
+ virtual void v3() {}
+ virtual void v4() {}
+ virtual void v5() {}
+ virtual void v6() {}
+ virtual void v7() {}
+ virtual void v8() {}
+ virtual void v9() {}
+ virtual void query_sphere(const __m128 *sphere, s_surface_key_array *keys);
+ virtual void query_box(const c_query_transform *matrix, const __m128 *extent, real tolerance, s_surface_key_array *keys);
+ virtual void query_bounds(const s_query_bounds *bounds, s_surface_key_array *keys);
 };
 
 c_shape_owner *g_51e9d4;
@@ -434,6 +477,15 @@ struct c_shape_global_owner : c_shape_counted_base
 	s_shape_four_values extent;
 	c_shape_global_owner();
 	virtual ~c_shape_global_owner();
+ virtual void v5() {}
+ virtual void v6() {}
+ virtual void v7() {}
+ virtual void v8() {}
+ virtual void v9() {}
+ virtual void v10() {}
+ virtual void v11() {}
+ virtual void v12() {}
+ virtual void *make_shape(dword key, void *storage);
 	void operator delete(void *block)
 	{
 		g_480118->allocate((long)block, ((c_shape_global_owner *)block)->flags, 0x22);
@@ -496,4 +548,302 @@ c_shape_global_owner::c_shape_global_owner()
 c_shape_global_owner::~c_shape_global_owner()
 {
 	g_51e9d0 = 0;
+}
+
+void function_1eece0(s_surface_key_array *array, void *owner);
+bool function_1ef3e0(dword key);
+
+struct c_instance_surface_query
+{
+ virtual void v0() {}
+ virtual void v1() {}
+ virtual void v2() {}
+ virtual void v3() {}
+ virtual void v4() {}
+ virtual void v5() {}
+ virtual void v6() {}
+ virtual void v7() {}
+ virtual void v8() {}
+ virtual void v9() {}
+ virtual void query_sphere(const __m128 *sphere, s_surface_key_array *keys) {}
+ virtual void query_box(const c_query_transform *matrix, const __m128 *extent, real tolerance, s_surface_key_array *keys) {}
+};
+
+struct s_query_instance
+{
+ transform4x3f matrix;
+ short owner;
+ byte field_36[0x58 - 0x36];
+};
+
+struct s_query_owner
+{
+ byte field_0[0x98];
+ long surface_count;
+ byte field_9c[0xb4 - 0x9c];
+ byte *shape;
+ byte field_b8[0xc8 - 0xb8];
+};
+
+struct s_query_globals
+{
+ byte field_0[0x13c];
+ s_query_owner *owners;
+ long count;
+ s_query_instance *instances;
+};
+
+PRIVATE __forceinline void query_transform(const transform4x3f *matrix, c_query_transform *output)
+{
+ real *a = (real *)output;
+ a[0] = matrix->forward.i; a[1] = matrix->forward.j; a[2] = matrix->forward.k; a[3] = 0.0f;
+ a[4] = matrix->left.i; a[5] = matrix->left.j; a[6] = matrix->left.k; a[7] = 0.0f;
+ a[8] = matrix->up.i; a[9] = matrix->up.j; a[10] = matrix->up.k; a[11] = 0.0f;
+ __m128 translation;
+ ((real *)&translation)[0] = matrix->position.x;
+ ((real *)&translation)[1] = matrix->position.y;
+ ((real *)&translation)[2] = matrix->position.z;
+ ((real *)&translation)[3] = 0.0f;
+ output->position = translation;
+}
+
+PRIVATE __forceinline void query_remove_key(s_surface_key_array *keys, long index)
+{
+ --keys->count;
+ for (long i = index; i < keys->count; ++i)
+  keys->keys[i] = keys->keys[i + 1];
+}
+
+PRIVATE __forceinline void query_remap_keys(s_surface_key_array *keys, long first, long instance_index)
+{
+ for (long i = first; i < keys->count; ++i)
+ {
+  dword key = ((keys->keys[i] | 0xffffa000) << 16) | instance_index;
+  if (function_1ef3e0(key)) keys->keys[i] = key;
+  else { query_remove_key(keys, i); --i; }
+ }
+}
+
+// @retail 0x1ee820
+void c_shape_owner::query_box(const c_query_transform *matrix, const __m128 *extent,
+ real tolerance, s_surface_key_array *keys)
+{
+ ((c_surface_query_library *)this)->query_box(matrix, extent, tolerance, keys);
+ function_1eece0(keys, this);
+ for (long i = 0; i < keys->count; ++i)
+ {
+  dword key = keys->keys[i];
+  long instance_index = key & 0xffff;
+  if ((key & 0xe0000000) == 0x40000000)
+  {
+   s_query_globals *globals = (s_query_globals *)g_4e0348;
+   s_query_instance *instance = &globals->instances[instance_index];
+   s_query_owner *owner = &globals->owners[instance->owner];
+   if (owner->surface_count <= 0x2000)
+   {
+    c_instance_surface_query *query = (c_instance_surface_query *)(owner->shape + 0x50);
+    c_query_transform transform, local;
+    query_transform(&instance->matrix, &transform);
+    local.inverse_product(&transform, matrix);
+    query_remove_key(keys, i);
+    long first = keys->count;
+    --i;
+    query->query_box(&local, extent, tolerance, keys);
+    query_remap_keys(keys, first, instance_index);
+   }
+  }
+ }
+}
+
+// @retail 0x1ee5b0
+void function_1ee5b0(c_shape_owner *owner, const __m128 *sphere, bool expand_instances,
+ bool filter, s_surface_key_array *keys)
+{
+ c_shape_owner *const *owner_reference = &owner;
+ ((c_surface_query_library *)*owner_reference)->query_sphere(sphere, keys);
+ if (filter) function_1eece0(keys, *owner_reference);
+ if (expand_instances)
+ {
+  for (long i = 0; i < keys->count; ++i)
+  {
+   dword key = keys->keys[i];
+   long instance_index = key & 0xffff;
+   if ((key & 0xe0000000) == 0x40000000)
+   {
+    s_query_globals *globals = (s_query_globals *)g_4e0348;
+    s_query_instance *instance = &globals->instances[instance_index];
+    s_query_owner *definition = &globals->owners[instance->owner];
+    if (definition->surface_count <= 0x2000)
+    {
+     c_instance_surface_query *query = (c_instance_surface_query *)(definition->shape + 0x50);
+     c_query_transform transform;
+     c_query_point center;
+     center.value = *sphere;
+     query_transform(&instance->matrix, &transform);
+     center.inverse_transform(&transform, &center.value);
+     query_remove_key(keys, i);
+     __m128 local = center.value;
+     ((real *)&local)[3] = ((const real *)sphere)[3];
+     long first = keys->count;
+     --i;
+     query->query_sphere(&local, keys);
+     query_remap_keys(keys, first, instance_index);
+    }
+   }
+  }
+ }
+}
+
+// @retail 0x1eea50
+void c_shape_owner::query_bounds(const s_query_bounds *bounds, s_surface_key_array *keys)
+{
+ ((c_surface_query_library *)this)->query_bounds(bounds, keys);
+ function_1eece0(keys, this);
+ for (long i = 0; i < keys->count; ++i)
+ {
+  dword key = keys->keys[i];
+  long instance_index = key & 0xffff;
+  if ((key & 0xe0000000) == 0x40000000)
+  {
+   s_query_globals *globals = (s_query_globals *)g_4e0348;
+   s_query_instance *instance = &globals->instances[instance_index];
+   s_query_owner *owner = &globals->owners[instance->owner];
+   if (owner->surface_count <= 0x2000)
+   {
+    c_instance_surface_query *query = (c_instance_surface_query *)(owner->shape + 0x50);
+    c_query_transform transform, world, local;
+    query_transform(&instance->matrix, &transform);
+    __m128 extent = _mm_mul_ps(_mm_sub_ps(bounds->maximum, bounds->minimum), _mm_set1_ps(0.5f));
+    world.axes[0] = _mm_setzero_ps();
+    world.axes[1] = _mm_setzero_ps();
+    world.axes[2] = _mm_setzero_ps();
+    ((real *)&world.axes[0])[0] = 1.0f;
+    ((real *)&world.axes[1])[1] = 1.0f;
+    ((real *)&world.axes[2])[2] = 1.0f;
+    world.position = _mm_add_ps(bounds->minimum, extent);
+    local.inverse_product(&transform, &world);
+    query_remove_key(keys, i);
+    long first = keys->count;
+    --i;
+    query->query_box(&local, &extent, 0.0001f, keys);
+    query_remap_keys(keys, first, instance_index);
+   }
+  }
+ }
+}
+
+
+// @retail 0x1ee800
+void c_shape_owner::query_sphere(const __m128 *sphere, s_surface_key_array *keys)
+{
+ function_1ee5b0(this, sphere, true, true, keys);
+}
+
+struct s_type_1a7926
+{
+ byte unknown00[8];
+ transform4x3f root_matrix;
+ byte unknown3c[0x48 - 0x3c];
+ short *node_indices;
+ byte unknown4c[4];
+ transform4x3f *field_50;
+};
+
+bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+extern long *g_51e9cc;
+
+struct c_child_transform : c_havok_reference_counted
+{
+ dword user;
+ long field_c;
+ c_query_transform transform;
+ c_child_transform(c_havok_reference_counted *child);
+};
+
+// @retail 0x1ef070
+c_child_transform *function_1ef070(dword key, void *storage)
+{
+ (void)&key;
+ (void)&storage;
+ long object_index = g_51e9cc[key & 0xffff];
+ byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+ byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+ byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+ long position = (key >> 16) & 0x1fff;
+ byte *region = *(byte **)(model + 0x74) + (position & 31) * 16;
+ byte *choice = *(byte **)(region + 0xc) + ((position >> 5) & 255) * 8;
+ if ((key & 0xe0000000) == 0x80000000)
+ {
+  byte *collision = g_4e3b44[*(long *)(model + 0xc) & 0xffff].bytes;
+  byte *group = *(byte **)(collision + 0x20) + *(signed char *)(region + 4) * 12;
+  byte *entry = *(byte **)(group + 8) + *(signed char *)(choice + 5) * 20;
+  c_havok_reference_counted *child = (c_havok_reference_counted *)(*(byte **)(entry + 0x10) + 0x40);
+  c_child_transform *result = new (storage) c_child_transform(child);
+  havok_reference_remove(child);
+  object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+  const transform4x3f *matrix = (const transform4x3f *)(object + *(short *)(object + 0x116));
+  c_query_transform transform;
+  query_transform(matrix, &transform);
+  result->transform = transform;
+  result->user = key;
+  return result;
+ }
+ else
+ {
+  s_type_1a7926 info;
+  function_20a9a0(object_index, &info);
+  byte *physics = (byte *)info.node_indices;
+  byte *group = *(byte **)(physics + 0xc4) + *(signed char *)(region + 5) * 12;
+  byte *entry = *(byte **)(group + 8) + *(signed char *)(choice + 6) * 12;
+  long index = **(short **)(entry + 8);
+  byte *body = *(byte **)(physics + 0x3c) + index * 0x90;
+  c_havok_reference_counted *child = *(c_havok_reference_counted **)(body + 0x38);
+  c_child_transform *result = new (storage) c_child_transform(child);
+  havok_reference_remove(*(c_havok_reference_counted **)(body + 0x38));
+  long node = *(short *)body;
+  const transform4x3f *matrix = node == NONE ? &info.root_matrix : &info.field_50[node];
+  c_query_transform transform;
+  query_transform(matrix, &transform);
+  result->transform = transform;
+  result->user = key;
+  return result;
+ }
+}
+
+struct s_havok_transform;
+void function_181f80(s_havok_transform *transform, const transform4x3f *matrix);
+c_a *surface_empty_shape(void *storage);
+
+// @retail 0x1ef950
+void *c_shape_global_owner::make_shape(dword key, void *storage)
+{
+ // The retail virtual preserves its owner in a stack slot before dispatch.
+ c_shape_global_owner *volatile owner = this;
+ if (function_1ef3e0(key))
+ {
+  long surface = (key >> 16) & 0x1fff;
+  long kind = key >> 29;
+  long index = key & 0xffff;
+  if (kind == 1)
+   return new (storage) c_vertex_shape((s_shape_source *)g_4e0340, kind, NONE, index, key, NULL);
+  else if (kind == 2)
+  {
+   s_query_globals *globals = (s_query_globals *)g_4e0348;
+   s_query_instance *instance = &globals->instances[index];
+   c_havok_reference_counted *child = (c_havok_reference_counted *)(globals->owners[instance->owner].shape + 0x40);
+   c_child_transform *result = new (storage) c_child_transform(child);
+   havok_reference_remove(child);
+   function_181f80((s_havok_transform *)&result->transform, &instance->matrix);
+   return result;
+  }
+  else if (kind == 5)
+  {
+   s_query_globals *globals = (s_query_globals *)g_4e0348;
+   s_query_instance *instance = &globals->instances[index];
+   c_count_interface *owner = (c_count_interface *)globals->owners[instance->owner].shape;
+   return owner->make_transformed_shape(surface, key, storage, &instance->matrix);
+  }
+  else return function_1ef070(key, storage);
+ }
+ return surface_empty_shape(storage);
 }

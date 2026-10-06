@@ -79,8 +79,6 @@ void __stdcall function_b8890(long unit_index) { }
 // @stub 0xe5750
 void function_e5750(long unit_index) { }
 
-// @stub 0x1eb020
-void function_1eb020(long tag_index, short *material_index) { }
 
 // @stub 0x1e54d0
 void function_1e54d0(void *state, long a) { }

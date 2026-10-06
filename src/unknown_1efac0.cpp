@@ -442,3 +442,268 @@ void function_1eece0(s_surface_key_array *array, void *owner)
 		}
 	}
 }
+
+struct s_bsp3d;
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+
+// @retail 0x1efdc0
+bool function_1efdc0(s_lookup *lookup, const point3f *point)
+{
+ s_lookup *const *lookup_reference = &lookup;
+ s_iterator iterator;
+ function_1efbd0((dword)(*lookup_reference)->tag_b, (s_mix_output *)&iterator,
+  (s_mix_source *)(*lookup_reference)->tag_a, (signed char *)(*lookup_reference)->pointer_a);
+ while (iterator.advance())
+ {
+  const transform4x3f *matrix = (const transform4x3f *)(*lookup_reference)->pointer_b + iterator.first;
+  point3f local;
+  if (matrix->scale != 0.0f)
+  {
+   real x = point->x - matrix->position.x;
+   real y = point->y - matrix->position.y;
+   real z = point->z - matrix->position.z;
+   if (matrix->scale != 1.0f)
+   {
+    real inverse = 1.0f / matrix->scale;
+    x *= inverse;
+    y *= inverse;
+    z *= inverse;
+   }
+   local.x = matrix->forward.k * z + matrix->forward.j * y + matrix->forward.i * x;
+   local.y = matrix->left.k * z + matrix->left.j * y + matrix->left.i * x;
+   local.z = matrix->up.k * z + matrix->up.j * y + matrix->up.i * x;
+  }
+  else local.x = local.y = local.z = 0.0f;
+  if (function_14a280((s_bsp3d *)iterator.current, &local, 0) == NONE)
+   return true;
+ }
+ return false;
+}
+
+struct s_type_1a7926
+{
+ byte unknown00[8];
+ transform4x3f root_matrix;
+ byte unknown3c[0x48 - 0x3c];
+ short *node_indices;
+ byte unknown4c[4];
+ transform4x3f *field_50;
+};
+
+bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+
+struct s_model_choice
+{
+ long field_0;
+ signed char first;
+ signed char second;
+ signed char third;
+ byte field_7;
+};
+
+struct s_model_region
+{
+ long field_0;
+ signed char first;
+ signed char second;
+ short field_6;
+ long count;
+ s_model_choice *choices;
+};
+
+struct s_model_regions
+{
+ byte field_0[0x70];
+ long count;
+ s_model_region *regions;
+};
+
+// @retail 0x1ef500
+long function_1ef500(long object_index, long position)
+{
+ long region_index;
+ long choice_index;
+ long result = NONE;
+ if (position == NONE)
+ {
+  region_index = 0;
+  choice_index = NONE;
+ }
+ else
+ {
+  region_index = position & 31;
+  choice_index = (position >> 5) & 255;
+ }
+ s_type_1a7926 info;
+ if (function_20a9a0(object_index, &info))
+ {
+  function_20a9a0(object_index, &info);
+  s_model_regions *model = *(s_model_regions **)&info.unknown3c[8];
+  byte *physics = (byte *)info.node_indices;
+  for (; result == NONE && region_index < model->count; ++region_index)
+  {
+   s_model_region *region = &model->regions[region_index];
+   if (region->second != NONE)
+   {
+    for (++choice_index; result == NONE && choice_index < region->count; ++choice_index)
+    {
+     s_model_choice *choice = &region->choices[choice_index];
+     if (choice->third != NONE)
+     {
+      byte *groups = *(byte **)(physics + 0xc4);
+      byte *entries = *(byte **)(groups + region->second * 12 + 8);
+      byte *entry = entries + choice->third * 12;
+      if (*(long *)(entry + 4) > 0)
+      {
+       long index = **(short **)(entry + 8);
+       byte *bodies = *(byte **)(physics + 0x3c);
+       if (*(short *)(bodies + index * 0x90 + 0x1e) > 1)
+        result = region_index | (choice_index << 5);
+      }
+     }
+    }
+   }
+   choice_index = NONE;
+  }
+ }
+ else
+ {
+  s_object_view *object = ((s_object_header_view *)g_4e0300->data)[object_index & 0xffff].object;
+  byte *definition = g_4e3b44[object->tag_index & 0xffff].bytes;
+  s_model_regions *model = (s_model_regions *)g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+  for (; result == NONE && region_index < model->count; ++region_index)
+  {
+   s_model_region *region = &model->regions[region_index];
+   if (region->first != NONE)
+   {
+    for (++choice_index; result == NONE && choice_index < region->count; ++choice_index)
+     if (region->choices[choice_index].second != NONE)
+      result = region_index | (choice_index << 5);
+   }
+   choice_index = NONE;
+  }
+ }
+ return result;
+}
+
+bool function_10a520(long object_index);
+
+// @retail 0x1ef8d0
+long function_1ef8d0(long object_index)
+{
+ long count = 0;
+ if (function_10a520(object_index))
+ {
+  s_object_view *object = ((s_object_header_view *)g_4e0300->data)[object_index & 0xffff].object;
+  byte *definition = g_4e3b44[object->tag_index & 0xffff].bytes;
+  s_model_regions *model = (s_model_regions *)g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+  if (model->count > 0)
+  {
+   long position = function_1ef500(object_index, NONE);
+   while (position != NONE)
+   {
+    ++count;
+    position = function_1ef500(object_index, position);
+   }
+  }
+ }
+ return count;
+}
+
+static __forceinline long surface_object_count()
+{
+ short offset = *(short *)((byte *)g_468630[6] + 0xa);
+ return *(long *)((byte *)g_4e0350 + offset);
+}
+
+static __forceinline bool surface_object_has_choices(long index, long *objects, s_record_pool *pool)
+{
+ long object_index = objects[index];
+ return object_index != NONE && function_1ef8d0(object_index) &&
+  *(short *)((byte *)pool->data + (objects[index] & 0xffff) * 12 + 4) != NONE;
+}
+
+// @retail 0x1ef810
+long function_1ef810(long index)
+{
+ long *objects = g_51e9cc;
+ s_record_pool *pool = g_4e0300;
+ ++index;
+ if (index < surface_object_count())
+ {
+  long next = index + 1;
+  while (!surface_object_has_choices(index, objects, pool))
+  {
+   if (next >= surface_object_count()) break;
+   ++index;
+   ++next;
+  }
+ }
+ if (index >= surface_object_count() || !surface_object_has_choices(index, objects, pool))
+  index = NONE;
+ return index;
+}
+
+// @retail 0x1ef6d0
+dword function_1ef6d0(dword key)
+{
+ // Retail keeps the key on the stack while traversing the surface groups.
+ const dword *key_reference = &key;
+ s_surface_list *world = (s_surface_list *)g_4e0340;
+ long count = *(long *)((byte *)world + 0x28);
+ if (count > 0 && (world->surfaces[count - 1].flags & 0x10)) --count;
+ long *objects = g_51e9cc;
+ long index = *key_reference & 0xffff;
+ long position = (key >> 16) & 0x1fff;
+ long kind = key >> 29;
+ if (kind == 1)
+ {
+  if (index < count - 1) return (index + 1) | 0x20000000;
+  index = NONE;
+ }
+ if (kind == 1 || kind == 2)
+ {
+  s_surface_globals *globals = (s_surface_globals *)g_4e0348;
+  if (globals->count > 0)
+  {
+   for (; index < globals->count - 1; ++index)
+   {
+    s_surface_owner *owner = &globals->owners[globals->instances[index + 1].owner];
+    if (*(long *)((byte *)owner + 0x98) > 0)
+     return (index + 1) | 0x40000000;
+   }
+  }
+  index = NONE;
+ }
+ long object_index;
+ long next_position = NONE;
+ if (index != NONE)
+ {
+  object_index = objects[index];
+  if (object_index != NONE)
+   next_position = function_1ef500(object_index, position);
+ }
+ if (next_position == NONE)
+ {
+  index = function_1ef810(index);
+  if (index == NONE) return (dword)NONE;
+  object_index = objects[index];
+  next_position = function_1ef500(object_index, NONE);
+ }
+ s_type_1a7926 info;
+ long next_kind = function_20a9a0(object_index, &info) ? 3 : 4;
+ return (((next_kind << 13) | next_position) << 16) | index;
+}
+
+#include <new>
+
+c_a *surface_empty_shape(void *storage)
+{
+ c_d *shape = new (storage) c_d;
+ if (shape)
+ {
+  shape->unknown06 = 1;
+  shape->unknown08 = 0;
+ }
+ return shape;
+}
