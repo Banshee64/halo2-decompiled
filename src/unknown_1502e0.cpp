@@ -507,7 +507,7 @@ struct s_player_pickup_object
 	byte unknown3c[0x12c - 0x3c];
 	dword flags;
 	byte unknown130[0x14c - 0x130];
-	long previous_owner;
+	long field_14c;
 };
 
 struct s_player_pickup_definition
@@ -529,7 +529,7 @@ void function_151780(long object_index, long player_index, s_target_candidate *b
 	s_player_pickup_definition *definition = (s_player_pickup_definition *)g_4e3b44[object->definition_index & 0xffff].bytes;
 	bool special = definition->type != 0;
 	real radius = unit->radius + (special ? 0.1f : 0.0f) + 0.3f;
-	if (!(object->flags & 1) && object->previous_owner != player->unit_index)
+	if (!(object->flags & 1) && object->field_14c != player->unit_index)
 	{
 		vector3f delta;
 		vector3d_from_points3d(&unit->position, &object->position, &delta);
