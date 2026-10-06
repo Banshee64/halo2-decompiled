@@ -92,7 +92,26 @@ struct s_light_shape_ab
 		struct { real radius_a, radius_b; } sphere;
 		s_light_cone_ab cone;
 	};
-	byte unknown18[0x7c - 0x18];
+	bool ready;
+    byte unknown19[3];
+    vector3f left;
+    real origin_offset;
+    point3f origin;
+    union
+    {
+        struct { real unused, radius_a, radius_b, radius; } sphere_render;
+        struct
+        {
+            real unused;
+            vector3f direction;
+            real distance;
+            real slope_x, slope_y, aspect;
+            real width, height;
+            real near_distance, far_distance;
+            real far_width, far_height;
+            point3f endpoint;
+        } cone_render;
+    };
 };
 
 struct s_light_definition_ab
@@ -103,7 +122,9 @@ struct s_light_definition_ab
 	real radius_a;
 	real radius_b;
 	s_light_cone_ab cone;
-	byte unknown34[0xb8 - 0x34];
+	byte unknown34[0x7c - 0x34];
+    long bitmap_index;
+    byte unknown80[0xb8 - 0x80];
 	short fade_distance;
 	short fade_colour;
 	short fade_range;
@@ -213,17 +234,17 @@ void function_c19f0(long light_index, s_light_shape_ab *shape)
 	s_light_ab *light = &((s_light_ab *)g_4e030c->data)[light_index & 0xffff];
 	s_light_definition_ab *definition = (s_light_definition_ab *)g_4e3b44[light->tag_index & 0xffff].bytes;
     s_light_placement_ab *placement;
+    bool from_definition = true;
     if (light->scenario_index != NONE)
     {
         placement = &((s_light_scenario_ab *)g_4e0350)->lights[light->scenario_index];
         if (placement->unknown3e[0] & 1)
-            goto scenario_shape;
+            from_definition = false;
     }
-    function_c1930(definition, shape);
-    goto copied;
-scenario_shape:
-    function_c1980(placement, definition, shape);
-copied:
+    if (from_definition)
+        function_c1930(definition, shape);
+    else
+        function_c1980(placement, definition, shape);
 	switch (shape->kind)
 	{
 	case 1: shape->cone.values[2] = 0.0f; break;
@@ -411,4 +432,129 @@ void function_c0b00(s_light_animation_ab const *animation, long seed, real range
         pair[0] = function_13bb90((s_tag_data *)animation->pair, time, range);
         pair[1] = function_13bb90((s_tag_data *)(animation->pair + 8), time, range);
     }
+}
+
+// @retail 0xc15a0
+void function_c15a0()
+{
+    s_record_pool *array = g_4e030c;
+    long index = data_datum_index(array, function_16bc00(array, 0));
+    while (index != NONE)
+    {
+        s_light_ab *light = &((s_light_ab *)array->data)[index & 0xffff];
+        if (light->flags & 2)
+            function_c12d0(index);
+        index = data_datum_index(array, data_find_index(array, index == NONE ? 0 : (index & 0xffff) + 1));
+    }
+}
+
+struct s_light_frame_ab
+{
+    point3f position;
+    point3f endpoint;
+    real clip_distance;
+    point3f field_1c_3;
+    vector3f forward;
+    vector3f up;
+    real radius;
+};
+extern point2f *g_468774;
+
+// @retail 0xc1a80
+void function_c1a80(s_light_frame_ab const *frame, s_light_shape_ab *shape, s_light_definition_ab const *definition)
+{
+    if ((short)shape->kind == 0)
+    {
+        shape->sphere_render.radius_a = shape->sphere.radius_a * frame->radius;
+        shape->sphere_render.radius_b = shape->sphere.radius_b * frame->radius;
+        shape->sphere_render.radius = shape->sphere_render.radius_a > shape->sphere_render.radius_b ? shape->sphere_render.radius_a : shape->sphere_render.radius_b;
+    }
+    else
+    {
+        vector3f *direction = &shape->cone_render.direction;
+        direction->i = frame->endpoint.x - frame->position.x;
+        direction->j = frame->endpoint.y - frame->position.y;
+        direction->k = frame->endpoint.z - frame->position.z;
+        shape->cone_render.distance = frame->forward.k * direction->k + frame->forward.j * direction->j + frame->forward.i * direction->i;
+        if (fabs(shape->cone_render.distance) < 0.0001f || shape->cone_render.distance < 0.0f)
+        {
+            *direction = frame->forward;
+            shape->cone_render.distance = 1.0f;
+        }
+        real scale = 1.0f / shape->cone_render.distance;
+        direction->i *= scale;
+        direction->j *= scale;
+        direction->k *= scale;
+        shape->cone_render.aspect = shape->cone.values[1];
+        if (definition->bitmap_index != NONE)
+        {
+            byte *bitmap = g_4e3b44[definition->bitmap_index & 0xffff].bytes;
+            byte *image = *(byte **)(bitmap + 0x48);
+            shape->cone_render.aspect = (real)*(short *)(image + 6) / (real)*(short *)(image + 4) * shape->cone_render.aspect;
+        }
+        if (shape->kind == 1)
+        {
+            shape->cone_render.slope_x = g_468774->x;
+            shape->cone_render.slope_y = g_468774->y;
+        }
+        else
+        {
+            shape->cone_render.slope_x = (real)tan(shape->cone.values[2] * 0.5f);
+            shape->cone_render.slope_y = shape->cone_render.slope_x * shape->cone_render.aspect;
+        }
+        shape->cone_render.width = shape->cone.values[0];
+        shape->cone_render.height = shape->cone_render.aspect * shape->cone.values[0];
+        shape->cone_render.far_distance = shape->cone.values[4] * frame->radius;
+        shape->cone_render.near_distance = shape->cone.values[3] * frame->radius;
+        shape->cone_render.far_width = shape->cone_render.slope_x * shape->cone_render.far_distance + shape->cone_render.width;
+        shape->cone_render.far_height = shape->cone_render.slope_y * shape->cone_render.far_distance + shape->cone_render.height;
+        real distance = shape->cone_render.far_distance;
+        shape->cone_render.endpoint.x = direction->i * distance + frame->position.x;
+        shape->cone_render.endpoint.y = direction->j * distance + frame->position.y;
+        shape->cone_render.endpoint.z = direction->k * distance + frame->position.z;
+    }
+    real x = frame->forward.j * frame->up.k - frame->forward.k * frame->up.j;
+    real y = frame->forward.k * frame->up.i - frame->forward.i * frame->up.k;
+    real z = frame->forward.i * frame->up.j - frame->forward.j * frame->up.i;
+    shape->left.j = y;
+    shape->left.k = z;
+    shape->left.i = x;
+    shape->origin_offset = 0.0f;
+    shape->origin = frame->position;
+    if (shape->kind == 2 && shape->cone_render.slope_x > 0.0001f)
+    {
+        shape->origin_offset = shape->cone.values[0] / shape->cone_render.slope_x * 0.5f;
+        real distance = 0.0f - shape->origin_offset;
+        shape->origin.x = shape->cone_render.direction.i * distance + frame->position.x;
+        shape->origin.y = shape->cone_render.direction.j * distance + frame->position.y;
+        shape->origin.z = shape->cone_render.direction.k * distance + frame->position.z;
+    }
+    shape->ready = true;
+}
+
+// @retail 0xc17f0
+bool function_c17f0(long light_index, s_light_shape_ab *shape, bool respect_engine)
+{
+    s_light_ab *light = &((s_light_ab *)g_4e030c->data)[light_index & 0xffff];
+    s_light_definition_ab *definition = (s_light_definition_ab *)g_4e3b44[light->tag_index & 0xffff].bytes;
+    bool enabled = true;
+    if (!(definition->flags & 0x100) && respect_engine)
+    {
+        s_mp_globals *globals = g_4e9ae8;
+        if (g_55e4d0[globals->engine_index])
+            enabled = !(bool)((*(dword *)globals >> 1) & 1);
+    }
+    if (g_5107e8->flag8 && enabled && (light->flags & 2))
+    {
+        function_c19f0(light_index, shape);
+        function_c1a80((s_light_frame_ab *)((byte *)light + 0x84), shape, definition);
+        if ((short)shape->kind == 0)
+        {
+            if (shape->sphere_render.radius > 0.0001f) return true;
+        }
+        else if (shape->cone_render.far_distance > 0.0001f &&
+            shape->cone_render.far_width * shape->cone_render.far_width + shape->cone_render.far_height * shape->cone_render.far_height > 1.0e-8f)
+            return true;
+    }
+    return false;
 }

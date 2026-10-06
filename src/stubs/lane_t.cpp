@@ -13,11 +13,6 @@ struct s_bitmap_data;
 
 /* unowned: the weapon's procedural node adjustments */
 struct s_16760c_render_model;
-// @stub 0xbd970
-void function_bd970(long weapon_index, s_16760c_render_model *render_model, s_animation_state *state, long unknown,
-	long node_count, byte *orientations)
-{
-}
 
 /* takes the camera matrix in eax in retail */
 // @stub 0x3f660

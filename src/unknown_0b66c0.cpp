@@ -170,7 +170,7 @@ struct s_upload_ab
     char content_type[0x20];
     char filename[0x104];
     char extra_headers[0x200];
-    byte unknown934[4];
+    byte const *memory;
     s_upload_file_ab *file;
     long file_length;
     long position;
@@ -290,10 +290,20 @@ struct s_http_connection_ab
     s_transport_endpoint *endpoint;
     byte unknown30[4];
     char path[0x80];
-    byte unknownb4[0xb78 - 0xb4];
+    byte unknownb4[0x634 - 0xb4];
+    long upload_header_length;
+    long upload_part_length;
+    long upload_ending_length;
+    byte unknown640[0x96c - 0x640];
+    long upload_file_length;
+    long upload_position;
+    char response[0x200];
+    long response_length;
     long attempt_count;
     long state;
     bool connect(long address, word port, char const *path, bool flag);
+    bool receive(bool *complete);
+    bool send();
 };
 
 bool function_b51b0(s_transport_endpoint *endpoint, s_type_99af70 const *address);
@@ -385,4 +395,181 @@ s_http_connection_ab *function_b5cd0(s_http_connection_ab *connection)
     g_4d8b1c.blocks[g_4d8b1c.count] = connection;
     g_4d8b1c.count++;
     return connection;
+}
+
+short function_b4fa0(s_transport_endpoint *endpoint, void *buffer, short length);
+
+// @retail 0xb60e0
+bool s_http_connection_ab::receive(bool *complete)
+{
+    bool result = false;
+    char *buffer = response + response_length;
+    *complete = false;
+    long received = function_b4fa0(endpoint, buffer, (short)(0x1ff - response_length));
+    if (received > 0)
+    {
+        response_length += received;
+        response[(dword)response_length] = 0;
+        bool done = false;
+        if (function_b5f10(response, &done))
+        {
+            if (done)
+            {
+                result = true;
+                *complete = result;
+            }
+        }
+        else if (response_length < 0x1ff)
+            result = true;
+    }
+    else if (received == -2)
+        result = true;
+    return result;
+}
+
+static inline bool upload_read_ab(s_upload_file_ab *file, long position, void *buffer, long count)
+{
+    if (file->position != position)
+    {
+        file->position = SetFilePointer(file->handle, position, 0, FILE_BEGIN);
+        if (file->position == 0xffffffff)
+            return false;
+    }
+    dword received;
+    bool result = false;
+    if (ReadFile(file->handle, buffer, count, &received, 0))
+    {
+        if (received == count)
+            result = true;
+        else
+            SetLastError(0x26);
+    }
+    file->position += received;
+    return result;
+}
+
+// @retail 0xb6320
+bool function_b6320(s_upload_ab *upload, byte *buffer, long maximum, long *written)
+{
+    byte *out = buffer;
+    long remaining = maximum;
+    bool result = false;
+    bool valid = upload->kind == 2 || upload->kind == 1;
+    unsigned long length = 0;
+    char const *path = upload->path;
+    for (; length < 0x7f; ++length)
+        if (!*path++) break;
+    if (length && valid)
+    {
+        if (!upload->position)
+            function_b65f0(upload);
+        result = true;
+        while (upload->position != upload->ending_length + upload->file_length + upload->part_length + upload->header_length && remaining > 0)
+        {
+            long position = upload->position;
+            long count;
+            if (position < upload->header_length)
+            {
+                count = remaining < upload->header_length - position ? remaining : upload->header_length - position;
+                memcpy(out, upload->header + position, count);
+            }
+            else if ((position -= upload->header_length) < upload->part_length)
+            {
+                count = remaining < upload->part_length - position ? remaining : upload->part_length - position;
+                memcpy(out, upload->part + position, count);
+            }
+            else if ((position -= upload->part_length) < upload->file_length)
+            {
+                count = remaining < upload->file_length - position ? remaining : upload->file_length - position;
+                if (upload->kind == 1)
+                    memcpy(out, upload->memory + position, count);
+                else if (!upload_read_ab(upload->file, position, out, count))
+                {
+                    GetLastError();
+                    SetLastError(0);
+                    result = false;
+                }
+            }
+            else if ((position -= upload->file_length) < upload->ending_length)
+            {
+                count = remaining < upload->ending_length - position ? remaining : upload->ending_length - position;
+                memcpy(out, upload->ending + position, count);
+            }
+            else
+            {
+                result = false;
+                break;
+            }
+            upload->position += count;
+            out += count;
+            remaining = maximum - (out - buffer);
+        }
+        *written = out - buffer;
+    }
+    return result;
+}
+
+short function_b5000(s_transport_endpoint *endpoint, void const *buffer, short length);
+
+// @retail 0xb6000
+bool s_http_connection_ab::send()
+{
+    byte buffer[0x518];
+    for (;;)
+    {
+        long position = upload_position;
+        long written = 0;
+        bool result = false;
+        if (!function_b6320((s_upload_ab *)((byte *)this + 0x30), buffer, sizeof(buffer), &written))
+            return result;
+        short sent = written ? function_b5000(endpoint, buffer, (short)written) : 0;
+        if (sent < 0)
+        {
+            if (sent == -2)
+            {
+                upload_position = position;
+                return true;
+            }
+            return result;
+        }
+        if (sent < written)
+            upload_position = position + sent;
+        if (upload_position == upload_file_length + upload_ending_length + upload_part_length + upload_header_length)
+            break;
+    }
+    response_length = 0;
+    state = 3;
+    return true;
+}
+
+bool transport_endpoint_test_connection(s_transport_endpoint *endpoint, bool *connected);
+
+// @retail 0xb5e90
+bool function_b5e90(s_http_connection_ab *connection, bool *complete)
+{
+    bool result = false;
+    *complete = false;
+    if (connection->state == 1)
+    {
+        bool connected = false;
+        if (transport_endpoint_test_connection(connection->endpoint, &connected))
+        {
+            result = true;
+            if (connected)
+                connection->state = 2;
+        }
+    }
+    else if (connection->state == 2)
+    {
+        if (connection->send())
+            result = true;
+    }
+    else if (connection->state == 3)
+    {
+        if (connection->receive(complete))
+            result = true;
+    }
+    if (!result || *complete)
+        function_b5e40(connection);
+    return result;
 }
