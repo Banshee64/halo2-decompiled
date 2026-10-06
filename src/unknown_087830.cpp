@@ -55,3 +55,54 @@ bool function_87830(s_player_action *new_action, s_player_action *action)
 	}
 	return result;
 }
+
+#include "unknown_067e10.h"
+#include "bitstream.h"
+#include <string.h>
+
+bool function_07ca70(s_bitstream *stream, void *destination);
+
+// @retail 0x87ac0
+bool function_87ac0(s_bitstream *stream, s_simulation_player_update *update)
+{
+	bool result = true;
+	update->player_index = function_1959c0(stream, 4);
+	function_195820(stream, update->key, 96);
+	update->type = function_1959c0(stream, 3);
+	if (update->player_index < 0 || update->player_index >= 16 || update->type < 0 || update->type >= 5)
+		goto failed;
+	if (update->type == 3)
+	{
+		update->field_2_2 = function_1957d0(stream);
+		if (!update->field_2_2)
+		{
+			function_195820(stream, &update->machine, 48);
+			update->controller_index = function_1959c0(stream, 2);
+			update->unknown20 = function_1959c0(stream, 2);
+			result = update->controller_index >= 0 && update->controller_index < 4 &&
+				update->unknown20 >= 0 && update->unknown20 < 4;
+		}
+		else
+		{
+			memset(&update->machine, 0, sizeof(update->machine));
+			update->controller_index = NONE;
+			update->unknown20 = NONE;
+		}
+	}
+	if (update->type == 3 || update->type == 4)
+		result = result && function_07ca70(stream, update->configuration);
+	if (update->type == 1)
+	{
+		update->other_player_index = function_1959c0(stream, 4);
+		function_195820(stream, update->other_key, 96);
+		if (!result || update->other_player_index < 0 || update->other_player_index >= 16 ||
+			update->other_player_index == update->player_index)
+			goto failed;
+		return true;
+	}
+	goto done;
+failed:
+	return false;
+done:
+	return result;
+}

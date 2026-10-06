@@ -1892,3 +1892,170 @@ real function_57a80(long player, long other)
 	}
 	return result;
 }
+
+#include "unknown_0662e0.h"
+
+// @retail 0x53e30
+void function_53e30(void)
+{
+	long selected = NONE;
+	long best = 0;
+	g_4c9878.unknown00 = NONE;
+	if (voice_available())
+	{
+		c_class_58d20 *session = 0;
+		if (voice_get_session(&session))
+		{
+			byte *membership = (byte *)voice_get_membership();
+			long current = voice_get_current_member();
+			long host = voice_get_member_index();
+			if (membership && current != NONE && host != NONE)
+			{
+				if (current == host)
+				{
+					long count = *(long *)(membership + 8);
+					for (long i = 0; i < count; i++)
+					{
+						byte *member = membership + 0xc + i * 0x10c;
+						long quality = *(long *)(member + 0x94);
+						if (i != current && *(long *)(member + 0x98) != 3 &&
+							*(long *)(member + 0x90) >= g_network_configuration.valuee4 &&
+							quality >= g_network_configuration.valuee0 &&
+							*(dword *)(member + 0x9c) == (1U << count) - 1 && quality > best)
+						{
+							selected = i;
+							best = quality;
+						}
+					}
+					if (selected == NONE && !voice_mode_is_1())
+						selected = current;
+					if (session->get_value_5e20() != selected)
+						session->set_value_5e20(selected);
+					g_4c9878.unknown00 = selected;
+				}
+				else
+					g_4c9878.unknown00 = session->get_value_5e20();
+			}
+		}
+	}
+}
+
+// @retail 0x57c20
+long function_57c20(s_voice_player_settings *settings, long player, long other, long mode)
+{
+	long result = 0;
+	s_network_session_player *players = voice_get_players_inlined();
+	if (players)
+	{
+		dword mask = 0;
+		if (settings->initialized)
+			mask = settings->unknown04[player];
+		if (!function_589e0(player) && !function_589e0(other))
+			result = 2;
+		else if (function_589e0(other))
+		{
+			if (mode == 1)
+			{
+				if (!function_53d40())
+					{ result = 1; goto done; }
+				if (function_53d90())
+				{
+					if (!juggernaut_is((short)player) && !juggernaut_is((short)other))
+						{ result = 1; goto done; }
+				}
+				else
+				{
+					long team = (char)players[player].propertiesa8[0x7c];
+					long other_team = (char)players[other].propertiesa8[0x7c];
+					if (team != NONE && other_team != NONE && team == other_team)
+						{ result = 1; goto done; }
+				}
+			}
+			if (mask & (1 << other))
+				result = 3;
+		}
+	}
+done:
+	return result;
+}
+
+static __forceinline bool voice_test_unknown110(long player, long other)
+{
+	bool result = false;
+	if (voice_available())
+		result = (g_4c9878.unknown110[player] & (1 << other)) != 0;
+	return result;
+}
+
+// @retail 0x57d60
+long function_57d60(long mode, long player, long other)
+{
+	long result = 0;
+	if (!voice_test_unknown110(player, other) && !voice_test_unknown110(other, player))
+	{
+		switch (mode)
+		{
+		case 0: { result = 0; goto done; }
+		case 1: result = (voice_get_unknownEE() & (1 << player)) ? 1 : 2; break;
+		case 2: result = 2; break;
+		case 3: result = 3; break;
+		default: return result;
+		}
+		long controller = voice_get_player_unknown14(player);
+		if (controller == NONE)
+			{ result = 0; goto done; }
+		switch (voice_get_port_state(controller))
+		{
+		case 1: if (result != 3) result = 2; break;
+		case 2: { result = 1; goto done; }
+		case 3: { result = 0; goto done; }
+		}
+		if (result == 2 || result == 3)
+		{
+			dword local_mask = voice_get_local_player_mask();
+			for (long local = 0; local < 16; local++)
+				if ((local_mask & (1 << local)) && voice_test_unknown110(local, other))
+					{ result = 0; goto done; }
+		}
+	}
+done:
+	return result;
+}
+
+// @retail 0x577d0
+void __stdcall function_577d0(s_voice_player_settings *settings)
+{
+	dword local_mask = voice_get_local_player_mask();
+	s_network_session_player *players = voice_get_players_inlined();
+	dword mask = voice_get_player_mask_inlined();
+	memset(settings->unknown84, 0, sizeof(settings->unknown84));
+	if (players)
+	{
+		for (long local = 0; local < 16; local++)
+		{
+			if ((local_mask & (1 << local)) && function_54df0(local) && !function_589e0(local))
+			{
+				for (long other = 0; other < 16; other++)
+				{
+					if ((mask & (1 << other)) && !(local_mask & (1 << other)) &&
+						function_54df0(other) && !function_589e0(other))
+					{
+						bool allowed;
+						if (!function_53d40())
+							allowed = true;
+						else if (function_53d90())
+							allowed = !juggernaut_is((short)local) && !juggernaut_is((short)other);
+						else
+						{
+							long team = (char)players[local].propertiesa8[0x7c];
+							long other_team = (char)players[other].propertiesa8[0x7c];
+							allowed = team != NONE && other_team != NONE && team == other_team;
+						}
+						if (allowed)
+							settings->unknown84[local] |= 1 << other;
+					}
+				}
+			}
+		}
+	}
+}

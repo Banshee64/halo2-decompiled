@@ -24,8 +24,6 @@ bool __stdcall function_e6830(long unit_index) { return 0; }
 // @stub 0x111650
 bool __stdcall function_111650(long unit_index, long *names) { return 0; }
 
-// @stub 0x1fa3a0
-long function_1fa3a0(long a, long b, long c, point3f const *point) { return 0; }
 
 
 // @stub 0x168f40

@@ -244,3 +244,23 @@ dword function_84be0(const s_type_c67652 *collection)
 	}
 	return mask;
 }
+
+void function_152df0(long player_index);
+
+// @retail 0x84f30
+bool function_84f30(const s_simulation_player_identity *identity)
+{
+	s_simulation_player_datum *player;
+	long index = identity->index;
+	player = simulation_player_at_index(g_4e8c24, index);
+	bool result = false;
+	if (player)
+	{
+		if (memcmp(player->key, identity->key, sizeof(player->key)) == 0 && !player->field_2_2)
+		{
+			function_152df0(data_datum_index(g_4e8c24, index));
+			result = true;
+		}
+	}
+	return result;
+}

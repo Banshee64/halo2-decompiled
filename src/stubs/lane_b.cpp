@@ -67,8 +67,6 @@ void __stdcall function_1b0110(long actor_index, s_slot *slot) { }
 // @stub 0x1b13b0
 void __stdcall function_1b13b0(long actor_index, s_slot *slot, long index) { }
 
-// @stub 0x1b1f70
-void __stdcall function_1b1f70(long actor_index, s_slot *slot) { }
 
 // @stub 0x1b23c0
 bool __stdcall function_1b23c0(long actor_index, s_slot *slot) { return 0; }
@@ -79,8 +77,6 @@ void __stdcall function_1b2770(long actor_index, s_slot *slot) { }
 struct s_squad_choice;
 
 
-// @stub 0x1b3380
-void __stdcall function_1b3380(long actor_index, s_slot *slot) { }
 
 // @stub 0x1b36e0
 bool __stdcall function_1b36e0(long actor_index, s_slot *slot) { return 0; }
@@ -124,8 +120,6 @@ void __stdcall function_1ba090(long actor_index, s_slot *slot) { }
 // @stub 0x1ba5c0
 void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index) { }
 
-// @stub 0x1bbf40
-short __stdcall function_1bbf40(long actor_index, s_slot *slot) { return 0; }
 
 
 // @stub 0x1bc850
@@ -142,11 +136,7 @@ void __stdcall function_1bdad0(long actor_index, s_slot *slot, long index) { }
 // @stub 0x1be120
 void __stdcall function_1be120(long actor_index, s_slot *slot) { }
 
-// @stub 0x1be4b0
-short __stdcall function_1be4b0(long actor_index) { return 0; }
 
-// @stub 0x1be8f0
-void __stdcall function_1be8f0(long actor_index, s_slot *slot) { }
 
 
 struct s_1fb7e0_data;
@@ -172,8 +162,6 @@ bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
 bool function_29d6c0(vector3f *vector, s_reference reference) { return 0; }
 
 
-// @stub 0x1bfb10
-bool __stdcall function_1bfb10(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1bff80
 bool __stdcall function_1bff80(long actor_index, s_slot *slot) { return 0; }
