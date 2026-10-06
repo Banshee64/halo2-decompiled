@@ -67,10 +67,12 @@ other types' callbacks say what each slot is for:
 | 15 | `+0x4c` | `0xff5f0` | the exported function values | `function_108d90`, until a handler returns true |
 
 Each dispatcher walks the handler list at `+0x84`: `0x4678e8` (`object`),
-`0x467c08` (`item`) and `0x467cd0` (`weapon`). For a weapon, `object` has
-none of these four slots and `item` has slot 7 (`function_10b2c0`, always
-true) and slot 12 (`0x10b4d0`). So the weapon's handlers run after the
-item's, on every weapon.
+`0x467c08` (`item`) and `0x467cd0` (`weapon`). Of these four slots, `object`
+fills only slot 15 (`0xbcc20`), and `item` fills slot 7 (`function_10b2c0`,
+always true) and slot 12 (`0x10b4d0`). So the weapon's handlers run after
+the item's on every weapon. For function values, `function_108d90` stops at
+the first handler that returns true, so a name the object handler answers
+never reaches `0xff5f0`.
 
 ### Fields
 
@@ -383,8 +385,8 @@ request was accepted, or false. Its callers are `0xfdd50` (`0xfdf38`) and
 Slot 15, and also called directly by the unit's export function `0xc6b90`
 (`0xc6dc8`) for the unit's current weapon, which maps two of the unit's
 names onto the weapon's (`0x0b0005a9` to itself, `0x130005a8` to
-`0x0c000569`). `function_108d90` calls the object handler first; the item has
-no slot 15.
+`0x0c000569`). `function_108d90` calls the object handler (`0xbcc20`) first
+and stops at a true result; the item has no slot 15.
 
 It is a binary search on 27 string ids (`0xff630`–`0xffb47`). A known name
 sets `*value`, sets `*active` to whether the value is above 0, and returns
