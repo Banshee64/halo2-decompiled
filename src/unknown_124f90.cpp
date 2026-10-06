@@ -2853,3 +2853,620 @@ void function_1282d0(void)
 		sound_index = data_datum_index(sounds, data_find_index(sounds, sound_index == NONE ? 0 : (sound_index & 0xffff) + 1));
 	}
 }
+
+struct s_looping_channel_spatialization;
+
+struct s_type_12a1b0_four_values
+{
+	real field_0[4];
+};
+
+struct s_type_12a1b0_spatial
+{
+	dword field_0;
+	long field_4;
+	long field_8;
+	long field_c;
+	long field_10;
+	real field_14;
+	real field_18;
+	vector3f field_1c;
+	s_type_12a1b0_four_values field_28;
+};
+
+vector3f *vector3d_decompress(dword arg_0, vector3f *arg_1);
+vector3f *function_1427f0(transform4x3f const *arg_0, vector3f const *arg_1, vector3f *arg_2);
+
+// @retail 0x129aa0
+void function_129aa0(short arg_0, long *arg_1, s_looping_channel_spatialization *arg_2)
+{
+	s_sound_voice *local_0 = &g_4e6378[arg_0];
+	s_sound_playback *local_1 = SOUND_PLAYBACK_GET(local_0->sound_index);
+	s_type_12a1b0_spatial *local_2 = (s_type_12a1b0_spatial *)arg_2;
+	local_0->unknown0b = local_0->unknown0a;
+	local_0->unknown0a = 0;
+	switch (local_1->location.audible)
+	{
+	case 1:
+	case 2:
+		{
+			s_sound_listener *local_3 = &SOUND_SYSTEM->listeners[local_1->listener_index];
+			point3f local_5;
+			vector3f local_4 = *g_4687a4;
+			vector3f local_6;
+			if (local_1->location.audible == 1)
+			{
+				transform4x3f const *local_18 = (transform4x3f const *)&local_3->velocity_scale;
+				sound_source_get_position((s_sound_location_source const *)&local_1->location, local_1->listener_index, &local_5);
+				function_142700(local_18, &local_5, &local_5);
+				if ((byte)function_125060((s_sound const *)&local_1->location, local_1->definition_index))
+				{
+					vector3f *local_7 = vector3d_decompress(local_1->location.spatial.compressed_forward, &local_4);
+					real local_8 = local_7->i;
+					real local_9 = local_7->j;
+					real local_10 = local_7->k;
+					local_4.i = local_18->forward.k * local_10 + local_18->forward.j * local_9 + local_18->forward.i * local_8;
+					local_4.j = local_18->left.k * local_10 + local_18->left.j * local_9 + local_18->left.i * local_8;
+					local_4.k = local_18->up.k * local_10 + local_18->up.j * local_9 + local_18->up.i * local_8;
+				}
+				function_1427f0(local_18, &local_1->location.spatial.velocity, &local_6);
+			}
+			else
+			{
+				local_5 = local_1->location.spatial.position;
+				if ((byte)function_125060((s_sound const *)&local_1->location, local_1->definition_index))
+					vector3d_decompress(local_1->location.spatial.compressed_forward, &local_4);
+				local_6 = local_1->location.spatial.velocity;
+			}
+			if (local_1->priority & 2)
+			{
+				local_2->field_18 = function_12ad30((vector3f const *)&local_5, (s_sound const *)&local_1->location, local_1->definition_index, &local_4);
+				local_0->unknown0a |= 2;
+			}
+			else
+			{
+				local_2->field_18 = function_12ad30((vector3f const *)&local_5, (s_sound const *)&local_1->location, local_1->definition_index, &local_4);
+				*arg_1 = decibels_add(*arg_1, function_2197f0(local_2->field_18));
+				local_0->unknown0a |= 1;
+			}
+			if (SOUND_FLAG(local_1->location.flags, 11))
+				local_0->unknown0a |= 1;
+			local_2->field_1c = *(vector3f *)&local_5;
+		}
+		break;
+	case 0:
+		local_0->unknown0a |= 1;
+		local_2->field_18 = SOUND_FLAG(local_1->location.flags, 8) ? 0.0f : 1.0f;
+		local_2->field_1c = *(vector3f *)g_468788;
+		break;
+	}
+	local_2->field_14 = (local_0->unknown0a & 1) ? 0.0f : 1.0f;
+	long local_11 = SOUND_SYSTEM->time;
+	long *local_12 = (long *)local_0->unknown14;
+	if (!local_0->unknown0b)
+	{
+		*local_12 = 0;
+		local_2->field_8 = (local_0->unknown0a & 1) ? g_440c48 : g_440c4c;
+		local_2->field_4 = (local_0->unknown0a & 2) ? function_2197f0(local_2->field_18) : g_440c4c;
+	}
+	else
+	{
+		if (local_0->unknown0b != local_0->unknown0a)
+			*local_12 = local_11 - PIN(1000 - *local_12 - local_11, 0, 1000);
+		long local_13 = 0;
+		long local_14 = 0xc2800000;
+		if (*local_12 > 0)
+		{
+			long local_15 = local_11 - *local_12;
+			if (local_15 > 1000)
+				*local_12 = 0;
+			else
+			{
+				local_13 = function_12a6d0(1, (real)local_15, 1000.0f);
+				local_14 = function_12a6d0(1, (real)local_15, -1000.0f);
+			}
+		}
+		long local_16 = (local_0->unknown0a & 2) ? local_13 : local_14;
+		local_2->field_14 = function_2195f0(*(real *)&local_16);
+		local_0->unknown0b = local_0->unknown0a;
+		local_2->field_8 = *((local_0->unknown0a & 1) ? &local_13 : &local_14);
+		local_2->field_4 = decibels_add(*((local_0->unknown0a & 2) ? &local_13 : &local_14), function_2197f0(local_2->field_18));
+	}
+	local_2->field_0 = local_0->unknown0a;
+	local_2->field_c = 0;
+	local_2->field_10 = 0;
+	if (SOUND_FLAG(local_1->location.flags, 11))
+		local_2->field_8 = decibels_add(*(long *)((byte *)function_221810(sound_definition_get(local_1->definition_index)->promotion_index) + 0x14), local_2->field_8);
+	if (!TEST_FIELD_BIT(local_1->source_updated) && local_1->source && local_1->source->spatialize)
+	{
+		s_type_12a1b0_spatial local_17 = *local_2;
+		if (local_1->source->spatialize(local_1->object_index, local_1->definition_index, (s_sound_source_view const *)&local_1->marker, (s_sound_spatialization_view *)&local_17))
+			*local_2 = local_17;
+	}
+}
+
+void function_21ec00(void);
+void function_1293f0(void);
+void function_21ee80(void);
+void sound_cache_new_frame(void);
+
+// @retail 0x125d60
+void function_125d60(void)
+{
+	long local_0 = SOUND_SYSTEM->field_14_2;
+	local_0 = GetTickCount() - local_0;
+	if (g_4e6948 && g_4e6948->flag1120 && (real)local_0 > g_510c54->rate * 1000.0f)
+	{
+		s_sound_system_view *local_1 = SOUND_SYSTEM;
+		local_1->unknown7c = true;
+		if (!local_1->changing_pause)
+		{
+			local_1->changing_pause = true;
+			if ((byte)sound_system_available())
+			{
+				function_21ec00();
+				sound_system_update_time();
+				sound_voices_update_chunks();
+				function_1293f0();
+				function_21ee80();
+				local_1 = SOUND_SYSTEM;
+			}
+			sound_cache_new_frame();
+			local_1->changing_pause = false;
+		}
+		local_1->unknown7c = false;
+	}
+}
+
+void __stdcall function_1264c0(dword arg_0);
+
+// @retail 0x1257b0
+void function_1257b0(void)
+{
+	if (!SOUND_SYSTEM->unknown7b && SOUND_SYSTEM->initialized && SOUND_SYSTEM->hardware_available && SOUND_SYSTEM->enabled)
+	{
+		long local_0 = GetTickCount();
+		s_record_pool *local_1 = g_4e637c;
+		long local_2 = data_datum_index(local_1, function_16bc00(local_1, 0));
+		if (local_2 != NONE)
+		{
+			do
+			{
+				s_sound_playback *local_3 = (s_sound_playback *)local_1->data + (local_2 & 0xffff);
+				local_3->fade_gain = function_12a810(local_2);
+				local_3->fade_curve = 0;
+				local_3->fade_start_time = 300;
+				local_3->fade_end_time = NONE;
+				local_3->fading = true;
+				local_2 = data_datum_index(local_1, function_16bc00(local_1, (local_2 & 0xffff) + 1));
+			} while (local_2 != NONE);
+			real local_4 = (real)local_0;
+			local_4 += 300.0f;
+			for (;;)
+			{
+				if (!(GetTickCount() < local_4))
+					break;
+				function_125d60();
+			}
+		}
+	}
+	function_1264c0(0);
+	SOUND_SYSTEM->enabled = false;
+	if (g_502110)
+		record_pool_release_all((s_record_pool *)g_502110);
+	if (g_51ebd8)
+		record_pool_release_all((s_record_pool *)g_51ebd8);
+	g_51ebd4 = NULL;
+	function_191270();
+	long *local_5 = SOUND_DRIVER_GLOBALS->impulse_ids;
+	local_5[0] = NONE;
+	local_5[1] = NONE;
+}
+
+struct s_looping_channel_properties;
+struct s_looping_effect_playback;
+struct s_looping_impulse_parameters;
+void function_12a1b0(short arg_0, s_looping_track_sound *arg_1, s_looping_channel_spatialization const *arg_2, s_looping_channel_properties *arg_3);
+void function_21f8a0(long arg_0, s_looping_channel_properties const *arg_1, s_looping_effect_playback const *arg_2);
+void function_21fa80(long arg_0, s_looping_channel_properties const *arg_1, s_looping_effect_playback const *arg_2, bool arg_3);
+void __stdcall function_21f720(s_looping_impulse_parameters const *arg_0);
+
+struct s_128ca0
+{
+	dword field_0;
+	long field_4;
+	real field_8;
+	long field_c;
+	byte field_10[0x1c];
+	long field_2c;
+	dword field_30;
+	short field_34;
+	byte field_36[0x48 - 0x36];
+	byte field_48[0x420];
+	byte field_468[0x10];
+};
+
+// @retail 0x128ca0
+void function_128ca0(short arg_0, long arg_1, s_looping_channel_spatialization const *arg_2)
+{
+	s_sound_voice *local_0 = &g_4e6378[arg_0];
+	s_sound_playback *local_1 = SOUND_PLAYBACK_GET(local_0->sound_index);
+	s_sound_definition *local_2 = sound_definition_get(local_1->definition_index);
+	s_128ca0 local_3;
+	local_3.field_0 = 0;
+	memset((byte *)&local_3 + 4, 0, 0x2c);
+	local_3.field_30 = 0;
+	memset((byte *)&local_3 + 0x34, 0, 0x444);
+	s_sound_playback_parameters *local_4 = &SOUND_GLOBALS_DEFINITIONS->playback_parameters[local_2->playback_index];
+	real local_5 = ((real)local_4->pitch_upper - (real)local_4->pitch_lower) * local_1->location.scale + local_1->pitch + (real)local_4->pitch_lower;
+	long local_6 = decibels_add(local_1->location.unknown08, decibels_add(*(long *)&local_1->gain, arg_1));
+	local_6 = function_1251e0(local_2, local_6, local_1->location.scale);
+	function_12a1b0(arg_0, (s_looping_track_sound *)local_1, arg_2, (s_looping_channel_properties *)&local_3);
+	s_sound_pitch_range *local_7 = &SOUND_GLOBALS_DEFINITIONS->pitch_ranges[local_2->pitch_range_base + local_1->pitch_range_index];
+	s_sound_permutation const *local_8 = &SOUND_GLOBALS_CHUNKS->permutations[local_7->first_permutation + local_1->permutation_index];
+	local_3.field_34 = 0;
+	local_3.field_2c = local_1->effect_index;
+	local_3.field_8 = local_5 - (real)SOUND_GLOBALS_DEFINITIONS->pitch_bounds[local_7->bounds_index].unknown00;
+	if (local_1->priority & 2)
+	{
+		s_unknown_5c *local_9 = function_221810(local_2->promotion_index);
+		real local_10;
+		if (local_1->effect_index != NONE)
+		{
+			s_sound_controller_view *local_11 = (s_sound_controller_view *)((s_record_pool *)g_51ebd8)->data + (local_1->effect_index & 0xffff);
+			local_10 = local_11->unknown04 != NONE ? ((real *)((byte *)local_11 + 0xc))[local_1->listener_index] : 0.0f;
+		}
+		else
+			local_10 = function_12a9d0(local_1->listener_index, &local_1->location.spatial);
+		local_3.field_8 += *(real *)((byte *)local_9 + 0x48) * ((s_type_12a1b0_spatial const *)arg_2)->field_14 * local_10;
+	}
+	if (!(bool)((local_1->flags >> 9) & 1))
+	{
+		real local_12 = *(real *)&local_6 + (real)*(signed char *)((byte const *)local_8 + 4);
+		local_12 = PIN(local_12, -64.0f, 0.0f);
+		local_3.field_c = *(long *)&local_12;
+		function_21f8a0(local_0->channel_index, (s_looping_channel_properties *)&local_3, (s_looping_effect_playback *)local_3.field_48);
+		function_21f720((s_looping_impulse_parameters *)local_3.field_468);
+		sound_voice_queue_chunk(arg_0, local_8, local_1->chunk_index);
+		if (local_1->effect_index != NONE)
+		{
+			s_sound_controller_view *local_13 = (s_sound_controller_view *)((s_record_pool *)g_51ebd8)->data + (local_1->effect_index & 0xffff);
+			byte local_14 = 0xff;
+			if (local_13->unknown04 != NONE)
+			{
+				local_14 = local_13->playing_count & 0x7f;
+				local_13->playing_count = (local_13->playing_count - 1) & 0x7f;
+			}
+			local_1->unknown03 = local_14;
+		}
+		local_1->flags |= 0x200;
+	}
+	else if (local_0->permutation)
+	{
+		real local_15 = *(real *)&local_6 + (real)*(signed char *)((byte const *)local_0->permutation + 4);
+		local_15 = PIN(local_15, -64.0f, 0.0f);
+		local_3.field_c = *(long *)&local_15;
+		function_21fa80(local_0->channel_index, (s_looping_channel_properties *)&local_3, (s_looping_effect_playback *)local_3.field_48, true);
+	}
+	if (!TEST_FIELD_BIT(local_1->flag6))
+	{
+		if (TEST_FIELD_BIT(local_1->flag3) && !local_0->next_permutation && (byte)function_125e60((s_looping_track_sound *)local_1))
+		{
+			sound_voice_queue_chunk(arg_0, local_8, local_1->chunk_index);
+			local_1->flag3 = false;
+		}
+		if (!TEST_FIELD_BIT(local_1->flag3))
+		{
+			short local_16 = NONE;
+			if (local_8 && local_1->chunk_index < *(short *)((byte const *)local_8 + 0xe) - 1)
+				local_16 = local_1->chunk_index + 1;
+			if (local_16 != NONE)
+			{
+				sound_playback_set_chunk(local_0->sound_index, local_1->definition_index, local_1->pitch_range_index, local_1->permutation_index, local_16);
+				function_125e60((s_looping_track_sound *)local_1);
+				local_1->flag3 = true;
+			}
+			else
+			{
+				local_1->flag6 = true;
+				SOUND_DRIVER_STREAMS->streams[g_4e6378[arg_0].channel_index].unknown03_3 = true;
+			}
+		}
+	}
+}
+
+struct s_sound_driver_channel_usage;
+void __stdcall function_21f360(s_sound_driver_channel_usage *arg_0);
+void function_21c400(short arg_0, real arg_1, s_looping_channel_spatialization const *arg_2);
+
+// @retail 0x1293f0
+void function_1293f0(void)
+{
+	s_sound_system_view *local_0 = SOUND_SYSTEM;
+	long local_1 = function_2197f0(local_0->master_fade);
+	function_21f360((s_sound_driver_channel_usage *)local_0);
+	for (long local_2 = 0; local_2 < SOUND_SYSTEM->voice_count; local_2++)
+	{
+		s_sound_voice *local_3 = &g_4e6378[(short)local_2];
+		if (local_3->sound_index == NONE || local_3->stream_reset)
+			continue;
+		s_sound_playback *local_4 = SOUND_PLAYBACK_GET(local_3->sound_index);
+		long local_5 = function_12a810(local_3->sound_index);
+		if (*(real *)&local_5 + *(real *)&local_4->location.unknown08 <= -64.0f)
+		{
+			s_sound_playback *local_6 = SOUND_PLAYBACK_GET(local_3->sound_index);
+			if (TEST_FIELD_BIT(local_6->fading) && local_6->fade_start_time > local_6->fade_end_time)
+			{
+				function_127320(local_3->sound_index, 4);
+				local_3->sound_index = NONE;
+				continue;
+			}
+		}
+		s_sound_playback *local_7 = SOUND_PLAYBACK_GET(local_3->sound_index);
+		if (TEST_FIELD_BIT(local_7->fading) && local_7->fade_end_time > local_7->fade_start_time && SOUND_SYSTEM->time >= local_7->fade_end_time)
+			local_7->fading = false;
+		if (local_3->channel_index == NONE)
+			continue;
+		s_type_12a1b0_spatial local_8;
+		function_129aa0((short)local_2, &local_5, (s_looping_channel_spatialization *)&local_8);
+		local_5 = decibels_add(local_1, local_5);
+		if ((1 << SOUND_PLAYBACK_GET(local_3->sound_index)->state) & 0x1e)
+			function_21c400((short)local_2, *(real *)&local_5, (s_looping_channel_spatialization *)&local_8);
+		else
+			function_128ca0((short)local_2, local_5, (s_looping_channel_spatialization *)&local_8);
+		if (!TEST_FIELD_BIT(local_4->source_updated) && local_4->source && local_4->source->proc2)
+			local_4->source->proc2(local_4->object_index, (long)local_4->source_data, local_4->definition_index, local_4->pitch_range_index, (long)local_3->permutation, *(long *)&local_3->unknown10);
+	}
+}
+
+long function_155760(long arg_0);
+void function_caf60(long arg_0, point3f *arg_1);
+void function_11d6a0(vector3f const *arg_0, vector3f const *arg_1, quaternionf *arg_2);
+void function_11d950(quaternionf const *arg_0, quaternionf const *arg_1, quaternionf *arg_2, real arg_3);
+extern quaternionf *g_4687cc;
+void function_220790(s_sound_listener const *arg_0);
+
+struct s_127401
+{
+	point3f field_0;
+	s_location field_c;
+	vector3f field_14;
+	vector3f field_20;
+	vector3f field_2c;
+};
+
+struct s_127402
+{
+	s_sound_driver_reverb const *field_0;
+	s_sound_driver_occlusion field_4;
+	real field_14;
+};
+
+struct s_127403
+{
+	point3f field_0;
+	vector3f field_c;
+	vector3f field_18;
+	vector3f field_24;
+	long field_30;
+	s_127402 const *field_34;
+};
+
+PRIVATE inline void function_1275d8(quaternionf const *arg_0, vector3f const *arg_1, vector3f *arg_2)
+{
+	real local_0 = 2.0f * arg_0->w * arg_0->w - 1.0f;
+	real local_1 = 2.0f * (arg_0->j * arg_1->j + arg_0->k * arg_1->k + arg_0->i * arg_1->i);
+	real local_2 = 2.0f * arg_0->w;
+	arg_2->i = (arg_0->j * arg_1->k - arg_0->k * arg_1->j) * local_2 + arg_0->i * local_1 + local_0 * arg_1->i;
+	arg_2->j = (arg_0->k * arg_1->i - arg_0->i * arg_1->k) * local_2 + arg_0->j * local_1 + local_0 * arg_1->j;
+	arg_2->k = (arg_0->i * arg_1->j - arg_0->j * arg_1->i) * local_2 + arg_0->k * local_1 + local_0 * arg_1->k;
+}
+
+// @retail 0x127400
+void function_127400(bool arg_0)
+{
+	if (!g_4e6948 || !g_4e6948->flag1120)
+		return;
+	for (long local_0 = 0; local_0 < 4; local_0++)
+	{
+		s_sound_listener *local_1 = &SOUND_SYSTEM->listeners[local_0];
+		long local_2 = g_4e8c20->entries[local_0];
+		if (local_2 != NONE)
+		{
+			long local_3 = *(long *)(g_4e8c24->data + (local_2 & 0xffff) * 0x21c + 0x2c);
+			short local_4 = (short)function_155760(local_0);
+			s_player_state local_5 = g_4e9bd4[local_0].state;
+			s_127401 const *local_6 = g_4686c4 != NONE ? (s_127401 const *)&local_5 : NULL;
+			vector3f local_7;
+			vector3f local_8;
+			point3f local_9;
+			vector3f local_10;
+			s_location local_11;
+			bool local_12 = false;
+			if (local_3 != NONE && ((1 << function_155760(local_0)) & 3))
+			{
+				byte *local_13 = *(byte **)(g_4e0300->data + (local_3 & 0xffff) * 12 + 8);
+				long local_14 = *(long *)(local_13 + 0x14);
+				short local_15 = *(short *)(local_13 + 0x1fc);
+				if (local_14 != NONE && local_15 != NONE && local_4 != 0)
+				{
+					byte *local_16 = *(byte **)(g_4e0300->data + (local_14 & 0xffff) * 12 + 8);
+					byte *local_17 = g_4e3b44[*(long *)local_16 & 0xffff].bytes;
+					byte *local_18 = *(byte **)(local_17 + 0x1cc) + local_15 * 0xb0;
+					real local_19 = *(real *)(local_18 + 0x40);
+					point3f local_20;
+					function_caf60(local_3, &local_20);
+					local_9.x = (local_20.x - local_6->field_0.x) * local_19 + local_6->field_0.x;
+					local_9.y = (local_20.y - local_6->field_0.y) * local_19 + local_6->field_0.y;
+					local_9.z = (local_20.z - local_6->field_0.z) * local_19 + local_6->field_0.z;
+					quaternionf local_21;
+					function_11d6a0(&local_6->field_20, (vector3f *)(local_13 + 0x180), &local_21);
+					function_11d950(g_4687cc, &local_21, &local_21, local_19);
+					function_1275d8(&local_21, &local_6->field_20, &local_7);
+					function_1275d8(&local_21, &local_6->field_2c, &local_8);
+					function_ba1d0(local_3, &local_10, NULL);
+					function_11bed0(&local_11, &local_9);
+					if (local_11.cluster_index == NONE)
+						local_11 = local_6->field_c;
+					local_12 = true;
+				}
+			}
+			if (!local_12)
+			{
+				local_7 = local_6->field_20;
+				local_8 = local_6->field_2c;
+				local_9 = local_6->field_0;
+				local_10 = local_6->field_14;
+				local_11 = local_6->field_c;
+			}
+			local_1->active = true;
+			bool local_22 = false;
+			if (local_11.cluster_index != NONE)
+			{
+				byte *local_23 = (byte *)g_4e0348;
+				byte *local_24 = *(byte **)(local_23 + 0xa0) + local_11.cluster_index * 0xb0;
+				byte local_25 = local_24[0x70];
+				if (local_25 != 0xff)
+				{
+					byte *local_26 = *(byte **)(local_23 + 0x68) + (local_25 & 0x7f) * 0x18;
+					if (*(short *)(local_26 + 2) != NONE)
+					{
+						if (!(local_25 & 0x80))
+							local_22 = true;
+						else
+							local_22 = *(real *)(local_26 + 0xc) * local_9.z + *(real *)(local_26 + 8) * local_9.y + *(real *)(local_26 + 4) * local_9.x - *(real *)(local_26 + 0x10) < 0.0f;
+					}
+				}
+			}
+			local_1->unknown07 = local_22;
+			local_1->velocity_scale = 1.0f;
+			local_1->forward = local_7;
+			local_1->left.i = local_8.j * local_7.k - local_8.k * local_7.j;
+			local_1->left.j = local_8.k * local_7.i - local_8.i * local_7.k;
+			local_1->left.k = local_8.i * local_7.j - local_8.j * local_7.i;
+			local_1->up = local_8;
+			local_1->position.x = 0.0f;
+			local_1->position.y = 0.0f;
+			local_1->position.z = 0.0f;
+			local_1->position = local_9;
+			if (local_1->velocity_scale != 1.0f)
+			{
+				real local_27 = 1.0f / local_1->velocity_scale;
+				local_10.i *= local_27;
+				local_10.j *= local_27;
+				local_10.k *= local_27;
+			}
+			local_1->velocity.i = local_1->forward.j * local_10.j + local_1->forward.k * local_10.k + local_10.i * local_1->forward.i;
+			local_1->velocity.j = local_1->left.i * local_10.i + local_1->left.j * local_10.j + local_1->left.k * local_10.k;
+			local_1->velocity.k = local_1->up.j * local_10.j + local_1->up.k * local_10.k + local_1->up.i * local_10.i;
+			local_1->leaf_index = local_11.leaf_index;
+			local_1->cluster_index = local_11.cluster_index;
+		}
+		else
+		{
+			local_1->leaf_index = NONE;
+			local_1->cluster_index = NONE;
+		}
+	}
+	if (arg_0)
+	{
+		s_sound_driver_reverb local_28 = {
+			{0, 0, 0, 0, 0, 0x80, 0, 0},
+			-100.0f, -100.0f, 0.0f, 1.0f, 1.0f, -100.0f, 0.0f, -100.0f, 0.0f, 1.0f, 1.0f, 5000.0f
+		};
+		s_127402 local_29[2];
+		for (long local_30 = 0; local_30 < 2; local_30++)
+		{
+			s_sound_environment *local_31 = &SOUND_SYSTEM->environments[local_30];
+			local_29[local_30].field_0 = local_31->index == NONE ? &local_28 : (s_sound_driver_reverb *)g_4e3b44[local_31->index & 0xffff].bytes;
+			local_29[local_30].field_4 = *(s_sound_driver_occlusion *)&local_31->unknown0c;
+			local_29[local_30].field_14 = local_31->fade;
+		}
+		s_127403 local_32;
+		local_32.field_0 = *g_468788;
+		local_32.field_c = *g_4687a8;
+		local_32.field_18 = *g_4687b0;
+		local_32.field_24 = *g_4687a4;
+		local_32.field_30 = 2;
+		local_32.field_34 = local_29;
+		function_220790((s_sound_listener const *)&local_32);
+	}
+}
+
+#include "physical_memory.h"
+void function_221900(real arg_0);
+void looping_sound_controllers_update(void);
+void function_21b0e0(bool arg_0);
+long players_first_active_local_player(void);
+void __stdcall function_221a70(long arg_0, s_voice_position_batch *arg_1);
+
+// @retail 0x125b40
+void function_125b40(void)
+{
+	if (SOUND_SYSTEM->initialized && SOUND_SYSTEM->hardware_available && SOUND_SYSTEM->enabled)
+	{
+		SOUND_SYSTEM->changing_pause = true;
+		function_21ec00();
+		s_sound_system_view *local_0 = SOUND_SYSTEM;
+		if (local_0->enabled)
+		{
+			if (local_0->unknown7b && (!g_510c54->active || !g_510c54->unknown01))
+			{
+				local_0->changing_pause = true;
+				local_0->unknown7b = false;
+				for (long local_1 = 0; local_1 < SOUND_SYSTEM->voice_count; local_1++)
+					sound_voice_restart_stream((short)local_1);
+				looping_sound_controllers_synchronize(true);
+				function_21f5a0();
+				dword local_2 = GetTickCount();
+				local_0 = SOUND_SYSTEM;
+				local_0->field_14_2 = local_2;
+				local_0->changing_pause = false;
+			}
+			function_21f360((s_sound_driver_channel_usage *)local_0);
+			if (!local_0->unknown7b)
+			{
+				sound_system_update_time();
+				local_0 = SOUND_SYSTEM;
+			}
+			function_221900(local_0->elapsed_time);
+			function_127400(true);
+			looping_sound_controllers_update();
+			function_21b0e0(SOUND_SYSTEM->unknown7e[0] != 0);
+			sound_voices_update_chunks();
+			function_128020();
+			function_1282d0();
+			vector3f *local_3[0x40];
+			vector3f *local_4[0x80];
+			s_voice_position_batch local_5;
+			memset(local_3, 0, sizeof(local_3));
+			memset(local_4, 0, sizeof(local_4));
+			local_5.count = 0;
+			function_129100(&local_5, local_3, local_4);
+			long local_6 = players_first_active_local_player();
+			while (local_6 != NONE)
+			{
+				function_221a70(local_6, &local_5);
+				long local_7 = local_6 == NONE ? 0 : local_6 + 1;
+				local_6 = NONE;
+				for (; local_7 < 4; local_7++)
+				{
+					if (g_4e8c20->entries[local_7] != NONE)
+					{
+						local_6 = local_7;
+						break;
+					}
+				}
+			}
+			function_129380((vector3f const *const *)local_3, (vector3f const *const *)local_4);
+			function_1293f0();
+			if (SOUND_SYSTEM->unknown7e[0])
+				SOUND_SYSTEM->unknown7e[1]++;
+		}
+		function_21ee80();
+		looping_sound_controllers_synchronize(false);
+		SOUND_SYSTEM->unknown7e[0] = 0;
+		SOUND_SYSTEM->changing_pause = false;
+	}
+	physical_memory_new_frame((s_physical_object *)g_50210c);
+}

@@ -605,3 +605,49 @@ c_class_1473c9 *__stdcall function_2cabc2(s_screen_parameters *parameters)
 	return screen;
 }
 
+
+#include <string.h>
+#include "unknown_19d220.h"
+void __stdcall function_215900(long controller, long type, word *capacity, long *indices, long include_cached);
+bool function_212bc0(long file_index, s_game_variant *variant);
+long function_19fd00(long index);
+void function_24c0c4(c_widget *widget);
+
+// @retail 0x2ca0d9
+void c_class_2c9e69::fill()
+{
+    long indices[0x1065];
+    word count = 0x1065;
+    function_215900(get_controller_index(), game_type, &count, indices, 1);
+    record_pool_release_all(data);
+    memset(variants, 0xff, sizeof(variants));
+    if (flag_a)
+    {
+        long index = record_pool_allocate(data);
+        s_variant_item *item = &((s_variant_item *)data->data)[index & 0xffff];
+        item->variant = NONE;
+        item->value2 = 0;
+        item->string_handle = 0x1b000289;
+    }
+    long i = 0;
+    long limit = count < 0x1065 ? count : 0x1065;
+    for (; i < limit; ++i)
+    {
+        long index = record_pool_allocate(data);
+        s_variant_item *item = &((s_variant_item *)data->data)[index & 0xffff];
+        long file_index = indices[i];
+        item->value2 = 0;
+        item->variant = file_index;
+        item->string_handle = 0x0400021c;
+        s_game_variant variant;
+        if (function_212bc0(indices[i], &variant) && (bool)(((dword)indices[i] >> 21) & 1))
+        {
+            char value = *((char *)&variant + 3);
+            long clamped = value < 0 ? 0 : (value > 100 ? 100 : value);
+            if (clamped == value)
+                item->string_handle = function_19fd00(value);
+        }
+        variants[i] = index;
+    }
+    function_24c0c4((c_widget *)this);
+}

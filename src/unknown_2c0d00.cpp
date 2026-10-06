@@ -72,7 +72,7 @@ void tangent_directions(point2f const *direction, point2f *left, point2f *right,
 	*tangent_length = cosine * distance;
 }
 
-static inline real normalize2d(point2f *v)
+static inline real normalize_local2d_2c(point2f *v)
 {
 	real magnitude = (real)sqrt(length_sq2f(v));
 
@@ -101,7 +101,7 @@ void obstacle_tangent_directions(point2f const *point, s_obstacle_list const *li
 	real distance;
 
 	vector2d_from_points2d(point, &obstacle->center, &direction);
-	distance = normalize2d(&direction);
+	distance = normalize_local2d_2c(&direction);
 	if (distance > 0.0f)
 	{
 		tangent_directions(&direction, left, right, distance, obstacle->radius + radius + 0.00390625f, tangent_length);
@@ -298,4 +298,272 @@ void obstacle_list_group(s_obstacle_list *list, real radius)
 			}
 		}
 	}
+}
+
+point2f const g_440b3c = { 0.0f, 1.0f };
+point2f const *g_46877c = &g_440b3c;
+
+PRIVATE __forceinline void scale_offset_direction_2c(real scale, point2f const *v, point2f *out)
+{
+    out->x = scale * v->x;
+    out->y = v->y * scale;
+}
+
+PRIVATE __forceinline real normalize_offset_direction_2c(point2f *v)
+{
+    real magnitude = (real)sqrt(length_sq2f(v));
+    if (fabs(magnitude) < 0.0001f)
+        magnitude = 0.0f;
+    else
+    {
+        real inverse = 1.0f / magnitude;
+        scale_offset_direction_2c(inverse, v, v);
+    }
+    return magnitude;
+}
+
+// @retail 0x2c2910
+void function_2c2910(point2f const *center, point2f const *points, point2f const *previous, real radius, point2f *result)
+{
+    point2f first, second;
+    vector2d_from_points2d(center, &points[0], &first);
+    vector2d_from_points2d(center, &points[1], &second);
+    real cross = first.x * second.y - second.x * first.y;
+    if (!(fabs(cross) < 0.0001f))
+    {
+        real factor = radius * radius / cross;
+        real y = center->y + (first.x - second.x) * factor;
+        real x = center->x - (first.y - second.y) * factor;
+        result->x = x;
+        result->y = y;
+        point2f delta;
+        vector2d_from_points2d(center, result, &delta);
+        if (!(length_sq2f(&delta) > radius * radius * 4.0f))
+            return;
+    }
+    point2f direction;
+    vector2d_from_points2d(previous, points, &direction);
+    if (normalize_offset_direction_2c(&direction) == 0.0f)
+        direction = *g_46877c;
+    result->x = points[0].x + direction.x * radius;
+    result->y = points[0].y + direction.y * radius;
+}
+
+// @retail 0x2c2740
+void function_2c2740(point2f const *point, point2f const *center, real radius, bool side, point2f *result)
+{
+    point2f direction;
+    vector2d_from_points2d(center, point, &direction);
+    real distance_squared = direction.y * direction.y + direction.x * direction.x;
+    real factor = distance_squared > 0.0f ? radius / distance_squared : 0.0f;
+    point2f candidates[2];
+    real tangent_squared = distance_squared - radius * radius;
+    if (tangent_squared > 0.0f)
+    {
+        real tangent = (real)sqrt(tangent_squared);
+        candidates[0].x = center->x + (direction.x * radius + direction.y * tangent) * factor;
+        candidates[0].y = center->y + (direction.y * radius - direction.x * tangent) * factor;
+        candidates[1].x = center->x + (direction.x * radius - direction.y * tangent) * factor;
+        candidates[1].y = center->y + (direction.y * radius + direction.x * tangent) * factor;
+        point2f first, second;
+        vector2d_from_points2d(point, &candidates[0], &first);
+        vector2d_from_points2d(point, &candidates[1], &second);
+        long orientation = first.x * second.y - first.y * second.x > 0.0f ? 1 : 0;
+        *result = candidates[orientation != side];
+    }
+    else
+    {
+        candidates[0] = direction;
+        if (normalize_offset_direction_2c(&candidates[0]) == 0.0f)
+            candidates[0] = *g_46877c;
+        result->x = center->x + candidates[0].x * radius;
+        result->y = center->y + candidates[0].y * radius;
+    }
+}
+
+#include "unknown_1fa590.h"
+
+PRIVATE __forceinline word edge_node_2c(s_pathfinding_edge const *edge, long side)
+{
+    return side ? edge->surface : edge->unknown0c;
+}
+
+PRIVATE __forceinline bool path_node_open_2c(s_pathfinding_data const *data, long index)
+{
+    if (index == NONE || index == 0xffff)
+        return false;
+    s_pathfinding_node const *node = &data->nodes[index];
+    return (node->flags & 1) && (!(node->flags & 2) || !function_1fa6b0(node, data));
+}
+
+// @retail 0x2c3030
+bool function_2c3030(s_pathfinding_data const *data, point2f const *origin, real radius,
+    long edge_index, bool side, point2f *result)
+{
+    long previous_vertex = NONE;
+    long first_vertex = NONE;
+    for (;;)
+    {
+        s_pathfinding_edge const *edge = &data->edges[edge_index];
+        bool first_open = path_node_open_2c(data, edge_node_2c(edge, 0));
+        long node_index = edge_node_2c(edge, !first_open);
+        if (!path_node_open_2c(data, node_index))
+            return false;
+        s_pathfinding_node const *node = &data->nodes[node_index];
+        short surface_index = *(short const *)(edge->unknown04 + 2);
+        if (previous_vertex != NONE && surface_index != NONE && data->surface_count > 0)
+        {
+            s_pathfinding_edge const *portal = &data->edges[data->surfaces[surface_index].index];
+            long opposite = edge_node_2c(portal, portal->surface != node_index);
+            if (path_node_open_2c(data, opposite))
+            {
+                *result = *(point2f const *)&data->vertices[previous_vertex];
+                return true;
+            }
+        }
+        long vertex0 = edge->vertices[0];
+        long vertex1 = edge->vertices[1];
+        point2f const *start = (point2f const *)&data->vertices[first_open ? vertex1 : vertex0];
+        point2f const *end = (point2f const *)&data->vertices[first_open ? vertex0 : vertex1];
+        point2f direction;
+        vector2d_from_points2d(start, end, &direction);
+        point2f normal = { direction.y, 0.0f - direction.x };
+        normalize_offset_direction_2c(&normal);
+        point2f positive = { origin->x + normal.x * radius, origin->y + normal.y * radius };
+        point2f negative = { origin->x + normal.x * (0.0f - radius), origin->y + normal.y * (0.0f - radius) };
+        point2f first, second;
+        vector2d_from_points2d(&positive, start, &first);
+        vector2d_from_points2d(&negative, start, &second);
+        bool crossing = false;
+        if ((first.y * direction.y + first.x * direction.x < 0.0f ? 1 : 0) == side &&
+            first.x * direction.y - first.y * direction.x < 0.0f)
+            crossing = true;
+        if (second.x * direction.y - second.y * direction.x < 0.0f)
+            crossing = true;
+        if (first_vertex == NONE)
+            crossing = true;
+        long vertex = ((crossing != first_open) == side) ? vertex1 : vertex0;
+        if (vertex == previous_vertex)
+        {
+            *result = *(point2f const *)&data->vertices[vertex];
+            return true;
+        }
+        if (vertex == first_vertex)
+            return false;
+        if (first_vertex == NONE)
+        {
+            if (edge->unknown04[0] & 0x40)
+            {
+                *result = *(point2f const *)&data->vertices[vertex];
+                return true;
+            }
+            first_vertex = vertex;
+        }
+        if (!(node->flags & 8))
+        {
+            for (long surface = node->first_surface; surface != NONE && data->surface_count > 0;
+                surface = data->surfaces[surface].next)
+            {
+                s_pathfinding_surface const *portal = &data->surfaces[surface];
+                if (portal->type == 0 && ((long const *)portal->unknown0c)[!side] == edge_index)
+                {
+                    s_pathfinding_edge const *target = &data->edges[portal->object_index];
+                    if (path_node_open_2c(data, edge_node_2c(target, 0)) ||
+                        path_node_open_2c(data, edge_node_2c(target, 1)))
+                    {
+                        s_pathfinding_edge const *source = &data->edges[portal->index];
+                        edge_index = portal->object_index;
+                        previous_vertex = source->vertices[side ? 0 : 1];
+                        first_vertex = NONE;
+                        goto next_edge;
+                    }
+                }
+            }
+        }
+        {
+            long first_edge = edge_index;
+            short count = 0;
+            for (;;)
+            {
+                long direction_index = vertex != edge->vertices[1];
+                if (path_node_open_2c(data, edge_node_2c(edge, direction_index)) == side)
+                    break;
+                edge_index = edge->next_edges[direction_index];
+                if (edge_index == 0xffff)
+                    return false;
+                edge = &data->edges[edge_index];
+                if (edge_index == first_edge || ++count > 50)
+                    return false;
+            }
+        }
+        previous_vertex = vertex;
+next_edge:;
+    }
+}
+
+__declspec(noinline) real normalize2d(point2f *v);
+
+PRIVATE __forceinline real clamped_acos_2c(real value)
+{
+    real clamped = value < -1.0f ? -1.0f : value > 1.0f ? 1.0f : value;
+    clamped = clamped < -1.0f ? -1.0f : clamped > 1.0f ? 1.0f : clamped;
+    return (real)acos(clamped);
+}
+
+PRIVATE __forceinline real signed_angle_2c(point2f const *a, point2f const *b, bool reverse)
+{
+    real angle = clamped_acos_2c(a->y * b->y + a->x * b->x);
+    real cross = reverse ? b->x * a->y - b->y * a->x : a->x * b->y - a->y * b->x;
+    if (cross < 0.0f)
+        angle = 0.0f - angle;
+    return angle;
+}
+
+// @retail 0x2c2a70
+bool function_2c2a70(point2f const *origin, point2f const *endpoint,
+    point2f const *first, point2f const *second, point2f const *target)
+{
+    point2f direction;
+    vector2d_from_points2d(origin, endpoint, &direction);
+    if (!(normalize_offset_direction_2c(&direction) > 0.0f))
+        return true;
+    point2f normal = { 0.0f - direction.y, direction.x };
+    point2f first_direction, second_direction;
+    vector2d_from_points2d(first, origin, &first_direction);
+    normalize_offset_direction_2c(&first_direction);
+    vector2d_from_points2d(second, origin, &second_direction);
+    normalize_offset_direction_2c(&second_direction);
+    real first_side = first_direction.y * normal.y + first_direction.x * normal.x;
+    real second_side = second_direction.y * normal.y + second_direction.x * normal.x;
+    second_side = fabs(second_side) < 0.001 ? 0.0f : second_side;
+    first_side = fabs(first_side) < 0.001 ? 0.0f : first_side;
+    if (!(first_side * second_side < 0.0f))
+    {
+        point2f target_first, target_second, endpoint_first, endpoint_second;
+        vector2d_from_points2d(first, target, &target_first);
+        normalize2d(&target_first);
+        vector2d_from_points2d(second, target, &target_second);
+        normalize2d(&target_second);
+        vector2d_from_points2d(first, endpoint, &endpoint_first);
+        normalize2d(&endpoint_first);
+        vector2d_from_points2d(second, endpoint, &endpoint_second);
+        normalize2d(&endpoint_second);
+        real first_target_angle = signed_angle_2c(&target_first, &first_direction, false);
+        real first_endpoint_angle = signed_angle_2c(&endpoint_first, &first_direction, true);
+        real second_target_angle = signed_angle_2c(&target_second, &second_direction, false);
+        real second_endpoint_angle = signed_angle_2c(&endpoint_second, &second_direction, true);
+        if (second_endpoint_angle > 0.0f)
+            second_endpoint_angle -= 6.2831854820251465f;
+        if (first_endpoint_angle < 0.0f)
+            first_endpoint_angle += 6.2831854820251465f;
+        return 0.0f - (second_target_angle + second_endpoint_angle) > first_target_angle + first_endpoint_angle;
+    }
+    point2f target_first, endpoint_first, target_second, endpoint_second;
+    vector2d_from_points2d(target, first, &target_first);
+    vector2d_from_points2d(endpoint, first, &endpoint_first);
+    vector2d_from_points2d(target, second, &target_second);
+    vector2d_from_points2d(endpoint, second, &endpoint_second);
+    real first_distance = (real)sqrt(length_sq2f(&endpoint_first)) + (real)sqrt(length_sq2f(&target_first));
+    real second_distance = (real)sqrt(length_sq2f(&endpoint_second)) + (real)sqrt(length_sq2f(&target_second));
+    return second_distance > first_distance;
 }

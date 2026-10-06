@@ -619,7 +619,8 @@ void function_2373be(long index, void *base, long value)
 				fld v
 				fistp r
 			}
-			*(byte *)((byte *)base + offset) = (byte)(r * value);
+			value *= r;
+			*(byte *)((byte *)base + offset) = (byte)value;
 			break;
 		}
 		case 4:
@@ -631,7 +632,8 @@ void function_2373be(long index, void *base, long value)
 				fld v
 				fistp r
 			}
-			*(word *)((byte *)base + offset) = (word)(r * value);
+			value *= r;
+			*(word *)((byte *)base + offset) = (word)value;
 			break;
 		}
 		case 5:
@@ -643,7 +645,8 @@ void function_2373be(long index, void *base, long value)
 				fld v
 				fistp r
 			}
-			*(long *)((byte *)base + offset) = r * value;
+			value *= r;
+			*(long *)((byte *)base + offset) = value;
 			break;
 		}
 		case 6:

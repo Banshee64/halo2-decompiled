@@ -405,7 +405,9 @@ void function_231ca0(s_entry *messages, long count, c_online_y_menu_screen *scre
 {
 	for (; count; count--, messages++)
 	{
-		XUID const *xuid = messages ? (XUID const *)&messages->unknown0 : 0;
+		XUID const *xuid = 0;
+		if (messages)
+			xuid = (XUID const *)&messages->unknown0;
 
 		if ((messages->flags & 0x10000) && !friends_list_contains(xuid) && !players_list_contains(xuid))
 		{

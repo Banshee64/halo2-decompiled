@@ -63,14 +63,6 @@ void function_246c60(void *block, long unknown)
 {
 }
 
-/* the UI lane's region; retail passes the object in ecx */
-/* the UI lane's region; retail passes the command in eax and the object in ecx */
-struct s_observer_command;
-// @stub 0x23c0e0
-void function_23c0e0(long object_index, s_observer_command *command)
-{
-}
-
 /* lane D's region: a machine's connection quality */
 struct s_68a90_entry;
 /* in the region: the collision test of one object (not decompiled yet) */

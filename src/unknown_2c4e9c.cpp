@@ -4062,3 +4062,20 @@ void c_multiplayer_settings_edit_list::v20(c_class_1a2c81 *widget, long index)
 		value->function_253b1a(string_handle);
 	}
 }
+
+char *function_148d73();
+long map_location_progress_get(char const *map_name);
+void function_28950();
+
+// @retail 0x2c52af
+void c_level_select_screen::v2()
+{
+    if (*(long *)((byte *)this + 0x610) == 0)
+    {
+        char *map_name = function_148d73();
+        if (map_name && map_location_progress_get(map_name) == 1)
+            function_163890(map_name, 0);
+    }
+    c_class_1a2c81::v2();
+    function_28950();
+}
