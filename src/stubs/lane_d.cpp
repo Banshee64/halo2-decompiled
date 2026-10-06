@@ -15,11 +15,6 @@ void function_065340(void)
 {
 }
 
-// @stub 0x95580
-void __stdcall function_095580(void *stream, long message_type, long message_size, const void *message)
-{
-}
-
 
 struct s_voice_routing;
 struct s_voice_route;
@@ -49,14 +44,6 @@ void function_07a840(void)
 
 // @stub 0x199740
 bool __stdcall function_199740(unsigned char *buffer, long size, unsigned char *destination, long *decompressed_size)
-{
-	return false;
-}
-
-/* lane J's region: the next message of a connection's unreliable stream */
-struct s_network_stream_header;
-// @stub 0x95840
-bool __stdcall function_095840(s_network_stream_header *stream, long *message_type, long *message_size, void *message)
 {
 	return false;
 }
