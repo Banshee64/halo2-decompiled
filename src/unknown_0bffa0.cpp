@@ -453,7 +453,7 @@ struct s_light_frame_ab
     point3f position;
     point3f endpoint;
     real clip_distance;
-    point3f clipped_position;
+    point3f field_1c_3;
     vector3f forward;
     vector3f up;
     real radius;

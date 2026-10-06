@@ -377,7 +377,7 @@ struct s_colour_choice_ab
     real weight;
     color3f lower;
     color3f upper;
-    long variant_name;
+    long field_1c_4;
 };
 struct s_colour_choices_ab
 {
@@ -426,7 +426,7 @@ void __stdcall function_be240(long object_index, dword color_mask, color3f const
                 for (long j = 0; j < choice_count; ++j)
                 {
                     s_colour_choice_ab *choice = &entry->choices[j];
-                    if (!choice->variant_name || choice->variant_name == variant)
+                    if (!choice->field_1c_4 || choice->field_1c_4 == variant)
                     {
                         weight += choice->weight;
                         last = j;

@@ -701,8 +701,8 @@ void function_bfa40(long object_index, long node_mask)
     if (parent_index != NONE)
     {
         parent = function_b8bd0(parent_index, *(char *)(object + 0x18));
-        byte *parent_object = (byte *)((s_object_transform_header *)g_4e0300->data)[parent_index & 0xffff].object;
-        parent_mirrored = (*(dword *)(parent_object + 4) >> 10) & 1;
+        byte *local_be682a = (byte *)((s_object_transform_header *)g_4e0300->data)[parent_index & 0xffff].object;
+        parent_mirrored = (*(dword *)(local_be682a + 4) >> 10) & 1;
     }
     transform4x3f root, inverse_root, inverse_parent, relative;
     function_bdc40((point3f *)(object + 0x64), (vector3f *)(object + 0x70), (vector3f *)(object + 0x7c),
