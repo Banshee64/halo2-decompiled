@@ -6,6 +6,175 @@
 #include <string.h>
 
 real g_4670e4 = 0.85f;
+
+struct s_4ca40_colors
+{
+	byte unknown00[0x14];
+	dword first;
+	dword second;
+	real color_amount;
+	real light_amount;
+};
+
+color3f *unpack_color3f(dword pixel, color3f *color);
+
+struct s_fade_record
+{
+	long state;
+	real current;
+	real target;
+	long next_state;
+	real rate;
+	dword marker;
+};
+
+extern s_fade_record *g_50942c;
+extern long g_509420, g_509424;
+extern real g_4670fc, g_467100, g_509428;
+
+// @retail 0x398d0
+void function_398d0(real seconds)
+{
+	real const *time_reference = &seconds;
+	s_fade_record *record = g_50942c;
+	if (record && record->marker == 0xdeadbeef)
+	{
+		g_509420 = record->state;
+		g_4670fc = record->current;
+		g_467100 = record->target;
+		g_509424 = record->next_state;
+		g_509428 = record->rate;
+	}
+	if (g_509424)
+	switch (g_509424)
+	{
+	case 1:
+		g_4670fc += g_509428 * *time_reference;
+		if (g_4670fc >= g_467100)
+		{
+			g_4670fc = g_467100;
+			g_509424 = 0;
+		}
+		g_509420 = 0;
+		break;
+	case 2:
+		g_4670fc += g_509428 * *time_reference;
+		if (g_4670fc <= 0.0f)
+		{
+			g_4670fc = 0.0f;
+			g_509424 = 0;
+			g_509420 = 1;
+		}
+		break;
+	case 3:
+		g_4670fc += g_509428 * *time_reference;
+		if (g_509428 > 0.0f && g_4670fc >= g_467100)
+		{
+			g_4670fc = g_467100;
+			g_509424 = 0;
+		}
+		else if (g_509428 < 0.0f && g_4670fc <= g_467100)
+		{
+			g_4670fc = g_467100;
+			g_509424 = 0;
+			if (g_467100 == 0.0f)
+				g_509420 = 1;
+		}
+		break;
+	}
+	if (record)
+	{
+		record->state = g_509420;
+		record->current = g_4670fc;
+		record->target = g_467100;
+		record->next_state = g_509424;
+		record->rate = g_509428;
+		record->marker = 0xdeadbeef;
+	}
+}
+
+// @retail 0x4ca40
+void function_4ca40(s_4ca40_colors const *settings, long step, color3f *light, color3f *color)
+{
+	(void)&step;
+	real blend = step * (1.0f / 7.0f);
+	real amount = settings->color_amount < 0.0f ? 0.0f : settings->color_amount > 1.0f ? 1.0f : settings->color_amount;
+	real light_amount = settings->light_amount < 0.0f ? 0.0f : settings->light_amount > 1.0f ? 1.0f : settings->light_amount;
+	color3f first, second;
+	unpack_color3f(settings->first, &first);
+	unpack_color3f(settings->second, &second);
+	color3f mixed;
+	mixed.red = (1.0f - blend) * first.red + second.red * blend;
+	mixed.green = (1.0f - blend) * first.green + second.green * blend;
+	mixed.blue = (1.0f - blend) * first.blue + second.blue * blend;
+	color->red = (color->red * amount + (1.0f - amount)) * mixed.red;
+	color->green = (color->green * amount + (1.0f - amount)) * mixed.green;
+	color->blue = (color->blue * amount + (1.0f - amount)) * mixed.blue;
+	light->red = light->red * light_amount + (1.0f - light_amount) * 0.5f;
+	light->green = light->green * light_amount + (1.0f - light_amount) * 0.5f;
+	light->blue = light->blue * light_amount + (1.0f - light_amount) * 0.5f;
+}
+
+// @retail 0x4ca00
+void function_4ca00(s_4ca40_colors const *settings, byte const *data, color3f *light, color3f *color)
+{
+	s_4ca40_colors const *const *settings_reference = &settings;
+	unpack_color3f(*(dword const *)(data + 0xc), light);
+	unpack_color3f(*(dword const *)(data + 8), color);
+	function_4ca40(*settings_reference, (*(dword const *)data >> 13) & 7, light, color);
+}
+
+struct s_2e3f0_record
+{
+	long tag;
+	point3f position;
+	byte direction[3];
+	byte amount;
+	dword color;
+};
+
+// @retail 0x2e3f0
+void function_2e3f0(s_2e3f0_record const *record, long *tag, point3f *position,
+	vector3f *direction, color3f *color, real *alpha, real *amount, real *scale)
+{
+	(void)&direction;
+	(void)&alpha;
+	(void)&amount;
+	(void)&scale;
+	byte *definition = g_4e3b44[record->tag & 0xffff].bytes;
+	if (tag)
+		*tag = record->tag;
+	if (position)
+		*position = record->position;
+	if (direction)
+	{
+		direction->i = record->direction[0] * (2.0f / 255.0f) - 1.0f;
+		direction->j = record->direction[1] * (2.0f / 255.0f) - 1.0f;
+		direction->k = record->direction[2] * (2.0f / 255.0f) - 1.0f;
+	}
+	if (definition[0x28] & 0x40)
+	{
+		if (color)
+			*color = *(color3f const *)((byte const *)g_4686cc + 4);
+		if (alpha)
+			*alpha = record->amount * (1.0f / 255.0f);
+		if (amount)
+			*amount = 1.0f;
+		if (scale)
+			*scale = *(real const *)&record->color;
+	}
+	else
+	{
+		if (color)
+			unpack_color3f(record->color & 0xffffff, color);
+		if (alpha)
+			*alpha = (record->color >> 24) * (1.0f / 255.0f);
+		if (amount)
+			*amount = record->amount * (1.0f / 255.0f);
+		if (scale)
+			*scale = 1.0f;
+	}
+}
 long g_4ba01c;
 byte g_4ba020, g_4ba021, g_4ba022, g_4ba023, g_4ba024, g_4ba025;
 real g_4ba028, g_4ba02c;
@@ -159,6 +328,49 @@ struct s_cluster_tag_table
 	long count;
 	s_cluster_tag_entry *entries;
 };
+
+struct rigid_transform_scaled
+{
+	quaternionf rotation;
+	point3f position;
+	real scale;
+};
+
+struct s_render_model_definition;
+void render_model_get_default_orientations(s_render_model_definition const *definition, rigid_transform_scaled *orientations);
+void render_model_build_node_matrices(vector3f const *forward, vector3f const *up, point3f const *position,
+	s_render_model_definition const *definition, transform4x3f *matrices, rigid_transform_scaled const *orientations);
+
+bool g_4c5038;
+long g_4c503c;
+transform4x3f g_4c5040[255];
+
+// @retail 0x3ea60
+void function_3ea60(void)
+{
+	struct
+	{
+		long count;
+		rigid_transform_scaled orientations[255];
+	} scratch;
+	if (g_4b9ee9 && g_4b9eec != NONE)
+	{
+		long index = NONE;
+		s_cluster_tag_table *table = (s_cluster_tag_table *)g_4e0350;
+		if ((short)g_4b9eec >= 0 && (short)g_4b9eec < table->count)
+			index = table->entries[(short)g_4b9eec].tag;
+		byte *data = NULL;
+		if (index != NONE)
+			data = g_4e3b44[index & 0xffff].bytes;
+		byte *definition = g_4e3b44[*(long *)(data + 4) & 0xffff].bytes;
+		scratch.count = *(long *)(definition + 0x48);
+		render_model_get_default_orientations((s_render_model_definition *)definition, scratch.orientations);
+		g_4c5038 = true;
+		g_4c503c = *(long *)(definition + 0x48);
+		render_model_build_node_matrices(g_4687a8, g_4687b0, g_468788,
+			(s_render_model_definition *)definition, g_4c5040, scratch.orientations);
+	}
+}
 
 // @retail 0x3eb70
 real function_3eb70(void)

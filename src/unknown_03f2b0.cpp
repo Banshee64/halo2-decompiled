@@ -373,6 +373,60 @@ void function_3f500(long cluster_index)
 
 #include "geometry_cache.h"
 
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+// @retail 0x2d000
+long function_2d000(long object_index, long tag, long instance)
+{
+	long result = 3;
+	byte *map = (byte *)g_4e0348;
+	byte *definition = g_4e0344 ? (byte *)g_4e0344->bsp : NULL;
+	if (g_4e0344 && g_4e0344->count > 0 && map &&
+		*(long *)(definition + 0x1c) != NONE &&
+		*(long *)(definition + 4) == *(long *)(map + 8))
+	{
+		if (tag != NONE)
+		{
+			if (instance == 0x7ff)
+				result = 2;
+			else
+			{
+				byte *data = g_4e3b44[tag & 0xffff].bytes;
+				byte *tags = *(byte **)(definition + 0x5c);
+				if (*(long *)(data + 8) == *(long *)(tags + instance * 12 + 8))
+				{
+					byte *mappings = *(byte **)(definition + 0x64);
+					long section = *(word *)(mappings + instance * 12 + 2);
+					byte *sections = *(byte **)(definition + 0x44);
+					if (function_12de70((s_geometry_block_info *)(sections + section * 0x38 + 0xc), 3))
+						result = 1;
+				}
+			}
+		}
+		else if (instance == 0x7ff)
+			result = 0;
+		else
+		{
+			byte *mappings = *(byte **)(definition + 0x54);
+			long section = *(word *)(mappings + instance * 12 + 2);
+			byte *sections = *(byte **)(definition + 0x44);
+			if (function_12de70((s_geometry_block_info *)(sections + section * 0x38 + 0xc), 3))
+			{
+				byte *instances = *(byte **)((byte *)g_4e0348 + 0x144);
+				result = *(short *)(instances + instance * 0x58 + 0x56) != 0;
+			}
+		}
+	}
+	else if (tag != NONE && object_index != NONE)
+	{
+		byte *object = (byte *)function_badc0(object_index, NONE);
+		if (object && (object[7] & 1))
+			result = 2;
+	}
+	return result;
+}
+
 struct s_geometry_section
 {
     byte unknown00[0x38];

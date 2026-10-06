@@ -7,6 +7,39 @@
 #include <xtl.h>
 #include "globals.h"
 
+struct s_3c9a0_matrix
+{
+	real scale;
+	vector3f forward, left, up;
+	point3f position;
+};
+
+real function_30bf0(vector3f *vector);
+
+PRIVATE inline void matrix_cross(vector3f const *a, vector3f const *b, vector3f *out)
+{
+	real i = b->k * a->j - a->k * b->j;
+	real j = a->k * b->i - b->k * a->i;
+	real k = b->j * a->i - b->i * a->j;
+	out->i = i;
+	out->j = j;
+	out->k = k;
+}
+
+// @retail 0x3c9a0
+void function_3c9a0(vector3f const *forward, vector3f const *up, s_3c9a0_matrix *matrix)
+{
+	matrix->scale = 1.0f;
+	matrix->up = *up;
+	matrix_cross(up, forward, &matrix->left);
+	function_30bf0(&matrix->left);
+	matrix_cross(&matrix->left, up, &matrix->forward);
+	function_30bf0(&matrix->forward);
+	matrix->position.x = 0.0f;
+	matrix->position.y = 0.0f;
+	matrix->position.z = 0.0f;
+}
+
 // @retail 0x3bcb0
 void function_3bcb0(s_bitmap_data *bitmap)
 {
