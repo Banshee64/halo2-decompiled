@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6537 functions match
+
+```
+matched 6537 of 11318 game functions (704840 of 2784283 bytes, 25.31%)
+```
+
+6537 new matches, none lost:
+- Codex UI-screens lane round 6: 0x2b635f, 0x2b9670, 0x2be650, 0x2c5224 and 0x2c52af.
+- Codex lane D round 25: 0x53610 and 0x56b70.
+
 ## 2026-10-06: 6530 functions match
 
 ```
