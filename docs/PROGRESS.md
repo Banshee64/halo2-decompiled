@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6261 functions match
+
+```
+matched 6261 of 11318 game functions (652805 of 2784283 bytes, 23.45%)
+```
+
+6 new matches, none lost:
+- **Codex lane AC**, round 3 (6): interface constructors and callbacks in the 0x2729b0–0x29ffff range.
+
 ## 2026-10-06: 6255 functions match
 
 ```
