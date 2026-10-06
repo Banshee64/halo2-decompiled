@@ -11,6 +11,51 @@ bool function_1249f0(long memory_unit, char *drive_letter);
 char *function_216400(long memory_unit, char *buffer, short capacity);
 bool function_216da0(wchar_t *name, long type, wchar_t const *display_name, long language);
 
+struct s_saved_game_drive
+{
+	byte utility_drive : 1;
+	byte unused : 7;
+};
+
+extern s_saved_game_drive g_4e61c0;
+extern long g_55c154;
+char *function_11c9c0(char *buffer, long maximum_count, char const *format, ...);
+void unicode_string_snprintf(word *buffer, long maximum_count, word const *format, ...);
+
+// @retail 0x215f40
+bool __stdcall function_215f40(long type, byte *buffer)
+{
+	(void)&type;
+	(void)&buffer;
+	word *name = (word *)buffer;
+	name[0] = 0;
+	if (TEST_FIELD_BIT(g_4e61c0.utility_drive))
+	{
+		char root[8] = "";
+		char path[256] = "";
+		char letter = TEST_FIELD_BIT(g_4e61c0.utility_drive) ? 'u' : 0;
+		function_11c9c0(root, sizeof(root), "%c:\\", letter);
+		long index = 0;
+		do
+		{
+			unicode_string_snprintf(name, 128, L"Halo%04d", index + 1);
+			word full_name[128];
+			full_name[0] = 0;
+			function_216da0(full_name, type, name, g_55c280);
+			if (XCreateSaveGame(root, full_name, 3, 0, path, sizeof(path)) != 0)
+				break;
+			index++;
+		}
+		while (index < 4096);
+		if (index == 4096)
+		{
+			g_55c154 = 1;
+			name[0] = 0;
+		}
+	}
+	return name[0] != 0;
+}
+
 // @retail 0x216120
 bool function_216120(word *string, long type)
 {

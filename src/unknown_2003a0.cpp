@@ -3,6 +3,7 @@
 #include "squads.h"
 #include "unknown_1a58b0.h"
 #include <math.h>
+#include <string.h>
 #include "object_iterator.h"
 
 // @flags /O2 /Gr /arch:SSE
@@ -37,6 +38,111 @@ long function_201330(short placement_index)
 }
 
 extern s_flag_bits g_557c74;
+
+long function_1e4990(long index);
+PRIVATE short const g_44aee8[20] =
+{
+	3, 7, 3, 3, 3, 3, 1, 2, 2, 4, 4, 4, 5, 5, -1, 3, 7, 7, 7, 4
+};
+
+// @retail 0x200c20
+void function_200c20(byte const *definition)
+{
+	long index = record_pool_allocate(g_51e9d8);
+	s_squad_datum *squad = squad_get(index);
+	*(word *)((byte *)squad + 2) = 0;
+	*(word *)((byte *)squad + 2) |= (word)((*(dword const *)(definition + 0x20) >> 8) & 1);
+	if (*(dword const *)(definition + 0x20) & 0x200)
+		*((byte *)squad + 2) |= 2;
+	else
+		*((byte *)squad + 2) &= ~2;
+	squad->first_actor_index = NONE;
+	squad->first_vehicle_index = NONE;
+	*(long *)((byte *)squad + 0x78) = NONE;
+	*(short *)((byte *)squad + 0x7c) = 0;
+	*((byte *)squad + 0x26) = 0;
+	*(short *)((byte *)squad + 0x2a) = NONE;
+	*(short *)((byte *)squad + 0x62) = NONE;
+	*(short *)((byte *)squad + 0x64) = NONE;
+	*(long *)((byte *)squad + 0x80) = NONE;
+	*(long *)((byte *)squad + 0x2c) = NONE;
+	*(long *)((byte *)squad + 0x5c) = NONE;
+	squad->value24 = 0;
+	*((byte *)squad + 0x60) = 0;
+	*(long *)((byte *)squad + 0x6c) = *(short const *)(definition + 0x26);
+	squad->next_squad_index = NONE;
+	*(short *)((byte *)squad + 0x7e) = NONE;
+	for (long i = 0; i < 5; i++)
+		((long *)((byte *)squad + 0x84))[i] = NONE;
+	*((byte *)squad + 0x76) = definition[0x24];
+	if (!*((byte *)squad + 0x76))
+	{
+		short palette_index = *(short const *)(definition + 0x36);
+		byte *scenario = (byte *)g_4e0350;
+		if (palette_index >= 0 && palette_index < *(long *)(scenario + 0x178))
+		{
+			long *palette = (long *)(*(byte **)(scenario + 0x17c) + palette_index * 8);
+			if (palette[1] != NONE)
+			{
+				byte *tag = g_4e3b44[palette[1] & 0xffff].bytes;
+				long unit_index = *(long *)(tag + 0x10);
+				if (unit_index != NONE)
+					*((byte *)squad + 0x76) = g_4e3b44[unit_index & 0xffff].bytes[0xc0];
+				else
+				{
+					unit_index = *(long *)(tag + 0x18);
+					if (unit_index != NONE)
+						*((byte *)squad + 0x76) = g_4e3b44[unit_index & 0xffff].bytes[0xc0];
+				}
+				if (!*((byte *)squad + 0x76))
+				{
+					byte *properties = (byte *)function_1e4990(palette[1]);
+					if (properties)
+					{
+						short type = *(short *)(properties + 4);
+						if (type >= 0 && type < 20)
+							*((byte *)squad + 0x76) = (byte)g_44aee8[type];
+					}
+				}
+			}
+		}
+	}
+}
+
+void record_pool_release_all(s_record_pool *data);
+void function_2009d0(void);
+
+// @retail 0x200b30
+void function_200b30(void)
+{
+	byte *scenario = (byte *)g_4e0350;
+	g_51e9d8->valid = true;
+	record_pool_release_all(g_51e9d8);
+	g_51e9dc->valid = true;
+	record_pool_release_all(g_51e9dc);
+	for (short i = 0; i < *(long *)(scenario + 0x160); i++)
+		function_200c20(*(byte **)(scenario + 0x164) + i * 0x74);
+	for (short i = 0; i < *(long *)(scenario + 0x158); i++)
+	{
+		byte *definition = *(byte **)(scenario + 0x15c) + i * 0x24;
+		long index = record_pool_allocate(g_51e9dc);
+		byte *group = (byte *)squad_group_get(index);
+		*(long *)(group + 0xc) = NONE;
+		*(long *)(group + 4) = NONE;
+		*(long *)(group + 8) = NONE;
+		*(short *)(group + 0x14) = NONE;
+		*(short *)(group + 0x24) = NONE;
+		*(short *)(group + 0x26) = NONE;
+		group[0x28] = 0;
+		*(short *)(group + 0x2a) = NONE;
+		*(short *)(group + 0x2c) = NONE;
+		*(short *)(group + 0x34) = 0;
+		group[0x23] = 0;
+		*(long *)(group + 0x10) = *(short *)(definition + 0x20);
+		*(long *)(group + 0xc) = NONE;
+	}
+	function_2009d0();
+}
 
 struct s_squad_activity_flags
 {
@@ -117,8 +223,8 @@ void __stdcall function_202570(long group_index)
 {
 	s_squad_group_totals *group = (s_squad_group_totals *)squad_group_get(group_index);
 	byte active = 0;
-	short remaining_count = 0;
 	short count = 0;
+	short remaining_count = 0;
 	group->maximum = 0;
 	group->actor_count = 0;
 	real weighted_sum = 0.0f;
@@ -308,6 +414,86 @@ struct s_squad_definition_table_view
 	s_squad_definition_entry *entries;
 };
 
+struct s_squad_iterator
+{
+	short squad_index;
+	short current;
+	short next;
+	short palette_index;
+	word flags;
+	bool flag_a;
+	bool flag_b;
+	bool flag_c;
+	byte unknown0d[3];
+	s_squad_definition_entry *definition;
+};
+
+// @retail 0x204ec0
+void function_204ec0(s_squad_iterator *iterator, short squad_index, short flags, short mode)
+{
+	(void)&flags;
+	(void)&mode;
+	if (squad_index == NONE)
+	{
+		iterator->next = NONE;
+		return;
+	}
+	s_squad_datum *squad;
+	s_squad_definition_entry *definition;
+	for (;;)
+	{
+		squad = squad_get((word)squad_index);
+		short index = ((s_squad_definition_view *)squad)->definition_index;
+		definition = index == NONE ? NULL : &((s_squad_definition_table_view *)g_4e0350)->entries[index];
+		if (!definition || !(definition->data[0x24] & 0x20) || *(short *)(definition->data + 0x4e) == NONE)
+			break;
+		squad_index = *(short *)(definition->data + 0x4e);
+	}
+	iterator->definition = definition;
+	iterator->current = NONE;
+	iterator->next = 0;
+	iterator->squad_index = squad_index;
+	if (definition)
+	{
+		iterator->palette_index = NONE;
+		if ((flags & 4) && !(flags & 1))
+		{
+			bool alternate = *(bool *)((byte *)squad + 0x60);
+			long count = *(long *)(definition->data + (alternate ? 0x5c : 0x54));
+			short index = 0;
+			for (; index < count; index++)
+			{
+				byte *entries = *(byte **)(definition->data + (alternate ? 0x60 : 0x58));
+				if (*(short *)(entries + index * 8) == 2)
+					break;
+			}
+			if (index >= count)
+				flags |= 1;
+		}
+	}
+	else
+	{
+		byte *scenario = (byte *)g_4e0350;
+		byte *entry = *(byte **)(scenario + 0x164) + (word)squad_index * 0x74;
+		iterator->palette_index = *(short *)(entry + 0x38);
+		if (*(short *)(entry + 0x38) == NONE)
+			iterator->next = NONE;
+		else
+		{
+			byte *palette = *(byte **)(scenario + 0x16c) + (word)iterator->palette_index * 0x38;
+			iterator->next = (*(long *)(palette + 0x30) > 0) - 1;
+		}
+	}
+	iterator->flags = (word)flags;
+	iterator->flag_b = false;
+	iterator->flag_a = false;
+	iterator->flag_c = false;
+	if (mode == 2)
+		iterator->flag_c = true;
+	else if (mode == 1)
+		iterator->flag_a = true;
+}
+
 struct s_squad_object_state
 {
 	byte unknown000[0x10a];
@@ -473,6 +659,173 @@ struct s_squad_placement_table
 	long script_count;
 	byte *scripts;
 };
+
+PRIVATE inline bool placement_bit(dword const *bits, short index)
+{
+	return (bits[index >> 5] & (1 << (index & 31))) != 0;
+}
+
+PRIVATE inline short placement_priority(s_squad_placement_entry *entry)
+{
+	return (*((byte *)entry + 0x1c) & 8) ? 100 : *(short *)((byte *)entry + 0x2a);
+}
+
+// @retail 0x2039d0
+short function_2039d0(short squad_index, dword *available, dword const *blocked)
+{
+	(void)&available;
+	(void)&blocked;
+	s_squad_placement_definition *squad;
+	short maximum;
+	short maximum_count;
+	for (;;)
+	{
+		squad = &((s_squad_placement_table *)g_4e0350)->squads[(word)squad_index];
+		maximum = NONE;
+		maximum_count = 0;
+		short available_count = 0;
+		short blocked_count = 0;
+		for (short i = 0; i < squad->count; i++)
+		{
+			if (placement_bit(blocked, i))
+				blocked_count++;
+			else if (placement_bit(available, i))
+			{
+				short priority = placement_priority(&squad->entries[i]);
+				available_count++;
+				if (priority > maximum)
+				{
+					maximum = priority;
+					maximum_count = 1;
+				}
+				else if (priority == maximum)
+					maximum_count++;
+			}
+		}
+		if (blocked_count == squad->count)
+			return NONE;
+		if (!available_count && squad->count > 0)
+			memset(available, 0xff, ((squad->count + 31) >> 5) * sizeof(dword));
+		else
+			break;
+	}
+	if (!maximum_count)
+		return NONE;
+	short choice = 0;
+	if (maximum_count > 1)
+	{
+		g_4e7408->unknown0 = g_4e7408->unknown0 * 0x19660d + 0x3c6ef35f;
+		choice = (short)(((g_4e7408->unknown0 >> 16) * maximum_count) >> 16);
+	}
+	short found = 0;
+	for (short i = 0; i < squad->count; i++)
+	{
+		if (placement_bit(available, i) && !placement_bit(blocked, i) && placement_priority(&squad->entries[i]) == maximum)
+		{
+			if (found == choice)
+			{
+				available[i >> 5] &= ~(1 << (i & 31));
+				return i;
+			}
+			found++;
+		}
+	}
+	return NONE;
+}
+
+// @retail 0x205010
+short function_205010(s_squad_iterator *iterator)
+{
+	short result = NONE;
+	if (iterator->next != NONE)
+	{
+		byte *squad = (byte *)squad_get((word)iterator->squad_index);
+		if (*(long *)(squad + 0x80) != NONE)
+		{
+			if (*(signed char *)(squad + 0x30) >= 0)
+			{
+				do
+				{
+					short palette_index = *(short *)(squad + iterator->next * 4 + 0x32);
+					short entry_index = *(short *)(squad + iterator->next * 4 + 0x34);
+					byte *palette = *(byte **)((byte *)g_4e0350 + 0x16c) + (word)palette_index * 0x38;
+					byte *entry = *(byte **)(palette + 0x34) + entry_index * 0x88;
+					iterator->next++;
+					if (iterator->next >= *(signed char *)(squad + 0x30))
+						iterator->next = NONE;
+					if (iterator->flag_c || (*(dword *)(entry + 0x20) & 1) == iterator->flag_a)
+					{
+						iterator->palette_index = palette_index;
+						result = entry_index;
+						break;
+					}
+				} while (iterator->next != NONE);
+			}
+		}
+		else if (iterator->definition)
+		{
+			byte *definition = iterator->definition->data;
+			long *block = (long *)(definition + (squad[0x60] ? 0x5c : 0x54));
+			if (*block > 0)
+			{
+				do
+				{
+					byte *entries = squad[0x60] ? *(byte **)(definition + 0x60) : *(byte **)(definition + 0x58);
+					short *selection = (short *)(entries + iterator->next * 8);
+					iterator->next++;
+					if (iterator->next >= *block)
+						iterator->next = NONE;
+					if (iterator->flags & (1 << selection[0]))
+					{
+						short palette_index = selection[2];
+						byte *scenario = (byte *)g_4e0350;
+						if (palette_index >= 0 && palette_index < *(long *)(scenario + 0x168))
+						{
+							byte *palette = *(byte **)(scenario + 0x16c) + (word)palette_index * 0x38;
+							short entry_index = selection[3];
+							if (entry_index >= 0 && entry_index < *(long *)(palette + 0x30))
+							{
+								byte *entry = *(byte **)(palette + 0x34) + entry_index * 0x88;
+								if (iterator->flag_c || (*(dword *)(entry + 0x20) & 1) == iterator->flag_a)
+								{
+									iterator->palette_index = palette_index;
+									result = entry_index;
+									break;
+								}
+							}
+						}
+					}
+				} while (iterator->next != NONE);
+			}
+		}
+		else
+		{
+			do
+			{
+				byte *palette = *(byte **)((byte *)g_4e0350 + 0x16c) + (word)iterator->palette_index * 0x38;
+				short entry_index = iterator->next;
+				if (entry_index < 0 || entry_index >= *(long *)(palette + 0x30))
+				{
+					iterator->next = NONE;
+					result = NONE;
+					break;
+				}
+				byte *entry = *(byte **)(palette + 0x34) + entry_index * 0x88;
+				iterator->next++;
+				palette = *(byte **)((byte *)g_4e0350 + 0x16c) + (word)iterator->palette_index * 0x38;
+				if (iterator->next >= *(long *)(palette + 0x30))
+					iterator->next = NONE;
+				if (iterator->flag_c || (*(dword *)(entry + 0x20) & 1) == iterator->flag_a)
+				{
+					result = entry_index;
+					break;
+				}
+			} while (iterator->next != NONE);
+		}
+	}
+	iterator->current = result;
+	return result;
+}
 
 long function_257ed0(long thread_index, long actor_index, short script_index);
 
