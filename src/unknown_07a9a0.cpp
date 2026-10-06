@@ -311,6 +311,7 @@ struct s_session_packet
 		dword d[6];
 		short w[14];
 	} u;
+	byte unknown10c[0x130 - 0x10c];
 };
 
 /* a value in 0..maximum, written in the fewest bits that hold the maximum */
@@ -429,3 +430,233 @@ bool function_07aaa0(XNADDR *xnaddr, s_type_99af70 *address)
 		*address = g_4cf7b8;
 	return g_4cf792;
 }
+
+#include "unknown_0662e0.h"
+
+struct s_member_quality_entry
+{
+	byte unknown00[0x90];
+	long first;
+	long second;
+	long kind;
+	dword mask;
+	byte unknowna0[0x10c - 0xa0];
+};
+struct s_member_quality_collection
+{
+	byte unknown00[8];
+	long count;
+	s_member_quality_entry entries[16];
+};
+
+// @retail 0x7e100
+void function_7e100(long current, const s_member_quality_collection *collection,
+	long *selected, long *first, long *second, long *level)
+{
+	long best = NONE;
+	long best_first = 0;
+	long best_second = 0;
+	if (current != NONE)
+	{
+		best = current;
+		best_first = collection->entries[current].first;
+		best_second = collection->entries[current].second;
+	}
+	long count = collection->count;
+	for (long i = 0; i < count; i++)
+	{
+		const s_member_quality_entry *entry = &collection->entries[i];
+		if ((!g_network_configuration.flag1ac || entry->kind != 3) &&
+			entry->first >= g_network_configuration.valued0 &&
+			entry->second >= g_network_configuration.valuecc &&
+			entry->mask == (dword)((1 << count) - 1) &&
+			entry->second >= best_second + g_network_configuration.valued4)
+		{
+			best = i;
+			best_first = entry->first;
+			best_second = entry->second;
+		}
+	}
+	long quality = 0;
+	for (long j = 16; j > 0; j--)
+	{
+		if (best_second >= g_network_configuration.value40[j])
+		{
+			quality = j;
+			break;
+		}
+	}
+	if (quality <= g_network_configuration.valuec8)
+		quality = g_network_configuration.valuec8;
+	if (selected)
+		*selected = best;
+	if (first)
+		*first = best_first;
+	if (second)
+		*second = best_second;
+	if (level)
+		*level = quality;
+}
+
+struct s_session_description_payload
+{
+	short field0;
+	short field2;
+	long field4;
+	long field8;
+	long fieldc;
+	long field10;
+	byte field14[8];
+	byte field1c[16];
+	byte field2c[36];
+	long field50;
+	long field54;
+	long field58;
+	long field5c;
+	long field60;
+	long field64;
+	long field68;
+	long field6c;
+	long field70;
+	long field74;
+	long field78;
+	long field7c;
+	long field80;
+	long field84;
+	long count;
+	byte identities[16][12];
+};
+
+// @retail 0x7db10
+void function_7db10(s_bitstream *stream, const s_session_description_payload *message)
+{
+	stream_write_checked(stream, message->field0, 8);
+	stream_write_checked(stream, message->field2, 2);
+	stream_write_checked(stream, message->field4, 3);
+	stream_write_checked(stream, message->field8 + 1, 16);
+	stream_write_checked(stream, message->fieldc + 1, 16);
+	stream_write_checked(stream, message->field10, 4);
+	function_1955d0(stream, message->field14, 64);
+	function_1955d0(stream, message->field1c, 128);
+	function_1955d0(stream, message->field2c, 288);
+	function_1955d0(stream, &message->field50, 32);
+	function_1955d0(stream, &message->field54, 32);
+	stream_write_checked(stream, message->field58, 5);
+	stream_write_checked(stream, message->field5c, 5);
+	stream_write_checked(stream, message->field60, 5);
+	stream_write_checked(stream, message->field64, 5);
+	stream_write_checked(stream, message->field68, 16);
+	stream_write_checked(stream, message->field6c, 16);
+	stream_write_checked(stream, message->field70, 4);
+	function_1955d0(stream, &message->field74, 32);
+	stream_write_checked(stream, message->field78, 7);
+	stream_write_checked(stream, message->field7c, 7);
+	stream_write_checked(stream, message->field80, 7);
+	stream_write_checked(stream, message->field84, 7);
+	stream_write_checked(stream, message->count, 4);
+	for (long i = 0; i < message->count; i++)
+		function_1955d0(stream, message->identities[i], 96);
+}
+
+#include "unknown_19d220.h"
+bool function_19d650(s_game_variant *variant);
+
+#define SESSION_READ_RANGE(destination, type, maximum) \
+	{ \
+		long bits = 0; \
+		do { bits++; } while (((1 << bits) - 1) < (maximum)); \
+		(destination) = (type)function_1959c0(stream, bits); \
+	}
+
+// @retail 0x7d520
+bool function_07d520(s_bitstream *stream, void *part)
+{
+	bool result = true;
+	s_session_packet *packet = (s_session_packet *)part;
+	packet->type = function_1959c0(stream, 4);
+	if (packet->type)
+	{
+		packet->flag0 = (word)function_1959c0(stream, 1);
+		function_194fa0(stream, packet->name, 32);
+		packet->field3 = (char)(function_1959c0(stream, 7) - 1);
+		packet->field48 = (dword)function_1959c0(stream, 15);
+		SESSION_READ_RANGE(packet->field4c, dword, 6);
+		packet->field50 = (dword)function_1959c0(stream, 16);
+		packet->field54 = (dword)function_1959c0(stream, 16);
+		SESSION_READ_RANGE(packet->field58, dword, 3);
+		SESSION_READ_RANGE(packet->field74, dword, 0x10);
+		SESSION_READ_RANGE(packet->field78, dword, 0x10);
+		packet->field7c = (dword)function_1959c0(stream, 16);
+		packet->field80 = (dword)function_1959c0(stream, 16);
+		packet->field84 = (dword)function_1959c0(stream, 16);
+		SESSION_READ_RANGE(packet->field88, dword, 2);
+		SESSION_READ_RANGE(packet->fielda4, dword, 2);
+		SESSION_READ_RANGE(packet->fielda8, dword, 2);
+		packet->fieldac = (dword)function_1959c0(stream, 16);
+		SESSION_READ_RANGE(packet->fieldb4, dword, 8);
+		SESSION_READ_RANGE(packet->fieldcc[0], char, 3);
+		SESSION_READ_RANGE(packet->fieldcc[1], char, 7);
+		SESSION_READ_RANGE(packet->fieldcc[2], char, 7);
+		SESSION_READ_RANGE(packet->fieldcc[3], char, 4);
+		SESSION_READ_RANGE(packet->fieldcc[4], char, 4);
+		SESSION_READ_RANGE(packet->fieldcc[5], char, 4);
+		SESSION_READ_RANGE(packet->fieldcc[6], char, 6);
+		SESSION_READ_RANGE(packet->fieldcc[7], char, 6);
+		SESSION_READ_RANGE(packet->fieldcc[8], char, 0x13);
+		SESSION_READ_RANGE(packet->fieldcc[9], char, 3);
+		SESSION_READ_RANGE(packet->fieldcc[10], char, 0x14);
+		SESSION_READ_RANGE(packet->fieldcc[11], char, 0x14);
+
+		switch (packet->type)
+		{
+		case 9:
+			packet->u.w[12] = (short)function_1959c0(stream, 16);
+			packet->u.w[13] = (short)function_1959c0(stream, 16);
+		case 1:
+			packet->u.d[0] = (dword)function_1959c0(stream, 8);
+			packet->u.d[1] = (dword)function_1959c0(stream, 16);
+			SESSION_READ_RANGE(packet->u.d[2], dword, 2);
+			SESSION_READ_RANGE(packet->u.d[3], dword, 1);
+			SESSION_READ_RANGE(packet->u.d[4], dword, 3);
+			SESSION_READ_RANGE(packet->u.d[5], dword, 2);
+			break;
+		case 2:
+			packet->u.d[0] = (dword)function_1959c0(stream, 3);
+			break;
+		case 3:
+			packet->u.d[0] = (dword)function_1959c0(stream, 3);
+			SESSION_READ_RANGE(packet->u.w[2], short, 3);
+			SESSION_READ_RANGE(packet->u.w[3], short, 1);
+			SESSION_READ_RANGE(packet->u.w[4], short, 2);
+			SESSION_READ_RANGE(packet->u.w[5], short, 3);
+			break;
+		case 4:
+			packet->u.d[0] = (dword)function_1959c0(stream, 5);
+			packet->u.w[2] = (short)function_1959c0(stream, 16);
+			break;
+		case 7:
+			packet->u.d[0] = (dword)function_1959c0(stream, 7);
+			SESSION_READ_RANGE(packet->u.w[2], short, 2);
+			break;
+		case 8:
+			SESSION_READ_RANGE(packet->u.w[0], short, 8);
+			packet->u.w[1] = (short)function_1959c0(stream, 16);
+			packet->u.w[2] = (short)function_1959c0(stream, 16);
+			break;
+		default:
+			result = false;
+			break;
+		}
+		if (result)
+		{
+			s_game_variant checked;
+			memcpy(&checked, packet, sizeof(checked));
+			return function_19d650(&checked);
+		}
+	}
+	else
+		memset(packet, 0, sizeof(s_game_variant));
+	return result;
+}
+
+#undef SESSION_READ_RANGE

@@ -1099,3 +1099,123 @@ void function_70b70(c_session_state_matchmaking *state)
 		}
 	}
 }
+
+long g_55e6fc;
+long online_get_nat_type(void);
+long function_75890(long time);
+
+// @retail 0x70d60
+bool function_70d60(c_session_state_matchmaking *state)
+{
+	c_class_58d20 *session = state->owner->session_a;
+	bool result = false;
+	function_70b70(state);
+	long current = session->state;
+	if (current == 5 || current == 6 || current == 7 || current == 8)
+	{
+		if (state->mode == 3)
+		{
+			if (!*(bool *)((byte *)state + 0x954))
+			{
+				long started = state->time;
+				if (session_time_get() - started >= 5000)
+					state->mode = 18;
+			}
+			if (state->mode == 3 && *(bool *)((byte *)state + 0x954))
+			{
+				bool host = false;
+				if (!state->unknowna7c || function_75890(state->unknowna7c) >= function_75890(state->unknowna68))
+					host = true;
+				else
+				{
+					bool restricted = g_network_configuration.flag1ac;
+					if (*(long *)((byte *)state + 0x938) == NONE)
+						host = true;
+					else if (restricted && online_get_nat_type() == 3)
+					{
+						if (g_55e6fc++ < g_network_configuration.value1b0)
+							host = true;
+						else
+							g_55e6fc = 0;
+					}
+				}
+				if (state->flaga78)
+					state->flaga78 = false;
+				if (state->flaga64)
+					state->flaga64 = false;
+				if (host)
+					function_70c00(state);
+				else
+					function_70c90(state);
+				result = true;
+			}
+		}
+	}
+	else
+	{
+		volatile long unused = current;
+	}
+	return result;
+}
+
+struct s_match_player_list
+{
+	byte unknown00[12];
+	long count;
+	byte unknown10[4];
+	byte identities[16][12];
+	long valuesd4[16];
+	long values114[16];
+	long values154[16];
+};
+struct s_match_player_properties
+{
+	word name[32];
+	long field40;
+	byte field44[4];
+	unsigned __int64 field48;
+	unsigned __int64 field50;
+	byte unknown58[0x7c - 0x58];
+	byte field7c;
+	byte unknown7d[7];
+	long field84;
+	short field88;
+	short field8a;
+	long field8c;
+};
+bool network_session_host_set_player_properties(c_class_58d20 *session, long player_index, const byte *properties);
+
+// @retail 0x71ff0
+void function_71ff0(c_session_state_matchmaking *state, long value,
+	const s_match_player_list *list, const long *indices)
+{
+	c_class_58d20 *session = state->owner->session_b;
+	for (long player = 0; player < 16; player++)
+	{
+		if (session->player_mask & (1 << player))
+		{
+			long first = NONE;
+			long second = NONE;
+			long third = NONE;
+			long index = NONE;
+			for (long i = 0; i < list->count; i++)
+			{
+				if (!memcmp(&session->players[player].user_id, list->identities[i], 12))
+				{
+					index = indices[i];
+					first = list->values154[i];
+					second = list->valuesd4[i];
+					third = list->values114[i];
+					break;
+				}
+			}
+			s_match_player_properties properties = *(s_match_player_properties *)session->players[player].propertiesa8;
+			properties.field7c = (byte)index;
+			properties.field84 = value;
+			properties.field8c = third;
+			properties.field8a = (short)second;
+			properties.field88 = (short)first;
+			network_session_host_set_player_properties(session, player, (const byte *)&properties);
+		}
+	}
+}

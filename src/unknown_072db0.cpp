@@ -4,6 +4,7 @@
 #include "unknown_0662e0.h"
 #include "unknown_059ad0.h"
 #include <xtl.h>
+#include <xonline.h>
 
 /* The two vtables at 0x450b44 (slots 0..8 and 9..16) belong to two small
    helper classes sharing one layout; only the slots decompiled so far have
@@ -259,4 +260,356 @@ void function_737b0(c_helper_a *helper)
 		if (current != previous && (!current || !previous || memcmp(current, previous, sizeof(*current)) != 0))
 			game->set_data_4999(current);
 	}
+}
+
+// @retail 0x746b0
+long function_746b0(long previous, long current, long first, long second)
+{
+	long result = 0;
+	long difference = current - previous + 127;
+	short *scale = NULL;
+	short *offset;
+	byte *weight;
+	if (first != NONE && (second == NONE || first < second))
+	{
+		scale = g_network_configuration.value378;
+		offset = (short *)g_network_configuration.valueb74;
+		weight = (byte *)g_network_configuration.value9f4;
+	}
+	else if (second != NONE && (first == NONE || second < first))
+	{
+		scale = g_network_configuration.value576;
+		offset = (short *)g_network_configuration.valuea74;
+		weight = (byte *)g_network_configuration.value974;
+	}
+	if (scale)
+		result = scale[difference] * weight[current] / 100 + offset[current];
+	return result;
+}
+
+struct s_surface_description
+{
+	long type;
+	long field_4;
+	dword field_8;
+	char names[9][0x10];
+	char descriptions[9][0x80];
+	char field_51c[128];
+	byte unknown59c[0x5a4 - 0x59c];
+	long points[16];
+	long field_5e4;
+	bool flag_5e8;
+	byte unknown5e9[3];
+	long width;
+	long height;
+	long depth;
+	long field_5f8;
+	long field_5fc;
+	long field_600;
+	bool flag_604;
+	byte unknown605[3];
+	long field_608;
+	long field_60c;
+	byte unknown610[4];
+};
+struct s_game_variant_globals
+{
+	dword unknown0;
+	dword flags;
+	word count;
+	word state;
+};
+extern s_surface_description g_551ae8[16];
+extern s_game_variant_globals g_47d8f4;
+bool function_1934f0(s_surface_description *variant);
+
+// @retail 0x75790
+bool __stdcall function_75790(dword identifier, long *index)
+{
+	bool result = false;
+	for (long i = 0; i < 16 && !result; i++)
+	{
+		s_surface_description *variant = NULL;
+		if (i >= 0 && i < 16 && g_47d8f4.count && (g_47d8f4.flags & 2) &&
+			function_1934f0(&g_551ae8[i]))
+			variant = &g_551ae8[i];
+		if (variant && variant->field_8 == identifier)
+		{
+			*index = i;
+			result = true;
+		}
+	}
+	return result;
+}
+
+struct s_match_rating_entry
+{
+	bool active;
+	signed char rank;
+	short unknown02;
+	short skill;
+	short unknown06;
+	long value;
+	byte unknown0c[12];
+};
+struct s_match_rating_collection
+{
+	byte unknown00[0xdc4];
+	s_match_rating_entry entries[16];
+};
+
+// @retail 0x74720
+long __stdcall function_74720(const s_match_rating_collection *collection, long selected)
+{
+	const s_match_rating_entry *current = &collection->entries[selected];
+	long rank;
+	long skill;
+	long value;
+	long count = 0;
+	long total = 0;
+	skill = current->skill;
+	rank = current->rank;
+	value = current->value;
+	for (long i = 0; i < 16; i++)
+	{
+		const s_match_rating_entry *entry = &collection->entries[i];
+		if (i != selected)
+		{
+			long other_skill = entry->skill;
+			if (entry->active && other_skill != NONE)
+			{
+				total += function_746b0(other_skill, skill, rank, entry->rank);
+				count++;
+			}
+		}
+	}
+	if (count > 0)
+		total /= count;
+	if (total + value < 0)
+		total = -value;
+	if (total + value > 0x3fffffff)
+		total = 0x3fffffff - value;
+	return total < g_network_configuration.valuec7c ? g_network_configuration.valuec7c :
+		(total > g_network_configuration.valuec78 ? g_network_configuration.valuec78 : total);
+}
+
+struct s_match_player_rating_entry
+{
+	bool active;
+	byte unknown01[9];
+	byte flags;
+	byte unknown0b[0x8c - 0x0b];
+	signed char team;
+	byte unknown8d[7];
+	long key;
+	short skill;
+	short unknown9a;
+	long value;
+	signed char rank;
+	byte unknowna1[3];
+};
+struct s_match_player_rating_collection
+{
+	byte unknown00[4];
+	long key;
+	byte unknown08[0x12b - 8];
+	bool team_mode;
+	byte unknown12c[0x384 - 0x12c];
+	s_match_player_rating_entry players[16];
+	s_match_rating_entry teams[16];
+};
+
+// @retail 0x74800
+long __stdcall function_74800(const s_match_player_rating_collection *collection, long selected)
+{
+	long key = collection->key;
+	bool team_mode = collection->team_mode;
+	const s_match_player_rating_entry *current = &collection->players[selected];
+	long skill = current->skill;
+	long team = current->team;
+	long value = current->value;
+	long count = 0;
+	long total = 0;
+	long rank;
+	if (team_mode)
+		rank = collection->teams[team].rank;
+	else
+		rank = current->rank;
+	for (long i = 0; i < 16; i++)
+	{
+		const s_match_player_rating_entry *entry = &collection->players[i];
+		if (entry->key == key)
+		{
+			long other_skill = entry->skill;
+			if (entry->active && entry->team != NONE && !(entry->flags & 3) && other_skill != NONE)
+			{
+				long other_team = entry->team;
+				long other_rank;
+				if (team_mode)
+					other_rank = collection->teams[other_team].rank;
+				else
+					other_rank = entry->rank;
+				if (i != selected && other_team != team)
+				{
+					total += function_746b0(other_skill, skill, rank, other_rank);
+					count++;
+				}
+			}
+		}
+	}
+	if (count > 0)
+		total /= count;
+	if (value + total < 0)
+		total = -value;
+	if (value + total > 0x3fffffff)
+		total = 0x3fffffff - value;
+	return total < g_network_configuration.valuec7c ? g_network_configuration.valuec7c :
+		(total > g_network_configuration.valuec78 ? g_network_configuration.valuec78 : total);
+}
+
+extern long g_510518;
+extern bool g_51051c;
+extern bool g_51051d;
+extern s_session_id g_510520;
+extern s_session_id g_510528;
+extern s_session_id g_510540;
+long g_510514;
+long g_510530;
+long g_510534;
+long g_510538;
+long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_key, word seconds);
+
+// @retail 0x73bc0
+void function_73bc0(const s_session_id *session_id, const s_session_id *round_key,
+	long first, long second, bool free_for_all)
+{
+	if (g_510518)
+	{
+		if (g_510530 != NONE)
+		{
+			function_6b640(g_510530);
+			g_510530 = NONE;
+		}
+		g_510518 = 0;
+		g_510514 = 4;
+	}
+	long task = online_round_register(free_for_all, (const XNKID *)session_id,
+		(const ULONGLONG *)round_key, (word)g_network_configuration.value374);
+	g_510528 = *session_id;
+	g_510520 = *round_key;
+	g_510540.a = first;
+	g_510540.b = second;
+	g_510514 = 4;
+	g_510534 = 0;
+	g_510538 = NONE;
+	g_51051c = false;
+	g_51051d = false;
+	g_510530 = task;
+	if (task != NONE)
+		g_510518 = 1;
+	else
+	{
+		g_510518 = 0;
+		g_510514 = 1;
+	}
+}
+
+struct s_search_value
+{
+	bool valid;
+	byte unknown01[3];
+	long value;
+};
+
+struct s_search_player_values
+{
+	long state;
+	long time;
+	s_search_value values[6];
+	byte unknown38[0x98 - 0x38];
+};
+
+struct s_search_value_group
+{
+	byte unknown00[4];
+	XUID owner;
+	byte unknown10[0x1c - 0x10];
+	s_search_player_values players[16];
+};
+
+s_search_value_group g_509454[5];
+#pragma pack(push, 1)
+struct s_session_interface_user
+{
+	bool valid;
+	XUID xuid;
+	byte unknown0d[3];
+	long unknown10;
+	byte properties[0x90];
+	long unknowna4;
+	long unknowna8[3];
+	long unknownb4[3];
+	long unknownc0[3];
+	byte unknowncc[4];
+};
+#pragma pack(pop)
+
+struct s_session_interface_globals
+{
+	bool initialized;
+	byte unknown01;
+	wchar_t machine_name[16];
+	wchar_t session_name[32];
+	bool unknown62;
+	byte unknown63;
+	union
+	{
+		byte unknown64[32];
+		struct
+		{
+			byte unknown64_00[0x14];
+			long unknown78;
+		};
+	};
+	long unknown84;
+	long unknown88;
+	long unknown8c;
+	long unknown90;
+	long unknown94;
+	long unknown98;
+	s_session_interface_user users[4];
+	long update3dc[3];
+	long unknown3e8[3];
+	long value3f4[3];
+	byte data400[3][0x130];
+	byte unknown790[0x7d4 - 0x790];
+	void *session_manager;
+};
+
+extern s_session_interface_globals g_4cd868;
+
+// @retail 0x73a10
+bool function_73a10(long player, long group_index, long field, long *value)
+{
+	bool result = false;
+	s_search_value_group *group = &g_509454[group_index];
+	if (player >= 0 && player < 16 && g_47d8f4.count && (g_47d8f4.flags & 2) &&
+		function_1934f0(&g_551ae8[player]))
+	{
+		s_search_player_values *values = &group->players[player];
+		if (values->state == 3)
+		{
+			XUID xuid;
+			if (g_4cd868.users[group_index].valid)
+			{
+				xuid = g_4cd868.users[group_index].xuid;
+				if (memcmp(&group->owner, &xuid, sizeof(xuid)) == 0)
+				{
+					result = true;
+					*value = values->values[field].value;
+				}
+			}
+		}
+	}
+	return result;
 }

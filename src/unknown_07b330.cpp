@@ -9,6 +9,13 @@
 #include "unknown_07aec0.h"
 #include "unknown_092870.h"
 #include <string.h>
+#include "network_message_types.h"
+
+class c_class_938e0
+{
+public:
+	void function_938e0(const s_type_99af70 *address, long message_type, const void *message);
+};
 
 #ifndef MIN
 #define MIN(a,b) ((a)>(b)?(b):(a))
@@ -16,9 +23,11 @@
 
 struct s_network_message_gateway
 {
-	byte unknown00[8];
+	virtual bool read_packet(const s_type_99af70 *address, s_bitstream *stream);
+	byte unknown04[4];
 	c_class_93590 *link;
-	byte unknown0c[8];
+	c_type_659ceb *message_types;
+	c_class_938e0 *handler;
 	bool outgoing_packet_pending;
 	byte unknown15[3];
 	byte outgoing_packet_storage[0x600];
@@ -60,4 +69,48 @@ void network_message_gateway_send_pending_messages_to_address(s_network_message_
 		if (a->address_length > 0 && a->address_length == address->address_length && memcmp(a, address, length) == 0)
 			network_message_gateway_send_pending_messages(gateway);
 	}
+}
+
+bool network_message_read_header(s_bitstream *stream, long *type, c_type_659ceb const *collection, long *size);
+
+// @retail 0x7afd0
+bool s_network_message_gateway::read_packet(const s_type_99af70 *address, s_bitstream *stream)
+{
+	unsigned __int64 storage[8192];
+	bool result = true;
+	stream->mode = 3;
+	stream->bit_position = 0;
+	stream->checkpoint_count = 0;
+	stream->error = false;
+	if (function_1959c0(stream, 32) == 'debg')
+		stream->error = true;
+	else
+	{
+		stream->bit_position = 0;
+		stream->error = false;
+	}
+	if (!stream_overflowed(stream))
+	{
+		while (stream_read_bit(stream))
+		{
+			long type = NONE;
+			long size = 0;
+			c_type_659ceb *collection = message_types;
+			bool decoded = false;
+			if (network_message_read_header(stream, &type, collection, &size))
+			{
+				memset(storage, 0, size);
+				decoded = collection->m_types[type].decode(stream, size, storage);
+			}
+			result = decoded;
+			if (!result)
+				break;
+			if (handler)
+				handler->function_938e0(address, type, storage);
+		}
+		if (result)
+			stream->mode = 5;
+		return result;
+	}
+	return false;
 }
