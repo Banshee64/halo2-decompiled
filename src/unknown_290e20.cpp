@@ -36,6 +36,43 @@ struct s_scenario_ai_triggers_view
 /* the triggers that have fired once (ai.cpp) */
 extern void *g_5044cc;
 
+extern long g_50242c;
+long __stdcall function_2093d0(long arg_0, bool arg_1);
+
+struct s_291740
+{
+	byte field_0[0x4c];
+	short field_4c;
+	byte field_4e[0x7c - 0x4e];
+};
+
+struct s_291769
+{
+	byte field_0[0x24];
+	long field_24;
+};
+
+struct s_291746
+{
+	byte field_0[0x1bc];
+	s_291769 *field_1bc;
+	byte field_1c0[0x244 - 0x1c0];
+	s_291740 *field_244;
+};
+
+// @retail 0x291740
+void function_291740(short arg_0, long arg_1)
+{
+	long const *local_2 = &arg_1;
+	s_291746 *local_0 = (s_291746 *)g_4e0350;
+	s_291740 *local_1 = &local_0->field_244[arg_0];
+	if (local_1->field_4c != NONE)
+	{
+		g_50242c = *local_2;
+		function_2093d0(local_0->field_1bc[local_1->field_4c].field_24, false);
+	}
+}
+
 bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_group_index, bool *result);
 bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad_index);
 

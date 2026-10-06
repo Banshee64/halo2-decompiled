@@ -31,10 +31,6 @@ void __stdcall function_bc070(real a, real b, real c, real d, real e)
 {
 }
 
-// @stub 0x29ffb0
-void __stdcall function_29ffb0(long object_index, short cutscene_flag_index, bool a, bool b)
-{
-}
 
 // @stub 0xbb670
 void __stdcall function_bb670(short name_index, bool flag)
@@ -46,10 +42,6 @@ void __stdcall function_1e1a00(long index, long value)
 {
 }
 
-// @stub 0x2736c0
-void __stdcall function_2736c0(long ai_index)
-{
-}
 
 
 // @stub 0x274470

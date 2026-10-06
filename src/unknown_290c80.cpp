@@ -220,6 +220,94 @@ struct s_290b90_entry
 
 s_290b90_entry *g_5044c4;
 
+struct s_28e200
+{
+	byte field_0[4];
+	long field_4;
+	byte field_8[0xc];
+	short field_14;
+	byte field_16[2];
+	long field_18;
+	byte field_1c[0x15];
+	bool field_31;
+	byte field_32[2];
+};
+
+void function_26ae30(long arg_0);
+void __stdcall function_b8540(long arg_0);
+void __stdcall function_1e1a00(long arg_0, long arg_1);
+bool __stdcall function_28e390(long arg_0, long arg_1, bool arg_2, bool arg_3);
+
+// @retail 0x28e200
+void __stdcall function_28e200(long arg_0)
+{
+	s_28e200 *local_0 = (s_28e200 *)perception_get(arg_0);
+	if (local_0->field_14 > 0)
+	{
+		while (local_0->field_18 != NONE)
+			function_28e390(arg_0, local_0->field_18, true, false);
+	}
+	if (local_0->field_4 != NONE)
+	{
+		s_handler_actor_view *local_1 = (s_handler_actor_view *)actor_get(local_0->field_4);
+		if (local_1->perception_index == arg_0)
+			local_1->perception_index = NONE;
+	}
+	if (local_0->field_31)
+	{
+		long local_2 = 0;
+		do
+		{
+			if (g_5044c4[local_2].perception_index == arg_0)
+				g_5044c4[local_2].perception_index = NONE;
+			local_2++;
+		} while (local_2 < 5);
+	}
+	record_pool_release(g_5044c8, arg_0);
+}
+
+// @retail 0x28e390
+bool __stdcall function_28e390(long arg_0, long arg_1, bool arg_2, bool arg_3)
+{
+	bool local_2 = false;
+	s_28e200 *local_0 = (s_28e200 *)perception_get(arg_0);
+	long *local_1 = &local_0->field_18;
+	while (*local_1 != NONE)
+	{
+		s_object_ai_data *local_3 = object_ai_data_checked(handler_object_get(*local_1));
+		if (!local_3)
+			break;
+		if (*local_1 == arg_1)
+		{
+			*local_1 = local_3->next_object_index;
+			*(byte *)((byte *)handler_object_get(arg_1) + 0x12c) &= 0xfe;
+			local_2 = true;
+			local_3 = object_ai_data_checked(handler_object_get(arg_1));
+			if (arg_2)
+			{
+				function_26ae30(arg_1);
+				function_b8540(arg_1);
+			}
+			if (local_3)
+			{
+				local_3->index08 = NONE;
+				local_3->index04 = NONE;
+				local_3->next_object_index = NONE;
+			}
+			local_0->field_14--;
+			if (local_0->field_14 == 0 && arg_3)
+			{
+				if (local_0->field_4 != NONE)
+					function_1e1a00(local_0->field_4, 0);
+				function_28e200(arg_0);
+			}
+			break;
+		}
+		local_1 = &local_3->next_object_index;
+	}
+	return local_2;
+}
+
 // @retail 0x28d930
 void function_28d930(void)
 {
