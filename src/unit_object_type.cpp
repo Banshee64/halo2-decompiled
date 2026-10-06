@@ -572,7 +572,7 @@ void function_114e80(long unit_index);
 void function_100430(long weapon_index, long value, real amount);
 bool function_106030(long weapon_index);
 bool function_101d20(long weapon_index);
-void function_1509e0(long weapon_index, bool *modes);
+void function_1509e0(long player_index, long weapon_index, bool *modes);
 void function_1060a0(long weapon_index, long unit_index);
 struct s_juggernaut_globals;
 extern s_juggernaut_globals *g_510c9c;
@@ -587,7 +587,7 @@ void function_11f0d0(vector3f *position, vector3f *forward, vector3f const *targ
 void function_bba20(long object_index);
 long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
 	point3f const *origin, vector3f const *direction);
-void function_15cbf0(long player_index, bool flag);
+void function_15cbf0(long attacker_index, long player_index, long flags);
 void function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard);
 void function_c86e0(long unit_index, bool keep_weapon_zoom);
 void function_1c95d0(long unit_index, long attacker_index, short type, real amount);
@@ -6060,7 +6060,7 @@ bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes)
 	}
 	if (unit->unknown13c != NONE)
 	{
-		function_1509e0(weapon_index, modes);
+		function_1509e0(unit->unknown13c, weapon_index, modes);
 	}
 	for (long hand = 0; hand < 2; hand++)
 	{
@@ -6755,7 +6755,7 @@ void __stdcall function_ca0b0(long unit_index, s_damage_report const *report)
 	if (report->owner.player_index != NONE && unit->unknown13c != NONE &&
 		report->unknown48 + report->unknown44 > 0.0001f)
 	{
-		function_15cbf0(report->owner.player_index, (report->flags >> 4) & 1);
+		function_15cbf0(report->owner.player_index, unit->unknown13c, (report->flags >> 4) & 1);
 	}
 	if (report->owner.player_index != NONE || report->owner.object_index != NONE)
 	{

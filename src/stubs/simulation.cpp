@@ -17,8 +17,6 @@ void function_125d60(void) { }
 void __stdcall function_152f80(void *a, void *c) { }
 // @stub 0x155380
 void function_155380(void) { }
-// @stub 0x155a30
-void __stdcall function_155a30(byte value) { }
 // @stub 0x3e2ff0
 void __stdcall function_3e2ff0(void *p) { }
 // @stub 0x18bb80

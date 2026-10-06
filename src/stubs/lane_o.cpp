@@ -13,7 +13,5 @@ void __stdcall function_15e360(point3f const *point) { }
 void function_1396c7(long a, point2f *point) { }
 // @stub 0x1fa30
 void function_1fa30(word const *text, short_rectangle2d *bounds) { }
-// @stub 0x15f120
-bool function_15f120(long player_index, word *text, long maximum_count, long a) { return false; }
 // @stub 0x13e9c0
 void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale) { }
