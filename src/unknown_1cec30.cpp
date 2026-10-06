@@ -2110,13 +2110,13 @@ void __stdcall function_1d87b0(s_havok_component_rigid_body *body, long body_ind
     real speed_sum = 0.0f;
     for (long i = 0; i < material_count; ++i)
     {
-        vector3f surface_velocity;
-        if (!function_181db0(materials[i], &surface_velocity))
-            surface_velocity = *g_4687a4;
-        velocity.i = surface_velocity.i + velocity.i;
-        velocity.j = surface_velocity.j + velocity.j;
-        velocity.k = surface_velocity.k + velocity.k;
-        speed_sum += component_surface_length(&surface_velocity);
+        vector3f local_c7c2ff;
+        if (!function_181db0(materials[i], &local_c7c2ff))
+            local_c7c2ff = *g_4687a4;
+        velocity.i = local_c7c2ff.i + velocity.i;
+        velocity.j = local_c7c2ff.j + velocity.j;
+        velocity.k = local_c7c2ff.k + velocity.k;
+        speed_sum += component_surface_length(&local_c7c2ff);
     }
     length = component_surface_length(&velocity);
     if (!(fabs(length) < 0.0001f))
