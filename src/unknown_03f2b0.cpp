@@ -1037,3 +1037,68 @@ bool function_31590(long index, s_light_shape_ab *shape)
     }
     return result;
 }
+
+#include <math.h>
+struct s_camera;
+struct s_tag_data;
+real function_50650(real cosine);
+real function_13bb90(s_tag_data const *function, real input, real range);
+long function_30830(point3f const *a, s_camera const *camera, vector3f const *d,
+    point2f const *scale, bool perspective, bool negate, point2f *out);
+
+// @retail 0x4ff50
+void function_4ff50(byte const *definition, byte const *state, bool facing, real time,
+    real cosine, real *strength, real *horizontal, real *vertical, real *out)
+{
+    if (*(long const *)(definition + 0x38) > 0)
+    {
+        byte const *curve = *(byte **)(definition + 0x3c);
+        if (facing)
+        {
+            real angle = function_50650(cosine) * 0.6366197466850281f;
+            if (angle < 0.0f) angle = 0.0f;
+            else if (angle > 1.0f) angle = 1.0f;
+            real lower = curve ? *(real const *)(curve + 0x14) * 0.6366197466850281f : 0.0f;
+            if (0.0f > lower) lower = 0.0f;
+            else if (lower > 0.9998999834060669f) lower = 0.9998999834060669f;
+            real value = (angle - lower) / (1.0f - lower);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            *strength = value;
+            if (value > 0.0f)
+            {
+                if (curve && *(real const *)(curve + 0x18) > 0.0f)
+                    *strength = (real)pow(value, *(real const *)(curve + 0x18));
+                else
+                    *strength = 1.0f;
+            }
+            if (*strength > 0.0f)
+            {
+                point2f projected;
+                if (function_30830((point3f const *)(state + 8), NULL, (vector3f const *)(state + 0x14),
+                    NULL, true, true, &projected) && (projected.x != 0.0f || projected.y != 0.0f))
+                {
+                    double direction = atan2(projected.y, projected.x);
+                    *horizontal = (real)cos(direction);
+                    *vertical = (real)sin(direction);
+                }
+            }
+        }
+        if (curve)
+        {
+            real base = *(real const *)(curve + 0x10);
+            if (*strength > 0.0f)
+            {
+                real value = function_13bb90((s_tag_data const *)curve, time, 0.0f);
+                out[0] = base - (base - value) * *strength;
+                value = function_13bb90((s_tag_data const *)(curve + 8), time, 0.0f);
+                out[1] = base - (base - value) * *strength;
+            }
+            else
+            {
+                out[0] = base;
+                out[1] = base;
+            }
+        }
+    }
+}

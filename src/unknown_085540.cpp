@@ -11,6 +11,66 @@
 #include "unknown_075870.h"
 #include "unknown_067e10.h"
 #include "unknown_0662e0.h"
+#include "unknown_0820f0.h"
+
+struct s_sender;
+void function_96ed0(s_sender *self);
+
+struct s_view_distribution_senders
+{
+	s_handle_peers handles;
+	byte unknown2048[8];
+	dword sender_mask;
+	s_sender *senders[15];
+};
+
+static __forceinline void view_clear_child(c_vtable_450cf4 *aggregate, long index)
+{
+	aggregate->unknown24 -= ((long *)aggregate->unknown18)[index];
+	aggregate->children[index] = 0;
+}
+
+static __forceinline void view_clear_updates(c_vtable_450c94 *updates)
+{
+	updates->initialized = false;
+	updates->source = 0;
+}
+
+// @retail 0x85880
+void function_85880(c_simulation_view *view)
+{
+	if (view->state)
+		view->set_state(0, NONE);
+	((s_network_connection *)g_4d87d4)[view->unknown3c].callback = 0;
+	view->unknown44[0] = 0;
+	if (view->type == 3 || view->type == 4)
+	{
+		s_view_distribution_senders *distribution = (s_view_distribution_senders *)view->world->distribution;
+		view_clear_child(&((c_replication_view_storage *)view->data)->aggregate, 1);
+		view_clear_child(&((c_replication_view_storage *)view->data)->aggregate, 0);
+		((c_replication_view_storage *)view->data)->unknown2c = 0;
+		long index = view->world_index;
+		distribution->handles.tables[index]->function_97fe0();
+		distribution->handles.tables[index] = 0;
+		distribution->handles.table_mask &= ~(1 << index);
+		index = view->world_index;
+		function_96ed0(distribution->senders[index]);
+		distribution->sender_mask &= ~(1 << index);
+		distribution->senders[index] = 0;
+		view_clear_updates(&((c_replication_view_storage *)view->data)->updates);
+		c_vtable_450d1c *sender = &((c_replication_view_storage *)view->data)->sender;
+		function_96ed0((s_sender *)sender);
+		sender->unknown08 = 0;
+		view->data->unknown38 = 0;
+		((c_replication_view_storage *)view->data)->aggregate.unknown04[0] = 0;
+	}
+	s_network_observer_channel *channel = &view->observer->channels[view->channel_index];
+	channel->owner_mask &= ~8;
+	view->observer = 0;
+	view->unknown40 = NONE;
+	view->unknown3c = NONE;
+	view->channel_index = NONE;
+}
 
 /* the establishment message (type 0x25) */
 struct s_simulation_view_establishment

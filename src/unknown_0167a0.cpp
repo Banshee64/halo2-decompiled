@@ -499,3 +499,308 @@ bool function_1b580(byte const *definition, long component, long unused, long mo
     }
     return true;
 }
+
+// @retail 0x17960
+void __stdcall function_17960(byte *state, word const *range)
+{
+    if (*range & 0xfe00)
+    {
+        byte const *definition = *(byte **)(state + 0xc);
+        byte const *entry = *(byte **)(definition + 0x58) + (*range & 0x1ff) * 4;
+        real *outputs[2] = { (real *)(state + 0x1530), (real *)(state + 0x1630) };
+        dword *changed[2] = { (dword *)(state + 0x1730), (dword *)(state + 0x1734) };
+        for (long i = 0; i < (*range >> 9); ++i, entry += 4)
+        {
+            definition = *(byte **)(state + 0xc);
+            long range_index = ((word const *)*(byte **)(definition + 0x50))[entry[3]] & 0x1ff;
+            long index = ((short const *)*(byte **)(definition + 0x48))[range_index * 2];
+            byte const *parameter = *(byte **)(definition + 0x40) + index * 20;
+            word packed = *(word const *)entry;
+            long group = (packed >> 4) & 1;
+            real *out = outputs[group] + (packed & 15) * 4;
+            long mode = (packed >> 5) & 31;
+            if (mode < 5)
+            {
+                s_1b230_function const *curve = (s_1b230_function const *)(parameter + 12);
+                real value = function_1b230(curve, *(long const *)parameter,
+                    *(long const *)(parameter + 4), *(real const *)(parameter + 8));
+                if (mode != 4)
+                {
+                    byte const *data = curve->data;
+                    if (!(data[1] & 0xf0))
+                    {
+                        real low = *(real const *)(data + 4);
+                        real high = *(real const *)(data + 8);
+                        real clamped = 0.0f > value ? 0.0f : value > 1.0f ? 1.0f : value;
+                        value = (high - low) * clamped + low;
+                    }
+                    out[mode] = value;
+                }
+                else
+                {
+                    color3f color;
+                    if (curve->data && curve->size > 0)
+                        unpack_color3f(function_13bc00((s_tag_data const *)curve, value), &color);
+                    else
+                        color = *(color3f const *)&g_4686cc->red;
+                    out[0] = color.red;
+                    out[1] = color.green;
+                    out[2] = color.blue;
+                }
+            }
+            else
+                function_1b790(state, (packed >> 10) & 7, out, mode);
+            packed = *(word const *)entry;
+            *changed[(packed >> 4) & 1] |= 1 << (packed & 15);
+        }
+    }
+}
+
+const dword g_467068[8] = { 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000,
+    0x00ffffff, 0x00ff0000, 0x0000ff00, 0x000000ff };
+
+PRIVATE __forceinline void store_shader_mask(byte *state, word packed, long index, dword mask, dword value)
+{
+    if ((packed & 0x3c0) != 0x200)
+    {
+        if (!(packed & 0x400))
+        {
+            *(dword *)(state + 0x144c + index * 4) = (*(dword *)(state + 0x144c + index * 4) & ~mask) | (value & mask);
+            *(dword *)(state + 0x1518) |= 1 << index;
+        }
+        else
+        {
+            *(dword *)(state + 0x146c + index * 4) = (*(dword *)(state + 0x146c + index * 4) & ~mask) | (value & mask);
+            *(dword *)(state + 0x151c) |= 1 << index;
+        }
+    }
+    else if (!(packed & 0x400))
+    {
+        *(dword *)(state + 0x14d0) = (*(dword *)(state + 0x14d0) & ~mask) | (value & mask);
+        *(dword *)(state + 0x1518) |= 0x100;
+    }
+    else
+    {
+        *(dword *)(state + 0x14d4) = (*(dword *)(state + 0x14d4) & ~mask) | (value & mask);
+        *(dword *)(state + 0x151c) |= 0x100;
+    }
+}
+
+// @retail 0x17170
+void function_17170(byte *state, word const *range)
+{
+    dword const *values = *(dword **)(*(byte **)(state + 0xc) + 0x10);
+    byte const *entry = *(byte **)(*(byte **)(state + 0x10) + 0x24) + (*range & 0x1ff) * 4;
+    word remapping = *(word *)(*(byte **)(state + 0x24) + 0xf6);
+    if (!(remapping & 0xfe00))
+    {
+        for (long i = 0; i < (*range >> 9); ++i, entry += 4)
+        {
+            word packed = *(word const *)entry;
+            store_shader_mask(state, packed, (packed >> 6) & 15, g_467068[entry[2] & 7], values[entry[3]]);
+        }
+    }
+    else
+    {
+        byte const *mapping = *(byte **)(*(byte **)(state + 0x20) + 0x24) + (remapping & 0x1ff) * 4;
+        for (long i = 0; i < (*range >> 9); ++i, entry += 4)
+        {
+            word packed = *(word const *)entry;
+            long slot = packed & 7;
+            short source = *(short const *)(mapping + slot * 4);
+            if (source == NONE || ((packed >> 3) & 7) == *(long *)(state + 0x300 + source * 4))
+            {
+                long index = (packed >> 6) & 15;
+                if ((packed & 0x3c0) != 0x200)
+                    index += *(signed char *)(state + 0x1520 + slot);
+                store_shader_mask(state, packed, index, g_467068[entry[2] & 7], values[entry[3]]);
+            }
+        }
+    }
+}
+
+dword __cdecl pack_color4f(color4f const *color);
+
+// @retail 0x176a0
+void function_176a0(byte *state, word const *range)
+{
+    if (*range & 0xfe00)
+    {
+        byte const *entry = *(byte **)(*(byte **)(state + 0xc) + 0x58) + (*range & 0x1ff) * 4;
+        for (long i = 0; i < (*range >> 9); ++i, entry += 4)
+        {
+            byte const *definition = *(byte **)(state + 0xc);
+            long range_index = ((word const *)*(byte **)(definition + 0x50))[entry[3]] & 0x1ff;
+            long index = ((short const *)*(byte **)(definition + 0x48))[range_index * 2];
+            byte const *parameter = *(byte **)(definition + 0x40) + index * 20;
+            real values[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+            function_1b580(parameter, entry[2] & 7, (long)state, (entry[2] >> 3) & 7, values);
+            color4f color;
+            color.red = 0.0f > values[0] ? 0.0f : values[0] > 1.0f ? 1.0f : values[0];
+            color.green = 0.0f > values[1] ? 0.0f : values[1] > 1.0f ? 1.0f : values[1];
+            color.blue = 0.0f > values[2] ? 0.0f : values[2] > 1.0f ? 1.0f : values[2];
+            color.alpha = 0.0f > values[3] ? 0.0f : values[3] > 1.0f ? 1.0f : values[3];
+            dword value = pack_color4f(&color);
+            word packed = *(word const *)entry;
+            long slot = packed & 7;
+            word remapping = *(word *)(*(byte **)(state + 0x24) + 0xf6);
+            byte const *mapping = *(byte **)(*(byte **)(state + 0x20) + 0x24) + ((remapping & 0x1ff) + slot) * 4;
+            short source = *(short const *)mapping;
+            if (!(remapping & 0xfe00) || source == NONE || ((packed >> 3) & 7) == *(long *)(state + 0x300 + source * 4))
+            {
+                long output_index = (packed >> 6) & 15;
+                if ((packed & 0x3c0) != 0x200 && (remapping & 0xfe00))
+                    output_index += *(signed char *)(state + 0x1520 + slot);
+                store_shader_mask(state, packed, output_index, g_467068[entry[2] & 7], value);
+            }
+        }
+    }
+}
+
+// @retail 0x1b2c0
+bool function_1b2c0(byte const *state, long index, long component, long texture, long mode, real *out)
+{
+    if (component < 4)
+    {
+        real value = ((real const *)(state + 0x5c))[index];
+        switch (mode)
+        {
+        case 1: value = 1.0f - value; break;
+        case 2:
+            value = (real)((cos(value * 6.2831854820251465f) + 1.0f) * 0.5f);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            break;
+        case 3:
+            value = (real)(0.5f - cos(value * 6.2831854820251465f) * 0.5f);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            break;
+        case 4:
+            value = (real)((sin(value * 6.2831854820251465f) + 1.0f) * 0.5f);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            break;
+        case 5:
+            value = (real)(0.5f - sin(value * 6.2831854820251465f) * 0.5f);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            break;
+        }
+        out[component] = value;
+    }
+    else if (component == 4)
+        *(color3f *)out = ((color3f const *)(state + 0x108))[index];
+    else
+    {
+        real width = 1.0f, height = 1.0f;
+        if (texture)
+        {
+            width = (real)*(long const *)(state + 0x12e8 + texture * 64);
+            height = (real)*(long const *)(state + 0x12ec + texture * 64);
+        }
+        switch (component)
+        {
+        case 5: out[component - 5] = width; break;
+        case 6: out[component - 5] = width; break;
+        case 7: out[component - 5] = width; break;
+        case 8: out[component - 5] = width; break;
+        case 9: out[0] = width; out[1] = height; break;
+        case 10: out[2] = width; out[3] = height; break;
+        case 11: out[0] = out[1] = 0.0f; break;
+        case 12: out[2] = out[3] = 0.0f; break;
+        case 13: out[0] = width; out[1] = height; out[2] = out[3] = 0.0f; break;
+        case 14: out[0] = width; out[1] = out[2] = out[3] = 0.0f; break;
+        case 15: out[1] = height; out[0] = out[2] = out[3] = 0.0f; break;
+        case 16: out[0] = width; out[1] = height; out[2] = 1.0f; break;
+        case 17: out[0] = out[1] = out[2] = 0.0f; break;
+        case 18: out[0] = width; out[1] = out[2] = out[3] = 0.0f; break;
+        case 19: out[1] = height; out[0] = out[2] = out[3] = 0.0f; break;
+        case 20: out[0] = out[1] = out[2] = out[3] = 0.0f; break;
+        default: __assume(0);
+        }
+    }
+    return true;
+}
+
+#include <xtl.h>
+struct s_texture_stage_parameter
+{
+    word state;
+    byte index;
+    byte value_type;
+};
+const s_texture_stage_parameter g_46703c[11] = {
+    { 6, 0, 1 },
+    { 30, 1, 0 },
+    { 29, 2, 0 },
+    { 29, 3, 0 },
+    { 22, 4, 1 },
+    { 23, 5, 1 },
+    { 25, 6, 1 },
+    { 24, 7, 1 },
+    { 26, 8, 1 },
+    { 27, 9, 1 },
+    { 0, 0, 0 }
+};
+dword __cdecl pack_color3f(color3f const *color);
+
+PRIVATE __forceinline long rounded_shader_integer(real value)
+{
+    long result;
+    __asm { fld value }
+    __asm { fistp result }
+    return result;
+}
+
+PRIVATE __forceinline long rounded_shader_alpha(real value)
+{
+    real scale = 255.0f;
+    long result = 0;
+    __asm { fld value }
+    __asm { fld scale }
+    __asm { fmulp st(1), st(0) }
+    __asm { fistp result }
+    return result;
+}
+
+// @retail 0x1ab50
+void __stdcall function_1ab50(byte *state, word const *range)
+{
+    if ((*range & 0xfe00) == 0)
+        return;
+    byte *entry = *(byte **)(*(byte **)(state + 0x20) + 0x3c) + (*range & 0x1ff) * 4;
+    for (long i = 0; i < (*range >> 9); ++i, entry += 4)
+    {
+        s_texture_stage_parameter const *parameter = &g_46703c[entry[1]];
+        D3DTEXTURESTAGESTATETYPE setting = (D3DTEXTURESTAGESTATETYPE)parameter->state;
+        if (entry[2] == 1)
+        {
+            real value = ((real *)(state + 0x5c))[entry[3]];
+            switch (parameter->value_type)
+            {
+            case 0:
+                {
+                    dword alpha = (dword)rounded_shader_alpha(value) << 24;
+                    dword old;
+                    D3DDevice_GetTextureStageState(entry[0], setting, &old);
+                    D3DDevice_SetTextureStageState(entry[0], setting, (old & 0xffffff) | alpha);
+                }
+                break;
+            case 1:
+                D3DDevice_SetTextureStageState(entry[0], setting, *(dword *)&value);
+                break;
+            case 2:
+                D3DDevice_SetTextureStageState(entry[0], setting, rounded_shader_integer(value));
+                break;
+            }
+        }
+        else
+        {
+            dword color = pack_color3f((color3f *)(state + 0x108) + entry[3]);
+            dword old;
+            D3DDevice_GetTextureStageState(entry[0], setting, &old);
+            D3DDevice_SetTextureStageState(entry[0], setting, (old & 0xff000000) | (color & 0xffffff));
+        }
+    }
+}

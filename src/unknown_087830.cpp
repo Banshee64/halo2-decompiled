@@ -61,6 +61,32 @@ bool function_87830(s_player_action *new_action, s_player_action *action)
 #include <string.h>
 
 bool function_07ca70(s_bitstream *stream, void *destination);
+void function_07c5a0(s_bitstream *stream, const void *source);
+
+// @retail 0x87930
+void function_87930(s_bitstream *stream, const s_simulation_player_update *update)
+{
+	stream_write_checked(stream, update->player_index, 4);
+	function_1955d0(stream, update->key, 96);
+	stream_write_checked(stream, update->type, 3);
+	if (update->type == 3)
+	{
+		stream_write_bit(stream, update->field_2_2);
+		if (!update->field_2_2)
+		{
+			function_1955d0(stream, &update->machine, 48);
+			stream_write_checked(stream, update->controller_index, 2);
+			stream_write_checked(stream, update->unknown20, 2);
+		}
+	}
+	if (update->type == 3 || update->type == 4)
+		function_07c5a0(stream, update->configuration);
+	if (update->type == 1)
+	{
+		stream_write_checked(stream, update->other_player_index, 4);
+		function_1955d0(stream, update->other_key, 96);
+	}
+}
 
 // @retail 0x87ac0
 bool function_87ac0(s_bitstream *stream, s_simulation_player_update *update)

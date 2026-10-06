@@ -34,9 +34,6 @@ void __stdcall function_184250(s_type_1e6529 const *data) { }
 struct s_damage_report;
 // @stub 0x119280
 void function_119280(long object_index, unsigned long flags) { }
-/* called by function_d9640 (0xd9640) */
-// @stub 0xb7880
-void __stdcall function_b7880(long object_index, long node_index, point3f const *point, union vector3f const *impulse, union vector3f const *angular_impulse) { }
 // @stub 0x1e9fa0
 void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, unsigned short team, unsigned char kind) { }
 // @stub 0xa80f0

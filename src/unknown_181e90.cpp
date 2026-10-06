@@ -4,6 +4,7 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include "globals.h"
 #include <xmmintrin.h>
 
 /* the smallest allowed ratio (set at run time) */
@@ -80,4 +81,60 @@ void function_181f80(s_havok_transform *transform, transform4x3f const *matrix)
 	havok_vector4_set(&transform->rotation[1], matrix->left.i, matrix->left.j, matrix->left.k, 0.0f);
 	havok_vector4_set(&transform->rotation[2], matrix->up.i, matrix->up.j, matrix->up.k, 0.0f);
 	transform->translation = _mm_set_ps(0.0f, matrix->position.z, matrix->position.y, matrix->position.x);
+}
+struct s_motion_entry
+{
+	byte field_0[0xa];
+	short basis_index;
+	byte field_c[4];
+	long tag_index;
+};
+
+struct s_motion_basis
+{
+	vector3f first;
+	vector3f second;
+};
+
+struct s_motion_globals_view
+{
+	byte field_0[0x10];
+	s_motion_entry *entries;
+	byte field_14[0xb4 - 0x14];
+	long basis_count;
+	s_motion_basis *bases;
+};
+
+bool function_355e0(long tag, long index, real *first, real *second);
+
+// @retail 0x181db0
+bool function_181db0(long index, vector3f *result)
+{
+	s_motion_globals_view *globals = (s_motion_globals_view *)g_4e0348;
+	s_motion_entry *entry = &globals->entries[index];
+	bool valid = false;
+	if (entry->basis_index != NONE && globals->basis_count > entry->basis_index)
+	{
+		s_motion_basis *basis = &globals->bases[entry->basis_index];
+		real first, second;
+		valid = function_355e0(entry->tag_index, 0, &first, &second);
+		if (!valid)
+			valid = function_355e0(entry->tag_index, 1, &first, &second);
+		if (valid)
+		{
+			first = 0.0f - first;
+			second = 0.0f - second;
+			vector3f a, b;
+			a.i = basis->first.i * first;
+			a.j = basis->first.j * first;
+			a.k = basis->first.k * first;
+			b.i = basis->second.i * second;
+			b.j = basis->second.j * second;
+			b.k = basis->second.k * second;
+			result->i = b.i + a.i;
+			result->j = b.j + a.j;
+			result->k = b.k + a.k;
+		}
+	}
+	return valid;
 }

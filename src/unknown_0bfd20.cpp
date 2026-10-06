@@ -74,7 +74,8 @@ void function_0bfe20(dword *flags, long bit, bool value)
 // @retail 0xbfe40
 void function_0bfe40(word *flags, long bit, bool value)
 {
-	if (value)
+	bool const *value_reference = &value;
+	if (*value_reference)
 		*flags |= (word)(1 << bit);
 	else
 		*flags &= (word)~(1 << bit);
@@ -117,14 +118,15 @@ struct s_bit_vector
 // @retail 0xbff10
 bool s_bit_vector::is_empty() const
 {
-	bool result = bits[7] == 0;
-	result = result & (bits[6] == 0);
-	result = result & (bits[5] == 0);
-	result = result & (bits[4] == 0);
-	result = result & (bits[3] == 0);
-	result = result & (bits[2] == 0);
-	result = result & (bits[1] == 0);
-	result = result & (bits[0] == 0);
+	bool result = true;
+	result &= bits[7] == 0;
+	result &= (bits[6] == 0);
+	result &= (bits[5] == 0);
+	result &= (bits[4] == 0);
+	result &= (bits[3] == 0);
+	result &= (bits[2] == 0);
+	result &= (bits[1] == 0);
+	result &= (bits[0] == 0);
 	return result;
 }
 

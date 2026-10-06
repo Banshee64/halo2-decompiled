@@ -222,3 +222,65 @@ bool function_8b0a0(s_node_450d1c *node, long size, const void *source)
 	}
 	return result;
 }
+
+struct s_view_iterator
+{
+	dword mask;
+	long index;
+};
+bool world_next_view(c_class_6a600 *world, s_view_iterator *iterator, c_simulation_view **out);
+
+struct s_event_distribution
+{
+	byte unknown00[8];
+	c_class_6a600 *world;
+	s_owner_450d1c *owner;
+	s_handlers_450cb8 *definitions;
+	s_datums_450cb8 *entities;
+};
+
+// @retail 0x8b4d0
+void function_8b4d0(s_event_distribution *distribution, long type, long entity_count,
+	const long *entities, dword machine_mask, long size, const void *data, long timeout)
+{
+	dword mask = 0;
+	s_view_iterator iterator = { (dword)NONE, 0 };
+	c_simulation_view *view = 0;
+	while (world_next_view(distribution->world, &iterator, &view))
+	{
+		if (view->established() && view->unknown1c >= 0 && view->unknown1c < 16 &&
+			(machine_mask & (1 << view->unknown1c)))
+			mask |= 1 << view->world_index;
+	}
+	if (mask)
+	{
+		s_node_450d1c *node = function_89df0(distribution->owner);
+		if (node)
+		{
+			c_handler_450cb8 *definition = distribution->definitions->handlers[type];
+			node->unknown04 = type;
+			node->timeout = timeout;
+			if (entity_count > 0 && entities[0] != NONE)
+				node->unknown10 = entities[0];
+			for (long i = 1; i < entity_count; i++)
+			{
+				if (entities[i] != NONE)
+					(&node->unknown10)[i] = entities[i];
+			}
+			if (size > 0 && !function_8b0a0(node, size, data))
+			{
+				function_89e70(node, distribution->owner);
+				return;
+			}
+			if (definition->v4())
+			{
+				for (long i = 0; i < entity_count; i++)
+				{
+					if (entities[i] != NONE)
+						distribution->entities->data[entities[i] & 0x3ff].counter++;
+				}
+			}
+			replication_node_start(node, distribution->owner, mask);
+		}
+	}
+}

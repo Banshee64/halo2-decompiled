@@ -2,6 +2,43 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6339 functions match
+
+```
+matched 6339 of 11318 game functions (670909 of 2784283 bytes, 24.10%)
+```
+
+7 new matches, none lost:
+- **Codex lane D**, round 20 (7): friend presence, matchmaking and voice queue helpers in the 0x50000–0x6ffff and 0x80000–0x8ffff ranges, plus two callers that now match (0x943d0, 0x2359ce).
+
+## 2026-10-06: 6332 functions match
+
+```
+matched 6332 of 11318 game functions (668717 of 2784283 bytes, 24.02%)
+```
+
+11 new matches, none lost:
+- **Codex lane W**, round 11 (1): one more core utility.
+- **Codex lane F** (10): player control and looping-sound helpers in the 0x180000–0x18ffff range, and lane K's 0x21db80 through its now-real callee.
+
+## 2026-10-06: 6321 functions match
+
+```
+matched 6321 of 11318 game functions (667886 of 2784283 bytes, 23.99%)
+```
+
+1 new matches, none lost:
+- **UI-core lane**, round 4 (1): a director camera helper at 0x23d790.
+
+## 2026-10-06: 6320 functions match
+
+```
+matched 6320 of 11318 game functions (667562 of 2784283 bytes, 23.98%)
+```
+
+5 new matches, none lost:
+- **Codex lane AB**, round 4 (5): object connection, cluster and light helpers in the 0x0b3d30–0x0c42df range.
+
 ## 2026-10-06: 6315 functions match
 
 ```

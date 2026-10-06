@@ -25,6 +25,91 @@ static inline dword presence_cache_time(void)
 	return g_510548 ? g_51054c : GetTickCount();
 }
 
+struct s_presence_name_cache
+{
+	s_presence_name_cache_entry entries[150];
+	long task_index;
+	s_presence_name_cache_entry *pending;
+};
+
+void online_teams_enumerate_get_results(long task_index, DWORD *count, XUID *teams);
+void online_team_get_details(long task_index, XUID const *team, XONLINE_TEAM *details);
+long function_abc70(long controller_index, XUID const *xuid);
+long function_18fa4d(long mode);
+
+// @retail 0x8bf70
+void function_8bf70(s_presence_name_cache *cache)
+{
+	if (cache->task_index != NONE)
+	{
+		long state = online_task_poll(cache->task_index);
+		switch (state)
+		{
+		case 0:
+			break;
+		case 1:
+		case 2:
+		{
+			DWORD count = 8;
+			XUID teams[8];
+			online_teams_enumerate_get_results(cache->task_index, &count, teams);
+			if ((long)count > 0)
+			{
+				XONLINE_TEAM details;
+				online_team_get_details(cache->task_index, teams, &details);
+				wchar_t *name = cache->pending->name;
+				wcsncpy(name, details.TeamProperties.wszTeamName, 15);
+				name[15] = 0;
+				cache->pending->team = teams[0];
+			}
+			else
+			{
+				cache->pending->name[0] = 0;
+				cache->pending->team.qwUserID = 0;
+			}
+			cache->pending->time = presence_cache_time();
+			cache->pending->state = 3;
+			cache->pending = 0;
+			function_6b640(cache->task_index);
+			cache->task_index = NONE;
+			break;
+		}
+		default:
+		{
+			cache->pending->name[0] = 0;
+			cache->pending->team.qwUserID = 0;
+			cache->pending->time = presence_cache_time();
+			cache->pending->state = 3;
+			cache->pending = 0;
+			function_6b640(cache->task_index);
+			cache->task_index = NONE;
+			break;
+		}
+		}
+	}
+	if (cache->task_index == NONE)
+	{
+		long controller = function_18fa4d(1);
+		if (controller >= 0 && controller < 4)
+		{
+			for (long i = 0; i < 150; i++)
+			{
+				if (cache->entries[i].state == 1)
+				{
+					s_presence_name_cache_entry *entry = &cache->entries[i];
+					cache->task_index = function_abc70(controller, (XUID *)entry);
+					if (cache->task_index != NONE)
+					{
+						cache->pending = entry;
+						entry->state = 2;
+					}
+					break;
+				}
+			}
+		}
+	}
+}
+
 // @retail 0x8c150
 bool __stdcall function_8c150(void *cache, long allow_stale, unsigned __int64 *user_id,
 	void *name, unsigned __int64 *team_id)
