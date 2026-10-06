@@ -3895,14 +3895,13 @@ bool __stdcall function_5d5a0(c_class_58d20 *session, const byte *update, byte *
  if (update[0x70]) memcpy(output + 0x80, update + 0x74, 4);
  if (update[0x52])
  {
-  s_session_property_value *value = (s_session_property_value *)(output + 0x54);
   switch (*(const long *)(update + 0x54))
   {
-  case 1: session_property_value_set_kind1(value, *(const long *)(update + 0x58), *(const long *)(update + 0x5c), *(const long *)(update + 0x60), *(const long *)(update + 0x64)); break;
-  case 2: session_property_value_set_kind2(value, *(const long *)(update + 0x68)); break;
-  case 3: session_property_value_set_kind3(value, *(const long *)(update + 0x6c)); break;
-  case 4: session_property_value_set_kind4(value); break;
-  default: memset(value, 0, 0x1c); break;
+  case 1: session_property_value_set_kind1((s_session_property_value *)(output + 0x54), *(const long *)(update + 0x58), *(const long *)(update + 0x5c), *(const long *)(update + 0x60), *(const long *)(update + 0x64)); break;
+  case 2: session_property_value_set_kind2((s_session_property_value *)(output + 0x54), *(const long *)(update + 0x68)); break;
+  case 3: session_property_value_set_kind3((s_session_property_value *)(output + 0x54), *(const long *)(update + 0x6c)); break;
+  case 4: session_property_value_set_kind4((s_session_property_value *)(output + 0x54)); break;
+  default: *(long *)(output + 0x54) = 0; *(long *)(output + 0x58) = 0; *(long *)(output + 0x5c) = 0; *(long *)(output + 0x60) = 0; *(long *)(output + 0x64) = 0; *(long *)(output + 0x68) = 0; *(long *)(output + 0x6c) = 0; break;
   }
  }
  if (update[0x88])
@@ -3921,16 +3920,18 @@ bool __stdcall function_5d5a0(c_class_58d20 *session, const byte *update, byte *
  }
  if (update[0x78])
  {
-  output[0x70] = update[0x79];
-  if (update[0x79]) memcpy(output + 0x78, update + 0x80, 8);
-  else memset(output + 0x78, 0, 8);
+  byte flag = update[0x79];
+  output[0x70] = flag;
+  if (!flag) memset(output + 0x78, 0, 8);
+  else memcpy(output + 0x78, update + 0x80, 8);
  }
  if (update[0x394])
  {
   *(long *)(output + 0x390) = *(const long *)(update + 0x398);
   *(long *)(output + 0x394) = *(const long *)(update + 0x39c);
-  strncpy((char *)output + 0x398, (const char *)update + 0x3a0, 0x80);
-  output[0x417] = 0;
+  char *name = (char *)output + 0x398;
+  strncpy(name, (const char *)update + 0x3a0, 0x80);
+  name[0x7f] = 0;
  }
  if (update[0x420]) memcpy(output + 0x428, update + 0x428, 0x8);
  if (update[0x430]) memcpy(output + 0x430, update + 0x434, 0x4);
@@ -3938,8 +3939,9 @@ bool __stdcall function_5d5a0(c_class_58d20 *session, const byte *update, byte *
  if (update[0x440]) memcpy(output + 0x438, update + 0x444, 0x130);
  if (update[0x574])
  {
-  wcsncpy((wchar_t *)(output + 0x568), (const wchar_t *)(update + 0x576), 31);
-  *(word *)(output + 0x5a6) = 0;
+  wchar_t *name = (wchar_t *)(output + 0x568);
+  wcsncpy(name, (const wchar_t *)(update + 0x576), 31);
+  name[31] = 0;
  }
  if (update[0x5b6])
  {
@@ -3962,7 +3964,8 @@ bool __stdcall function_5d5a0(c_class_58d20 *session, const byte *update, byte *
   }
   else
   {
-   *(long *)(output + 0x3c) = mode == 2 ? *(const long *)(update + 0x1474) : NONE;
+   if (mode == 2) *(long *)(output + 0x3c) = *(const long *)(update + 0x1474);
+   else *(long *)(output + 0x3c) = NONE;
    memset(output + 0x40, 0, 12);
   }
  }
@@ -3973,12 +3976,16 @@ bool __stdcall function_5d5a0(c_class_58d20 *session, const byte *update, byte *
    output[0x1460] = false;
    memset(output + 0x1464, 0, 0x44);
   }
-  else if (!session->state || memcmp(&session->unknown1c, update + 0x148c, 8))
+  else
   {
+   const byte *data = update + 0x1488;
+   if (!session->state || !data || memcmp(data + 4, &session->unknown1c, 8))
+   {
    output[0x1460] = true;
-   memcpy(output + 0x1464, update + 0x1488, 0x44);
+   memcpy(output + 0x1464, data, 0x44);
+   }
+   else valid = false;
   }
-  else valid = false;
  }
  if (update[0x14cc]) *(long *)(output + 0x14a8) = *(const long *)(update + 0x14d0);
  result = valid;
@@ -4426,6 +4433,243 @@ void function_61e00(c_class_58d20 *session)
  }
 }
 
+struct s_membership_update_snapshot
+{
+	long update;
+	long host;
+	long member_count;
+	s_session_member members[16];
+	long player_count;
+	dword player_mask;
+	s_network_session_player players[16];
+};
+
+// @retail 0x5cb80
+bool __stdcall function_05cb80(c_class_58d20 *session, const void *message)
+{
+	const byte *update = (const byte *)message;
+	if (*(const long *)(update + 0xc) != NONE && *(const long *)(update + 0xc) != session->value4c)
+		goto stale_update;
+	s_membership_update_snapshot previous;
+	memcpy(&previous, &session->value4c, sizeof(previous));
+	s_network_session_member_state previous_states[16];
+	memcpy(previous_states, session->member_states, sizeof(previous_states));
+	session->value4c = *(const long *)(update + 8);
+	session->update7618++;
+	dword added = 0;
+	dword moved = 0;
+	dword removed = 0;
+	dword retained = 0;
+	long old_to_new[16];
+	memset(old_to_new, NONE, sizeof(old_to_new));
+	bool result = true;
+	if (*(const long *)(update + 0xc) != NONE)
+		for (long i = 0; i < session->member_count; i++)
+			old_to_new[i] = i;
+	for (long i = 0; i < *(const short *)(update + 0x10); i++)
+	{
+		const byte *entry = update + 0x14 + i * 0x104;
+		short from = *(const short *)entry;
+		short to = *(const short *)(entry + 2);
+		if (from == NONE)
+		{
+			if (to < 0 || to >= 16 || !entry[0x28]) goto failed;
+		}
+		else if (to == NONE)
+		{
+			if (*(const long *)(update + 0xc) == NONE || from < 0 || from >= previous.member_count ||
+				entry[0x28] || memcmp(previous.members[from].words, entry + 4, 0x24) || old_to_new[from] != from)
+				goto failed;
+			old_to_new[from] = NONE;
+		}
+		else
+		{
+			if (*(const long *)(update + 0xc) == NONE || from < 0 || from >= previous.member_count ||
+				to < 0 || to >= 16 || memcmp(previous.members[from].words, entry + 4, 0x24) || old_to_new[from] != from)
+				goto failed;
+			old_to_new[from] = to;
+		}
+	}
+	if (*(const long *)(update + 0xc) != NONE)
+		retained = (1 << previous.member_count) - 1;
+	for (long i = 0; i < *(const short *)(update + 0x10); i++)
+	{
+		const byte *entry = update + 0x14 + i * 0x104;
+		short from = *(const short *)entry;
+		short to = *(const short *)(entry + 2);
+		if (from == NONE)
+		{
+			if (to < 0 || to >= 16 || !entry[0x28]) goto failed;
+			s_session_member *member = &session->members[to];
+			bool occupied = false;
+			if (*(const long *)(update + 0xc) != NONE)
+				for (long j = 0; j < previous.member_count; j++)
+					if (old_to_new[j] == to) occupied = true;
+			if (occupied) goto failed;
+			memset(member, 0, sizeof(*member));
+			member->properties_valid = *(const bool *)(entry + 0x29);
+			memcpy(member->words, entry + 4, 0x24);
+			for (long j = 0; j < 4; j++) member->player_indices[j] = NONE;
+			session_parameters_apply_update(&member->properties, (const s_session_parameters_update *)(entry + 0x2c));
+			added |= 1 << to;
+		}
+		else if (to == NONE)
+		{
+			if (*(const long *)(update + 0xc) == NONE || from < 0 || from >= previous.member_count ||
+				entry[0x28] || memcmp(previous.members[from].words, entry + 4, 0x24)) goto failed;
+			removed |= 1 << from;
+			retained &= ~(1 << from);
+		}
+		else
+		{
+			if (*(const long *)(update + 0xc) == NONE || from < 0 || from >= previous.member_count ||
+				to < 0 || to >= 16 || memcmp(previous.members[from].words, entry + 4, 0x24)) goto failed;
+			s_session_member *member = &session->members[to];
+			if (from != to) *member = previous.members[from];
+			if (entry[0x28])
+			{
+				member->properties_valid = *(const bool *)(entry + 0x29);
+				session_parameters_apply_update(&member->properties, (const s_session_parameters_update *)(entry + 0x2c));
+			}
+			if (from != to)
+			{
+				old_to_new[from] = to;
+				moved |= 1 << to;
+				retained &= ~(1 << from);
+			}
+			if (!entry[0x28] && from == to) goto failed;
+		}
+	}
+	if (*(const long *)(update + 0xc) == NONE)
+	{
+		long count = *(const short *)(update + 0x10);
+		if (added != (dword)((1 << count) - 1)) goto failed;
+		session->member_count = count;
+		for (long i = 0; i < previous.member_count; i++)
+		{
+			for (long j = 0; j < session->member_count; j++)
+				if (!memcmp(previous.members[i].words, session->members[j].words, 0x24)) old_to_new[i] = j;
+			if (old_to_new[i] == NONE) removed |= 1 << i;
+		}
+	}
+	else
+	{
+		dword mask = retained | moved | added;
+		long count = NONE;
+		for (long i = 0; i < 16; i++)
+		{
+			if (mask & (1 << i))
+			{
+				if (count != NONE) { result = false; break; }
+			}
+			else if (count == NONE) count = i;
+		}
+		if (count == NONE) count = 16;
+		session->member_count = count;
+		if (!result) goto finish;
+	}
+	{
+		long new_to_old[16];
+		memset(new_to_old, NONE, sizeof(new_to_old));
+		for (long i = 0; i < previous.member_count; i++)
+			if (!(removed & (1 << i))) new_to_old[old_to_new[i]] = i;
+		for (long i = 0; i < previous.member_count; i++)
+			if (removed & (1 << i)) network_session_member_state_dispose(session, i);
+		memset(session->member_states, 0, sizeof(session->member_states));
+		for (long i = 0; i < session->member_count; i++)
+		{
+			if (new_to_old[i] != NONE) session->member_states[i] = previous_states[new_to_old[i]];
+			else
+			{
+				memset(&session->member_states[i], 0, sizeof(session->member_states[i]));
+				long channel = network_observer_attach_channel(session->observer, session->value10, (const XNADDR *)session->members[i].words);
+				if (channel != NONE) network_session_member_state_initialize(session, i, true, channel);
+				else result = false;
+			}
+		}
+	}
+	if (!result) goto finish;
+	if (old_to_new[session->member_index] == NONE) result = false;
+	else session->member_index = old_to_new[session->member_index];
+	if (old_to_new[session->current_member] == NONE) result = false;
+	else session->current_member = old_to_new[session->current_member];
+	if (*(const long *)(update + 0xc) != NONE)
+	{
+		for (long i = 0; i < 16; i++)
+		{
+			if (session->player_mask & (1 << i))
+			{
+				long member = old_to_new[session->players[i].member_index];
+				if (member == NONE)
+				{
+					session->player_mask &= ~(1 << i);
+					session->player_count--;
+				}
+				else session->players[i].member_index = member;
+			}
+		}
+	}
+	if (!result) goto finish;
+	if (*(const long *)(update + 0xc) == NONE && !update[0x4894]) goto failed;
+	if (update[0x4894])
+	{
+		long host = *(const long *)(update + 0x4898);
+		if (host < 0 || host >= session->member_count) goto failed;
+		session->value50 = host;
+	}
+	if (*(const long *)(update + 0xc) == NONE)
+	{
+		session->player_count = 0;
+		session->player_mask = 0;
+		for (long i = 0; i < session->member_count; i++)
+		{
+			for (long j = 0; j < 4; j++) session->members[i].player_indices[j] = NONE;
+			session->members[i].player_count = 0;
+		}
+	}
+	for (long i = 0; i < *(const short *)(update + 0x12) && result; i++)
+	{
+		const byte *entry = update + 0x2094 + i * 0x140;
+		short player = *(const short *)entry;
+		if (player < 0 || player >= 16) { result = false; continue; }
+		switch (*(const short *)(entry + 2))
+		{
+		case 0:
+			if (!(session->player_mask & (1 << player))) { result = false; break; }
+			network_session_remove_player(session, player);
+			break;
+		case 1:
+			{
+				short member = *(const short *)(entry + 0x10);
+				short slot = *(const short *)(entry + 0x12);
+				if ((session->player_mask & (1 << player)) || member < 0 || member >= session->member_count ||
+					slot < 0 || slot >= 4 || session->members[member].player_indices[slot] != NONE ||
+					network_session_find_player(session, (const dword *)(entry + 4)) != NONE)
+				{ result = false; break; }
+				network_session_add_player(session, member, (const XUID *)(entry + 4), player, slot);
+			}
+		case 2:
+			if (!(session->player_mask & (1 << player))) { result = false; break; }
+			session->players[player].unknown14 = *(const long *)(entry + 0x18);
+			memcpy(session->players[player].properties18, entry + 0x1c, 0x90);
+			memcpy(session->players[player].propertiesa8, entry + 0xac, 0x90);
+			session->players[player].unknown138 = *(const long *)(entry + 0x13c);
+			break;
+		default: result = false; break;
+		}
+	}
+	if (result) return result;
+	finish:
+	session->flag48 = true;
+	if (!result) network_session_close(session);
+	return result;
+	failed:
+	result = false;
+	goto finish;
+	stale_update:
+	network_session_host_lost(session);
+	return false;
+}
 
 void network_session_expire_reservations(c_class_58d20 *session);
 
