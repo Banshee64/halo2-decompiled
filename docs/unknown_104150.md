@@ -249,7 +249,7 @@ objects into entity ids (`0xa5930` returns an entity's id when its flag 4 is
 set, `0xa5980` when it is clear), and in mode 4 only, for a player with a
 machine index, builds a mask of every machine but one (inferred: the sender's).
 
-### `0x1a4c00`: a player's aim (lane M, paused)
+### `0x1a4c00`: a player's aim (lane M, on the second machine)
 
 `0x1a4c00` (1,172 bytes) takes the aim in `eax` and the origin in `ebx`, and on
 the stack the player index, the aiming unit's `+0x1c8` block and whether the
