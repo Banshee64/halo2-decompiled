@@ -1002,3 +1002,119 @@ long __stdcall function_2093d0(long expression_index, bool option)
     }
     return result;
 }
+
+
+typedef void (__stdcall *t_script_value_formatter)(long, long, char *, long);
+void __stdcall function_208cc0(long unused, bool value, char *buffer, long maximum_count);
+void __stdcall function_208d10(long unused, real value, char *buffer, long maximum_count);
+void __stdcall function_208d40(long unused, short value, char *buffer, long maximum_count);
+void __stdcall function_208d70(long unused, long value, char *buffer, long maximum_count);
+void __stdcall function_208da0(long unused, char const *value, char *buffer, long maximum_count);
+void __stdcall function_208dd0(short table_index, short name_index, char *buffer, long maximum_count);
+
+// Retail's complete value formatter table, including the unsupported types.
+PRIVATE t_script_value_formatter const g_46fd70[62] =
+{
+    0, 0, 0, 0, 0,
+    (t_script_value_formatter)function_208cc0,
+    (t_script_value_formatter)function_208d10,
+    (t_script_value_formatter)function_208d40,
+    (t_script_value_formatter)function_208d70,
+    (t_script_value_formatter)function_208da0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    (t_script_value_formatter)function_208dd0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+// @retail 0x208e10
+void __stdcall function_208e10(short function_index, long thread_index, bool initialize)
+{
+    char buffer[1024];
+    s_hs_thread *thread = hs_thread_get(thread_index);
+    s_hs_frame *frame = thread->frame;
+    long *value = (long *)((byte *)frame + 0xe + frame->size);
+    frame->size += 4;
+    s_hs_expression *nodes = (s_hs_expression *)g_4f9394->data;
+    if (initialize)
+    {
+        s_hs_expression *expression = &nodes[thread->frame->expression_index & 0xffff];
+        s_hs_expression *name = &nodes[expression->value & 0xffff];
+        function_2099f0(thread_index, value, *(long *)((byte *)name + 8));
+    }
+    else
+    {
+        s_hs_expression *expression = &nodes[thread->frame->expression_index & 0xffff];
+        s_hs_expression *name = &nodes[expression->value & 0xffff];
+        s_hs_expression *argument = &nodes[*(long *)((byte *)name + 8) & 0xffff];
+        if ((thread->flags & 4) && g_46fd70[argument->type])
+            g_46fd70[argument->type](argument->type, *value, buffer, sizeof(buffer));
+        function_209ae0(thread_index, 0);
+    }
+}
+
+s_type_f4462a const g_44b208 = { _hs_type_void, 2, function_208e10, "<expression>", 0, { 0 } };
+
+
+extern s_record_pool *g_4f55d4;
+bool function_1dee00(long list_index, long object_index);
+void function_2963b0(s_record_pool *pool, long index);
+
+// @retail 0x2095e0
+void __stdcall function_2095e0(long object_index)
+{
+    byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+    if ((bool)((*(dword *)(object + 4) >> 28) & 1))
+    {
+        s_record_pool_iterator iterator;
+        iterator.data = g_4f9380;
+        iterator.index = NONE;
+        s_hs_global_value *value;
+        while ((value = (s_hs_global_value *)data_iterator_next_inlined(&iterator)) != NULL)
+        {
+            long index = iterator.datum_index;
+            bool external = (short)index < 0x41d;
+            if (!external)
+                index -= 0x41d;
+            short global_index = (index & 0x7fff) | (external ? 0x8000 : 0);
+            short type = (global_index & 0x8000) ? g_473468[global_index & 0x7fff]->type :
+                ((s_hs_scenario_view *)g_4e0350)->globals[global_index & 0x7fff].type;
+            if (type >= _hs_type_object && type <= _hs_type_scenery)
+            {
+                function_20a2e0(global_index);
+                long slot = (global_index & 0x8000) ? (global_index & 0x7fff) : (global_index & 0x7fff) + 0x41d;
+                if (((s_hs_global_value *)iterator.data->data)[slot].value.d == (dword)object_index)
+                {
+                    value->value.d = NONE;
+                    function_20a490(global_index);
+                }
+            }
+            else if (type == _hs_type_object_list)
+            {
+                function_20a2e0(global_index);
+                long slot = (global_index & 0x8000) ? (global_index & 0x7fff) : (global_index & 0x7fff) + 0x41d;
+                long list_index = ((s_hs_global_value *)iterator.data->data)[slot].value.d;
+                if (function_1dee00(list_index, object_index))
+                {
+                    if (list_index != NONE)
+                    {
+                        byte *list = g_4f55d8->data + (list_index & 0xffff) * 12;
+                        if (*(short *)(list + 6) != 0)
+                            continue;
+                        function_2963b0(g_4f55d4, *(long *)(list + 8));
+                        record_pool_release(g_4f55d8, list_index);
+                    }
+                    value->value.d = NONE;
+                    function_20a490(global_index);
+                }
+            }
+        }
+    }
+}

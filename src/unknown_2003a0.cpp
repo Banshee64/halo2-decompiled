@@ -956,6 +956,41 @@ void function_203ed0(long actor_index, bool keep_count)
 	}
 }
 
+void function_1e22d0(long actor_index, bool conditional);
+
+// @retail 0x203f60
+void function_203f60(long actor_index)
+{
+	if (g_4f55d0->active)
+	{
+		s_actor_datum *actor = actor_datum_get(actor_index);
+		actor->next_actor_index = g_4f55d0->unknown14;
+		g_4f55d0->unknown14 = actor_index;
+		actor->flag00a = true;
+		*(long *)((byte *)actor + 0x14) = g_510c54->game_time;
+		function_1e22d0(actor_index, false);
+	}
+}
+
+bool function_1e12b0(long actor_index, dword const *clusters);
+
+// @retail 0x202310
+bool __stdcall function_202310(long squad_index, dword const *clusters, long cluster_count)
+{
+    (void)&cluster_count;
+	bool result = false;
+	long actor_index = squad_get(squad_index)->first_actor_index;
+	while (actor_index != NONE)
+	{
+		s_actor_datum *actor = actor_datum_get(actor_index);
+		result = function_1e12b0(actor_index, clusters);
+		if (result)
+			break;
+		actor_index = actor->next_actor_index;
+	}
+	return result;
+}
+
 // @retail 0x203fb0
 void function_203fb0(long actor_index)
 {
@@ -1426,4 +1461,569 @@ long function_204b20(long actor_index, short mode)
         }
     }
     return result;
+}
+
+
+#include "unit_requests.h"
+
+struct s_time_entry;
+struct s_unknown_1e6a40;
+extern s_unknown_1e6a40 *g_51e9c0;
+void function_1e6980(s_time_entry *entries, short type, byte result);
+void function_b7360(long object_index);
+long function_baf40(long object_index);
+short function_200ee0(long object_index, short mode, long *selected_object, short *occupied_count);
+
+typedef bool (__stdcall *t_unit_request_proc)(long, s_unit_request *);
+typedef bool (__stdcall *t_unit_request_update_proc)(long, long);
+typedef void (__stdcall *t_unit_request_end_proc)(long, long);
+struct s_unit_request_definition
+{
+    t_unit_request_proc perform;
+    t_unit_request_update_proc update;
+    t_unit_request_end_proc finished;
+    t_unit_request_end_proc interrupted;
+};
+extern s_unit_request_definition *g_4677c8[60];
+
+PRIVATE inline byte *squad_transfer_object(long index)
+{
+    return *(byte **)(g_4e0300->data + (index & 0xffff) * 12 + 8);
+}
+
+PRIVATE __forceinline bool squad_transfer_request(long unit_index, long object_index, short seat)
+{
+    s_unit_request request;
+    request.type = 0x1c;
+    request.type1c.object_index = object_index;
+    request.type1c.seat_index = seat;
+    request.type1c.unknowna = true;
+    request.type1c.unknownb = false;
+    s_unit_request_definition *definition = g_4677c8[0x1c];
+    function_b7360(unit_index);
+    bool result = definition->perform(unit_index, &request);
+    if (unit_index != NONE)
+    {
+        long player_index = *(long *)(squad_transfer_object(unit_index) + 0x13c);
+        if (player_index != NONE)
+        {
+            short controller = *(short *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x28);
+            if (controller != NONE)
+                function_1e6980((s_time_entry *)((byte *)g_51e9c0 + controller * 0x1b0 + 0x150),
+                    (short)request.type, result);
+        }
+    }
+    return result;
+}
+
+// @retail 0x204010
+void function_204010(long squad_index, long other_squad_index)
+{
+    (void)&other_squad_index;
+    if (other_squad_index != NONE && squad_index != NONE)
+    {
+        s_squad_datum *squad = squad_get(squad_index);
+        for (long vehicle_index = squad_get(other_squad_index)->first_vehicle_index; vehicle_index != NONE; )
+        {
+            byte *vehicle = squad_transfer_object(vehicle_index);
+            byte *definition = g_4e3b44[*(long *)vehicle & 0xffff].bytes;
+            for (long target = squad->first_vehicle_index; target != NONE; )
+            {
+                byte *target_vehicle = squad_transfer_object(target);
+                long selected = NONE;
+                short seat = function_200ee0(target, 4 + (*(short *)(definition + 0x244) != 0), &selected, NULL);
+                if (seat != NONE && squad_transfer_request(vehicle_index, selected, seat))
+                    break;
+                target = *(long *)(target_vehicle + 0x3a4);
+            }
+            vehicle_index = *(long *)(vehicle + 0x3a4);
+        }
+        s_squad_actor_iterator iterator;
+        function_204d30(&iterator, other_squad_index);
+        while (g_4f55d0->active && iterator.next_actor_index != NONE)
+        {
+            s_actor_datum *actor = actor_datum_get(iterator.next_actor_index);
+            iterator.next_actor_index = actor->next_actor_index;
+            long unit_index = actor->unit_index;
+            byte *unit = squad_transfer_object(unit_index);
+            long parent_index = *(long *)(unit + 0x14);
+            if (parent_index != NONE)
+            {
+                byte *parent = squad_transfer_object(function_baf40(parent_index));
+                if (parent[0xaa] == 1 && (*(long *)(parent + 0x3a0) & 0xffff) != (other_squad_index & 0xffff))
+                    function_e68c0(0x1e, unit_index);
+            }
+            if (*(long *)(unit + 0x14) == NONE)
+            {
+                for (long target = squad->first_vehicle_index; target != NONE; )
+                {
+                    byte *target_vehicle = squad_transfer_object(target);
+                    long selected = NONE;
+                    short seat = function_200ee0(target, 0, &selected, NULL);
+                    if (seat != NONE && squad_transfer_request(actor->unit_index, selected, seat))
+                        break;
+                    target = *(long *)(target_vehicle + 0x3a4);
+                }
+            }
+        }
+    }
+}
+
+
+#include "unknown_20fe20.h"
+extern s_reference g_471004;
+point3f *function_b9dd0(long object_index, point3f *point);
+void __stdcall function_2628f0(long actor_index, s_reference reference);
+
+PRIVATE inline byte *squad_area_get(short palette_index, short area_index)
+{
+    byte *scenario = (byte *)g_4e0350;
+    if (palette_index >= 0 && palette_index < *(long *)(scenario + 0x168))
+    {
+        byte *palette = *(byte **)(scenario + 0x16c) + (word)palette_index * 0x38;
+        if (area_index >= 0 && area_index < *(long *)(palette + 0x30))
+            return *(byte **)(palette + 0x34) + area_index * 0x88;
+    }
+    return NULL;
+}
+
+PRIVATE inline void squad_area_consider(byte *squad, byte const *definition, byte *area,
+    short palette_index, short area_index, point3f const *point, real *nearest, s_reference *best)
+{
+    real distance = function_210ac0((s_type_c3b527 const *)(area + 0x24), point);
+    if (*(real *)(area + 0x34) + *(real const *)(definition + 0x50) > distance)
+    {
+        *(short *)(squad + 0x32 + (signed char)squad[0x30] * 4) = palette_index;
+        *(short *)(squad + 0x34 + (signed char)squad[0x30] * 4) = area_index;
+        ++squad[0x30];
+    }
+    else if (distance < *nearest)
+    {
+        *nearest = distance;
+        best->unknown0 = palette_index;
+        best->unknown2 = area_index;
+    }
+}
+
+// @retail 0x204450
+void function_204450(long definition_index, long squad_index)
+{
+    (void)&squad_index;
+    byte *squad = (byte *)squad_get(squad_index);
+    byte *definition = *(byte **)((byte *)g_4e0350 + 0x244) + definition_index * 0x7c;
+    point3f point;
+    if (definition[0x24] & 0x10)
+    {
+        long target = NONE;
+        long index = NONE;
+        while ((index = data_next_absolute_index_inlined(g_4e8c24, index + 1)) != NONE)
+        {
+            byte *player = g_4e8c24->data + index * g_4e8c24->size;
+            if (!player)
+                break;
+            long unit_index = *(long *)(player + 0x2c);
+            if (unit_index != NONE)
+            {
+                function_b9dd0(unit_index, &point);
+                vector3f difference;
+                vector3d_from_points3d(&point, (point3f *)(squad + 0x18), &difference);
+                if (sqrt(length_sq3f(&difference)) < 3.402823466e+38F)
+                    target = unit_index;
+            }
+        }
+        *(long *)(squad + 0x80) = target;
+    }
+    if (*(long *)(squad + 0x80) != NONE)
+    {
+        s_reference best = g_471004;
+        real nearest = 3.402823466e+38F;
+        squad[0x30] = 0;
+        function_b9dd0(*(long *)(squad + 0x80), &point);
+        byte *entries = definition + (squad[0x60] ? 0x5c : 0x54);
+        if (*(long *)entries > 0)
+        {
+            for (short i = 0; i < *(long *)entries && (signed char)squad[0x30] < 10; i++)
+            {
+                byte *entry = *(byte **)(definition + (squad[0x60] ? 0x60 : 0x58)) + i * 8;
+                short palette_index = *(short *)(entry + 4);
+                short area_index = *(short *)(entry + 6);
+                byte *area = squad_area_get(palette_index, area_index);
+                if (area)
+                    squad_area_consider(squad, definition, area, palette_index, area_index, &point, &nearest, &best);
+            }
+        }
+        else
+        {
+            byte *scenario = (byte *)g_4e0350;
+            byte *squad_definition = *(byte **)(scenario + 0x164) + (squad_index & 0xffff) * 0x74;
+            short palette_index = *(short *)(squad_definition + 0x38);
+            if (palette_index >= 0 && palette_index < *(long *)(scenario + 0x168))
+            {
+                byte *palette = *(byte **)(scenario + 0x16c) + (word)palette_index * 0x38;
+                for (short i = 0; i < *(long *)(palette + 0x30) && (signed char)squad[0x30] < 10; i++)
+                {
+                    byte *area = *(byte **)(palette + 0x34) + i * 0x88;
+                    squad_area_consider(squad, definition, area, *(short *)(squad_definition + 0x38), i, &point, &nearest, &best);
+                }
+            }
+        }
+        if (!squad[0x30] && (best.unknown0 != g_471004.unknown0 || best.unknown2 != g_471004.unknown2))
+        {
+            *(s_reference *)(squad + 0x32) = best;
+            squad[0x30] = 1;
+        }
+        s_squad_actor_iterator iterator;
+        squad_actor_begin_inline(&iterator, squad_index);
+        s_actor_datum *actor;
+        while ((actor = squad_actor_next_inline(&iterator)) != NULL)
+        {
+            s_reference reference = *(s_reference *)((byte *)actor + 0x418);
+            bool valid = false;
+            if ((reference.unknown0 != g_470fa0.unknown0 || reference.unknown2 != g_470fa0.unknown2) &&
+                !(reference.unknown2 & 0x8000))
+            {
+                byte *palette = *(byte **)((byte *)g_4e0350 + 0x16c) + (word)reference.unknown2 * 0x38;
+                if (reference.unknown0 >= 0 && reference.unknown0 < *(long *)(palette + 0x28))
+                {
+                    byte *entry = *(byte **)(palette + 0x2c) + reference.unknown0 * 0x20;
+                    if (entry)
+                    {
+                        for (short i = 0; i < (signed char)squad[0x30]; i++)
+                        {
+                            if (*(short *)(squad + 0x32 + i * 4) == reference.unknown2 &&
+                                *(short *)(squad + 0x34 + i * 4) == *(short *)(entry + 0x10))
+                            {
+                                valid = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (!valid)
+            {
+                function_2628f0(iterator.actor_index, g_470fa0);
+                *((byte *)actor + 0x227) = 0;
+            }
+        }
+    }
+    *(long *)(squad + 0x5c) = g_510c54->game_time;
+}
+
+
+bool function_1e11b0(long actor_index, bool active);
+
+// @retail 0x203bf0
+bool function_203bf0(long squad_index)
+{
+    (void)&squad_index;
+    s_squad_datum *squad = squad_get(squad_index);
+    if (*(short *)((byte *)squad + 0x7e) == g_4686c4)
+    {
+        if (!(((byte *)squad)[2] & 0x80))
+        {
+            s_squad_actor_iterator iterator;
+            function_204d30(&iterator, squad_index);
+            while (g_4f55d0->active && iterator.next_actor_index != NONE)
+            {
+                long actor_index = iterator.next_actor_index;
+                s_actor_datum *actor = actor_datum_get(actor_index);
+                iterator.next_actor_index = actor->next_actor_index;
+                if (!function_1e11b0(actor_index, true))
+                {
+                    *(long *)((byte *)actor + 0x34) = squad_index;
+                    function_203ed0(actor_index, false);
+                    function_203f60(actor_index);
+                }
+            }
+        }
+        ((byte *)squad)[2] |= 0x80;
+        *(long *)((byte *)squad + 0x78) = g_510c54->game_time;
+    }
+    return (bool)((((byte *)squad)[2] & 0x80) >> 7);
+}
+
+
+extern s_record_pool *g_5044c8;
+bool function_1e1de0(long actor_index);
+bool function_1df5d0(short team_a, short team_b);
+
+// @retail 0x203360
+void function_203360(long squad_index)
+{
+    (void)&squad_index;
+    byte *squad = (byte *)squad_get(squad_index);
+    squad[2] &= ~0x10;
+    *(short *)(squad + 0x16) = 0;
+    *(short *)(squad + 0xc) = 0;
+    *(short *)(squad + 0xa) = 0;
+    squad[0x26] = 0;
+    *(real *)(squad + 0x10) = 0.0f;
+    bool hostile = false;
+    s_squad_actor_iterator iterator;
+    squad_actor_begin_inline(&iterator, squad_index);
+    s_actor_datum *actor;
+    while ((actor = squad_actor_next_inline(&iterator)) != NULL)
+    {
+        real health = 0.0f;
+        long count = 0;
+        if (actor->unit_index != NONE)
+        {
+            health = *(real *)(squad_transfer_object(actor->unit_index) + 0xec);
+            count = 1;
+        }
+        else if (actor->perception_index != NONE)
+        {
+            byte *perception = g_5044c8->data + (actor->perception_index & 0xffff) * 0x34;
+            count = *(word *)(perception + 0x14);
+            health = (real)(short)count / (real)*(short *)(perception + 0x16);
+        }
+        *(short *)(squad + 0xa) += count;
+        *(real *)(squad + 0x10) += health;
+        *(short *)(squad + 0xc) += *((byte *)actor + 7) * count;
+        *(short *)(squad + 0x16) += function_1e1de0(iterator.actor_index) * count;
+        long tracking_index = *(long *)((byte *)actor + 0x338);
+        if (tracking_index != NONE)
+        {
+            byte *tracking = g_502418->data + (tracking_index & 0xffff) * 0x3c;
+            long target_index = *(long *)(tracking + 8);
+            byte *target = g_50241c->data + (target_index & 0xffff) * 0xc4;
+            if (!function_1df5d0(*(short *)((byte *)actor + 0x24), *(short *)(target + 0x20)))
+                hostile = true;
+            function_1e1de0(iterator.actor_index);
+            if (actor->value086 > (signed char)squad[0x26])
+                squad[0x26] = (byte)actor->value086;
+            if (actor->value086 >= 7)
+                squad[2] |= 0x10;
+        }
+    }
+    if (hostile)
+        squad[2] &= ~0x20;
+    if (*(short *)(squad + 8) > 0)
+    {
+        real health = *(real *)(squad + 0x10) / (real)*(short *)(squad + 8);
+        *(real *)(squad + 0x10) = health < 0.0f ? 0.0f : health;
+    }
+    squad[3] &= ~1;
+    squad_actor_begin_inline(&iterator, squad_index);
+    point3f *position = (point3f *)(squad + 0x18);
+    *position = *g_468788;
+    while ((actor = squad_actor_next_inline(&iterator)) != NULL)
+    {
+        position->x += actor->position.x;
+        position->y += actor->position.y;
+        position->z += actor->position.z;
+    }
+    real scale = (real)*(short *)(squad + 0xa);
+    position->x *= scale;
+    position->y *= scale;
+    position->z *= scale;
+    short definition_index = *(short *)(squad + 0x2a);
+    if (definition_index != NONE)
+    {
+        byte *definition = *(byte **)((byte *)g_4e0350 + 0x244) + definition_index * 0x7c;
+        if ((definition[0x24] & 0x10) || ((definition[0x24] & 0x20) && *(short *)(definition + 0x4e) != NONE))
+        {
+            long last_update = *(long *)(squad + 0x5c);
+            if (last_update == NONE || (g_510c54->game_time - last_update) * g_510c54->rate > 2.0f)
+                function_204450(definition_index, squad_index);
+        }
+    }
+}
+
+
+void function_1e1150(long actor_index, short team);
+
+// @retail 0x203d70
+void function_203d70(long actor_index, short squad_index, bool keep_team)
+{
+    (void)&actor_index;
+    (void)&squad_index;
+    (void)&keep_team;
+    if (g_4f55d0->active)
+    {
+        s_actor_datum *actor = actor_datum_get(actor_index);
+        s_squad_datum *squad = squad_get((word)squad_index);
+        if (function_1e13f0(actor_index))
+        {
+            if (*(short *)((byte *)squad_get((word)squad_index) + 0x7e) != g_4686c4)
+            {
+                s_squad_actor_iterator iterator;
+                function_204d30(&iterator, squad_index);
+                while (g_4f55d0->active && iterator.next_actor_index != NONE)
+                {
+                    long previous_index = iterator.next_actor_index;
+                    s_actor_datum *previous = actor_datum_get(previous_index);
+                    iterator.next_actor_index = previous->next_actor_index;
+                    *(long *)((byte *)previous + 0x34) = squad_index;
+                    function_203ed0(previous_index, false);
+                    function_203f60(previous_index);
+                }
+                *(short *)((byte *)squad_get((word)squad_index) + 0x7e) = g_4686c4;
+            }
+            if (*((byte *)actor + 9) && !(((byte *)squad)[2] & 0x80))
+                function_203bf0(squad_index);
+        }
+        *(long *)((byte *)actor + 0x34) = NONE;
+        actor->next_actor_index = squad->first_actor_index;
+        squad->first_actor_index = actor_index;
+        actor->squad_index = squad_index;
+        function_1e11b0(actor_index, (bool)((((dword)((byte *)squad)[2]) >> 7) & 1));
+        short team = (signed char)((byte *)squad)[0x76];
+        if (*(short *)((byte *)actor + 0x24) != team && !keep_team)
+            function_1e1150(actor_index, team);
+        squad->actor_count++;
+        ((byte *)squad)[3] |= 1;
+    }
+}
+
+
+#include "object_queries.h"
+void function_11bed0(s_location *location, point3f const *point);
+
+PRIVATE inline long squad_tick_round(real ticks)
+{
+    long result;
+    __asm
+    {
+        fld ticks
+        fistp result
+    }
+    return result;
+}
+
+// @retail 0x201ea0
+void function_201ea0(void)
+{
+    long elapsed = squad_tick_round((real)g_510c54->field_2_3);
+    dword const *clusters = (dword const *)((byte *)g_4e6948 + 0x1138);
+    byte *structure = (byte *)g_4e0348;
+    s_record_pool_iterator squads;
+    if (g_4f55d0->active)
+    {
+        squads.data = g_51e9d8;
+        squads.index = NONE;
+    }
+    while (g_4f55d0->active)
+    {
+        byte *squad = data_iterator_next_inlined(&squads);
+        short squad_index = (word)squads.datum_index;
+        if (!squad)
+            break;
+        bool wake = false;
+        if (*(short *)((byte *)squad_get((word)squad_index) + 0x7e) == g_4686c4)
+        {
+            wake = (bool)((*(dword *)((byte *)squad + 2) >> 9) & 1);
+            if (!wake || *(long *)(squad + 0x78) == NONE)
+                wake |= function_202310((word)squad_index, clusters, 0x200);
+            if (!wake)
+            {
+                short definition_index = *(short *)(squad + 0x2a);
+                if (definition_index != NONE)
+                {
+                    byte *definition = *(byte **)((byte *)g_4e0350 + 0x244) + definition_index * 0x7c;
+                    if (definition)
+                        wake = (bool)((*(dword *)(definition + 0x24) >> 1) & 1);
+                }
+            }
+            if (wake)
+                *(short *)(squad + 0x7c) = 0;
+            else
+                *(short *)(squad + 0x7c) += elapsed;
+            if (!wake && *(short *)(squad + 0x7c) < g_510c54->field_2_3 * 20 && *(short *)(squad + 0x2a) != NONE)
+            {
+                s_squad_iterator areas;
+                function_204ec0(&areas, squad_index, 15, 2);
+                while (function_205010(&areas) != NONE)
+                {
+                    if (wake)
+                        break;
+                    byte *palette = *(byte **)((byte *)g_4e0350 + 0x16c) + (word)areas.palette_index * 0x38;
+                    byte *area = *(byte **)(palette + 0x34) + areas.current * 0x88;
+                    long words = (*(long *)(structure + 0x9c) + 31) >> 5;
+                    bool overlap = false;
+                    while (--words >= 0)
+                    {
+                        dword intersection = clusters[words] & ((dword *)(area + 0x3c))[words];
+                        if (intersection)
+                            overlap = true;
+                    }
+                    wake = overlap;
+                }
+            }
+        }
+        if (wake)
+        {
+            *(short *)(squad + 0x28) = (short)squad_tick_round((real)g_510c54->field_2_3 * 5.0f);
+            if (!(squad[2] & 0x80))
+                function_203bf0((word)squad_index);
+        }
+        else if (*(word *)(squad + 2) & 0x80)
+        {
+            if (*(short *)(squad + 0x28) > elapsed)
+                *(short *)(squad + 0x28) -= elapsed;
+            else
+                function_203cc0((word)squad_index);
+        }
+    }
+    long actor_index = g_4f55d0->unknown14;
+    long current_time = g_510c54->game_time;
+    while (actor_index != NONE)
+    {
+        long current = actor_index;
+        byte *actor = (byte *)actor_datum_get(current);
+        actor_index = *(long *)(actor + 0x20);
+        bool wake = false;
+        if (function_1e13f0(current))
+        {
+            wake = function_1e12b0(current, clusters);
+            if (wake)
+                *(long *)(actor + 0x14) = current_time;
+            else if (actor[9] && current_time - *(long *)(actor + 0x14) <
+                squad_tick_round((real)g_510c54->field_2_3 * 15.0f))
+            {
+                byte *state = (byte *)actor_datum_get(current);
+                if (state[0x50c] && *(short *)(state + 0x504) == 1)
+                {
+                    point3f point;
+                    function_210850((s_type_c3b527 const *)(actor + 0x4ec), &point);
+                    point3f raised;
+                    raised.x = point.x + g_4687b0->i * 0.1f;
+                    raised.y = point.y + g_4687b0->j * 0.1f;
+                    raised.z = point.z + g_4687b0->k * 0.1f;
+                    s_location location;
+                    function_11bed0(&location, &raised);
+                    if (location.cluster_index != NONE)
+                        wake = (clusters[location.cluster_index >> 5] & (1 << (location.cluster_index & 31))) != 0;
+                }
+            }
+        }
+        function_1e11b0(current, wake);
+    }
+}
+
+
+// @retail 0x201df0
+void function_201df0(void)
+{
+    s_squad_record_iterator iterator;
+    if (g_4f55d0->active)
+    {
+        iterator.records.data = g_51e9d8;
+        iterator.records.index = NONE;
+    }
+    for (;;)
+    {
+        byte *squad = NULL;
+        if (g_4f55d0->active)
+        {
+            squad = data_iterator_next_inlined(&iterator.records);
+            iterator.squad_index = iterator.records.datum_index & 0xffff;
+            iterator.squad = (s_squad_datum *)squad;
+        }
+        if (!squad)
+            break;
+        if (squad[3] & 1)
+            function_203360(iterator.squad_index);
+    }
 }
