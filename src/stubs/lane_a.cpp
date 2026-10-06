@@ -169,12 +169,6 @@ real function_1352e0(long name, bool flag)
 	return 0.0f;
 }
 
-// @stub 0x134fe0
-real __stdcall function_134fe0(long index, real value)
-{
-	return 0.0f;
-}
-
 // @stub 0x135530
 real function_135530(long name, real value, bool flag)
 {
