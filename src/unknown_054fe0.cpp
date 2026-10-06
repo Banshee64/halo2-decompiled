@@ -1618,7 +1618,7 @@ struct s_session_browser_summary
  short field_57e;
  long scores[16];
  short player_teams[16];
- byte player_appearance[16][16];
+ byte field_5e0[16][16];
  dword team_mask;
  long team_scores[8];
  byte field_704[16];
@@ -1739,7 +1739,7 @@ bool __stdcall function_64d70(s_session_browser_summary *output)
     memcpy(output->player_names[j], entry->properties, sizeof(output->player_names[j]));
     output->scores[j] = entry->sort.middle;
     output->player_teams[j] = *(signed char *)(entry->properties + 0x7c);
-    memcpy(output->player_appearance[j], entry->properties + 0x40, sizeof(output->player_appearance[j]));
+    memcpy(output->field_5e0[j], entry->properties + 0x40, sizeof(output->field_5e0[j]));
    }
    if ((variant[0x48] & 1) && statistics)
    {

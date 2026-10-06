@@ -450,11 +450,11 @@ void __stdcall function_b83b0(long object_index, bool unused)
     long child = *(long *)((byte *)object + 0x10);
     while (child != NONE)
     {
-        s_object_view *child_object = OBJECT_GET(child);
-        long next = *(long *)((byte *)child_object + 0xc);
+        s_object_view *local_f86fb0 = OBJECT_GET(child);
+        long next = *(long *)((byte *)local_f86fb0 + 0xc);
         bool attached = false;
         if (g_4e6948->mode == 4)
-            attached = child_object->field_x10a40f != NONE;
+            attached = local_f86fb0->field_x10a40f != NONE;
         if (attached)
             function_b9a50(child);
         else
