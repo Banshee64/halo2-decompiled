@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6339 functions match
+
+```
+matched 6339 of 11318 game functions (670909 of 2784283 bytes, 24.10%)
+```
+
+7 new matches, none lost:
+- **Codex lane D**, round 20 (7): friend presence, matchmaking and voice queue helpers in the 0x50000–0x6ffff and 0x80000–0x8ffff ranges, plus two callers that now match (0x943d0, 0x2359ce).
+
 ## 2026-10-06: 6332 functions match
 
 ```
