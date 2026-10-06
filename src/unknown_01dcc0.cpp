@@ -19,9 +19,39 @@ struct s_unknown_01dcc0
 	byte unknown96[2];
 };
 
-s_unknown_01dcc0 g_4b4b58[32];
+s_unknown_01dcc0 g_4b4b58[39];
 
 void function_12d520(long address);
+
+long g_4e6420;
+long g_4e642c[5];
+long g_4e6440[5];
+bool function_1df20(long index, long kind, long width, long height, bool alternate, bool linear, long count, void *data);
+
+// @retail 0x1db10
+bool function_1db10(long index, long width, long height, long unused, bool alternate)
+{
+	(void)&index;
+	(void)&width;
+	(void)&alternate;
+	(void)&unused;
+	long address = g_4e6440[g_4e6420];
+	long size = ((((width + 63) & ~63) * height * 4) + 4095) & ~4095;
+	address -= size;
+	void *data = 0;
+	if (address >= g_4e642c[g_4e6420])
+	{
+		g_4e6440[g_4e6420] = address;
+		data = (void *)address;
+		if (data)
+		{
+			data = (void *)(address | 0x80000000);
+			if (data)
+				XPhysicalProtect(data, size, PAGE_READWRITE | PAGE_WRITECOMBINE);
+		}
+	}
+	return function_1df20(index, 1, width, height, alternate, true, 1, data);
+}
 
 // @retail 0x1db90
 void __stdcall function_1db90(void *unused, long index)
@@ -225,4 +255,49 @@ void function_1dc40(long index, long width, long height)
     if (data)
         XPhysicalProtect(data, size, PAGE_READWRITE | PAGE_WRITECOMBINE);
     function_1df20(index, 3, width, height, false, true, 1, data);
+}
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+extern long g_4b9970[12];
+
+// @retail 0x1de50
+void function_1de50(void)
+{
+	for (long index = 0; index < 39; ++index)
+	{
+		s_unknown_01dcc0 *entry = &g_4b4b58[index];
+		if (entry->flag95)
+		{
+			if (!entry->data || D3DResource_IsBusy((D3DResource *)entry->sub_header))
+				continue;
+			long i;
+			for (i = 0; i < entry->element_count; ++i)
+			{
+				if (D3DResource_IsBusy((D3DResource *)entry->elements[i]))
+					goto next_entry;
+			}
+			function_12d520((long)entry->data);
+		}
+		else if (entry->data)
+			continue;
+		entry->width = 0;
+		entry->height = 0;
+		entry->data = 0;
+		entry->flag95 = 0;
+		*(long *)entry->unknown00 = 0;
+	next_entry:;
+	}
+	bool needed = false;
+	if (g_510c50 && ((byte *)g_510c50)[5])
+		needed = true;
+	else if (g_4b9970[0] != NONE && g_4b9970[0] != 0)
+		needed = true;
+	if (!needed)
+	{
+		if (g_4b4b58[18].data && !g_4b4b58[18].flag95)
+			g_4b4b58[18].flag95 = 1;
+	}
+	else if (!g_4b4b58[18].data)
+		function_1dc40(18, 640, 480);
 }

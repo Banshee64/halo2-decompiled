@@ -4,6 +4,79 @@
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
 #include <math.h>
+#include "globals.h"
+
+struct s_2f800_source
+{
+	point3f position;
+	byte unknown0c[0x14];
+	vector3f forward;
+	vector3f up;
+	byte unknown38[0x14];
+	real angle;
+	real scale;
+};
+
+struct s_2f800_view
+{
+	point3f position;
+	vector3f forward;
+	vector3f up;
+	bool flag24;
+	byte unknown25[3];
+	real angle;
+	real scale;
+	byte unknown30[0x10];
+	real near_distance;
+	real far_distance;
+	byte unknown48[0x10];
+	bool flag58;
+};
+
+struct s_2f800_size
+{
+	short width, height;
+};
+
+real g_5234dc;
+
+// @retail 0x2f800
+void function_2f800(s_2f800_source const *source, s_2f800_size const *first,
+	s_2f800_size const *second, s_2f800_view *view)
+{
+	(void)&second;
+	if (source)
+	{
+		view->position = source->position;
+		view->forward = source->forward;
+		view->up = source->up;
+		view->angle = source->angle;
+		view->scale = source->scale;
+		real factor = 0.785f;
+		if (first && second)
+		{
+			long ratio = first->width * second->height * 100 / (first->height * second->width);
+			if (ratio == 200)
+				factor = 0.5f;
+			else if (ratio == 50)
+				factor = 0.8f;
+		}
+		view->angle *= factor;
+		view->scale *= factor;
+	}
+	else
+	{
+		view->position = *g_468788;
+		view->forward = *g_4687a8;
+		view->up = *g_4687b0;
+		view->scale = 1.0f;
+		view->angle = (real)(2.0 * atan2((double)(tan(g_5234dc * 0.5f) * 0.75f), 1.0));
+	}
+	view->flag24 = false;
+	view->near_distance = g_485ad4.lo;
+	view->far_distance = g_485ad4.hi;
+	view->flag58 = false;
+}
 
 #define k_real_epsilon 0.0001f
 
