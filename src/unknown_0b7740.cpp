@@ -742,3 +742,28 @@ void function_bdb60(long object_index, s_16760c_render_model *render_model, s_an
         }
     }
 }
+
+
+bool __stdcall function_1c4c50(long object_index, long node_index, point3f const *point,
+    vector3f const *change_a, vector3f const *change_b, long *result_object,
+    vector3f *linear, vector3f *angular);
+void function_b7360(long object_index);
+void function_bba20(long object_index);
+
+// @retail 0xb7880
+void __stdcall function_b7880(long object_index, long node_index, point3f const *point,
+    vector3f const *impulse, vector3f const *angular_impulse)
+{
+    long result_object;
+    vector3f linear, angular;
+    if (function_1c4c50(object_index, node_index, point, impulse, angular_impulse,
+        &result_object, &linear, &angular))
+    {
+        s_velocity_object *object = ((s_velocity_object_header *)g_4e0300->data)[result_object & 0xffff].object;
+        *((byte *)object + 0xc1) &= ~1;
+        function_b7360(result_object);
+        function_bba20(result_object);
+        object->linear_velocity = linear;
+        object->angular_velocity = angular;
+    }
+}
