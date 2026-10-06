@@ -302,6 +302,37 @@ bool __stdcall function_0254c0(
 	}
 }
 
+real g_509400;
+extern real g_485ae0;
+
+// @retail 0x27960
+bool __stdcall function_27960(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+	(void)&mode;
+	(void)&bounds;
+	(void)&t;
+	(void)&out;
+	(void)&unused;
+	if (g_509400 <= 0.0f)
+		g_509400 = g_485ae0;
+	switch (mode)
+	{
+	case 0:
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		clip_depth_terms(out, g_509400);
+		return true;
+	case 1:
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		out[2] = 0.0f;
+		out[3] = 1.0f;
+		return true;
+	default:
+		return false;
+	}
+}
+
 /* the table entry whose key matches, or NONE */
 __inline long find_table_entry(
 	long key)
@@ -313,6 +344,56 @@ __inline long find_table_entry(
 			return i;
 	}
 	return NONE;
+}
+
+struct s_24490_entry
+{
+	long key;
+	long count;
+};
+
+struct s_24490_group
+{
+	long unknown00;
+	long count;
+	s_24490_entry *entries;
+};
+
+struct s_24490_definition
+{
+	byte unknown00[0x14];
+	long count;
+	s_24490_group *groups;
+	byte unknown1c[0x14];
+	byte *data;
+	s_geometry_block_info block;
+};
+
+// @retail 0x24490
+void *function_24490(long key, s_24490_definition *definition, long entry_key)
+{
+	long index = find_table_entry(key);
+	if (index == NONE)
+		return NULL;
+	long group = 5 - (short)g_4b89b0[index].unknown4;
+	if (group > definition->count - 1)
+		group = definition->count - 1;
+	s_24490_group *selected = &definition->groups[group];
+	for (long i = 0; i < selected->count; ++i)
+	{
+		if (selected->entries[i].key == entry_key)
+		{
+			long count = selected->entries[i].count / 5;
+			if (!function_12de70(&definition->block, 3))
+				return NULL;
+			byte *data = definition->data;
+			long size = data[0] == 0x39 ? count * 10 : count * 20;
+			*(long *)(data + 4) = size;
+			*(long *)(data + 8) = size;
+			return data;
+		}
+	}
+	return NULL;
 }
 
 // @retail 0x1d6b0

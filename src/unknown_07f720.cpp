@@ -67,3 +67,66 @@ void function_7f790(short team_index, bool use_default, s_player_appearance cons
 		colors[1] = *function_1a06a0(appearance->colors[0], &color);
 	}
 }
+
+#include <wchar.h>
+#include "main_messages.h"
+long function_19fd00(long index);
+
+// @retail 0x7f5b0
+bool function_7f5b0(word *name, long capacity)
+{
+	bool result = false;
+	word text[256];
+	if (g_4e034c && g_4e034c->index != NONE)
+	{
+		s_multiplayer_globals *settings =
+			(s_multiplayer_globals *)g_4e3b44[g_4e034c->index & 0xffff].bytes;
+		if (settings->universal_count > 0)
+		{
+			s_team_colors *universal = settings->universal;
+			if (*(long *)(universal->unknown00 + 4) != NONE)
+			{
+				g_4e7408->seed = 1664525 * g_4e7408->seed + 1013904223;
+				short index = (short)(((g_4e7408->seed >> 16) * 100) >> 16);
+				text[0] = 0;
+				function_1a0180(*(long *)(universal->unknown00 + 4), function_19fd00(index), text);
+				wcsncpy((wchar_t *)name, (const wchar_t *)text, capacity - 1);
+				name[capacity - 1] = 0;
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x7f660
+bool __stdcall function_07f660(wchar_t *name, long length, const wchar_t *requested, long count, const wchar_t **names)
+{
+	long attempt = 0;
+	bool result = false;
+	wcsncpy(name, L"", length - 1);
+	name[length - 1] = 0;
+	for (; attempt < 100; attempt++)
+	{
+		if (attempt == 0 && requested && wcslen(requested) > 0)
+		{
+			wcsncpy(name, requested, length - 1);
+			name[length - 1] = 0;
+		}
+		else if (!function_7f5b0((word *)name, length))
+			break;
+		result = true;
+		for (long i = 0; i < count; i++)
+		{
+			const wchar_t *other = names[i];
+			if (!wcscmp(other, name))
+			{
+				result = false;
+				break;
+			}
+		}
+		if (result)
+			break;
+	}
+	return result;
+}
