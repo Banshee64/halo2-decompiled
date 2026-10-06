@@ -638,7 +638,7 @@ void function_13f700(box2f const *bounds, box2f const *clip, short first,
 
 // @retail 0x13f0e0
 void __stdcall function_13f0e0(text_glyph_callback callback, short_rectangle2d const *bounds,
-	short *position_out, short_rectangle2d const *clip, short line_gap, real scale, dword const *text)
+	short *arg_c5cac5, short_rectangle2d const *clip, short line_gap, real scale, dword const *text)
 {
 	point2f position = { (real)bounds->left, (real)bounds->top };
 	long tab = 0;
@@ -724,10 +724,10 @@ void __stdcall function_13f0e0(text_glyph_callback callback, short_rectangle2d c
 		}
 	}
 done:
-	if (position_out)
+	if (arg_c5cac5)
 	{
-		position_out[0] = (short)position.x;
-		position_out[1] = (short)position.y;
+		arg_c5cac5[0] = (short)position.x;
+		arg_c5cac5[1] = (short)position.y;
 	}
 }
 
