@@ -8,6 +8,7 @@
 #include "bitstream.h"
 #include "unknown_07aec0.h"
 #include "unknown_1946f0.h"
+#include "unknown_07f720.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -417,6 +418,179 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 		}
 	}
 }
+bool function_153750(s_player_appearance *appearance);
+
+// @retail 0x7efa0
+bool function_7efa0(s_bitstream *stream, s_player_appearance *appearance)
+{
+	memset(appearance, 0, sizeof(*appearance));
+	appearance->colors[0] = (char)(function_1959c0(stream, 5) - 1);
+	appearance->colors[1] = (char)(function_1959c0(stream, 5) - 1);
+	appearance->colors[2] = (char)(function_1959c0(stream, 5) - 1);
+	appearance->colors[3] = (char)(function_1959c0(stream, 5) - 1);
+	appearance->unknown04[0] = (byte)(function_1959c0(stream, 3) - 1);
+	appearance->unknown04[1] = (byte)function_1959c0(stream, 6);
+	appearance->unknown04[2] = (byte)function_1959c0(stream, 6);
+	appearance->unknown04[3] = (byte)function_1959c0(stream, 4);
+	return function_153750(appearance);
+}
+
+struct s_session_message_values
+{
+	short unknown00;
+	short type;
+	long mode;
+	long value08;
+	long value0c;
+	long value10;
+	byte data14[8];
+	byte data1c[16];
+	byte data2c[36];
+	long value50;
+	long value54;
+	long count58;
+	long count5c;
+	long count60;
+	long count64;
+	dword value68;
+	dword value6c;
+	long index70;
+	long value74;
+	long value78;
+	long value7c;
+	long value80;
+	long value84;
+	long count88;
+	dword identities[16][3];
+};
+
+// @retail 0x7da60
+bool function_7da60(const s_session_message_values *values)
+{
+	if (values && values->type >= 0 && values->type < 2 &&
+		values->mode >= 0 && values->mode < 5 &&
+		(values->value08 == NONE || (values->value08 > 0 && values->value08 <= 0xfffe)) &&
+		(values->value0c == NONE || (values->value0c > 0 && values->value0c <= 0xfffe)) &&
+		values->count58 >= 0 && values->count58 <= 16 &&
+		values->count5c >= 0 && values->count5c <= 16 &&
+		values->count60 >= 0 && values->count60 <= 16 &&
+		values->count64 >= 0 && values->count64 <= 16 &&
+		values->value68 < 0x10000 && values->value6c < 0x10000 &&
+		values->index70 >= 0 && values->index70 < 16)
+		return true;
+	return false;
+}
+
+// @retail 0x7df00
+bool function_7df00(s_bitstream *stream, s_session_message_values *values)
+{
+	values->unknown00 = (short)function_1959c0(stream, 8);
+	values->type = (short)function_1959c0(stream, 2);
+	values->mode = function_1959c0(stream, 3);
+	values->value08 = function_1959c0(stream, 16) - 1;
+	values->value0c = function_1959c0(stream, 16) - 1;
+	values->value10 = function_1959c0(stream, 4);
+	function_195820(stream, values->data14, 64);
+	function_195820(stream, values->data1c, 128);
+	function_195820(stream, values->data2c, 288);
+	function_195820(stream, &values->value50, 32);
+	function_195820(stream, &values->value54, 32);
+	values->count58 = function_1959c0(stream, 5);
+	values->count5c = function_1959c0(stream, 5);
+	values->count60 = function_1959c0(stream, 5);
+	values->count64 = function_1959c0(stream, 5);
+	values->value68 = function_1959c0(stream, 16);
+	values->value6c = function_1959c0(stream, 16);
+	values->index70 = function_1959c0(stream, 4);
+	function_195820(stream, &values->value74, 32);
+	values->value78 = function_1959c0(stream, 7);
+	values->value7c = function_1959c0(stream, 7);
+	values->value80 = function_1959c0(stream, 7);
+	values->value84 = function_1959c0(stream, 7);
+	values->count88 = function_1959c0(stream, 4);
+	for (long i = 0; i < 16; i++)
+	{
+		if (i < values->count88)
+			function_195820(stream, values->identities[i], 96);
+		else
+			memset(values->identities[i], 0, sizeof(values->identities[i]));
+	}
+	if (!stream_overflowed(stream) && function_7da60(values))
+		return true;
+	return false;
+}
+
+struct s_message_identity
+{
+	dword words[3];
+};
+
+struct s_message_player_identity
+{
+	s_message_identity identity;
+	byte unknown0c[0x13c - 0xc];
+};
+
+struct s_message_identities
+{
+	byte unknown00[0x10d0];
+	dword player_mask;
+	byte unknown10d4[0x11ec - 0x10d4];
+	s_message_player_identity players[16];
+};
+
+// @retail 0x7ed20
+bool function_7ed20(const s_message_identities *message, s_message_identity *common, bool *missing_out, bool *different_out)
+{
+	bool found = false;
+	bool missing = false;
+	bool different = false;
+	s_message_identity first;
+	dword mask = message->player_mask;
+	for (long i = 0; i < 16; i++)
+	{
+		if (mask & (1 << i))
+		{
+			if (memcmp(&message->players[i].identity, g_440070, sizeof(first)) != 0)
+			{
+				if (found)
+				{
+					if (memcmp(&first, &message->players[i].identity, sizeof(first)) != 0)
+						different = true;
+				}
+				else
+				{
+					first = message->players[i].identity;
+					found = true;
+				}
+			}
+			else
+				missing = true;
+		}
+	}
+	bool result = found && !missing && !different;
+	if (missing_out)
+		*missing_out = missing;
+	if (different_out)
+		*different_out = different;
+	if (result && common)
+		*common = first;
+	return result;
+}
+
+// @retail 0x7ee10
+void function_7ee10(s_bitstream *stream, const s_player_appearance *appearance)
+{
+	stream_write_checked(stream, appearance->colors[0] + 1, 5);
+	stream_write_checked(stream, appearance->colors[1] + 1, 5);
+	stream_write_checked(stream, appearance->colors[2] + 1, 5);
+	stream_write_checked(stream, appearance->colors[3] + 1, 5);
+	stream_write_checked(stream, (char)appearance->unknown04[0] + 1, 3);
+	stream_write_checked(stream, appearance->unknown04[1], 6);
+	stream_write_checked(stream, appearance->unknown04[2], 6);
+	stream_write_checked(stream, appearance->unknown04[3], 4);
+}
+
 /* the title's address: the XNet address and the transport address, read
    again while the transport runs; true when the title has one */
 // @retail 0x7aaa0

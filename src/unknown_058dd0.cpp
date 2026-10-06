@@ -1058,6 +1058,116 @@ bool function_71f80(c_session_state_matchmaking *state)
 
 bool network_session_is_leaving(c_class_58d20 *session);
 
+struct s_session_search;
+struct s_search_session;
+void session_search_mark_session(s_session_search *search, const s_search_session *session);
+
+// @retail 0x71210
+bool function_71210(c_session_state_matchmaking *state)
+{
+	bool result = false;
+	s_session_owner *owner = state->owner;
+	c_class_58d20 *session = owner->session_a;
+	c_class_58d20 *other = owner->session_b;
+	if (session->function_058d20() && session->type == 8)
+	{
+		if (other->state == 0)
+		{
+			if (state->flag97c)
+				session_search_mark_session((s_session_search *)((byte *)state + 0x97c), (const s_search_session *)((byte *)state + 0xa20));
+			network_session_set_mode(session, 7);
+			result = true;
+		}
+		else if (session_state_is_live(other))
+		{
+			network_session_set_mode(session, 9);
+			state->unknown970 = g_510548 ? g_51054c : GetTickCount();
+			result = true;
+		}
+	}
+	return result;
+}
+
+long function_1932c0(s_surface_description *variant);
+long function_193300(s_surface_description *variant);
+long network_session_get_maximum_players(c_class_58d20 *session);
+
+// @retail 0x705f0
+bool function_705f0(c_session_state_matchmaking *state, long *players, long *maximum, long *minimum)
+{
+	bool result = false;
+	if (state->mode == 3)
+	{
+		long type = state->owner->session_a->type;
+		if (type >= 11 && type <= 13)
+		{
+			c_class_58d20 *session = state->owner->session_b;
+			if (session && session_state_is_live(session) && !function_058d90(session))
+			{
+				byte *membership = (byte *)session + 0x4c;
+				s_surface_description *variant = function_192e60(session->get_value_49c8());
+				if (variant)
+				{
+					if (membership)
+					{
+						if (minimum)
+							*minimum = function_1932c0(variant);
+						if (maximum)
+							*maximum = function_193300(variant);
+						if (players)
+							*players = *(long *)(membership + 0x10cc);
+					}
+				}
+				else if (membership)
+				{
+					long limit = network_session_get_maximum_players(session);
+					if (players)
+						*players = *(long *)(membership + 0x10cc);
+					if (maximum)
+					{
+						*maximum = limit;
+						*minimum = limit;
+					}
+				}
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+long network_session_find_member(c_class_58d20 *session, const s_session_member_identity *identity);
+
+// @retail 0x72260
+void function_72260(c_session_state_matchmaking *state)
+{
+	c_class_58d20 *other = state->owner->session_b;
+	c_class_58d20 *session = state->owner->session_a;
+	bool waiting = false;
+	bool failed = false;
+	if (session_state_is_live(other))
+	{
+		for (long i = 0; i < other->member_count; i++)
+		{
+			if (network_session_find_member(session, (const s_session_member_identity *)other->members[i].words) != NONE)
+			{
+				long status = other->members[i].properties.unknownc4;
+				if (status != 0)
+				{
+					if (status > 0 && status <= 2)
+						waiting = true;
+					else
+						failed = true;
+				}
+			}
+		}
+	}
+	if (failed)
+		state->mode = 17;
+	else if (!waiting && session_state_is_live(session) && session->flag49fc)
+		state->mode = 4;
+}
+
 // @retail 0x72950
 void function_72950(c_class_58d20 *session)
 {
