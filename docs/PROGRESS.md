@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6141 functions match
+
+```
+matched 6141 of 11318 game functions (630928 of 2784283 bytes, 22.66%)
+```
+
+11 new matches, none lost:
+- **Codex lane AB**, round 3 (11): more object core iterators, storage and light helpers; one lane O function (0x240fe0) now matches too.
+
 ## 2026-10-05: 6130 functions match
 
 ```
