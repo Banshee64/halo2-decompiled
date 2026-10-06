@@ -999,6 +999,256 @@ bool function_72140(c_session_state_matchmaking *state)
 	return result;
 }
 
+extern s_session_id g_510520;
+extern s_session_id g_510540;
+extern long g_510518;
+extern bool g_51051c;
+extern bool g_51051d;
+long __stdcall function_73b10(long a, long b);
+void function_73bc0(const s_session_id *session_id, const s_session_id *round_key,
+	long first, long second, bool free_for_all);
+
+// @retail 0x72170
+void function_72170(c_session_state_matchmaking *state)
+{
+	c_class_58d20 *session = state->owner->session_b;
+	if (session_state_is_live(session))
+	{
+		if (session_state_is_live(session) && session->flag49e8)
+		{
+			s_session_id key;
+			key.a = session->value49f0;
+			key.b = session->value49f4;
+			if (g_510520.a != key.a || g_510520.b != key.b ||
+				!function_73b10(g_510540.a, g_510540.b))
+			{
+				byte *variant = session_state_is_live(session) ? session->data4db0 : NULL;
+				bool free_for_all = (variant[0x48] & 1) != 0;
+				const s_session_id *id = session->state && session->flag24 ?
+					(const s_session_id *)&session->unknown1c : NULL;
+				__int64 values = session->get_values_4da0();
+				function_73bc0(id, &key, (long)values, (long)(values >> 32), free_for_all);
+			}
+		}
+		else if (g_510518)
+		{
+			g_51051c = true;
+			g_51051d = true;
+		}
+	}
+}
+
+struct s_matchmaking_player_values
+{
+	byte unknown00[0x18];
+	long selected;
+	byte unknown1c[0x630 - 0x1c];
+	byte summary[0x184];
+	long player_count;
+	byte unknown7b8[0x878 - 0x7b8];
+	long ranks[16];
+	long values[16];
+	byte unknown8f8[0x938 - 0x8f8];
+	long limit;
+	bool common_found;
+	byte common[12];
+	byte unknown949[3];
+	long first;
+	long second;
+	bool ready;
+	byte unknown955[3];
+	long maximum;
+	long minimum;
+	long average;
+};
+
+struct s_player_rating_properties
+{
+	byte unknown00[0x12c];
+	long selected;
+	short unknown130;
+	short rank;
+	long value;
+};
+
+long __stdcall function_063190(void *summary, long user);
+
+// @retail 0x72540
+void function_72540(c_session_state_matchmaking *state)
+{
+	c_class_58d20 *session = state->owner->session_a;
+	s_matchmaking_player_values *ratings = (s_matchmaking_player_values *)state;
+	if (state->mode == 3)
+	{
+		if (ratings->player_count == session->player_count)
+		{
+			long missing = 0;
+			for (long i = 0; i < 16; i++)
+			{
+				if (session->player_mask & (1 << i))
+				{
+					s_network_session_player *player = &session->players[i];
+					long index = function_063190(ratings->summary, (long)&player->user_id);
+					if (index != NONE)
+					{
+						if (!(player->user_flags & 3))
+						{
+							if (ratings->ranks[index] == NONE || ratings->values[index] == NONE)
+							{
+								s_player_rating_properties *properties = (s_player_rating_properties *)player;
+								missing++;
+								if (properties->selected == ratings->selected && properties->value != NONE && properties->rank != NONE)
+								{
+									ratings->ranks[index] = properties->rank;
+									ratings->values[index] = properties->value;
+									missing--;
+								}
+							}
+						}
+						else
+						{
+							ratings->ranks[index] = NONE;
+							ratings->values[index] = NONE;
+						}
+					}
+					else
+						state->mode = 6;
+				}
+			}
+			ratings->ready = missing == 0;
+		}
+		else
+			state->mode = 6;
+		if (state->mode == 3)
+		{
+			for (long i = 0; i < session->member_count; i++)
+			{
+				if (*(long *)((byte *)&session->members[i] + 0xac + ratings->selected * sizeof(long)) != 1)
+				{
+					state->mode = 6;
+					break;
+				}
+			}
+		}
+		if (state->mode == 3 && ratings->ready)
+		{
+			long maximum = 0;
+			long total = 0;
+			long count = 0;
+			long minimum = 127;
+			for (long i = 0; i < ratings->player_count; i++)
+			{
+				long rank = ratings->ranks[i];
+				if (rank != NONE)
+				{
+					if (rank < minimum) minimum = rank;
+					if (rank >= maximum) maximum = rank;
+					total += rank;
+					count++;
+				}
+			}
+			if (count > 0)
+			{
+				ratings->minimum = minimum;
+				ratings->maximum = maximum;
+				ratings->average = total / count;
+			}
+			else
+				state->mode = 1;
+		}
+	}
+}
+
+bool network_session_host_clear_flag49fc(c_class_58d20 *session);
+struct s_member_quality_collection;
+struct s_message_identities;
+struct s_message_identity;
+void function_7e100(long current, const s_member_quality_collection *collection,
+	long *selected, long *first, long *second, long *level);
+bool function_7ed20(const s_message_identities *message, s_message_identity *common, bool *missing, bool *different);
+long function_1932c0(s_surface_description *variant);
+long function_193300(s_surface_description *variant);
+long function_193340(s_surface_description *variant);
+long function_193370(s_surface_description *variant);
+long function_193440(s_surface_description *variant);
+
+static inline long matchmaking_variant_width(s_surface_description *variant)
+{
+	switch (*(long *)variant)
+	{
+	case 1: return NONE;
+	case 2: return NONE;
+	case 3: return *(long *)((byte *)variant + 0x5ec);
+	case 4: return *(long *)((byte *)variant + 0x5ec);
+	case 5: return *(long *)((byte *)variant + 0x5ec);
+	default: __assume(0);
+	}
+}
+
+// @retail 0x72330
+void function_72330(c_session_state_matchmaking *state)
+{
+	c_class_58d20 *session = state->owner->session_a;
+	long member = session->member_index;
+	s_member_quality_collection *members = (s_member_quality_collection *)&session->value4c;
+	s_matchmaking_player_values *values = (s_matchmaking_player_values *)state;
+	network_session_host_clear_flag49fc(session);
+	if (state->mode == 3)
+	{
+		const byte *summary = session_state_is_live(session) && session->flag49fd ? session->data4a00 : NULL;
+		if (summary)
+		{
+			memcpy(values->summary, summary, 0x308);
+			if (!values->player_count) state->mode = 1;
+		}
+		else state->mode = 1;
+	}
+	if (state->mode == 3)
+	{
+		long selected = session_state_is_live(session) ? session->value49c8 : NONE;
+		if (selected != NONE) values->selected = selected;
+		else state->mode = 1;
+		if (state->mode == 3)
+		{
+			s_surface_description *variant = function_192e60(values->selected);
+			if (variant) memcpy(values->unknown1c, variant, 0x614);
+			else state->mode = 1;
+		}
+	}
+	if (state->mode == 3)
+	{
+		long level;
+		function_7e100(member, members, NULL, NULL, NULL, &level);
+		values->limit = NONE;
+		s_surface_description *variant = (s_surface_description *)values->unknown1c;
+		long type = *(long *)variant;
+		if (type == 5 || type == 3 || type == 4)
+		{
+			if (matchmaking_variant_width(variant) > 0 && function_193340(variant) > 0)
+			{
+				long count = level / function_193440(variant);
+				if (count >= function_193340(variant))
+				{
+					if (count > function_193370(variant)) count = function_193370(variant);
+					values->limit = function_193440(variant) * count;
+				}
+			}
+		}
+		else if (level >= function_1932c0(variant))
+		{
+			if (level > function_193300(variant)) level = function_193300(variant);
+			values->limit = level;
+		}
+	}
+	if (state->mode == 3)
+	{
+		values->common_found = function_7ed20((const s_message_identities *)members,
+			(s_message_identity *)values->common, NULL, NULL);
+		function_7e100(member, members, NULL, &values->first, &values->second, NULL);
+		if (state->mode == 3) *(bool *)state->unknown14 = true;
+	}
+}
+
 // @retail 0x70570
 long function_70570(c_session_state_matchmaking *state)
 {

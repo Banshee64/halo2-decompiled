@@ -435,6 +435,86 @@ bool function_7efa0(s_bitstream *stream, s_player_appearance *appearance)
 	return function_153750(appearance);
 }
 
+struct s_player_message_properties
+{
+	word name[32];
+	s_player_appearance appearance;
+	word group_name[16];
+	byte identity[12];
+	char index;
+	byte flags;
+	char value7e;
+	char value7f;
+	bool flag80;
+	char value81;
+	byte unknown82[2];
+	long value84;
+	short value88;
+	short value8a;
+	long value8c;
+};
+
+// @retail 0x7ca70
+bool function_07ca70(s_bitstream *stream, void *destination)
+{
+	s_player_message_properties *properties = (s_player_message_properties *)destination;
+	read_word_string(stream, properties->name, 32);
+	bool appearance_valid = function_7efa0(stream, &properties->appearance);
+	if (function_1957d0(stream))
+	{
+		function_195820(stream, properties->identity, 96);
+		function_194fa0(stream, properties->group_name, 16);
+	}
+	else
+	{
+		memset(properties->identity, 0, sizeof(properties->identity));
+		memset(properties->group_name, 0, sizeof(properties->group_name));
+	}
+	if (function_1957d0(stream))
+		properties->index = (char)function_1959c0(stream, 4);
+	else
+		properties->index = NONE;
+	if (function_1957d0(stream))
+		properties->value7e = (char)function_1959c0(stream, 7);
+	else
+		properties->value7e = NONE;
+	if (function_1957d0(stream))
+		properties->value7f = (char)function_1959c0(stream, 7);
+	else
+		properties->value7f = NONE;
+	if (function_1957d0(stream))
+	{
+		properties->value84 = function_1959c0(stream, 4);
+		if (function_1957d0(stream))
+			properties->value88 = (short)function_1959c0(stream, 7);
+		else
+			properties->value88 = NONE;
+		if (function_1957d0(stream))
+			properties->value8a = (short)function_1959c0(stream, 7);
+		else
+			properties->value8a = NONE;
+		if (function_1957d0(stream))
+			properties->value8c = function_1959c0(stream, 30);
+		else
+			properties->value8c = NONE;
+	}
+	else
+	{
+		properties->value84 = NONE;
+		properties->value8a = NONE;
+		properties->value88 = NONE;
+		properties->value8c = NONE;
+	}
+	properties->flags = (byte)function_1959c0(stream, 2);
+	properties->flag80 = function_1957d0(stream) != 0;
+	properties->value81 = (char)function_1959c0(stream, 3);
+	if (wcslen((const wchar_t *)properties->name) < 32 && appearance_valid &&
+		(properties->index == NONE || (properties->index >= 0 && properties->index < 16)) &&
+		properties->value81 >= 0 && properties->value81 < 8)
+		return true;
+	return false;
+}
+
 struct s_session_message_values
 {
 	short unknown00;
@@ -518,6 +598,33 @@ bool function_7df00(s_bitstream *stream, s_session_message_values *values)
 	if (!stream_overflowed(stream) && function_7da60(values))
 		return true;
 	return false;
+}
+
+// @retail 0x7e080
+bool function_7e080(const byte *data, long size, s_session_message_values *values)
+{
+	const byte *buffer = data;
+	bool result = false;
+	s_session_message_values *const *values_reference = &values;
+	if (size > 0 && buffer)
+	{
+		s_bitstream stream;
+		stream.unknown08 = 1;
+		stream.data = (byte *)buffer;
+		stream.size_in_bytes = size;
+		stream.mode = 0;
+		stream.bit_position = 0;
+		stream.checkpoint_count = 0;
+		stream.error = false;
+		function_1947a0(&stream);
+		if (function_7df00(&stream, *values_reference))
+		{
+			if (stream.bit_position <= (stream.size_in_bytes << 3) && !stream.error)
+				return true;
+		}
+		result = false;
+	}
+	return result;
 }
 
 struct s_message_identity
