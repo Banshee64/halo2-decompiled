@@ -230,9 +230,18 @@ PRIVATE __forceinline real angle_radians_112e20(real degrees)
 	return degrees * 0.017453292f;
 }
 
-#if 0
-/* Deferred retail 0x112e20: this caller changes 0x1420f0's convention and
-   breaks its match and 0x270240. Preserve the candidate for a later pass. */
+PRIVATE __forceinline real function_112e21(real arg_0)
+{
+    real local_0;
+    __asm
+    {
+        rsqrtss xmm0, arg_0
+        movss local_0, xmm0
+    }
+    return local_0;
+}
+
+// @retail 0x112e20
 void function_112e20(transform4x3f *matrix, transform4x3f const *orientation, point3f const *target)
 {
 	static real yaw_limit = angle_radians_112e20(30.0f);
@@ -262,7 +271,7 @@ void function_112e20(transform4x3f *matrix, transform4x3f const *orientation, po
 	if (squared != 0.0f)
 	{
 		real inverse;
-		_mm_store_ss(&inverse, _mm_rsqrt_ss(_mm_load_ss(&squared)));
+		inverse = function_112e21(squared);
 		direction.i *= inverse;
 		direction.j *= inverse;
 		direction.k *= inverse;
@@ -282,7 +291,7 @@ void function_112e20(transform4x3f *matrix, transform4x3f const *orientation, po
 	function_142a60(&frame, &rotation, matrix);
 	matrix->scale = scale;
 }
-#endif
+
 
 PRIVATE __forceinline void channel_reset_114240(c_animation_channel *channel)
 {
@@ -1872,4 +1881,179 @@ bool function_1147e0(long unit_index, bool a, real b, real c, long definition_in
 		}
 	}
 	return result;
+}
+
+
+void __stdcall function_20d220(long arg_0, long arg_1, long arg_2, void *arg_3);
+
+// @retail 0x114710
+void __stdcall function_114710(long arg_0, long arg_1, long arg_2)
+{
+    s_unit_animation_object *local_0 = UNIT_ANIMATION_OBJECT(arg_0);
+    byte *local_1 = (byte *)local_0 + *(short *)((byte *)local_0 + 0x342);
+    s_request_114b60 local_2;
+    memset(&local_2, 0, sizeof(local_2));
+    local_2.priority = 14;
+    local_2.entry_index = NONE;
+    local_2.definition_index = arg_1;
+    local_2.delay = duration_ticks_1145f0(0.8f);
+    local_2.sound_index = NONE;
+    local_2.extra.marker = NONE;
+    local_2.extra.object_index = NONE;
+    local_2.extra.flags = 0;
+    function_114680(arg_0, &local_2);
+    if (*(long *)(local_1 + 0x10) == arg_1)
+    {
+        *(long *)(local_1 + 0x54) = arg_2;
+        local_1[0x48] = 1;
+        function_20d220(NONE, arg_0, NONE, local_1 + 0x20);
+    }
+}
+
+void (__stdcall *g_467a2c)(long, long, long) = function_114710;
+
+
+long players_first_active_local_player();
+s_player_state *function_16f3a0(long arg_0);
+bool function_0bfe60(dword const *arg_0, long arg_1);
+
+// @retail 0x1132f0
+void function_1132f0(long arg_0, dword const *arg_1, long arg_2, transform4x3f *arg_3)
+{
+    (void)&arg_1;
+    (void)&arg_2;
+    (void)&arg_3;
+    if (function_113260(arg_0))
+    {
+        s_unit_animation_object *local_0 = UNIT_ANIMATION_OBJECT(arg_0);
+        point3f const *local_1;
+        if ((short)local_0->flags148 < 0)
+            local_1 = (point3f *)((byte *)local_0 + 0x1a4);
+        else
+        {
+            if (!(local_0->flags137 & 1))
+                return;
+            long local_2 = players_first_active_local_player();
+            if (local_2 == NONE)
+                return;
+            local_1 = (point3f const *)function_16f3a0(local_2);
+        }
+        if (local_1)
+        {
+            s_object_marker local_3;
+            if (function_b8d30(arg_0, 0x4000095, &local_3, 1, false) > 0)
+            {
+                long local_4 = local_0->index1f6;
+                if (local_4 >= 0 && local_4 < arg_2 && (!arg_1 || function_0bfe60(arg_1, local_4)))
+                    function_112e20(&arg_3[local_4], &local_3.matrix, local_1);
+                long local_5 = local_0->index1f7;
+                if (local_5 >= 0 && local_5 < arg_2 && (!arg_1 || function_0bfe60(arg_1, local_5)))
+                    function_112e20(&arg_3[local_5], &local_3.matrix, local_1);
+            }
+        }
+    }
+}
+
+struct s_sound_label_play;
+struct s_114c60
+{
+    long field_0;
+    long field_4;
+    real field_8;
+    void const *field_c;
+};
+
+void sound_choose_permutation(long arg_0, s_sound_permutation_reference *arg_1, bool *arg_2);
+long function_1891d0(long arg_0, long arg_1, s_sound_label_play const *arg_2);
+void __stdcall function_20d570(long arg_0, short arg_1, long arg_2, void *arg_3);
+void function_20fd50(long arg_0, long arg_1);
+
+// @retail 0x114c60
+void function_114c60(long arg_0)
+{
+    s_unit_animation_object *local_0 = UNIT_ANIMATION_OBJECT(arg_0);
+    byte *local_1 = (byte *)local_0 + *(short *)((byte *)local_0 + 0x342);
+    long local_2 = *(word *)(local_1 + 0x3c);
+    if ((short)local_2 > 0)
+    {
+        local_2--;
+        *(short *)(local_1 + 0x3c) = (short)local_2;
+        if (!(short)local_2)
+        {
+            long local_3 = *(word *)(local_1 + 0x3e);
+            if ((short)local_3 > 0)
+            {
+                *(short *)(local_1 + 0x3e) = (short)(local_3 - 1);
+                *(short *)(local_1 + 0x3c) = duration_ticks_1145f0(1.5f);
+            }
+        }
+    }
+    long local_4 = *(word *)(local_1 + 0x42);
+    if ((short)local_4 > 0)
+        *(short *)(local_1 + 0x42) = (short)(local_4 - 1);
+    long local_5 = *(word *)(local_1 + 0x40);
+    if ((short)local_5 > 0)
+        *(short *)(local_1 + 0x40) = (short)(local_5 - 1);
+    if (*(short *)(local_1 + 0xc) > 0)
+    {
+        if (!local_1[0x48])
+        {
+            long local_6 = *(long *)(local_1 + 0x10);
+            if (local_6 != NONE)
+            {
+                long local_7 = *(long *)(local_1 + 8);
+                if (*(long *)(local_1 + 0x1c) == NONE)
+                    sound_choose_permutation(local_6, (s_sound_permutation_reference *)(local_1 + 0x18), NULL);
+                s_114c60 local_8;
+                local_8.field_0 = local_7;
+                local_8.field_4 = *(long *)(local_1 + 0x10);
+                local_8.field_8 = 1.0f;
+                local_8.field_c = local_1 + 0x18;
+                *(long *)(local_1 + 0x54) = function_1891d0(arg_0, 0x4000095, (s_sound_label_play const *)&local_8);
+            }
+            function_20d220(*(long *)(local_1 + 0x1c), arg_0, *(word *)(local_1 + 0xe), local_1 + 0x20);
+            local_1[0x48] = true;
+        }
+        long local_9 = *(word *)(local_1 + 0x4e);
+        if ((short)local_9 > 0)
+            *(short *)(local_1 + 0x4e) = (short)(local_9 - 1);
+        long local_10 = *(word *)(local_1 + 0x4c);
+        if ((short)local_10 > 0)
+        {
+            local_10--;
+            *(short *)(local_1 + 0x4c) = (short)local_10;
+            if (!(short)local_10)
+                *(long *)(local_1 + 0x54) = NONE;
+        }
+        else
+        {
+            if (!local_1[0x4a])
+                local_1[0x4a] = true;
+            long local_11 = *(word *)(local_1 + 0x50);
+            if ((short)local_11 > 0)
+                *(short *)(local_1 + 0x50) = (short)(local_11 - 1);
+        }
+        if (*(short *)(local_1 + 0xc) > 0 && !*(short *)(local_1 + 0x4e) && !local_1[0x49])
+        {
+            function_20d570(*(long *)(local_1 + 0x1c), *(short *)(local_1 + 0xe), arg_0, local_1 + 0x20);
+            local_1[0x49] = true;
+        }
+        if (*(short *)(local_1 + 0xc) > 0 && !*(short *)(local_1 + 0x4c) && !*(short *)(local_1 + 0x50))
+        {
+            if (!local_1[0x49])
+            {
+                function_20d570(*(long *)(local_1 + 0x1c), *(short *)(local_1 + 0xe), arg_0, local_1 + 0x20);
+                local_1[0x49] = true;
+            }
+            if (*(long *)(local_1 + 0x1c) != NONE)
+                function_20fd50(arg_0, *(long *)(local_1 + 0x1c));
+            *(short *)(local_1 + 0xc) = 0;
+        }
+    }
+    real local_12 = 0.0f - *(real *)((byte *)local_0 + 0x208);
+    if (-0.1f > local_12)
+        local_12 = -0.1f;
+    else if (local_12 > 0.1f)
+        local_12 = 0.1f;
+    *(real *)((byte *)local_0 + 0x208) += local_12;
 }
