@@ -484,3 +484,134 @@ bool function_84630(long channel_index, s_simulation_world_owner *watcher, long 
  }
  return result;
 }
+
+struct s_view_iterator
+{
+ dword mask;
+ long index;
+};
+bool world_next_view(c_class_6a600 *world, s_view_iterator *iterator, c_simulation_view **out);
+
+// @retail 0x84560
+bool function_84560(s_simulation_world_owner *watcher)
+{
+ c_simulation_view *view = 0;
+ s_view_iterator iterator = { 10, 0 };
+ world_next_view(watcher->world, &iterator, &view);
+ if (!view || view->failure_reason)
+  function_6b040(watcher->world);
+ if (watcher->world->unknown18 != 1)
+ {
+ view = 0;
+ iterator.mask = 10;
+ iterator.index = 0;
+ world_next_view(watcher->world, &iterator, &view);
+ if (!view)
+ {
+  c_class_58d20 *session = watcher->session;
+  long member = session->member_index;
+  long channel = NONE;
+  if (member >= 0 && member < session->member_count)
+  {
+   byte *entry = (byte *)session + 0x72dc + member * 20;
+   if (entry[1])
+    channel = *(long *)(entry + 4);
+  }
+  function_84630(channel, watcher, member, (const XNADDR *)&session->members[member]);
+ }
+ return true;
+ }
+ return false;
+}
+
+void simulation_player_collection_swap(s_type_c67652 *collection, long player_index, long other_index, s_simulation_player_update *update);
+
+// @retail 0x83610
+void __stdcall function_83610(s_simulation_world_owner *watcher, long *count, s_simulation_player_update *updates)
+{
+ long initial_count = *count;
+ c_class_58d20 *session = watcher->session;
+ if (session && SESSION_STATE_IS_LIVE(session->state) && session->type == 4 && watcher->unknown18 != session->update7618)
+ {
+  s_machine_address machines[16];
+  for (long i = 0; i < session->member_count; i++)
+   machines[i] = *(s_machine_address *)((byte *)&session->members[i] + 10);
+  for (long i = 0; i < 16; i++)
+  {
+   s_simulation_owner_player *player = &watcher->players.players[i];
+   if ((watcher->players.player_mask & (1 << i)) && !player->flag0c &&
+    simulation_player_changed(machines, session->player_mask, (const s_simulation_session_player *)session->players, i, player))
+   {
+    s_simulation_player_update *update = &updates[(*count)++];
+    update->type = 0;
+    update->player_index = i;
+    memcpy(update->key, player->key, sizeof(update->key));
+    simulation_player_collection_apply_update(&watcher->players, update);
+    simulation_watcher_mark_player(watcher, i);
+   }
+  }
+  for (long i = 0; i < 16; i++)
+  {
+   if (!(session->player_mask & (1 << i)))
+    continue;
+   const s_simulation_session_player *source = (const s_simulation_session_player *)&session->players[i];
+   const void *configuration = (const byte *)source + 0xa8;
+   s_simulation_owner_player *player = &watcher->players.players[i];
+   s_simulation_player_update *update;
+   if ((watcher->players.player_mask & (1 << i)) && !player->flag0c)
+   {
+    if (!memcmp(player->configuration, configuration, sizeof(player->configuration)))
+     continue;
+    update = &updates[(*count)++];
+    update->player_index = i;
+    update->type = 4;
+    memcpy(update->key, source->key, sizeof(update->key));
+   }
+   else
+   {
+    const s_machine_address *machine = &machines[source->machine_index];
+    if (source->unknown14 == NONE)
+     continue;
+    bool conflict = false;
+    for (long j = 0; j < 16; j++)
+    {
+     const s_simulation_owner_player *other = &watcher->players.players[j];
+     if ((watcher->players.player_mask & (1 << j)) && !other->flag0c &&
+      !memcmp(&other->machine, machine, sizeof(*machine)) &&
+      (other->controller_index == source->controller_index || other->unknown20 == source->unknown14))
+     {
+      conflict = true;
+      break;
+     }
+    }
+    if (conflict)
+     continue;
+    long slot;
+    bool occupied;
+    simulation_player_collection_find_slot(&watcher->players, i, &source->key, &slot, &occupied);
+    if (slot != NONE && slot != i)
+     simulation_player_collection_swap(&watcher->players, i, slot, &updates[(*count)++]);
+    if (occupied)
+    {
+     update = &updates[(*count)++];
+     update->type = 2;
+     update->player_index = i;
+     memcpy(update->key, watcher->players.players[i].key, sizeof(update->key));
+     simulation_player_collection_apply_update(&watcher->players, update);
+    }
+    update = &updates[(*count)++];
+    update->player_index = i;
+    update->type = 3;
+    memcpy(update->key, source->key, sizeof(update->key));
+    update->machine = *machine;
+    update->controller_index = source->controller_index;
+    update->unknown20 = source->unknown14;
+    update->field_2_2 = false;
+   }
+   memcpy(update->configuration, configuration, sizeof(update->configuration));
+   simulation_player_collection_apply_update(&watcher->players, update);
+  }
+  watcher->unknown18 = watcher->session->update7618;
+  watcher->unknownc30 = *count > initial_count;
+ }
+}

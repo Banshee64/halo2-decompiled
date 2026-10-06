@@ -7,11 +7,7 @@ void c_session_state::function_06ec10(c_class_58d20 *s)
 {
 }
 
-// @stub 0x6e410
-bool c_session_state_pre_game::function_06e410()
-{
-	return false;
-}
+
 
 // @stub 0x6ec80
 bool function_06ec80(c_class_58d20 *s, bool flag)

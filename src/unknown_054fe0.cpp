@@ -1559,3 +1559,15 @@ long function_66050(c_class_58d20 *session, long variant_index)
  }
  return result;
 }
+
+// @retail 0x63e90
+long __stdcall function_63e90(long index)
+{
+ if (g_527330.initialized)
+ {
+  c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+  if (session->state)
+   return function_66050(session, index);
+ }
+ return 1;
+}

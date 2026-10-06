@@ -413,3 +413,81 @@ void function_6cb60(void)
  g_47d8f4.flags &= ~2;
  g_477058.flags &= ~2;
 }
+
+void function_8e5e0(long status, long task_index);
+
+// @retail 0x6c4a0
+void function_6c4a0(long result, long task_index)
+{
+ switch (result)
+ {
+ case 0:
+ case 0x1500f0:
+  function_8e5e0(0, task_index); break;
+ case (long)0x8007000e:
+ case (long)0x80150002:
+ case (long)0x80150003:
+ case (long)0x80150005:
+ case (long)0x80150006:
+ case (long)0x80150008:
+  function_8e5e0(2, task_index); break;
+ case (long)0x80150004:
+ case (long)0x8015c002:
+  function_8e5e0(3, task_index); break;
+ case (long)0x8015c004:
+ case (long)0x8015c007:
+  function_8e5e0(5, task_index); break;
+ case (long)0x8015c006:
+ case (long)0x8015c008:
+ case (long)0x8015c009:
+  function_8e5e0(4, task_index); break;
+ default:
+  function_8e5e0(1, task_index); break;
+ }
+}
+
+void function_190d0a(long index);
+
+// @retail 0x6cc10
+long __stdcall function_6cc10(long controller)
+{
+ long const *controller_reference = &controller;
+ controller = *controller_reference;
+ long result = NONE;
+ if (g_467214 != NONE)
+ {
+  long previous = online_task_find(3, controller);
+  if (previous != NONE)
+   function_6b640(previous);
+  function_190d0a(controller);
+  XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
+  memset(users, 0, sizeof(users));
+  long count = 0;
+  for (long i = 0; i < XONLINE_MAX_LOGON_USERS; i++)
+   if (i != controller && (bool)((*(dword *)&g_54e8e0[i] >> 5) & 1))
+   {
+    users[i] = *(const XONLINE_USER *)((const byte *)&g_54e8e0[i] + 0x470);
+    count++;
+   }
+  if (count > 0)
+  {
+   long index = online_task_new_if_logged_on();
+   s_type_9df9da *task = online_task_try_get(index);
+   if (task)
+   {
+    online_connect_to_service_20();
+    if (SUCCEEDED(XOnlineChangeLogonUsers(users, 0, (XONLINETASK_HANDLE *)&task->handle)))
+    {
+     task->flags = 1;
+     task->type = 1;
+     task->controller_index = controller;
+     return index;
+    }
+    function_6b640(index);
+   }
+  }
+  else
+   function_6cb60();
+ }
+ return result;
+}
