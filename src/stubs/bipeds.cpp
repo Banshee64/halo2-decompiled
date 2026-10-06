@@ -58,8 +58,6 @@ bool function_e63b0(vector3f const *aim, bool flag) { return 0; }
 // @stub 0x1cff80
 void function_1cff80(s_havok_component_element0c const *constraint, point3f *pivot_a, point3f *pivot_b) { }
 
-// @stub 0x114b60
-void function_114b60(long a, long b, long arg_159e6d, long c, long d) { }
 
 // @stub 0x1c9c00
 void function_1c9c00(long object_index) { }
