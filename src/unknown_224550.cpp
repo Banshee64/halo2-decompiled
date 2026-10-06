@@ -90,7 +90,7 @@ PRIVATE inline long sprite_flip(s_draw_sprite_definition const *definition,s_dra
 	else flip&=~2;
 	return flip;
 }
-PRIVATE inline void sprite_bounds(box2f const *bounds,long flip,real *out)
+PRIVATE inline void function_x0ec080(box2f const *bounds,long flip,real *out)
 {
 	real dy=(flip&2)?bounds->y0-bounds->y1:bounds->y1-bounds->y0;
 	real dx=(flip&1)?bounds->x0-bounds->x1:bounds->x1-bounds->x0;
@@ -134,7 +134,7 @@ void __stdcall function_224550(s_draw_sprite_seed const *seed,s_draw_value_cache
 		uv_a.bounds=definition->bounds;
 		geometry[0]=definition->geometry[0]; geometry[1]=definition->geometry[1];
 		geometry[2]=definition->geometry[2]; geometry[3]=definition->geometry[3];
-		sprite_bounds(&uv_a.bounds,sprite_flip(definition,seed),uv_a.values);
+		function_x0ec080(&uv_a.bounds,sprite_flip(definition,seed),uv_a.values);
 		uv_b=uv_a;
 	}
 	else
@@ -182,7 +182,7 @@ void __stdcall function_224550(s_draw_sprite_seed const *seed,s_draw_value_cache
 		real inv_x=(1.0f-blend)*inv_ax+inv_bx*blend;
 		real inv_y=(1.0f-blend)*inv_ay+inv_by*blend;
 		real width=context->width*aspect_x;
-		sprite_bounds(&a,flip,uv_a.values); sprite_bounds(&b,flip,uv_b.values);
+		function_x0ec080(&a,flip,uv_a.values); function_x0ec080(&b,flip,uv_b.values);
 		real x=inv_x*pivot.x*2.0f-1.0f,y=inv_y*pivot.y*2.0f-1.0f;
 		real x0=(-1.0f-x)*width, y0=(-1.0f-y)*aspect_y;
 		real x1=(1.0f-x)*width, y1=(1.0f-y)*aspect_y;
