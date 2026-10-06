@@ -8,8 +8,6 @@ struct s_unit_request;
 class c_animation_channel;
 
 
-// @stub 0xa91c0
-void function_a91c0(long unit_index, long projectile_index, point3f const *origin, vector3f const *forward) { }
 
 // @stub 0x1ff360
 void function_1ff360(long actor_index, point3f const *target, vector3f *velocity) { }
@@ -21,8 +19,6 @@ bool __stdcall function_bc1d0(long object_index, point3f *point) { return 0; }
 void function_2007b3(long a, long b, long c) { }
 
 
-// @stub 0xa8c10
-void __stdcall function_a8c10(long unit_index) { }
 
 // @stub 0xfff40
 void __stdcall function_fff40(long a, long b) { }
@@ -31,8 +27,6 @@ void __stdcall function_fff40(long a, long b) { }
 void __stdcall function_1ca260(long actor_index, long player_index, long weapon_index, long other_weapon_index) { }
 
 
-// @stub 0xa8cf0
-void __stdcall function_a8cf0(long unit_index, long target_index, long mode) { }
 
 
 // @stub 0xe5930
@@ -52,11 +46,7 @@ void function_e5300(long unit_index, long a) { }
 void function_1bba70(long actor_index, long vehicle_index, long seat_index) { }
 
 
-// @stub 0xa8b10
-void function_a8b10(long unit_index) { }
 
-// @stub 0xa8b90
-void __stdcall function_a8b90(long unit_index) { }
 
 // @stub 0xb9a50
 void __stdcall function_b9a50(long unit_index) { }
