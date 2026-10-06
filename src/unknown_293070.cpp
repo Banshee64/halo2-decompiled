@@ -543,3 +543,66 @@ long function_2958a0(long name)
 	}
 	return result;
 }
+
+struct s_295600_state
+{
+	short duration;
+	short elapsed;
+	vector3f current;
+	vector3f previous;
+};
+
+__forceinline real random_295600(real lower, real upper)
+{
+	dword *seed = &g_4e7408->unknown0;
+	*seed = 1664525 * *seed + 1013904223;
+	real fraction = (real)(*seed >> 16) * (1.f / 65535.f);
+	return fraction * (upper - lower) + lower;
+}
+
+__forceinline long round_295600(real value)
+{
+	long result;
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return result;
+}
+
+// @retail 0x295600
+void function_295600(s_295600_state *state, bool planar, real magnitude,
+	real minimum_time, real maximum_time, vector3f *result)
+{
+	real blend = 0.0f;
+	state->elapsed++;
+	if (state->elapsed > state->duration)
+	{
+		state->previous = state->current;
+		state->current.i = random_295600(-magnitude, magnitude);
+		state->current.j = random_295600(-magnitude, magnitude);
+		if (planar)
+			state->current.k = 0.0f;
+		else
+			state->current.k = random_295600(-magnitude, magnitude);
+		real time = random_295600(minimum_time, maximum_time);
+		state->duration = (short)(round_295600(g_510c54->field_2_3 * time) < 1 ? 1 :
+			round_295600(g_510c54->field_2_3 * time));
+		state->elapsed = 0;
+	}
+	if (state->duration > 0)
+	{
+		blend = (real)(cos((real)state->elapsed / state->duration * 3.1415927410125732421875f) * 0.5f) + 0.5f;
+	}
+	else
+		blend = 0.0f;
+	real j = state->current.j - state->previous.j;
+	real fraction = 1.0f - blend;
+	result->i = fraction * (state->current.i - state->previous.i) + state->previous.i;
+	result->j = fraction * j + state->previous.j;
+	if (planar)
+		result->k = 0.0f;
+	else
+		result->k = state->previous.k + fraction * (state->current.k - state->previous.k);
+}

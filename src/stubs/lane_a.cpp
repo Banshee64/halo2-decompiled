@@ -60,10 +60,6 @@ void __stdcall function_2736c0(long ai_index)
 {
 }
 
-// @stub 0x273ac0
-void __stdcall function_273ac0(long ai_index, long other_ai_index)
-{
-}
 
 // @stub 0x274470
 short __stdcall function_274470(long ai_index)
