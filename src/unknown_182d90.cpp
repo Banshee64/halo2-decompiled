@@ -170,3 +170,30 @@ real __stdcall function_182d90(c_extent_shape *shape, real radius,
 	}
 	return result;
 }
+
+#include "unknown_0259d0.h"
+#include <float.h>
+extern transform4x3f *g_4687d0;
+
+PRIVATE __forceinline void extent_vector_set(__m128 *out, real x, real y, real z)
+{
+	out->m128_f32[0] = x;
+	out->m128_f32[1] = y;
+	out->m128_f32[2] = z;
+	out->m128_f32[3] = 0.0f;
+}
+
+// @retail 0x182aa0
+real __stdcall function_182aa0(c_extent_shape *shape, real *minimum, real *maximum)
+{
+	s_extent_transform transform;
+	extent_vector_set(&transform.rows[0], g_4687d0->forward.i, g_4687d0->forward.j, g_4687d0->forward.k);
+	extent_vector_set(&transform.rows[1], g_4687d0->left.i, g_4687d0->left.j, g_4687d0->left.k);
+	extent_vector_set(&transform.rows[2], g_4687d0->up.i, g_4687d0->up.j, g_4687d0->up.k);
+	__m128 translation;
+	extent_vector_set(&translation, g_4687d0->position.x, g_4687d0->position.y, g_4687d0->position.z);
+	transform.rows[3] = translation;
+	*minimum = FLT_MAX;
+	*maximum = -FLT_MAX;
+	return function_182d90(shape, 0.0f, &transform, minimum, maximum);
+}

@@ -17,8 +17,6 @@ void __stdcall function_152f80(void *a, void *c) { }
 void function_155380(void) { }
 // @stub 0x3e2ff0
 void __stdcall function_3e2ff0(void *p) { }
-// @stub 0x18bb80
-void __stdcall function_18bb80(real value) { }
 // @stub 0x1c2b10
 void function_1c2b10(void) { }
 // @stub 0x1c2910

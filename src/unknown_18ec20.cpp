@@ -294,3 +294,16 @@ void function_18ec60(bool keep, char const *map_name)
 	g_4ed294 = 2;
 	function_x91aa57(g_4ed298, map_name, sizeof(g_4ed298));
 }
+
+// @retail 0x18f1c0
+void __stdcall function_18f1c0(long value)
+{
+	s_game_options options;
+	if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 3)
+		function_1483c3(value);
+	else
+	{
+		function_18f170(&options, value);
+		function_18e790(&options);
+	}
+}

@@ -465,13 +465,14 @@ struct s_looping_sound_tag_flags
 	byte flags;
 };
 
-/* 0x18a430 (looping sound start), kept out of the build: our LTCG gives it a
-   register convention, which breaks its matched caller 0x2aa0f0, where retail
-   keeps stack arguments. The stub in src/stubs/lane_a.cpp stays. */
-#if 0
+// @retail 0x18a430
 void __stdcall function_18a430(long tag_index, long object_index, real scale)
 {
-	if (tag_index != NONE)
+	// Retail passes all three arguments on the stack.
+	long const *tag_reference = &tag_index;
+	long const *object_reference = &object_index;
+	real const *scale_reference = &scale;
+	if (*tag_reference != NONE)
 	{
 		s_looping_sound_tag_flags *sound = (s_looping_sound_tag_flags *)g_4e3b44[tag_index & 0xffff].bytes;
 		bool detached;
@@ -485,11 +486,11 @@ void __stdcall function_18a430(long tag_index, long object_index, real scale)
 		detached = function_18d360(tag_index);
 		if (detached)
 		{
-			datum_index = function_18a600(tag_index, scale);
+			datum_index = function_18a600(*tag_reference, *scale_reference);
 		}
 		else
 		{
-			datum_index = function_18a5a0(tag_index, object_index, scale);
+			datum_index = function_18a5a0(*tag_reference, *object_reference, *scale_reference);
 		}
 		if (datum_index != NONE)
 		{
@@ -501,4 +502,133 @@ void __stdcall function_18a430(long tag_index, long object_index, real scale)
 		}
 	}
 }
-#endif
+
+#include "sound_sources.h"
+#include "object_queries.h"
+
+bool __stdcall function_bab40(long object_index, long name, real *value);
+void function_18cbc0(long looping_sound_index, s_type_99c531 *location);
+bool function_18d670(point3f const *point, real radius);
+real function_18d6e0();
+bool function_21a250(long definition_index, dword sound_flags, long identifier, long controller_definition_index,
+	s_type_99c531 *source, long state, dword flags, real fade_duration);
+void function_219c30(long definition_index, s_type_99c531 const *source);
+point3f *function_b9dd0(long object_index, point3f *result);
+void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
+dword vector3d_compress(vector3f const *vector);
+long __stdcall function_18d1c0(long value);
+
+struct s_loop_update_definition
+{
+	dword flags;
+	byte field_4[0xc];
+	real radius;
+};
+struct s_loop_update_object_header
+{
+	byte field_0[3];
+	byte type;
+	byte field_4[8];
+};
+
+PRIVATE inline long loop_update_owner(s_looping_sound const *sound)
+{
+	return sound->type == 1 ? sound->value10 : NONE;
+}
+
+// @retail 0x18a7b0
+void __stdcall function_18a7b0(long datum_index)
+{
+	(void)&datum_index;
+	s_looping_sound *sound = looping_sound_get(datum_index);
+	s_loop_update_definition *definition = (s_loop_update_definition *)g_4e3b44[sound->tag_index & 0xffff].bytes;
+	real scale = sound->value8;
+	bool previous = TEST_FIELD_BIT(sound->flag_bits.bit8);
+	bool active;
+	if (!(sound->flags & 1))
+		active = function_bab40(loop_update_owner(sound), sound->value14, &scale);
+	else active = !TEST_FIELD_BIT(sound->flag_bits.bit1);
+	long identifier = datum_index;
+	s_looping_sound *current = looping_sound_get(datum_index);
+	if (current->type == 0 && current->byte14 != NONE)
+		identifier = current->tag_index | 0x8000;
+	long controller = NONE;
+	if (((definition->flags & 0x10) && sound->type == 1) || (definition->flags & 0x20))
+	{
+		controller = loop_update_owner(sound);
+		if (controller == NONE) controller = datum_index | 0x2000;
+	}
+	if (!active && (sound->value2 == 3 || !previous))
+	{
+		if (sound->value2 != 3) sound->value2 = 3;
+	}
+	else
+	{
+		dword play_flags = (~definition->flags >> 3) & 1;
+		if (((1 << sound->type) & 0xe) && !(definition->flags & 0x40)) play_flags |= 2;
+		else play_flags &= ~2;
+		s_type_99c531 location;
+		location.flags = 0;
+		function_18cbc0(datum_index, &location);
+		real radius = TEST_FIELD_BIT(location.flag3) ? *(real *)(location.unknown30 + 8) : definition->radius;
+		dword flags = (sound->flags >> 4) & 1;
+		if (TEST_FIELD_BIT(sound->flag_bits.bit7)) flags |= 4;
+		else flags &= ~4;
+		if (sound->type == 4) flags |= 0x10;
+		else flags &= ~0x10;
+		if ((play_flags & 2) && !TEST_FIELD_BIT(location.flag1) && !function_18d670(&location.spatial.position, radius))
+			sound->flag_bits.bit8 = false;
+		else
+		{
+			if (active)
+			{
+				bool resume = g_510c50 && ((s_510c50_looping_view *)g_510c50)->enabled && sound->type == 1 &&
+					((1 << ((s_loop_update_object_header *)g_4e0300->data)[sound->value10 & 0xffff].type) & 2);
+				long state = resume || ((1 << sound->value2) & 3) ? 1 : 0;
+				sound->value2 = (byte)state;
+				if (function_21a250(sound->tag_index, play_flags, identifier, controller, &location, state, flags, 0.0f))
+				{
+					sound->flags |= 2;
+					sound->value2 = 3;
+				}
+				else if (controller != NONE)
+				{
+					s_type_99c531 fallback = location;
+					if (sound->type == 1)
+					{
+						long owner = sound->value10;
+						vector3f forward;
+						function_b9dd0(owner, &fallback.spatial.position);
+						function_b9fc0(owner, &forward, NULL);
+						location.spatial.compressed_forward = vector3d_compress(&forward);
+						function_ba1d0(loop_update_owner(sound), &fallback.spatial.velocity, NULL);
+					}
+					function_219c30(controller, &fallback);
+				}
+			}
+			else
+			{
+				real fade = TEST_FIELD_BIT(sound->flag_bits.bit2) ? function_18d6e0() :
+					(TEST_FIELD_BIT(sound->flag_bits.bit3) ? 0.01f : 0.0f);
+				if (!previous || function_21a250(sound->tag_index, play_flags, identifier, controller, &location, 2, flags, fade))
+					sound->value2 = 3;
+				else sound->value2 = 2;
+			}
+			sound->flag_bits.bit8 = true;
+		}
+	}
+	if (sound->value2 == 3 && (sound->flags & 0xe) && (sound->flags & 1))
+	{
+		if (function_18d1c0(sound->tag_index) == datum_index)
+		{
+			long tag = sound->tag_index;
+			long index = function_18d1c0(tag);
+			if (index != NONE)
+			{
+				s_looping_sound *other = looping_sound_get(index);
+				if (other->tag_index == tag) other->flag_bits.bit5 = false;
+			}
+		}
+		record_pool_release(g_4ed28c, datum_index);
+	}
+}
