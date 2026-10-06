@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6374 functions match
+
+```
+matched 6374 of 11318 game functions (675720 of 2784283 bytes, 24.27%)
+```
+
+3 new matches, none lost:
+- **Codex lane C**, round 18 (3): actor and havok helpers in the 0x1c0000–0x1dffff range.
+
 ## 2026-10-06: 6371 functions match
 
 ```

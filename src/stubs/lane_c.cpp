@@ -208,3 +208,134 @@ hkBool c_contact_rule_fallback::accepts(long a, long b)
  result.m_bool = 0;
  return result;
 }
+
+class c_component_joint_strength
+{
+public:
+    void set_strength(real strength);
+};
+
+// @stub 0x312b80
+void c_component_joint_strength::set_strength(real strength) {}
+
+#include <xmmintrin.h>
+struct c_component_joint_snapshot_0
+{
+    __m128 data[6];
+    c_component_joint_snapshot_0();
+};
+struct c_component_joint_reader_0
+{
+    void read(c_component_joint_snapshot_0 *output);
+};
+
+struct c_component_joint_snapshot_1
+{
+    __m128 data[9];
+    c_component_joint_snapshot_1();
+};
+struct c_component_joint_reader_1
+{
+    void read(c_component_joint_snapshot_1 *output);
+};
+
+struct c_component_joint_snapshot_2
+{
+    __m128 data[9];
+    c_component_joint_snapshot_2();
+};
+struct c_component_joint_reader_2
+{
+    void read(c_component_joint_snapshot_2 *output);
+};
+
+struct c_component_joint_snapshot_4
+{
+    __m128 data[3];
+    c_component_joint_snapshot_4();
+};
+struct c_component_joint_reader_4
+{
+    void read(c_component_joint_snapshot_4 *output);
+};
+
+// @stub 0x313b30
+c_component_joint_snapshot_0::c_component_joint_snapshot_0() {}
+
+// @stub 0x313c50
+void c_component_joint_reader_0::read(c_component_joint_snapshot_0 *output) {}
+
+// @stub 0x313320
+c_component_joint_snapshot_1::c_component_joint_snapshot_1() {}
+
+// @stub 0x3134a0
+void c_component_joint_reader_1::read(c_component_joint_snapshot_1 *output) {}
+
+// @stub 0x312920
+c_component_joint_snapshot_2::c_component_joint_snapshot_2() {}
+
+// @stub 0x312ab0
+void c_component_joint_reader_2::read(c_component_joint_snapshot_2 *output) {}
+
+// @stub 0x3140c0
+c_component_joint_snapshot_4::c_component_joint_snapshot_4() {}
+
+// @stub 0x3141c0
+void c_component_joint_reader_4::read(c_component_joint_snapshot_4 *output) {}
+
+
+class c_world_callback_registration
+{
+public:
+    void remove(void *callback);
+};
+
+// @stub 0x30c3e0
+void c_world_callback_registration::remove(void *callback) {}
+
+struct c_contact_query_bounds_info { c_contact_query_bounds_info(); };
+struct c_contact_query_transform_info { c_contact_query_transform_info(); };
+class c_contact_query_bounds_volume
+{
+public:
+    c_contact_query_bounds_volume(c_contact_query_bounds_info const *info);
+};
+class c_contact_query_transform_volume
+{
+public:
+    c_contact_query_transform_volume(c_contact_query_transform_info const *info);
+};
+class c_contact_query_world
+{
+public:
+    void add(void *volume);
+    void remove(void *volume);
+};
+
+// @stub 0x312310
+c_contact_query_bounds_info::c_contact_query_bounds_info() {}
+
+// @stub 0x30b6a0
+c_contact_query_transform_info::c_contact_query_transform_info() {}
+
+// @stub 0x30b480
+c_contact_query_bounds_volume::c_contact_query_bounds_volume(c_contact_query_bounds_info const *info) {}
+
+// @stub 0x30bb50
+c_contact_query_transform_volume::c_contact_query_transform_volume(c_contact_query_transform_info const *info) {}
+
+// @stub 0x30e4b0
+void c_contact_query_world::add(void *volume) {}
+
+// @stub 0x30e5e0
+void c_contact_query_world::remove(void *volume) {}
+
+class hkMemory;
+struct s_fixed_memory_statistics_16;
+struct s_physics_pool_statistics;
+
+// @stub 0x22c390
+void function_22c390(hkMemory *memory, s_fixed_memory_statistics_16 *statistics) {}
+
+// @stub 0x22cb00
+void function_22cb00(hkMemory *memory, s_physics_pool_statistics *statistics) {}
