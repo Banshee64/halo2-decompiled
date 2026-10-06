@@ -27,11 +27,6 @@ bool __stdcall function_05cb80(c_class_58d20 *session, void const *message)
 	return false;
 }
 
-// @stub 0x5d9e0
-bool __stdcall function_05d9e0(c_class_58d20 *session, void const *message)
-{
-	return false;
-}
 
 /* kept out of the build in src/unknown_059ad0.cpp: built there, its session
    moves into a register and the matched 0x94700 no longer matches */

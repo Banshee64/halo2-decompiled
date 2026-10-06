@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6485 functions match
+
+```
+matched 6485 of 11318 game functions (699052 of 2784283 bytes, 25.11%)
+```
+
+6485 new matches, none lost:
+- Codex lane D round 23: 0x5d9e0, 0x68670, 0x69040, 0x6f940, 0x84fb0 and 0x86aa0, plus the wrappers 0xb2710 and 0xb2730.
+
 ## 2026-10-06: 6477 functions match
 
 ```
