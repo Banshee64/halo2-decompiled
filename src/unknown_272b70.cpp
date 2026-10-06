@@ -794,6 +794,28 @@ struct s_actor_274140
 
 void function_1e3400(long actor_index, long squad_index);
 bool function_2052d0(long squad_index, long squad_group_index);
+
+// @retail 0x272c40
+bool function_272c40(long ai_index, long squad_index)
+{
+	bool result = false;
+	switch (ai_index_get_type(ai_index))
+	{
+	case _ai_index_type_squad:
+		result = squad_index == (ai_index & 0xffff);
+		break;
+	case _ai_index_type_squad_group:
+		result = function_2052d0(squad_index, ai_index & 0xffff);
+		break;
+	case _ai_index_type_actor:
+		result = false;
+		break;
+	case _ai_index_type_starting_location:
+		result = false;
+		break;
+	}
+	return result;
+}
 void function_201ad0(long squad_index, long vehicle_index);
 void function_2011f0(long squad_index);
 void function_201df0(void);
