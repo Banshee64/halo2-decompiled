@@ -3,8 +3,38 @@
 #include "squads.h"
 #include "unknown_1a58b0.h"
 #include <math.h>
+#include "object_iterator.h"
 
 // @flags /O2 /Gr /arch:SSE
+
+struct s_scenario_identifier_ab;
+void *__stdcall function_b7a40(s_scenario_identifier_ab const *identifier, long *index_out);
+
+// @retail 0x201330
+long function_201330(short placement_index)
+{
+	long result = NONE;
+	struct
+	{
+		s_object *object;
+		s_type_f1af8e iterator;
+	} state;
+	state.iterator.signature = 0x86868686;
+	state.iterator.type_mask = 2;
+	state.iterator.flags = 0;
+	state.iterator.index = 0;
+	state.iterator.object_index = NONE;
+	while ((state.object = function_baeb0(&state.iterator)) != NULL)
+	{
+		long index;
+		if (function_b7a40((s_scenario_identifier_ab const *)((byte *)state.object + 0xa4), &index) && index == placement_index)
+		{
+			result = state.iterator.object_index;
+			break;
+		}
+	}
+	return result;
+}
 
 extern s_flag_bits g_557c74;
 
@@ -47,6 +77,186 @@ void __stdcall function_202420(long group_index)
 	}
 	if (active && !*(bool *)((byte *)group + 0x22))
 		*(bool *)((byte *)squad_group_get(*group_reference) + 0x22) = true;
+}
+
+struct s_group_record_iterator
+{
+	s_squad_group_datum *group;
+	s_record_pool_iterator records;
+	long unknown10;
+};
+
+struct s_squad_group_totals
+{
+	byte unknown00[4];
+	long first_child_index;
+	long first_squad_index;
+	long next_sibling_index;
+	byte unknown10[0x24 - 0x10];
+	short count;
+	short actor_count;
+	byte active;
+	byte unknown29;
+	short initial_count;
+	short remaining_count;
+	byte unknown2e[2];
+	real average;
+	short maximum;
+	byte unknown36[2];
+};
+
+struct s_squad_count_flags
+{
+	byte unused : 4;
+	byte active : 1;
+	byte remaining : 3;
+};
+
+// @retail 0x202570
+void __stdcall function_202570(long group_index)
+{
+	s_squad_group_totals *group = (s_squad_group_totals *)squad_group_get(group_index);
+	byte active = 0;
+	short remaining_count = 0;
+	short count = 0;
+	group->maximum = 0;
+	group->actor_count = 0;
+	real weighted_sum = 0.0f;
+	for (long child_index = group->first_child_index; child_index != NONE; )
+	{
+		function_202570(child_index);
+		s_squad_group_totals *child = (s_squad_group_totals *)squad_group_get(child_index);
+		count += child->count;
+		remaining_count += child->remaining_count;
+		active |= child->active;
+		if (child->maximum > group->maximum)
+			group->maximum = child->maximum;
+		group->actor_count += child->actor_count;
+		if (child->actor_count > 0)
+			weighted_sum += child->actor_count * child->average;
+		child_index = child->next_sibling_index;
+	}
+	for (long squad_index = group->first_squad_index; squad_index != NONE; )
+	{
+		s_squad_datum *squad = squad_get(squad_index);
+		count += squad->count_a;
+		remaining_count += squad->value16;
+		active |= ((s_squad_count_flags *)((byte *)squad + 2))->active;
+		group->actor_count += squad->actor_count;
+		if (squad->actor_count > 0)
+			weighted_sum += squad->actor_count * squad->value10;
+		short maximum = *(signed char *)((byte *)squad + 0x26);
+		if (maximum > group->maximum)
+			group->maximum = maximum;
+		squad_index = squad->next_squad_index;
+	}
+	group->average = group->actor_count > 0 ? weighted_sum / group->actor_count : 0.0f;
+	if ((group->remaining_count == NONE || group->remaining_count == 0) && remaining_count > 0)
+	{
+		if (group->count == NONE)
+			group->initial_count = count;
+		else
+			group->initial_count = group->count;
+	}
+	group->count = count;
+	group->remaining_count = remaining_count;
+	group->active = active;
+}
+
+PRIVATE __forceinline s_squad_group_datum *next_group_record(s_group_record_iterator *iterator)
+{
+	s_squad_group_datum *result = NULL;
+	if (g_4f55d0->active)
+	{
+		result = (s_squad_group_datum *)data_iterator_next_inlined(&iterator->records);
+		iterator->group = result;
+	}
+	return result;
+}
+
+// @retail 0x202370
+void function_202370(void)
+{
+	s_group_record_iterator iterator;
+	if (g_4f55d0->active)
+	{
+		iterator.records.data = g_51e9dc;
+		iterator.records.index = NONE;
+	}
+	s_squad_group_datum *group;
+	while ((group = next_group_record(&iterator)) != NULL)
+	{
+		if (group->parent_index == NONE)
+			function_202420(iterator.records.datum_index);
+	}
+}
+
+// @retail 0x2024c0
+void function_2024c0(void)
+{
+	s_group_record_iterator iterator;
+	if (g_4f55d0->active)
+	{
+		iterator.records.data = g_51e9dc;
+		iterator.records.index = NONE;
+	}
+	s_squad_group_datum *group;
+	while ((group = next_group_record(&iterator)) != NULL)
+	{
+		if (group->parent_index == NONE)
+			function_202570(iterator.records.datum_index);
+	}
+}
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+long function_baf80(long object_index);
+
+struct s_actor_response_flags
+{
+	dword unused : 1;
+	dword disabled : 1;
+	dword remaining : 30;
+};
+
+// @retail 0x200240
+void function_200240(long object_index, long target_index)
+{
+	(void)&target_index;
+	byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+	byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+	if (!TEST_FIELD_BIT(((s_actor_response_flags *)(definition + 0xbc))->disabled))
+	{
+		byte *owner = (byte *)function_badc0(*(long *)(object + 0x140), NONE);
+		if (owner && !*(byte *)(owner + 0xaa))
+		{
+			long actor_index = *(long *)(owner + 0x12c);
+			if (actor_index != NONE)
+			{
+				byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+				if (!*(bool *)(actor + 0x714) && *(long *)(actor + 0x718) > 0 && *(short *)(actor + 0x722) == 1)
+				{
+					long reference = *(long *)(actor + 0x724);
+					if (reference != NONE && g_510c54->game_time - *(long *)(actor + 0x718) >= *(short *)(object + 0x1aa))
+					{
+						long root;
+						if (!(*(real *)(object + 0x168) + 0.5f > *(real *)(actor + 0x71c)) &&
+							(!function_badc0(target_index, NONE) ||
+							(root = function_baf80(*(long *)(g_502418->data + (reference & 0xffff) * 0x3c + 0x20)), function_baf80(target_index) != root)))
+						{
+							++*(short *)(actor + 0x720);
+						}
+						else
+						{
+							*(short *)(actor + 0x720) -= 2;
+							if (*(short *)(actor + 0x720) < 0)
+								*(short *)(actor + 0x720) = 0;
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 struct s_actor_limit_view
@@ -175,6 +385,49 @@ PRIVATE inline s_actor_datum *squad_actor_next_inline(s_squad_actor_iterator *it
 	return actor;
 }
 
+bool function_1e13f0(long actor_index);
+
+PRIVATE inline s_actor_datum *next_actor_204390(s_squad_actor_iterator *iterator)
+{
+	s_actor_datum *actor = NULL;
+	if (*(volatile bool *)&g_4f55d0->active && iterator->next_actor_index != NONE)
+	{
+		actor = actor_datum_get(iterator->next_actor_index);
+		iterator->actor_index = iterator->next_actor_index;
+		iterator->next_actor_index = actor->next_actor_index;
+	}
+	return actor;
+}
+
+// @retail 0x204390
+bool function_204390(long squad_index)
+{
+	bool result = false;
+	s_squad_actor_iterator iterator;
+	squad_actor_begin_inline(&iterator, squad_index);
+	while (next_actor_204390(&iterator))
+	{
+		if (function_1e13f0(iterator.actor_index))
+		{
+			result = true;
+			goto done;
+		}
+	}
+	for (long index = g_4f55d0->unknown14; index != NONE; )
+	{
+		s_actor_datum *actor = &((s_actor_datum *)(*(byte *volatile *)&g_4f55f0->data))[index & 0xffff];
+		long source_squad = *(volatile long *)((byte *)actor + 0x34);
+		if (source_squad == squad_index && function_1e13f0(index))
+		{
+			result = true;
+			goto done;
+		}
+		index = actor->next_actor_index;
+	}
+done:
+	return result;
+}
+
 // @retail 0x2003a0
 long function_2003a0(long actor_index)
 {
@@ -190,6 +443,106 @@ bool function_2013c0(long object_index)
 	if (TEST_FIELD_BIT(object->blocked) || TEST_FIELD_BIT(((s_squad_object_extra *)((byte *)object + object->state_offset))->blocked))
 		result = false;
 	return result;
+}
+
+struct s_squad_placement_entry
+{
+	byte unknown00[0x3c];
+	short placement_index;
+	byte unknown3e[2];
+	char command_script_name[32];
+	short command_script_index;
+	byte unknown62[2];
+};
+
+struct s_squad_placement_definition
+{
+	byte unknown00[0x48];
+	long count;
+	s_squad_placement_entry *entries;
+	char command_script_name[32];
+	short command_script_index;
+	byte unknown72[2];
+};
+
+struct s_squad_placement_table
+{
+	byte unknown000[0x164];
+	s_squad_placement_definition *squads;
+	byte unknown168[0x1b8 - 0x168];
+	long script_count;
+	byte *scripts;
+};
+
+long function_257ed0(long thread_index, long actor_index, short script_index);
+
+PRIVATE __forceinline short squad_valid_command_script(s_squad_placement_table *scenario, short index, char const *name)
+{
+	if (index >= 0 && index < scenario->script_count)
+	{
+		unsigned long length = 0;
+		while (length < 32 && *name++)
+			length++;
+		if (length > 0 && *(short *)(scenario->scripts + index * 0x28 + 0x20) == 5)
+			return index;
+	}
+	return NONE;
+}
+
+// @retail 0x201b70
+void function_201b70(long squad_index, short entry_index, long actor_index)
+{
+	(void)&actor_index;
+	s_squad_placement_table *scenario = (s_squad_placement_table *)g_4e0350;
+	s_squad_placement_definition *squad = &scenario->squads[squad_index & 0xffff];
+	s_squad_placement_entry *entry = &squad->entries[entry_index];
+	short script_index = squad_valid_command_script(scenario, entry->command_script_index, entry->command_script_name);
+	if (script_index == NONE)
+		script_index = squad_valid_command_script(scenario, squad->command_script_index, squad->command_script_name);
+	if (script_index != NONE)
+		function_257ed0(NONE, actor_index, script_index);
+}
+
+PRIVATE __forceinline s_squad_placement_entry *squad_placement_entry(s_squad_placement_definition *squad, long index)
+{
+	return &squad->entries[index];
+}
+
+// @retail 0x201400
+bool function_201400(long squad_index, short entry_index)
+{
+	s_squad_placement_definition *squad = &((s_squad_placement_table *)g_4e0350)->squads[squad_index & 0xffff];
+	bool result = true;
+	if (entry_index >= 0 && entry_index < squad->count)
+	{
+		word placement_index = squad_placement_entry(squad, entry_index)->placement_index;
+		if (placement_index != (word)NONE)
+		{
+			long object_index = function_201330((short)placement_index);
+			if (object_index != NONE)
+				result = function_2013c0(object_index);
+			else
+				result = false;
+		}
+	}
+	return result;
+}
+
+// @retail 0x201460
+void function_201460(long squad_index, dword *unavailable)
+{
+	(void)&unavailable;
+	s_squad_placement_definition *squad = &((s_squad_placement_table *)g_4e0350)->squads[squad_index & 0xffff];
+	for (short i = 0; i < squad->count; i++)
+	{
+		long placement_index = squad_placement_entry(squad, i)->placement_index;
+		if ((short)placement_index != NONE)
+		{
+			long object_index = function_201330((short)placement_index);
+			if (object_index == NONE || !function_2013c0(object_index))
+				unavailable[i >> 5] |= 1 << (i & 0x1f);
+		}
+	}
 }
 
 // @retail 0x203240

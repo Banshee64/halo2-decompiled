@@ -1,10 +1,6 @@
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
 
-// @stub 0xbe240
-void __stdcall function_be240(long object_index, dword color_mask, color3f const *colors)
-{
-}
 
 struct s_pathfinding_data;
 struct s_obstacle_list;

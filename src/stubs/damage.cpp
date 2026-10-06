@@ -23,8 +23,6 @@ void __stdcall function_ba7f0(long object_index, long a, long b, long c) { }
 struct s_type_1e6529;
 #include "unknown_0259d0.h"
 /* the objects in a sphere */
-// @stub 0xbb050
-short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, point3f const *position, float radius, long *objects, short maximum_count) { return 0; }
 /* damage.cpp's own, not written yet (temporary) */
 /* the closest point of an object to an origin, and the surface normal there */
 // @stub 0xbaff0

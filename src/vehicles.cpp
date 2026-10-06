@@ -823,13 +823,19 @@ struct s_vehicle_physics_point
 struct s_vehicle_contact
 {
 	transform4x3f matrix;
-	byte unknown34[0x80 - 0x34];
+	byte unknown34[0x70 - 0x34];
+	byte contact_type;
+	byte unknown71[3];
+	vector3f contact_velocity;
 	bool unknown80;
 	byte unknown81[2];
 	bool unknown83;
-	byte unknown84[0x8c - 0x84];
+	real compression;
+	byte unknown88[4];
 	real torque;
-	byte unknown90[0xb0 - 0x90];
+	byte unknown90[0xa0 - 0x90];
+	vector3f contact_normal;
+	long contact_handle;
 	short unknownb0;
 	byte unknownb2[0xd8 - 0xb2];
 };
@@ -839,7 +845,9 @@ struct s_vehicle_contact_definition
 {
 	byte unknown00[4];
 	dword flags;
-	byte unknown08[0x4c - 8];
+	byte unknown08[4];
+	real distance;
+	byte unknown10[0x4c - 0x10];
 };
 
 /* the vehicle's Havok physics definition as its state points to it */
@@ -870,6 +878,46 @@ struct s_vehicle_physics_state
 	s_vehicle_physics_point points[16];
 	s_vehicle_contact contacts[16];
 };
+
+struct s_vehicle_contact_result
+{
+	bool valid;
+	byte unknown01[3];
+	real distance;
+	short material;
+	byte unknown0a[0x18 - 0xa];
+	vector3f normal;
+	byte unknown24[8];
+	byte type;
+	byte unknown2d[3];
+	vector3f velocity;
+};
+
+extern short g_54e898;
+
+PRIVATE __forceinline void reset_vehicle_contact(s_vehicle_contact *contact)
+{
+	contact->contact_normal = *g_4687b0;
+	contact->unknownb0 = g_54e898;
+	contact->compression = 0.0f;
+}
+
+// @retail 0x207ab0
+void function_207ab0(long index, s_vehicle_physics_state *state, s_vehicle_contact_result const *result)
+{
+	s_vehicle_contact *contact = &state->contacts[index];
+	s_vehicle_contact_definition *definition = &state->definition->contacts[index];
+	reset_vehicle_contact(contact);
+	if (result->valid)
+	{
+		contact->unknownb0 = result->material;
+		contact->contact_normal = result->normal;
+		contact->compression = PIN(definition->distance - result->distance, 0.001f, definition->distance);
+		contact->contact_handle = NONE;
+		contact->contact_type = result->type;
+		contact->contact_velocity = result->velocity;
+	}
+}
 
 struct s_type_1e6529
 {
