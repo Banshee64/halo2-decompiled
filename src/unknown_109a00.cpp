@@ -24,7 +24,10 @@ struct s_carried_object
 
 struct s_carried_object_header
 {
-	byte unknown00[8];
+	short identifier;
+	byte flags;
+	byte type;
+	byte unknown04[4];
 	s_carried_object *object;
 };
 
@@ -44,7 +47,8 @@ struct s_carrier_motion
 	vector3f velocity;
 	vector3f previous_angular_velocity;
 	vector3f angular_velocity;
-	byte unknown048[0xb0 - 0x48];
+	transform4x3f previous_transform;
+	transform4x3f current_transform;
 	transform4x3f transform;
 	bool valid;
 	bool active;
@@ -141,4 +145,175 @@ bool function_109a00(long object_index, vector3f *delta, bool rotate, vector3f *
 		}
 	}
 	return result;
+}
+
+struct s_carrier_search_view
+{
+	byte unknown00[0x28];
+	byte location[8];
+	point3f center;
+	real radius;
+};
+
+short __stdcall function_bb050(long mask, dword type_mask, void const *location, point3f const *position, real radius, long *objects, short maximum_count);
+void function_b7360(long object_index);
+void function_bba20(long object_index);
+
+// @retail 0x109580
+void function_109580(long object_index)
+{
+	(void)&object_index;
+	long objects[1024];
+	s_record_pool *pool = g_4e0300;
+	s_carrier_search_view *object = (s_carrier_search_view *)((s_carried_object_header *)pool->data)[object_index & 0xffff].object;
+	long count = function_bb050(0, 0x3f, object->location, &object->center, object->radius, objects, 1024);
+	for (long i = 0; i < count; i++)
+	{
+		long index = objects[i];
+		s_carried_object_header *header = &((s_carried_object_header *)pool->data)[index & 0xffff];
+		if ((header->flags & 1) && !(header->flags & 0x18))
+		{
+			s_carried_object *child = header->object;
+			if (!TEST_FIELD_BIT(child->flag2))
+			{
+				*(byte *)((byte *)child + 0xc0) |= 4;
+				child->platform_index = object_index;
+				function_b7360(index);
+				if ((1 << header->type) & 0x3c)
+				{
+					function_bba20(index);
+					header->flags |= 8;
+				}
+			}
+		}
+	}
+}
+
+struct s_carrier_body_motion
+{
+	byte unknown00[0x40];
+	vector3f velocity;
+	byte unknown4c[4];
+	vector3f angular_velocity;
+	byte unknown5c[0x70 - 0x5c];
+	point3f center;
+};
+
+struct s_carrier_body
+{
+	byte unknown00[0x3c];
+	s_carrier_body_motion *motion;
+	byte inactive;
+};
+
+struct s_carrier_body_entry
+{
+	byte unknown00[0x40];
+	s_carrier_body *body;
+	byte unknown44[4];
+	char *indices;
+	long count;
+	byte unknown50[0x60 - 0x50];
+};
+
+struct s_carrier_component
+{
+	byte unknown00[0x18];
+	char default_body;
+	byte unknown19[0x70 - 0x19];
+	s_carrier_body_entry *bodies;
+	long count;
+};
+
+struct s_carrier_physics_body
+{
+	byte unknown00[0x18];
+	byte flags;
+	byte unknown19[0x90 - 0x19];
+};
+
+struct s_carrier_physics_definition
+{
+	byte unknown00[0x3c];
+	s_carrier_physics_body *bodies;
+};
+
+struct s_havok_component;
+void havok_component_rigid_body_matrix_get(long rigid_body_index, s_havok_component *component, transform4x3f *matrix);
+real function_30bf0(vector3f *vector);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+
+// @retail 0x109660
+void function_109660(long object_index, long entry_index)
+{
+	s_carrier_motion *entry = (s_carrier_motion *)&g_5107f0->entries[entry_index];
+	s_carried_object *object = ((s_carried_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	long component_index = object->component_index;
+	if (component_index != NONE)
+	{
+		s_carrier_component *component = (s_carrier_component *)(g_51e9b8->data + (component_index & 0xffff) * 0xa0);
+		long model_index = *(long *)(g_4e3b44[object->definition_index & 0xffff].bytes + 0x38);
+		long physics_index = *(long *)(g_4e3b44[model_index & 0xffff].bytes + 0x24);
+		if (physics_index != NONE)
+		{
+			s_carrier_physics_definition *definition = (s_carrier_physics_definition *)g_4e3b44[physics_index & 0xffff].bytes;
+			long body_index = component->default_body >= 0 && component->default_body < component->count ? component->default_body : NONE;
+			volatile bool found = false;
+			for (long i = 0; i < component->count && !found; i++)
+			{
+				s_carrier_body_entry *body = &component->bodies[i];
+				for (long j = 0; j < body->count; j++)
+				{
+					if (definition->bodies[body->indices[j]].flags & 0x10)
+					{
+						body_index = i;
+						found = true;
+						break;
+					}
+				}
+			}
+			if (body_index != NONE)
+			{
+				if (entry->active)
+				{
+					entry->previous_transform = entry->current_transform;
+					entry->previous_velocity = entry->velocity;
+					entry->previous_angular_velocity = entry->angular_velocity;
+					entry->previous_center = entry->center;
+					entry->valid = true;
+				}
+				havok_component_rigid_body_matrix_get(body_index, (s_havok_component *)component, &entry->current_transform);
+				s_carrier_body *body = component->bodies[body_index].body;
+				entry->velocity = body->inactive ? *g_4687a4 : body->motion->velocity;
+				body = component->bodies[body_index].body;
+				entry->angular_velocity = body->inactive ? *g_4687a4 : body->motion->angular_velocity;
+				entry->center = component->bodies[body_index].body->motion->center;
+				entry->active = true;
+				if (entry->valid)
+				{
+					transform4x3f inverse;
+					function_141590(&entry->previous_transform, &inverse);
+					function_142a60(&entry->current_transform, &inverse, &entry->transform);
+					vector3f *forward = &entry->transform.forward;
+					vector3f *left = &entry->transform.left;
+					vector3f *up = &entry->transform.up;
+					function_30bf0(forward);
+					function_30bf0(left);
+					function_30bf0(up);
+					real dot = up->k * forward->k + up->j * forward->j + forward->i * up->i;
+					up->i -= forward->i * dot;
+					up->j -= forward->j * dot;
+					up->k -= forward->k * dot;
+					function_30bf0(up);
+					left->i = up->j * forward->k - up->k * forward->j;
+					left->j = forward->i * up->k - forward->k * up->i;
+					left->k = forward->j * up->i - forward->i * up->j;
+					function_30bf0(left);
+				}
+				return;
+			}
+		}
+	}
+	entry->active = false;
+	entry->valid = false;
 }
