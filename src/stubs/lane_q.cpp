@@ -5,10 +5,6 @@
 
 /* the other object deletion callbacks (g_468664) */
 
-// @stub 0xc1670
-void __stdcall function_c1670(long object_index)
-{
-}
 
 // @stub 0x1c9f30
 void __stdcall function_1c9f30(long object_index)

@@ -104,6 +104,37 @@ long function_b8820()
 	return 0;
 }
 
+struct s_havok_component;
+void function_1d1260(s_havok_component *component);
+void function_1d1540(s_havok_component *component);
+
+// @retail 0xb8840
+void function_b8840(long object_index)
+{
+	byte *object = (byte *)((s_object_transform_header *)g_4e0300->data)[object_index & 0xffff].object;
+	long component_index = *(long *)(object + 0xb4);
+	if (component_index != NONE)
+	{
+		s_havok_component *component = (s_havok_component *)(g_51e9b8->data + (component_index & 0xffff) * 0xa0);
+		function_1d1260(component);
+	}
+	object[0xc0] &= ~0x40;
+}
+
+// @retail 0xb8890
+void __stdcall function_b8890(long object_index)
+{
+	long const *index_reference = &object_index;
+	byte *object = (byte *)((s_object_transform_header *)g_4e0300->data)[*index_reference & 0xffff].object;
+	long component_index = *(long *)(object + 0xb4);
+	if (component_index != NONE)
+	{
+		s_havok_component *component = (s_havok_component *)(g_51e9b8->data + (component_index & 0xffff) * 0xa0);
+		function_1d1540(component);
+	}
+	object[0xc0] |= 0x40;
+}
+
 struct s_object_named_value
 {
 	byte unknown00[8];

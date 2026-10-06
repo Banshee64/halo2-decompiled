@@ -24,6 +24,22 @@ struct s_object_blocks_header_ab
 	s_object_blocks_ab *object;
 };
 
+void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag);
+
+// @retail 0xbf890
+void function_bf890(long object_index, byte const *states)
+{
+	byte const *const *states_reference = &states;
+	s_object_blocks_ab *object = ((s_object_blocks_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+	long count = object->regions_size / 10;
+	byte const *values = *states_reference;
+	for (long i = 0; i < count; i++)
+	{
+		long state = values[i];
+		function_ba6f0(object_index, i, state, false);
+	}
+}
+
 struct s_object_variant_definition_ab
 {
 	byte unknown00[0x30];
@@ -227,6 +243,20 @@ long function_baf80(long object_index)
 		object_index = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object->parent_index;
 	}
 	return result;
+}
+
+bool function_183910(long component_index, point3f const *origin, point3f *point, vector3f *normal);
+
+// @retail 0xbaff0
+void function_baff0(long object_index, point3f const *origin, point3f *point, vector3f *normal)
+{
+	byte *object = (byte *)((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	long component_index = *(long *)(object + 0xb4);
+	if (component_index == NONE || !function_183910(component_index, origin, point, normal))
+	{
+		*point = *(point3f *)(object + 0x30);
+		*normal = *g_4687b0;
+	}
 }
 
 // @retail 0xbafb0
