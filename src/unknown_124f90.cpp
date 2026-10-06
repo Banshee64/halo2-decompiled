@@ -2854,6 +2854,26 @@ void function_1282d0(void)
 	}
 }
 
+struct s_looping_channel_spatialization;
+
+struct s_type_12a1b0_four_values
+{
+	real field_0[4];
+};
+
+struct s_type_12a1b0_spatial
+{
+	dword field_0;
+	long field_4;
+	long field_8;
+	long field_c;
+	long field_10;
+	real field_14;
+	real field_18;
+	vector3f field_1c;
+	s_type_12a1b0_four_values field_28;
+};
+
 vector3f *vector3d_decompress(dword arg_0, vector3f *arg_1);
 vector3f *function_1427f0(transform4x3f const *arg_0, vector3f const *arg_1, vector3f *arg_2);
 
@@ -2900,12 +2920,12 @@ void function_129aa0(short arg_0, long *arg_1, s_looping_channel_spatialization 
 			}
 			if (local_1->priority & 2)
 			{
-				local_2->field_18 = function_12ad30(local_1->definition_index, (s_sound const *)&local_1->location, (vector3f const *)&local_5, &local_4);
+				local_2->field_18 = function_12ad30((vector3f const *)&local_5, (s_sound const *)&local_1->location, local_1->definition_index, &local_4);
 				local_0->unknown0a |= 2;
 			}
 			else
 			{
-				local_2->field_18 = function_12ad30(local_1->definition_index, (s_sound const *)&local_1->location, (vector3f const *)&local_5, &local_4);
+				local_2->field_18 = function_12ad30((vector3f const *)&local_5, (s_sound const *)&local_1->location, local_1->definition_index, &local_4);
 				*arg_1 = decibels_add(*arg_1, function_2197f0(local_2->field_18));
 				local_0->unknown0a |= 1;
 			}
