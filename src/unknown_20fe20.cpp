@@ -1866,9 +1866,9 @@ short function_20d8c0(long source_index, s_audio_priority_table *table, byte con
                 if (!actor || *(long *)(actor + 0x30) == NONE)
                     goto checked;
                 byte *squad = g_51e9d8->data + (*(long *)(actor + 0x30) & 0xffff) * 0x98;
-                byte *squad_definition = (byte *)function_203330((s_squad_definition_view const *)squad);
-                if (squad_definition)
-                    eligible = (bool)((*(dword *)(squad_definition + 0x24) >> 4) & 1);
+                byte *local_b3aa32_2 = (byte *)function_203330((s_squad_definition_view const *)squad);
+                if (local_b3aa32_2)
+                    eligible = (bool)((*(dword *)(local_b3aa32_2 + 0x24) >> 4) & 1);
             }
             if (!eligible)
                 goto checked;

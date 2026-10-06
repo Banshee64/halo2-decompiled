@@ -3143,7 +3143,7 @@ void function_40890(void)
 	function_0222d0(D3DRS_CULLMODE, 0x901);
 	function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
 	function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
-	dword alpha_inputs, rgb_inputs;
+	dword local_617c45, rgb_inputs;
 	switch (g_485870)
 	{
 	case 1: case 2:
@@ -3152,7 +3152,7 @@ void function_40890(void)
 		function_0222d0(D3DRS_BLENDOP, g_485870 == 1 ? 0x8006 : 0x800b);
 		constant = packed;
 		rgb_inputs = 0x1200000;
-		alpha_inputs = 0x11200000;
+		local_617c45 = 0x11200000;
 		break;
 	case 3: case 4: case 5:
 		function_0222d0(D3DRS_SRCBLEND, 0x307);
@@ -3161,7 +3161,7 @@ void function_40890(void)
 		function_0222d0(D3DRS_BLENDCOLOR, packed);
 		constant = packed;
 		rgb_inputs = g_485870 == 3 ? 0x1201140 : g_485870 == 4 ? 0x1201120 : 0x1411120;
-		alpha_inputs = 0;
+		local_617c45 = 0;
 		break;
 	default:
 		function_0222d0(D3DRS_SRCBLEND, 1);
@@ -3169,7 +3169,7 @@ void function_40890(void)
 		function_0222d0(D3DRS_BLENDOP, 0x8006);
 		function_0222d0(D3DRS_BLENDCOLOR, constant);
 		rgb_inputs = 0x11200000;
-		alpha_inputs = 0;
+		local_617c45 = 0;
 		break;
 	}
 	function_0222d0(D3DRS_ALPHATESTENABLE, 0);
@@ -3189,7 +3189,7 @@ void function_40890(void)
 	D3DDevice_SetVertexShaderConstant(81, constants, 5);
 	D3DPIXELSHADERDEF program;
 	memset(&program, 0, sizeof(program));
-	program.PSAlphaInputs[0] = alpha_inputs;
+	program.PSAlphaInputs[0] = local_617c45;
 	program.PSRGBInputs[0] = rgb_inputs;
 	program.PSCombinerCount = 1;
 	program.PSConstant0[0] = constant;
