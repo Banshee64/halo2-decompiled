@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6428 functions match
+
+```
+matched 6428 of 11318 game functions (686770 of 2784283 bytes, 24.67%)
+```
+
+6428 new matches, none lost:
+- Codex lane W round 12: 0x18ee0 and 0x36560.
+- Codex lane U round 10: 0x20d220 and 0x20e460.
+
 ## 2026-10-06: 6424 functions match
 
 ```
