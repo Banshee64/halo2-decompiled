@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6598 functions match
+
+```
+matched 6598 of 11318 game functions (713331 of 2784283 bytes, 25.62%)
+```
+
+6598 new matches, none lost:
+- Codex lane U round 11: 0x204ca0, and lane L's 0x124360, 0x124790, 0x124800 and 0x124840 once their callees 0x2174b0 and 0x217520 became real code.
+
 ## 2026-10-06: 6593 functions match
 
 ```
