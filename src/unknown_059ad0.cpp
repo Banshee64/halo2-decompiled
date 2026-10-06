@@ -3241,3 +3241,98 @@ bool network_session_initialize(c_class_58d20 **sessions, s_network_observer *ob
 	session->flag78ac = false;
 	return true;
 }
+
+long network_observer_channel_connect_status(s_network_observer *observer, long channel_index);
+
+struct s_session_join_message
+{
+	word version;
+	word unknown02;
+	s_session_id session_id;
+	s_session_remote remote;
+};
+
+// @retail 0x62300
+void function_62300(c_class_58d20 *session)
+{
+	s_session_state_joining_data *data = session_state_joining(session);
+	if (network_observer_channel_connect_status(session->observer, data->unknown00) == 2)
+	{
+		if (network_session_time_since(data->request_time) > g_network_configuration.value1454)
+		{
+			s_session_join_message message;
+			memset(&message, 0, sizeof(message));
+			message.version = 2;
+			message.session_id = *(s_session_id *)&session->unknown1c;
+			message.remote = data->remote;
+			function_07b140(session->unknown04, (long)&data->host_address,
+				_network_message_type_join_request, sizeof(message), &message);
+			data->request_count++;
+			data->request_time = network_session_time_now();
+		}
+	}
+}
+
+// @retail 0x617c0
+void function_617c0(c_class_58d20 *session)
+{
+	s_session_state_joining_data *data = session_state_joining(session);
+	if (network_observer_channel_connect_status(session->observer, data->unknown00) != 2)
+	{
+		if (network_session_time_since(data->time) > g_network_configuration.value1458)
+		{
+			session->leave(false);
+			return;
+		}
+	}
+	else
+	{
+		if (data->unknown1ec == 0)
+			data->unknown1ec = network_session_time_now();
+		if (session->value4c != NONE && session->update_count != NONE)
+		{
+			function_612c0(session);
+			s_session_id id = *(s_session_id *)&session->unknown1c;
+			s_network_session_member_state *member = &session->member_states[session->value50];
+			if (member->flag1)
+				network_observer_send_message(session->observer, session->value10, member->unknown04,
+					false, _network_message_type_peer_establish, sizeof(id), &id);
+		}
+		else if (network_session_time_since(data->unknown1ec) > g_network_configuration.value145c)
+		{
+			session->leave(false);
+			return;
+		}
+	}
+	if (session->state == 1)
+		function_62300(session);
+}
+
+void function_07ad50(byte *buffer);
+
+// @retail 0x61050
+void function_61050(c_class_58d20 *session, long channel_index,
+	const s_session_member_identity *host, const s_session_remote *remote, const s_type_99af70 *address)
+{
+	s_session_state_joining_data data;
+	memset(&data, 0, sizeof(data));
+	data.unknown00 = channel_index;
+	data.host_identity = *host;
+	data.host_address = *address;
+	data.time = network_session_time_now();
+	data.unknown1ec = 0;
+	data.remote = *remote;
+	function_07ad50(&data.remote.unknown14d[0x180 - 0x14d]);
+	session->update7650++;
+	memset(session->data761c, 0, sizeof(session->data761c));
+	session->member_index = 0;
+	session->value7654 = NONE;
+	session->value7658 = NONE;
+	network_session_add_member(session, 0, host, true, channel_index, 0);
+	network_session_add_member(session, 1, (const s_session_member_identity *)remote->key188, false, NONE, 0);
+	session->current_member = 1;
+	memset(&session->value7420, 0, SESSION_STATE_DATA_SIZE);
+	memcpy(&session->value7420, &data, sizeof(data));
+	session->state = 1;
+	function_62300(session);
+}

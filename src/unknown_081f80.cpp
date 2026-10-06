@@ -84,3 +84,32 @@ void function_81f80(void)
 	g_4d87c8 = 0;
 	g_4d87cc = 0;
 }
+#include "unknown_08b110.h"
+#include <new>
+
+struct s_081550_fields;
+void function_081550(s_081550_fields *fields);
+
+// @retail 0x821c0
+long function_821c0(void **out_view, c_replication_view_storage **out_storage)
+{
+	s_record_pool *views = (s_record_pool *)g_4d87ec;
+	void *view = 0;
+	c_replication_view_storage *storage = 0;
+	long index = record_pool_allocate(views);
+	if (index != NONE)
+	{
+		view = views->data + (index & 0xffff) * 0xb4;
+		if (view)
+			function_081550((s_081550_fields *)view);
+		if (g_4d87e4)
+		{
+			s_record_pool *data = (s_record_pool *)g_4d87f0;
+			long storage_index = datum_new_at_index_with_salt(data, index);
+			storage = new (data->data + (storage_index & 0xffff) * 0xad30) c_replication_view_storage;
+		}
+	}
+	*out_view = view;
+	*out_storage = storage;
+	return index;
+}

@@ -5,19 +5,6 @@
 
 // @flags /O2 /arch:SSE /Gr
 
-class c_replication_view_storage
-{
-public:
-	c_replication_view_storage();
-	long unknown00;
-	c_vtable_450cf4 aggregate;
-	long unknown2c;
-	c_handle_table_450cd0 handles;
-	c_vtable_450d1c sender;
-	c_vtable_450c94 updates;
-	c_vtable_450d14 source;
-};
-
 // @retail 0x81590
 c_replication_view_storage::c_replication_view_storage()
 {
