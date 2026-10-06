@@ -116,7 +116,7 @@ struct s_collision_object
 	dword bit31 : 1;
 	byte unknown008[4];
 	long next_object;
-	long child_object;
+	long field_xf86fb0;
 	byte unknown014[0x40 - 0x14];
 	point3f center;
 	real radius;
@@ -244,7 +244,7 @@ bool function_168e20(long object_index, bool skip_test, dword flags,
 		}
 		if (!(flags & 0x20000))
 		{
-			long child = object->child_object;
+			long child = object->field_xf86fb0;
 			if (child != NONE && !object_or_parent_hidden(child) &&
 				function_168e20(child, false, flags, point, ignore_object_index, ignore_object_index2))
 				return true;
