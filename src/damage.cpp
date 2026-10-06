@@ -397,7 +397,7 @@ void function_da110(long permutation_index, s_damage_info *info, long object_ind
 	long region_index, s_damage_region_accumulator *accumulator);
 void function_d9d60(bool at_marker, long marker_name, long object_index, long effect_index, s_damage_owner const *owner);
 void function_ba690(long object_index, byte **states, long *state_count, long *a, long *b);
-void function_a8360(long object_index, long region_index, long permutation_index, bool a);
+void function_a8360(long object_index, long region_index, long permutation_index, long a);
 void function_dbfb0(long object_index, s_damage_owner const *owner, bool a, bool b, bool c);
 void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
 	vector3f const *unknown14);

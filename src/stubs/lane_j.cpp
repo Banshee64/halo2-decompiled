@@ -2,10 +2,6 @@
 // are not decompiled yet
 #include "unknown_11c920.h"
 
-// @stub 0xa9120
-void __stdcall function_a9120(long unit_index, long trick)
-{
-}
 
 struct s_bitstream;
 struct s_network_connection;
