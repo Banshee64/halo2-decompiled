@@ -111,9 +111,4 @@ void __stdcall function_063080(c_class_58d20 *session, s_network_message_session
 {
 }
 
-// @stub 0x785d0
-void __stdcall function_0785d0(void *unknown10, s_type_99af70 const *address, void const *message)
-{
-}
-
 class c_simulation_view;

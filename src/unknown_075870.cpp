@@ -177,8 +177,7 @@ bool network_observer_get_owner_address(s_network_observer *observer, long owner
 // @retail 0x75e80
 void network_observer_send_message(s_network_observer *observer, long owner, long channel_index, bool out_of_band, long message_type, long message_size, const void *message)
 {
-	s_network_observer *const *observer_reference = &observer;
-	s_network_observer_channel *channel = &(*observer_reference)->channels[channel_index];
+	s_network_observer_channel *channel = &observer->channels[channel_index];
 
 	if (channel->connection_index != NONE)
 	{
@@ -292,8 +291,7 @@ bool network_observer_get_bandwidth(s_network_observer *observer, long *value4e0
 // @retail 0x769a0
 bool network_observer_channel_timed_out(s_network_observer *observer, long channel_index)
 {
-	s_network_observer *const *observer_reference = &observer;
-	s_network_observer_channel *channel = &(*observer_reference)->channels[channel_index];
+	s_network_observer_channel *channel = &observer->channels[channel_index];
 	bool result = false;
 	if (channel->connection_index != NONE)
 	{
@@ -317,8 +315,7 @@ bool network_observer_channel_timed_out(s_network_observer *observer, long chann
 // @retail 0x773a0
 void network_observer_check_channel_activity(s_network_observer *observer, long channel_index)
 {
-	s_network_observer *const *observer_reference = &observer;
-	s_network_observer_channel *channel = &(*observer_reference)->channels[channel_index];
+	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->state)
 	{
 		if (channel->connection_index != NONE)
@@ -693,7 +690,225 @@ bool network_observer_channel_has_host(s_network_observer *observer, long channe
 /* the video refresh rate (unknown_12b070.cpp) */
 extern short g_485ac0;
 
+extern s_connection_counter g_4e6398;
+void network_samples_reset(s_network_samples *samples);
+
+static inline void observer_statistics_reset(s_network_statistics *statistics);
+
+// @retail 0x76ff0
+void network_observer_update_connection(s_network_observer *observer, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	if (channel->state)
+	{
+		s_network_connection *connection = NULL;
+		if (channel->connection_index != NONE)
+		{
+			connection = function_x7665e0(channel->connection_index);
+			switch (channel->state)
+			{
+			case 1: break;
+			case 2: break;
+			case 3: break;
+			case 4: break;
+			case 5: break;
+			case 6:
+			case 8:
+				if (connection->state == 5)
+					network_observer_set_channel_state(observer, 7, channel_index);
+				else if (connection->state <= 2)
+				{
+					switch (connection->close_reason)
+					{
+					case 9:
+						network_observer_channel_forget_address(observer, channel_index, true, 0);
+						network_observer_set_channel_state(observer, 2, channel_index);
+						channel->attempts = 0;
+						break;
+					case 1:
+					case 2:
+					case 5:
+						network_observer_channel_forget_address(observer, channel_index, true, 15);
+						network_observer_set_channel_state(observer, 1, channel_index);
+						goto state_updated;
+					}
+					if (channel->state == 6)
+					{
+						network_observer_set_channel_state(observer, 5, channel_index);
+						channel->attempts++;
+					}
+					else
+					{
+						network_observer_set_channel_state(observer, 9, channel_index);
+						channel->attempts++;
+					}
+				}
+				break;
+			case 7:
+				if (connection->state != 5)
+				{
+					if (connection->state > 2)
+						network_observer_set_channel_state(observer, 8, channel_index);
+					else
+					{
+						network_observer_set_channel_state(observer, 9, channel_index);
+						channel->attempts = 0;
+					}
+				}
+				break;
+			case 9: break;
+			default: __assume(0);
+			}
+		}
+		else
+		{
+			network_observer_channel_forget_address(observer, channel_index, true, 0);
+			network_observer_set_channel_state(observer, 1, channel_index);
+		}
+	state_updated:
+		if (channel->flags & 2)
+		{
+			if (!connection || connection->state != 5 || connection->local_sequence != channel->unknown10)
+			{
+				for (long i = 0; i < MAXIMUM_OBSERVER_OWNERS; i++)
+					if (channel->owner_mask & (1 << i))
+						observer->owners[i].active->channel_connection_changed(channel_index, channel->unknown10, false);
+				channel->flags &= ~2;
+				channel->unknown10 = NONE;
+			}
+		}
+		if (!(channel->flags & 2) && channel->state == 7)
+		{
+			channel->time94 = observer_time_get();
+			observer_statistics_reset(&channel->statistics_sent);
+			observer_statistics_reset(&channel->statistics_received);
+			network_samples_reset((s_network_samples *)channel->samples250);
+			network_samples_reset((s_network_samples *)channel->samples360);
+			*(long *)((byte *)channel + 0x480) = NONE;
+			*(long *)((byte *)channel + 0x488) = NONE;
+			*(real *)((byte *)channel + 0x484) = -1.0f;
+			*(long *)((byte *)channel + 0x470) = observer_time_get() - 1000;
+			long refresh = g_485ac0;
+			if (refresh <= 0) refresh = 60;
+			union { s_connection_counter parts; __int64 value; } counter;
+			counter.parts = g_4e6398;
+			*(__int64 *)((byte *)channel + 0x478) = counter.value - refresh;
+			channel->flags |= 6;
+			channel->unknown10 = connection->local_sequence;
+			for (long i = 0; i < MAXIMUM_OBSERVER_OWNERS; i++)
+				if (channel->owner_mask & (1 << i))
+					observer->owners[i].active->channel_connection_changed(channel_index, channel->unknown10, true);
+		}
+	}
+}
+
 /* the game's frame rate: 25 on a 50 Hz display, otherwise 30 */
+char *function_11c9c0(char *buffer, long maximum_count, const char *format, ...);
+char *function_11c9e0(char *buffer, long maximum_count, const char *format, ...);
+long network_connection_allocate(long unused_owner, dword flags);
+
+static inline void observer_statistics_initialize(s_network_statistics *statistics, long interval)
+{
+	statistics->interval = interval;
+	statistics->period = interval / NUMBER_OF_STATISTICS_SAMPLES;
+	statistics->rate_scale = 1000.0f / interval;
+	observer_statistics_reset(statistics);
+}
+
+// @retail 0x76aa0
+long network_observer_attach_channel(s_network_observer *observer, long owner_index, const XNADDR *address)
+{
+	long result = NONE;
+	for (long i = 0; i < MAXIMUM_OBSERVER_CHANNELS; i++)
+	{
+		if (observer->channels[i].state && !memcmp(address, observer->channels[i].remote_id, sizeof(*address)))
+		{
+			result = i;
+			break;
+		}
+	}
+	if (result == NONE)
+	{
+		long index = NONE;
+		for (long j = 0; j < MAXIMUM_OBSERVER_CHANNELS; j++)
+		{
+			if (!observer->channels[j].state)
+			{
+				index = j;
+				break;
+			}
+		}
+		if (index == NONE)
+		{
+			for (long j = 0; j < MAXIMUM_OBSERVER_CHANNELS; j++)
+			{
+				if (observer->channels[j].state && !observer->channels[j].owner_mask)
+				{
+					index = j;
+					s_network_observer_channel *channel = &observer->channels[j];
+					network_observer_channel_forget_address(observer, j, false, 0xe);
+					if (channel->connection_index != NONE)
+					{
+						network_connection_dispose(function_x7665e0(channel->connection_index));
+						channel->connection_index = NONE;
+					}
+					if (channel->qos_handle != NONE)
+					{
+						qos_release(channel->qos_handle);
+						channel->qos_handle = NONE;
+					}
+					memset(channel, 0, sizeof(*channel));
+					channel->connection_index = NONE;
+					channel->qos_handle = NONE;
+					break;
+				}
+			}
+		}
+		if (index != NONE)
+		{
+			s_network_observer_channel *channel = &observer->channels[index];
+			XNADDR remote = *address;
+			dword ip = remote.ina.s_addr;
+			ip = (((ip & 0xff0000) | (ip >> 16)) >> 8) | (((ip << 16) | (ip & 0xff00)) << 8);
+			char name[256];
+			function_11c9c0(name, sizeof(name), "%hd.%hd.%hd.%hd", ip >> 24, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+			function_11c9e0(name, sizeof(name), "!MAC=%02X:%02X:%02X:%02X:%02X:%02X", remote.abEnet[0], remote.abEnet[1], remote.abEnet[2], remote.abEnet[3], remote.abEnet[4], remote.abEnet[5]);
+			long connection_index = network_connection_allocate((long)name, 0x38);
+			if (connection_index != NONE)
+			{
+				channel->connection_index = connection_index;
+				function_x7665e0(connection_index)->owner = (c_connection_owner *)observer;
+				channel->state = 2;
+				channel->time = observer_time_get();
+				channel->unknown10 = NONE;
+				memcpy(channel->remote_id, address, sizeof(*address));
+				channel->time94 = observer_time_get();
+				channel->time98 = 0;
+				channel->time9c = 0;
+				observer_statistics_initialize(&channel->statistics_sent, observer->configuration->statistics_interval);
+				observer_statistics_initialize(&channel->statistics_received, observer->configuration->statistics_interval);
+				*(long *)channel->samples250 = *(long *)((byte *)observer->configuration + 0xfc);
+				network_samples_reset((s_network_samples *)channel->samples250);
+				*(long *)channel->samples360 = *(long *)((byte *)observer->configuration + 0xfc);
+				network_samples_reset((s_network_samples *)channel->samples360);
+				channel->attempts = 0;
+				channel->owner_flags = 0;
+				channel->owner_index = NONE;
+				network_observer_channel_forget_address(observer, index, false, 0);
+				result = index;
+			}
+		}
+	}
+	if (result != NONE)
+	{
+		s_network_observer_channel *channel = &observer->channels[result];
+		channel->owner_mask |= (byte)(1 << owner_index);
+		if (channel->flags & 2)
+			observer->owners[owner_index].active->channel_connection_changed(result, channel->unknown10, true);
+	}
+	return result;
+}
+
 static inline real network_frame_rate(void)
 {
 	long refresh = g_485ac0;
@@ -1853,4 +2068,416 @@ void function_78ac0(s_network_observer *observer)
 		observer->time4f30 = observer_time_get();
 	}
 	function_79260(observer);
+}
+
+
+static inline real observer_budget_rate(s_network_observer *observer, long size, bool limit)
+{
+	real frame_rate = network_frame_rate();
+	long count = observer->configuration->value10c;
+	real ratio = (real)size / (real)(count * 8 + 0x168);
+	long rate_count = observer->configuration->rate_count;
+	real result = 0.0f;
+	for (long i = 0; i < rate_count - 1; i++)
+	{
+		real rate = observer->configuration->rates[i] * frame_rate;
+		if (ratio >= rate)
+		{
+			result = rate;
+			break;
+		}
+	}
+	if (result == 0.0f) result = observer->configuration->rates[rate_count - 1] * frame_rate;
+	if (limit && result > frame_rate * 0.5f) result = frame_rate * 0.5f;
+	return result;
+}
+
+// @retail 0x779f0
+void network_observer_update_channel_budgets(s_network_observer *observer)
+{
+	if (observer_time_since(observer->time4f08) >= *(long *)((byte *)observer->configuration + 0x118))
+	{
+		bool congested = false;
+		if (observer->flag4e00)
+		{
+			long count = 0;
+			long losses = 0;
+			for (long i = 0; i < MAXIMUM_OBSERVER_CHANNELS; i++)
+			{
+				s_network_observer_channel *channel = &observer->channels[i];
+				if (channel->state == 7 && *(long *)((byte *)channel + 0x46c) <= *(long *)((byte *)observer->configuration + 0x100))
+				{
+					count++;
+					if ((real)*(long *)((byte *)channel + 0x468) / (real)*(long *)((byte *)channel + 0x360) >=
+						*(real *)((byte *)observer->configuration + 0x104)) losses++;
+				}
+			}
+			if (count > 0 && (real)losses / (real)count >= *(real *)((byte *)observer->configuration + 0x11c))
+				congested = true;
+		}
+		if (congested)
+		{
+			observer->value4f10 = 0;
+			long count = observer->value4f14 + 1;
+			long limit = *(long *)((byte *)observer->configuration + 0x130);
+			observer->value4f14 = count > limit ? limit : count;
+		}
+		else
+		{
+			observer->value4f14 = 0;
+			long count = observer->value4f10 + 1;
+			long limit = *(long *)((byte *)observer->configuration + 0x130);
+			observer->value4f10 = count > limit ? limit : count;
+		}
+		if (observer->flag4e00)
+		{
+			s_network_statistics *statistics = &observer->statistics_sent;
+			network_statistics_update(statistics);
+			long rate = real_truncate((real)statistics->total.bytes * statistics->rate_scale * 8.0f * (1.0f / 1024.0f));
+			if (observer->value4f14 >= *(long *)((byte *)observer->configuration + 0x120))
+			{
+				if (observer_time_since(observer->time4f0c) >= *(long *)((byte *)observer->configuration + 0x128))
+				{
+					long reduced = rate - *(long *)((byte *)observer->configuration + 0x124);
+					long budget = observer->value4e20 > reduced ? reduced : observer->value4e20;
+					long minimum = observer->configuration->value138;
+					budget = budget > minimum ? budget : minimum;
+					observer->value4e20 = budget;
+					observer->value4e28 = budget;
+					observer->value4e24 = observer->value4e24 > rate ? rate : observer->value4e24;
+					observer->time4f0c = observer_time_get();
+				}
+			}
+			else if (observer->value4f10 >= *(long *)((byte *)observer->configuration + 0x12c))
+			{
+				if (rate > observer->value4e20) observer->value4e20 = rate;
+				long base = observer->flag4f18 ? observer->value4e28 : rate;
+				long budget = base + *(long *)((byte *)observer->configuration + 0x140);
+				if (budget > observer->value4e28 && budget + *(long *)((byte *)observer->configuration + 0x13c) < observer->value4e24)
+				{
+					observer->value4e28 = budget;
+					observer->value4f10 = 0;
+				}
+			}
+		}
+		long indices[MAXIMUM_OBSERVER_CHANNELS];
+		long count = 0;
+		for (long i = 0; i < MAXIMUM_OBSERVER_CHANNELS; i++)
+		{
+			s_network_observer_channel *channel = &observer->channels[i];
+			*(long *)((byte *)channel + 0x480) = NONE;
+			*(real *)((byte *)channel + 0x484) = -1.0f;
+			*(long *)((byte *)channel + 0x488) = NONE;
+			if (channel->state == 7 && channel->connection_index != NONE && function_x7665e0(channel->connection_index)->callback)
+				indices[count++] = i;
+		}
+		if (count > 0)
+		{
+			observer->value4f1c = count;
+			if (observer->flag4e00)
+			{
+				observer->value4f20 = (observer->value4e28 << 10) / count;
+				observer->real4f24 = observer_budget_rate(observer, observer->value4f20, false);
+				observer->real4f28 = observer_budget_rate(observer, observer->value4f20, true);
+				real frame_rate = network_frame_rate();
+				bool limited = false;
+				if (observer->real4f24 + 0.0001f < observer->configuration->real110 * frame_rate) limited = true;
+				if (observer->real4f24 + 0.0001f < frame_rate) limited = true;
+				observer->flag4f18 = limited;
+			}
+			else
+			{
+				observer->value4f20 = NONE;
+				observer->real4f24 = -1.0f;
+				observer->real4f28 = -1.0f;
+				observer->flag4f18 = false;
+			}
+		}
+		for (long j = 0; j < count; j++)
+		{
+			s_network_observer_channel *channel = &observer->channels[indices[j]];
+			s_network_connection *connection = function_x7665e0(channel->connection_index);
+			*(long *)((byte *)channel + 0x480) = observer->value4f20;
+			*(real *)((byte *)channel + 0x484) = connection->callback && connection->callback->active ? observer->real4f24 : observer->real4f28;
+			long budget = *(long *)((byte *)channel + 0x480);
+			if (budget >= 0)
+			{
+				long delay = 0;
+				if (connection->state == 5 && (connection->flags & 8))
+					delay = *(long *)((byte *)network_reliable_stream_get(connection->reliable_stream_index) + 0x96c);
+				long interval = 0;
+				if (connection->state == 5 && (connection->flags & 8))
+					interval = *(long *)((byte *)network_reliable_stream_get(connection->reliable_stream_index) + 0x970);
+				long burst = (delay + 2 * interval) * budget / 8000;
+				long minimum = *(long *)((byte *)observer->configuration + 0xe0);
+				*(long *)((byte *)channel + 0x488) = burst > minimum ? burst : minimum;
+			}
+			else *(long *)((byte *)channel + 0x488) = NONE;
+		}
+		observer->time4f08 = observer_time_get();
+	}
+}
+
+// @retail 0x78880
+void __stdcall function_78880(void *p)
+{
+	s_network_observer *observer = (s_network_observer *)p;
+	for (long i = 0; i < MAXIMUM_OBSERVER_CHANNELS; i++)
+	{
+		s_network_observer_channel *channel = &observer->channels[i];
+		if (channel->state)
+		{
+			s_network_connection *connection = function_x7665e0(channel->connection_index);
+			if (connection->state > 2)
+			{
+				network_connection_close(connection, 3);
+				network_observer_update_connection(observer, i);
+			}
+			network_connection_dispose(function_x7665e0(channel->connection_index));
+			channel->connection_index = NONE;
+		}
+	}
+}
+
+void network_connection_connect(s_type_99af70 const *address, s_network_connection *connection, bool initiator);
+long function_75890(long time);
+
+// @retail 0x776a0
+void network_observer_retry_channel(s_network_observer *observer, long channel_index)
+{
+	long const *index_reference = &channel_index;
+	s_network_observer_channel *channel = &observer->channels[*index_reference];
+	if (!channel->state || channel->connection_index == NONE) return;
+	s_network_connection *connection = function_x7665e0(channel->connection_index);
+	if (channel->state == 1)
+	{
+		long started = channel->time;
+		if (observer_time_get() - started >= *(long *)((byte *)observer->configuration + 0x6c))
+		{
+			network_observer_set_channel_state(observer, 2, channel_index);
+			channel->attempts = 0;
+			channel->owner_flags = 0;
+			channel->owner_index = NONE;
+			network_observer_channel_forget_address(observer, channel_index, false, 0);
+			network_observer_channel_check_connect(observer, channel_index);
+			network_observer_update_connection(observer, channel_index);
+			network_observer_retry_channel(observer, channel_index);
+		}
+	}
+	if (channel->state == 4 && (channel->flags & 1))
+	{
+		network_observer_set_channel_state(observer, 5, channel_index);
+		channel->attempts = 0;
+	}
+	if (channel->state == 2 || channel->state == 5 || channel->state == 9)
+	{
+		bool wanted = false;
+		long count;
+		long *delays;
+		byte *config = (byte *)observer->configuration;
+		if (channel->state == 2)
+		{
+			count = *(long *)config;
+			delays = (long *)(config + 4);
+		}
+		else if (!(channel->flags & 4))
+		{
+			count = *(long *)(config + 0x24);
+			delays = (long *)(config + 0x28);
+		}
+		else
+		{
+			count = *(long *)(config + 0x48);
+			delays = (long *)(config + 0x4c);
+		}
+		if (channel->attempts || (channel->flags & 4))
+		{
+			for (long i = 0; i < MAXIMUM_OBSERVER_OWNERS; i++)
+				if ((channel->owner_mask & (1 << i)) && observer->owners[i].active->channel_may_send(channel_index, (channel->flags >> 2) & 1))
+					wanted = true;
+			if (!wanted)
+			{
+				if (network_observer_channel_stalled(observer, channel_index, 0))
+				{
+					network_observer_channel_forget_address(observer, channel_index, false, 0);
+					network_observer_set_channel_state(observer, 1, channel_index);
+				}
+				return;
+			}
+		}
+		channel->time98 = 0;
+		channel->time9c = 0;
+		if (channel->attempts >= 0 && channel->attempts < count)
+		{
+			long delay = delays[channel->attempts];
+			if (function_75890(channel->time) >= delay)
+			{
+				if (channel->state == 2)
+				{
+					if (network_observer_channel_find_address(observer, channel_index))
+						network_observer_set_channel_state(observer, 3, channel_index);
+					else
+						network_observer_set_channel_state(observer, 1, channel_index);
+				}
+				else
+				{
+					network_connection_connect(&channel->address, connection, true);
+					network_observer_set_channel_state(observer, channel->state == 5 ? 6 : 8, channel_index);
+				}
+			}
+		}
+		else
+		{
+			network_observer_channel_forget_address(observer, channel_index, false, 0);
+			network_observer_set_channel_state(observer, 1, channel_index);
+		}
+	}
+}
+
+bool function_07ab60(const s_type_99af70 *address, bool local, long *index_out, XNKID *kid_out, XNKEY *key_out, XNADDR *xnaddr_out);
+bool network_connection_flags_valid(dword flags);
+void network_connection_establish(s_network_connection *connection, long remote_sequence);
+
+// @retail 0x785d0
+void __stdcall function_0785d0(void *unknown10, s_type_99af70 const *address, void const *message)
+{
+	s_network_observer *observer = (s_network_observer *)unknown10;
+	const long *request = (const long *)message;
+	long failure = 4;
+	if (function_07acf0(address) == 2)
+	{
+		failure = 1;
+		dword flags = request[1];
+		if (!(address->address_length == 4 && address->ipv4_address == 0x7f000001) && !(flags & 0xc0))
+		{
+			dword connection_flags = (flags >> 1) & 1;
+			if (flags & 1) connection_flags |= 2; else connection_flags &= ~2;
+			if (flags & 4) connection_flags |= 4; else connection_flags &= ~4;
+			if (flags & 8) connection_flags |= 8; else connection_flags &= ~8;
+			if (flags & 16) connection_flags |= 16; else connection_flags &= ~16;
+			if (flags & 32) connection_flags |= 32; else connection_flags &= ~32;
+			if (network_connection_flags_valid(connection_flags))
+			{
+				long key_index;
+				XNKID id;
+				XNKEY key;
+				XNADDR remote;
+				if (function_07ab60(address, false, &key_index, &id, &key, &remote))
+				{
+					for (long index = 0; index < MAXIMUM_OBSERVER_CHANNELS; index++)
+					{
+						s_network_observer_channel *channel = &observer->channels[index];
+						if (channel->state && !memcmp(&remote, channel->remote_id, sizeof(remote)) && channel->owner_mask)
+						{
+							s_network_connection *connection = function_x7665e0(channel->connection_index);
+							s_type_99af70 previous;
+							network_connection_get_address(connection, &previous);
+							dword sequence_delta = request[0] - connection->remote_sequence;
+							if (connection->state > 2)
+							{
+								if (!function_7af80(&previous, address, false))
+								{
+									XNKID old_id;
+									XNADDR old_remote;
+									function_07ab60(&previous, false, NULL, &old_id, NULL, &old_remote);
+									function_07acf0(&previous);
+									network_connection_close(connection, 6);
+								}
+								else if (connection->remote_sequence != NONE && sequence_delta > 0)
+									network_connection_close(connection, 6);
+							}
+							if (connection->state <= 2)
+							{
+								function_07acc0(address);
+								channel->address = *address;
+								channel->key_index = key_index;
+								channel->id = *(s_network_session_id *)&id;
+								channel->key = key;
+								channel->owner_index = NONE;
+								network_connection_connect(address, connection, false);
+								network_observer_set_channel_state(observer, 6, index);
+								channel->attempts = 0;
+								network_observer_update_connection(observer, index);
+							}
+							network_connection_establish(connection, request[0]);
+							network_observer_channel_check_connect(observer, index);
+							network_observer_update_connection(observer, index);
+							return;
+						}
+					}
+				}
+				failure = 3;
+			}
+		}
+	}
+	struct { long sequence, reason; } response;
+	response.sequence = request[0];
+	response.reason = failure;
+	function_07b140(observer->link, (long)address, 5, sizeof(response), &response);
+}
+
+// @retail 0x76a40
+void network_observer_request_channel(s_network_observer *observer, long index)
+{
+	s_network_observer_channel *channel = &observer->channels[index];
+	if (channel->connection_index != NONE)
+	{
+		if (channel->state == 1)
+		{
+			network_observer_set_channel_state(observer, 2, index);
+			channel->attempts = 0;
+		}
+		channel->flags |= 1;
+		network_observer_channel_check_connect(observer, index);
+		network_observer_update_connection(observer, index);
+		network_observer_retry_channel(observer, index);
+	}
+}
+
+// @retail 0x75da0
+void network_observer_update(s_network_observer *observer)
+{
+	for (long i = 0; i < MAXIMUM_OBSERVER_CHANNELS; i++)
+	{
+		s_network_observer_channel *channel = &observer->channels[i];
+		if (channel->state)
+		{
+			if (!channel->owner_mask && network_observer_channel_stalled(observer, i, 14))
+				network_observer_channel_dispose(observer, i);
+			if (channel->state)
+			{
+				network_observer_channel_check_connect(observer, i);
+				network_observer_update_connection(observer, i);
+				network_observer_retry_channel(observer, i);
+				network_observer_check_channel_activity(observer, i);
+				network_observer_channel_probe(observer, i);
+			}
+		}
+	}
+	network_observer_update_channel_budgets(observer);
+	function_78ac0(observer);
+	function_7a4a0(observer);
+}
+
+// @retail 0x78900
+void network_observer_recreate_connections(s_network_observer *observer)
+{
+	for (long i = 0; i < MAXIMUM_OBSERVER_CHANNELS; i++)
+	{
+		s_network_observer_channel *channel = &observer->channels[i];
+		if (channel->state)
+		{
+			XNADDR remote = *(XNADDR *)channel->remote_id;
+			dword ip = remote.ina.s_addr;
+			ip = (((ip & 0xff0000) | (ip >> 16)) >> 8) | (((ip << 16) | (ip & 0xff00)) << 8);
+			char name[256];
+			function_11c9c0(name, sizeof(name), "%hd.%hd.%hd.%hd", ip >> 24, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+			long connection = network_connection_allocate((long)name, 0x38);
+			channel->connection_index = connection;
+			if (connection != NONE) function_x7665e0(connection)->owner = (c_connection_owner *)observer;
+			network_observer_channel_check_connect(observer, i);
+			network_observer_update_connection(observer, i);
+			network_observer_retry_channel(observer, i);
+		}
+	}
 }

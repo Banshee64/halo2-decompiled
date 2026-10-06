@@ -4,11 +4,6 @@
 
 struct s_47f0d0;
 
-// @stub 0x78880
-void __stdcall function_78880(void *p)
-{
-}
-
 // @stub 0x81780
 void __stdcall function_81780(long stage)
 {

@@ -7,6 +7,7 @@
 #include "unknown_11c920.h"
 #include "unknown_2312b4.h"
 #include <string.h>
+#include <xtl.h>
 
 struct s_player_configuration_cache_entry
 {
@@ -350,4 +351,93 @@ void function_7f930(void)
 		entry->flags = 0;
 		*(long *)entry->unknown64 = 0;
 	}
+}
+
+
+bool g_51055c;
+
+// @retail 0x7fe90
+long function_7fe90(const s_cached_player_identity *identity, long position, const s_cached_player_source *source)
+{
+	long removed = NONE;
+	if (g_4cf978 == 350)
+	{
+		removed = g_4cf980;
+		function_7fd10(removed);
+		function_7fd80(removed);
+	}
+	long lower, upper;
+	bool downward = false;
+	if (removed != NONE)
+	{
+		lower = removed < position ? removed : position;
+		upper = removed > position ? removed : position;
+		if (removed < position)
+		{
+			upper--;
+			position--;
+			downward = true;
+		}
+	}
+	else
+	{
+		lower = position;
+		upper = g_4cf978;
+	}
+	if (upper > lower)
+	{
+		if (downward)
+		{
+			for (long i = lower + 1; i <= upper; i++)
+				g_4cf98c[i - 1] = g_4cf98c[i];
+		}
+		else
+		{
+			for (long i = upper - 1; i >= lower; i--)
+				g_4cf98c[i + 1] = g_4cf98c[i];
+		}
+		long change = downward ? -1 : 1;
+		for (long i = 0; i < 350; i++)
+		{
+			s_player_configuration_cache_entry *entry = &g_4cf98c[i];
+			if (entry->previous_other >= lower && entry->previous_other <= upper) entry->previous_other += (short)change;
+			if (entry->next_other >= lower && entry->next_other <= upper) entry->next_other += (short)change;
+			if (entry->unknown58 >= lower && entry->unknown58 <= upper) entry->unknown58 += (short)change;
+			if (entry->next >= lower && entry->next <= upper) entry->next += (short)change;
+		}
+		if (g_4cf97c >= lower && g_4cf97c <= upper) g_4cf97c += change;
+		if (g_4cf980 >= lower && g_4cf980 <= upper) g_4cf980 += change;
+		if (g_4cf984 >= lower && g_4cf984 <= upper) g_4cf984 += change;
+		if (g_4cf988 >= lower && g_4cf988 <= upper) g_4cf988 += change;
+	}
+	s_player_configuration_cache_entry *entry = &g_4cf98c[position];
+	entry->next_other = (short)g_4cf97c;
+	entry->previous_other = NONE;
+	entry->next = NONE;
+	entry->unknown58 = (short)g_4cf988;
+	entry->flags = 0;
+	unsigned __int64 now = 0;
+	GetSystemTimeAsFileTime((FILETIME *)&now);
+	*(dword *)entry->unknown64 = (dword)(now / 3600000000ui64);
+	memset(&entry->player, 0, sizeof(entry->player));
+	s_cached_player_view *player = (s_cached_player_view *)&entry->player;
+	player->identity = *identity;
+	memcpy(player->name, source->name, sizeof(player->name));
+	player->field4c = source->field40;
+	player->field50 = source->field44;
+	player->field51 = source->field45;
+	player->field52 = source->field46;
+	player->field53 = source->field47;
+	player->field56 = source->field7f;
+	if (g_4cf97c != NONE && g_4cf97c != position)
+		g_4cf98c[g_4cf97c].previous_other = (short)position;
+	g_4cf97c = position;
+	if (g_4cf980 == NONE) g_4cf980 = position;
+	if (g_4cf988 != NONE && g_4cf988 != position)
+		g_4cf98c[g_4cf988].next = (short)position;
+	g_4cf988 = position;
+	if (g_4cf984 == NONE) g_4cf984 = position;
+	g_51055c = true;
+	if (removed == NONE) g_4cf978++;
+	return position;
 }

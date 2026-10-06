@@ -95,9 +95,9 @@ public:
 	virtual void v0(long a, long b) {}
 	virtual void v1() {}
 	virtual void v2() {}
-	virtual void v3() {}
+	virtual void v3(s_helper_output *out);
 	virtual long v4();
-	virtual void v5() {}
+	virtual long v5(long size, void *data);
 	virtual long v6();
 	virtual bool v7();
 	s_helper_source *source;
@@ -978,6 +978,142 @@ void function_731d0(c_helper_a *helper)
 
 bool online_task_get_finished(long task_index, bool *succeeded);
 
+class c_helper_update : public c_helper_a
+{
+public:
+	virtual void v2();
+};
+
+struct s_query_attribute
+{
+	word id;
+	word unused;
+	long type;
+	union
+	{
+		long integer;
+		__int64 wide;
+	};
+};
+struct s_query_identity
+{
+	dword words[3];
+};
+struct s_query_operation
+{
+	word type;
+	byte unused02[6];
+	s_query_identity identity;
+	long player;
+	union
+	{
+		byte comparison;
+		long reference;
+	};
+	long count;
+	union
+	{
+		s_query_attribute attribute;
+		s_query_attribute *attributes;
+	};
+	byte unused30[0x88 - 0x30];
+};
+struct s_query_batch
+{
+	long attribute_count;
+	long unused04;
+	s_query_attribute attributes[224];
+	long operation_count;
+	long unused_e0c;
+	s_query_operation operations[1];
+};
+
+static inline void query_attribute_set(s_query_attribute *attribute, word id, long value)
+{
+	attribute->id = id;
+	attribute->type = 1;
+	attribute->integer = value;
+}
+
+static inline void query_compare_set(s_query_operation *operation, const s_query_identity *identity,
+	long player, byte comparison, const s_query_attribute *attribute)
+{
+	operation->type = 0x8007;
+	operation->identity = *identity;
+	operation->player = player;
+	operation->comparison = comparison;
+	operation->attribute = *attribute;
+}
+
+static inline void query_reference_set(s_query_operation *operation, const s_query_identity *identity,
+	long player, word type, long reference, long count, s_query_attribute *attributes)
+{
+	operation->type = type;
+	operation->identity = *identity;
+	operation->player = player;
+	operation->reference = reference;
+	operation->count = count;
+	operation->attributes = attributes;
+}
+
+// @retail 0x73e00
+void function_73e00(s_query_batch *batch, const s_query_identity *identity, long value1,
+	long value4, long value5, long value6, long lower, long upper, long count, const long *players)
+{
+	long attribute_count = batch->attribute_count;
+	long operation_count = batch->operation_count;
+	s_query_attribute *first = &batch->attributes[attribute_count];
+	first[0].id = 0xfffe;
+	first[0].type = 2;
+	first[0].wide = value1;
+	query_attribute_set(&first[1], 1, value1);
+	query_attribute_set(&first[2], 4, value4);
+	query_attribute_set(&first[3], 5, value5);
+	query_attribute_set(&first[4], 6, value6);
+	query_attribute_set(&first[5], 2, lower);
+	query_attribute_set(&first[6], 3, lower);
+	attribute_count += 7;
+	s_query_attribute *second = &batch->attributes[attribute_count];
+	second[0].id = 0xfffe;
+	second[0].type = 2;
+	second[0].wide = value1;
+	query_attribute_set(&second[1], 1, value1);
+	query_attribute_set(&second[2], 4, value4);
+	query_attribute_set(&second[3], 5, value5);
+	query_attribute_set(&second[4], 6, value6);
+	attribute_count += 5;
+	s_query_attribute *upper_first = &batch->attributes[attribute_count++];
+	query_attribute_set(upper_first, 2, upper);
+	s_query_attribute *upper_second = &batch->attributes[attribute_count++];
+	query_attribute_set(upper_second, 3, upper);
+	for (long i = 0; i < count; i++)
+	{
+		long player = players[i];
+		if (player != NONE)
+		{
+			query_compare_set(&batch->operations[operation_count++], identity, player, 7, first);
+			long first_reference = operation_count;
+			query_compare_set(&batch->operations[operation_count++], identity, player, 6, upper_first);
+			long second_reference = operation_count;
+			query_compare_set(&batch->operations[operation_count++], identity, player, 4, upper_second);
+			long third_reference = operation_count;
+			query_reference_set(&batch->operations[operation_count++], identity, player, 0x8001, first_reference, 7, first);
+			query_reference_set(&batch->operations[operation_count++], identity, player, 0x8001, second_reference, 1, upper_first);
+			query_reference_set(&batch->operations[operation_count++], identity, player, 0x8001, third_reference, 1, upper_second);
+			query_reference_set(&batch->operations[operation_count++], identity, player, 0x8003, second_reference, 5, second);
+		}
+	}
+	batch->operation_count = operation_count;
+	batch->attribute_count = attribute_count;
+}
+
+// @retail 0x737a0
+void c_helper_update::v2()
+{
+	c_helper_a::v2();
+	function_737b0(this);
+}
+
 // @retail 0x73040
 void c_helper_a::v2()
 {
@@ -1009,4 +1145,121 @@ void c_helper_a::v2()
 		if (ba && l14 == NONE) function_73100(this);
 	}
 	function_731d0(this);
+}
+
+#include "language.h"
+#include <time.h>
+struct s_matchmaking_ratings;
+struct s_member_quality_collection;
+bool function_7e210(c_class_58d20 *session, s_matchmaking_ratings *ratings);
+void function_7e100(long current, const s_member_quality_collection *collection,
+	long *selected, long *first, long *second, long *level);
+long function_1931a0(long count, s_surface_description *variant);
+
+// @retail 0x73530
+void function_73530(c_helper_a *helper, void *description)
+{
+	c_class_58d20 *session = helper->source->other_game;
+	long member = *(long *)((byte *)session + 0x40);
+	long variant_index = NONE;
+	if (session->state > 2 && session->state <= 8)
+		variant_index = *(long *)((byte *)session + 0x49c8);
+	s_surface_description *variant = function_192e60(variant_index);
+	byte *output = (byte *)description;
+	memset(output, 0, 0x14c);
+	*(word *)(output + 2) = 0;
+	*(long *)(output + 8) = 0x2651;
+	*(long *)(output + 0xc) = 0x2651;
+	*(word *)output = 2;
+	*(long *)(output + 4) = 4;
+	long language = get_current_language();
+	if (session->state > 2 && session->state <= 8)
+		language = *(long *)((byte *)session + 0x4988);
+	*(long *)(output + 0x10) = language;
+	if (session->state && session->flag24)
+	{
+		s_session_id *id = (s_session_id *)(output + 0x14);
+		XNKEY *key = (XNKEY *)(output + 0x1c);
+		if (id) *id = *(s_session_id *)((byte *)session + 0x1c);
+		if (key) *key = *(XNKEY *)((byte *)session + 0x25);
+	}
+	memcpy(output + 0x2c, (byte *)session + 0x58 + member * 0x10c, sizeof(XNADDR));
+	*(long *)(output + 0x70) = variant_index;
+	long started = session->time78b4;
+	*(long *)(output + 0x74) = time(NULL) - started;
+	long ratings[0x364 / 4];
+	if (function_7e210(session, (s_matchmaking_ratings *)ratings))
+	{
+		function_7e100(member, (const s_member_quality_collection *)&session->value4c,
+			NULL, (long *)(output + 0x50), (long *)(output + 0x54), NULL);
+		*(long *)(output + 0x58) = ratings[3];
+		long maximum = 16;
+		if (session->state > 2 && session->state <= 8)
+			maximum = *(long *)((byte *)session + 0x4994);
+		long available = maximum - ratings[3];
+		*(long *)(output + 0x78) = ratings[0];
+		*(long *)(output + 0x68) = ratings[0x35c / 4];
+		*(long *)(output + 0x60) = available;
+		*(long *)(output + 0x7c) = ratings[1];
+		*(long *)(output + 0x80) = ratings[2];
+		*(long *)(output + 0x6c) = ratings[0x360 / 4];
+		if (ratings[2] != NONE)
+			*(long *)(output + 0x84) = ratings[2] > function_1931a0(ratings[1], variant) ? ratings[2] : function_1931a0(ratings[1], variant);
+		else
+			*(long *)(output + 0x84) = NONE;
+		*(long *)(output + 0x64) = available;
+		*(long *)(output + 0x88) = 0;
+		if (*(long *)variant == 5)
+		{
+			long count = ratings[0x1d4 / 4];
+			*(long *)(output + 0x88) = count;
+			if (count > 0) memcpy(output + 0x8c, &ratings[0x298 / 4], count * 12);
+		}
+	}
+}
+
+#include "bitstream.h"
+struct s_session_description_payload;
+void function_7db10(s_bitstream *stream, const s_session_description_payload *message);
+
+// @retail 0x733f0
+void c_helper_b::v3(s_helper_output *out)
+{
+	long description[0x14c / 4];
+	function_73530((c_helper_a *)this, description);
+	memset(out, 0, sizeof(*out));
+	out->lc = 0;
+	out->l4 = description[0x60 / 4];
+	out->l8 = description[0x5c / 4];
+	out->l0 = description[0x58 / 4];
+	out->l10 = description[0x70 / 4];
+	out->l28 = description[0x68 / 4];
+	out->l18 = description[0x64 / 4];
+	out->l14 = description[0x78 / 4];
+	out->l20 = description[0x7c / 4];
+	out->l1c = description[0x84 / 4];
+	out->l24 = description[0x74 / 4];
+}
+
+// @retail 0x73480
+long c_helper_b::v5(long size, void *data)
+{
+	long description[0x14c / 4];
+	s_bitstream stream;
+	stream.data = (byte *)data;
+	stream.size_in_bytes = size;
+	long result = 0;
+	function_73530((c_helper_a *)this, description);
+	stream.unknown08 = 1;
+	stream.mode = 1;
+	memset(data, 0, size);
+	stream.bit_position = 0;
+	stream.checkpoint_count = 0;
+	stream.error = false;
+	stream.unknown2c = 0;
+	stream.unknown30 = 0;
+	function_7db10(&stream, (const s_session_description_payload *)description);
+	if (stream.bit_position <= (stream.size_in_bytes << 3))
+		result = (stream.bit_position + 7) / 8;
+	return result;
 }
