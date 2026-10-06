@@ -1884,7 +1884,7 @@ bool function_1147e0(long unit_index, bool a, real b, real c, long definition_in
 }
 
 
-void __stdcall function_20d220(long arg_0, long arg_1, long arg_2, void *arg_3);
+void function_20d220(long record_index, long object_index, short type, long const *target);
 
 // @retail 0x114710
 void __stdcall function_114710(long arg_0, long arg_1, long arg_2)
@@ -1906,7 +1906,7 @@ void __stdcall function_114710(long arg_0, long arg_1, long arg_2)
     {
         *(long *)(local_1 + 0x54) = arg_2;
         local_1[0x48] = 1;
-        function_20d220(NONE, arg_0, NONE, local_1 + 0x20);
+        function_20d220(NONE, arg_0, NONE, (long const *)(local_1 + 0x20));
     }
 }
 
@@ -2011,7 +2011,7 @@ void function_114c60(long arg_0)
                 local_8.field_c = local_1 + 0x18;
                 *(long *)(local_1 + 0x54) = function_1891d0(arg_0, 0x4000095, (s_sound_label_play const *)&local_8);
             }
-            function_20d220(*(long *)(local_1 + 0x1c), arg_0, *(word *)(local_1 + 0xe), local_1 + 0x20);
+            function_20d220(*(long *)(local_1 + 0x1c), arg_0, *(word *)(local_1 + 0xe), (long const *)(local_1 + 0x20));
             local_1[0x48] = true;
         }
         long local_9 = *(word *)(local_1 + 0x4e);
