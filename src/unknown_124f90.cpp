@@ -2739,5 +2739,434 @@ void function_129380(vector3f const *const *voice_values, vector3f const *const 
 	}
 }
 
+struct s_animation_state;
+struct s_animation_ref;
+void function_219310(s_animation_state *arg_0, s_animation_ref *arg_1, byte arg_2);
+long function_2193d0(s_animation_state *arg_0, s_animation_ref *arg_1);
+
+// @retail 0x1282d0
+void function_1282d0(void)
+{
+	s_record_pool *local_0 = g_4e637c;
+	long local_1 = data_datum_index(local_0, function_16bc00(local_0, 0));
+	while (local_1 != NONE)
+	{
+		s_sound_playback *local_2 = (s_sound_playback *)local_0->data + (local_1 & 0xffff);
+		if (local_2->start_time <= SOUND_SYSTEM->time)
+		{
+			if ((byte)function_125e60((s_looping_track_sound *)local_2))
+			{
+				long local_3;
+				short local_4 = sound_voice_acquire(local_1, &local_3);
+				if (local_4 != NONE)
+				{
+					s_sound_voice *local_5 = &g_4e6378[local_4];
+					if (local_5->sound_index != local_1)
+					{
+						if (local_5->sound_index != NONE)
+						{
+							function_127320(local_5->sound_index, local_3);
+							sound_voice_free(local_4);
+						}
+						local_5->sound_index = local_1;
+						local_2->start_time = SOUND_SYSTEM->time;
+						local_2->value_ac = local_4;
+					}
+					if (!TEST_FIELD_BIT(local_2->source_updated) && local_2->source && local_2->source->proc1)
+						local_2->source->proc1(local_2->object_index, local_2->definition_index, local_1, (long)&local_2->marker);
+				}
+				else
+					function_127320(local_1, 7);
+			}
+			else if (local_2->value_ac == NONE)
+			{
+				s_sound_definition *local_6 = sound_definition_get(local_2->definition_index);
+				short local_7 = TEST_FIELD_BIT(local_2->flag4) ? 1 : *(short *)((byte *)function_221810(local_6->promotion_index) + 0xe);
+				if (local_7 == 0)
+				{
+					s_animation_state *local_8 = (s_animation_state *)&SOUND_GLOBALS_CHUNKS->pitch_ranges[local_6->pitch_range_base + local_2->pitch_range_index];
+					if (!(bool)((*((byte *)function_221810(local_6->promotion_index) + 0xa) >> 5) & 1) &&
+						(short)function_2193d0(local_8, (s_animation_ref *)local_6) == NONE)
+						function_219310(local_8, (s_animation_ref *)local_6, local_2->permutation_index);
+					function_127320(local_1, 14);
+				}
+			}
+		}
+		long local_9 = local_1 == NONE ? 0 : (local_1 & 0xffff) + 1;
+		local_0 = g_4e637c;
+		local_1 = data_datum_index(local_0, data_next_absolute_index_inlined(local_0, local_9));
+	}
+}
 
 
+// @retail 0x128020
+void function_128020(void)
+{
+	s_record_pool *local_0 = g_4e637c;
+	long local_1 = data_datum_index(local_0, function_16bc00(local_0, 0));
+	while (local_1 != NONE)
+	{
+		s_sound_playback *local_2 = (s_sound_playback *)local_0->data + (local_1 & 0xffff);
+		s_sound_definition *local_3 = sound_definition_get(local_2->definition_index);
+		s_sound_rate_limit *local_4 = sound_rate_limit_get(local_3->rate_limit_index);
+		short local_5 = local_2->value_ac;
+		long local_10 = NONE;
+		if (local_5 != NONE && g_4e6378[local_5].stream_reset)
+			goto local_9;
+		if (SOUND_FLAG(local_2->flags, 9) && TEST_FIELD_BIT(local_2->flag6) &&
+			SOUND_DRIVER_STREAMS->streams[g_4e6378[local_5].channel_index].state == 0)
+		{
+			local_10 = 2;
+			goto local_9;
+		}
+		if (local_4 && local_2->value_a0 != NONE && local_2->value_a0 < local_4->field_0 &&
+			local_2->start_time == local_4->field_14_2 && local_2->start_time < local_4->end_time)
+		{
+			local_10 = 15;
+			goto local_9;
+		}
+		if (!sound_playback_update_location(local_1))
+		{
+			local_10 = 3;
+			goto local_9;
+		}
+		if (local_3->flags & 8)
+			*(byte *)&local_2->location |= 1;
+		{
+			real local_6 = sound_get_maximum_distance((s_sound const *)&local_2->location, local_2->definition_index);
+			long local_7 = function_127d00(&local_2->location, local_6, NULL);
+			if (local_7 == NONE)
+			{
+				if (!TEST_FIELD_BIT(local_2->flag2))
+				{
+					function_126df0(NONE, local_1, 0, 2.0f);
+					local_2->flag2 = true;
+				}
+			}
+			else
+			{
+				local_2->listener_index = (char)local_7;
+				if (TEST_FIELD_BIT(local_2->flag2))
+				{
+					function_126df0(local_1, NONE, 0, 0.5f);
+					local_2->flag2 = false;
+				}
+			}
+		}
+local_9:
+		if (local_10 != NONE)
+			function_127320(local_1, local_10);
+		long local_8 = local_1 == NONE ? 0 : (local_1 & 0xffff) + 1;
+		local_0 = g_4e637c;
+		local_1 = data_datum_index(local_0, data_next_absolute_index_inlined(local_0, local_8));
+	}
+}
+
+real function_30bf0(vector3f *arg_0);
+real function_11cf50(vector3f const *arg_0, vector3f const *arg_1);
+
+// @retail 0x12ad30
+real function_12ad30(long arg_0, s_sound const *arg_1, vector3f const *arg_2, vector3f const *arg_3)
+{
+	real local_0 = sound_get_distance_gain(arg_0, arg_1, (real)sqrt(length_sq3f(arg_2)));
+	real local_1 = 1.0f;
+	if ((byte)function_125060(arg_1, arg_0) &&
+		!(fabs(local_0) < 0.0001f) &&
+		arg_2->j * arg_2->j + arg_2->k * arg_2->k + arg_2->i * arg_2->i >= (0.001f * 0.001f))
+	{
+		vector3f local_2 = *arg_2;
+		local_2.i = 0.0f - local_2.i;
+		local_2.j = 0.0f - local_2.j;
+		local_2.k = 0.0f - local_2.k;
+		if (function_30bf0(&local_2) > 0.0f)
+		{
+			long local_3 = sound_get_outer_cone_gain(arg_1, arg_0);
+			real local_4 = function_11cf50(&local_2, arg_3);
+			real local_5 = sound_get_outer_cone_angle(arg_1, arg_0);
+			real local_6 = sound_get_inner_cone_angle(arg_1, arg_0);
+			local_1 = function_12aff0(local_6, local_5, local_4, true);
+			local_1 = (function_2195f0(*(real *)&local_3) - 1.0f) * local_1 + 1.0f;
+		}
+	}
+	real local_7 = local_1 * local_0;
+	if ((bool)((*(word const *)arg_1 >> 9) & 1))
+		local_7 = 1.0f - local_7;
+	return local_7;
+}
+
+vector3f *vector3d_decompress(dword arg_0, vector3f *arg_1);
+vector3f *function_1427f0(transform4x3f const *arg_0, vector3f const *arg_1, vector3f *arg_2);
+
+// @retail 0x129aa0
+void function_129aa0(short arg_0, long *arg_1, s_looping_channel_spatialization *arg_2)
+{
+	s_sound_voice *local_0 = &g_4e6378[arg_0];
+	s_sound_playback *local_1 = SOUND_PLAYBACK_GET(local_0->sound_index);
+	s_type_12a1b0_spatial *local_2 = (s_type_12a1b0_spatial *)arg_2;
+	local_0->unknown0b = local_0->unknown0a;
+	local_0->unknown0a = 0;
+	switch (local_1->location.audible)
+	{
+	case 1:
+	case 2:
+		{
+			s_sound_listener *local_3 = &SOUND_SYSTEM->listeners[local_1->listener_index];
+			point3f local_5;
+			vector3f local_4 = *g_4687a4;
+			vector3f local_6;
+			if (local_1->location.audible == 1)
+			{
+				transform4x3f const *local_18 = (transform4x3f const *)&local_3->velocity_scale;
+				sound_source_get_position((s_sound_location_source const *)&local_1->location, local_1->listener_index, &local_5);
+				function_142700(local_18, &local_5, &local_5);
+				if ((byte)function_125060((s_sound const *)&local_1->location, local_1->definition_index))
+				{
+					vector3f *local_7 = vector3d_decompress(local_1->location.spatial.compressed_forward, &local_4);
+					real local_8 = local_7->i;
+					real local_9 = local_7->j;
+					real local_10 = local_7->k;
+					local_4.i = local_18->forward.k * local_10 + local_18->forward.j * local_9 + local_18->forward.i * local_8;
+					local_4.j = local_18->left.k * local_10 + local_18->left.j * local_9 + local_18->left.i * local_8;
+					local_4.k = local_18->up.k * local_10 + local_18->up.j * local_9 + local_18->up.i * local_8;
+				}
+				function_1427f0(local_18, &local_1->location.spatial.velocity, &local_6);
+			}
+			else
+			{
+				local_5 = local_1->location.spatial.position;
+				if ((byte)function_125060((s_sound const *)&local_1->location, local_1->definition_index))
+					vector3d_decompress(local_1->location.spatial.compressed_forward, &local_4);
+				local_6 = local_1->location.spatial.velocity;
+			}
+			if (local_1->priority & 2)
+			{
+				local_2->field_18 = function_12ad30(local_1->definition_index, (s_sound const *)&local_1->location, (vector3f const *)&local_5, &local_4);
+				local_0->unknown0a |= 2;
+			}
+			else
+			{
+				local_2->field_18 = function_12ad30(local_1->definition_index, (s_sound const *)&local_1->location, (vector3f const *)&local_5, &local_4);
+				*arg_1 = decibels_add(*arg_1, function_2197f0(local_2->field_18));
+				local_0->unknown0a |= 1;
+			}
+			if (SOUND_FLAG(local_1->location.flags, 11))
+				local_0->unknown0a |= 1;
+			local_2->field_1c = *(vector3f *)&local_5;
+		}
+		break;
+	case 0:
+		local_0->unknown0a |= 1;
+		local_2->field_18 = SOUND_FLAG(local_1->location.flags, 8) ? 0.0f : 1.0f;
+		local_2->field_1c = *(vector3f *)g_468788;
+		break;
+	}
+	local_2->field_14 = (local_0->unknown0a & 1) ? 0.0f : 1.0f;
+	long local_11 = SOUND_SYSTEM->time;
+	long *local_12 = (long *)local_0->unknown14;
+	if (!local_0->unknown0b)
+	{
+		*local_12 = 0;
+		local_2->field_8 = (local_0->unknown0a & 1) ? g_440c48 : g_440c4c;
+		local_2->field_4 = (local_0->unknown0a & 2) ? function_2197f0(local_2->field_18) : g_440c4c;
+	}
+	else
+	{
+		if (local_0->unknown0b != local_0->unknown0a)
+			*local_12 = local_11 - PIN(1000 - *local_12 - local_11, 0, 1000);
+		long local_13 = 0;
+		long local_14 = 0xc2800000;
+		if (*local_12 > 0)
+		{
+			long local_15 = local_11 - *local_12;
+			if (local_15 > 1000)
+				*local_12 = 0;
+			else
+			{
+				local_13 = function_12a6d0(1, (real)local_15, 1000.0f);
+				local_14 = function_12a6d0(1, (real)local_15, -1000.0f);
+			}
+		}
+		long local_16 = (local_0->unknown0a & 2) ? local_13 : local_14;
+		local_2->field_14 = function_2195f0(*(real *)&local_16);
+		local_0->unknown0b = local_0->unknown0a;
+		local_2->field_8 = *((local_0->unknown0a & 1) ? &local_13 : &local_14);
+		local_2->field_4 = decibels_add(*((local_0->unknown0a & 2) ? &local_13 : &local_14), function_2197f0(local_2->field_18));
+	}
+	local_2->field_0 = local_0->unknown0a;
+	local_2->field_c = 0;
+	local_2->field_10 = 0;
+	if (SOUND_FLAG(local_1->location.flags, 11))
+		local_2->field_8 = decibels_add(*(long *)((byte *)function_221810(sound_definition_get(local_1->definition_index)->promotion_index) + 0x14), local_2->field_8);
+	if (!TEST_FIELD_BIT(local_1->source_updated) && local_1->source && local_1->source->spatialize)
+	{
+		s_type_12a1b0_spatial local_17 = *local_2;
+		if (local_1->source->spatialize(local_1->object_index, local_1->definition_index, (s_sound_source_view const *)&local_1->marker, (s_sound_spatialization_view *)&local_17))
+			*local_2 = local_17;
+	}
+}
+
+extern dword g_510800_pool_base;
+extern long g_510804_pool_size;
+extern dword g_510808_pool_checksum;
+void function_163ba0(dword *arg_0, void const *arg_1, long arg_2);
+s_record_pool *function_11cc20(long arg_0, char const *arg_1, long arg_2);
+void sound_cache_initialize(void);
+bool looping_sound_controllers_initialize(void);
+bool function_21a0c0(void);
+bool sound_effects_initialize(void);
+struct s_sound_voice_settings;
+struct s_sound_driver_counts;
+bool sound_voices_initialize(s_sound_voice_settings const *arg_0);
+bool function_21e4b0(s_sound_driver_counts const *arg_0);
+
+short g_44a0c8[7] = { 40, 41, 1, 36, 36, 1, 51 };
+
+// @retail 0x1253d0
+void function_1253d0(void)
+{
+	if (g_4e6374 == 0)
+	{
+		byte *local_0 = (byte *)(g_510800_pool_base + g_510804_pool_size);
+		byte *local_1 = (byte *)(((dword)local_0 + 3) & ~3);
+		long local_2 = (local_1 - local_0) + 0x20c;
+		g_510804_pool_size += local_2;
+		dword local_3 = g_510808_pool_checksum;
+		function_163ba0(&local_3, &local_2, sizeof(local_2));
+		g_510808_pool_checksum = local_3;
+		memset(local_1, 0, 0x20c);
+		g_4e6380 = (s_4e6380 *)local_1;
+		SOUND_SYSTEM->hardware_available = true;
+		SOUND_SYSTEM->changing_pause = false;
+		sound_cache_initialize();
+		SOUND_SYSTEM->environments[0].index = NONE;
+		SOUND_SYSTEM->environments[0].unknown0c = 0.0f;
+		SOUND_SYSTEM->environments[0].unknown10 = 6.28318548f;
+		SOUND_SYSTEM->environments[1].index = NONE;
+		SOUND_SYSTEM->environments[1].unknown0c = 0.0f;
+		SOUND_SYSTEM->environments[1].unknown10 = 0.0f;
+		s_record_pool *local_4 = function_11cc20(384, "sound sources", sizeof(s_sound_playback));
+		local_0 = (byte *)(g_510800_pool_base + g_510804_pool_size);
+		byte *local_5 = (byte *)(((dword)local_0 + 3) & ~3);
+		local_2 = (local_5 - local_0) + 0x1200;
+		g_4e637c = local_4;
+		g_510804_pool_size += local_2;
+		local_3 = g_510808_pool_checksum;
+		function_163ba0(&local_3, &local_2, sizeof(local_2));
+		g_510808_pool_checksum = local_3;
+		g_4e6378 = (s_sound_voice *)local_5;
+		if (local_4 && local_5)
+		{
+			local_4->valid = true;
+			record_pool_release_all(local_4);
+			memset(g_4e6378, 0, 0x1200);
+			if (looping_sound_controllers_initialize() && function_21a0c0() &&
+				sound_effects_initialize() && sound_voices_initialize((s_sound_voice_settings const *)g_44a0c8) &&
+				function_21e4b0((s_sound_driver_counts const *)g_44a0c8))
+			{
+				s_sound_system_view *local_6 = SOUND_SYSTEM;
+				bit_vector_fill((dword *)((byte *)local_6 + 0x60), 128, 0);
+				bit_vector_fill(local_6->channel_bits, 64, 0);
+				short local_7 = 0;
+				for (short local_8 = 0; local_8 < 3; local_8++)
+				{
+					SOUND_SYSTEM->voice_count += g_44a0c8[local_8 + 3];
+					for (short local_9 = 0; local_9 < g_44a0c8[local_8 + 3]; local_9++)
+					{
+						s_sound_voice *local_10 = &g_4e6378[local_7++];
+						local_10->sound_index = NONE;
+						local_10->definition_type = (byte)local_8;
+						local_10->unknown0a = 0;
+						local_10->unknown0b = 0;
+						local_10->channel_index = NONE;
+						local_10->unknown0e = NONE;
+						local_10->driver_voice_index = NONE;
+						local_10->permutation = NULL;
+						local_10->next_permutation = NULL;
+						local_10->stream_reset = false;
+					}
+				}
+				*(short *)((byte *)SOUND_SYSTEM + 0x20a) = 51;
+				SOUND_SYSTEM->initialized = true;
+			}
+		}
+	}
+	g_4e6374++;
+}
+
+void function_21ec00(void);
+void function_1293f0(void);
+void function_21ee80(void);
+void sound_cache_new_frame(void);
+
+// @retail 0x125d60
+void function_125d60(void)
+{
+	long local_0 = SOUND_SYSTEM->field_14_2;
+	local_0 = GetTickCount() - local_0;
+	if (g_4e6948 && g_4e6948->flag1120 && (real)local_0 > g_510c54->rate * 1000.0f)
+	{
+		s_sound_system_view *local_1 = SOUND_SYSTEM;
+		local_1->unknown7c = true;
+		if (!local_1->changing_pause)
+		{
+			local_1->changing_pause = true;
+			if ((byte)sound_system_available())
+			{
+				function_21ec00();
+				sound_system_update_time();
+				sound_voices_update_chunks();
+				function_1293f0();
+				function_21ee80();
+				local_1 = SOUND_SYSTEM;
+			}
+			sound_cache_new_frame();
+			local_1->changing_pause = false;
+		}
+		local_1->unknown7c = false;
+	}
+}
+
+void __stdcall function_1264c0(dword arg_0);
+
+// @retail 0x1257b0
+void function_1257b0(void)
+{
+	if (!SOUND_SYSTEM->unknown7b && SOUND_SYSTEM->initialized && SOUND_SYSTEM->hardware_available && SOUND_SYSTEM->enabled)
+	{
+		long local_0 = GetTickCount();
+		s_record_pool *local_1 = g_4e637c;
+		long local_2 = data_datum_index(local_1, function_16bc00(local_1, 0));
+		if (local_2 != NONE)
+		{
+			do
+			{
+				s_sound_playback *local_3 = (s_sound_playback *)local_1->data + (local_2 & 0xffff);
+				local_3->fade_gain = function_12a810(local_2);
+				local_3->fade_curve = 0;
+				local_3->fade_start_time = 300;
+				local_3->fade_end_time = NONE;
+				local_3->fading = true;
+				local_2 = data_datum_index(local_1, function_16bc00(local_1, (local_2 & 0xffff) + 1));
+			} while (local_2 != NONE);
+			real local_4 = (real)local_0;
+			local_4 += 300.0f;
+			for (;;)
+			{
+				if (!(GetTickCount() < local_4))
+					break;
+				function_125d60();
+			}
+		}
+	}
+	function_1264c0(0);
+	SOUND_SYSTEM->enabled = false;
+	if (g_502110)
+		record_pool_release_all((s_record_pool *)g_502110);
+	if (g_51ebd8)
+		record_pool_release_all((s_record_pool *)g_51ebd8);
+	g_51ebd4 = NULL;
+	function_191270();
+	long *local_5 = SOUND_DRIVER_GLOBALS->impulse_ids;
+	local_5[0] = NONE;
+	local_5[1] = NONE;
+}
