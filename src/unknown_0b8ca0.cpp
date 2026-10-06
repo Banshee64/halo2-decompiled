@@ -424,18 +424,7 @@ void function_b9fc0(long object_index, vector3f *forward, vector3f *up)
 void function_cc590(long object_index);
 void function_b9a90(long object_index);
 
-// @retail 0xb9a50
-void __stdcall function_b9a50(long object_index)
-{
-    s_object_view *object = OBJECT_GET(object_index);
-    if (object->parent_index != NONE)
-    {
-        if ((1 << object->type) & 3)
-            function_cc590(object_index);
-        else
-            function_b9a90(object_index);
-    }
-}
+void __stdcall function_b9a50(long object_index);
 
 extern void (__stdcall *g_468664[8])(long object_index);
 void __stdcall function_b8540(long object_index);
