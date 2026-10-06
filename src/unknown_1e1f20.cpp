@@ -419,17 +419,17 @@ void function_1e23c0(long actor_index)
  {
   s_prop_node_view *prop = (s_prop_node_view *)(g_502418->data + (prop_index & 0xffff) * 0x3c);
   prop_index = prop->next_index;
-  byte *prop_state = (byte *)function_25d690((s_prop_datum *)prop);
+  byte *prop_block = (byte *)function_25d690((s_prop_datum *)prop);
   byte *view = NULL;
   if (prop->view_index != NONE)
   {
    byte *entry = g_502414->data + (prop->view_index & 0xffff) * 0x124;
    if (entry) view = entry + 0x70;
   }
-  *(long *)(prop_state + 0x28) = NONE;
-  *(short *)(prop_state + 0x2c) = NONE;
-  *(short *)(prop_state + 0x2e) = g_4686c4;
-  *(long *)(prop_state + 0x44) = NONE;
+  *(long *)(prop_block + 0x28) = NONE;
+  *(short *)(prop_block + 0x2c) = NONE;
+  *(short *)(prop_block + 0x2e) = g_4686c4;
+  *(long *)(prop_block + 0x44) = NONE;
   if (view && *(short *)(view + 0x70) == 1)
   {
    view[0x68] = false;
