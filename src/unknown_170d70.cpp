@@ -4,6 +4,7 @@
 #include "object_queries.h"
 #include <math.h>
 #include <string.h>
+#include <float.h>
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -12,6 +13,157 @@ real g_54e854;
 real g_54e858;
 real g_54e85c;
 real g_54e860;
+
+extern real g_4e9bd0;
+short g_468d3c[6] = { 3, 3, 2, 1, 1, 3 };
+short g_468d30[6] = { 3, 3, 2, 1, 1, 6 };
+real const g_4449c0[6] = { 1500.0f, 1500.0f, 1500.0f, 100000.0f, 100000.0f, 100000.0f };
+
+struct s_motion_channels_1701f0
+{
+	byte unknown00[8];
+	dword flags;
+	real target[16];
+	byte unknown4c[0x94 - 0x4c];
+	byte channel_flags[6];
+	byte unknown9a[2];
+	real times[6];
+	byte unknownb4[0x10c - 0xb4];
+	real current[16];
+	byte unknown14c[0x180 - 0x14c];
+	real first_derivative[13];
+	real second_derivative[13];
+	real fifth[13];
+	real fourth[13];
+	real third[13];
+	real second[13];
+	real first[13];
+	real constant[13];
+	real delta[13];
+	byte unknown354[4];
+};
+
+// @retail 0x1701f0
+void function_1701f0(long player_index)
+{
+	s_motion_channels_1701f0 *state = (s_motion_channels_1701f0 *)g_4e9bd4 + player_index;
+	real *out = state->second_derivative;
+	real *fifth = state->fifth;
+	real *fourth = state->fourth;
+	real *third = state->third;
+	real *second = state->second;
+	real *time = state->times;
+	for (long group = 0; group < 6; ++group, ++time)
+	{
+		real t = *time - g_4e9bd0;
+		if (t > 0.0f)
+		{
+			real t2 = t * t;
+			real t3 = t2 * t;
+			for (short i = 0; i < g_468d3c[group]; ++i)
+			{
+				out[i] = fifth[i] * t3 * 20.0f + fourth[i] * t2 * 12.0f + third[i] * t * 6.0f + second[i] * 2.0f;
+				if (out[i] > g_4449c0[group] || 0.0f - g_4449c0[group] > out[i])
+				{
+					for (long other = 0; other < 6; ++other)
+						if (other != group && state->times[other] == *time)
+							state->times[other] = 0.0f;
+					*time = 0.0f;
+				}
+			}
+		}
+		else
+			memset(out, 0, g_468d3c[group] * sizeof(real));
+		long count = g_468d3c[group];
+		out += count;
+		fifth += count;
+		fourth += count;
+		third += count;
+		second += count;
+	}
+}
+
+// @retail 0x1703f0
+void function_1703f0(long player_index)
+{
+	real inverse_dt = (real)(1.0 / g_4e9bd0);
+	s_motion_channels_1701f0 *state = (s_motion_channels_1701f0 *)g_4e9bd4 + player_index;
+	real *out = state->first_derivative;
+	real *fifth = state->fifth;
+	real *fourth = state->fourth;
+	real *third = state->third;
+	real *second = state->second;
+	real *first = state->first;
+	real *delta = state->delta;
+	for (long group = 0; group < 6; ++group)
+	{
+		real t = state->times[group] - g_4e9bd0;
+		if (t > 0.0f)
+		{
+			real t2 = t * t;
+			real t3 = t2 * t;
+			real t4 = t3 * t;
+			for (short i = 0; i < g_468d3c[group]; ++i)
+				out[i] = fifth[i] * t4 * 5.0f + fourth[i] * t3 * 4.0f + third[i] * t2 * 3.0f + second[i] * t * 2.0f + first[i];
+		}
+		else if ((state->flags & 1) && ((state->channel_flags[group] & 2) || (state->flags & 8)))
+			memset(out, 0, g_468d3c[group] * sizeof(real));
+		else if (state->flags & 1)
+		{
+			for (short i = 0; i < g_468d3c[group]; ++i)
+				out[i] = 0.0f - delta[i] * inverse_dt;
+		}
+		long count = g_468d3c[group];
+		out += count;
+		fifth += count;
+		fourth += count;
+		third += count;
+		second += count;
+		first += count;
+		delta += count;
+	}
+}
+
+vector3f *matrix4x3_rotation_between(transform4x3f const *a, transform4x3f const *b, vector3f *out);
+
+PRIVATE inline void placement_basis_170c00(vector3f const *forward, vector3f const *up, transform4x3f *matrix)
+{
+	matrix->scale = 1.0f;
+	matrix->forward = *forward;
+	matrix->left.i = up->j * forward->k - forward->j * up->k;
+	matrix->left.j = forward->i * up->k - up->i * forward->k;
+	matrix->left.k = forward->j * up->i - forward->i * up->j;
+	matrix->up = *up;
+	matrix->position.x = matrix->position.y = matrix->position.z = 0.0f;
+}
+
+// @retail 0x170c00
+vector3f *function_170c00(vector3f const *first_forward, vector3f const *first_up, vector3f const *second_forward, vector3f const *second_up, vector3f *out)
+{
+	transform4x3f first, second;
+	placement_basis_170c00(first_forward, first_up, &first);
+	placement_basis_170c00(second_forward, second_up, &second);
+	return matrix4x3_rotation_between(&first, &second, out);
+}
+
+// @retail 0x170bb0
+void function_170bb0(real const *first, real const *second, real *out)
+{
+	long count = 10;
+	do
+	{
+		*out++ = *first++ - *second++;
+	} while (--count);
+	count = 1;
+	do
+	{
+		function_170c00((vector3f const *)first, (vector3f const *)(first + 3),
+			(vector3f const *)second, (vector3f const *)(second + 3), (vector3f *)out);
+		first += 6;
+		second += 6;
+		out += 3;
+	} while (--count);
+}
 
 // @retail 0x170d70
 void function_170d70(vector3f const *rotation, vector3f *a, vector3f *b)
@@ -51,6 +203,100 @@ static inline bool real_in_world_range(real value)
 	return real_is_finite(value) && value >= -50000.0f && value <= 50000.0f;
 }
 
+PRIVATE inline bool motion_near_zero_170630(real value)
+{
+	return real_is_finite(value) && fabs(value) < 0.001f;
+}
+
+PRIVATE inline void motion_normalize_170630(vector3f *vector)
+{
+	real magnitude = (real)sqrt(vector->i * vector->i + vector->j * vector->j + vector->k * vector->k);
+	if (!(fabs(magnitude) < 0.0001f))
+	{
+		real inverse = 1.0f / magnitude;
+		vector->i *= inverse;
+		vector->j *= inverse;
+		vector->k *= inverse;
+	}
+}
+
+// @retail 0x170630
+void function_170630(long player_index)
+{
+	s_motion_channels_1701f0 *state = (s_motion_channels_1701f0 *)g_4e9bd4 + player_index;
+	real values[13];
+	real *value = values;
+	real *current = state->current;
+	real *target = state->target;
+	real *velocity = state->first_derivative;
+	real *fifth = state->fifth;
+	real *fourth = state->fourth;
+	real *third = state->third;
+	real *second = state->second;
+	real *first = state->first;
+	real *constant = state->constant;
+	for (short group = 0; group < 6; ++group)
+	{
+		real t = state->times[group] - g_4e9bd0;
+		if (!(t > 0.0f) && (state->flags & 1))
+		{
+			for (short i = 0; i < g_468d30[group]; ++i)
+				current[i] = target[i];
+		}
+		else
+		{
+			if (t > 0.0f)
+			{
+				real t2 = t * t;
+				real t3 = t2 * t;
+				real t4 = t3 * t;
+				real t5 = t4 * t;
+				for (short i = 0; i < g_468d3c[group]; ++i)
+					value[i] = fifth[i] * t5 + fourth[i] * t4 + third[i] * t3 + second[i] * t2 + first[i] * t + constant[i];
+			}
+			else
+			{
+				for (short i = 0; i < g_468d3c[group]; ++i)
+					value[i] = 0.0f - velocity[i] * g_4e9bd0;
+			}
+			if (group < 5)
+			{
+				for (short i = 0; i < g_468d3c[group]; ++i)
+					current[i] = value[i] + current[i];
+			}
+			else
+				function_170d70((vector3f const *)value, (vector3f *)current, (vector3f *)(current + 3));
+		}
+		current += g_468d30[group];
+		target += g_468d30[group];
+		long count = g_468d3c[group];
+		value += count;
+		velocity += count;
+		fifth += count;
+		fourth += count;
+		third += count;
+		second += count;
+		first += count;
+		constant += count;
+	}
+	vector3f *forward = (vector3f *)(state->current + 10);
+	vector3f *up = (vector3f *)(state->current + 13);
+	if (!(motion_near_zero_170630(length_sq3f(forward) - 1.0f) &&
+		motion_near_zero_170630(length_sq3f(up) - 1.0f) &&
+		motion_near_zero_170630(up->k * forward->k + forward->i * up->i + up->j * forward->j)))
+	{
+		vector3f left;
+		left.i = up->j * forward->k - up->k * forward->j;
+		left.j = up->k * forward->i - forward->k * up->i;
+		left.k = forward->j * up->i - up->j * forward->i;
+		up->i = forward->j * left.k - left.j * forward->k;
+		up->j = left.i * forward->k - forward->i * left.k;
+		up->k = forward->i * left.j - forward->j * left.i;
+		motion_normalize_170630(forward);
+		motion_normalize_170630(up);
+	}
+}
+
 // @retail 0x172350
 bool function_172350(point3f const *point)
 {
@@ -81,6 +327,71 @@ bool function_172460(real value)
 	if (real_is_finite(value) && value >= g_45dbd8 && value <= 3600.0f)
 		return true;
 	return false;
+}
+
+bool function_a74c0(vector3f const *forward, vector3f const *up);
+bool function_a7570(vector3f const *vector);
+
+struct s_checked_placement_1724a0
+{
+	dword flags;
+	point3f position;
+	point3f target;
+	byte unknown1c[8];
+	real scale;
+	real radius;
+	vector3f forward;
+	vector3f up;
+	vector3f velocity;
+	byte unknown50[0x38];
+	real duration;
+};
+
+// @retail 0x1724a0
+bool function_1724a0(s_checked_placement_1724a0 const *placement)
+{
+	if (placement && (!(placement->flags & 1) ||
+		(function_a74c0(&placement->forward, &placement->up) &&
+		function_172350(&placement->position) && function_172350(&placement->target) &&
+		function_a7570(&placement->velocity) && function_172420(placement->scale) &&
+		function_1723e0(placement->radius) && function_172460(placement->duration))))
+		return true;
+	return false;
+}
+
+struct s_observer_command;
+struct s_16f460;
+void function_16f460(s_16f460 *state);
+
+PRIVATE inline real placement_clamp_172520(real value, real minimum, real maximum)
+{
+	return value < minimum ? minimum : value > maximum ? maximum : value;
+}
+
+// @retail 0x172520
+void function_172520(s_observer_command *command)
+{
+	s_checked_placement_1724a0 *placement = (s_checked_placement_1724a0 *)command;
+	if (!function_1724a0(placement))
+	{
+		if (!function_a74c0(&placement->forward, &placement->up))
+		{
+			placement->forward = *g_4687a8;
+			placement->up = *g_4687b0;
+		}
+		placement->position.x = placement_clamp_172520(placement->position.x, -50000.0f, 50000.0f);
+		placement->position.y = placement_clamp_172520(placement->position.y, -50000.0f, 50000.0f);
+		placement->position.z = placement_clamp_172520(placement->position.z, -50000.0f, 50000.0f);
+		placement->target.x = placement_clamp_172520(placement->target.x, -50000.0f, 50000.0f);
+		placement->target.y = placement_clamp_172520(placement->target.y, -50000.0f, 50000.0f);
+		placement->target.z = placement_clamp_172520(placement->target.z, -50000.0f, 50000.0f);
+		if (!function_a7570(&placement->velocity))
+			placement->velocity = *g_4687a4;
+		placement->radius = placement_clamp_172520(placement->radius, g_54e858, g_54e85c);
+		placement->scale = placement_clamp_172520(placement->scale, 0.0f, g_54e860);
+		if (!function_1724a0(placement))
+			function_16f460((s_16f460 *)command);
+	}
 }
 
 /* a table of 512 short lists: a bit per list that is in use, the first value
@@ -457,4 +768,203 @@ void function_1726d0(s_view_setup *view, point3f const *position, vector3f const
 	view->aspect = 1.3333334f;
 	function_11bed0(&view->location, position);
 	function_171d90(view);
+}
+
+struct s_polygon_173910
+{
+	long field_0;
+	long plane_index;
+	byte unknown08[0x14];
+	long count;
+	point3f const *points;
+};
+
+struct s_polygon_context_173910
+{
+	long field_0;
+	struct s_planes
+	{
+		byte unknown00[0xc];
+		plane3f const *planes;
+	} *geometry;
+	struct s_origin
+	{
+		byte unknown00[0x60];
+		point3f position;
+	} *origin;
+};
+
+short function_120850(vector3f const *v);
+bool function_23a220(point2f const *point, short count, point2f const *points, real epsilon);
+
+// @retail 0x173910
+bool function_173910(s_polygon_context_173910 const *context, s_polygon_173910 const *polygon)
+{
+	point2f points[128];
+	plane3f const *plane = &context->geometry->planes[polygon->plane_index];
+	long axis = function_120850(&plane->n);
+	bool positive = ((real const *)plane)[axis] > 0.0f;
+	point3f const *origin = &context->origin->position;
+	real distance = 0.0f - plane_distance_to_point(plane, origin);
+	point3f projected;
+	projected.x = plane->n.i * distance + origin->x;
+	projected.y = distance * plane->n.j + origin->y;
+	projected.z = plane->n.k * distance + origin->z;
+	short const *axes = g_440b94[axis * 2 + positive];
+	point2f point;
+	point.x = ((real const *)&projected)[axes[0]];
+	point.y = ((real const *)&projected)[axes[1]];
+	for (long i = 0; i < polygon->count; ++i)
+	{
+		points[i].x = ((real const *)&polygon->points[i])[axes[0]];
+		points[i].y = ((real const *)&polygon->points[i])[axes[1]];
+	}
+	return function_23a220(&point, (short)polygon->count, points, 0.0001f) != false;
+}
+
+// @retail 0x173890
+long function_173890(s_polygon_context_173910 const *context, s_polygon_173910 const *polygon, long state, bool *inside)
+{
+	plane3f const *plane = &context->geometry->planes[polygon->plane_index];
+	point3f const *origin = &context->origin->position;
+	real distance = origin->x * plane->i + plane->j * origin->y + plane->k * origin->z - plane->d;
+	if (fabs(distance) > 0.015625)
+	{
+		*inside = false;
+		if (state <= 0)
+		{
+		zero:
+			return 0;
+		}
+		if (state >= 3)
+		{
+			if (distance < 0.0f)
+				return 1;
+			return 2;
+		}
+	}
+	else
+	{
+		*inside = function_173910(context, polygon);
+		if (!*inside && state <= 0)
+			goto zero;
+	}
+	return 3;
+}
+
+struct s_projected_polygon_173520
+{
+	long field_0;
+	byte state;
+	byte unknown05;
+	short field_6;
+	short field_8;
+	short unknown0a;
+	real distance;
+	box2f bounds;
+	short count;
+	short unknown22;
+	point2f *points;
+};
+
+struct s_polygon_cache_173520
+{
+	struct s_geometry
+	{
+		byte unknown00[0x60];
+		s_polygon_173910 *polygons;
+	} *geometry;
+	s_polygon_context_173910::s_planes *planes;
+	byte *view;
+	plane3f field_c_8;
+	dword visited[16];
+	s_projected_polygon_173520 polygons[512];
+	long point_count;
+	point2f points[5120];
+};
+
+box2f g_5476cc;
+box2f *g_4687dc = &g_5476cc;
+int __stdcall function_1429d0(transform4x3f const *matrix, long count, point3f const *source, point3f *destination);
+long function_11fc80(plane3f const *plane, bool keep_inside, real tolerance, long point_count, point3f const *points, long maximum_count, point3f *out);
+
+// @retail 0x173520
+s_projected_polygon_173520 *function_173520(long polygon_index, s_polygon_cache_173520 *cache)
+{
+	point3f transformed[64];
+	point3f clipped[64];
+	s_projected_polygon_173520 *result = &cache->polygons[polygon_index];
+	dword bit = 1 << (polygon_index & 31);
+	long word_index = polygon_index >> 5;
+	if (!(cache->visited[word_index] & bit))
+	{
+		if (5120 - cache->point_count < 64)
+			return 0;
+		s_polygon_173910 const *polygon = &cache->geometry->polygons[polygon_index];
+		function_1429d0((transform4x3f const *)(cache->view + 4), polygon->count, polygon->points, transformed);
+		long count = function_11fc80(&cache->field_c_8, true, 0.0078125f, polygon->count, transformed, 64, clipped);
+		bool inside;
+		result->state = (byte)function_173890((s_polygon_context_173910 const *)cache, polygon, count, &inside);
+		result->field_6 = ((short const *)polygon)[0];
+		result->field_8 = ((short const *)polygon)[1];
+		result->distance = FLT_MAX;
+		result->bounds = *g_4687dc;
+		result->points = cache->points + cache->point_count;
+		cache->point_count += 64;
+		result->count = (short)count;
+		result->field_0 = *(long const *)((byte const *)polygon + 0x18);
+		if (result->state)
+		{
+			long index = result->state == 1 ? count - 1 : 0;
+			long step = result->state == 1 ? -1 : 1;
+			for (long i = 0; i < count; ++i, index += step)
+			{
+				point2f *point = &result->points[index];
+				real inverse = -1.0f / clipped[i].z;
+				point->x = clipped[i].x * inverse;
+				point->y = clipped[i].y * inverse;
+				if (result->bounds.x0 > point->x)
+					result->bounds.x0 = point->x;
+				if (point->x > result->bounds.x1)
+					result->bounds.x1 = point->x;
+				if (result->bounds.y0 > point->y)
+					result->bounds.y0 = point->y;
+				if (point->y > result->bounds.y1)
+					result->bounds.y1 = point->y;
+				real distance = 0.0f - clipped[i].z;
+				result->distance = result->distance > distance ? distance : result->distance;
+			}
+			if (result->state == 3)
+			{
+				if (inside)
+				{
+					result->distance = (real)(result->distance > 0.015625 ? 0.015625 : result->distance);
+					result->bounds = *(box2f *)(cache->view + 0xa0);
+					result->count = *(short *)(cache->view + 0x198);
+					memcpy(result->points, cache->view + 0x19c, *(long *)(cache->view + 0x198) * sizeof(point2f));
+				}
+				else
+				{
+					result->bounds.x0 -= 0.00390625f;
+					result->bounds.x1 += 0.00390625f;
+					result->bounds.y0 -= 0.00390625f;
+					result->bounds.y1 += 0.00390625f;
+					result->points[0].x = result->bounds.x0;
+					result->points[0].y = result->bounds.y0;
+					result->points[1].x = result->bounds.x1;
+					result->points[1].y = result->bounds.y0;
+					result->points[2].x = result->bounds.x1;
+					result->points[2].y = result->bounds.y1;
+					result->points[3].x = result->bounds.x0;
+					result->points[3].y = result->bounds.y1;
+					result->count = 4;
+				}
+			}
+			if (cache->view[0x84] && result->distance > *(real *)(cache->view + 0x88))
+				result->state = 0;
+			cache->point_count = (result->points - cache->points) + result->count;
+		}
+		cache->visited[word_index] |= bit;
+	}
+	return result;
 }

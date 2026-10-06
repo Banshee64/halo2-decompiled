@@ -47,10 +47,6 @@ void function_156b60(s_effect_beam *beam, real progress, transform4x3f const *ma
 bool function_174a30(s_particle_system_datum *particle_system, real dt) { return false; }
 
 /* in region */
-// @stub 0x179880
-void __stdcall function_179880(s_effect_datum *effect, long effect_index) { }
-
-/* in region */
 // @stub 0x17e670
 void function_17e670(s_effect_source *source, point3f const *point, long tag_index, vector3f const *vector, real radius, long unknown0, long unknown1, long unknown2) { }
 

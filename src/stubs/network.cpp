@@ -5,21 +5,7 @@
 
 
 
-// @stub 0x7ba10
-void __stdcall function_07ba10(s_bitstream *stream, void *session)
-{
-}
 
-// @stub 0x7c110
-bool __stdcall function_07c110(s_bitstream *stream, void *session)
-{
-	return false;
-}
-
-// @stub 0x7c5a0
-void function_07c5a0(s_bitstream *stream, void const *source)
-{
-}
 
 
 
@@ -44,4 +30,3 @@ bool function_87e90(s_bitstream *stream, void *message)
 {
 	return false;
 }
-

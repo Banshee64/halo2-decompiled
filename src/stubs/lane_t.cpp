@@ -76,13 +76,6 @@ void function_12b6f0(real progress)
 {
 }
 
-/* lane R's region (observer commands; retail passes the command in eax) */
-struct s_observer_command;
-// @stub 0x172520
-void function_172520(s_observer_command *command)
-{
-}
-
 /* lane O's region */
 // @stub 0x246c60
 void function_246c60(void *block, long unknown)

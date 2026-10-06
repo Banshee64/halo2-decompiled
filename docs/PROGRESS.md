@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6306 functions match
+
+```
+matched 6306 of 11318 game functions (664864 of 2784283 bytes, 23.88%)
+```
+
+12 new matches, none lost:
+- **Codex lane R** (2): an effect helper in the 0x170000–0x17ffff range, and its now-matching caller 0x16f190.
+- **Codex lane Y**, round 5 (10): six session and network-estimation helpers, and four codec functions that now match through them.
+
 ## 2026-10-06: 6294 functions match
 
 ```
