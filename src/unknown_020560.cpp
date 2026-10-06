@@ -850,3 +850,76 @@ bool function_39780(bool alternate)
 	D3DDevice_SetPixelShaderProgram(&definition);
 	return true;
 }
+
+dword __cdecl pack_color4f(color4f const *color);
+
+struct s_1ed70_point
+{
+    short x, y;
+};
+
+// @retail 0x1ed70
+void function_1ed70(color4f const *color, s_1ed70_point const *points, short count)
+{
+    dword packed = pack_color4f(color);
+    function_1ee60(2);
+    D3DDevice_SetVertexDataColor(9, packed);
+    for (short i = 0; i < count; ++i)
+        D3DDevice_SetVertexData2s(0, points[i].x, points[i].y);
+    function_1ef70();
+}
+
+// @retail 0x1ba00
+void function_1ba00(byte *state)
+{
+    byte *definition = *(byte **)(state + 0x20);
+    byte *blocks = *(byte **)(definition + 0x2c);
+    dword *values = *(dword **)(definition + 0x34);
+    byte *selection = *(byte **)(state + 0x24);
+    *(dword *)(state + 0x14fc) = *(dword *)(selection + 0xde);
+    *(dword *)(state + 0x1504) = *(dword *)(selection + 0xe6);
+    *(dword *)(state + 0x1500) = *(dword *)(selection + 0xe2);
+    unsigned long output = 0;
+    bool final = false;
+    long i = 0;
+    if ((*(word *)(*(byte **)(state + 0x24) + 0xf6) >> 9) > 0)
+    do
+    {
+        word range = *(word *)(*(byte **)(state + 0x24) + 0xf6);
+        short *entry = *(short **)(*(byte **)(state + 0x20) + 0x24) + ((range & 0x1ff) + i) * 2;
+        state[0x1520 + i] = (byte)output;
+        long block_index = (word)entry[1] & 0x1ff;
+        byte *block;
+        if (entry[0] == NONE)
+            block = blocks + block_index * 6;
+        else
+            block = blocks + (block_index + *(long *)(state + 0x300 + entry[0] * 4)) * 6;
+        dword *value = values + (*(word *)(block + 4) & 0x1ff) * 8;
+        for (long j = 0; j < (*(word *)(block + 4) >> 9); ++j, value += 8)
+        {
+            if ((block[2] & 1) && j + 1 == (*(word *)(block + 4) >> 9))
+            {
+                *(dword *)(state + 0x1444) = value[0];
+                *(dword *)(state + 0x1448) = value[2];
+                *(dword *)(state + 0x14d0) = value[4];
+                *(dword *)(state + 0x14d4) = value[5];
+                final = true;
+                break;
+            }
+            *(dword *)(state + 0x14ac + output * 4) = value[0];
+            *(dword *)(state + 0x14d8 + output * 4) = value[1];
+            *(dword *)(state + 0x1424 + output * 4) = value[2];
+            *(dword *)(state + 0x148c + output * 4) = value[3];
+            *(dword *)(state + 0x144c + output * 4) = value[4];
+            *(dword *)(state + 0x146c + output * 4) = value[5];
+            ++output;
+        }
+        ++i;
+    } while (i < (*(word *)(*(byte **)(state + 0x24) + 0xf6) >> 9));
+    if (!final)
+    {
+        *(dword *)(state + 0x1444) = 0xc;
+        *(dword *)(state + 0x1448) = 0x2000;
+    }
+    *(dword *)(state + 0x14f8) = (output < 1 ? 1 : output) | 0x11100;
+}

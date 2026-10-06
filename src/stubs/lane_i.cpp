@@ -27,11 +27,6 @@ void __stdcall function_25d020(long actor_index, long prop_ref_index, long a, lo
 }
 
 
-// @stub 0x267a80
-short function_267a80(real *distance, point3f const *point, vector3f const *direction, point3f const *position, long unknown)
-{
-	return 0;
-}
 
 // @stub 0x29d7b0
 bool function_29d7b0(s_pathfinding_data *pathfinding, s_type_d4fbfa *definition, vector3f const *direction,

@@ -411,3 +411,48 @@ void function_290040(long perception_index)
 	while (next_object_290040(&iterator))
 		function_28ff90(iterator.index);
 }
+
+// @retail 0x28e4b0
+bool function_28e4b0(long index, short type, long *object_index, point3f *position, vector3f *velocity)
+{
+	bool result = false;
+	*object_index = NONE;
+	if (index != NONE)
+	{
+		switch (type)
+		{
+		case 1:
+		{
+			s_handler_object_view *object = handler_object_get(index);
+			*object_index = index;
+			function_b9dd0(index, position);
+			*velocity = *(vector3f *)((byte *)object + 0x30);
+			result = true;
+			break;
+		}
+		case 2:
+		{
+			s_prop_node_view *node = prop_node_get(index);
+			s_prop_state_view *state = prop_node_state(node);
+			*object_index = *(long *)((byte *)node + 0x20);
+			*position = state->position;
+			*velocity = *(vector3f *)((byte *)state + 0x30);
+			result = true;
+			break;
+		}
+		case 3:
+		{
+			s_actor_view *actor = actor_get(index);
+			*object_index = actor->unknown018;
+			*position = actor->position;
+			*velocity = *(vector3f *)((byte *)actor + 0x22c);
+			result = true;
+			break;
+		}
+		default:
+			*object_index = NONE;
+			break;
+		}
+	}
+	return result;
+}

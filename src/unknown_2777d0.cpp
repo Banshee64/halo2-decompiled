@@ -4,9 +4,13 @@
 #include "havok_reference.h"
 #include "unknown_1cec30.h"
 #include "object_list.h"
+#include "slot_handler.h"
+#include <xmmintrin.h>
+#include <math.h>
 
 /* Interfaces whose destructors restore their retail virtual tables. */
 struct s_278a70_event;
+struct s_278a70_body;
 struct s_278da0_group;
 class c_library_30c470
 {
@@ -28,7 +32,7 @@ public:
 	virtual void slot1() { }
 	virtual void slot2(s_278a70_event *event) { }
 	virtual void slot3() { }
-	virtual void slot4(void *context);
+	virtual void slot4(void *context) {}
 	virtual void slot5() { }
 	virtual long slot6() { return 0; }
 	long unknown04;
@@ -67,6 +71,8 @@ struct s_277890_buffer
 	long count;
 	long capacity;
 
+	s_277890_buffer() : data(NULL), count(0), capacity(0x80000000) {}
+
 	__forceinline void append(long value)
 	{
 		if (count == (capacity & 0x7fffffff))
@@ -81,20 +87,6 @@ struct s_277890_buffer
 	}
 };
 
-class c_interface_277890 : public c_interface_2777d0
-{
-public:
-	long unknown04;
-	s_277890_buffer buffer;
-	byte unknown14[8];
-	c_havok_reference_counted reference;
-	virtual void slot1(hkEntity *entity);
-	virtual void slot2(hkEntity *entity);
-
-};
-
-// @retail 0x277890 deleting c_interface_277890
-
 class c_callback_277820_target
 {
 public:
@@ -104,17 +96,46 @@ public:
 	virtual bool test(void *first, void *second) { return false; }
 };
 
-class c_callback_277820
+class c_reference_277820 : public c_havok_reference_counted
 {
 public:
-	virtual void slot0() {}
-	virtual void slot1() {}
-	virtual void slot2() {}
-	virtual void slot3() {}
+	c_reference_277820() { reference_count = 1; }
+};
+
+class c_callback_277820 : public c_reference_277820
+{
+public:
+	c_callback_277820() { target = NULL; }
 	virtual hkBool test(void *first, void *second);
-	long unknown04;
 	c_callback_277820_target *target;
 };
+
+class c_interface_277840
+{
+public:
+	virtual void event0(void *event) {}
+	virtual void event1(void *event) {}
+	virtual void event2(void *event) {}
+};
+
+class c_interface_277890 : public c_interface_2777d0, public c_interface_277840
+{
+public:
+	c_interface_277890();
+	s_277890_buffer buffer;
+	long index;
+	byte active;
+	c_callback_277820 reference;
+	virtual bool test(s_278a70_body *first, s_278a70_body *second);
+	virtual void event0(void *event) {}
+	virtual void event1(void *event) {}
+	virtual void event2(void *event) {}
+	virtual void slot1(hkEntity *entity);
+	virtual void slot2(hkEntity *entity);
+
+};
+
+// @retail 0x277890 deleting c_interface_277890
 
 // @retail 0x277820
 hkBool c_callback_277820::test(void *first, void *second)
@@ -143,6 +164,15 @@ void function_278300(s_278300_references *references)
 	}
 	references->index = NONE;
 	references->count = 0;
+}
+
+// @retail 0x277840
+c_interface_277890::c_interface_277890()
+{
+	reference.target = (c_callback_277820_target *)this;
+	index = NONE;
+	active = false;
+	function_278300((s_278300_references *)this);
 }
 
 void function_b7360(long object_index);
@@ -178,7 +208,7 @@ __forceinline long property_2778e0(hkEntity const *entity)
 // @retail 0x2778e0
 void c_interface_277890::slot1(hkEntity *entity)
 {
-	if (unknown14[4])
+	if (active)
 	{
 		((c_havok_reference_counted *)entity)->reference_count++;
 		buffer.append((long)entity);
@@ -260,6 +290,7 @@ class c_callback_2789b0 : public c_havok_reference_counted, public c_interface_2
 {
 public:
 	virtual void slot2(s_278a70_event *event);
+	virtual void slot4(void *context);
 	static void operator delete(void *block)
 	{
 		g_480118->allocate((long)block, ((c_callback_2789b0 *)block)->allocation_size, 0x10);
@@ -267,11 +298,10 @@ public:
 };
 
 // @retail 0x278ae0
-void c_interface_2777f0::slot4(void *context)
+void c_callback_2789b0::slot4(void *context)
 {
-	library->detach(((byte *)this - 8) ? this : NULL);
-	c_havok_reference_counted *object = (c_havok_reference_counted *)((byte *)this - 8);
-	havok_reference_remove(object);
+	library->detach(static_cast<c_interface_2777f0 *>(this));
+	havok_reference_remove(this);
 }
 
 // @retail 0x278a70
@@ -435,6 +465,71 @@ public:
 	virtual void slot4() {}
 	virtual long type() { return 0; }
 };
+
+struct c_transformed_point
+{
+	__m128 value;
+	void transform(const void *matrix, const __m128 *point);
+};
+
+struct s_2792c0_contact
+{
+	c_278b60_shape *shape;
+	long unknown04;
+	byte *transform;
+};
+
+struct s_2792c0_context
+{
+	byte unknown00[8];
+	s_2792c0_contact *first;
+	s_2792c0_contact *second;
+	long unknown10;
+	__m128 *plane;
+};
+
+struct s_2792c0_vertices
+{
+	byte unknown00[0x20];
+	__m128 points[3];
+};
+
+// @retail 0x2792c0
+bool function_2792c0(s_2792c0_context *context)
+{
+	bool first = context->first->shape->type() == 0x18;
+	bool second = context->second->shape->type() == 0x18;
+	bool result = true;
+	if (first || second)
+	{
+		s_2792c0_contact *contact = first ? context->first : context->second;
+		s_2792c0_vertices *vertices = (s_2792c0_vertices *)contact->shape;
+		__m128 edge0 = _mm_sub_ps(vertices->points[1], vertices->points[0]);
+		__m128 edge1 = _mm_sub_ps(vertices->points[2], vertices->points[0]);
+		__m128 right = _mm_mul_ps(_mm_shuffle_ps(edge0, edge0, 0xd2), _mm_shuffle_ps(edge1, edge1, 0xc9));
+		__m128 left = _mm_mul_ps(_mm_shuffle_ps(edge0, edge0, 0xc9), _mm_shuffle_ps(edge1, edge1, 0xd2));
+		c_transformed_point normal;
+		normal.value = _mm_sub_ps(left, right);
+		normal.transform(contact->transform + 0x20, &normal.value);
+		__m128 squares = _mm_mul_ps(normal.value, normal.value);
+		__m128 sum = _mm_add_ss(_mm_shuffle_ps(squares, squares, 0xaa), _mm_add_ss(_mm_shuffle_ps(squares, squares, 0x55), squares));
+		__m128 inverse = _mm_rsqrt_ss(sum);
+		static const real three = 3.0f;
+		static const real half = 0.5f;
+		__m128 correction = _mm_sub_ss(_mm_load_ss(&three), _mm_mul_ss(_mm_mul_ss(sum, inverse), inverse));
+		__m128 scale = _mm_mul_ss(_mm_mul_ss(_mm_load_ss(&half), inverse), correction);
+		normal.value = _mm_mul_ps(_mm_shuffle_ps(scale, scale, 0), normal.value);
+		__m128 product = _mm_mul_ps(normal.value, context->plane[1]);
+		__m128 dot = _mm_add_ss(_mm_shuffle_ps(product, product, 0xaa), _mm_add_ss(_mm_shuffle_ps(product, product, 0x55), product));
+		real value;
+		_mm_store_ss(&value, dot);
+		if (0.577 > fabs(value))
+			result = false;
+		else
+			result = true;
+	}
+	return result;
+}
 
 // @retail 0x278b60
 void c_interface_278b40::slot1(s_278da0_group *group)
@@ -616,6 +711,58 @@ bool function_2797a0(s_2797a0_iterator *iterator)
 			}
 			iterator->group++;
 			iterator->index = 0;
+		}
+	}
+	return result;
+}
+
+class c_278200_motion
+{
+public:
+	virtual void slot0() {}
+	virtual void slot1() {}
+	virtual void slot2() {}
+	virtual void slot3() {}
+	virtual void slot4() {}
+	virtual void slot5() {}
+	virtual long type() { return 0; }
+};
+
+long havok_entity_component_index_get(hkEntity const *entity);
+
+// @retail 0x278200
+bool c_interface_277890::test(s_278a70_body *first, s_278a70_body *second)
+{
+	hkRigidBody *first_body = first->type == 1 ? (hkRigidBody *)first->entity : NULL;
+	hkRigidBody *second_body = second->type == 1 ? (hkRigidBody *)second->entity : NULL;
+	bool result = false;
+	if (first_body && second_body)
+	{
+		if (first_body->m_fixed || second_body->m_fixed ||
+			((c_278200_motion *)first_body->m_motion)->type() == 6 ||
+			((c_278200_motion *)second_body->m_motion)->type() == 6)
+			result = true;
+		else
+		{
+			long first_index = havok_entity_component_index_get((hkEntity *)first_body);
+			if (first_index != NONE)
+			{
+				long second_index = havok_entity_component_index_get((hkEntity *)second_body);
+				if (second_index != NONE)
+				{
+					long first_object = havok_component_get(first_index)->object_index;
+					// Retail checks both indices, then uses the first for both lookups.
+					long second_object = havok_component_get(first_index)->object_index;
+					s_object_header_view *first_header = &((s_object_header_view *)g_4e0300->data)[first_object & 0xffff];
+					s_object_header_view *second_header = &((s_object_header_view *)g_4e0300->data)[second_object & 0xffff];
+					bool neither = first_header->type != 1 && second_header->type != 1;
+					if ((first_header->type == 1 || second_header->type == 1) &&
+						first_header->type != second_header->type || neither)
+						result = true;
+					else
+						result = false;
+				}
+			}
 		}
 	}
 	return result;

@@ -984,3 +984,178 @@ real function_336f0(long selector)
     default: __assume(0);
     }
 }
+
+struct s_slot_key
+{
+    byte a;
+    long b, c, d, e;
+};
+long function_0209b0(s_slot_key *key, void const *data, long size);
+void function_020b40(long value, long index);
+extern point3f g_4b9da0;
+extern vector3f g_4b9dac;
+long g_4b9ed4;
+
+// @retail 0x2dba0
+bool function_2dba0(long tag, vector3f const *direction, bool alternate,
+    long c, long d, long e, point3f const *position, color3f const *color,
+    real alpha, real amount, real scale)
+{
+    bool result = false;
+    if (g_4b9ed4 != NONE && tag != NONE && alpha > 0.0f)
+    {
+        byte *definition = g_4e3b44[tag & 0xffff].bytes;
+        if ((amount > 0.0f || !(definition[0x2a] & 1)) &&
+            !(definition[0x28] & (alternate ? 8 : 4)))
+        {
+            vector3f delta;
+            delta.i = position->x - g_4b9da0.x;
+            delta.j = position->y - g_4b9da0.y;
+            delta.k = position->z - g_4b9da0.z;
+            real near_distance = *(real *)(definition + 0x18);
+            real far_distance = *(real *)(definition + 0x1c);
+            if (near_distance == far_distance || far_distance >
+                delta.k * g_4b9dac.k + g_4b9dac.j * delta.j + g_4b9dac.i * delta.i)
+            {
+                s_slot_key key;
+                memset(&key, 0, sizeof(key));
+                key.a = alternate;
+                key.b = g_4b9ed4;
+                key.c = c;
+                key.d = d;
+                key.e = e;
+                s_2e3f0_record record;
+                function_2e230(tag, position, direction, color, alpha, amount, scale, &record);
+                long index = function_0209b0(&key, &record, sizeof(record));
+                if (index != NONE)
+                {
+                    long next = NONE;
+                    if (*(short *)(definition + 0x16))
+                    {
+                        key.c = 4;
+                        next = function_0209b0(&key, &record, sizeof(record));
+                    }
+                    function_020b40(next, index);
+                    result = true;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+extern bool g_4ba019;
+long function_baf80(long object_index);
+
+// @retail 0x4baf0
+void function_4baf0(long object_index, real distance, byte *first, byte *second)
+{
+    byte *object = ((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+    bool opaque = (bool)((*(dword *)(object + 4) >> 19) & 1) | g_4ba019;
+    *first = 0;
+    *second = 0;
+    if (opaque)
+    {
+        *first = 0xff;
+        *second = 0xff;
+        return;
+    }
+    byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+    long model = *(long *)(definition + 0x38);
+    if (model != NONE)
+    {
+        byte *settings = g_4e3b44[model & 0xffff].bytes + 0x28;
+        long parent = function_baf80(object_index);
+        if (parent != object_index)
+        {
+            byte *local_be682a_2 = ((s_scalar_object_header *)g_4e0300->data)[parent & 0xffff].object;
+            byte *parent_definition = g_4e3b44[*(long *)local_be682a_2 & 0xffff].bytes;
+            long parent_model = *(long *)(parent_definition + 0x38);
+            if (parent_model != NONE)
+                settings = g_4e3b44[parent_model & 0xffff].bytes + 0x28;
+        }
+        long level = 4 - *(word *)(settings + 0x24);
+        real width = *(real *)(object + 0x3c) * 7.0f;
+        real a = 1.0f;
+        real b = 1.0f;
+        real limit = level > 0 ? ((real *)settings)[(level > 4 ? 4 : level) + 3] : 3.402823466e38f;
+        if (distance >= limit + width)
+            a = 0.0f;
+        else if (distance > limit)
+        {
+            a = 1.0f - (distance - limit) / width;
+            if (a < 0.0f) a = 0.0f;
+            else if (a > 1.0f) a = 1.0f;
+            else if (a <= 0.095f) a = 0.0f;
+        }
+        if (*(real *)settings > 0.0f)
+        {
+            if (distance >= *(real *)settings)
+                b = 0.0f;
+            else if (distance > *(real *)(settings + 4))
+                b = 1.0f - (distance - *(real *)(settings + 4)) / (*(real *)settings - *(real *)(settings + 4));
+        }
+        *first = (byte)(b * 255.0f);
+        *second = (byte)(a * 255.0f);
+    }
+}
+
+#include <math.h>
+
+extern transform4x3f *g_4687d0;
+void function_146de0(void);
+void function_146b80(void);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+
+// @retail 0x3ebd0
+bool __stdcall function_3ebd0(vector3f const *offset, transform4x3f const *matrices, transform4x3f *out, long count)
+{
+    bool result = false;
+    bool restore = g_47989c != NULL;
+    if (restore)
+        function_146de0();
+    if (g_4b9ee9 && g_4b9eec != NONE)
+    {
+        s_cluster_tag_table *table = (s_cluster_tag_table *)g_4e0350;
+        long index = NONE;
+        if ((short)g_4b9eec >= 0 && (short)g_4b9eec < table->count)
+            index = table->entries[(short)g_4b9eec].tag;
+        byte *definition = NULL;
+        if (index != NONE)
+            definition = g_4e3b44[index & 0xffff].bytes;
+        real heading = *(real *)(definition + 0x80);
+        vector3f forward;
+        forward.i = (real)(cos(heading) * cos(0.0));
+        forward.j = (real)(sin(heading) * cos(0.0));
+        forward.k = (real)sin(0.0);
+        vector3f left;
+        left.i = forward.k * g_4687b0->j - forward.j * g_4687b0->k;
+        left.j = forward.i * g_4687b0->k - forward.k * g_4687b0->i;
+        left.k = forward.j * g_4687b0->i - forward.i * g_4687b0->j;
+        transform4x3f transform = *g_4687d0;
+        transform.forward = forward;
+        transform.left = left;
+        transform.up = *g_4687b0;
+        transform.scale = *(real *)(definition + 0x14);
+        transform.position.x = *(real *)(definition + 0x18) * g_4b9da0.x;
+        transform.position.y = *(real *)(definition + 0x18) * g_4b9da0.y;
+        transform.position.z = *(real *)(definition + 0x18) * g_4b9da0.z;
+        /* The existing assembly callee reads its first matrix through ECX.
+           Keep these local stores visible across that assembly boundary. */
+        transform4x3f applied;
+        for (long component = 0; component < 13; ++component)
+            ((volatile real *)&applied)[component] = ((real const *)&transform)[component];
+        for (long i = 0; i < count; ++i)
+        {
+            out[i] = matrices[i];
+            out[i].position.x += offset->i;
+            out[i].position.y += offset->j;
+            out[i].position.z += offset->k;
+            function_142a60(&applied, &out[i], &out[i]);
+        }
+        result = true;
+    }
+    if (restore)
+        function_146b80();
+    return result;
+}

@@ -8,6 +8,8 @@
 #include "globals.h"
 #include "slot_handler.h"
 #include "object_iterator.h"
+#include "unknown_1e46c0.h"
+#include <float.h>
 #include <string.h>
 
 
@@ -348,4 +350,144 @@ long function_296520(s_296520_tree *tree, long index, point2f const *point)
 	if (index != NONE)
 		return index & 0x7fff;
 	return NONE;
+}
+
+struct s_295bd0_flags
+{
+	dword other0 : 3;
+	dword enabled : 1;
+	dword other4 : 28;
+};
+
+struct s_295bd0_definition
+{
+	byte unknown00[8];
+	long parent;
+	byte unknown0c[0x34 - 0xc];
+	long count;
+	s_295bd0_flags *entries;
+};
+
+__forceinline s_295bd0_flags *flags_295bd0(long actor_index)
+{
+	long index = actor_get(actor_index)->unknown054;
+	while (index != NONE)
+	{
+		s_295bd0_definition *definition = (s_295bd0_definition *)g_4e3b44[index & 0xffff].bytes;
+		if (definition->count > 0)
+			return definition->entries;
+		index = definition->parent;
+	}
+	return NULL;
+}
+
+__forceinline long ticks_295bd0(real value)
+{
+	long result;
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return result;
+}
+
+__forceinline short find_295bd0(real const *scores, real value)
+{
+	for (short i = 0; i < 3; i++)
+	{
+		if (scores[i] == value)
+			return i;
+	}
+	return NONE;
+}
+
+// @retail 0x295bd0
+void function_295bd0(bool prefer_selected)
+{
+	short count = 0;
+	real minimum = 0.0f;
+	real scores[3];
+	memset(scores, 0, sizeof(scores));
+	long indices[3];
+	memset(indices, 0xff, sizeof(indices));
+	s_actor_iterator iterator;
+	function_x66da2b(&iterator, true);
+	s_actor_view *actor;
+	while ((actor = (s_actor_view *)function_1e46c0(&iterator)) != NULL)
+	{
+		s_295bd0_flags *flags = flags_295bd0(iterator.actor_index);
+		if (!flags)
+			continue;
+		bool enabled = (bool)flags->enabled;
+		// Preserve the retail temporary store without reloading it for the test.
+		volatile bool flag_copy = enabled;
+		if (enabled && actor->unknown018 != NONE)
+		{
+			real score = 0.0f;
+			long prop_index = *(long *)((byte *)actor + 0x338);
+			if (prop_index != NONE)
+			{
+				s_prop_node_view *prop = prop_node_get(prop_index);
+				if (prop->unknown28 < 25.0f)
+				{
+					if (prefer_selected && (prop->unknown24 < 1 || prop->unknown24 > 2))
+						score = 24.0f;
+					score += 25.0f - prop->unknown28;
+				}
+			}
+			if (score > minimum)
+			{
+				short slot;
+				if (count < 3)
+					slot = count;
+				else
+					slot = find_295bd0(scores, minimum);
+				if (slot != NONE)
+				{
+					indices[slot] = iterator.actor_index;
+					scores[slot] = score;
+					if (count < 3)
+						count++;
+					if (count >= 3)
+					{
+						minimum = FLT_MAX;
+						real const *current = scores;
+						long remaining = 3;
+						do
+						{
+							if (minimum > *current)
+								// Retail assigns the candidate score here, not *current.
+								minimum = score;
+							current++;
+						}
+						while (--remaining);
+					}
+				}
+			}
+		}
+	}
+	s_295970_state *state = (s_295970_state *)g_5047f4;
+	long i = 0;
+	do
+	{
+		state->counts[i] = 0;
+		state->indices[i] = NONE;
+		i++;
+	}
+	while (i < 3);
+	if (count > 0)
+	{
+		s_game_time_globals *clock = g_510c54;
+		dword *seed = &g_4e7408->unknown0;
+		for (short i = 0; i < count; i++)
+		{
+			*seed = 1664525 * *seed + 1013904223;
+			real time = (real)(*seed >> 16) * (1.f / 65535.f);
+			time *= 1.3f;
+			time += 0.2f;
+			state->counts[i] = (short)ticks_295bd0(time * clock->field_2_3);
+			state->indices[i] = indices[i];
+		}
+	}
 }

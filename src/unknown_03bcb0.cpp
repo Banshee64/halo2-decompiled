@@ -471,3 +471,185 @@ void function_44550(void)
         function_3bc30(g_467134, g_467138, mode);
     g_4858b0 = NONE;
 }
+
+extern bool g_4ba019;
+extern real g_485b28[7];
+
+// @retail 0x1bf50
+bool function_1bf50(long tag, long level, real distance, long *out)
+{
+    long selected = 0;
+    byte *groups = record_format_groups(tag);
+    long count = *(long *)groups;
+    if (g_4ba019)
+        distance *= 2.0f;
+    if (level != 5)
+    {
+        real threshold = g_485b28[level] * distance;
+        for (selected = 0; selected < count; ++selected)
+        {
+            byte *entries = *(byte **)(record_format_groups(tag) + 4);
+            if (threshold >= *(real *)(entries + selected * 10 + 6))
+                break;
+        }
+    }
+    *out = selected;
+    if (selected < 0)
+        *out = 0;
+    else
+        *out = selected > count - 1 ? count - 1 : selected;
+    return *out < count;
+}
+
+void function_1cf50(void);
+
+struct s_4daa0_part
+{
+    byte unknown00[6];
+    word first, count;
+    short subpart, subpart_count;
+};
+struct s_4daa0_subpart
+{
+    word first, count;
+    dword unknown04;
+};
+struct s_4daa0_geometry
+{
+    byte unknown00[0xc];
+    s_4daa0_subpart *subparts;
+    byte unknown10[0x14];
+    word *indices;
+};
+
+// @retail 0x4daa0
+long function_4daa0(bool filtered, bool strip, s_4daa0_geometry const *geometry,
+    s_4daa0_part const *part, dword const *mask)
+{
+    long result = 0;
+    if (!filtered)
+    {
+        long count = part->count;
+        word *indices = geometry->indices + part->first;
+        function_1cf50();
+        D3DDevice_DrawIndexedVertices(strip ? D3DPT_TRIANGLESTRIP : D3DPT_TRIANGLELIST, count, indices);
+        return count;
+    }
+    if (strip)
+    {
+        for (long i = part->subpart; i < part->subpart + part->subpart_count; ++i)
+        {
+            if (mask[i >> 5] & (1 << (i & 31)))
+            {
+                s_4daa0_subpart const *subpart = &geometry->subparts[i];
+                long count = subpart->count;
+                result += count;
+                word *indices = geometry->indices + subpart->first;
+                function_1cf50();
+                D3DDevice_DrawIndexedVertices(D3DPT_TRIANGLESTRIP, count, indices);
+            }
+        }
+    }
+    else
+    {
+        long first = NONE;
+        long last = NONE;
+        for (long i = part->subpart; i < part->subpart + part->subpart_count; ++i)
+        {
+            if (mask[i >> 5] & (1 << (i & 31)))
+            {
+                s_4daa0_subpart const *subpart = &geometry->subparts[i];
+                if (first == NONE)
+                {
+                    first = subpart->first;
+                    last = first + subpart->count - 1;
+                }
+                else if (subpart->first != last + 1)
+                {
+                    word *indices = geometry->indices + first;
+                    function_1cf50();
+                    D3DDevice_DrawIndexedVertices(D3DPT_TRIANGLELIST, last - first + 1, indices);
+                    result += last - first + 1;
+                    first = subpart->first;
+                    last = first + subpart->count - 1;
+                }
+                else
+                    last = subpart->first + subpart->count - 1;
+            }
+        }
+        if (first != NONE)
+        {
+            word *indices = geometry->indices + first;
+            function_1cf50();
+            D3DDevice_DrawIndexedVertices(D3DPT_TRIANGLELIST, last - first + 1, indices);
+            result += last - first + 1;
+        }
+    }
+    return result;
+}
+
+void function_40e30(short group, long tag, real distance, long level, word kind,
+    dword and_mask, dword or_mask, t_record_fill fill, dword value, void *context);
+
+struct s_cache_record;
+s_cache_record *function_1e2d0(void);
+long function_40e10(bool first, bool second);
+
+struct s_frame_offset
+{
+    point3f position;
+    vector3f forward;
+    vector3f up;
+};
+extern s_frame_offset g_485618;
+
+typedef void (__stdcall *t_41490_callback)(void *);
+
+struct s_41490_record
+{
+    long type;
+    real depth;
+    long flags;
+    byte active;
+    byte unknown0d[0x13];
+    void (__stdcall *callback)(void *);
+    long tag;
+    void *context;
+    byte unknown2c[0x38];
+    point3f position;
+};
+
+// @retail 0x41490
+void function_41490(long tag, short group, word kind, real distance, t_record_fill fill,
+    dword value, t_41490_callback callback, void *context, point3f const *position)
+{
+    byte *definition = g_4e3b44[tag & 0xffff].bytes;
+    long pass;
+    function_1bf50(tag, *(word *)(definition + 0x3c), distance, &pass);
+    byte *groups = record_format_groups(tag);
+    dword flags = *(dword *)(*(byte **)(groups + 4) + pass * 10 + 2);
+    if (flags & 0x10006e)
+        function_40e30(group, tag, distance, *(word *)(definition + 0x3c), kind,
+            0xffffffff, 0, fill, value, context);
+    if ((flags & 0x8000) && group == 0)
+    {
+        s_41490_record *record = (s_41490_record *)function_1e2d0();
+        if (record)
+        {
+            vector3f delta;
+            delta.i = position->x - g_485618.position.x;
+            delta.j = position->y - g_485618.position.y;
+            delta.k = position->z - g_485618.position.z;
+            record->context = context;
+            record->tag = tag;
+            record->type = function_40e10((bool)(definition[0x16] & 1), (bool)((definition[0x16] >> 1) & 1));
+            record->flags = 0;
+            record->callback = callback;
+            real depth = delta.k * g_485618.forward.k;
+            depth += g_485618.forward.i * delta.i;
+            depth += g_485618.forward.j * delta.j;
+            record->depth = 0.0f - depth;
+            record->position = *position;
+        }
+    }
+}
