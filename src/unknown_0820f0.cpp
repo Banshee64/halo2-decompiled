@@ -6,6 +6,31 @@
 #include "globals.h"
 #include "unknown_0820f0.h"
 #include <xtl.h>
+#include <string.h>
+
+// @retail 0x81390
+s_network_connection::s_network_connection()
+{
+	unknown1c = false;
+	unknown1d = false;
+	link_list = 0;
+	link = 0;
+	handler = 0;
+	handler_count = 0;
+	reliable_stream_index = NONE;
+	stream_index = NONE;
+	memset(handlers, 0, sizeof(handlers));
+	local_sequence = NONE;
+	remote_sequence = NONE;
+	callback = 0;
+	owner = 0;
+	flags = 0;
+	state = 0;
+	close_reason = 0;
+	memset(&address, 0, sizeof(address));
+	handshake_next_time = 0;
+	network_connection_reset_timers(this);
+}
 
 bool g_4d8ba0;
 s_connection_counter g_4e6398;

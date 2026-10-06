@@ -48,12 +48,6 @@ void __stdcall function_170fd0(long user_index)
 {
 }
 
-/* lane Q's region */
-// @stub 0x15c000
-void function_15c000(void)
-{
-}
-
 /* unowned */
 
 /* the loading screen's callees (loading.cpp) */

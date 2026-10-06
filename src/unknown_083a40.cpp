@@ -7,6 +7,73 @@
 #include "unknown_067e10.h"
 #include "globals.h"
 #include "unknown_059ad0.h"
+#include "unknown_058ee0.h"
+
+extern char const *g_4e9bb8;
+long map_location_get(char const *map_name);
+
+// @retail 0x83db0
+long function_83db0(s_simulation_world_owner *watcher)
+{
+	long result = 0;
+	if (watcher->world)
+	{
+		if (watcher->world->state == 1)
+		{
+			result = 1;
+			goto done;
+		}
+		if (g_4e9bb8)
+		{
+			long location = map_location_get(g_4e9bb8);
+			if (location != 3 && location != 4)
+			{
+				result = 2;
+				goto done;
+			}
+		}
+		if (g_527330.initialized && (g_527330.state == 3 || g_527330.state == 8))
+		{
+			c_class_6a600 *world = watcher->world;
+			if (world->state != 3 && world->state != 5)
+			{
+				switch (world->unknown18)
+				{
+				case 3: result = 4; goto done;
+				case 4: result = 3; goto done;
+				case 5: result = 5; goto done;
+				case 6: result = 6; goto done;
+				}
+			}
+			else
+			{
+				switch (world->unknown18)
+				{
+				case 3: result = 10; goto done;
+				case 4: result = 3; goto done;
+				case 6: result = 13; goto done;
+				}
+			}
+			if (watcher->session)
+			{
+				switch (watcher->session->state)
+				{
+				case 1: result = 11; break;
+				case 2: result = 12; break;
+				case 3: result = 9; break;
+				case 4: result = 13; break;
+				case 5: result = 4; break;
+				case 6: result = 6; break;
+				case 7: result = 5; break;
+				case 8: result = 7; break;
+				case 9: result = 8; break;
+				}
+			}
+		}
+	}
+done:
+	return result;
+}
 
 // @retail 0x83a40
 bool simulation_watcher_get_players(s_simulation_world_owner *watcher, long *unknown1c, dword *player_mask, dword *in_game_mask, dword *state, t_player_key *keys, bool force)

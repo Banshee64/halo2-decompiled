@@ -51,12 +51,6 @@ long function_59570(void)
 	return 0;
 }
 
-// @stub 0x594a0
-bool __stdcall function_594a0(long a, long b, long c)
-{
-	return false;
-}
-
 // @stub 0x63e90
 long __stdcall function_63e90(long index)
 {
@@ -96,12 +90,6 @@ struct s_network_session_player;
 // @stub 0x805d0
 void __fastcall function_805d0(s_network_session_player *player)
 {
-}
-
-// @stub 0x687e0
-long function_687e0(void)
-{
-	return 0;
 }
 
 // @stub 0x1391ed

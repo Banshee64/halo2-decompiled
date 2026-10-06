@@ -1806,6 +1806,46 @@ struct s_type_dd6490
 	byte unknown1a[2];
 };
 
+long function_75890(long time);
+
+// @retail 0x62990
+void function_62990(c_class_58d20 *session)
+{
+	s_network_session_member_state *member = &session->member_states[session->member_index];
+	if (session->observer->channels[member->unknown04].state == 7 && !function_058d90(session))
+	{
+		long last_reply = session->value7654;
+		if (last_reply == NONE || network_session_time_now() - last_reply > g_network_configuration.value1498)
+		{
+			if (session->value7658 == NONE || function_75890(session->value7658) > g_network_configuration.value149c)
+			{
+				s_type_dd6490 message;
+				memset(&message, 0, sizeof(message));
+				message.type = 0;
+				message.session_id = *(s_session_id *)&session->unknown1c;
+				message.times[0] = NONE;
+				message.times[1] = NONE;
+				message.times[2] = NONE;
+				message.times[3] = NONE;
+				network_observer_send_message(session->observer, session->value10, member->unknown04, true,
+					_network_message_type_time_synchronize, sizeof(message), &message);
+				session->value7658 = network_session_time_now();
+			}
+		}
+	}
+}
+
+// @retail 0x612c0
+void function_612c0(c_class_58d20 *session)
+{
+	long now = network_session_time_now();
+	network_session_reset_7620(session);
+	memset(&session->value7420, 0, SESSION_STATE_DATA_SIZE);
+	session->value7420 = now;
+	session->state = 3;
+	function_62990(session);
+}
+
 // @retail 0x5e030
 bool __stdcall network_session_handle_time_synchronize(const s_session_id *data, c_class_58d20 *session, const s_type_99af70 *address)
 {

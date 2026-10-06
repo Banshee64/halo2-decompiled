@@ -4,6 +4,7 @@
 
 #include "unknown_11c920.h"
 #include <xtl.h>
+#include <xonline.h>
 #include <string.h>
 #include "globals.h"
 #include "unknown_058dd0.h"
@@ -12,6 +13,105 @@
 #include "online_tasks.h"
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
+
+struct s_session_summary
+{
+	long machine_count;
+	s_session_id machine_ids[16];
+	XUID machine_users[16];
+	long machine_times[16];
+	long player_count;
+	XUID player_users[16];
+	long player_values248[16];
+	long player_values288[16];
+	long player_machines[16];
+};
+long __stdcall function_063190(void *summary, long user);
+long session_summary_get_player_value(s_session_summary *summary, long player_index, long variant_index);
+long network_session_find_member(c_class_58d20 *session, const s_session_member_identity *identity);
+void network_session_disband_member(c_class_58d20 *session, long member_index);
+long network_session_cancel_reservations(c_class_58d20 *session, const s_session_id *id);
+bool session_summary_remove_machine(s_session_summary *summary, s_session_id *id);
+bool network_session_host_set_summary(c_class_58d20 *session, const s_session_summary *summary);
+
+// @retail 0x6d380
+void __stdcall function_06d380(c_session_client *client, const s_session_id *id)
+{
+	{
+		c_class_58d20 *session = client->session;
+		long current = session->current_member;
+		long count = session->member_count;
+		long found = 0;
+		s_session_member_identity members[16];
+		for (long i = 0; i < count; i++)
+		{
+			if (i != current && !memcmp(&session->members[i].id, id, sizeof(*id)))
+			{
+				memcpy(&members[found], session->members[i].words, sizeof(members[found]));
+				found++;
+			}
+		}
+		for (long j = 0; j < found; j++)
+		{
+			session = client->session;
+			long index = network_session_find_member(session, &members[j]);
+			if (index != NONE && index != session->current_member &&
+				session->state != 7 && session->state != 6 && session->state != 8)
+				network_session_disband_member(session, index);
+		}
+	}
+	network_session_cancel_reservations(client->session, id);
+	c_class_58d20 *session = client->session;
+	s_session_summary *source = 0;
+	if (session_state_is_live(session) && session->flag49fd)
+		source = (s_session_summary *)session->data4a00;
+	if (source)
+	{
+		s_session_summary summary = *source;
+		if (session_summary_remove_machine(&summary, (s_session_id *)id))
+			network_session_host_set_summary(client->session, &summary);
+	}
+}
+
+// @retail 0x6e910
+void function_6e910(const s_network_session_player *player, const s_session_machine *machines,
+	long variant_index, const byte *variant, s_session_summary *summary, char default_team, s_session_player *output)
+{
+	output->active = true;
+	output->flag1 = false;
+	output->machine = machines[player->member_index];
+	output->index = (short)player->slot;
+	output->controller = player->unknown14;
+	memcpy(&output->id, player, sizeof(output->id));
+	memcpy(output->name, player->propertiesa8, sizeof(player->propertiesa8));
+	if (variant_index != NONE)
+	{
+		long index = function_063190(summary, (long)player);
+		if (index != NONE)
+		{
+			*(long *)((byte *)output + 0xa0) = variant_index;
+			*(long *)((byte *)output + 0xa8) = *(long *)((byte *)summary + 0x288 + index * 4);
+			*(short *)((byte *)output + 0xa6) = *(short *)((byte *)summary + 0x248 + index * 4);
+			*(short *)((byte *)output + 0xa4) = (short)session_summary_get_player_value(summary, index, variant_index);
+		}
+	}
+	if (variant && output->flag98 != 0xff)
+	{
+		if (variant[0x48] & 1)
+		{
+			long team;
+			if ((char)output->flag98 < 0)
+				team = 0;
+			else if ((char)output->flag98 > 7)
+				team = 7;
+			else
+				team = (char)output->flag98;
+			output->flag98 = (byte)team;
+		}
+		else
+			output->flag98 = default_team;
+	}
+}
 
 // @retail 0x6dd00
 bool c_session_client::function_06dd00(long a, s_session_remote *remote)
