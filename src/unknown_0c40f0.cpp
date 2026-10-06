@@ -241,3 +241,92 @@ long function_c3ad0(long tag_index, long object_index)
     }
     return result;
 }
+
+#include "object_markers.h"
+
+struct s_first_person_marker;
+short first_person_weapon_get_markers(long weapon_index, long marker_name, s_first_person_marker *markers, short count);
+bool function_3e9c0(long object_index);
+void function_429a0(byte type, long object_index, long tag_index, long liquid_index,
+    point3f const *position, point3f const *endpoint, vector3f const *first,
+    vector3f const *second, real opacity);
+
+// @retail 0xc3cf0
+void __stdcall function_c3cf0(short pass, long liquid_index)
+{
+    s_record_pool *pool = g_4e031c;
+    if (pool && pool->valid && pass == 0 && liquid_index != NONE)
+    {
+        real time;
+        if (g_510c54 && g_510c54->active)
+            time = g_510c54->game_time * g_510c54->rate;
+        else
+            time = 0.0f;
+        s_c40f0_datum *liquid = &((s_c40f0_datum *)pool->data)[liquid_index & 0xffff];
+        if ((liquid->flags & 1) && liquid->object_index != NONE &&
+            (liquid->time == -1.0f || liquid->time >= time - (1.0f / 3.0f)))
+        {
+            s_liquid_definition_ab *definition = (s_liquid_definition_ab *)g_4e3b44[liquid->tag_index & 0xffff].bytes;
+            byte local_287b6e = 0;
+            s_object_marker marker;
+            long count;
+            if (function_3e9c0(liquid->object_index))
+            {
+                count = first_person_weapon_get_markers(liquid->object_index, definition->enabled,
+                    (s_first_person_marker *)&marker, 1);
+                local_287b6e = 1;
+            }
+            else
+                count = function_b8d30(liquid->object_index, definition->enabled, &marker, 1, false);
+            if (count > 0)
+            {
+                real opacity;
+                if (definition->kind != 0)
+                {
+                    opacity = (time - liquid->time - (1.0f / 3.0f)) * -3.0f;
+                    if (opacity < 0.0f)
+                        return;
+                    if (opacity > 1.0f)
+                        opacity = 1.0f;
+                }
+                else
+                    opacity = liquid->value;
+                if (opacity > 0.0f)
+                    function_429a0(local_287b6e, liquid->object_index, liquid->tag_index, liquid_index,
+                        &marker.matrix.position, &liquid->point, &marker.matrix.forward, &marker.matrix.up, opacity);
+            }
+        }
+    }
+}
+
+
+
+bool object_or_parent_hidden(long object_index);
+bool function_10cf50(long object_index);
+
+// @retail 0xc3e90
+void function_c3e90()
+{
+    s_record_pool *pool = g_4e031c;
+    if (pool && pool->valid)
+    {
+        long index = liquid_datum_ab(pool, function_16bc00(pool, 0));
+        while (index != NONE)
+        {
+            s_c40f0_datum *liquid = &((s_c40f0_datum *)pool->data)[index & 0xffff];
+            if ((liquid->flags & 1) && liquid->object_index != NONE)
+            {
+                long object_index = liquid->object_index;
+                if (object_or_parent_hidden(object_index))
+                {
+                    s_liquid_creation_header_ab *header = &((s_liquid_creation_header_ab *)g_4e0300->data)[object_index & 0xffff];
+                    if (!((1 << header->type) & 0x1c) || !function_10cf50(object_index))
+                        goto next;
+                }
+                function_c3cf0(0, index);
+            }
+        next:
+            index = liquid_datum_ab(pool, function_16bc00(pool, index == NONE ? 0 : (index & 0xffff) + 1));
+        }
+    }
+}

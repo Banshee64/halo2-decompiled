@@ -20,6 +20,80 @@ struct plane2f
 	real d;
 };
 
+PRIVATE __forceinline bool polygon_clip_intersection_23a430(plane2f const *plane,
+	point2f const *first, point2f const *second, long count, short capacity, point2f *output)
+{
+	real dx = first->x - second->x;
+	real dy = first->y - second->y;
+	real denominator = plane->n.i * dx + plane->n.j * dy;
+	if ((denominator < -0.0001f || denominator > 0.0001f) && count < capacity)
+	{
+		real fraction = (plane->n.j * first->y + plane->n.i * first->x - plane->d) / denominator;
+		output->x = first->x - dx * fraction;
+		output->y = first->y - dy * fraction;
+		return true;
+	}
+	return false;
+}
+
+// @retail 0x23a430
+short function_23a430(short count, point2f const *points, plane2f const *plane,
+	real epsilon, short capacity, point2f *output)
+{
+	point2f copy[128];
+	long sides[128];
+	if (points == output)
+	{
+		memcpy(copy, points, count * sizeof(point2f));
+		points = copy;
+	}
+	long positive = 0;
+	long negative = 0;
+	for (long i = 0; i < count; i++)
+	{
+		real distance = points[i].y * plane->n.j + points[i].x * plane->n.i - plane->d;
+		if (distance > epsilon)
+		{
+			sides[i] = 1;
+			positive++;
+		}
+		else if (0.f - epsilon > distance)
+		{
+			sides[i] = 0;
+			negative++;
+		}
+		else
+			sides[i] = NONE;
+	}
+	long result = 0;
+	if (!negative)
+	{
+		memcpy(output, points, count * sizeof(point2f));
+		return count;
+	}
+	if (!positive)
+		return 0;
+	long previous = count - 1;
+	for (long current = 0; current < count; previous = current++)
+	{
+		if (sides[current] == 0)
+		{
+			if (sides[previous] == 1 && polygon_clip_intersection_23a430(plane,
+				&points[current], &points[previous], result, capacity, &output[result]))
+				result++;
+		}
+		else
+		{
+			if (sides[current] == 1 && sides[previous] == 0 && polygon_clip_intersection_23a430(plane,
+				&points[previous], &points[current], result, capacity, &output[result]))
+				result++;
+			if (result < capacity)
+				output[result++] = points[current];
+		}
+	}
+	return (short)result;
+}
+
 static inline real dot_product2d(vector2f const *a, point2f const *b)
 {
 	return a->i * b->x + a->j * b->y;
@@ -262,4 +336,93 @@ bool function_23a220(point2f const *point, short count, point2f const *points, r
 			return false;
 	}
 	return true;
+}
+
+PRIVATE __forceinline bool clip_points_equal_23a6f0(point2f const *a, point2f const *b, real epsilon)
+{
+	return fabs((double)a->x - b->x) < epsilon && fabs((double)a->y - b->y) < epsilon;
+}
+
+// @retail 0x23a6f0
+short function_23a6f0(point2f *output, short count, point2f const *points,
+	plane2f const *plane, short capacity, dword *point_mask, bool *clipped, real epsilon)
+{
+	point2f copy[512];
+	short result = 0;
+	bool positive = false;
+	bool negative = false;
+	dword mask = 0;
+	if (clipped)
+		*clipped = false;
+	if (points == output)
+	{
+		memcpy(copy, points, count * sizeof(point2f));
+		points = copy;
+	}
+	point2f const *previous = &points[count - 1];
+	bool previous_inside = previous->y * plane->n.j + previous->x * plane->n.i - plane->d >= 0.f;
+	for (short i = 0; i < count; i++)
+	{
+		point2f const *current = &points[i];
+		real distance = current->y * plane->n.j + plane->n.i * current->x - plane->d;
+		bool inside = distance >= 0.f;
+		if (distance > epsilon)
+			positive = true;
+		else if (0.f - epsilon > distance)
+			negative = true;
+		if (inside != previous_inside)
+		{
+			if (result == capacity)
+				goto overflow;
+			if (clipped)
+				*clipped = true;
+			real dy = previous->y - current->y;
+			real dx = previous->x - current->x;
+			real denominator = plane->n.i * dx + dy * plane->n.j;
+			real fraction = 0.f;
+			if (denominator != 0.f)
+				fraction = 0.f - (current->y * plane->n.j + plane->n.i * current->x - plane->d) / denominator;
+			fraction = fraction < 0.f ? 0.f : fraction > 1.f ? 1.f : fraction;
+			output[result].x = dx * fraction + current->x;
+			output[result].y = dy * fraction + current->y;
+			mask |= 1 << result;
+			result++;
+			if (result != 1 && (clip_points_equal_23a6f0(&output[result - 1], output, epsilon) ||
+				clip_points_equal_23a6f0(&output[result - 1], &output[result - 2], epsilon)))
+				result--;
+		}
+		if (inside)
+		{
+			if (result == capacity)
+				goto overflow;
+			output[result] = *current;
+			if (point_mask && (*point_mask & (1 << i)))
+				mask |= 1 << result;
+			else
+				mask &= ~(1 << result);
+			result++;
+			if (result != 1 && (clip_points_equal_23a6f0(&output[result - 1], output, epsilon) ||
+				clip_points_equal_23a6f0(&output[result - 1], &output[result - 2], epsilon)))
+				result--;
+		}
+		previous = current;
+		previous_inside = inside;
+	}
+	if (result < 3)
+		result = 0;
+	if (!positive)
+		result = 0;
+	else if (!negative)
+	{
+		result = count;
+		memcpy(output, points, count * sizeof(point2f));
+	}
+	if (point_mask)
+		*point_mask = mask;
+	return result;
+overflow:
+	memcpy(output, points, count * sizeof(point2f));
+	if (point_mask)
+		*point_mask = mask;
+	return NONE;
 }

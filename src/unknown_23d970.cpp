@@ -11,6 +11,42 @@
 #include "data_array.h"
 #include "object_iterator.h"
 
+long function_1366d0(short width, short height, short depth, short format, short alignment, short mipmap_count);
+
+PRIVATE const dword g_4507c8[24] =
+{
+	31, 19, 27, 32, -1, -1, 17, -1, 16, 29, 30, 18,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 23, 23
+};
+
+typedef void *(__stdcall *texture_allocate_proc)(long size, long alignment);
+
+// @retail 0x23e340
+D3DTexture *function_23e340(short width, short height, short format,
+	texture_allocate_proc allocate, long *size, void **data, D3DTexture *header)
+{
+	D3DTexture *result = 0;
+	long bytes = function_1366d0(width, height, 1, format, 0x40, 0);
+	bytes += -bytes & 0x7f;
+	void *buffer = allocate(bytes, 0x80);
+	if (header && buffer)
+	{
+		header->Lock = 0;
+		header->Format = (g_4507c8[format] << 8) | 0x10029;
+		header->Size = (((((dword)width * 4) >> 6) - 1) << 24) | ((height - 1) << 12) | (width - 1);
+		header->Data = (dword)buffer & 0x0fffffff;
+		header->Common = 0x40001;
+		result = header;
+	}
+	else
+	{
+		buffer = 0;
+	}
+	*size = bytes;
+	*data = buffer;
+	return result;
+}
+
 /* ---- types ---- */
 
 struct s_view_state
@@ -74,6 +110,15 @@ struct s_director_camera
 };
 
 s_director_camera g_5022f8;
+byte g_51ec11;
+byte g_51ec13;
+point3f g_51ec14;
+real g_51ec20;
+real g_51ec24;
+short g_51ec3c;
+byte g_470a20 = 2;
+extern real g_54e854;
+extern point3f *g_51ec28;
 byte g_4e61b9;
 s_input_state g_4e61dc[3];
 s_input_state g_4e630c;
@@ -110,9 +155,112 @@ s_camera_state_procs const g_44ab84[2] =
 	{ function_23d8e0, function_23d970 }
 };
 
+struct s_camera_start_23cea0
+{
+	point3f position;
+	real yaw;
+};
+
+struct s_camera_scenario_23cea0
+{
+	byte unknown00[0x100];
+	long count;
+	s_camera_start_23cea0 *points;
+};
+
+// @retail 0x23cea0
+void function_23cea0(s_view_state *state, bool temporary)
+{
+	if (!g_51ec13)
+	{
+		s_camera_scenario_23cea0 *scenario = (s_camera_scenario_23cea0 *)g_4e0350;
+		if (scenario->count && scenario->points)
+		{
+			g_51ec14 = scenario->points->position;
+			g_51ec20 = scenario->points->yaw;
+		}
+		else
+		{
+			g_51ec14.x = g_51ec14.y = g_51ec14.z = 0.f;
+			g_51ec20 = g_51ec24 = 0.f;
+		}
+	}
+	g_51ec13 = 1;
+	double cosine = cos(g_51ec24);
+	double x = cos(g_51ec20) * cosine;
+	double y = sin(g_51ec20) * cosine;
+	double z = sin(g_51ec24);
+	state->y = 0.f;
+	state->x = 0.f;
+	state->yaw = 0.f;
+	state->pitch = 0.f;
+	state->unknown14 = 0.f;
+	state->unknown18 = g_54e854;
+	*(point3f *)state = g_51ec14;
+	state->yaw = (real)atan2(y, x);
+	state->pitch = (real)atan2(z, sqrt(y * y + x * x));
+	if (!temporary)
+		g_51ec28 = (point3f *)state;
+	if (g_51ec3c)
+		g_44ab84[g_51ec3c].report_state(state);
+	g_51ec11 = g_470a20;
+	/* Clear by value so this shared global's address does not escape. */
+	s_director_camera cleared = {0};
+	g_5022f8 = cleared;
+	g_5022f8.forward = *g_4687a8;
+	g_5022f8.up = *g_4687b0;
+}
+
 /* the object the camera keeps its point relative to (unknown_23d030.cpp) */
 extern long g_470a28;
 void function_23d030(long object_index);
+
+extern byte g_51ec10;
+struct s_observer_command;
+void __stdcall function_16c840(long user_index, long unused, s_observer_command *command);
+
+// @retail 0x23d090
+void __stdcall function_23d090(void *state, void *input, s_observer_command *command)
+{
+	if (g_51ec10)
+	{
+		if (!((byte *)input)[4])
+		{
+			function_16c840(0, (long)input, command);
+			if (g_4686c4 != NONE)
+			{
+				s_player_state snapshot = g_4e9bd4[0].state;
+				g_5022f8 = *(s_director_camera *)&snapshot;
+			}
+			else
+				g_5022f8 = *(s_director_camera *)0;
+			goto finished;
+		}
+		s_view_state *kept = (s_view_state *)g_51ec28;
+		*(point3f *)kept = g_5022f8.position;
+		kept->yaw = (real)atan2(g_5022f8.forward.j, g_5022f8.forward.i);
+		kept->pitch = (real)atan2(g_5022f8.forward.k,
+			sqrt(g_5022f8.forward.j * g_5022f8.forward.j + g_5022f8.forward.i * g_5022f8.forward.i));
+		function_23d030(g_470a28);
+		if (g_51ec3c)
+			g_44ab84[g_51ec3c].report_state(kept);
+	}
+	g_44ab7c[g_51ec3c](state, input, command);
+	if (g_51ec10)
+	{
+		*(dword *)command |= 9;
+		*(real *)((byte *)command + 0x88) = 0.f;
+	}
+	g_5022f8.position = *(point3f *)state;
+	g_5022f8.forward = *(vector3f *)((byte *)command + 0x2c);
+	g_5022f8.up = *(vector3f *)((byte *)command + 0x38);
+	g_5022f8.value38 = *(real *)((byte *)command + 0x28);
+finished:
+	g_51ec14 = g_5022f8.position;
+	g_51ec20 = (real)atan2(g_5022f8.forward.j, g_5022f8.forward.i);
+	g_51ec24 = (real)atan2(g_5022f8.forward.k,
+		sqrt(g_5022f8.forward.j * g_5022f8.forward.j + g_5022f8.forward.i * g_5022f8.forward.i));
+}
 
 #define PLAYER(array, index) ((s_player *)((array)->data + sizeof(s_player) * (index)))
 
@@ -227,14 +375,66 @@ long function_23dd30(void)
 /* the state of the observer camera that follows another player */
 struct s_observer_state
 {
-	byte unknown00[0x28];
+	point3f position;
+	byte unknown0c[0x18 - 0xc];
+	real yaw;
+	real pitch;
+	real distance;
+	real field_of_view;
 	real timer;
 	long player_index;
 	long target_player_index;
 	long target_unit_index;
 	real delay;
 	byte reset;
+	char local_index;
 };
+
+void function_23dda0(s_observer_state *observer);
+
+PRIVATE inline real camera_random_23da00(real minimum, real maximum)
+{
+	real random = function_x82e52f(&g_4e7408->seed, 0, 0);
+	return minimum + (maximum - minimum) * random;
+}
+
+// @retail 0x23da00
+void function_23da00(s_observer_state *observer, long local_index, long target)
+{
+	if (local_index != NONE && g_4686c4 != NONE)
+		observer->position = g_4e9bd4[local_index].state.position;
+	else
+		observer->position = *(point3f *)0;
+	observer->field_of_view = g_54e854;
+	observer->distance = camera_random_23da00(2.f, 6.f);
+	observer->yaw = camera_random_23da00(0.f, 6.2831855f);
+	observer->pitch = -camera_random_23da00(0.47123894f, 1.0995574f);
+	observer->timer = 3.f;
+	real delay = 3.f;
+	if (target != NONE)
+		delay = 3.402823466e+38f;
+	else if (g_4e6948->state == 2)
+		delay = 15.f;
+	observer->delay = delay;
+	long player_index = NONE;
+	if (local_index != NONE)
+		player_index = g_4e8c20->entries[local_index];
+	observer->player_index = player_index;
+	observer->target_player_index = player_index;
+	observer->target_unit_index = NONE;
+	observer->reset = 0;
+	observer->local_index = (char)local_index;
+	if (player_index != NONE)
+	{
+		s_player *player = PLAYER(g_4e8c24, player_index & 0xffff);
+		if (player->value2c != NONE)
+			observer->target_unit_index = player->value2c;
+		else if (*(long *)player->unknown30 != NONE)
+			observer->target_unit_index = *(long *)player->unknown30;
+		else
+			function_23dda0(observer);
+	}
+}
 
 struct s_game_options_flags_view
 {
@@ -274,6 +474,155 @@ void function_23dda0(s_observer_state *observer)
 	if (options->state == 2)
 		delay = 15.f;
 	observer->delay = delay;
+}
+
+s_object *function_badc0(long object_index, dword type_mask);
+s_player_state *function_16f3a0(long index);
+real function_30bf0(vector3f *vector);
+vector3f *function_11d090(vector3f const *vector, vector3f *out);
+void function_172520(s_observer_command *command);
+
+struct s_follow_output_23de50
+{
+	dword flags;
+	point3f position;
+	vector3f offset;
+	byte unknown1c[8];
+	real distance;
+	real field_of_view;
+	vector3f forward;
+	vector3f up;
+	vector3f velocity;
+	byte unknown50[0x88 - 0x50];
+	real timer;
+	byte modes[8];
+	real value94;
+	byte unknown98[8];
+	real valuea0;
+};
+
+PRIVATE inline long camera_round_23de50(real value)
+{
+	long result;
+	__asm fld value
+	__asm fistp result
+	return result;
+}
+
+// @retail 0x23de50
+void __stdcall function_23de50(void *state, void *input, s_observer_command *output)
+{
+	s_observer_state *observer = (s_observer_state *)state;
+	s_follow_output_23de50 *command = (s_follow_output_23de50 *)output;
+	bool advance = false;
+	if (observer->target_unit_index != NONE && !function_badc0(observer->target_unit_index, -1))
+		observer->target_unit_index = NONE;
+	if (observer->target_unit_index == NONE)
+	{
+		function_23dda0(observer);
+		if (observer->target_unit_index == NONE)
+		{
+			if (g_4e6948->state == 2)
+				function_23dda0(observer);
+			else
+				observer->target_unit_index = function_23dd30();
+		}
+	}
+	if (observer->target_unit_index != NONE)
+	{
+		byte *object = (byte *)function_badc0(observer->target_unit_index, -1);
+		if (object)
+		{
+			struct s_header { byte unknown00[8]; byte *object; };
+			byte *target = ((s_header *)g_4e0300->data)[observer->target_unit_index & 0xffff].object;
+			command->position = *(point3f *)(target + *(short *)(target + 0x116) + 0x28);
+			if ((1 << object[0xaa]) & 1)
+			{
+				if ((bool)(((dword)*(word *)(object + 0x348) >> 15) & 1) || observer->reset > 0)
+				{
+					long maximum = camera_round_23de50((real)g_510c54->field_2_3 * 0.33f);
+					if (observer->reset < maximum)
+						observer->reset++;
+				}
+				if (observer->reset == camera_round_23de50((real)g_510c54->field_2_3 * 0.33f))
+					*(point3f *)observer->unknown0c = function_16f3a0(observer->local_index)->position;
+			}
+		}
+		else
+		{
+			observer->reset = 0;
+			command->position = observer->position;
+		}
+	}
+	else
+		command->position = observer->position;
+	if (observer->reset == camera_round_23de50((real)g_510c54->field_2_3 * 0.33f))
+	{
+		vector3f previous_up = *(vector3f *)((byte *)function_16f3a0(observer->local_index) + 0x2c);
+		point3f *kept = (point3f *)observer->unknown0c;
+		vector3f direction;
+		direction.i = command->position.x - kept->x;
+		direction.j = command->position.y - kept->y;
+		direction.k = command->position.z - kept->z;
+		command->distance = function_30bf0(&direction);
+		command->forward = direction;
+		vector3f right;
+		right.i = direction.k * previous_up.j - direction.j * previous_up.k;
+		right.j = direction.i * previous_up.k - direction.k * previous_up.i;
+		right.k = direction.j * previous_up.i - direction.i * previous_up.j;
+		command->up.i = right.k * direction.j - right.j * direction.k;
+		command->up.j = right.i * direction.k - right.k * direction.i;
+		command->up.k = right.j * direction.i - right.i * direction.j;
+		function_30bf0(&command->up);
+		command->field_of_view = observer->field_of_view;
+		command->offset = *g_4687a4;
+		command->velocity = *g_4687a4;
+		command->flags = 0x19;
+		command->timer = 0.f;
+	}
+	else
+	{
+		command->distance = observer->distance;
+		real cosine = (real)cos(observer->pitch);
+		command->forward.i = (real)cos(observer->yaw) * cosine;
+		command->forward.j = (real)sin(observer->yaw) * cosine;
+		command->forward.k = (real)sin(observer->pitch);
+		function_11d090(&command->forward, &command->up);
+		command->field_of_view = observer->field_of_view;
+		command->offset = *g_4687a4;
+		command->velocity = *g_4687a4;
+		command->flags = 1;
+		command->timer = 0.f > observer->timer ? 0.f : observer->timer;
+	}
+	command->value94 = 0.f;
+	command->modes[0] = 3;
+	if (observer->timer == 3.f)
+	{
+		command->distance = 0.5f;
+		command->valuea0 = 0.f;
+		command->modes[3] = 3;
+	}
+	real delta = ((real *)input)[2];
+	observer->timer -= delta;
+	observer->delay = 0.f > observer->delay - delta ? 0.f : observer->delay - delta;
+	if (observer->player_index != NONE)
+	{
+		s_player *player = PLAYER(g_4e8c24, observer->player_index & 0xffff);
+		long controller = *(long *)((byte *)player + 0x24);
+		if (controller != NONE && g_4e61cc[(short)controller])
+		{
+			byte pressed = g_4e61b9 ? g_4e630c.values[0] : g_4e61dc[(short)controller].values[0];
+			if (pressed == 1)
+			{
+				real delay = g_4e6948->state == 2 ? 15.f : 3.f;
+				if (delay > observer->delay + 1.f)
+					advance = true;
+			}
+		}
+	}
+	if ((observer->delay == 0.f && (!g_510c54->active || !g_510c54->unknown01)) || advance)
+		function_23dda0(observer);
+	function_172520(output);
 }
 
 static inline long next_index(long index, long maximum)

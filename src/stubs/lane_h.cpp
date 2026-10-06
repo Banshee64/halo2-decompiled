@@ -74,11 +74,6 @@ void __stdcall function_b3e90(unsigned char *results)
 {
 }
 
-// @stub 0x232d77
-void function_232d77(void)
-{
-}
-
 // @stub 0x19bfd0
 bool __stdcall function_19bfd0(struct s_content_item *item)
 {

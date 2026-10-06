@@ -8,6 +8,59 @@
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
+#include "unknown_030290.h"
+#include "globals.h"
+
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
+void function_22d2ee(word *string, long maximum_length);
+void function_13ed90(long font);
+void function_2360c3(short_rectangle2d const *bounds, point3f *point);
+void function_13e9c0(word const *text, short_rectangle2d const *bounds,
+	short_rectangle2d *a, short_rectangle2d *b, real scale);
+
+// @retail 0x22d13d
+void function_22d13d(c_class_22cc8e *text, short_rectangle2d const *bounds,
+	real depth, short_rectangle2d const *screen, short length,
+	short_rectangle2d *ink_bounds, short_rectangle2d *output)
+{
+	word buffer[0x400];
+	word *string = text->function_22f52e();
+	if (string && *string)
+		unicode_string_copy(buffer, string, 0x400);
+	else
+		buffer[0] = 0;
+	buffer[length] = 0;
+	function_22d2ee(buffer, 0x400);
+	function_13ed90(text->value04);
+	long flags = text->value16;
+	long justification = text->value1c;
+	long style = text->value18;
+	g_4e73a0.flags = flags;
+	g_4e73a0.justification = justification;
+	g_4e73a0.style = style;
+	point3f first, last;
+	first.x = (real)bounds->left;
+	first.y = (real)bounds->top;
+	first.z = depth;
+	last.x = (real)bounds->right;
+	last.y = (real)bounds->bottom;
+	last.z = depth;
+	long width = bounds->right - bounds->left;
+	function_2360c3(screen, &first);
+	function_2360c3(screen, &last);
+	short_rectangle2d projected, measured;
+	projected.top = (short)first.y;
+	long left = (long)first.x;
+	projected.left = (short)left;
+	projected.right = (short)last.x;
+	projected.bottom = (short)last.y;
+	function_13e9c0(buffer, &projected, &measured, ink_bounds,
+		(last.x - first.x) * text->value20 / (real)width);
+	output->top = projected.top;
+	output->left = (short)left;
+	output->right = measured.right;
+	output->bottom = measured.bottom;
+}
 
 extern dword g_54d5b8;
 

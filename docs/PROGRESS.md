@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6321 functions match
+
+```
+matched 6321 of 11318 game functions (667886 of 2784283 bytes, 23.99%)
+```
+
+1 new matches, none lost:
+- **UI-core lane**, round 4 (1): a director camera helper at 0x23d790.
+
+## 2026-10-06: 6320 functions match
+
+```
+matched 6320 of 11318 game functions (667562 of 2784283 bytes, 23.98%)
+```
+
+5 new matches, none lost:
+- **Codex lane AB**, round 4 (5): object connection, cluster and light helpers in the 0x0b3d30–0x0c42df range.
+
 ## 2026-10-06: 6315 functions match
 
 ```

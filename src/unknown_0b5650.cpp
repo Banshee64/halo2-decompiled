@@ -12,9 +12,8 @@ void function_194710(s_bitstream *stream, bool discard);
 // @retail 0xb5650
 void function_b5650(long identifier, s_bitstream *stream)
 {
-	dword salt = identifier;
-	long index = salt & 0x3ff;
-	salt >>= 28;
+	long index = identifier & 0x3ff;
+	byte salt = (dword)identifier >> 28;
 	stream_write_checked(stream, index, 10);
 	stream_write_checked(stream, (byte)salt, 4);
 }

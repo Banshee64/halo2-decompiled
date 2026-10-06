@@ -3,11 +3,6 @@
 
 /* outside the region */
 
-// @stub 0x23aea0
-void function_23aea0(void)
-{
-}
-
 /* the other object deletion callbacks (g_468664) */
 
 // @stub 0xc1670

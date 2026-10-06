@@ -310,17 +310,17 @@ bool function_b51b0(s_transport_endpoint *endpoint, s_type_99af70 const *address
 				transport_endpoint_set_option(endpoint, 5, g_48480c);
 			if (!transport_endpoint_set_nonblocking(endpoint))
 				WSAGetLastError();
-			else if (connect(endpoint->socket, (sockaddr const *)&socket_address, arg_181b43) == 0)
+			else
 			{
-				endpoint->flags |= 0x21;
+				if (connect(endpoint->socket, (sockaddr const *)&socket_address, arg_181b43) == 0)
+					endpoint->flags |= 0x21;
+				else if (WSAGetLastError() != WSAEWOULDBLOCK)
+					goto done;
 				result = true;
 			}
-			else if (WSAGetLastError() != WSAEWOULDBLOCK)
-				result = false;
-			else
-				result = true;
 		}
 	}
+done:
 	return result;
 }
 
