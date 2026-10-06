@@ -13,8 +13,6 @@ void __stdcall function_83370(void *a, dword b) { }
 void function_125d60(void) { }
 // @stub 0x152f80
 void __stdcall function_152f80(void *a, void *c) { }
-// @stub 0x155380
-void function_155380(void) { }
 // @stub 0x3e2ff0
 void __stdcall function_3e2ff0(void *p) { }
 // @stub 0x1c2b10

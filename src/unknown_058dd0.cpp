@@ -1820,3 +1820,42 @@ bool c_session_state_start_match::update()
     }
     return result;
 }
+
+long function_66050(c_class_58d20 *session, long variant_index);
+
+// @retail 0x6e410
+bool c_session_state_pre_game::function_06e410()
+{
+ c_class_58d20 *session = owner->session_a;
+ if (SESSION_STATE_IS_LIVE(session->state) && session->flag49a8 && !session->value49ac)
+ {
+  if (SESSION_STATE_IS_LIVE(session->state) && session->value49a4 > 1)
+  {
+   network_session_stop_countdown(session);
+   if (session->type == 2)
+   {
+    long variant = NONE;
+    if (SESSION_STATE_IS_LIVE(session->state))
+     variant = session->value49c8;
+    if (!function_66050(session, variant))
+     function_70280(*(c_session_state_matchmaking **)((byte *)this + 0x10));
+   }
+  }
+  else
+  {
+   bool ready = true;
+   dword mask = 0;
+   for (long i = 0; i < session->member_count; i++)
+    if (session->members[i].unknown88 <= 2)
+    {
+     mask |= 1 << i;
+     ready = false;
+    }
+   if (ready)
+    network_session_set_mode(session, 2);
+   else
+    network_session_start_countdown(session, 1, true, 2, 0);
+  }
+ }
+ return false;
+}

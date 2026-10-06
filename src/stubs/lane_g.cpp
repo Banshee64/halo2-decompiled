@@ -106,11 +106,7 @@ void __stdcall function_24b869(c_class_1473c9 *screen)
 
 
 /* lane D */
-// @stub 0x6cc10
-long __stdcall function_6cc10(long controller_index)
-{
-	return 0;
-}
+
 
 
 /* UI lane round 7: my own, not written yet */

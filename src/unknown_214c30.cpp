@@ -61,7 +61,7 @@ const s_cache_file_limits g_448f98[5] =
 	{4, 5, 0x11800000}
 };
 
-static inline s_cache_file_limits const *cache_file_limits_find(long index)
+static __forceinline s_cache_file_limits const *cache_file_limits_find(long index)
 {
 	s_cache_file_limits const *result = NULL;
 	dword i;
@@ -79,8 +79,8 @@ static inline s_cache_file_limits const *cache_file_limits_find(long index)
 	return result;
 }
 
-// @retail 0x214c90
-long cache_file_size_limit(long index)
+// The selection loop and other size checks inline this lookup.
+__forceinline long cache_file_size_limit(long index)
 {
 	long result = 0;
 	s_cache_file_limits const *limits = cache_file_limits_find(index);
@@ -90,6 +90,15 @@ long cache_file_size_limit(long index)
 		result = limits->size;
 	}
 	return result;
+}
+
+// The timestamp comparison calls this entry instead of inlining the lookup.
+__declspec(noinline) long cache_file_size_limit_out_of_line(long index);
+
+// @retail 0x214c90
+long cache_file_size_limit_out_of_line(long index)
+{
+	return cache_file_size_limit(index);
 }
 
 char const *g_46880c = ".map";
@@ -164,6 +173,8 @@ __forceinline FILETIME cache_file_current_time(void)
 	return result;
 }
 
+__declspec(noinline) bool cache_file_slot_precedes(long first_index, long second_index);
+
 // @retail 0x214ac0
 bool cache_file_slot_precedes(long first_index, long second_index)
 {
@@ -188,7 +199,7 @@ bool cache_file_slot_precedes(long first_index, long second_index)
 		goto done;
 	}
 	if (CompareFileTime(cache_file_time(second), &now) <= 0 &&
-		(dword)cache_file_size_limit(first_index) >= (dword)cache_file_size_limit(second_index) &&
+		(dword)cache_file_size_limit_out_of_line(first_index) >= (dword)cache_file_size_limit_out_of_line(second_index) &&
 		CompareFileTime(cache_file_time(second), cache_file_time(first)) >= 0)
 	{
 		goto done;

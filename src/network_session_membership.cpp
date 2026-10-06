@@ -682,3 +682,132 @@ long session_summary_get_player_value(s_session_summary *summary, long player_in
 	}
 	return value;
 }
+// @retail 0x60400
+void __stdcall function_60400(c_class_58d20 *session, const byte *current, const byte *previous, byte *update)
+{
+ memset(update, 0, 0x489c);
+ memcpy(update, &session->unknown1c, 8);
+ *(long *)(update + 8) = *(const long *)current;
+ *(long *)(update + 0xc) = previous ? *(const long *)previous : NONE;
+ long old_to_new[16];
+ long new_to_old[16];
+ memset(old_to_new, NONE, sizeof(old_to_new));
+ memset(new_to_old, NONE, sizeof(new_to_old));
+ if (previous)
+ {
+  for (long i = 0; i < *(const long *)(previous + 8); i++)
+   for (long j = 0; j < *(const long *)(current + 8); j++)
+    if (!memcmp(previous + 0xc + i * 0x10c, current + 0xc + j * 0x10c, 0x24))
+    {
+     old_to_new[i] = j;
+     new_to_old[j] = i;
+    }
+  for (long i = 0; i < *(const long *)(previous + 8); i++)
+  {
+   if (old_to_new[i] == NONE)
+   {
+    byte *entry = update + 0x14 + (*(short *)(update + 0x10))++ * 0x104;
+    *(short *)entry = (short)i;
+    *(short *)(entry + 2) = NONE;
+    memcpy(entry + 4, previous + 0xc + i * 0x10c, 0x24);
+    entry[0x28] = false;
+   }
+  }
+ }
+ for (long i = 0; i < *(const long *)(current + 8); i++)
+ {
+  const byte *member = current + 0xc + i * 0x10c;
+  long old_index = new_to_old[i];
+  if (old_index == NONE)
+  {
+   byte *entry = update + 0x14 + (*(short *)(update + 0x10))++ * 0x104;
+   *(short *)entry = NONE;
+   *(short *)(entry + 2) = (short)i;
+   memcpy(entry + 4, member, 0x24);
+   entry[0x28] = true;
+   entry[0x29] = member[0x24];
+   session_parameters_build_update((s_session_parameters_update *)(entry + 0x2c),
+    (const s_session_parameters *)(member + 0x28), 0);
+  }
+  else
+  {
+   const byte *old_member = previous + 0xc + old_index * 0x10c;
+   bool changed = member[0x24] != old_member[0x24] || memcmp(member + 0x28, old_member + 0x28, 0xc8);
+   if (changed || i != old_index)
+   {
+    byte *entry = update + 0x14 + (*(short *)(update + 0x10))++ * 0x104;
+    *(short *)entry = (short)old_index;
+    *(short *)(entry + 2) = (short)i;
+    memcpy(entry + 4, member, 0x24);
+    if (changed)
+    {
+     entry[0x28] = true;
+     entry[0x29] = member[0x24];
+     session_parameters_build_update((s_session_parameters_update *)(entry + 0x2c),
+      (const s_session_parameters *)(member + 0x28), (const s_session_parameters *)(old_member + 0x28));
+    }
+   }
+  }
+ }
+ dword retained = 0;
+ if (previous)
+ {
+  for (long i = 0; i < 16; i++)
+  {
+   dword bit = 1 << i;
+   if (*(const dword *)(previous + 0x10d0) & bit)
+   {
+    const byte *old_player = previous + 0x10d4 + i * 0x13c;
+    const byte *player = current + 0x10d4 + i * 0x13c;
+    long mapped_member = old_to_new[*(const long *)(old_player + 0xc)];
+    if ((*(const dword *)(current + 0x10d0) & bit) && !memcmp(player, old_player, 12) &&
+     mapped_member != NONE && *(const long *)(player + 0xc) == mapped_member &&
+     *(const long *)(player + 0x10) == *(const long *)(old_player + 0x10))
+     retained |= bit;
+    else if (mapped_member != NONE)
+    {
+     byte *entry = update + 0x2094 + (*(short *)(update + 0x12))++ * 0x140;
+     *(short *)entry = (short)i;
+     *(short *)(entry + 2) = 0;
+    }
+   }
+  }
+ }
+ for (long i = 0; i < 16; i++)
+ {
+  if (*(const dword *)(current + 0x10d0) & (1 << i))
+  {
+   const byte *player = current + 0x10d4 + i * 0x13c;
+   const byte *old_player = (retained & (1 << i)) ? previous + 0x10d4 + i * 0x13c : 0;
+   if (old_player && *(const long *)(player + 0x14) == *(const long *)(old_player + 0x14) &&
+    !memcmp(player + 0x18, old_player + 0x18, 0x90) && !memcmp(player + 0xa8, old_player + 0xa8, 0x90) &&
+    *(const long *)(player + 0x138) == *(const long *)(old_player + 0x138))
+    continue;
+   byte *entry = update + 0x2094 + (*(short *)(update + 0x12))++ * 0x140;
+   *(short *)entry = (short)i;
+   if (!old_player)
+   {
+    *(short *)(entry + 2) = 1;
+    memcpy(entry + 4, player, 12);
+    *(short *)(entry + 0x10) = *(const short *)(player + 0xc);
+    *(short *)(entry + 0x12) = *(const short *)(player + 0x10);
+   }
+   else *(short *)(entry + 2) = 2;
+   if (*(const long *)(player + 0x14) == NONE)
+    entry[0x14] = false;
+   else
+   {
+    entry[0x14] = true;
+    memcpy(entry + 0x18, player + 0x14, 4);
+    memcpy(entry + 0x1c, player + 0x18, 0x90);
+    memcpy(entry + 0xac, player + 0xa8, 0x90);
+    memcpy(entry + 0x13c, player + 0x138, 4);
+   }
+  }
+ }
+ if (!previous || *(const long *)(current + 4) != *(const long *)(previous + 4))
+ {
+  update[0x4894] = true;
+  memcpy(update + 0x4898, current + 4, 4);
+ }
+}

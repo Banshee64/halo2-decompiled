@@ -377,3 +377,91 @@ void function_2f640(long index, s_grid_pair *extent, s_grid_pair const *dimensio
 	out->x = (short)(position % dimensions->x);
 	out->y = (short)(position / dimensions->x);
 }
+
+
+#include <string.h>
+void function_141590(transform4x3f const *in, transform4x3f *out);
+
+PRIVATE __forceinline void normalize_projection_axis(vector3f *axis)
+{
+    real length = (real)sqrt((double)axis->k * axis->k + (double)axis->j * axis->j + (double)axis->i * axis->i);
+    if (!(fabs(length) < 0.0001f))
+    {
+        real inverse = 1.0f / length;
+        axis->i *= inverse;
+        axis->j *= inverse;
+        axis->k *= inverse;
+    }
+}
+
+// @retail 0x2fd90
+void function_2fd90(s_2f800_view const *view, box2f const *clip, byte *out)
+{
+    s_projection_scalars scalars;
+    function_2fb70(view, clip, &scalars);
+    vector3f right, up, backward;
+    right.i = view->up.k * view->forward.j - view->up.j * view->forward.k;
+    right.j = view->forward.k * view->up.i - view->up.k * view->forward.i;
+    right.k = view->up.j * view->forward.i - view->forward.j * view->up.i;
+    up.i = view->forward.k * right.j - view->forward.j * right.k;
+    up.j = view->forward.i * right.k - view->forward.k * right.i;
+    up.k = view->forward.j * right.i - view->forward.i * right.j;
+    backward.i = 0.0f - view->forward.i;
+    backward.j = 0.0f - view->forward.j;
+    backward.k = 0.0f - view->forward.k;
+    normalize_projection_axis(&right);
+    normalize_projection_axis(&up);
+    normalize_projection_axis(&backward);
+    transform4x3f *camera = (transform4x3f *)(out + 0x34);
+    camera->forward = right;
+    camera->left = up;
+    camera->up = backward;
+    camera->position = view->position;
+    camera->scale = 1.0f;
+    transform4x3f *inverse = (transform4x3f *)out;
+    function_141590(camera, inverse);
+    memcpy(out + 0x68, &scalars.left, 16);
+    *(real *)(out + 0xb8) = scalars.scale_x * scalars.width * 0.5f;
+    *(real *)(out + 0xbc) = scalars.scale_y * scalars.height * 0.5f;
+    real x, y, z, distance;
+    if (view->near_distance == 0.0f)
+    {
+        real const *plane = (real const *)view->unknown48;
+        x = inverse->up.i * plane[2] + inverse->left.i * plane[1] + inverse->forward.i * plane[0];
+        y = inverse->up.j * plane[2] + inverse->left.j * plane[1] + inverse->forward.j * plane[0];
+        z = inverse->up.k * plane[2] + inverse->left.k * plane[1] + inverse->forward.k * plane[0];
+        distance = plane[3] * inverse->scale + inverse->position.z * z + inverse->position.y * y + inverse->position.x * x;
+    }
+    else
+    {
+        x = y = 0.0f;
+        z = 1.0f;
+        distance = 0.0f - view->near_distance;
+    }
+    real reciprocal = 1.0f / z;
+    real near_value = 0.0f - reciprocal * distance;
+    real scale = (real)(view->far_distance / ((view->far_distance - (double)near_value) *
+        (fabs((double)reciprocal * x) + fabs((double)reciprocal * y) + 1.0f)));
+    real a = reciprocal * scale * x;
+    real b = reciprocal * scale * y;
+    real c = 0.0f - scale * near_value;
+    if (c > 0.0f && view->near_distance == 0.0f)
+    {
+        a = 0.0f - a;
+        b = 0.0f - b;
+        c = 0.0f - c;
+        scale = 0.0f - scale;
+    }
+    real *matrix = (real *)(out + 0x78);
+    memset(matrix, 0, 64);
+    matrix[0] = scalars.scale_x;
+    matrix[5] = scalars.scale_y;
+    matrix[8] = 0.0f - scalars.offset_x;
+    matrix[9] = 0.0f - scalars.offset_y;
+    matrix[2] = 0.0f - a;
+    matrix[6] = 0.0f - b;
+    matrix[10] = 0.0f - scale;
+    matrix[11] = -1.0f;
+    matrix[14] = c;
+}
+

@@ -3322,3 +3322,260 @@ void function_15ebd0(void)
 		}
 	}
 }
+
+// @retail 0x15a640
+long function_15a640(long tag_index)
+{
+    long index = function_15eb80(tag_index);
+    if (index != NONE)
+    {
+    long mode = *(signed char *)((byte *)g_4e6948 + 0x210);
+    if (mode == 19)
+    {
+        dword seed = (g_4e6948->id_b ^ g_4e6948->id_a) * 1664525 + 1013904223;
+        mode = (long)(seed >> 16) % 17 + 2;
+    }
+    switch (mode)
+    {
+    case 1:
+        index = -1;
+        break;
+    case 2:
+        index = 5;
+        break;
+    case 3:
+        index = 2;
+        break;
+    case 4:
+        index = 14;
+        break;
+    case 5:
+        index = 12;
+        break;
+    case 6:
+        switch (index)
+        {
+        case 1: index = 0; break;
+        case 8: index = 7; break;
+        case 10: index = 3; break;
+        case 11: index = 2; break;
+        case 12: index = 5; break;
+        case 13: index = 4; break;
+        case 14: index = 2; break;
+        case 15: index = 5; break;
+        case 16: index = 7; break;
+        case 17: index = 5; break;
+        }
+        break;
+    case 7:
+        switch (index)
+        {
+        case 0: index = 1; break;
+        case 2: index = 14; break;
+        case 3: index = 10; break;
+        case 4: index = 13; break;
+        case 5: index = 12; break;
+        case 6: index = 1; break;
+        case 7: index = 10; break;
+        case 8: index = 10; break;
+        case 9: index = 1; break;
+        }
+        break;
+    case 8:
+        switch (index)
+        {
+        case 0: index = 5; break;
+        case 1: index = 5; break;
+        case 2: index = 5; break;
+        case 3: index = 5; break;
+        case 4: index = 15; break;
+        case 6: index = 12; break;
+        case 7: index = 12; break;
+        case 8: index = 12; break;
+        case 9: index = 15; break;
+        case 10: index = 12; break;
+        case 11: index = 12; break;
+        case 13: index = 15; break;
+        case 14: index = 12; break;
+        case 16: index = 15; break;
+        }
+        break;
+    case 9:
+        switch (index)
+        {
+        case 2: index = 0; break;
+        case 3: index = 1; break;
+        case 4: index = 0; break;
+        case 5: index = 9; break;
+        case 10: index = 7; break;
+        case 11: index = 6; break;
+        case 12: index = 9; break;
+        case 13: index = 7; break;
+        case 14: index = 6; break;
+        case 15: index = 6; break;
+        case 16: index = 7; break;
+        case 17: index = 8; break;
+        }
+        break;
+    case 10:
+        switch (index)
+        {
+        case 0: index = 3; break;
+        case 1: index = 3; break;
+        case 6: index = 2; break;
+        case 7: index = 10; break;
+        case 8: index = 10; break;
+        case 9: index = 10; break;
+        }
+        break;
+    case 11:
+        switch (index)
+        {
+        case 0: index = 3; break;
+        case 1: index = 3; break;
+        case 2: index = 3; break;
+        case 3: index = 3; break;
+        case 5: index = 3; break;
+        case 6: index = 10; break;
+        case 7: index = 10; break;
+        case 8: index = 10; break;
+        case 9: index = 10; break;
+        case 10: index = 10; break;
+        case 11: index = 10; break;
+        case 12: index = 10; break;
+        case 14: index = 10; break;
+        case 15: index = 10; break;
+        }
+        break;
+    case 12:
+        switch (index)
+        {
+        case 0: index = 4; break;
+        case 1: index = 4; break;
+        case 2: index = 4; break;
+        case 3: index = 4; break;
+        case 4: index = 4; break;
+        case 5: index = 4; break;
+        case 6: index = 13; break;
+        case 7: index = 13; break;
+        case 8: index = 13; break;
+        case 9: index = 13; break;
+        case 10: index = 13; break;
+        case 11: index = 13; break;
+        case 12: index = 13; break;
+        case 13: index = 13; break;
+        case 14: index = 13; break;
+        case 15: index = 13; break;
+        case 16: index = 13; break;
+        case 17: index = 13; break;
+        }
+        break;
+    case 13:
+        if (index == 4) index = 3;
+        else if (index == 13) index = 10;
+        break;
+    case 14:
+        switch (index)
+        {
+        case 0: index = 0; break;
+        case 1: index = 0; break;
+        case 2: index = 0; break;
+        case 3: index = 0; break;
+        case 4: index = 0; break;
+        case 5: index = 0; break;
+        case 6: index = 6; break;
+        case 7: index = 6; break;
+        case 8: index = 6; break;
+        case 9: index = 6; break;
+        case 10: index = 6; break;
+        case 11: index = 6; break;
+        case 12: index = 6; break;
+        case 13: index = 6; break;
+        case 14: index = 6; break;
+        case 15: index = 6; break;
+        case 16: index = 6; break;
+        case 17: index = 6; break;
+        }
+        break;
+    case 15:
+        switch (index)
+        {
+        case 0: index = 6; break;
+        case 1: index = 7; break;
+        case 2: index = 7; break;
+        case 3: index = 7; break;
+        case 4: index = 8; break;
+        case 5: index = 8; break;
+        case 9: index = 7; break;
+        case 10: index = 7; break;
+        case 11: index = 7; break;
+        case 12: index = 8; break;
+        case 13: index = 7; break;
+        case 14: index = 8; break;
+        case 15: index = 8; break;
+        case 16: index = 7; break;
+        case 17: index = 8; break;
+        }
+        break;
+    case 16:
+        switch (index)
+        {
+        case 6: index = 0; break;
+        case 7: index = 3; break;
+        case 8: index = 3; break;
+        case 9: index = 1; break;
+        case 10: index = 3; break;
+        case 11: index = 1; break;
+        case 12: index = 5; break;
+        case 13: index = 4; break;
+        case 14: index = 2; break;
+        case 15: index = 5; break;
+        case 16: index = 3; break;
+        case 17: index = 5; break;
+        }
+        break;
+    case 17:
+        switch (index)
+        {
+        case 0: index = 6; break;
+        case 1: index = 9; break;
+        case 2: index = 9; break;
+        case 3: index = 10; break;
+        case 4: index = 13; break;
+        case 5: index = 12; break;
+        case 16: index = 7; break;
+        case 17: index = 8; break;
+        }
+        break;
+    case 18:
+        switch (index)
+        {
+        case 0: index = 16; break;
+        case 1: index = 16; break;
+        case 2: index = 16; break;
+        case 3: index = 16; break;
+        case 4: index = 16; break;
+        case 5: index = 16; break;
+        case 6: index = 16; break;
+        case 7: index = 16; break;
+        case 8: index = 16; break;
+        case 9: index = 16; break;
+        case 10: index = 16; break;
+        case 11: index = 16; break;
+        case 12: index = 16; break;
+        case 13: index = 16; break;
+        case 14: index = 16; break;
+        case 15: index = 16; break;
+        }
+        break;
+    }
+    long result = NONE;
+    if (index != NONE)
+    {
+        s_multiplayer_globals_blocks *data = (s_multiplayer_globals_blocks *)multiplayer_globals_data();
+        result = data->elements[index].index;
+    }
+    return result;
+    }
+    return tag_index;
+}
