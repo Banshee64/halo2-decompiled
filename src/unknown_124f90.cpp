@@ -2637,23 +2637,23 @@ void function_128020(void)
 		s_sound_rate_limit *limit = sound_rate_limit_get(definition->rate_limit_index);
 		short voice_index = sound->value_ac;
 		if (voice_index != NONE && g_4e6378[voice_index].stream_reset)
-			goto next_sound;
+			goto skip_to_next;
 		if ((bool)(((dword)sound->flags >> 9) & 1) && TEST_FIELD_BIT(sound->flag6) &&
 			!(*(byte *)((byte *)g_51ebe4 + g_4e6378[voice_index].channel_index * 0x34 + 0xd) & 7))
 		{
 			function_127320(sound_index, 2);
-			goto next_sound;
+			goto skip_to_next;
 		}
 		if (limit && sound->value_a0 != NONE && sound->value_a0 < limit->field_0 &&
 			sound->start_time == limit->field_14_2 && sound->start_time < limit->end_time)
 		{
 			function_127320(sound_index, 0xf);
-			goto next_sound;
+			goto skip_to_next;
 		}
 		if (!sound_playback_update_location(sound_index))
 		{
 			function_127320(sound_index, 3);
-			goto next_sound;
+			goto skip_to_next;
 		}
 		if (definition->flags & 8)
 			sound->location.flag0 = true;
@@ -2696,7 +2696,7 @@ void function_128020(void)
 				}
 			}
 		}
-	next_sound:
+	skip_to_next:
 		sounds = g_4e637c;
 		sound_index = data_datum_index(sounds, data_find_index(sounds, sound_index == NONE ? 0 : (sound_index & 0xffff) + 1));
 	}
