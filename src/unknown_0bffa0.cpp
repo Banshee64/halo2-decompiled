@@ -107,6 +107,8 @@ struct s_light_object_header_ab
 void __stdcall function_c1670(long object_index)
 {
 	s_light_object_ab *object = ((s_light_object_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+	// Preserve the saved pointer for the shared flag-clear exit.
+	s_light_object_ab *volatile saved_object = object;
 	if (TEST_FIELD_BIT(object->flag6))
 	{
 		s_record_pool_iterator iterator;
@@ -120,7 +122,7 @@ void __stdcall function_c1670(long object_index)
 				function_c3260(iterator.datum_index, false);
 		}
 	}
-	*(volatile dword *)((byte *)object + 4) &= ~0x40;
+	saved_object->flag6 = false;
 }
 
 struct s_light_ab

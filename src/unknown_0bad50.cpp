@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "object_iterator.h"
 #include "unknown_16d180.h"
+#include <string.h>
 
 // @flags /O2 /Gr
 
@@ -64,6 +65,84 @@ void function_ba3d0(long object_index)
 static __forceinline s_object_blocks_ab *object_blocks_get_ab(long object_index)
 {
     return ((s_object_blocks_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
+struct s_region_change_ab
+{
+    byte variant;
+    byte state;
+    byte flags;
+    byte unknown03;
+    long stamp;
+};
+
+void function_17b1d0(long object_index);
+void function_1c54b0(long object_index, char const *variants);
+void function_1c5710(long object_index);
+
+// @retail 0xba410
+void __stdcall function_ba410(long object_index, long region_name, long variant_name)
+{
+    char previous[16];
+    s_object_blocks_header_ab *header = (s_object_blocks_header_ab *)g_4e0300->data + (object_index & 0xffff);
+    s_object_blocks_ab *object = header->object;
+    s_object_variant_definition_ab *definition = (s_object_variant_definition_ab *)g_4e3b44[object->tag_index & 0xffff].bytes;
+    if (definition->model_index != NONE)
+    {
+        long region_index = function_16d1d0(definition->model_index, (string_handle)region_name);
+        long count = object->regions_size / 10;
+        char *regions = (char *)object + object->regions_offset;
+        memcpy(previous, regions, count);
+        if (((byte *)header)[3] == 6 && *(short *)((byte *)object + 0x1a) != NONE &&
+            !(((byte *)object)[0x12c] & 2))
+            function_1c5710(object_index);
+        for (long i = 0; i < count; i++)
+        {
+            if (i == region_index || !region_name)
+            {
+                long variant = function_16d220(i, definition->model_index, (string_handle)variant_name);
+                if (variant != NONE || !variant_name)
+                {
+                    regions[i] = (char)variant;
+                    s_region_change_ab *change = (s_region_change_ab *)(regions + count * 2) + i;
+                    change->variant = 0xff;
+                    change->state = 0;
+                    change->flags = 0;
+                    change->stamp = NONE;
+                }
+            }
+        }
+        function_17b1d0(object_index);
+        function_1c54b0(object_index, previous);
+    }
+}
+
+struct s_region_permutation_choice;
+bool object_change_region_permutations(long object_index, long model_index, long variant,
+    long region_index, long state, bool force, long a, short b, char *regions, s_region_permutation_choice *changes);
+
+// @retail 0xba6f0
+void __stdcall function_ba6f0(long object_index, long region_index, long state, bool force)
+{
+    char previous[16];
+    s_object_blocks_header_ab *header = (s_object_blocks_header_ab *)g_4e0300->data + (object_index & 0xffff);
+    s_object_blocks_ab *object = header->object;
+    s_object_variant_definition_ab *definition = (s_object_variant_definition_ab *)g_4e3b44[object->tag_index & 0xffff].bytes;
+    if (definition->model_index != NONE)
+    {
+        long count = object->regions_size / 10;
+        char *regions = (char *)object + object->regions_offset;
+        s_region_change_ab *changes = (s_region_change_ab *)(regions + count * 2);
+        memcpy(previous, regions, count);
+        if (((byte *)header)[3] == 6 && *(short *)((byte *)object + 0x1a) != NONE &&
+            !(((byte *)object)[0x12c] & 2))
+            function_1c5710(object_index);
+        object_change_region_permutations(object_index, definition->model_index, object->variant, region_index,
+            state, force, NONE, 0, regions, (s_region_permutation_choice *)changes);
+        function_17b1d0(object_index);
+        function_1c54b0(object_index, previous);
+        function_b7360(object_index);
+    }
 }
 
 // @retail 0xba540
@@ -506,4 +585,23 @@ bool __stdcall function_bab40(long object_index, long name, real *value)
         }
     }
     return enabled;
+}
+
+// @retail 0xba7f0
+void __stdcall function_ba7f0(long object_index, long region_index, long bit_index, long bit_mask)
+{
+    char previous[16];
+    s_object_blocks_ab *object = ((s_object_blocks_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+    long model_index = ((s_object_variant_definition_ab *)g_4e3b44[object->tag_index & 0xffff].bytes)->model_index;
+    if (model_index != NONE)
+    {
+        long count = object->regions_size / 10;
+        char *regions = (char *)object + object->regions_offset;
+        memcpy(previous, regions, count);
+        object_change_region_permutations(object_index, model_index, object->variant, region_index,
+            NONE, false, bit_index, (short)bit_mask, regions,
+            (s_region_permutation_choice *)(regions + count * 2));
+        function_17b1d0(object_index);
+        function_1c54b0(object_index, previous);
+    }
 }
