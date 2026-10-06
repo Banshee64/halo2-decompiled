@@ -27,8 +27,6 @@ void __stdcall function_1f4280(long actor_index) { }
 // @stub 0x110ab0
 bool __stdcall function_110ab0(long unit_index) { return 0; }
 
-// @stub 0x2628f0
-void __stdcall function_2628f0(long actor_index, s_reference reference) { }
 
 struct s_squad_iterator;
 
@@ -169,8 +167,6 @@ bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
 
 
 
-// @stub 0x262590
-bool function_262590(long actor_index, s_reference reference, bool unknown) { return 0; }
 
 // @stub 0x29d6c0
 bool function_29d6c0(vector3f *vector, s_reference reference) { return 0; }
