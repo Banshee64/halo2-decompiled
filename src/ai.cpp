@@ -1171,3 +1171,214 @@ short __stdcall function_1c89b0(long actor_index, short maximum_count, s_ai_caps
  }
  return (short)count;
 }
+
+struct s_actor_creation_definition
+{
+    dword flags;
+    short type;
+};
+
+struct s_actor_creation_tag
+{
+    byte unknown00[8];
+    long parent_index;
+    byte unknown0c[0x34 - 0xc];
+    long count;
+    dword *flags;
+};
+
+bool function_1a80e0(long index, short type, s_slot *data, short slot);
+
+// @retail 0x1dfb90
+long __stdcall function_1dfb90(long definition_index)
+{
+    long const *definition_reference = &definition_index;
+    long result = NONE;
+    if (*definition_reference != NONE)
+    {
+        s_record_pool *pool = g_4f55f0;
+        result = record_pool_allocate(pool);
+        if (result != NONE)
+        {
+            byte *actor = pool->data + (result & 0xffff) * 0x888;
+            s_actor_creation_definition *definition = (s_actor_creation_definition *)function_1e4990(*definition_reference);
+            *(long *)(actor + 0x54) = *definition_reference;
+            *(bool *)(actor + 7) = (bool)(definition->flags & 1);
+            *(short *)(actor + 4) = definition->type;
+            *(long *)(actor + 0x18) = NONE;
+            *(long *)(actor + 0x1c) = NONE;
+            *(long *)(actor + 0x30) = NONE;
+            *(long *)(actor + 0x28) = NONE;
+            *(long *)(actor + 0x34) = NONE;
+            *(short *)(actor + 0x2c) = NONE;
+            *(byte *)(actor + 0x8) = 1;
+            *(long *)(actor + 0x10) = NONE;
+            *(long *)(actor + 0x14) = NONE;
+            *(byte *)(actor + 0xa) = 0;
+            *(byte *)(actor + 0x3c) = 0;
+            *(byte *)(actor + 0x9) = 0;
+            *(byte *)(actor + 0xc) = 0;
+            *(long *)(actor + 0x4c) = g_510c54->game_time;
+            *(short *)(actor + 0x42) = 0;
+            *(short *)(actor + 0x46) = 0;
+            *(long *)(actor + 0x58) = NONE;
+            for (long i = 0; i < 8; ++i)
+                ((long *)(actor + 0x5c))[i] = NONE;
+            *(short *)(actor + 0x3e) = g_4686c4;
+            *(long *)(actor + 0x7c) = NONE;
+            *(long *)(actor + 0x32c) = NONE;
+            *(s_reference *)(actor + 0x418) = g_470fa0;
+            *(byte *)(actor + 0x3f2) = 0;
+            *(long *)(actor + 0x3f4) = NONE;
+            *(long *)(actor + 0x3f8) = NONE;
+            *(short *)(actor + 0x3fc) = NONE;
+            s_actor_view *actor_view = (s_actor_view *)(pool->data + (result & 0xffff) * 0x888);
+            actor_view->unknown3fe = 3;
+            long reference_index = 0;
+            do
+            {
+                actor_view->unknown400[reference_index].reference = g_470fa0;
+                ++reference_index;
+            } while (reference_index < 4);
+            *(short *)(actor + 0x84) = 3;
+            *(short *)(actor + 0x86) = 1;
+            *(long *)(actor + 0x88) = 0;
+            *(byte *)(actor + 0x220) = 0;
+            *(byte *)(actor + 0x221) = 0;
+            *(bool *)(actor + 0x229) = (bool)((definition->flags >> 1) & 1);
+            *(byte *)(actor + 0x227) = 0;
+            *(byte *)(actor + 0x228) = 0;
+            *(byte *)(actor + 0x222) = 0;
+            *(byte *)(actor + 0x22a) = 0;
+            *(byte *)(actor + 0x223) = 0;
+            *(byte *)(actor + 0x225) = 0;
+            *(byte *)(actor + 0x226) = 0;
+            *(byte *)(actor + 0x224) = 0;
+            memset(actor + 0x90, 0, 0x100);
+            long slot_index = 0;
+            do
+            {
+                *(short *)(actor + 0x90 + slot_index * 0x40) = NONE;
+                *(long *)(actor + 0x98 + slot_index * 0x40) = NONE;
+                ++slot_index;
+            } while (slot_index < 4);
+            *(short *)(actor + 0x190) = NONE;
+            function_1a80e0(result, *(bool *)(actor + 7) ? 0x72 : 1, NULL, 0);
+            for (long i = 0; i < 14; ++i)
+                ((long *)(actor + 0x1e8))[i] = NONE;
+            long memory_index = 0;
+            do
+            {
+                *(short *)(actor + 0x1c4 + memory_index * 0xc) = NONE;
+                ++memory_index;
+            } while (memory_index < 3);
+            memory_index = 0;
+            do
+            {
+                *(short *)(actor + 0x194 + memory_index * 0xc) = NONE;
+                ++memory_index;
+            } while (memory_index < 4);
+            *(long *)(actor + 0x858) = NONE;
+            *(long *)(actor + 0x85c) = NONE;
+            *(long *)(actor + 0x28c) = NONE;
+            *(long *)(actor + 0x26c) = NONE;
+            *(long *)(actor + 0x274) = NONE;
+            *(byte *)(actor + 0x2e0) = 0;
+            *(byte *)(actor + 0x266) = 0;
+            *(byte *)(actor + 0x268) = 0;
+            *(byte *)(actor + 0x267) = 0;
+            *(short *)(actor + 0x270) = 0;
+            memset(actor + 0x3d4, 0, 0x1c);
+            *(long *)(actor + 0x3e8) = NONE;
+            *(byte *)(actor + 0x3e4) = 0;
+            actor_view = (s_actor_view *)(g_4f55f0->data + (result & 0xffff) * 0x888);
+            actor_view->unknown50c = false;
+            actor_view->unknown5ac = NONE;
+            actor_view->unknown5b0 = NONE;
+            actor_view->unknown5b4 = 0;
+            actor_view->unknown5b6 = 0;
+            actor_view->unknown4ac = 0;
+            actor_view->unknown504 = 0;
+            *(short *)(actor + 0x6fe) = 1;
+            *(byte *)(actor + 0x714) = 1;
+            *(byte *)(actor + 0x5d0) = 0;
+            *(byte *)(actor + 0x5d1) = 0;
+            *(long *)(actor + 0x634) = NONE;
+            *(short *)(actor + 0x6fc) = 0;
+            *(short *)(actor + 0x700) = 0;
+            *(long *)(actor + 0x718) = NONE;
+            *(real *)(actor + 0x71c) = 0.0f;
+            *(short *)(actor + 0x720) = 0;
+            *(short *)(actor + 0x702) = 0;
+            *(short *)(actor + 0x704) = 0;
+            *(short *)(actor + 0x706) = 0;
+            *(long *)(actor + 0x734) = 0;
+            *(long *)(actor + 0x724) = NONE;
+            *(short *)(actor + 0x7c4) = 0;
+            *(long *)(actor + 0x7c8) = NONE;
+            *(long *)(actor + 0x7e0) = NONE;
+            *(byte *)(actor + 0x7cc) = 0;
+            *(real *)(actor + 0x7ac) = 0.0f;
+            *(real *)(actor + 0x710) = 1.0f;
+            *(byte *)(actor + 0x6d0) = 0;
+            *(short *)(actor + 0x686) = 0;
+            *(byte *)(actor + 0x6c0) = 0;
+            *(long *)(actor + 0x6c4) = NONE;
+            *(vector3f *)(actor + 0x6e0) = *g_4687a8;
+            *(vector3f *)(actor + 0x6d4) = *g_4687a8;
+            *(vector3f *)(actor + 0x6ec) = *g_4687a8;
+            *(byte *)(actor + 0x6f8) = 1;
+            *(short *)(actor + 0x6fa) = 0;
+            *(byte *)(actor + 0x605) = 0;
+            *(short *)(actor + 0x61e) = 0;
+            *(long *)(actor + 0x6c8) = 0;
+            *(byte *)(actor + 0x6cc) = 0;
+            memset(actor + 0x654, 0, 0x28);
+            *(byte *)(actor + 0x5d8) = 0;
+            *(short *)(actor + 0x5da) = 0;
+            *(point3f *)(actor + 0x5dc) = *g_468788;
+            *(long *)(actor + 0x7f8) = NONE;
+            *(short *)(actor + 0x5e8) = 0;
+            *(byte *)(actor + 0x604) = 0;
+            *(long *)(actor + 0x338) = NONE;
+            *(long *)(actor + 0x33c) = 0;
+            *(byte *)(actor + 0x340) = 0;
+            *(long *)(actor + 0x350) = NONE;
+            *(long *)(actor + 0x344) = NONE;
+            *(long *)(actor + 0x348) = NONE;
+            *(byte *)(actor + 0x354) = 0;
+            *(long *)(actor + 0x2e8) = NONE;
+            *(short *)(actor + 0x2ec) = NONE;
+            *(short *)(actor + 0x2ee) = NONE;
+            *(byte *)(actor + 0x2f0) = 0;
+            *(short *)(actor + 0x2f4) = g_510c54->field_2_3 * 10;
+            *(short *)(actor + 0x2f2) = NONE;
+            *(long *)(actor + 0x2f8) = 0;
+            *(long *)(actor + 0x2fc) = NONE;
+            *(long *)(actor + 0x300) = NONE;
+            *(short *)(actor + 0x304) = 0;
+            *(short *)(actor + 0x306) = 0;
+            *(long *)(actor + 0x308) = NONE;
+            *(byte *)(actor + 0x30c) = 0;
+            *(short *)(actor + 0x30e) = 0;
+            *(short *)(actor + 0x310) = NONE;
+            *(real *)(actor + 0x318) = 0.0f;
+            *(short *)(actor + 0x31c) = NONE;
+            *(short *)(actor + 0x31e) = 0;
+            *(short *)(actor + 0x320) = 0;
+            long tag_index = actor_get(result)->unknown054;
+            while (tag_index != NONE)
+            {
+                s_actor_creation_tag *tag = (s_actor_creation_tag *)g_4e3b44[tag_index & 0xffff].bytes;
+                if (tag->count > 0)
+                {
+                    if (tag->flags && (bool)((*tag->flags >> 3) & 1))
+                        ++*(short *)((byte *)g_5047f4 + 6);
+                    break;
+                }
+                tag_index = tag->parent_index;
+            }
+        }
+    }
+    return result;
+}
