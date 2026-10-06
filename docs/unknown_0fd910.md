@@ -26,8 +26,10 @@ repository are given as offsets.
   range.
 - Every entry is `todo` with no `@retail` marker at `e02c566`. Two have
   `@stub` definitions; see [Existing declarations](#existing-declarations).
-- Four entries have no direct callers. They are slots of the weapon type
-  definition; see [The type definition](#the-type-definition).
+- Three entries have no direct callers: `0xfda00`, `0xfdad0` and `0xfdfb0`.
+  With `0xff5f0`, which has one direct caller (`0xc6b90`), they are the four
+  slots of the weapon type definition; see
+  [The type definition](#the-type-definition).
 
 ## Conventions
 
@@ -45,7 +47,7 @@ when the table names one. "Weapon" means the weapon's object index.
 | `0xfdd50` | 608 | stack: weapon, magazine index | bool | 0 + 1 | One magazine's tick: recharge, countdowns and its reload states |
 | `0xfdfb0` | 5684 | stack: weapon | bool | 0 | Type slot 12: the per-tick update |
 | `0xff5f0` | 1642 | stack: weapon, name, `real *value`, `bool *active` | bool | 1 | Type slot 15: the weapon's function values |
-| `0xffc60` | 731 | stack: weapon, source object, unit, a value tested against NONE, `short *rounds` | bool | 1 | Moves rounds from a touched object into the weapon's reserves |
+| `0xffc60` | 731 | stack: weapon, source object, unit (never read), a value tested against NONE, `short *rounds` | bool | 1 | Moves rounds from a touched object into the weapon's reserves |
 | `0xfff40` | 487 | `edi` weapon; stack: silent, immediate | | 1 | Readies the weapon when a unit takes it out |
 
 ## Data
@@ -160,7 +162,8 @@ loaded) and `+0x50` (flags) are not named in the repository.
    on z (`+0x6c`) (`0xfdaa9`–`0xfdabe`).
 
 The equipment type's placement handler, `function_f8090`, has the same flag
-handling and the same 0.05.
+handling and the same 0.05; it also sets object flag bit 16, which the weapon's
+handler does not.
 
 ### `0xfdfb0`: the per-tick update
 
@@ -262,17 +265,18 @@ barrel loop then fires it.
     controls the weapon, `0x106280` decides between state 5 (`0x103c40`)
     and requesting barrel `+0x8`; with no player it requests
     primary_barrel. Without A, as 4.
-  - 2: when blocked, it clears the bytes `+0x171`, value_170 and `+0x173`.
-    When value_170 or `+0x171` is set (an analog pull), `0x1027b0` reports
-    three events against trigger definition value_10 and value_14, and
-    each event sets trigger flag3 or flag4 and acts through the tables at
-    `0xff5b4` (definition `+0x1a`) and `0xff5c4` (`+0x18`): request barrel
-    `+0x8` or primary_barrel, start charging (`0x103a90`, then `0x103ce0`),
-    state 3 (`0x103b10`) or state 6 (`0x103bd0`). The third event clears
-    flags 3 and 4. Event 1 is dropped while flag3 or flag4 is set; event 2
-    while flag4 is set, or flag3 with trigger definition bit 0. Otherwise,
-    with B, definition `+0x18` equal to 1 and `0x103a90` true, it starts
-    charging and sets flag6; without B it clears flags 3 and 4 and calls
+  - 2: when blocked, it clears the bytes `+0x171`, value_170 and `+0x173`. When
+    value_170 or `+0x171` is set (an analog pull), `0x1027b0` reports three
+    events against trigger definition value_10 and value_14, and each event
+    sets trigger flag3 or flag4 and acts through the tables at `0xff5b4`
+    (definition `+0x1a`) and `0xff5c4` (`+0x18`): request barrel `+0x8` or
+    primary_barrel, start charging (`0x103a90`, then `0x103ce0`), state 3
+    (`0x103b10`) or state 6 (`0x103bd0`). The third event goes to the shared
+    tail at `0xfeb89`, which clears flags 3 and 4 and calls `0x102f70` for
+    `+0x8` and primary_barrel. Event 1 is dropped while flag3 or flag4 is set;
+    event 2 while flag4 is set, or flag3 with trigger definition bit 0.
+    Otherwise, with B, definition `+0x18` equal to 1 and `0x103a90` true, it
+    starts charging and sets flag6; without B it clears flags 3 and 4 and calls
     `0x102f70` for `+0x8` and primary_barrel.
   - 3: with A or B and `0x103a90` true, it starts charging (`0x103ce0`) and
     sets flag6 when B is the input; otherwise `0x102f70` for `+0x8`.
@@ -450,7 +454,8 @@ Its only caller is `0x150e30` (`0x150f73`), which tries each of its unit's
 four weapons from the current one and stops at the first true result.
 `0xffc60(A, B, unit, value, &rounds)` moves rounds from object B into the
 reserves (rounds_unloaded) of weapon A's magazines, up to each magazine
-definition's rounds_total_maximum, and adds them to `*rounds`.
+definition's rounds_total_maximum, and adds them to `*rounds`. It never reads
+the unit.
 
 - When B has A's definition, the rounds come from B's own magazines,
   rounds_unloaded first.
