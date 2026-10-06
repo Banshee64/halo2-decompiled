@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6460 functions match
+
+```
+matched 6460 of 11318 game functions (695856 of 2784283 bytes, 24.99%)
+```
+
+6460 new matches, none lost:
+- Merge batch r6: the second machine's PRs #98 (lane O round 6: 0x244610, 0x249fa3, 0x24a80d), #97 and #99 (lane AA's last functions, written), #76 (lane K) and #82 (lane I), the last four adding written source only.
+
 ## 2026-10-06: 6457 functions match
 
 ```
