@@ -434,3 +434,335 @@ void *__stdcall function_b7a40(s_scenario_identifier_ab const *identifier, long 
 	}
 	return result;
 }
+
+void function_1c4b00(long object_index, void *linear, void *angular, long force);
+void function_b9b90(long object_index, bool disable);
+void function_b7360(long object_index);
+void function_bba20(long object_index);
+
+static inline real velocity_length_squared_ab(vector3f const *v)
+{
+    return v->i * v->i + v->j * v->j + v->k * v->k;
+}
+
+// @retail 0xb77d0
+void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity)
+{
+    function_b7740(object_index, linear_velocity, angular_velocity, false);
+    function_1c4b00(object_index, (void *)linear_velocity, (void *)angular_velocity, 1);
+    if ((linear_velocity && velocity_length_squared_ab(linear_velocity) > 0.0001f) ||
+        (angular_velocity && velocity_length_squared_ab(angular_velocity) > 0.0001f))
+    {
+        function_b9b90(object_index, false);
+        function_b7360(object_index);
+        function_bba20(object_index);
+    }
+}
+
+static inline void identity_transform_ab(transform4x3f *matrix)
+{
+    matrix->scale = 1.0f;
+    matrix->forward.i = 1.0f;
+    matrix->forward.j = 0.0f;
+    matrix->forward.k = 0.0f;
+    matrix->left.i = 0.0f;
+    matrix->left.j = 1.0f;
+    matrix->left.k = 0.0f;
+    matrix->up.i = 0.0f;
+    matrix->up.j = 0.0f;
+    matrix->up.k = 1.0f;
+    matrix->position.x = 0.0f;
+    matrix->position.y = 0.0f;
+    matrix->position.z = 0.0f;
+}
+
+// @retail 0xbdc40
+void function_bdc40(point3f const *position, vector3f const *forward, vector3f const *up, real scale, bool mirrored, transform4x3f const *parent, bool parent_mirrored, transform4x3f *out)
+{
+    transform4x3f translation;
+    transform4x3f rotation;
+    transform4x3f temporary;
+    identity_transform_ab(&translation);
+    translation.position = *position;
+    rotation.scale = 1.0f;
+    rotation.forward = *forward;
+    rotation.left.i = up->j * forward->k - forward->j * up->k;
+    rotation.left.j = forward->i * up->k - up->i * forward->k;
+    rotation.left.k = forward->j * up->i - forward->i * up->j;
+    rotation.up = *up;
+    rotation.position.x = 0.0f;
+    rotation.position.y = 0.0f;
+    rotation.position.z = 0.0f;
+    if (mirrored)
+    {
+        rotation.left.i = 0.0f - rotation.left.i;
+        rotation.left.j = 0.0f - rotation.left.j;
+        rotation.left.k = 0.0f - rotation.left.k;
+    }
+    if (scale != 1.0f)
+    {
+        identity_transform_ab(&temporary);
+        temporary.scale = scale;
+        function_142a60(&rotation, &temporary, &rotation);
+    }
+    transform4x3f const *base;
+    if (parent)
+    {
+        if (parent->scale != 1.0f || parent_mirrored)
+        {
+            temporary = *parent;
+            if (temporary.scale != 1.0f)
+            {
+                translation.position.x *= temporary.scale;
+                translation.position.y *= temporary.scale;
+                translation.position.z *= temporary.scale;
+                temporary.scale = 1.0f;
+            }
+            if (parent_mirrored)
+            {
+                temporary.left.i = 0.0f - temporary.left.i;
+                temporary.left.j = 0.0f - temporary.left.j;
+                temporary.left.k = 0.0f - temporary.left.k;
+            }
+            parent = &temporary;
+        }
+        function_142a60(parent, &translation, out);
+        base = out;
+    }
+    else
+        base = &translation;
+    function_142a60(base, &rotation, out);
+}
+
+extern long g_4e7414;
+extern bool g_4e7411;
+extern long g_4de2fc;
+extern bool g_4de2f8;
+extern long g_4de300[0x800];
+short __stdcall function_14a5b0(short cluster_index, point3f const *point, real radius, long maximum_count, short *clusters);
+
+static inline bool cluster_sphere_accept_ab(long object, s_object_cluster_reference const *record, dword type_mask, point3f const *position, real radius)
+{
+    if (type_mask & (1 << record->type))
+    {
+        long index = object & 0xffff;
+        if (g_4de300[index] != g_4de2fc)
+        {
+            g_4de300[index] = g_4de2fc;
+            real z = record->center.z - position->z;
+            real y = record->center.y - position->y;
+            real x = record->center.x - position->x;
+            real combined = record->radius + radius;
+            return combined * combined >= z * z + y * y + x * x;
+        }
+    }
+    return false;
+}
+
+// @retail 0xbb050
+short __stdcall function_bb050(long mask, dword type_mask, void const *location, point3f const *position, real radius, long *objects, short maximum_count)
+{
+    short count = 0;
+    if (!type_mask) type_mask = 0xffffffff;
+    if (!mask) mask = NONE;
+    short cluster = *(short *)((byte const *)location + 4);
+    short cluster_count = 0;
+    short clusters[0x200];
+    if (cluster != NONE)
+    {
+        if (radius > 0.0f)
+        {
+            ++g_4e7414;
+            g_4e7411 = true;
+            cluster_count = function_14a5b0(cluster, position, radius, 0x200, clusters);
+            g_4e7411 = false;
+            if (cluster_count > 0x200) cluster_count = 0x200;
+        }
+        else
+        {
+            cluster_count = 1;
+            clusters[0] = cluster;
+        }
+    }
+    ++g_4de2fc;
+    g_4de2f8 = true;
+    for (short i = 0; i < cluster_count; ++i)
+    {
+        short cluster = clusters[i];
+        s_object_cluster_reference *record = 0;
+        if (mask & 1)
+        {
+            s_object_cluster_iterator iterator;
+            for (long object = function_b8940(cluster, &record, &iterator); object != NONE;
+                 object = object_cluster_next_ab((s_record_pool *)g_4de2e4, &iterator, &record))
+            {
+                if (cluster_sphere_accept_ab(object, record, type_mask, position, radius))
+                {
+                    if (count >= maximum_count) goto done;
+                    objects[count++] = object;
+                }
+            }
+        }
+        record = 0;
+        if (mask & 2)
+        {
+            s_object_cluster_iterator iterator;
+            for (long object = function_b8a10(cluster, &record, &iterator); object != NONE;
+                 object = object_cluster_next_ab((s_record_pool *)g_4de2d8, &iterator, &record))
+            {
+                if (cluster_sphere_accept_ab(object, record, type_mask, position, radius))
+                {
+                    if (count >= maximum_count) goto done;
+                    objects[count++] = object;
+                }
+            }
+        }
+    }
+done:
+    g_4de2f8 = false;
+    return count;
+}
+
+#include "unknown_1cafc0.h"
+#include <math.h>
+struct s_16760c_render_model;
+bool __stdcall function_bab40(long object_index, long name, real *value);
+
+// @retail 0xbd970
+void function_bd970(long object_index, s_16760c_render_model *render_model, s_animation_state *state, long node_mask, long node_count, byte *orientations)
+{
+    short index = NONE;
+    c_animation_channel channel;
+    for (;;)
+    {
+        s_graph_tag *graph = graph_tag_get(state->graph_tag_index);
+        short next = index + 1;
+        if (next >= graph->unknown44_count)
+            break;
+        index = next;
+        s_graph_element44 *entry = &graph->unknown44[index];
+        c_type_709360 animation_id = entry->animation_id;
+        long name = *(long *)(entry->unknown08 + 4);
+        short kind = *(short *)(entry->unknown08 + 2);
+        if (animation_id.index != NONE)
+            function_1dd9d0(graph, animation_id);
+        if (name && state->graph_tag_index != NONE && state->channel_start(&channel, animation_id, NONE, NONE, NONE, NONE, 0x7f))
+        {
+            s_animation *animation = 0;
+            if (channel.animation_id.index != NONE)
+                animation = function_1daea0(graph_tag_get(channel.graph_tag_index), channel.animation_id);
+            real value;
+            function_bab40(object_index, name, &value);
+            if (kind == 0)
+            {
+                channel.set_frame_position((animation->frame_count - 1) * value);
+                channel.sample(1.0f, (dword const *)node_mask, node_count, (real_quaternion_transform *)orientations);
+            }
+            else if (kind == 1)
+            {
+                real frame = (real)fmod((double)((dword)(g_510c54->game_time + object_index)) * g_510c54->rate * 0.03333333507180214f, (double)animation->frame_count);
+                channel.set_frame_position(frame);
+                channel.sample(value, (dword const *)node_mask, node_count, (real_quaternion_transform *)orientations);
+            }
+        }
+    }
+}
+
+struct rigid_transform_scaled
+{
+    quaternionf rotation;
+    point3f position;
+    real scale;
+};
+transform4x3f *function_b8bd0(long object_index, short node_index);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+quaternionf *function_141f60(matrix3x3 const *matrix, quaternionf *out);
+void orientation_from_matrix4x3(transform4x3f const *matrix, rigid_transform_scaled *out);
+
+// @retail 0xbfa40
+void function_bfa40(long object_index, long node_mask)
+{
+    byte *object = (byte *)((s_object_transform_header *)g_4e0300->data)[object_index & 0xffff].object;
+    if (*(short *)(object + 0x112) == NONE)
+        return;
+    byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+    long model_index = *(long *)(definition + 0x38);
+    if (model_index == NONE)
+        return;
+    byte *model = g_4e3b44[model_index & 0xffff].bytes;
+    if (*(long *)(model + 4) == NONE)
+        return;
+    transform4x3f *matrices = (transform4x3f *)(object + *(short *)(object + 0x116));
+    rigid_transform_scaled *orientations = (rigid_transform_scaled *)(object + *(short *)(object + 0x112));
+    long count = (dword)(long)*(short *)(object + 0x110) / sizeof(rigid_transform_scaled);
+    long parent_index = *(long *)(object + 0x14);
+    transform4x3f *parent = 0;
+    bool parent_mirrored = false;
+    if (parent_index != NONE)
+    {
+        parent = function_b8bd0(parent_index, *(char *)(object + 0x18));
+        byte *parent_object = (byte *)((s_object_transform_header *)g_4e0300->data)[parent_index & 0xffff].object;
+        parent_mirrored = (*(dword *)(parent_object + 4) >> 10) & 1;
+    }
+    transform4x3f root, inverse_root, inverse_parent, relative;
+    function_bdc40((point3f *)(object + 0x64), (vector3f *)(object + 0x70), (vector3f *)(object + 0x7c),
+        *(real *)(object + 0xa0), (*(dword *)(object + 4) >> 10) & 1, parent, parent_mirrored, &root);
+    function_141590(&root, &inverse_root);
+    for (long i = 0; i < count; ++i)
+    {
+        if (!node_mask || (((dword *)node_mask)[i >> 5] & (1 << (i & 31))))
+        {
+            short node_parent = *(short *)(*(byte **)(model + 0x7c) + i * 0x5c + 4);
+            if (node_parent != NONE)
+            {
+                function_141590(&matrices[node_parent], &inverse_parent);
+                function_142a60(&inverse_parent, &matrices[i], &relative);
+                function_141f60(&relative.rotation, &orientations[i].rotation);
+                orientations[i].position = relative.position;
+                orientations[i].scale = relative.scale;
+            }
+            else
+            {
+                function_142a60(&inverse_root, &matrices[i], &relative);
+                orientation_from_matrix4x3(&relative, &orientations[i]);
+            }
+        }
+    }
+}
+
+long bit_vector_highest_set_bit(dword const *bits, long bit_count);
+void function_109050(long object_index, long a, long b, long c);
+struct s_1d9240;
+void function_1d9470(s_1d9240 const *p, s_blend_orientation const *targets, long count, dword const *mask,
+    s_blend_orientation *orientations);
+
+// @retail 0xbdb60
+void function_bdb60(long object_index, s_16760c_render_model *render_model, s_animation_state *state,
+    long node_mask, long node_count, byte *orientations)
+{
+    if (node_mask)
+    {
+        long highest = bit_vector_highest_set_bit((dword const *)node_mask, node_count);
+        if (highest >= 0 && highest + 1 < node_count)
+            node_count = highest + 1;
+    }
+    if (node_count)
+    {
+        c_animation_channel *channel = &state->channels[0];
+        if (state->graph_tag_index != NONE && channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+        {
+            function_1daea0(graph_tag_get(channel->graph_tag_index), channel->animation_id);
+            state->sample((long)render_model, 1.0f, (dword const *)node_mask,
+                (real_quaternion_transform *)orientations, 0, object_index, node_count);
+        }
+        function_bd970(object_index, render_model, state, node_mask, node_count, orientations);
+        function_109050(object_index, node_mask, node_count, (long)orientations);
+        if (state->unknown64.unknown1 && !(state->unknown64.unknown3 & 2))
+        {
+            byte *object = (byte *)((s_object_transform_header *)g_4e0300->data)[object_index & 0xffff].object;
+            s_blend_orientation *targets = (s_blend_orientation *)(object + *(short *)(object + 0x10e));
+            function_1d9470((s_1d9240 const *)&state->unknown64, targets, (short)node_count,
+                (dword const *)node_mask, (s_blend_orientation *)orientations);
+        }
+    }
+}
