@@ -291,3 +291,57 @@ void function_155920(long local_index, bool force)
 		entry->word58 = mode;
 	}
 }
+
+struct s_unknown_78;
+extern s_unknown_78 *g_510c6c;
+
+// @retail 0x155a30
+void __stdcall function_155a30(byte value)
+{
+	byte const *value_reference = &value;
+	*g_4e8c34 = *value_reference;
+	for (long index = 0; index < 4; index++)
+	{
+		s_entry_155760 *entry = &g_4e8c44[index];
+		if (*value_reference)
+		{
+			entry->proc = function_16c840;
+			entry->value10c = 1.0f;
+			entry->flag108 = 0;
+		}
+		else
+		{
+			long unit_index;
+			short mode;
+			if (local_player_exists(index))
+				unit_index = ((s_camera_player *)g_4e8c24->data)[g_4e8c20->entries[index] & 0xffff].unit_index;
+			else
+				unit_index = NONE;
+			if (function_155810(unit_index, &mode) == 1)
+			{
+				s_camera_state_23cbb0 *state = (s_camera_state_23cbb0 *)&entry->value10;
+				state->value10 = 0;
+				state->value11 = 0;
+				state->value12 = 0;
+				state->value13 = 0;
+				state->value16 = 0;
+				state->value18 = NONE;
+				state->value1c = NONE;
+				state->value24 = 0.0f;
+				state->value20 = 0.0f;
+				state->value28 = 1.0f;
+				state->value14 = 0;
+				function_155dd0(index, function_23cbb0, false);
+			}
+			else
+			{
+				entry->value10 = 0.0f;
+				entry->value14 = 0.0f;
+				function_155dd0(index, function_23c110, false);
+			}
+			entry->word58 = mode;
+		}
+		((byte *)g_510c6c)[0] = *value_reference;
+		((byte *)g_510c6c)[1] = 1;
+	}
+}

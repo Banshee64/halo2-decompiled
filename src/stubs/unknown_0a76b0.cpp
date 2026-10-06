@@ -51,9 +51,6 @@ void function_e5930(long unit_index) { }
 // @stub 0xb8ee0
 void __stdcall function_b8ee0(long parent_index, long marker_name, long object_index, long a) { }
 
-// @stub 0x15e7f0
-void function_15e7f0(long unit_index, long vehicle_index) { }
-
 // @stub 0x1bb570
 void __stdcall function_1bb570(long vehicle_index, long actor_index) { }
 

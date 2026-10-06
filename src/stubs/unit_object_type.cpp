@@ -93,16 +93,11 @@ void function_114e80(long unit_index) { }
 /* in the biped range (PR #28 writes it) */
 
 /* outside the unit range */
-// @stub 0x1509e0
-void function_1509e0(long weapon_index, bool *modes) { }
 
 /* outside the unit range */
 
 
 /* outside the unit range */
-// @stub 0x15cbf0
-void function_15cbf0(long player_index, bool flag) { }
-
 // @stub 0x1147e0
 void function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard) { }
 
