@@ -1106,3 +1106,220 @@ void function_1c55e0(real const *bounds)
 	c_world_contact_update filter;
 	((s_world_bounds_view *)g_51e9a4)->search->search(&query, &filter);
 }
+
+
+class hkShape;
+bool function_182180(hkShape const *shape);
+
+class c_contact_shape_container
+{
+public:
+ virtual void slot00() = 0;
+ virtual void slot01() = 0;
+ virtual void slot02() = 0;
+ virtual void slot03() = 0;
+ virtual void slot04() = 0;
+ virtual void slot05() = 0;
+ virtual void slot06() = 0;
+ virtual void slot07() = 0;
+ virtual void slot08() = 0;
+ virtual void slot09() = 0;
+ virtual void slot0a() = 0;
+ virtual void slot0b() = 0;
+ virtual void slot0c() = 0;
+ virtual c_contact_shape_view *child(long key, void *buffer) = 0;
+};
+
+class c_contact_rule_fallback
+{
+public:
+ hkBool accepts(long a, long b);
+};
+
+class c_contact_rule_filter
+{
+public:
+ virtual hkBool accepts(void const *query, s_contact_body_view const *a, s_contact_body_view const *b,
+  c_contact_shape_container *container, long key);
+};
+
+// @retail 0x1c32d0
+hkBool c_contact_rule_filter::accepts(void const *query, s_contact_body_view const *a, s_contact_body_view const *b,
+ c_contact_shape_container *container, long key)
+{
+ __m128 buffer[16];
+ s_contact_body_view const *root = a;
+ while (root->parent)
+  root = root->parent;
+ if ((hkEntity *)g_47f048 == root->entity)
+ {
+  c_contact_shape_view *shape = key != NONE ? container->child(key, buffer) : b->shape;
+  if (shape->type() == 0x15)
+   shape = *(c_contact_shape_view **)((byte *)shape + 0xc);
+  if (shape->type() == 0x17)
+   shape = *(c_contact_shape_view **)((byte *)shape + 0x30);
+  if (shape->type() != 0x18 && function_182180((hkShape *)shape))
+  {
+   long metadata = shape->metadata;
+   if (metadata && contact_metadata_pin(metadata, 1, 16) != metadata)
+   {
+    byte flag = *(byte *)(metadata + 0x1f) & 1;
+    volatile byte saved_flag = flag;
+    if (flag)
+    {
+     root = a;
+     while (root->parent)
+      root = root->parent;
+     if (root->type == 1 && root->entity && ((hkRigidBody *)root->entity)->m_motion->getType() == 7)
+     {
+      hkBool result;
+      result.m_bool = 0;
+      return result;
+     }
+    }
+   }
+  }
+ }
+ s_contact_body_view const *root_b = b;
+ while (root_b->parent)
+  root_b = root_b->parent;
+ long key_b = root_b->unknown1c;
+ root = a;
+ while (root->parent)
+  root = root->parent;
+ return ((c_contact_rule_fallback *)((byte *)this - 0xc))->accepts(root->unknown1c, key_b);
+}
+
+
+long function_183c60(long object_index, long node_index);
+void havok_component_rigid_body_linear_velocity_change(long index, s_havok_component *component, vector3f const *change);
+void havok_component_rigid_body_linear_velocity_add(long index, s_havok_component *component, vector3f const *change);
+void havok_component_rigid_body_point_impulse_apply(long index, s_havok_component *component, point3f const *point, vector3f const *change);
+
+struct s_contact_scale_definition
+{
+ byte unknown00[0x14];
+ real scale;
+};
+
+PRIVATE inline void contact_vector_set(vector3f *out, real i, real j, real k)
+{
+ out->i = i;
+ out->j = j;
+ out->k = k;
+}
+
+PRIVATE inline void contact_motion_vector(vector3f *out, hkVector4 const *value)
+{
+ contact_vector_set(out, (*value)(0), (*value)(1), (*value)(2));
+}
+
+// @retail 0x1c4c50
+bool __stdcall function_1c4c50(long object_index, long node_index, point3f const *point,
+ vector3f const *change_a, vector3f const *change_b, long *result_object, vector3f *linear, vector3f *angular)
+{
+ // Retail keeps all eight inputs on the stack.
+ (void)&object_index;
+ (void)&node_index;
+ (void)&point;
+ (void)&change_a;
+ (void)&change_b;
+ (void)&result_object;
+ (void)&linear;
+ (void)&angular;
+ s_velocity_object_header *headers = (s_velocity_object_header *)g_4e0300->data;
+ s_havok_object *object = headers[object_index & 0xffff].object;
+ volatile bool result = false;
+ if (object->havok_component_index != NONE)
+ {
+  long root_index = function_baf80(object_index);
+  s_havok_object *root = headers[root_index & 0xffff].object;
+  vector3f a;
+  vector3f b;
+  if (change_a)
+   a = *change_a;
+  if (change_b)
+   b = *change_b;
+  if (root->havok_component_index != NONE)
+  {
+   s_havok_component *component = havok_component_get(root->havok_component_index);
+   if (root_index != object_index)
+   {
+    s_contact_scale_definition *definition = (s_contact_scale_definition *)g_4e3b44[*(long *)object & 0xffff].bytes;
+    if (definition->scale > 0.001f)
+    {
+     s_contact_scale_definition *root_definition = (s_contact_scale_definition *)g_4e3b44[*(long *)root & 0xffff].bytes;
+     real scale = root_definition->scale / definition->scale;
+     if (change_a)
+     {
+      a.i *= scale;
+      a.j *= scale;
+      a.k *= scale;
+     }
+     if (change_b)
+     {
+      b.i *= scale;
+      b.j *= scale;
+      b.k *= scale;
+     }
+    }
+   }
+   if (!havok_component_any_rigid_body_active(component))
+    havok_component_rigid_bodies_activate(component);
+   long indices[64];
+   long count;
+   if (node_index != NONE && root_index == object_index)
+   {
+    long index = function_183c60(root_index, node_index);
+    if (index != NONE)
+    {
+     count = 1;
+     indices[0] = index;
+     goto selected;
+    }
+   }
+   count = component->rigid_bodies.size;
+   for (long i = 0; i < count; ++i)
+    indices[i] = i;
+selected:
+   for (long i = 0; i < count; ++i)
+   {
+    long index = indices[i];
+    hkRigidBody *body = havok_component_rigid_body_get(index, component);
+    if (!body->m_fixed && body->m_motion->getType() != 6)
+    {
+     if (point)
+     {
+      if (change_a)
+      {
+       if (!TEST_FIELD_BIT(component->flag1))
+        havok_component_rigid_body_point_impulse_apply(index, component, point, &a);
+       else
+        havok_component_rigid_body_linear_velocity_change(index, component, &a);
+      }
+     }
+     else if (change_a)
+      havok_component_rigid_body_linear_velocity_change(index, component, &a);
+     if (change_b && !TEST_FIELD_BIT(component->flag1))
+      havok_component_rigid_body_linear_velocity_add(index, component, &b);
+     if (havok_component_main_rigid_body_index_get(component) == index)
+     {
+      *result_object = component->object_index;
+      body = havok_component_rigid_body_get(index, component);
+      if (!body->m_fixed)
+       contact_motion_vector(linear, &body->m_motion->m_linear_velocity);
+      else
+       *linear = *g_4687a4;
+      body = havok_component_rigid_body_get(index, component);
+      if (!body->m_fixed)
+       contact_motion_vector(angular, &body->m_motion->m_angular_velocity);
+      else
+       *angular = *g_4687a4;
+      result = true;
+     }
+    }
+   }
+  }
+ }
+ return result;
+}
