@@ -11,7 +11,8 @@ struct s_nav_point
 {
 	short type;
 	short team : 4;
-	short unknown : 12;
+	short field_2_4 : 4;
+	short unknown : 8;
 	real value;
 	long object_index;
 };
@@ -141,5 +142,89 @@ void __stdcall function_24d877(short player_team, short is_object, long object_i
 
 		if (player->user_index != NONE && player_team == player->team)
 			function_24d806(iterator.datum_index, is_object, object_index);
+	}
+}
+
+bool function_14ddc0(long local_player_index);
+long function_14de70(long local_player_index);
+void function_caf60(long unit_index, point3f *position);
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+void function_30c60(dword handle, point3f *position, long *out);
+long function_24da18(point3f const *point0, point3f const *point1,
+	long ignore_unit_index, long local_player_index);
+
+struct s_object_24d8d3
+{
+	byte field_00[0x10a];
+	word field_10a_0 : 2;
+	word field_10a_2 : 1;
+	word field_10a_3 : 13;
+};
+
+struct s_point_24d8d3
+{
+	byte field_00[0x24];
+	point3f field_24;
+	byte field_30[8];
+};
+
+struct s_scenario_24d8d3
+{
+	byte field_00[0x1e4];
+	s_point_24d8d3 *field_1e4;
+};
+
+// @retail 0x24d8d3
+void __stdcall function_24d8d3(long local_player_index)
+{
+	s_nav_points *points = &g_5023f8[local_player_index];
+	long unit_index;
+	if (function_14ddc0(local_player_index))
+	{
+		long player_index = function_14de70(local_player_index);
+		unit_index = *(long *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x2c);
+	}
+	else
+		unit_index = NONE;
+	for (long i = 0; i < 4; ++i)
+	{
+		s_nav_point *point = &points->points[i];
+		if (point->type != NONE && point->object_index != NONE && point->team != NONE)
+		{
+			if (unit_index != NONE)
+			{
+				point3f origin;
+				point3f destination;
+				long ignore_index = NONE;
+				function_caf60(unit_index, &origin);
+				switch (point->team)
+				{
+				case 0:
+					destination = ((s_scenario_24d8d3 *)g_4e0350)->field_1e4[point->object_index].field_24;
+					break;
+				case 1:
+				{
+					long object_index = point->object_index;
+					s_object_24d8d3 *object = (s_object_24d8d3 *)function_badc0(object_index, NONE);
+					ignore_index = object_index;
+					if (!object || TEST_FIELD_BIT(object->field_10a_2))
+					{
+						point->object_index = NONE;
+						point->team = NONE;
+						point->type = NONE;
+						continue;
+					}
+					long local_10;
+					function_30c60(object_index, &destination, &local_10);
+					break;
+				}
+				}
+				destination.z += point->value;
+				point->field_2_4 = function_24da18(&origin, &destination, ignore_index, local_player_index);
+			}
+		}
+		else
+			point->team = NONE;
 	}
 }

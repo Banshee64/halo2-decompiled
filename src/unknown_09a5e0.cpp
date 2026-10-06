@@ -1738,7 +1738,9 @@ void c_breakable_surface_damage_event_definition::v9(long a, void const *data, s
 	stream_write_bit(stream, event->no_direction);
 	if (!event->no_direction)
 		function_194bc0(stream, &event->direction);
-	simulation_write_position(&event->position.i, 13, stream, false);
+	real const *local_0 = &event->position.i;
+	real const *const *local_1 = &local_0;
+	simulation_write_position(*local_1, 13, stream, false);
 	scenario_object_name_encode(event->object_name, stream);
 }
 
@@ -1747,7 +1749,9 @@ void c_unit_grenade_release_event_definition::v9(long a, void const *data, s_bit
 {
 	s_unit_grenade_release_event_data const *event = (s_unit_grenade_release_event_data const *)data;
 	stream_write_checked(stream, event->type, 1);
-	simulation_write_position(&event->position.i, 16, stream, false);
+	real const *local_0 = &event->position.i;
+	real const *const *local_1 = &local_0;
+	simulation_write_position(*local_1, 16, stream, false);
 	function_194bc0(stream, &event->velocity);
 }
 

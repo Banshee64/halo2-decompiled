@@ -5,6 +5,7 @@
 #include "slot_handler.h"
 #include "unknown_2551c0.h"
 #include "unknown_0259a0.h"
+#include "unknown_1dacb0.h"
 
 /* the slot state of handler 0xc */
 struct s_slot_0c_state
@@ -203,4 +204,236 @@ void __stdcall function_255660(long actor_index, s_slot *slot)
 	actor->unknown458 = *(vector3f *)&state->point;
 	actor->unknown450 = 0x4000089;
 	actor->unknown456 = true;
+}
+
+struct s_2556b0
+{
+	byte field_0[0xc4];
+	long field_c4;
+	s_pathfinding_data *field_c8;
+};
+
+struct s_2556c0
+{
+	byte field_0[4];
+	word field_4;
+	byte field_6[10];
+};
+
+// @retail 0x2556b0
+long function_2556b0(point3f const *arg_0, vector3f const *arg_1, long arg_2, real *arg_3)
+{
+	s_pathfinding_data *local_0 = NULL;
+	s_2556b0 *local_1 = (s_2556b0 *)g_4e0348;
+	if (local_1->field_c4 > 0)
+	{
+		local_0 = local_1->field_c8;
+	}
+	s_sector_trace_result local_2;
+	function_26c590(local_0, arg_0, arg_2, NONE, arg_1, 1.5f, NULL, (s_path_trace_result *)&local_2);
+	long local_5 = local_2.edge_index;
+	if (local_2.blocked && local_5 >= 0 && local_5 < *(long *)local_0->unknown08 &&
+		(((s_2556c0 *)local_0->edges)[local_5].field_4 & 0x400))
+	{
+		local_2.distance = 1.5f;
+		local_2.blocked = false;
+	}
+	if (arg_3)
+	{
+		*arg_3 = local_2.distance;
+	}
+	return !local_2.blocked;
+}
+
+struct s_255d60
+{
+	byte field_0[4];
+	point3f field_4;
+	short field_10;
+	short field_12;
+	long field_14;
+	long field_18;
+};
+
+point3f *function_b9dd0(long object_index, point3f *result);
+
+// @retail 0x255d60
+bool function_255d60(long arg_0, point3f const *arg_1, real arg_2, real arg_3, short *arg_4)
+{
+	real local_20 = arg_2 > arg_3 ? arg_2 : arg_3;
+	s_actor_view *local_0 = actor_get(arg_0);
+	real local_1 = local_20 * local_20;
+	real local_2 = arg_2 * arg_2;
+	bool local_3 = false;
+	long local_4 = 0;
+	s_record_pool_iterator local_5;
+	if (g_4f55d0->active)
+	{
+		local_5.data = g_502420;
+		local_5.index = NONE;
+	}
+	for (;;)
+	{
+		s_255d60 *local_6 = NULL;
+		if (g_4f55d0->active)
+		{
+			long local_7 = data_next_absolute_index_inlined(local_5.data, local_5.index + 1);
+			if (local_7 != NONE)
+			{
+				local_6 = (s_255d60 *)(local_5.data->data + local_5.data->size * local_7);
+				local_5.index = local_7;
+			}
+		}
+		if (!local_6)
+		{
+			break;
+		}
+		bool local_8 = function_1df560(local_0->unknown024, local_6->field_12);
+		if (distance3d(&local_6->field_4, arg_1) < local_20 + 6.0)
+		{
+			long local_10 = local_6->field_18;
+			while (local_10 != NONE)
+			{
+				s_actor_view *local_11 = actor_get(local_10);
+				local_10 = local_11->next_index;
+				if (local_11->unknown018 != NONE)
+				{
+					point3f local_12;
+					vector3f local_13;
+					function_b9dd0(local_11->unknown018, &local_12);
+					vector3d_from_points3d(arg_1, &local_12, &local_13);
+					real local_14 = length_sq3f(&local_13);
+					if (local_8)
+					{
+						if (local_2 > local_14)
+						{
+							local_4++;
+						}
+					}
+					else if (local_1 > local_14)
+					{
+						local_3 = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	if (!local_3 && !team_is_enemy(local_0->unknown024, 1))
+	{
+		s_record_pool *local_15 = g_4e8c24;
+		long local_16 = NONE;
+		for (;;)
+		{
+			local_16 = function_16bc00(local_15, local_16 + 1);
+			if (local_16 == NONE)
+			{
+				break;
+			}
+			byte *local_17 = local_15->data + local_15->size * local_16;
+			if (!local_17)
+			{
+				break;
+			}
+			long local_18 = *(long *)(local_17 + 0x2c);
+			if (local_18 != NONE)
+			{
+				vector3f local_19;
+				vector3d_from_points3d(arg_1, &object_get(local_18)->unknown030, &local_19);
+				if (local_1 > length_sq3f(&local_19))
+				{
+					local_3 = true;
+					break;
+				}
+			}
+		}
+	}
+	if (arg_4)
+	{
+		*arg_4 = (short)local_4;
+	}
+	return local_3;
+}
+
+struct s_255b10
+{
+	byte field_0[0x68];
+	long field_68;
+	byte field_6c[4];
+	long field_70;
+	long field_74;
+	long field_78;
+};
+
+struct s_255ce0
+{
+	byte field_0[0x7cc];
+	bool field_7cc;
+	byte field_7cd[3];
+	s_type_c3b527 field_7d0;
+	long field_7e0;
+};
+
+real normalize2d(point2f *v);
+bool function_10f340(long unit_index, long mode, long set);
+void *function_1e5380(long actor_index);
+bool function_1ff6c0(long actor_index, long prop_index, point3f const *point, long *target);
+bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_1, long arg_2, bool arg_3);
+
+// @retail 0x255b10
+bool function_255b10(long arg_0, s_type_c3b527 const *arg_1, long arg_2, bool arg_3)
+{
+	bool local_1 = false;
+	s_actor_view *local_0 = actor_get(arg_0);
+	long local_2 = NONE;
+	point3f local_3;
+	if (arg_1->output_index == NONE || !function_2104b0(arg_1->output_index, &arg_1->point, &local_3))
+	{
+		local_3 = arg_1->point;
+	}
+	long local_4 = local_0->unknown018;
+	byte *local_5 = (byte *)object_get(local_4);
+	s_255b10 *local_6 = (s_255b10 *)(local_5 + *(short *)(local_5 + 0x12a));
+	long local_7 = local_6->field_70;
+	if (local_7 == NONE)
+	{
+		local_7 = 0x6000086;
+	}
+	c_type_709360 local_8 = ((s_graph_tag *)g_4e3b44[local_6->field_68 & 0xffff].bytes)->overlay_get(
+		local_7, local_6->field_74, local_6->field_78, 0xd000021, NULL, NULL, NULL);
+	if ((local_8.index != NONE || function_10f340(local_4, 0x7000101, 0xd000021)) && local_0->unknown07c != NONE)
+	{
+		point2f local_9;
+		local_9.x = local_3.x - local_0->position.x;
+		local_9.y = local_3.y - local_0->position.y;
+		if (normalize2d(&local_9) > 0.f &&
+			local_0->unknown290.i * local_9.x + local_0->unknown290.j * local_9.y >= 0.f)
+		{
+			byte *local_10 = (byte *)function_1e5380(arg_0);
+			if (local_10 && function_1ff6c0(arg_0, arg_2, &local_3, &local_2))
+			{
+				short local_11;
+				if (!function_255d60(arg_0, &local_3, *(real *)(local_10 + 0xc), *(real *)(local_10 + 0x20), &local_11) &&
+					function_1ffa30(arg_1, arg_2, local_2, arg_3))
+				{
+					local_1 = true;
+				}
+			}
+		}
+	}
+	return local_1;
+}
+
+// @retail 0x255ce0
+bool function_255ce0(long arg_0)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	byte *local_1 = (byte *)object_get(local_0->unknown018);
+	bool local_2 = false;
+	if (!function_110ab0(local_0->unknown018) && *(real *)(local_1 + 0xf8) == 0.f)
+	{
+		s_255ce0 *local_3 = (s_255ce0 *)local_0;
+		local_2 = function_255b10(arg_0, &local_3->field_7d0, local_3->field_7e0, local_3->field_7cc);
+	}
+	return local_2;
 }
