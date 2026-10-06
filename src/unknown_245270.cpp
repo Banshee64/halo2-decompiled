@@ -41,8 +41,7 @@ PRIVATE inline void function_245270_project(point3f const *point, short axis,
 	out->y = y;
 }
 
-// @retail 0x245270
-__forceinline void function_245270(real thickness, short count, point3f const *points, plane3f const *plane,
+PRIVATE __forceinline void function_24526f(real thickness, short count, point3f const *points, plane3f const *plane,
 	real height, long field_00, long field_04, long field_08, byte field_0c,
 	byte field_0d, short field_0e, s_collection_245270 *collection)
 {
@@ -76,6 +75,15 @@ __forceinline void function_245270(real thickness, short count, point3f const *p
 			}
 		}
 	}
+}
+
+// @retail 0x245270
+void function_245270(real thickness, short count, point3f const *points, plane3f const *plane,
+	real height, long field_00, long field_04, long field_08, byte field_0c,
+	byte field_0d, short field_0e, s_collection_245270 *collection)
+{
+	function_24526f(thickness, count, points, plane, height, field_00, field_04,
+		field_08, field_0c, field_0d, field_0e, collection);
 }
 
 struct s_244de0
@@ -150,14 +158,14 @@ void function_244de0(point3f const *arg_0, vector3f const *arg_1, real arg_2,
 			local_5[2].z -= arg_2;
 			local_5[3] = *arg_0;
 			local_5[3].z -= arg_2;
-			function_245270((*local_7), 4, local_5, &local_4, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
+			function_24526f((*local_7), 4, local_5, &local_4, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
 			point3f local_6 = local_5[1];
 			local_5[1] = local_5[3];
 			local_5[3] = local_6;
 			local_4.i = 0.f - local_4.i;
 			local_4.j = 0.f - local_4.j;
 			local_4.d = 0.f - local_4.d;
-			function_245270((*local_7), 4, local_5, &local_4, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
+			function_24526f((*local_7), 4, local_5, &local_4, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
 		}
 	}
 }
