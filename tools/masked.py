@@ -147,17 +147,20 @@ def near_miss(value, literals, tolerance=1e-5):
 
 
 def explain(value, literals):
-    """A product, quotient, sum or difference of two literals that gives value
-    as a float, or None."""
+    """A square (a * a) or a difference (a - b) of the source's literals that
+    gives value as a float, or None. These are the two ways retail's
+    constants were found to differ: a squared threshold written as its value,
+    and a range written as its width."""
     bits = struct.pack('<f', value)
     # only short decimals (1.2, 0.05, 3.0), so that the pair is a plausible source
     small = sorted(v for v in literals if 0 < v < 1e6 and len(repr(v).strip('0.').replace('.', '')) <= 3)
     for a in small:
+        if struct.pack('<f', f32(f32(a) * f32(a))) == bits:
+            return f'{a!r}f * {a!r}f'
+    for a in small:
         for b in small:
-            fa, fb = f32(a), f32(b)
-            for result, text in ((fa * fb, '*'), (fa / fb, '/'), (fa + fb, '+'), (fa - fb, '-')):
-                if struct.pack('<f', f32(result)) == bits:
-                    return f'{a!r}f {text} {b!r}f'
+            if a > b and struct.pack('<f', f32(f32(a) - f32(b))) == bits:
+                return f'{a!r}f - {b!r}f'
     return None
 
 

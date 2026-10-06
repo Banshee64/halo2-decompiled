@@ -21,10 +21,11 @@ def test_near_miss_flags_a_value_one_float_step_away():
     assert near_miss(f32(3.4028234663852886e+38), {3.4028235e+38}) is None
 
 
-def test_explain_finds_the_product_that_gives_the_value():
+def test_explain_finds_a_square_or_a_difference_only():
     assert explain(f32(f32(0.1) * f32(0.1)), {0.1, 0.01}) == '0.1f * 0.1f'
     assert explain(f32(f32(1.2) - f32(0.8)), {1.2, 0.8, 0.4}) == '1.2f - 0.8f'
     assert explain(0.123456, {0.5}) is None
+    assert explain(f32(f32(0.1) + f32(0.8)), {0.1, 0.8}) is None
 
 
 def test_bodies_stop_at_the_first_lone_closing_brace():
