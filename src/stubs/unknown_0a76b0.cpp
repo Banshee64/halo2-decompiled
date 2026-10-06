@@ -7,9 +7,6 @@ struct s_effect_owner;
 struct s_unit_request;
 class c_animation_channel;
 
-// @stub 0x113e90
-bool __stdcall function_113e90(long unit_index, long name, real blend, c_animation_channel **channel, long mode) { return 0; }
-
 
 // @stub 0xa91c0
 void function_a91c0(long unit_index, long projectile_index, point3f const *origin, vector3f const *forward) { }
@@ -27,14 +24,8 @@ void function_2007b3(long a, long b, long c) { }
 // @stub 0xa8c10
 void __stdcall function_a8c10(long unit_index) { }
 
-// @stub 0x114040
-bool function_114040(long unit_index, long name) { return 0; }
-
 // @stub 0xfff40
 void __stdcall function_fff40(long a, long b) { }
-
-// @stub 0x1140b0
-bool function_1140b0(long unit_index, long name) { return 0; }
 
 // @stub 0x1ca260
 void __stdcall function_1ca260(long actor_index, long player_index, long weapon_index, long other_weapon_index) { }

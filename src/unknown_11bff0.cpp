@@ -33,3 +33,18 @@ long structure_leaf_cluster_get(long leaf_index)
 	}
 	return result;
 }
+
+struct s_cluster_visibility_11c010
+{
+	byte unknown00[0x58];
+	dword *bits;
+	byte unknown5c[0x9c - 0x5c];
+	long cluster_count;
+};
+
+// @retail 0x11c010
+long function_11c010(short row, short column)
+{
+	s_cluster_visibility_11c010 *bsp = (s_cluster_visibility_11c010 *)g_4e0348;
+	return (bsp->bits[((bsp->cluster_count + 31) >> 5) * row + (column >> 5)] & (1 << (column & 31))) != 0;
+}
