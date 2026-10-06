@@ -3,8 +3,6 @@
 #include "unknown_0259d0.h"
 #include "unknown_030290.h"
 
-// @stub 0xa7870
-void __stdcall function_a7870(long object_index) { }
 // @stub 0xbacc0
 bool function_bacc0(long object_index, long index, point3f const *point) { return false; }
 // @stub 0xb5a70

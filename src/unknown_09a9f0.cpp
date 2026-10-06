@@ -714,3 +714,237 @@ bool c_projectile_impact_effect_event::v11(long a, long const *entities, long c,
    (point3f const *)&event->position, &event->normal, event->field_30, false, NONE, NONE, false);
  return true;
 }
+
+
+bool function_100f00(long weapon_index);
+
+// @retail 0xa1f70
+long c_weapon_type::v27(long a, long b, long c, long d)
+{
+ byte *object = (byte *)OBJECT(a);
+ long result = ((c_item_type *)this)->c_item_type::v27(a, b & 0x7ff, 0x94, d);
+ dword requested = b;
+ s_object_view *updated_object = OBJECT(a);
+ s_tag_instance *tags = g_4e3b44;
+ byte *definition = tags[updated_object->definition_index & 0xffff].bytes;
+ if (*(short *)(definition + 0x290))
+ {
+  if (requested & 0x800)
+  {
+   dword source_flags = *(word *)(object + 0x16c);
+   byte flags = (byte)((source_flags >> 8) & 1);
+   if (source_flags & 0x200) flags |= 2; else flags &= ~2;
+   if (source_flags & 0x400) flags |= 4; else flags &= ~4;
+   if (source_flags & 0x800) flags |= 8; else flags &= ~8;
+   if (*(byte *)(d + 0x94) != flags)
+   {
+    *(byte *)(d + 0x94) = flags;
+    result |= 0x800;
+   }
+  }
+  if ((requested & 0x1000) && *(short *)(d + 0x96) != *(short *)(object + 0x17e))
+  {
+   *(short *)(d + 0x96) = *(short *)(object + 0x17e);
+   result |= 0x1000;
+  }
+ }
+ if (requested & 0x2000)
+ {
+  definition = tags[*(long *)object & 0xffff].bytes;
+  bool changed = false;
+  bool force = !function_100f00(a);
+  if (*(real *)(d + 0x9c) != *(real *)(object + 0x184) || force)
+  {
+   *(real *)(d + 0x9c) = *(real *)(object + 0x184);
+   result |= 0x2000;
+   changed = true;
+  }
+  if (*(long *)(definition + 0x2c0) > 0 &&
+   (*(short *)(d + 0x98) != *(short *)(object + 0x22c) ||
+    *(short *)(d + 0x9a) != *(short *)(object + 0x22a) || changed || force))
+  {
+   *(real *)(d + 0x9c) = *(real *)(object + 0x184);
+   *(short *)(d + 0x98) = *(short *)(object + 0x22c);
+   *(short *)(d + 0x9a) = *(short *)(object + 0x22a);
+   return result | 0x2000;
+  }
+ }
+ return result;
+}
+
+
+// @retail 0xa0640
+bool function_a0640(c_object_type_definition *definition, long a, long *flags, long state, s_bitstream *stream)
+{
+ bool result = function_a6d50((long)flags, state, stream);
+ if (function_1957d0(stream))
+ {
+  *(bool *)(state + 0x90) = function_1957d0(stream);
+  *flags |= 0x400;
+ }
+ if (result && stream->bit_position <= (stream->size_in_bytes << 3)) return true;
+ return false;
+}
+
+// @retail 0xa0520
+bool c_item_type::v15(long a, long b, long c, long d, s_bitstream *stream)
+{
+ return function_a0640(this, a, (long *)b, d, stream);
+}
+
+// @retail 0xa1350
+bool c_projectile_type::v15(long a, long b, long c, long d, s_bitstream *stream)
+{
+ c_object_type_definition *volatile definition = this;
+ bool result = function_a6d50(b, d, stream);
+ if (function_1957d0(stream))
+ {
+  *(bool *)(d + 0x90) = function_1957d0(stream);
+  *(long *)b |= 0x400;
+ }
+ if (result && stream->bit_position <= (stream->size_in_bytes << 3)) return true;
+ return false;
+}
+
+PRIVATE inline real z_read_object_fraction(s_bitstream *stream, long bits, long maximum)
+{
+ long value = function_1959c0(stream, bits);
+ real result;
+ if (!value) result = 0.0f;
+ else if (value >= maximum) result = 1.0f;
+ else result = ((maximum - value) * 0.0f + value * 1.0f) * (1.0f / maximum);
+ return result;
+}
+
+// @retail 0xa4320
+bool c_device_type::v15(long a, long b, long c, long d, s_bitstream *stream)
+{
+ c_object_type_definition *volatile definition = this;
+ bool result = function_a6d50(b, d, stream);
+ if (function_1957d0(stream))
+ {
+  *(real *)(d + 0x90) = z_read_object_fraction(stream, 14, 16383);
+  *(long *)b |= 0x400;
+ }
+ if (function_1957d0(stream))
+ {
+  *(real *)(d + 0x94) = z_read_object_fraction(stream, 14, 16383);
+  *(long *)b |= 0x800;
+ }
+ if (result && stream->bit_position <= (stream->size_in_bytes << 3)) return true;
+ return false;
+}
+
+// @retail 0xa26d0
+bool c_weapon_type::v15(long a, long b, long c, long d, s_bitstream *stream)
+{
+ bool result = function_a0640(this, a, (long *)b, d, stream) != false;
+ if (function_1957d0(stream))
+ {
+  *(byte *)(d + 0x94) = (byte)function_1959c0(stream, 4);
+  *(long *)b |= 0x800;
+ }
+ if (function_1957d0(stream))
+ {
+  *(short *)(d + 0x96) = (short)(function_1959c0(stream, 5) - 1);
+  *(long *)b |= 0x1000;
+  if (*(short *)(d + 0x96) != NONE)
+   result = result && *(short *)(d + 0x96) >= 0 && *(short *)(d + 0x96) < 9;
+ }
+ if (function_1957d0(stream))
+ {
+  *(word *)(d + 0x98) = (word)function_1959c0(stream, 8);
+  *(word *)(d + 0x9a) = (word)function_1959c0(stream, 11);
+  *(real *)(d + 0x9c) = z_read_object_fraction(stream, 7, 126);
+  *(long *)b |= 0x2000;
+ }
+ if (result && stream->bit_position <= (stream->size_in_bytes << 3)) return true;
+ return false;
+}
+
+
+#include "flags_writer.h"
+void function_194830(s_bitstream *stream, bool value);
+
+// @retail 0xa0540
+bool function_a0540(c_object_type_definition *definition, long a, long requested, long *written, long state, s_bitstream *stream, long reserve)
+{
+ bool result = false;
+ long const *reserve_reference = &reserve;
+ long total_reserve = reserve + 1;
+ if (function_a69a0(a, requested & 0x3ff, (long)written, state, (long)stream, definition->v33(), total_reserve))
+ {
+  s_flags_writer writer;
+  flags_writer_initialize(&writer, stream, 10, 1, requested & 0x400, *reserve_reference);
+  if (writer.space)
+  {
+   if (flags_writer_begin(&writer, 10, "at-rest-exists"))
+    function_194830(stream, *(bool const *)(state + 0x90));
+   flags_writer_end(&writer);
+   *written |= writer.written;
+   result = true;
+  }
+ }
+ return result;
+}
+
+// @retail 0xa1250
+bool c_projectile_type::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+ bool result = false;
+ long const *reserve_reference = &a8;
+ long reserve = a8 + 1;
+ if (function_a69a0(a1, a2 & 0x3ff, a3, a5, a7, v33(), reserve))
+ {
+  s_flags_writer writer;
+  s_bitstream *stream = (s_bitstream *)a7;
+  flags_writer_initialize(&writer, stream, 10, 1, a2 & 0x400, *reserve_reference);
+  if (writer.space)
+  {
+   if (flags_writer_begin(&writer, 10, "at-rest-exists"))
+    function_194830(stream, *(bool const *)(a5 + 0x90));
+   flags_writer_end(&writer);
+   *(long *)a3 |= writer.written;
+   result = true;
+  }
+ }
+ return result;
+}
+
+PRIVATE inline void z_write_device_fraction(s_bitstream *stream, real value)
+{
+ real scaled = value * 16383.0f;
+ long quantized;
+ __asm
+ {
+  fld scaled
+  fistp quantized
+ }
+ function_195720(stream, quantized, 14);
+}
+
+// @retail 0xa41b0
+bool c_device_type::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+ bool result = false;
+ long const *reserve_reference = &a8;
+ long reserve = a8 + 2;
+ if (function_a69a0(a1, a2 & 0x3ff, a3, a5, a7, v33(), reserve))
+ {
+  s_flags_writer writer;
+  s_bitstream *stream = (s_bitstream *)a7;
+  flags_writer_initialize(&writer, stream, 10, 2, a2 & 0xc00, *reserve_reference);
+  if (writer.space)
+  {
+   if (flags_writer_begin(&writer, 10, "position-exists"))
+    z_write_device_fraction(stream, *(real const *)(a5 + 0x90));
+   flags_writer_end(&writer);
+   if (flags_writer_begin(&writer, 11, "position-group-position-exists"))
+    z_write_device_fraction(stream, *(real const *)(a5 + 0x94));
+   flags_writer_end(&writer);
+   *(long *)a3 |= writer.written;
+   result = true;
+  }
+ }
+ return result;
+}

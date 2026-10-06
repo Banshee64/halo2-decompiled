@@ -9,11 +9,6 @@ bool function_a5bd0(long a)
 	return false;
 }
 
-// @stub 0xa6d50
-bool function_a6d50(long a, long b, s_bitstream *stream)
-{
-	return false;
-}
 
 
 // @stub 0xa58d0
@@ -38,11 +33,6 @@ bool function_a6810(s_bitstream *stream)
 	return false;
 }
 
-// @stub 0xa69a0
-bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
-{
-	return false;
-}
 
 // @stub 0xa7180
 void function_a7180(long a, long b)
@@ -54,10 +44,6 @@ void __stdcall function_b8540(long a)
 {
 }
 
-// @stub 0xa5d90
-void function_a5d90(void *data, s_entity_info *info, long *c, long e)
-{
-}
 
 // @stub 0xa73b0
 long function_a73b0(s_entity_info *info)
