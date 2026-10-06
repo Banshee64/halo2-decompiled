@@ -3,8 +3,6 @@
 
 // @stub 0x35b90
 void __stdcall function_35b90(void *material) { }
-// @stub 0x1e930
-void __stdcall function_1e930(long a) { }
 /* builds a texture header in the given one (retail passes it in edi) and
    returns it, or 0 when the allocation fails */
 // @stub 0x23e340

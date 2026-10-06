@@ -2286,3 +2286,524 @@ bool function_1caa0(long tag, byte const *selection, word const *kind, byte cons
     dword mask = function_1cb70(tag, shader);
     return function_1c8c0(definition, mask, third, second, first);
 }
+
+long g_509350;
+const dword g_47ffd8[53] = {
+    0x00000001, 0x00000000, 0x00020000, 0x00000000, 0x00000000, 0x80000007, 0x00000000, 0x007bbef0,
+    0x00000cf2, 0x00377101, 0x000000ff, 0x00001fff, 0x00001fff, 0x000000ff, 0x00084208, 0x0007ec87,
+    0x1f030700, 0x1f030700, 0x03030300, 0x00000017, 0x00000017, 0x0000001f, 0x00001000, 0x00001000,
+    0x00000200, 0x00002000, 0x00000000, 0x00000004, 0x501502f9, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000
+};
+dword g_484ce8[53];
+
+// @retail 0x12490
+bool function_12490()
+{
+    bool result = true;
+    D3DPRESENT_PARAMETERS parameters;
+    memset(&parameters, 0, sizeof(parameters));
+    g_509350 = 1;
+    parameters.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
+    parameters.Windowed = false;
+    parameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
+    parameters.EnableAutoDepthStencil = true;
+    parameters.AutoDepthStencilFormat = D3DFMT_D24S8;
+    parameters.BackBufferFormat = D3DFMT_A8R8G8B8;
+    parameters.FullScreen_RefreshRateInHz = (short)g_485ac0;
+    parameters.BackBufferWidth = 640;
+    parameters.BackBufferHeight = 480;
+    parameters.FullScreen_PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+    if (g_485ac2)
+        parameters.Flags |= D3DPRESENTFLAG_WIDESCREEN;
+    if (g_485ac6)
+        parameters.Flags |= D3DPRESENTFLAG_PROGRESSIVE;
+    D3DDevice *device = NULL;
+    Direct3D_CreateDevice(0, D3DDEVTYPE_HAL, NULL, D3DCREATE_HARDWARE_VERTEXPROCESSING, &parameters, &device);
+    g_5093b0 = device;
+    if (!g_5093b0)
+    {
+        g_5093b0 = NULL;
+        return false;
+    }
+    memcpy(g_484ce8, g_47ffd8, sizeof(g_484ce8));
+    return result;
+}
+
+struct s_type_7ba8e9;
+long function_136490(s_type_7ba8e9 const *bitmap);
+
+// @retail 0x1d2f0
+bool __stdcall function_1d2f0(D3DSurface *surface, byte *bitmap)
+{
+    volatile bool result = true;
+    D3DSURFACE_DESC description;
+    D3DSurface_GetDesc(surface, &description);
+    memset(bitmap, 0, 0x74);
+    *(dword *)bitmap = 0x6269746d;
+    *(short *)(bitmap + 4) = (short)description.Width;
+    *(short *)(bitmap + 6) = (short)description.Height;
+    bitmap[8] = 1;
+    *(short *)(bitmap + 0xa) = 0;
+    bool linear;
+    long format;
+    function_1d4b0(description.Format, false, &linear, &format);
+    if (format == NONE)
+        return false;
+    *(short *)(bitmap + 0xc) = (short)format;
+    if (!linear)
+        *(word *)(bitmap + 0xe) |= 1;
+    else
+        *(word *)(bitmap + 0xe) |= 0x10;
+    if ((short)format >= 14 && (short)format <= 16)
+        *(word *)(bitmap + 0xe) |= 2;
+    if ((short)format == 18)
+        *(word *)(bitmap + 0xe) |= 4;
+    *(short *)(bitmap + 0x14) = 1;
+    D3DLOCKED_RECT locked;
+    D3DSurface_LockRect(surface, &locked, NULL, D3DLOCK_NOOVERWRITE);
+    *(void **)(bitmap + 0x54) = locked.pBits;
+    *(long *)(bitmap + 0x34) = function_136490((s_type_7ba8e9 const *)bitmap);
+    return result;
+}
+
+D3DSurface g_484f50;
+
+// @retail 0x14850
+bool function_14850()
+{
+    volatile bool result = true;
+    D3DTexture *texture;
+    function_0158f0(0, 11, 64, 64, 0, 1, &texture);
+    g_509374 = texture;
+    g_509378 = D3DTexture_GetSurfaceLevel2(texture, 0);
+    function_0158f0(0, 11, 64, 64, 0, 1, &texture);
+    g_50937c = texture;
+    g_509380 = D3DTexture_GetSurfaceLevel2(texture, 0);
+    if (!g_509374 || !g_509378 || !g_50937c || !g_509380)
+        result = false;
+    g_484f50.Common = 0x50001;
+    g_484f50.Data = 0;
+    g_484f50.Lock = 0;
+    g_484f50.Format = 0x11229;
+    g_484f50.Size = 0x1f1ff1ff;
+    g_484f50.Parent = NULL;
+    g_509384 = &g_484f50;
+    return result;
+}
+
+struct short_rect_pair
+{
+    struct { short v0, v1, v2, v3; } a, b;
+};
+extern short_rect_pair g_485a8a;
+extern short g_485aca;
+struct s_128c0_settings
+{
+    byte depth_format, interval_flag;
+    short interval;
+    long quality, extra;
+};
+word g_485ac8;
+long g_485acc, g_485ad0;
+long g_467008, g_46700c;
+bool g_5093bc;
+
+// @retail 0x128c0
+bool function_128c0(s_128c0_settings const *settings)
+{
+    g_485ac8 = *(word const *)settings;
+    g_485aca = settings->interval;
+    g_485acc = settings->quality;
+    g_485ad0 = settings->extra;
+    volatile bool result = true;
+    D3DPRESENT_PARAMETERS parameters;
+    memset(&parameters, 0, sizeof(parameters));
+    parameters.Windowed = false;
+    parameters.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
+    parameters.EnableAutoDepthStencil = true;
+    parameters.AutoDepthStencilFormat = (D3DFORMAT)(D3DFMT_D24S8 + ((byte)g_485ac8 != 0));
+    parameters.BackBufferFormat = D3DFMT_A8R8G8B8;
+    parameters.BackBufferWidth = g_485a8a.a.v3 - g_485a8a.a.v1;
+    parameters.BackBufferHeight = g_485a8a.a.v2 - g_485a8a.a.v0;
+    switch (g_485aca)
+    {
+    case 0:
+        parameters.SwapEffect = D3DSWAPEFFECT_FLIP;
+        parameters.FullScreen_PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+        break;
+    case 1:
+        parameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
+        parameters.FullScreen_PresentationInterval = 1 + ((g_485ac8 >> 8) ? 0x80000000 : 0);
+        break;
+    case 2:
+        parameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
+        parameters.FullScreen_PresentationInterval = 2 + ((g_485ac8 >> 8) ? 0x80000000 : 0);
+        break;
+    default:
+        parameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
+        g_485aca = 1;
+        parameters.FullScreen_PresentationInterval = 0;
+        break;
+    }
+    parameters.FullScreen_RefreshRateInHz = (short)g_485ac0;
+    if (!g_5093b0)
+    {
+        D3DDevice *device = NULL;
+        Direct3D_CreateDevice(0, D3DDEVTYPE_HAL, NULL, D3DCREATE_HARDWARE_VERTEXPROCESSING, &parameters, &device);
+        g_5093b0 = device;
+    }
+    else
+        D3DDevice_Reset(&parameters);
+    if (!g_5093b0)
+    {
+        g_5093b0 = NULL;
+        return false;
+    }
+    memcpy(g_484ce8, g_47ffd8, sizeof(g_484ce8));
+    if (g_485acc < 0 || g_485acc > 5)
+        g_485acc = 3;
+    g_467008 = NONE;
+    g_46700c = NONE;
+    g_5093bc = true;
+    return result;
+}
+
+// @retail 0x13d80
+void function_13d80()
+{
+    if (g_5093c8 && (short)(g_5093c0.first >> 16) >= 0 && (short)g_5093c0.first >= 0 &&
+        (short)(g_5093c0.second >> 16) <= 640 && (short)g_5093c0.second <= 480)
+    {
+        D3DSurface *surface = D3DDevice_GetBackBuffer2(0);
+        D3DSURFACE_DESC description;
+        D3DSurface_GetDesc(surface, &description);
+        if (description.Size == description.Width * description.Height * 4)
+        {
+            D3DLOCKED_RECT locked;
+            D3DSurface_LockRect(surface, &locked, NULL, 0);
+            locked.pBits = (void *)((dword)locked.pBits | 0xf0000000);
+            if (locked.pBits)
+            {
+                long width = (short)(g_5093c0.second >> 16) - (short)(g_5093c0.first >> 16);
+                long height = (short)g_5093c0.second - (short)g_5093c0.first;
+                byte const *source = (byte const *)g_5093c8;
+                byte *row = (byte *)locked.pBits + (short)g_5093c0.first * locked.Pitch;
+                for (long y = 0; y < height; ++y)
+                {
+                    dword *pixel = (dword *)row + (short)(g_5093c0.first >> 16);
+                    for (long x = 0; x < width; ++x)
+                    {
+                        long value = source[x] * g_5093cc;
+                        byte level = (byte)(value < 0 ? 0 : value > 255 ? 255 : value);
+                        *pixel++ = (((((dword)level << 8) | level) << 8 | level) << 8) | level;
+                    }
+                    row += locked.Pitch;
+                    source += width;
+                }
+            }
+            D3DSurface_UnlockRect(surface);
+        }
+        D3DResource_Release(surface);
+    }
+}
+
+extern D3DResource *g_485ae4, *g_485ae8, *g_485aec;
+
+// @retail 0x1d0e0
+bool function_1d0e0()
+{
+    D3DTexture *texture;
+    if (!function_0158f0(0, 9, 4, 4, 0, 0, &texture))
+    {
+        g_485ae4 = texture;
+        return false;
+    }
+    g_485ae4 = texture;
+    D3DVolumeTexture *volume;
+    if (!function_015a60(9, 4, 4, 4, 0, 0, &volume))
+    {
+        g_485ae8 = volume;
+        return false;
+    }
+    g_485ae8 = volume;
+    D3DCubeTexture *cube;
+    if (!function_0159b0(4, 9, 0, 0, &cube))
+    {
+        g_485aec = cube;
+        return false;
+    }
+    g_485aec = cube;
+    bool result = true;
+    if (!g_485ae4 || !g_485ae8 || !g_485aec)
+        return false;
+    word colors[2] = { 0x0f00, 0xf0f0 };
+    D3DLOCKED_RECT rectangle;
+    D3DTexture_LockRect((D3DTexture *)g_485ae4, 0, &rectangle, NULL, 0);
+    for (long i = 0; i < 16; ++i)
+        ((word *)rectangle.pBits)[i] = colors[i & 1];
+    D3DTexture_UnlockRect((D3DTexture *)g_485ae4, 0);
+    D3DLOCKED_BOX box;
+    D3DVolumeTexture_LockBox((D3DVolumeTexture *)g_485ae8, 0, &box, NULL, 0);
+    for (long j = 0; j < 64; ++j)
+        ((word *)box.pBits)[j] = colors[j & 1];
+    D3DVolumeTexture_UnlockBox((D3DVolumeTexture *)g_485ae8, 0);
+    for (long face = 0; face < 6; ++face)
+    {
+        D3DCubeTexture_LockRect((D3DCubeTexture *)g_485aec, (D3DCUBEMAP_FACES)face, 0, &rectangle, NULL, 0);
+        for (long k = 0; k < 16; ++k)
+            ((word *)rectangle.pBits)[k] = colors[k & 1];
+        D3DCubeTexture_UnlockRect((D3DCubeTexture *)g_485aec, (D3DCUBEMAP_FACES)face, 0);
+    }
+    return result;
+}
+
+extern D3DPIXELSHADERDEF g_484f68;
+extern long g_4b6298;
+extern bool g_4b6294;
+void function_0222d0(D3DRENDERSTATETYPE state, dword value);
+
+// @retail 0x1e930
+void __stdcall function_1e930(long opaque)
+{
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 0;
+    g_484f68.PSCombinerCount = 1;
+    g_484f68.PSFinalCombinerInputsABCD = 4;
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
+    function_0222d0(D3DRS_ZENABLE, 2);
+    function_0222d0(D3DRS_ZBIAS, 8);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    if ((byte)opaque)
+    {
+        function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+        function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+        function_0222d0(D3DRS_ZWRITEENABLE, 1);
+    }
+    else
+    {
+        function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+        function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+        function_0222d0(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+        function_0222d0(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+        function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+        function_0222d0(D3DRS_ZWRITEENABLE, 0);
+        g_484f68.PSFinalCombinerInputsEFG = 0x1400;
+    }
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x14), 0);
+    function_1c710(g_51f0f0);
+    function_15180(&g_484f68);
+    function_14bc0((short)g_4858b8, 0, true);
+    function_1cf50();
+    g_4b6298 = 0;
+    g_4b6294 = true;
+}
+
+extern real g_48565c;
+real g_48568c[46];
+bool g_55e6bc;
+
+// @retail 0x12d50
+void function_12d50(real const *projection, bool scaled, real *output)
+{
+    real constants[16];
+    D3DDevice_SetDepthClipPlanes((scaled ? 0.15f : 1.0f) * g_485adc, g_485ae0,
+        D3DSDCP_SET_VERTEXPROGRAM_PLANES);
+    if (!projection)
+        projection = g_48568c;
+    if (!output)
+        output = constants;
+    real scale = 16777215.0f / g_48565c;
+    for (long i = 0; i < 4; ++i)
+    {
+        output[i * 4] = (projection[38 + i] * projection[3] + projection[1] * projection[30 + i]
+            + projection[34 + i] * projection[2]) * scale;
+        output[i * 4 + 1] = (projection[38 + i] * projection[6] + projection[30 + i] * projection[4]
+            + projection[34 + i] * projection[5]) * scale;
+        output[i * 4 + 2] = (projection[38 + i] * projection[9] + projection[8] * projection[34 + i]
+            + projection[30 + i] * projection[7]) * scale;
+        output[i * 4 + 3] = (projection[38 + i] * projection[12] + projection[11] * projection[34 + i]
+            + projection[30 + i] * projection[10]) * scale;
+        output[i * 4 + 3] += projection[42 + i] * scale;
+    }
+    if (scaled)
+        for (long j = 0; j < 16; ++j)
+            output[j] *= 0.15f;
+    if (output == constants && scaled != g_55e6bc)
+    {
+        D3DDevice_SetVertexShaderConstant(-96, output, 4);
+        g_55e6bc = scaled;
+    }
+}
+
+// @retail 0x14600
+bool function_14600()
+{
+    volatile bool result = true;
+    g_50935c = D3DDevice_GetBackBuffer2(0);
+    g_509360 = D3DDevice_GetBackBuffer2(1);
+    g_509364 = D3DDevice_GetDepthStencilSurface2();
+    if (g_50935c && g_509360 && g_509364)
+    {
+        void *memory = VirtualAlloc(NULL, 20, 0x101000, PAGE_READWRITE);
+        if (!memory) GetLastError();
+        g_509354[0] = (D3DTexture *)memory;
+        memory = VirtualAlloc(NULL, 20, 0x101000, PAGE_READWRITE);
+        if (!memory) GetLastError();
+        g_509354[1] = (D3DTexture *)memory;
+        if (g_509354[0] && g_509354[1])
+        {
+            for (long i = 0; i < 2; ++i)
+            {
+                D3DTexture *texture = g_509354[i];
+                texture->Common = 0x40001;
+                texture->Data = (i ? g_509360 : g_50935c)->Data;
+                texture->Lock = 0;
+                texture->Size = 0x271df27f;
+                texture->Format = 0x11229;
+            }
+        }
+        else
+            result = false;
+    }
+    else
+        result = false;
+    void *memory = VirtualAlloc(NULL, 24, 0x101000, PAGE_READWRITE);
+    if (!memory) GetLastError();
+    g_509370 = (D3DSurface *)memory;
+    if (g_509370)
+    {
+        *g_509370 = *g_50935c;
+        g_509370->Data = g_509364->Data;
+    }
+    else
+        result = false;
+    memory = VirtualAlloc(NULL, 20, 0x101000, PAGE_READWRITE);
+    if (!memory) GetLastError();
+    g_509368 = (D3DTexture *)memory;
+    if (g_509368)
+    {
+        g_509368->Common = 0x40001;
+        g_509368->Data = g_509364->Data;
+        g_509368->Lock = 0;
+        g_509368->Size = 0x271df27f;
+        g_509368->Format = 0x11229;
+    }
+    else
+        result = false;
+    memory = VirtualAlloc(NULL, 20, 0x101000, PAGE_READWRITE);
+    if (!memory) GetLastError();
+    g_50936c = (D3DTexture *)memory;
+    if (g_50936c)
+    {
+        g_50936c->Common = 0x40001;
+        g_50936c->Data = g_509364->Data;
+        g_50936c->Lock = 0;
+        g_50936c->Size = 0x271df27f;
+        g_50936c->Format = 0x13f29;
+    }
+    else
+        result = false;
+    return result;
+}
+
+// @retail 0x1eb00
+void function_1eb00()
+{
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_ZENABLE, 0);
+    function_0222d0(D3DRS_ZBIAS, 0);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x6c), 0);
+    function_1c710(g_51f0f0);
+    real x = 1.0f / (short)(g_48564e - g_48564a);
+    real y = 1.0f / (short)(g_48564c - g_485648);
+    real constants[20];
+    constants[0] = x * 2.0f;
+    constants[1] = 0.0f;
+    constants[2] = 0.0f;
+    constants[3] = -1.0f - x;
+    constants[4] = 0.0f;
+    constants[5] = y * -2.0f;
+    constants[6] = 0.0f;
+    constants[7] = y + 1.0f;
+    constants[8] = 0.0f;
+    constants[9] = 0.0f;
+    constants[10] = 0.0f;
+    constants[11] = 0.5f;
+    constants[12] = 0.0f;
+    constants[13] = 0.0f;
+    constants[14] = 0.0f;
+    constants[15] = 1.0f;
+    constants[16] = 1.0f;
+    constants[17] = 1.0f;
+    constants[18] = 0.0f;
+    constants[19] = 1.0f;
+    D3DDevice_SetVertexShaderConstant(81, constants, 5);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 0;
+    g_484f68.PSCombinerCount = 1;
+    g_484f68.PSFinalCombinerInputsABCD = 4;
+    D3DDevice_SetPixelShaderProgram(&g_484f68);
+    function_1cf50();
+    g_4b6298 = 0;
+    g_4b6294 = true;
+}
+
+// @retail 0x36580
+void function_36580()
+{
+    g_4670bc = true;
+    function_16b10((s_render_reset_state *)g_485b48);
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+    function_0222d0(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    function_0222d0(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    function_0222d0(D3DRS_ZENABLE, 0);
+    function_0222d0(D3DRS_ZBIAS, 0);
+    function_0222d0(D3DRS_CULLMODE, 0);
+    real x = 1.0f / (short)(g_48564e - g_48564a);
+    real y = 1.0f / (short)(g_48564c - g_485648);
+    real constants[20];
+    constants[0] = x * 2.0f;
+    constants[1] = 0.0f;
+    constants[2] = 0.0f;
+    constants[3] = -1.0f - x;
+    constants[4] = 0.0f;
+    constants[5] = y * -2.0f;
+    constants[6] = 0.0f;
+    constants[7] = y + 1.0f;
+    constants[8] = 0.0f;
+    constants[9] = 0.0f;
+    constants[10] = 0.0f;
+    constants[11] = 0.5f;
+    constants[12] = 0.0f;
+    constants[13] = 0.0f;
+    constants[14] = 0.0f;
+    constants[15] = 1.0f;
+    constants[16] = 1.0f;
+    constants[17] = 1.0f;
+    constants[18] = 0.0f;
+    constants[19] = 1.0f;
+    D3DDevice_SetVertexShaderConstant(81, constants, 5);
+
+    real extra[24];
+    memset(extra, 0, sizeof(extra));
+    D3DDevice_SetVertexShaderConstant(86, extra, 6);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 0;
+    g_484f68.PSCombinerCount = 1;
+    g_484f68.PSRGBInputs[0] = 0x20040000;
+    g_484f68.PSAlphaInputs[0] = 0x20140000;
+    g_484f68.PSRGBOutputs[0] = 0xc0;
+    g_484f68.PSAlphaOutputs[0] = 0xc0;
+    g_484f68.PSFinalCombinerInputsABCD = 0xc;
+    g_484f68.PSFinalCombinerInputsEFG = 0x1c00;
+    D3DDevice_SetPixelShaderProgram(&g_484f68);
+    function_1cc60(0);
+}

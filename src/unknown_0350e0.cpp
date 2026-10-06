@@ -1159,3 +1159,257 @@ bool __stdcall function_3ebd0(vector3f const *offset, transform4x3f const *matri
         function_146b80();
     return result;
 }
+
+// @retail 0x3d480
+bool function_3d480(long object_index, long count, transform4x3f const *matrices, transform4x3f *out)
+{
+    byte *object = *(byte **)((byte *)g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+    point3f const *position = (point3f const *)(object + 0x64);
+    vector3f offset;
+    offset.i = g_468788->x - position->x;
+    offset.j = g_468788->y - position->y;
+    offset.k = g_468788->z - position->z;
+    return function_3ebd0(&offset, matrices, out, count);
+}
+
+#include "unknown_11cb00.h"
+struct c_entry_list;
+struct s_bit_vector_pool_sizes
+{
+    short unknown0;
+    short list_sizes[4];
+    short record_count;
+};
+struct s_bit_vector_pool
+{
+    void *context;
+    byte unknown004[8];
+    c_entry_list *lists[4];
+    long indices[0x80];
+    dword flags[0x10];
+    dword pool[0x200];
+    word pool_used, entry_count;
+    dword entries[0x200][4];
+    dword flags2a60;
+    byte unknown2a64[0x2a88 - 0x2a64];
+    plane3f plane;
+    byte unknown2a98[0x2acc - 0x2a98];
+    byte *records;
+    byte unknown2ad0[4];
+    s_bit_vector_pool_sizes sizes;
+};
+extern s_bit_vector_pool g_547f88;
+struct s_view;
+struct s_bounds3d { real x0, x1, y0, y1, z0, z1; };
+typedef point3f rectangle3d_edge[2];
+long function_11fa40(box3f const *rectangle, long maximum_edge_count, rectangle3d_edge edges[]);
+bool function_1652e0(s_view *view, real margin, point3f const *points, long point_count,
+    point3f *projected_points, short *projected_count, s_bounds3d *bounds, bool use_plane0, bool use_plane1);
+struct s_320b0_box
+{
+    transform4x3f matrix;
+    vector3f radius;
+};
+
+// @retail 0x320b0
+bool function_320b0(s_320b0_box const *box)
+{
+    byte *context = (byte *)g_547f88.context;
+    box3f bounds;
+    bounds.x0 = 0.0f - box->radius.i;
+    bounds.x1 = box->radius.i;
+    bounds.y0 = 0.0f - box->radius.j;
+    bounds.y1 = box->radius.j;
+    bounds.z0 = 0.0f - box->radius.k;
+    bounds.z1 = box->radius.k;
+    rectangle3d_edge edges[12];
+    point3f transformed[24];
+    function_11fa40(&bounds, 12, edges);
+    for (long edge = 0; edge < 12; ++edge)
+    {
+        for (long endpoint = 0; endpoint < 2; ++endpoint)
+        {
+            long i = edge * 2 + endpoint;
+            point3f point = ((point3f *)edges)[i];
+            if (box->matrix.scale != 1.0f)
+            {
+                point.x = box->matrix.scale * point.x;
+                point.y = box->matrix.scale * point.y;
+                point.z = box->matrix.scale * point.z;
+            }
+            real const *m = (real const *)&box->matrix;
+            transformed[i].x = m[1] * point.x + m[7] * point.z + m[4] * point.y + m[10];
+            transformed[i].y = m[2] * point.x + m[8] * point.z + m[5] * point.y + m[11];
+            transformed[i].z = m[3] * point.x + m[9] * point.z + m[6] * point.y + m[12];
+        }
+    }
+    s_bounds3d projected;
+    bool visible = function_1652e0((s_view *)(context + 4), *(real *)(context + 0x74), transformed,
+        24, NULL, NULL, &projected, true, false);
+    bool overlaps = projected.x1 >= *(real *)(context + 0xa4) && *(real *)(context + 0xa8) >= projected.x0 &&
+        projected.y1 >= *(real *)(context + 0xac) && *(real *)(context + 0xb0) >= projected.y0;
+    return visible & overlaps;
+}
+
+PRIVATE __forceinline real random_signed_value(s_random_globals *random)
+{
+    dword value = random_next(&random->seed);
+    double fraction = (double)value * (1.0f / 65535.0f);
+    return (real)(fraction + fraction - 1.0f);
+}
+
+// @retail 0x36f50
+void function_36f50(byte *state)
+{
+    s_random_globals *random = g_4e7408;
+    byte *entry = state + 0xc8;
+    for (long i = 0; i < 4; ++i, entry += 0xb8)
+    {
+        for (long j = 0; j < 9; ++j) ((dword *)entry)[j] = 0;
+        for (long k = 0; k < 9; ++k) ((dword *)(entry + 0x24))[k] = 0;
+        *(vector3f *)(entry + 0x3c) = *(vector3f *)entry;
+        *(vector3f *)(entry + 0x48) = *(vector3f *)entry;
+        *(real *)(entry + 0x80) = 1.0f;
+        *(real *)(entry + 0x84) = 1.0f;
+        *(real *)(entry + 0x78) = 0.0f;
+        vector3f const *a = (vector3f const *)(state + 0x24);
+        vector3f const *b = (vector3f const *)(state + 0x30);
+        vector3f const *c = (vector3f const *)(state + 0x3c);
+        *(real *)(entry + 0xac) = (real)sqrt((double)a->i * a->i + (double)a->j * a->j + (double)a->k * a->k);
+        *(real *)(entry + 0xb0) = (real)sqrt((double)b->i * b->i + (double)b->j * b->j + (double)b->k * b->k);
+        *(real *)(entry + 0xb4) = (real)sqrt((double)c->i * c->i + (double)c->j * c->j + (double)c->k * c->k);
+        *(real *)(entry + 0x88) = random_signed_value(random);
+        *(real *)(entry + 0x8c) = random_signed_value(random);
+        *(real *)(entry + 0x90) = random_signed_value(random);
+        *(real *)(entry + 0x94) = random_signed_value(random);
+        *(real *)(entry + 0x98) = random_signed_value(random);
+        *(real *)(entry + 0x9c) = random_signed_value(random);
+        *(real *)(entry + 0xa0) = random_signed_value(random);
+        *(real *)(entry + 0xa4) = random_signed_value(random);
+        *(real *)(entry + 0xa8) = random_signed_value(random);
+    }
+}
+
+// @retail 0x34100
+bool __stdcall function_34100(long mode, real const *rectangle, real const *coordinates,
+    real *out, real const *parameters)
+{
+    real center_y = (rectangle[2] + rectangle[3]) * 0.5f;
+    real center_x = (rectangle[0] + rectangle[1]) * 0.5f;
+    long index = mode - 1;
+    switch (mode)
+    {
+    case 0:
+        function_350e0(out, rectangle, coordinates, parameters[0]);
+        out[0] *= parameters[24];
+        out[1] *= parameters[24];
+        return true;
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+        if (index >= ((long const *)parameters)[25])
+            return false;
+        out[0] = (rectangle[1] - rectangle[0]) * coordinates[0] + rectangle[0];
+        out[1] = (rectangle[3] - rectangle[2]) * coordinates[1] + rectangle[2];
+        out[2] = 0.0f;
+        out[3] = 1.0f;
+        if (parameters[18 + index] != 0.0f)
+        {
+            real weight = parameters[18 + index];
+            if (parameters[22] != parameters[23])
+            {
+                real x = coordinates[0] * 2.0f - 1.0f;
+                real y = coordinates[1] * 2.0f - 1.0f;
+                real distance_squared = y * y + x * x;
+                if (distance_squared < 0.0f) distance_squared = 0.0f;
+                else if (distance_squared > 1.0f) distance_squared = 1.0f;
+                real radius = (real)sqrt(distance_squared);
+                real fraction = (radius - parameters[22]) / (parameters[23] - parameters[22]);
+                if (fraction < 0.0f) fraction = 0.0f;
+                else if (fraction > 1.0f) fraction = 1.0f;
+                weight *= fraction;
+            }
+            real x_sign = (index & 1) ? 0.5f : -0.5f;
+            real y_sign = (index & ~1) ? 0.5f : -0.5f;
+            out[0] = (parameters[1] * x_sign + weight * center_x + (1.0f - weight) * out[0]) * parameters[10 + index * 2];
+            out[1] = ((1.0f - weight) * out[1] + parameters[1] * y_sign + weight * center_y) * parameters[11 + index * 2];
+        }
+        else
+        {
+            real x_sign = (index & 1) ? 0.5f : -0.5f;
+            real y_sign = (index & ~1) ? 0.5f : -0.5f;
+            out[0] = (parameters[1] * x_sign + out[0]) * parameters[10 + index * 2];
+            out[1] = (parameters[1] * y_sign + out[1]) * parameters[11 + index * 2];
+        }
+        out[0] += parameters[2 + index * 2];
+        out[1] += parameters[3 + index * 2];
+        return true;
+    case 5:
+        out[0] = coordinates[0];
+        out[1] = coordinates[1];
+        return true;
+    default:
+        return false;
+    }
+}
+
+vector3f g_4b9e4c;
+vector3f g_4b9e64;
+
+// @retail 0x2f2d0
+real function_2f2d0(vector3f const *direction, point3f const *position, long mode, real scale)
+{
+    real result = 0.0f;
+    real y;
+    real x;
+    vector3f reference;
+    switch (mode)
+    {
+    case 1:
+    case 3:
+        {
+            vector3f cross;
+            cross.i = direction->j * g_4b9e4c.k - direction->k * g_4b9e4c.j;
+            cross.j = direction->k * g_4b9e4c.i - direction->i * g_4b9e4c.k;
+            cross.k = direction->i * g_4b9e4c.j - direction->j * g_4b9e4c.i;
+            vector3f perpendicular;
+            perpendicular.i = direction->k * cross.j - direction->j * cross.k;
+            perpendicular.j = direction->i * cross.k - direction->k * cross.i;
+            perpendicular.k = direction->j * cross.i - direction->i * cross.j;
+            if (mode == 1)
+                reference = g_4b9dac;
+            else
+            {
+                reference.i = position->x - g_4b9da0.x;
+                reference.j = position->y - g_4b9da0.y;
+                reference.k = position->z - g_4b9da0.z;
+            }
+            y = reference.j * perpendicular.j + reference.k * perpendicular.k + reference.i * perpendicular.i;
+            x = 0.0f - (direction->k * reference.k + direction->j * reference.j + direction->i * reference.i);
+        }
+        break;
+    case 2:
+    case 4:
+        if (mode == 2)
+        {
+            reference.i = 0.0f - direction->i;
+            reference.j = 0.0f - direction->j;
+            reference.k = 0.0f - direction->k;
+        }
+        else
+        {
+            reference.i = position->x - g_4b9da0.x;
+            reference.j = position->y - g_4b9da0.y;
+            reference.k = position->z - g_4b9da0.z;
+        }
+        y = g_4b9e4c.k * reference.k + g_4b9e4c.j * reference.j + g_4b9e4c.i * reference.i;
+        x = 0.0f - (g_4b9e64.k * reference.k + g_4b9e64.j * reference.j + g_4b9e64.i * reference.i);
+        break;
+    default:
+        return result;
+    }
+    if (y != 0.0f)
+        result = (real)(atan2(y, x) * scale * 0.31830987334251404f);
+    return result;
+}
