@@ -1655,15 +1655,15 @@ void function_204450(long definition_index, long squad_index)
         else
         {
             byte *scenario = (byte *)g_4e0350;
-            byte *squad_definition = *(byte **)(scenario + 0x164) + (squad_index & 0xffff) * 0x74;
-            short palette_index = *(short *)(squad_definition + 0x38);
+            byte *local_b3aa32 = *(byte **)(scenario + 0x164) + (squad_index & 0xffff) * 0x74;
+            short palette_index = *(short *)(local_b3aa32 + 0x38);
             if (palette_index >= 0 && palette_index < *(long *)(scenario + 0x168))
             {
                 byte *palette = *(byte **)(scenario + 0x16c) + (word)palette_index * 0x38;
                 for (short i = 0; i < *(long *)(palette + 0x30) && (signed char)squad[0x30] < 10; i++)
                 {
                     byte *area = *(byte **)(palette + 0x34) + i * 0x88;
-                    squad_area_consider(squad, definition, area, *(short *)(squad_definition + 0x38), i, &point, &nearest, &best);
+                    squad_area_consider(squad, definition, area, *(short *)(local_b3aa32 + 0x38), i, &point, &nearest, &best);
                 }
             }
         }
