@@ -1,8 +1,27 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_08b110.h"
+#include "unknown_096ed0.h"
 
 // @flags /O2 /arch:SSE /Gr
+
+class c_replication_view_storage
+{
+public:
+	c_replication_view_storage();
+	long unknown00;
+	c_vtable_450cf4 aggregate;
+	long unknown2c;
+	c_handle_table_450cd0 handles;
+	c_vtable_450d1c sender;
+	c_vtable_450c94 updates;
+	c_vtable_450d14 source;
+};
+
+// @retail 0x81590
+c_replication_view_storage::c_replication_view_storage()
+{
+}
 
 s_definition_4ced60 g_4ced60[32];
 long g_4cf474;
@@ -13,6 +32,53 @@ real g_4cf484;
 real g_4cf488;
 real g_4cf48c;
 real g_4cf490;
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+long function_a5930(long index);
+long function_a5980(long index);
+
+struct s_object_relevance_source
+{
+	long object_index;
+	long identifier;
+	byte unknown08[0x1c - 8];
+	real first;
+	real second;
+};
+
+struct s_object_relevance_result
+{
+	real first;
+	real second;
+	long object_index;
+	long identifier;
+};
+
+// @retail 0x82ac0
+void function_82ac0(s_object_relevance_source *source, s_object_relevance_result *result)
+{
+	if (source->first > 0.0f || source->second > 0.0f)
+	{
+		long index = source->object_index;
+		if (index != NONE && function_badc0(index, (dword)NONE))
+		{
+			long mode = ((long *)g_4cf77c)[2];
+			long mapped;
+			if (mode != 3 && mode != 5)
+				mapped = function_a5930(index);
+			else
+				mapped = function_a5980(index);
+			if (mapped != NONE)
+			{
+				result->object_index = mapped;
+				result->identifier = source->identifier;
+				result->first = source->first;
+				result->second = source->second;
+			}
+		}
+	}
+}
 
 // @retail 0x8b110
 long c_vtable_450cb8::v0(long index, long a2, long a3, long *count, s_item_450cb8 *items, void *a6)

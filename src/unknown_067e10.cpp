@@ -14,6 +14,116 @@
 #define SIMULATION_WORLD ((c_class_6a600 *)g_4cf77c)
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 
+long function_83db0(s_simulation_world_owner *watcher);
+
+// @retail 0x687e0
+long function_687e0(void)
+{
+	long result = 0;
+	if (g_4cf770)
+		result = function_83db0((s_simulation_world_owner *)g_4cf780);
+	return result;
+}
+
+struct s_unit_state_c6ef0;
+void function_c6ef0(s_unit_state_c6ef0 *state);
+
+struct s_simulation_controller;
+void simulation_controller_initialize(s_simulation_controller *controller, c_class_6a600 *world,
+	long field_00, long field_04, long field_08, const s_machine_address *machine, const t_player_key *key);
+void function_155710(long index);
+bool function_78a10(long index, s_network_observer *observer, long *delay, real *rate, long *received_rate, long *loss_percent);
+
+// @retail 0x68800
+bool function_68800(c_simulation_view *view, long *delay, long *rate, long *received_rate, long *loss_percent)
+{
+	s_network_observer *observer = *(s_network_observer **)((byte *)g_4cf780 + 8);
+	bool result = false;
+	long measured_delay;
+	real measured_rate;
+	long measured_received;
+	long measured_loss;
+	if (view && observer && function_78a10(view->channel_index, observer,
+		&measured_delay, &measured_rate, &measured_received, &measured_loss))
+	{
+		*delay = measured_delay;
+		real scaled = measured_rate * 10.0f;
+		long rounded;
+		__asm { fld scaled }
+		__asm { fistp rounded }
+		*rate = rounded;
+		*received_rate = measured_received * 10 / 1024;
+		scaled = (real)measured_loss;
+		__asm { fld scaled }
+		__asm { fistp rounded }
+		*loss_percent = rounded;
+		result = true;
+	}
+	return result;
+}
+
+struct s_world_player_input
+{
+	long unknown00;
+	t_player_key key;
+	byte unknown10[4];
+	s_machine_address machine;
+	byte unknown1a[0x28 - 0x1a];
+	short local_index;
+	byte unknown2a[0x21c - 0x2a];
+};
+
+// @retail 0x694c0
+void function_694c0(c_class_6a600 *world, long player_index)
+{
+	long index = (word)player_index;
+	s_world_player_input *player = &((s_world_player_input *)g_4e8c24->data)[index];
+	short local_index = player->local_index;
+	bool local = local_index != NONE;
+	long kind;
+	switch (g_4e6948->mode)
+	{
+	case 1: kind = 0; break;
+	case 2: kind = local ? 0 : 3; break;
+	case 3: kind = local ? 0 : 3; break;
+	case 4: kind = local ? 1 : 5; break;
+	case 5: kind = local ? 0 : 4; break;
+	default: __assume(0);
+	}
+	if (local)
+		function_155710(local_index);
+	simulation_controller_initialize((s_simulation_controller *)&world->players[index], world,
+		index, player_index, kind, &player->machine, &player->key);
+}
+
+// @retail 0x6a690
+long function_6a690(long index, c_class_6a600 *world, long value)
+{
+	if (index == NONE)
+	{
+		long i = 0;
+		do
+		{
+			if (world->actors[i].actor_index == NONE)
+			{
+				index = i;
+				break;
+			}
+			i++;
+		} while (i < 16);
+	}
+	if (index != NONE)
+	{
+		s_simulation_world_actor *actor = &world->actors[index];
+		actor->unknown08 = (long)world;
+		actor->actor_index = index;
+		actor->unknown04 = value;
+		actor->time = NONE;
+		function_c6ef0((s_unit_state_c6ef0 *)actor->state);
+	}
+	return index;
+}
+
 // @retail 0x814f0
 c_class_6a600::c_class_6a600()
 {

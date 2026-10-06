@@ -16,12 +16,6 @@ long function_212380(long arg_9db745, long controller_index, byte *buffer)
 	return 0;
 }
 
-// @stub 0x8c150
-bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void *data, unsigned __int64 *clan_id)
-{
-	return false;
-}
-
 
 
 
