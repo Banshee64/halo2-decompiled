@@ -182,8 +182,8 @@ long function_239d50(long count, point2f const *points, point2f *hull)
 	point2f unique_points[MAXIMUM_POLYGON_POINTS];
 	short indices[MAXIMUM_POLYGON_POINTS];
 
-	memcpy(unique_points, points, sizeof(point2f) * (count > MAXIMUM_POLYGON_POINTS ? MAXIMUM_POLYGON_POINTS : count));
 	short unique_count = (short)count;
+	memcpy(unique_points, points, sizeof(point2f) * (count > MAXIMUM_POLYGON_POINTS ? MAXIMUM_POLYGON_POINTS : count));
 	for (long i = 0; i < unique_count - 1; i++)
 	{
 		for (long j = i + 1; j < unique_count; j++)
@@ -300,42 +300,57 @@ short function_239e50(short count, point2f const *points, short *indices)
 	return hull_count;
 }
 
-// @retail 0x23a160
-bool function_23a160(point2f const *point, real radius, short count, point2f const *points)
+PRIVATE __forceinline void polygon_difference_23a220(point2f const *a, point2f const *b, vector2f *result)
 {
+	result->i = a->x - b->x;
+	result->j = a->y - b->y;
+}
+
+// @retail 0x23a160
+bool function_23a160(point2f const *point, real radius, short volatile count, point2f const *points)
+{
+	bool result = true;
 	real radius_squared = radius * radius;
 	for (short i = 0; i < count; i++)
 	{
-		real dx = point->x - points[i].x;
-		real dy = point->y - points[i].y;
+		vector2f offset;
+		polygon_difference_23a220(point, &points[i], &offset);
 		long next = (i + 1 >= count) ? 0 : i + 1;
-		real ex = points[next].x - points[i].x;
-		real ey = points[next].y - points[i].y;
-		real length_squared = ex * ex + ey * ey;
+		vector2f edge;
+		polygon_difference_23a220(&points[next], &points[i], &edge);
+		real length_squared = edge.j * edge.j + edge.i * edge.i;
 		if (length_squared != 0.f)
 		{
-			real cross = dx * ey - dy * ex;
+			real cross = edge.j * offset.i - edge.i * offset.j;
 			if (cross > 0.f && cross * cross > length_squared * radius_squared)
-				return false;
+			{
+				result = false;
+				break;
+			}
 		}
 	}
-	return true;
+	return result;
 }
 
 // @retail 0x23a220
-bool function_23a220(point2f const *point, short count, point2f const *points, real epsilon)
+bool function_23a220(point2f const *point, short volatile count, point2f const *points, real epsilon)
 {
+	(void)&count;
+	bool result = true;
 	for (short i = 0; i < count; i++)
 	{
-		real dy = point->y - points[i].y;
-		real dx = point->x - points[i].x;
+		vector2f offset;
+		polygon_difference_23a220(point, &points[i], &offset);
 		long next = (i + 1 >= count) ? 0 : i + 1;
-		real ex = points[next].x - points[i].x;
-		real ey = points[next].y - points[i].y;
-		if (dy * ex - dx * ey < -epsilon)
-			return false;
+		vector2f edge;
+		polygon_difference_23a220(&points[next], &points[i], &edge);
+		if (edge.i * offset.j - edge.j * offset.i < -epsilon)
+		{
+			result = false;
+			break;
+		}
 	}
-	return true;
+	return result;
 }
 
 PRIVATE __forceinline bool clip_points_equal_23a6f0(point2f const *a, point2f const *b, real epsilon)

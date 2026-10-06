@@ -4079,3 +4079,21 @@ void c_level_select_screen::v2()
     c_class_1a2c81::v2();
     function_28950();
 }
+
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+void function_1906b4();
+void __stdcall function_18f1c0(long reason);
+
+// @retail 0x2c55c4
+bool __stdcall function_2c55c4(long unused)
+{
+    network_session_manager_leave_session_a(true);
+    network_session_manager_leave_session_b(true);
+    if (!function_148044(5, 4, 0xb))
+    {
+        function_1906b4();
+        function_18f1c0(0);
+    }
+    return true;
+}

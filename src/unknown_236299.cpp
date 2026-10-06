@@ -420,8 +420,8 @@ extern long g_54e7c8;
 // @retail 0x23643f
 void function_23643f(void)
 {
+	long volatile value18 = g_54e7c4;
 	long value12a = g_54e7c8;
-	long value18 = g_54e7c4;
 	long value14 = g_54e7c0;
 	s_entry_a *entry = function_148d61();
 	char const *map_name;
@@ -433,12 +433,12 @@ void function_23643f(void)
 		long count;
 
 		function_138110(&options);
-		options.value12a = (short)value12a;
+		options.value12a = *(short volatile *)&value12a;
 		options.value18 = value18;
 		options.state = 1;
 		options.single_player = false;
 		options.value14 = value14;
-		strncpy(options.map_name, map_name, sizeof(options.map_name));
+		strncpy(options.map_name, *(char const *volatile *)&map_name, sizeof(options.map_name));
 		options.map_name[sizeof(options.map_name) - 1] = 0;
 		options.time = function_1462b0();
 		function_23654b(options.players, &address, &count);
@@ -498,8 +498,8 @@ void function_23661f(s_dialog_definition *definition, long dialog_id)
 	s_dialog_globals_view *globals = (s_dialog_globals_view *)function_148350();
 
 	memset(definition, 0, sizeof(*definition));
-	definition->string_list_index = NONE;
 	definition->dialog_id = dialog_id;
+	definition->string_list_index = NONE;
 	definition->title = 0;
 	definition->message = 0;
 	definition->screen_id = 7;
@@ -557,14 +557,16 @@ void function_23661f(s_dialog_definition *definition, long dialog_id)
 					{
 						definition->choices = entry->choices;
 					}
+					long screen_id;
 					if ((group->flags & 1) || (entry->flags & 1))
 					{
-						definition->screen_id = 0xf0;
+						screen_id = 0xf0;
 					}
 					else
 					{
-						definition->screen_id = 7;
+						screen_id = 7;
 					}
+					definition->screen_id = (short)screen_id;
 				}
 			}
 		}

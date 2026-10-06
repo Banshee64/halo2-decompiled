@@ -2027,3 +2027,32 @@ void function_201df0(void)
             function_203360(iterator.squad_index);
     }
 }
+
+
+void function_1e3400(long actor_index, long squad_index);
+void function_26def0(long actor_index, long owner_index);
+
+// @retail 0x204ca0
+void function_204ca0(long actor_index)
+{
+    byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+    if (actor[0x3c])
+    {
+        if (*(short *)(actor + 0x2c) > 0)
+            --*(short *)(actor + 0x2c);
+        if (!*(short *)(actor + 0x2c))
+        {
+            long squad_index = function_204b20(actor_index, *(long *)(actor + 0x26c) != NONE);
+            if (squad_index != NONE)
+            {
+                if (squad_index != *(long *)(actor + 0x30))
+                    function_1e3400(actor_index, squad_index);
+                actor[0x3c] = false;
+                if (*(long *)(actor + 0x3f8) != NONE)
+                    function_26def0(actor_index, NONE);
+            }
+            else
+                *(short *)(actor + 0x2c) = g_510c54->field_2_3 * 3;
+        }
+    }
+}

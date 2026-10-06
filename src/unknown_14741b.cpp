@@ -760,7 +760,8 @@ void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long
 		c_class_1473c9 *screen = get_screen();
 		s_list_item_datum *datum = &((s_list_item_datum *)data->data)[*item & 0xffff];
 
-		switch (datum->item)
+		s_list_item_datum *const *datum_reference = &datum;
+		switch ((*datum_reference)->item)
 		{
 		case 0:
 			function_2329a7(screen, controller);
@@ -866,12 +867,16 @@ done:
 // @retail 0x230c2b
 bool c_main_menu_screen::v10(s_widget_event *event)
 {
-	s_player_slot_sign_in_view *slot = &((s_player_slot_sign_in_view *)g_54e8e0)[event->controller_index];
-
-	if (TEST_FIELD_BIT(slot->signed_in) && event->type == 5 && (event->param == 1 || event->param == 13))
+	long controller_index = event->controller_index;
+	if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[controller_index].signed_in) && event->type == 5)
 	{
-		slot->profile.show_dialog(function_230c7d, 0x30);
-		return true;
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			((s_player_slot_sign_in_view *)g_54e8e0)[controller_index].profile.show_dialog(function_230c7d, 0x30);
+			return true;
+		}
 	}
 	return c_class_1473c9::v10(event);
 }
