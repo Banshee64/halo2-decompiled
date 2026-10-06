@@ -5,11 +5,6 @@
 class c_class_58d20;
 struct s_session_member;
 
-// @stub 0x74aa0
-void function_074aa0(void)
-{
-}
-
 // @stub 0x65340
 void function_065340(void)
 {
