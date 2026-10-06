@@ -66,13 +66,13 @@ public:
 	virtual bool v0(long handle, dword a2, long a3, s_bitstream *stream, long a5, long *released) = 0;
 	virtual long v1(long handle, void *a2, void *a3, long a4, long *produced, void *a6, s_bitstream *stream) = 0;
 	virtual void v2(long handle, long a2, long a3, long a4, void *a5) = 0;
-	virtual void v3() = 0;
+	virtual void v3(long handle, dword mask, long context, real *priority, long *size) = 0;
 	virtual void v4() = 0;
 	virtual bool v5(long handle, dword a2, long a3, s_bitstream *stream, long a5, long *released) = 0;
 	virtual long v6(long handle, void *a2, long a3, long *produced, void *a5, s_bitstream *stream) = 0;
 	virtual void v7() = 0;
-	virtual void v8() = 0;
-	virtual void v9() = 0;
+	virtual void v8(long handle, dword mask, dword time, long context, real *priority, long *size) = 0;
+	virtual void v9(long handle, long context, real *priority) = 0;
 	virtual void v10(long handle) = 0;
 	virtual void v11(long old_handle, long new_handle, long size, void const *data) = 0;
 	virtual void v12(long handle) = 0;
@@ -166,7 +166,7 @@ class c_handle_table_450cd0
 public:
 	c_handle_table_450cd0() : unknown08(0) {}
 	virtual bool v0() { return false; }
-	virtual long v1(long a1, long max_count, void *entries) { return 0; }
+	virtual long v1(long a1, long max_count, void *entries);
 	virtual void v2() {}
 	virtual void v3(long a1, long a2, long a3, long a4, long a5, long a6);
 	virtual void v4(long a1, s_bitstream *stream);
