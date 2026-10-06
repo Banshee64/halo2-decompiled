@@ -1280,6 +1280,19 @@ bool function_25ab50(long reference)
 	return result;
 }
 
+real function_210b60(s_type_c3b527 const *arg_0, point3f const *arg_1);
+real normalize2d(point2f *v);
+bool function_1f50e0(long actor_index);
+bool function_1f57f0(long actor_index, long animation, long const *target);
+bool function_1f86f0(long index);
+bool function_1f8720(long index);
+long function_e70e0(long unit_index);
+bool recorded_animation_playing(long object_index);
+bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_1, long arg_2, bool arg_3);
+struct s_slot_82;
+void function_1c1080(s_slot_82 *state, long reference);
+extern point2f *g_468778;
+
 struct s_25a380
 {
 	byte field_0[0xb4];
@@ -1882,4 +1895,295 @@ short __stdcall function_259d90(long actor_index, long object_index, s_cs_state 
 		break;
 	}
 	return 1;
+}
+
+// @retail 0x259430
+short __stdcall function_259430(long arg_0, long arg_1, s_cs_state *arg_2, long arg_3)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_cs_datum *local_1 = cs_get(arg_3);
+	s_258cf0 *local_2 = (s_258cf0 *)arg_2;
+	bool local_3 = true;
+	switch (local_1->type)
+	{
+	case 0:
+		local_3 = local_2->field_0 == 0;
+		break;
+	case 1:
+		if (*(long *)((byte *)local_0 + 0x1c) != NONE)
+		{
+			point3f local_4;
+			function_b9dd0(arg_1, &local_4);
+			local_3 = function_210b60((s_type_c3b527 *)((byte *)arg_2 + 8), &local_4) <= 1.f;
+			break;
+		}
+	case 2: case 3: case 15: case 16: case 17: case 19:
+		if (!local_1->unknown77)
+		{
+			local_3 = false;
+			if (*((byte *)local_0 + 0x40))
+			{
+				if (function_259ec0(arg_0, arg_3))
+					local_1->unknown77 = true;
+				else if (!local_1->unknown76)
+					local_3 = true;
+			}
+		}
+		if (local_1->unknown77)
+		{
+			if (function_1f86f0(arg_0) || (function_1f8720(arg_0) && !local_1->unknown76) || local_1->type == 19)
+			{
+				bool local_5 = false;
+				if (*((byte *)local_0 + 0x4d5) && local_0->unknown270 == 0)
+				{
+					point2f local_6 = *(point2f *)((byte *)local_0 + 0x4d8);
+					if (normalize2d(&local_6) > 0.f &&
+						local_0->unknown290.j * local_6.y + local_6.x * local_0->unknown290.i < 0.984f)
+					{
+						*(vector3f *)((byte *)local_0 + 0x424) = *(vector3f *)((byte *)local_0 + 0x4d8);
+						*(short *)((byte *)local_0 + 0x41c) = 3;
+						*(short *)((byte *)local_0 + 0x420) = 4;
+						*((byte *)local_0 + 0x44d) = 1;
+						local_5 = true;
+					}
+				}
+				if (!local_5)
+				{
+					if (local_1->type == 19)
+						local_1->unknown78 = true;
+					else
+						function_1f4280(arg_0);
+					return 1;
+				}
+			}
+			if (!function_1f86f0(arg_0) && !function_1f8660(arg_0) && !function_1f8720(arg_0))
+				local_1->unknown77 = false;
+			local_3 = false;
+		}
+		break;
+	case 4:
+		{
+			point3f local_7;
+			function_b9dd0(arg_1, &local_7);
+			local_3 = local_2->field_c.k * (local_7.z - local_2->field_18.z) +
+				local_2->field_c.j * (local_7.y - local_2->field_18.y) +
+				(local_7.x - local_2->field_18.x) * local_2->field_c.i > local_1->unknown08;
+		}
+		break;
+	case 5:
+		if (arg_1 == local_0->unknown018)
+		{
+			if (local_1->unknown99)
+				local_2->field_0 = function_e70e0(arg_1) ? g_510c54->field_2_3 : 0;
+			else if (!function_110ab0(arg_1) &&
+				function_1ffa30((s_type_c3b527 *)((byte *)local_1 + 0x9c), NONE, NONE, false))
+				local_1->unknown99 = true;
+			local_3 = local_2->field_0 == 0;
+		}
+		break;
+	case 6:
+		if (!(local_2->field_3 & 0x20) && arg_1 == local_0->unknown018)
+		{
+			byte *local_8 = (byte *)g_5023fc;
+			*(long *)(local_8 + 0x1c) = local_1->unknown28;
+			*(short *)(local_8 + 0x20) = NONE;
+			*(real *)(local_8 + 0x28) = 1000.f;
+			*(real *)(local_8 + 0x2c) = 1000.f;
+			local_8[0x22] |= 0x29;
+			local_8[0x22] |= 0x48;
+			local_2->field_3 |= 0x20;
+			*(short *)g_502400 = 0x4c;
+			local_3 = false;
+		}
+		break;
+	case 7: case 8:
+		if (local_2->field_3 & 4)
+		{
+			bool local_9 = arg_1 != local_0->unknown018 || local_0->unknown264;
+			if ((local_2->field_3 & 8) && local_9)
+				local_2->field_0 = 0;
+			local_3 = local_2->field_0 == 0;
+		}
+		break;
+	case 9:
+		if (arg_1 == local_0->unknown018)
+			local_3 = !recorded_animation_playing(arg_1);
+		break;
+	case 10:
+		local_3 = !local_1->unknown8c;
+		break;
+	case 11:
+		if (arg_1 == local_0->unknown018)
+		{
+			byte *local_10 = (byte *)object_get(arg_1);
+			local_3 = *(short *)(local_10 + *(short *)(local_10 + 0x342) + 0xc) != 14;
+		}
+		break;
+	case 12:
+		switch (*(short *)((byte *)local_1 + 6))
+		{
+		case 0: local_3 = local_0->unknown086 > 1; break;
+		case 1: local_3 = local_0->unknown086 >= 7; break;
+		case 2:
+			if (local_2->field_2 & 8)
+				local_2->field_2 &= ~0x18;
+			else
+			{
+				local_2->field_2 |= 0x10;
+				local_3 = false;
+			}
+			break;
+		}
+		break;
+	case 14:
+		if (!(local_2->field_3 & 0x20))
+		{
+			local_2->field_3 |= 0x20;
+			*(short *)g_502400 = *(short *)((byte *)local_1 + 6);
+			local_3 = false;
+		}
+		break;
+	case 18:
+		if (!(local_2->field_3 & 0x20) && function_25ab50(local_1->unknown28) && function_25ab50(local_1->unknown2c))
+		{
+			byte *local_11 = (byte *)g_5023fc;
+			*(real *)(local_11 + 0x20) = local_1->unknown08;
+			*(short *)(local_11 + 0x1e) = *(short *)((byte *)local_1 + 6);
+			local_11[0x24] = 1;
+			*(long *)(local_11 + 0x28) = local_1->unknown28;
+			*(long *)(local_11 + 0x2c) = local_1->unknown2c;
+			local_2->field_3 |= 0x20;
+			*(short *)g_502400 = 0x7e;
+			local_3 = false;
+		}
+		break;
+	case 20:
+		if (local_1->unknownac)
+		{
+			if (local_1->unknownb0 == NONE)
+			{
+				real local_12 = *(real *)((byte *)local_1 + 0xb8);
+				s_data_datum_iterator local_13;
+				local_13.data = g_4e8c24;
+				local_13.datum_index = NONE;
+				local_13.index = NONE;
+				while (data_datum_iterator_next(&local_13))
+				{
+					long local_14 = *(long *)(local_13.datum + 0x2c);
+					if (local_14 != NONE)
+					{
+						point3f local_15;
+						function_b9dd0(local_14, &local_15);
+						vector3f local_16;
+						vector3d_from_points3d((point3f *)((byte *)local_0 + 0x238), &local_15, &local_16);
+						real local_17 = local_16.k * local_16.k + local_16.j * local_16.j + local_16.i * local_16.i;
+						if (local_12 > local_17)
+						{
+							local_1->unknownac = false;
+							local_1->unknownb0 = *(long *)(local_13.datum + 0x2c);
+							local_12 = local_17;
+						}
+					}
+				}
+				if (local_1->unknownb0 != NONE)
+				{
+					local_1->unknown52 = true;
+					local_1->unknown54 = 1;
+					local_1->unknown58 = local_1->unknownb0;
+					local_1->unknown46 = true;
+					local_1->unknown48 = 1;
+					local_1->unknown4c = local_1->unknownb0;
+				}
+			}
+			else
+			{
+				point3f local_18;
+				vector3f local_19;
+				function_b9dd0(local_1->unknownb0, &local_18);
+				vector3d_from_points3d((point3f *)((byte *)local_0 + 0x238), &local_18, &local_19);
+				if (*(real *)((byte *)local_1 + 0xb8) > local_19.k * local_19.k + local_19.j * local_19.j + local_19.i * local_19.i)
+					local_1->unknownac = false;
+			}
+			local_3 = !local_1->unknownac && !*((byte *)local_1 + 0xd0);
+		}
+		else if (local_1->unknownb0 != NONE)
+			local_3 = local_1->unknownd1;
+		break;
+	case 21:
+		if (!(local_2->field_3 & 0x20) && function_25ab50(local_1->unknown28))
+		{
+			function_1c1080((s_slot_82 *)g_5023fc, local_1->unknown28);
+			local_2->field_3 |= 0x20;
+			*(short *)g_502400 = 0x82;
+			local_3 = false;
+		}
+		break;
+	}
+	if (local_3)
+		return 1;
+	if (local_2->field_0 > 0)
+		local_2->field_0--;
+	if ((local_2->field_3 & 4) && local_2->field_8 > 0)
+		local_2->field_8--;
+	if ((local_2->field_3 & 3) == 3)
+		function_25a130(arg_0, arg_1, (s_cs_facing *)arg_2);
+	if (!*((byte *)local_0 + 7))
+	{
+		if (local_1->unknown8c && !function_1f50e0(arg_0))
+		{
+			if (local_1->unknown90 != NONE)
+			{
+				point2f local_20 = *(point2f *)((byte *)local_0 + 0x6d4);
+				normalize2d(&local_20);
+				function_1f57f0(arg_0, local_1->unknown90, (long const *)&local_20);
+			}
+			local_1->unknown8c = false;
+		}
+		if (local_2->field_3 & 1)
+		{
+			local_0->unknown456 = true;
+			local_0->unknown458 = local_2->field_c;
+			*(short *)((byte *)local_0 + 0x454) = local_2->field_8;
+		}
+		if (local_2->field_3 & 4)
+		{
+			bool local_21;
+			if (local_2->field_3 & 8)
+				local_21 = local_2->field_8 > 0;
+			else
+			{
+				local_21 = local_2->field_8 != 0 || local_0->unknown264 || function_110ab0(local_0->unknown018);
+				if (!local_21)
+				{
+					point2f local_22 = *(point2f *)&local_0->unknown290;
+					if (normalize2d(&local_22) == 0.f)
+						local_22 = *(point2f *)g_468778;
+					*((byte *)local_0 + 0x464) = 1;
+					*((byte *)local_0 + 0x465) = local_2->field_c.i * 0.7f > local_2->field_c.j;
+					*((byte *)local_0 + 0x466) = 1;
+					*(point2f *)((byte *)local_0 + 0x468) = local_22;
+					*(point2f *)((byte *)local_0 + 0x470) = *(point2f *)&local_2->field_c;
+					local_2->field_3 |= 8;
+					if (!(local_2->field_3 & 0x10))
+					{
+						real local_23 = g_510c54->field_2_3 * 0.5f;
+						long local_24;
+						__asm
+						{
+							fld local_23
+							fistp local_24
+						}
+						local_2->field_8 = (short)local_24;
+					}
+				}
+			}
+			if (local_21)
+			{
+				local_0->unknown458 = local_0->unknown290;
+				local_0->unknown456 = true;
+				*(short *)((byte *)local_0 + 0x454) = 0;
+			}
+		}
+	}
+	return 0;
 }
