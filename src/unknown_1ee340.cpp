@@ -426,24 +426,7 @@ struct c_surface_query_library
  void query_bounds(const s_query_bounds *bounds, s_surface_key_array *keys);
 };
 
-struct c_shape_owner : c_shape_library_base_a
-{
-	byte field_8[0x14 - 8];
-	c_havok_reference_counted *object;
-	virtual ~c_shape_owner();
- virtual void v1() {}
- virtual void v2() {}
- virtual void v3() {}
- virtual void v4() {}
- virtual void v5() {}
- virtual void v6() {}
- virtual void v7() {}
- virtual void v8() {}
- virtual void v9() {}
- virtual void query_sphere(const __m128 *sphere, s_surface_key_array *keys);
- virtual void query_box(const c_query_transform *matrix, const __m128 *extent, real tolerance, s_surface_key_array *keys);
- virtual void query_bounds(const s_query_bounds *bounds, s_surface_key_array *keys);
-};
+#include "unknown_1c3b20.h"
 
 c_shape_owner *g_51e9d4;
 
