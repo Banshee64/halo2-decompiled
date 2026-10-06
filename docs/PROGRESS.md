@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6417 functions match
+
+```
+matched 6417 of 11318 game functions (682868 of 2784283 bytes, 24.53%)
+```
+
+6417 new matches, none lost:
+- Codex lane Q round 5: 0x155b60, 0x155c60 and 0x155d80.
+- Codex lane FP round 1: the inline and call boundaries around 0x214ac0 and 0x214b80 are now explicit, so those two no longer depend on inlining choices elsewhere.
+
 ## 2026-10-06: 6414 functions match
 
 ```
