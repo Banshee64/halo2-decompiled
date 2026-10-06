@@ -114,7 +114,13 @@ struct s_collision_object
 	dword bit22 : 1;
 	dword unknown_bits23 : 8;
 	dword bit31 : 1;
-	byte unknown008[0xaa - 0x8];
+	byte unknown008[4];
+	long next_object;
+	long child_object;
+	byte unknown014[0x40 - 0x14];
+	point3f center;
+	real radius;
+	byte unknown050[0xaa - 0x50];
 	char type;
 	byte unknown0ab[0x10a - 0xab];
 	word unknown10a_bits0 : 2;
@@ -202,6 +208,52 @@ struct s_lookup
 
 struct s_table_holder;
 void *function_1efd80(s_table_holder *holder, dword position);
+
+bool function_1efdc0(s_lookup *lookup, point3f const *point);
+bool object_or_parent_hidden(long object_index);
+
+// @retail 0x168e20
+bool function_168e20(long object_index, bool skip_test, dword flags,
+	point3f const *point, long ignore_object_index, long ignore_object_index2)
+{
+	// The recursive call passes these arguments on the stack.
+	(void)&object_index;
+	(void)&skip_test;
+	do
+	{
+		s_collision_object_header *header = &((s_collision_object_header *)g_4e0300->data)[object_index & 0xffff];
+		s_collision_object *object = header->object;
+		if (!skip_test)
+		{
+			if (!collision_object_test(object_index, header, object, flags, ignore_object_index, ignore_object_index2))
+				goto next;
+			real x = object->center.x - point->x;
+			real y = object->center.y - point->y;
+			real z = object->center.z - point->z;
+			real radius = object->radius;
+			real distance_squared = x * x;
+			distance_squared += y * y;
+			distance_squared += z * z;
+			if (!(distance_squared <= radius * radius))
+				goto next;
+		}
+		{
+			s_lookup lookup;
+			if (lookup.initialize(object_index) && function_1efdc0(&lookup, point))
+				return true;
+		}
+		if (!(flags & 0x20000))
+		{
+			long child = object->child_object;
+			if (child != NONE && !object_or_parent_hidden(child) &&
+				function_168e20(child, false, flags, point, ignore_object_index, ignore_object_index2))
+				return true;
+		}
+	next:
+		object_index = object->next_object;
+	} while (object_index != NONE);
+	return false;
+}
 
 /* defined in unknown_183ee0.cpp */
 struct s_slot_entry_list;
@@ -458,7 +510,10 @@ struct s_1697c0_cluster
 {
 	byte unknown00[0x70];
 	char instanced_plane_reference;
-	byte unknown71[0xb0 - 0x71];
+	byte unknown71[0x98 - 0x71];
+	long instance_count;
+	short *instances;
+	byte unknowna0[0xb0 - 0xa0];
 };
 
 struct s_1697c0_bsp
@@ -527,6 +582,101 @@ static inline long collision_leaf_cluster(long leaf_index)
 	else
 	{
 		result = NONE;
+	}
+	return result;
+}
+
+struct s_material_168f40
+{
+	byte unknown00[0xc];
+	short material;
+	byte unknown0e[2];
+};
+
+struct s_palette_168f40
+{
+	byte unknown000[0x34c];
+	s_material_168f40 *materials;
+};
+
+struct s_vehicle_ray
+{
+	point3f point;
+	vector3f vector;
+	real t;
+};
+
+// @retail 0x168f40
+bool __stdcall function_168f40(long flags, s_vehicle_ray const *ray,
+	long ignore_object_index, long ignore_object_index2)
+{
+	bool result = false;
+	point3f const *point = &ray->point;
+	long leaf = function_14a280(g_4e033c, (point3f *)point, 0);
+	if (leaf == NONE)
+		return true;
+	if ((flags & 2) || (flags & 0xc))
+	{
+		s_1697c0_bsp *bsp = (s_1697c0_bsp *)g_4e0348;
+		long cluster_index = bsp->leaves[leaf].cluster_index;
+		if (flags & 2)
+		{
+			long reference = bsp->clusters[cluster_index].instanced_plane_reference;
+			if ((char)reference != NONE)
+			{
+				if ((char)reference < 0)
+				{
+					s_1697c0_instanced_plane *entry = &bsp->instanced_planes[reference & 0x7f];
+					if (entry->material_type != NONE)
+					{
+						real distance = entry->plane.k * point->z;
+						distance += entry->plane.j * point->y;
+						distance += entry->plane.i * point->x;
+						distance -= entry->plane.d;
+						if (0.0f > distance)
+							result = true;
+					}
+				}
+				else if (((s_palette_168f40 *)g_4e0350)->materials[reference & 0x7f].material != NONE)
+					result = true;
+			}
+		}
+		if ((flags & 4) && !result)
+		{
+			s_1697c0_cluster *cluster = &bsp->clusters[cluster_index];
+			for (long i = 0; i < cluster->instance_count; ++i)
+			{
+				if (collision_point_inside_instance(cluster->instances[i], point, flags))
+				{
+					result = true;
+					break;
+				}
+			}
+		}
+		if ((flags & 8) && !result)
+		{
+			s_object_cluster_reference *reference = NULL;
+			word object_flags = collision_flags_to_object_flags(flags);
+			word types = (word)(((dword)flags >> 4) & 0x1fff);
+			s_object_cluster_iterator iterator;
+			for (long object_index = function_b8940((short)cluster_index, &reference, &iterator);
+				object_index != NONE; object_index = function_b89b0(&reference, &iterator))
+			{
+				if ((types & (1 << reference->type)) && !(reference->flags & object_flags))
+				{
+					real x = reference->center.x - point->x;
+					real y = reference->center.y - point->y;
+					real z = reference->center.z - point->z;
+					real radius = reference->radius;
+					real distance = x * x;
+					distance += y * y;
+					distance += z * z;
+					if (distance <= radius * radius && object_index != ignore_object_index && object_index != ignore_object_index2 &&
+						function_168e20(object_index, true, flags, point, ignore_object_index, ignore_object_index2))
+						return true;
+				}
+			}
+		}
 	}
 	return result;
 }
