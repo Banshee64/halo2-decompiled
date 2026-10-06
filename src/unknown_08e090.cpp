@@ -49,3 +49,42 @@ void __stdcall function_08e0b0(long unused)
 			g_510570->flag4e00 = false;
 	}
 }
+
+#include <xtl.h>
+#include "globals.h"
+#include "unknown_059ad0.h"
+#include "unknown_067e10.h"
+
+struct s_network_message_gateway;
+struct c_entry_table;
+s_network_message_gateway *g_510568;
+c_class_58d20 *g_510574;
+void function_5a090(c_class_58d20 *session);
+void network_observer_update(s_network_observer *observer);
+void entry_table_flush_updates(c_entry_table *table);
+void network_link_update_connections(c_class_93590 *link);
+void network_message_gateway_send_pending_messages(s_network_message_gateway *gateway);
+
+// @retail 0x8dfc0
+void function_8dfc0(void)
+{
+ if (g_4d8ba0)
+ {
+  g_510548 = true;
+  g_51054c = GetTickCount();
+  for (long offset = 0; offset < 3 * 0x78b8; offset += 0x78b8)
+   function_5a090((c_class_58d20 *)((byte *)g_510574 + offset));
+  network_observer_update(g_510570);
+  if (!g_4cf772)
+  {
+   c_class_6a600 *world = (c_class_6a600 *)g_4cf77c;
+   long state = world->state;
+   if (state && g_4e6948 && g_4e6948->flag1120 && (state == 4 || state == 5) && state != 3 && state != 5)
+    entry_table_flush_updates((c_entry_table *)&world->distribution->field_2098);
+  }
+  network_link_update_connections(g_510560);
+  network_message_gateway_send_pending_messages(g_510568);
+  g_510548 = false;
+  g_51054c = GetTickCount();
+ }
+}

@@ -6,6 +6,7 @@
 #include "unknown_0bbf40.h"
 #include "object_iterator.h"
 #include "loop_allocator.h"
+#include "unknown_1cafc0.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -679,7 +680,8 @@ struct s_post_physics_object_ab
     byte unknown00[0xc];
     long sibling;
     long child;
-    byte unknown14[0xb4 - 0x14];
+    byte unknown14[0xb3 - 0x14];
+    byte awake_countdown;
     long component;
     byte unknownb8[0xc0 - 0xb8];
     word : 1;
@@ -726,10 +728,10 @@ void __stdcall function_bc820(long object_index)
         }
     }
     function_108cd0(object_index);
-    if (TEST_FIELD_BIT(object->flag2))
-        object->flag1 = true;
+    if ((bool)(((dword)((volatile byte *)object)[0xc0] >> 2) & 1))
+        ((byte *)object)[0xc0] |= 2;
     else
-        object->flag1 = false;
+        ((byte *)object)[0xc0] &= ~2;
     object->flag2 = false;
     bool moved = function_bdef0(object_index);
     if ((header->flags & 0x40) && !moved)
@@ -741,4 +743,109 @@ void __stdcall function_bc820(long object_index)
         child = ((s_post_physics_header_ab *)g_4e0300->data)[child & 0xffff].object->sibling;
     }
     function_be1d0(object_index);
+}
+
+
+void function_a9570(long object_index);
+bool function_108c60(long object_index);
+bool function_d5de0(long object_index);
+bool __stdcall function_be8e0(long object_index);
+struct s_havok_component;
+void function_1ced00(s_havok_component *component);
+
+// @retail 0xbc470
+bool __stdcall function_bc470(long object_index)
+{
+    s_post_physics_header_ab *header = &((s_post_physics_header_ab *)g_4e0300->data)[object_index & 0xffff];
+    bool active = false;
+    if (header->flags & 2)
+    {
+        if (header->flags & 0x20)
+            return true;
+        header->flags &= ~4;
+        s_post_physics_object_ab *object = header->object;
+        if (TEST_FIELD_BIT(object->flag2))
+            function_bba20(object_index);
+        long mode = g_4e6948->mode;
+        if (mode >= 4 && mode <= 5 && (((byte *)object)[0xd8] & 1))
+            function_a9570(object_index);
+        if (*(short *)((byte *)((s_post_physics_header_ab *)g_4e0300->data)[object_index & 0xffff].object + 0x12a) != NONE)
+        {
+            s_animation_state *animation = (s_animation_state *)((byte *)object + *(short *)((byte *)object + 0x12a));
+            if (animation->graph_tag_index != NONE)
+                active = animation->blend_counters_update();
+        }
+        active |= function_108c60(object_index);
+        active |= function_d5de0(object_index);
+        active |= function_be8e0(object_index);
+        long child = object->child;
+        while (child != NONE)
+        {
+            active |= function_bc470(child);
+            child = ((s_post_physics_header_ab *)g_4e0300->data)[child & 0xffff].object->sibling;
+        }
+        if (object->component != NONE && TEST_FIELD_BIT(object->flag6))
+            function_1ced00((s_havok_component *)(g_51e9b8->data + (object->component & 0xffff) * 0xa0));
+        if (object->awake_countdown > 0)
+        {
+            object->awake_countdown--;
+            return true;
+        }
+        if (!active && !(header->flags & 4))
+            header->flags &= ~2;
+    }
+    return active;
+}
+
+
+struct s_object_attachment_ab
+{
+    char kind;
+    byte unknown01[3];
+    long index;
+};
+void __stdcall function_c3260(long light_index, bool clear_object_flag);
+bool function_177610(long effect_index);
+void contrail_update(long contrail_index, bool detach, real dt);
+
+// @retail 0xbee60
+void function_bee60(long object_index)
+{
+    byte *object = (byte *)((s_object_header_0bbf40 *)g_4e0300->data)[object_index & 0xffff].object;
+    long count = (dword)(long)*(short *)(object + 0x11c) / sizeof(s_object_attachment_ab);
+    s_object_attachment_ab *attachment = (s_object_attachment_ab *)(object + *(short *)(object + 0x11e));
+    if (count > 0)
+    {
+        volatile long remaining = count;
+        long *index = &attachment->index;
+        do
+        {
+            if (*(char *)(index - 1) != NONE && *index != NONE)
+            {
+                switch (*(char *)(index - 1))
+                {
+                case 0:
+                    function_c3260(*index, true);
+                    break;
+                case 1:
+                    record_pool_release(g_4ed28c, *index);
+                    break;
+                case 2:
+                    function_177610(*index);
+                    break;
+                case 3:
+                    function_bd090(object_index);
+                    contrail_update(*index, true, 0.0f);
+                    break;
+                }
+            }
+            *(char *)(index - 1) = (char)0xff;
+            *index = NONE;
+            index += 2;
+        } while (--remaining);
+    }
+    dword flags = *(dword *)(object + 4) & ~0x10;
+    dword final_flags = flags & ~0x20;
+    *(volatile dword *)(object + 4) = flags;
+    *(dword *)(object + 4) = final_flags;
 }
