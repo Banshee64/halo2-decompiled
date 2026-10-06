@@ -543,7 +543,7 @@ struct s_postgame_team
 
 s_postgame_team g_55dc30[1];
 
-color3f *function_7f720(color3f *color, long team_index);
+color3f *function_7f720(color3f *color, short team_index);
 hsv3f *function_1318d0(const color3f *rgb, hsv3f *hsv);
 color3f *function_131a00(const hsv3f *hsv, color3f *rgb);
 
