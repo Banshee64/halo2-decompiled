@@ -834,6 +834,7 @@ class c_class_2b0b5e : public c_class_1a2c81
 {
 public:
 	c_class_2b0b5e(s_model_block *definition);
+	virtual void v1();
 
 	s_model_block *definition;
 };
@@ -856,6 +857,7 @@ class c_widget_45adf0 : public c_class_1a2c81
 {
 public:
 	c_widget_45adf0(s_widget_block_24 *definition);
+	virtual void v3();
 
 	s_widget_block_24 *definition;
 	dword value74[4];

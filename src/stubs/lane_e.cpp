@@ -16,8 +16,11 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 
 /* the screen transition states */
 
+// @stub 0x253b65
+void __stdcall function_253b65(c_class_1a2c81 *widget, long string_handle)
+{
+}
+
 /* in the region: screen load procedures */
 
-// @stub 0x2b19dc
-c_class_1473c9 *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
 

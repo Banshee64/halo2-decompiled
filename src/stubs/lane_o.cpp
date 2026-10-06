@@ -13,8 +13,6 @@ void function_1396c7(long a, point2f *point) { }
 void function_1fa30(word const *text, short_rectangle2d *bounds) { }
 
 class c_class_2b0b5e;
-// @stub 0x2b10a3
-void function_2b10a3(dword const *arg_0, c_class_2b0b5e *arg_1, long arg_2) { }
 
 #include "flexible_surface_calls.h"
 // @stub 0x19f680

@@ -254,3 +254,35 @@ bool c_y_menu_tab_bar::v10(s_widget_event *event)
 	}
 	return result;
 }
+
+bool function_6c7e0();
+struct s_screen_view_2b3e;
+long function_2b3efc(s_screen_view_2b3e *screen);
+void function_22f042(s_widget_item *items, c_class_1a2c81 *widget, long count);
+void __stdcall function_2b2ed4(c_y_menu_list *list, bool friends, bool empty,
+    c_class_1a2c81 *item, s_friend *datum);
+
+// @retail 0x2b3fca
+void c_y_menu_players_list::v20(c_class_1a2c81 *item, long unused)
+{
+    if ((byte)function_2b3efc((s_screen_view_2b3e *)parent->parent->parent))
+    {
+        long index = function_6c7e0() ? widget_item(item)->value70 : NONE;
+        s_friend *entry = 0;
+        if (data && g_global_4acf62.clan_member_reference_data)
+        {
+            s_player_reference_view *reference = (s_player_reference_view *)record_pool_lookup(g_global_4acf62.clan_member_reference_data, index);
+            if (reference)
+                entry = (s_friend *)record_pool_lookup(data, reference->player_index);
+        }
+        if (entry)
+        {
+            bool empty = true;
+            if (((s_friend_view *)entry)->xuid != 0)
+                empty = false;
+            function_2b2ed4(this, false, empty, item, entry);
+        }
+        else
+            function_22f042(0, item, 0);
+    }
+}
