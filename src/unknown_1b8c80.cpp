@@ -35,7 +35,7 @@ short __stdcall function_1b9890(long actor_index, s_slot *slot);
 short __stdcall function_1b99d0(long actor_index, s_slot *slot);
 short __stdcall function_1b9fc0(long actor_index);
 short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active);
-void __stdcall function_1ba090(long actor_index, s_slot *slot);
+long __stdcall function_1ba090(long actor_index, s_slot *slot);
 void __stdcall function_1ba3f0(long actor_index, s_slot *slot, s_slot_target_list *list);
 void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index);
 short __stdcall function_1bb3a0(long actor_index, long joint_index, long a, long b);
@@ -708,8 +708,8 @@ short __stdcall function_1b9890(long actor_index, s_slot *slot)
 			if (prop_index != NONE && prop_node_get(prop_index)->unknown24 < 1)
 				function_25c230(actor_index, prop_index, 3);
 			state->unknown1c = actor->unknown2e8;
-			state->unknown28 = 20.0f;
-			state->unknown2c = 24.0f;
+			state->unknown28 = 11.0f;
+			state->unknown2c = 14.0f;
 			state->seat_index = NONE;
 			state->flags |= 0x29;
 			result = 0x4c;
@@ -815,7 +815,7 @@ s_slot_handler_2x g_47e9d0 =
 		},
 		(t_slot_proc)joint_update, joint_activate, joint_deactivate
 	},
-	function_1ba090, (t_slot_release)function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, (t_slot_proc4)function_1bb3a0,
+	(t_slot_proc)function_1ba090, (t_slot_release)function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, (t_slot_proc4)function_1bb3a0,
 	1, 10, 1.5f, 0x5b
 };
 
@@ -1046,4 +1046,220 @@ bool function_1b9e70(long actor_index, s_seat_selection *selection, bool reserve
         }
     }
     return result;
+}
+
+
+long function_baf40(long object_index);
+bool __stdcall function_f5d10(long vehicle_index, long bit, bool set);
+void function_26ee40(s_joint_behavior_state *behavior);
+void function_1f86a0(long actor_index);
+
+// @retail 0x1ba090
+long __stdcall function_1ba090(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    s_slot_object_view *unit = object_get(actor->unknown018);
+    s_slot_4c *state = (s_slot_4c *)slot;
+    s_seat_selection *selection = (s_seat_selection *)&state->unknown1c;
+    if (*(long *)((byte *)unit + 0x14) != NONE)
+        return NONE;
+    s_slot_entry_iterator iterator;
+    iterator.actor_index = actor_index;
+    iterator.reference.unknown2 = 0x4c;
+    iterator.reference.unknown0 = NONE;
+    s_slot_memory_entry *entry;
+    long joint_index = NONE;
+    while ((entry = function_26f0c0(&iterator)) != NULL)
+    {
+        s_4c_element *element = (s_4c_element *)element_502424_get(entry->unknown4);
+        bool specified = (selection->flags & 0x20) != 0;
+        bool same = specified && function_baf40(element->object_index) == function_baf40(selection->object_index);
+        if ((element->unknown86 ? !(selection->flags & 0x40) || !same : specified && !same))
+            joint_decline(actor_index, iterator.reference.unknown0);
+        else if (function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+        {
+            joint_index = entry->unknown4;
+            break;
+        }
+    }
+    if (joint_index == NONE)
+    {
+        joint_index = function_26e940(actor_index);
+        if (joint_index != NONE)
+        {
+            *((bool *)slot + 0xc) = true;
+            state->element_index = joint_index;
+        }
+    }
+    if (joint_index != NONE)
+    {
+        s_4c_element *element = (s_4c_element *)element_502424_get(joint_index);
+        if (*((bool *)slot + 0xc))
+        {
+            if (selection->flags & 0x20)
+            {
+                element->object_index = function_1b8c80(selection->object_index);
+                element->unknown86 = ((selection->flags >> 6) & 1) != 0;
+                if (actor->unknown26c == selection->object_index)
+                    selection->seat_index = object_get(actor->unknown018)->unknown1fc;
+            }
+        }
+        else if (!(selection->flags & 0x20))
+        {
+            selection->object_index = element->object_index;
+            selection->seat_index = NONE;
+            selection->flags |= 0x29;
+            state->unknown28 = 11.0f;
+            state->unknown2c = 14.0f;
+        }
+        if (!(selection->flags & 0x20) || selection->object_index == NONE || element->object_index == NONE ||
+            !function_1ba990(actor_index, selection->object_index, ((selection->flags >> 6) & 1) != 0, state->unknown28, state->unknown2c, false))
+            goto failed;
+        if (function_2676d0(actor_index) && function_1e2030(actor_index))
+        {
+            selection->seat_index = NONE;
+            element->unknown85 = true;
+        }
+        else
+        {
+            if (!function_1b9e70(actor_index, selection, true, element, 0) || selection->object_index == NONE || selection->seat_index == NONE)
+                goto failed;
+            s_vehicle_tag_view *definition = (s_vehicle_tag_view *)g_4e3b44[object_get(selection->object_index)->tag_index & 0xffff].bytes;
+            s_vehicle_seat_definition *seat = &definition->seats[selection->seat_index];
+            if (actor->unknown26c == NONE)
+            {
+                short type;
+                if (TEST_FIELD_BIT(seat->flags.bit2)) type = 0x65;
+                else if (TEST_FIELD_BIT(seat->flags.bit3)) type = 0x67;
+                else type = 0x68;
+                function_1fb7e0(actor_index, type, 0, selection->object_index, NONE);
+                function_f5d10(selection->object_index, selection->seat_index, true);
+            }
+        }
+        function_1f86a0(actor_index);
+        state->unknown24 = 0;
+    }
+    return joint_index;
+failed:
+    if (joint_index != NONE)
+        function_26ee40((s_joint_behavior_state *)slot);
+    return NONE;
+}
+
+
+#include "unit_requests.h"
+struct s_unit_child_iterator
+{
+    long object_index;
+    long unit_index;
+    short seat_index;
+    long next_index;
+};
+struct s_damage_object;
+s_damage_object *function_d05c0(s_unit_child_iterator *iterator);
+void function_1e3400(long actor_index, long squad_index);
+void function_201ad0(long squad_index, long object_index);
+
+// @retail 0x1bb570
+void __stdcall function_1bb570(long vehicle_index, long actor_index)
+{
+    if (g_4f55d0->active)
+    {
+        s_actor_view *actor = actor_get(actor_index);
+        bool driver = *(long *)((byte *)object_get(vehicle_index) + 0x248) == actor->unknown018;
+        if (*((bool *)actor + 0x3c))
+            *((bool *)actor + 0x3c) = false;
+        else if (actor->unknown030 != NONE)
+            *(long *)((byte *)actor + 0x28) = actor->unknown030;
+        long root_index = function_baf40(vehicle_index);
+        if (g_4e0300->data[(root_index & 0xffff) * 12 + 3] == 1)
+            vehicle_index = root_index;
+        byte *vehicle = (byte *)object_get(vehicle_index);
+        long squad_index = *(long *)(vehicle + 0x3a0);
+        if (actor->unknown030 != squad_index)
+        {
+            if (!driver && *(long *)(vehicle + 0x248) == NONE)
+                goto event;
+            byte *squad = squad_index == NONE ? 0 : g_51e9d8->data + (squad_index & 0xffff) * 0x98;
+            if (squad && !function_1df560(actor->unknown024, *(signed char *)(squad + 0x76)))
+                function_1e3400(actor_index, (word)squad_index);
+            else if (driver)
+            {
+                if (actor->unknown030 == NONE && *(long *)((byte *)actor + 0x28) != NONE)
+                    function_1e3400(actor_index, *(word *)((byte *)actor + 0x28));
+                if (actor->unknown030 != NONE)
+                    function_201ad0(actor->unknown030, vehicle_index);
+            }
+            else
+            {
+                byte *driver_unit = (byte *)object_get(*(long *)(vehicle + 0x248));
+                if (*(long *)(driver_unit + 0x13c) != NONE && !team_is_enemy(actor->unknown024, 1))
+                    goto event;
+                if (!squad)
+                    function_1e3400(actor_index, NONE);
+                else
+                {
+                    s_slot_object_view *unit = object_get(actor->unknown018);
+                    s_vehicle_tag_view *definition = (s_vehicle_tag_view *)g_4e3b44[object_get(*(long *)((byte *)unit + 0x14))->tag_index & 0xffff].bytes;
+                    if (!TEST_FIELD_BIT(definition->seats[unit->unknown1fc].flags.bit11))
+                    {
+                        function_e68c0(0x1d, actor->unknown018);
+                        goto done;
+                    }
+                }
+                goto event;
+            }
+        }
+        if (driver)
+        {
+            s_object_seat seats[0x40];
+            long count = 0;
+            long previous = NONE;
+            function_c8a40(vehicle_index, seats, (short *)&count, 0x40);
+            for (short i = 0; i < (short)count; ++i)
+            {
+                if (seats[i].object_index != previous)
+                {
+                    previous = seats[i].object_index;
+                    s_unit_child_iterator iterator;
+                    iterator.object_index = previous;
+                    iterator.unit_index = NONE;
+                    iterator.seat_index = NONE;
+                    iterator.next_index = *(long *)((byte *)object_get(previous) + 0x10);
+                    byte *unit;
+                    while ((unit = (byte *)function_d05c0(&iterator)) != NULL)
+                    {
+                        long other_index = *(long *)(unit + 0x12c);
+                        if (other_index != NONE && other_index != actor_index && *(short *)(unit + 0x1fc) != NONE)
+                        {
+                            s_actor_view *other = actor_get(other_index);
+                            if (function_1df560(actor->unknown024, other->unknown024))
+                                function_e68c0(0x1d, iterator.unit_index);
+                            else if (other->unknown030 != actor->unknown030)
+                                function_1e3400(other_index, (word)actor->unknown030);
+                        }
+                    }
+                }
+            }
+        }
+event:
+        {
+            short seat_index = object_get(actor->unknown018)->unknown1fc;
+            if (seat_index != NONE)
+            {
+                s_vehicle_tag_view *definition = (s_vehicle_tag_view *)g_4e3b44[*(long *)vehicle & 0xffff].bytes;
+                if (!TEST_FIELD_BIT(definition->seats[seat_index].flags.bit11))
+                    function_1fb7e0(actor_index, 0x66, 0, vehicle_index, NONE);
+            }
+        }
+done:
+        actor->unknown2e8 = NONE;
+        actor->unknown2ec = NONE;
+        *(short *)actor->unknown2ee = NONE;
+        actor->unknown2f0 = false;
+        *(short *)((byte *)actor + 0x2f4) = (short)real_to_long((real)g_510c54->field_2_3 * 10.0f);
+        actor = actor_get(actor_index);
+        *((bool *)actor + 0x5d4) = false;
+        *(dword *)((byte *)actor + 0x810) &= ~1;
+    }
 }
