@@ -1667,3 +1667,61 @@ bool s_animation_state::play(c_type_709360 animation_id, word channel_flags)
 	}
 	return result;
 }
+
+
+struct s_anim_data;
+void function_20ab60(vector3f *sum, s_anim_data *data, real *w);
+void c_animation_channel_data_get(c_animation_channel const *channel, s_animation_data *data);
+real magnitude3d(vector3f const *vector);
+
+// @retail 0x1cd8a0
+bool __stdcall function_1cd8a0(s_animation_state *state, long object_index, vector3f const *velocity)
+{
+    bool result = false;
+    if ((object_index == NONE || !(((s_animated_object_header *)g_4e0300->data)[object_index & 0xffff].object->unknownb3 > 0)) &&
+        !(state->unknown6e & 1))
+    {
+    c_animation_channel *primary = &state->channels[0];
+    c_animation_channel *secondary;
+    s_animation *animation;
+    if (g_46fbf4 && channel_valid(primary) && (animation = primary->function_1c6440()) != NULL &&
+        animation->frame_info_type && function_0b6760((s_index_pair const *)(secondary = &state->channels[1])) &&
+        secondary->function_1c6440() && secondary->function_1c6440()->frame_count > 0)
+    {
+        s_animation_data data;
+        vector3f movement;
+        real unused;
+        c_animation_channel_data_get(primary, &data);
+        real measured = magnitude3d(velocity);
+        function_20ab60(&movement, (s_anim_data *)&data, &unused);
+        real primary_speed = magnitude3d(&movement) * 30.0f;
+        real rate = 1.0f;
+        c_animation_channel_data_get(secondary, &data);
+        function_20ab60(&movement, (s_anim_data *)&data, &unused);
+        real secondary_speed = magnitude3d(&movement) * 30.0f;
+        real weight = 0.0f;
+        real difference = primary_speed - secondary_speed;
+        if (difference > 0.0f)
+        {
+            real fraction = (measured - secondary_speed) / difference;
+            if (fraction < 0.0f) fraction = 0.0f;
+            else if (fraction > 1.0f) fraction = 1.0f;
+            real primary_frames = (real)primary->function_1c6440()->frame_count;
+            real ratio = primary_frames / (real)secondary->function_1c6440()->frame_count;
+            rate = (1.0f - ratio) * fraction + ratio;
+            weight = PIN(1.0f - fraction, 0.0f, 1.0f);
+            rate = PIN(rate, 0.0f, 1.0f);
+        }
+        real smoothed = state->unknown80 * 0.9f;
+        smoothed += weight * 0.1f;
+        state->unknown80 = smoothed;
+        if (rate > 0.9f)
+            rate = 1.0f;
+        primary->rate = rate;
+        return true;
+    }
+    else
+        state->unknown80 = 0.0f;
+    }
+    return result;
+}
