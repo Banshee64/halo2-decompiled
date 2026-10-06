@@ -51,11 +51,7 @@ long function_59570(void)
 	return 0;
 }
 
-// @stub 0x63e90
-long __stdcall function_63e90(long index)
-{
-	return 0;
-}
+
 
 
 

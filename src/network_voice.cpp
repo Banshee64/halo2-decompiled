@@ -2533,3 +2533,35 @@ publish_properties:
  else
   g_4c9878.unknownEE &= (word)~(1 << player);
 }
+
+// @retail 0x54030
+void function_54030(void)
+{
+ if (voice_get_players_inlined())
+ {
+  dword local = voice_get_local_player_mask();
+  dword players = voice_get_player_mask();
+  for (long i = 0; i < 16; i++)
+  {
+   if (players & (1 << i))
+   {
+    if (local & (1 << i))
+    {
+     if (voice_has_remote_talker(i) &&
+      g_476fc8.initialized && (g_476fc8.unknown0c & 4))
+      g_476fc8.engine->UnregisterRemoteTalker(voice_xuid(i));
+     function_541a0(i);
+    }
+    else
+     voice_update_remote_talker(i);
+   }
+   else
+   {
+    if (voice_has_remote_talker(i) &&
+     g_476fc8.initialized && (g_476fc8.unknown0c & 4))
+     g_476fc8.engine->UnregisterRemoteTalker(voice_xuid(i));
+    g_4c9878.unknownEE &= ~(1 << i);
+   }
+  }
+ }
+}

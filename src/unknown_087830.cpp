@@ -132,3 +132,157 @@ failed:
 done:
 	return result;
 }
+
+#include "globals.h"
+
+struct s_action_codec_view
+{
+ dword control;
+ real yaw, pitch;
+ real forward, strafe, first, second;
+ word flags;
+ short index;
+ signed char weapon, grenade;
+ short slot, seat;
+ byte unknown26[2];
+ short target_type;
+ union { short target_slot; byte target_byte; };
+ long target;
+ long value30;
+ long value34;
+ long value38;
+ long player;
+ byte unknown40[12];
+ short flags4c;
+ byte unknown4e[2];
+ real value50;
+ real value54;
+ byte unknown58[4];
+};
+void player_action_initialize(s_player_action *action);
+bool function_14d0a0(const s_player_action *action);
+
+static __forceinline real action_decode_real(long value, long maximum, real low, real high)
+{
+ if (value == 0) return low;
+ if (value >= maximum) return high;
+ return ((real)(maximum - value) * low + (real)value * high) * (1.0f / (real)maximum);
+}
+
+// @retail 0x874c0
+bool function_874c0(s_bitstream *stream, s_player_action *action)
+{
+ s_action_codec_view *result = (s_action_codec_view *)action;
+ player_action_initialize(action);
+ result->control = function_1959c0(stream, 32);
+ result->flags = (word)function_1959c0(stream, 9);
+ result->yaw = action_decode_real(function_1959c0(stream, 13), 8191, 0.0f, 6.2831855f);
+ result->pitch = action_decode_real(function_1959c0(stream, 12), 4095, -3.1415927f, 3.1415927f);
+ result->forward = action_decode_real(function_1959c0(stream, 5), 30, -1.0f, 1.0f);
+ result->strafe = action_decode_real(function_1959c0(stream, 5), 30, -1.0f, 1.0f);
+ result->first = action_decode_real(function_1959c0(stream, 5), 31, 0.0f, 1.0f);
+ result->second = action_decode_real(function_1959c0(stream, 5), 31, 0.0f, 1.0f);
+ result->index = (short)(function_1959c0(stream, 5) - 1);
+ result->weapon = (signed char)(function_1959c0(stream, 3) - 1);
+ result->grenade = (signed char)(function_1959c0(stream, 3) - 1);
+ result->slot = (short)(function_1959c0(stream, 2) - 1);
+ result->seat = (short)(function_1959c0(stream, 2) - 1);
+ result->target_type = (short)function_1959c0(stream, 4);
+ if (result->target_type)
+ {
+  result->target = function_1959c0(stream, 32);
+  switch (result->target_type)
+  {
+  case 1: result->target_byte = (byte)function_1959c0(stream, 4); break;
+  case 4: result->target_slot = (short)function_1959c0(stream, 5); break;
+  case 5: result->target_slot = (short)function_1959c0(stream, 5); break;
+  case 6: result->target_slot = (short)function_1959c0(stream, 5); break;
+  case 7: result->target_byte = (byte)function_1959c0(stream, 4); break;
+  }
+ }
+ else
+  result->target = NONE;
+ result->value30 = function_1957d0(stream) ? function_1959c0(stream, 32) : NONE;
+ if (function_1957d0(stream))
+ {
+  result->value50 = action_decode_real(function_1959c0(stream, 4), 15, 0.0f, 1.0f);
+  result->value54 = action_decode_real(function_1959c0(stream, 4), 15, 0.0f, 1.0f);
+  result->flags4c = (short)function_1959c0(stream, 2);
+  result->value34 = function_1959c0(stream, 32);
+  if (result->value34 != NONE && function_1957d0(stream))
+   result->value38 = function_1959c0(stream, 5);
+ }
+ if (function_1957d0(stream))
+ {
+  long index = function_1959c0(stream, 4);
+  long player = NONE;
+  if (index != NONE)
+   player = (*(short *)(g_4e8c24->data + g_4e8c24->size * index) << 16) | index;
+  result->player = player;
+ }
+ return function_14d0a0(action) != false;
+}
+
+static __forceinline long action_round(real value)
+{
+ long result;
+ __asm { fld value }
+ __asm { fistp result }
+ return result;
+}
+
+// @retail 0x86f90
+void function_86f90(s_bitstream *stream, s_player_action *action)
+{
+ s_action_codec_view *input = (s_action_codec_view *)action;
+ function_195720(stream, input->control, 32);
+ stream_write_checked(stream, input->flags, 9);
+ function_195720(stream, action_round(input->yaw * 1303.6380615234375f), 13);
+ function_195720(stream, action_round((input->pitch - -3.1415927f) * 651.739501953125f), 12);
+ function_195720(stream, action_round((input->forward - -1.0f) * 15.0f), 5);
+ function_195720(stream, action_round((input->strafe - -1.0f) * 15.0f), 5);
+ function_195720(stream, action_round(input->first * 31.0f), 5);
+ function_195720(stream, action_round(input->second * 31.0f), 5);
+ stream_write_checked(stream, input->index + 1, 5);
+ stream_write_checked(stream, input->weapon + 1, 3);
+ stream_write_checked(stream, input->grenade + 1, 3);
+ stream_write_checked(stream, input->slot + 1, 2);
+ stream_write_checked(stream, input->seat + 1, 2);
+ stream_write_checked(stream, input->target_type, 4);
+ if (input->target_type)
+ {
+  function_195720(stream, input->target, 32);
+  switch (input->target_type)
+  {
+  case 1: stream_write_checked(stream, input->target_byte, 4); break;
+  case 4: stream_write_checked(stream, input->target_slot, 5); break;
+  case 5: stream_write_checked(stream, input->target_slot, 5); break;
+  case 6: stream_write_checked(stream, input->target_slot, 5); break;
+  case 7: stream_write_checked(stream, input->target_byte, 4); break;
+  }
+ }
+ stream_write_bit(stream, input->value30 != NONE);
+ if (input->value30 != NONE)
+  function_195720(stream, input->value30, 32);
+ if (input->value50 > 0.0f || input->value54 > 0.0f || (input->flags4c & 1) || input->value34 != NONE)
+ {
+  stream_write_bit(stream, true);
+  real first = input->value50 > 0.0f ? input->value50 : 0.0f;
+  real second = input->value54 > 0.0f ? input->value54 : 0.0f;
+  function_195720(stream, action_round(first * 15.0f), 4);
+  function_195720(stream, action_round(second * 15.0f), 4);
+  stream_write_checked(stream, input->flags4c, 2);
+  function_195720(stream, input->value34, 32);
+  if (input->value34 != NONE)
+  {
+   stream_write_bit(stream, input->value38 != NONE);
+   if (input->value38 != NONE)
+    stream_write_checked(stream, input->value38, 5);
+  }
+ }
+ else
+  stream_write_bit(stream, false);
+ stream_write_bit(stream, input->player != NONE);
+ if (input->player != NONE)
+  stream_write_checked(stream, input->player & 0xffff, 4);
+}
