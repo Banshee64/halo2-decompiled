@@ -14,7 +14,7 @@ struct s_squad_iterator
 	byte unknown00[0x14];
 };
 
-void function_204ec0(s_squad_iterator *iterator, short encounter_index, short a, bool b);
+void function_204ec0(s_squad_iterator *iterator, short encounter_index, short a, short b);
 short function_205010(s_squad_iterator *iterator);
 
 // @retail 0x1b2ff0

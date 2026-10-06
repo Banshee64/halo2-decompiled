@@ -167,6 +167,76 @@ extern short const g_445710[62] =
 	2, 2, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2
 };
 
+// @retail 0x208570
+void __stdcall function_208570(short function_index, long thread_index, bool initialize)
+{
+	s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+	s_hs_expression *name = hs_expression_get(expression->value);
+	s_hs_expression *argument = hs_expression_get(*(long *)((byte *)name + 8));
+	short type = argument->type;
+	short types[2];
+	types[1] = type;
+	types[0] = type;
+	long *values = function_209d50(thread_index, 2, types, initialize);
+	if (values)
+	{
+		script_value result;
+		bool comparison;
+		switch (type)
+		{
+		case _hs_type_real:
+		{
+			real left = (real)*(real *)&values[0];
+			real right = (real)*(real *)&values[1];
+			switch (function_index)
+			{
+			case 15: comparison = left > right; break;
+			case 16: comparison = left < right; break;
+			case 17: comparison = left >= right; break;
+			case 18: comparison = left <= right; break;
+			default: comparison = false; break;
+			}
+			break;
+		}
+		case _hs_type_long_integer:
+		{
+			real left = (real)*(long *)&values[0];
+			real right = (real)*(long *)&values[1];
+			switch (function_index)
+			{
+			case 15: comparison = left > right; break;
+			case 16: comparison = left < right; break;
+			case 17: comparison = left >= right; break;
+			case 18: comparison = left <= right; break;
+			default: comparison = false; break;
+			}
+			break;
+		}
+		default:
+		{
+			real left = (real)*(short *)&values[0];
+			real right = (real)*(short *)&values[1];
+			switch (function_index)
+			{
+			case 15: comparison = left > right; break;
+			case 16: comparison = left < right; break;
+			case 17: comparison = left >= right; break;
+			case 18: comparison = left <= right; break;
+			default: comparison = false; break;
+			}
+			break;
+		}
+		}
+		result.b = comparison;
+		function_209ae0(thread_index, result.d);
+	}
+}
+
+s_type_f4462a const g_44b188 = { _hs_type_boolean, 2, function_208570, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b198 = { _hs_type_boolean, 2, function_208570, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b1a8 = { _hs_type_boolean, 2, function_208570, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b1b8 = { _hs_type_boolean, 2, function_208570, "<number> <number>", 0, { 0 } };
+
 // @retail 0x2084c0
 void __stdcall function_2084c0(short function_index, long thread_index, bool initialize)
 {
@@ -318,6 +388,318 @@ static inline long *hs_frame_allocate_value(long thread_index)
 	frame->size += sizeof(long);
 	return value;
 }
+
+// @retail 0x207ef0
+void __stdcall function_207ef0(short function_index, long thread_index, bool initialize)
+{
+	long *condition = hs_frame_allocate_value(thread_index);
+	long *branch = hs_frame_allocate_value(thread_index);
+	long *value = hs_frame_allocate_value(thread_index);
+	if (initialize)
+	{
+		*condition = 0;
+		*branch = NONE;
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		function_2099f0(thread_index, condition, *(long *)((byte *)name + 8));
+	}
+	else if (*branch == NONE)
+	{
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		s_hs_expression *test = hs_expression_get(*(long *)((byte *)name + 8));
+		if (*(bool *)condition)
+			*branch = *(long *)((byte *)test + 8);
+		else
+		{
+			s_hs_expression *then_expression = hs_expression_get(*(long *)((byte *)test + 8));
+			*branch = *(long *)((byte *)then_expression + 8);
+			if (*branch == NONE)
+			{
+				function_209ae0(thread_index, 0);
+				return;
+			}
+		}
+		function_2099f0(thread_index, value, *branch);
+	}
+	else
+		function_209ae0(thread_index, *value);
+}
+
+s_type_f4462a const g_44b0b8 = { _hs_type_passthrough, 2, function_207ef0, "<boolean> <then> [<else>]", 0, { 0 } };
+
+// @retail 0x208310
+void __stdcall function_208310(short function_index, long thread_index, bool initialize)
+{
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	short *count = (short *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size += sizeof(short);
+	long *next = hs_frame_allocate_value(thread_index);
+	real *value = (real *)hs_frame_allocate_value(thread_index);
+	real *result = (real *)hs_frame_allocate_value(thread_index);
+	if (initialize)
+	{
+		*count = 0;
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		*next = *(long *)((byte *)name + 8);
+	}
+	else
+	{
+		if (*count == 0)
+			*result = *value;
+		else switch (function_index)
+		{
+		case 7: *result += *value; break;
+		case 8: *result -= *value; break;
+		case 9: *result *= *value; break;
+		case 10: *result /= *value; break;
+		case 11: *result = *result > *value ? *value : *result; break;
+		case 12: *result = *result > *value ? *result : *value; break;
+		}
+		(*count)++;
+	}
+	if (*next != NONE)
+	{
+		function_2099f0(thread_index, (long *)value, *next);
+		*next = *(long *)((byte *)hs_expression_get(*next) + 8);
+	}
+	else
+	{
+		script_value returned;
+		returned.r = *result;
+		function_209ae0(thread_index, returned.d);
+	}
+}
+
+s_type_f4462a const g_44b108 = { _hs_type_real, 2, function_208310, "<number(s)>", 0, { 0 } };
+s_type_f4462a const g_44b118 = { _hs_type_real, 2, function_208310, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b128 = { _hs_type_real, 2, function_208310, "<number(s)>", 0, { 0 } };
+s_type_f4462a const g_44b138 = { _hs_type_real, 2, function_208310, "<number> <number>", 0, { 0 } };
+s_type_f4462a const g_44b148 = { _hs_type_real, 2, function_208310, "<number(s)>", 0, { 0 } };
+s_type_f4462a const g_44b158 = { _hs_type_real, 2, function_208310, "<number(s)>", 0, { 0 } };
+
+// @retail 0x2081e0
+void __stdcall function_2081e0(short function_index, long thread_index, bool initialize)
+{
+	long *next = hs_frame_allocate_value(thread_index);
+	long *value = hs_frame_allocate_value(thread_index);
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	bool *result = (bool *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size++;
+	bool conjunction = function_index == 5;
+	if (initialize)
+	{
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		*next = *(long *)((byte *)name + 8);
+		*result = conjunction;
+	}
+	else if (conjunction)
+		*result = *result && *(bool *)value;
+	else
+		*result = *result || *(bool *)value;
+	if (*next != NONE && *result == conjunction)
+	{
+		function_2099f0(thread_index, value, *next);
+		*next = *(long *)((byte *)hs_expression_get(*next) + 8);
+	}
+	else
+	{
+		script_value returned;
+		returned.b = *result;
+		function_209ae0(thread_index, returned.d);
+	}
+}
+
+s_type_f4462a const g_44b0e8 = { _hs_type_boolean, 2, function_2081e0, "<boolean(s)>", 0, { 0 } };
+s_type_f4462a const g_44b0f8 = { _hs_type_boolean, 2, function_2081e0, "<boolean(s)>", 0, { 0 } };
+
+// @retail 0x2087e0
+void __stdcall function_2087e0(short function_index, long thread_index, bool initialize)
+{
+	long *delay = hs_frame_allocate_value(thread_index);
+	long *script = hs_frame_allocate_value(thread_index);
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	short *state = (short *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size += sizeof(short);
+	if (initialize)
+	{
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		function_2099f0(thread_index, delay, *(long *)((byte *)name + 8));
+		*state = 0;
+	}
+	else
+	{
+		if (*state == 0)
+		{
+			s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+			s_hs_expression *name = hs_expression_get(expression->value);
+			s_hs_expression *argument = hs_expression_get(*(long *)((byte *)name + 8));
+			long script_expression = *(long *)((byte *)argument + 8);
+			*state = 1;
+			if (script_expression != NONE)
+			{
+				function_2099f0(thread_index, script, script_expression);
+				return;
+			}
+			*script = NONE;
+		}
+		if (*state != 0)
+		{
+			long target = thread_index;
+			if (*(short *)script != NONE)
+				target = function_209e70(*(short *)script);
+			if (target != NONE && *(short *)delay >= 0)
+			{
+				real seconds = (real)*(short *)delay * 0.03333333507180214f * (real)g_510c54->field_2_3;
+				long ticks;
+				__asm
+				{
+					fld seconds
+					fistp ticks
+				}
+				if (ticks > 0)
+				{
+					s_hs_thread *thread = hs_thread_get(target);
+					long until = g_510c54->game_time + ticks;
+					if (thread->sleep_until != NONE)
+					{
+						if (target != thread_index && !(thread->flags & 2))
+						{
+							thread->flags |= 2;
+							*(long *)thread->unknown0c = thread->sleep_until;
+						}
+						hs_thread_get(target)->sleep_until = until;
+					}
+				}
+			}
+			function_209ae0(thread_index, 0);
+		}
+	}
+}
+
+s_type_f4462a const g_44b1c8 = { _hs_type_void, 2, function_2087e0, "<short> [<script>]", 0, { 0 } };
+
+PRIVATE inline long hs_delay_ticks(long delay)
+{
+	real seconds = (real)delay * 0.03333333507180214f * (real)g_510c54->field_2_3;
+	long ticks;
+	__asm
+	{
+		fld seconds
+		fistp ticks
+	}
+	return ticks;
+}
+
+// @retail 0x2089b0
+void __stdcall function_2089b0(short function_index, long thread_index, bool initialize)
+{
+	s_hs_thread *thread = hs_thread_get(thread_index);
+	long *condition = hs_frame_allocate_value(thread_index);
+	long *interval = hs_frame_allocate_value(thread_index);
+	long *timeout = hs_frame_allocate_value(thread_index);
+	long *start = hs_frame_allocate_value(thread_index);
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	short *state = (short *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size += sizeof(short);
+	s_hs_expression *expression = hs_expression_get(thread->frame->expression_index);
+	s_hs_expression *name = hs_expression_get(expression->value);
+	s_hs_expression *test = hs_expression_get(*(long *)((byte *)name + 8));
+	long optional = *(long *)((byte *)test + 8);
+	if (initialize)
+	{
+		*(bool *)condition = false;
+		*start = g_510c54->game_time;
+		*state = 0;
+		*(short *)interval = 30;
+		*timeout = NONE;
+		if (optional != NONE)
+		{
+			function_2099f0(thread_index, interval, optional);
+			return;
+		}
+	}
+	if (*state == 0)
+	{
+		*state = 1;
+		if (optional != NONE)
+		{
+			long next = *(long *)((byte *)hs_expression_get(optional) + 8);
+			if (next != NONE)
+			{
+				function_2099f0(thread_index, timeout, next);
+				return;
+			}
+		}
+	}
+	else if (*state != 1)
+		return;
+	long duration = *timeout == NONE ? NONE : hs_delay_ticks(*timeout);
+	if (*(bool *)condition || (duration != NONE && g_510c54->game_time >= *start + duration))
+		function_209ae0(thread_index, 0);
+	else
+	{
+		expression = hs_expression_get(thread->frame->expression_index);
+		name = hs_expression_get(expression->value);
+		function_2099f0(thread_index, condition, *(long *)((byte *)name + 8));
+		long ticks = hs_delay_ticks(*(short *)interval);
+		if (ticks < 1)
+			ticks = 1;
+		thread->sleep_until = g_510c54->game_time + ticks;
+		if (duration != NONE)
+			thread->sleep_until = thread->sleep_until < *start + duration ? thread->sleep_until : *start + duration;
+	}
+}
+
+s_type_f4462a const g_44b1e8 = { _hs_type_void, 2, function_2089b0, "<boolean> [<short>]", 0, { 0 } };
+
+// @retail 0x207cf0
+void __stdcall function_207cf0(short function_index, long thread_index, bool initialize)
+{
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	short *count = (short *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+	frame->size += sizeof(short);
+	dword *used = (dword *)hs_frame_allocate_value(thread_index);
+	long *result = hs_frame_allocate_value(thread_index);
+	if (initialize)
+	{
+		s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+		s_hs_expression *name = hs_expression_get(expression->value);
+		long next = *(long *)((byte *)name + 8);
+		*count = 0;
+		while (next != NONE)
+		{
+			next = *(long *)((byte *)hs_expression_get(next) + 8);
+			(*count)++;
+		}
+		memset(used, 0, ((*count + 31) >> 5) * sizeof(dword));
+	}
+	g_4e7408->unknown0 = g_4e7408->unknown0 * 0x19660d + 0x3c6ef35f;
+	short first = (short)(((g_4e7408->unknown0 >> 16) * *count) >> 16);
+	short offset = 0;
+	for (; offset < *count; offset++)
+	{
+		short selected = (first + offset) % *count;
+		if (!(used[selected >> 5] & (1 << (selected & 31))))
+		{
+			s_hs_expression *expression = hs_expression_get(hs_thread_get(thread_index)->frame->expression_index);
+			s_hs_expression *name = hs_expression_get(expression->value);
+			long next = *(long *)((byte *)name + 8);
+			for (short i = 0; i < selected; i++)
+				next = *(long *)((byte *)hs_expression_get(next) + 8);
+			function_2099f0(thread_index, result, next);
+			used[selected >> 5] |= 1 << (selected & 31);
+			break;
+		}
+	}
+	if (offset == *count)
+		function_209ae0(thread_index, *result);
+}
+
+s_type_f4462a const g_44b0a8 = { _hs_type_passthrough, 2, function_207cf0, "<expression(s)>", 0, { 0 } };
 
 // @retail 0x207c20
 void __stdcall function_207c20(short function_index, long thread_index, bool initialize)
