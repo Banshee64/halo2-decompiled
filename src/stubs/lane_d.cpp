@@ -37,8 +37,4 @@ void function_07a840(void)
 }
 
 
-// @stub 0x199740
-bool __stdcall function_199740(unsigned char *buffer, long size, unsigned char *destination, long *decompressed_size)
-{
-	return false;
-}
+
