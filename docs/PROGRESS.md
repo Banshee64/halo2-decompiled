@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6220 functions match
+
+```
+matched 6220 of 11318 game functions (643669 of 2784283 bytes, 23.12%)
+```
+
+7 new matches, none lost:
+- **Codex lane Q**, round 4 (7): player pickup, weapon and HUD helpers in the 0x150000–0x15ffff range.
+
 ## 2026-10-05: 6213 functions match
 
 ```
