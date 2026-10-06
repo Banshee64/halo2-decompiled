@@ -644,9 +644,11 @@ point3f *function_3f220(dword a, dword b, dword c, point3f *out)
 {
     dword const *reference = &c;
     point3f value;
+    real z;
     value.x = (real)a * 8.0f * g_45dd38;
     value.y = (real)b * 8.0f * g_45dd38;
-    value.z = (real)*reference * 8.0f * g_45dd44;
+    z = (real)*reference * 8.0f;
+    value.z = z * g_45dd44;
     *out = value;
     return out;
 }
@@ -889,13 +891,14 @@ void function_3d4f0(bool cached, short cache_index, long *flags,
 	}
 	else
 	{
-		byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		long offset = (object_index & 0xffff) * sizeof(s_render_object_header);
+		byte *object = *(byte **)(offset + (dword)g_4e0300->data + 8);
 		byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
 		byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
 		long model_tag = *(long *)(model + 4);
 		byte *geometry = g_4e3b44[model_tag & 0xffff].bytes;
 		*tag = model_tag;
-		object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		object = *(byte **)(offset + (dword)g_4e0300->data + 8);
 		**count_reference = (dword)(long)*(short *)(object + 0x114) / sizeof(transform4x3f);
 		*transforms = (transform4x3f *)(object + *(short *)(object + 0x116));
 		**count_reference = *(dword *)(geometry + 0x48);
