@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "object_markers.h"
 #include "object_iterator.h"
+#include "sound_sources.h"
 
 /* the item (the object data) */
 struct s_item
@@ -14,7 +15,9 @@ struct s_item
 	dword object_flags;
 	byte unknown008[0x14 - 8];
 	long parent_index;
-	byte unknown018[0x64 - 0x18];
+	byte unknown018[0x28 - 0x18];
+	s_location location;
+	byte unknown030[0x64 - 0x30];
 	point3f position;
 	byte unknown070[0x88 - 0x70];
 	vector3f linear_velocity;
@@ -558,4 +561,65 @@ void function_10cf80(vector3f const *impulse, long item_index, bool trigger_effe
 	angular_velocity.k = item->angular_velocity.k + spin.k;
 	function_b77d0(item_index, &velocity, &angular_velocity);
 	function_10d5f0(item_index);
+}
+
+struct s_item_impact_definition
+{
+	byte unknown000[0x1a];
+	byte kind;
+	byte unknown01b[0x58 - 0x1b];
+	long effect_index;
+	byte unknown05c[0x100 - 0x5c];
+	long sound_index;
+};
+
+struct s_item_impact
+{
+	long type;
+	byte unknown04[4];
+	point3f point;
+	byte unknown14[8];
+	s_location location;
+	short material;
+	byte unknown26[2];
+	vector3f normal;
+	byte unknown34[0x40 - 0x34];
+	long object_index;
+};
+
+real function_1201a0(vector3f *v, vector3f const *fallback);
+void function_188180(point3f const *point, vector3f const *forward, long tag_index, long object_index, long index, long variant,
+	long unused, long effect_value, s_location const *location, real scale);
+dword vector3d_compress(vector3f const *vector);
+long function_1895f0(s_sound_position const *position, real scale, long tag_index);
+
+// @retail 0x10c880
+void function_10c880(long item_index, s_item_impact const *impact, vector3f const *velocity, point3f const *point)
+{
+	s_item *item = ITEM_GET(item_index);
+	s_item_impact_definition *definition = (s_item_impact_definition *)g_4e3b44[item->definition_index & 0xffff].bytes;
+	vector3f direction = *velocity;
+	real scale = function_1201a0(&direction, g_4687bc) * (1.0f / 3.0f);
+	scale = scale < 0.0f ? 0.0f : (scale > 1.0f ? 1.0f : scale);
+	long effect_index = definition->effect_index;
+	if (effect_index != NONE)
+	{
+		long kind = definition->kind;
+		if (impact->type == 4)
+		{
+			byte other_kind = ((s_item_impact_definition *)g_4e3b44[ITEM_GET(impact->object_index)->definition_index & 0xffff].bytes)->kind;
+			kind = definition->kind > other_kind ? other_kind : definition->kind;
+		}
+		function_188180(&impact->point, &impact->normal, effect_index, item_index, kind + 10, kind,
+			(word)impact->material, (long)&direction, &impact->location, scale);
+	}
+	if (definition->sound_index != NONE)
+	{
+		s_sound_position sound;
+		sound.position = *point;
+		sound.compressed_forward = vector3d_compress(&impact->normal);
+		sound.velocity = *g_4687a4;
+		sound.location = item->location;
+		function_1895f0(&sound, scale, definition->sound_index);
+	}
 }

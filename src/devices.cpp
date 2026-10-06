@@ -1124,3 +1124,61 @@ bool __stdcall function_107ed0(long device_index, long name, real seconds)
 	}
 	return result;
 }
+
+void __stdcall function_bf600(long user, real frame, s_animation_frame_event const *event);
+
+PRIVATE inline long device_motion_sign(real value)
+{
+	return value != 0.0f ? (value < 0.0f ? -1 : 1) : 0;
+}
+
+// @retail 0x107cc0
+bool function_107cc0(long device_index, s_device_motion *motion, c_animation_channel *channel,
+	s_animation_state *state, real position, real *out_position)
+{
+	s_device *device = DEVICE_GET(device_index);
+	bool result = false;
+	real current = position;
+	if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+	{
+		real remaining = motion->target - motion->position;
+		real distance = (real)fabs(motion->position - motion->start);
+		real absolute_remaining = (real)fabs(remaining);
+		if (!(absolute_remaining < 0.000001f))
+		{
+			real step = g_510c54->rate;
+			if (distance < motion->acceleration_distance)
+			{
+				distance = motion->acceleration_distance - distance;
+				if (!(fabs(distance) < 0.000001f))
+					motion->velocity += (motion->cruise_velocity * motion->cruise_velocity - motion->velocity * motion->velocity) / (2.0f * distance) * step;
+			}
+			else if (distance > motion->deceleration_distance)
+			{
+				*(volatile dword *)&distance = *(dword *)&absolute_remaining;
+				if (!(fabs(distance) < 0.000001f))
+					motion->velocity += (0.0f - motion->velocity * motion->velocity / (2.0f * distance)) * step;
+			}
+			else
+				motion->velocity = motion->cruise_velocity;
+			motion->position += motion->velocity * step;
+			if (device_motion_sign(motion->target - motion->position) != device_motion_sign(remaining))
+			{
+				motion->position = motion->target;
+				result = true;
+			}
+		}
+		else
+		{
+			motion->position = motion->target;
+			result = true;
+		}
+		motion->position = DEVICE_PIN(motion->position, 0.0f, 1.0f);
+		current = motion->position;
+		channel->set_frame_ratio_and_advance(current, state, function_bf600, device_index);
+		device->flags |= 4;
+	}
+	if (out_position)
+		*out_position = current;
+	return result;
+}

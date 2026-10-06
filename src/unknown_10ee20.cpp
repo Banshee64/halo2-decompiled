@@ -12,8 +12,12 @@
 struct s_unit_animation_view
 {
 	long definition_index;
-	byte unknown004[0x12a - 4];
+	byte unknown004[0xb3 - 4];
+	byte value_b3;
+	byte unknown0b4[0x12a - 0xb4];
 	short animation_state_offset;
+	byte unknown12c[0x33e - 0x12c];
+	short control_offset;
 };
 
 struct s_unit_animation_header
@@ -112,7 +116,7 @@ bool function_10f9b0(long unit_index, long mode, long set, long lookup_flags, tr
 
 bool function_0e6800(c_animation_channel const *channel);
 
-PRIVATE inline bool channel_valid(c_animation_channel const *channel)
+PRIVATE __forceinline bool channel_valid(c_animation_channel const *channel)
 {
 	return channel->graph_tag_index != NONE && channel->animation_id.index != NONE;
 }
@@ -136,6 +140,72 @@ bool function_10ee20(s_animation_state *state)
 			result = channel_stopped(&state->channels[2]);
 		else if (channel_valid(&state->channels[0]))
 			result = function_0e6800(&state->channels[0]);
+	}
+	return result;
+}
+
+void function_1dacb0(s_graph_tag *graph, c_type_709360 animation_id, real *distance, real *event_distance);
+
+// @retail 0x10fa80
+bool function_10fa80(long unit_index, long mode, long set, short *event_ticks, real *distance, short *duration_ticks, real *event_distance)
+{
+	volatile bool result = false;
+	if (unit_index == NONE || ((s_unit_animation_header *)g_4e0300->data)[unit_index & 0xffff].unit->value_b3 == 0)
+	{
+		s_unit_animation_view *unit = ((s_unit_animation_header *)g_4e0300->data)[unit_index & 0xffff].unit;
+		s_animation_state *state = (s_animation_state *)((byte *)unit + unit->animation_state_offset);
+		c_type_709360 animation_id;
+		s_animation_names names;
+		s_animation_names found;
+		s_animation *animation;
+		state->animation_lookup(&names, &found, mode, 0x7000101, 0x7000101, set, 1, &animation_id);
+		if (animation_id.index != NONE)
+			animation = function_1daea0(GRAPH_GET(state->graph_tag_index), animation_id);
+		else
+		{
+			c_animation_channel channel = *(c_animation_channel *)((byte *)unit + unit->control_offset + 0x9c);
+			if (state->graph_tag_index == NONE)
+				return result;
+			animation_id = GRAPH_GET(state->graph_tag_index)->overlay_get(state->unknown70, state->unknown74, state->unknown78,
+				set, NULL, NULL, NULL);
+			if (animation_id.index == NONE || state->graph_tag_index == NONE)
+				return result;
+			if (!channel.set(state->graph_tag_index, 0x3f, state->variant_get(animation_id), set, NONE, NONE, 1))
+				return result;
+			channel.set_frame_position(0.0f);
+			channel.rate = 1.0f;
+			if (!channel_valid(&channel))
+				return result;
+			animation_id = channel.animation_id;
+			animation = channel.function_1c6440();
+		}
+		if (animation)
+		{
+			long event_frame = function_1dae20(animation);
+			long frames = animation->frame_count;
+			function_1dacb0(GRAPH_GET(state->graph_tag_index), animation_id, distance, event_distance);
+			long ticks;
+			if (event_frame != NONE)
+			{
+				real count = event_frame * (1.0f / 30.0f) * g_510c54->field_2_3;
+				__asm
+				{
+					fld count
+					fistp ticks
+				}
+				*event_ticks = (short)ticks;
+			}
+			else
+				*event_ticks = NONE;
+			real count = frames * (1.0f / 30.0f) * g_510c54->field_2_3;
+			__asm
+			{
+				fld count
+				fistp ticks
+			}
+			*duration_ticks = (short)ticks;
+			result = true;
+		}
 	}
 	return result;
 }
