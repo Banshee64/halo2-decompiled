@@ -221,8 +221,8 @@ short function_263ed0(long actor_index, s_perception_origin_view const *origin, 
 	{
 		vector3f delta;
 		vector3d_from_points3d(&origin->point, point, &delta);
-		real distance_squared = length_sq3f(&delta);
 		real range = *(real *)(settings + 0x18);
+		real distance_squared = length_sq3f(&delta);
 		if (dot3f(&origin->direction, &delta) < 0.0f)
 			range *= 0.8f;
 		if (actor->unknown084 == 3)
@@ -359,7 +359,7 @@ bool function_26d370(point3f const *point, vector3f const *direction, plane3f co
 real function_30bf0(vector3f *vector);
 
 // @retail 0x263810
-short function_263810(long actor_index, point3f const *point, point3f const *origin,
+short function_263810(long actor_index, point3f const *origin, point3f const *point,
 	point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range)
 {
 	long const *actor_reference = &actor_index;
@@ -1049,7 +1049,7 @@ s_node_view *function_26be30(s_iterator *iterator);
 void function_1f86a0(long actor_index);
 void function_262800(long actor_index, s_reference reference, bool unknown);
 
-PRIVATE inline long round_tick_count(real ticks)
+PRIVATE __forceinline long round_tick_count(real ticks)
 {
 	long result;
 	__asm { fld ticks }
@@ -1094,8 +1094,10 @@ void function_267c50(long actor_index)
 		ticks = round_tick_count((real)g_510c54->field_2_3 * 0.25f);
 	else
 		ticks = round_tick_count((real)g_510c54->field_2_3);
-	real blend = 1.0f - (real)exp(-0.6931471824645996 / ticks);
-	*(real *)(data + 0x3d8) += (*(real *)(data + 0x3d4) - *(real *)(data + 0x3d8)) * blend;
+	real difference = *(real *)(data + 0x3d4) - *(real *)(data + 0x3d8);
+	volatile real decay = expf(-0.6931471824645996f / ticks);
+	real blend = 1.0f - decay;
+	*(real *)(data + 0x3d8) += difference * blend;
 	if (actor->unknown024 != NONE && !team_is_enemy(actor->unknown024, 1) &&
 		*(long *)(data + 0x26c) == NONE && !*(bool *)(data + 0x225) && actor->unknown858 == NONE &&
 		function_1a6fe0(actor_index, 0x38) == NONE && function_1a6fe0(actor_index, 0x10) == NONE &&

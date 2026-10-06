@@ -551,13 +551,18 @@ void function_26aaf0(s_clump *clump, long prop_index)
 
 void function_2694d0(long clump_index, long actor_index);
 
+PRIVATE inline s_clump *clump_get(long clump_index)
+{
+	return (s_clump *)((clump_index & 0xffff) * 0x50 + g_502420->data);
+}
+
 // @retail 0x26a480
 short function_26a480(long clump_index, short minimum)
 {
 	short const *minimum_reference = &minimum;
-	s_clump *clump = &((s_clump *)g_502420->data)[clump_index & 0xffff];
 	s_iterator iterator;
-	iterator.next = clump->first_prop;
+	iterator.next = clump_get(clump_index)->first_prop;
+	s_clump *clump = clump_get(clump_index);
 	short count = 0;
 	s_type_76cf92 *prop;
 	while ((prop = clump_next_prop(&iterator)) != NULL)
@@ -574,9 +579,9 @@ short function_26a480(long clump_index, short minimum)
 // @retail 0x268700
 void function_268700(long clump_index)
 {
-	s_clump *clump = &((s_clump *)g_502420->data)[clump_index & 0xffff];
 	s_iterator iterator;
-	iterator.next = clump->first_prop;
+	iterator.next = clump_get(clump_index)->first_prop;
+	s_clump *clump = clump_get(clump_index);
 	s_type_76cf92 *prop;
 	while ((prop = clump_next_prop(&iterator)) != NULL)
 	{
@@ -596,9 +601,9 @@ void function_268700(long clump_index)
 void function_2691b0(long clump_index)
 {
 	long const *clump_reference = &clump_index;
-	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
 	s_iterator props;
-	props.next = clump->first_prop;
+	props.next = clump_get(clump_index)->first_prop;
+	s_clump *clump = clump_get(clump_index);
 	while (clump_next_prop(&props) != NULL)
 		function_26aaf0(clump, props.index);
 	s_iterator actors;
@@ -636,9 +641,9 @@ short function_269e60(long object_index, s_clump_activity_view const *clump, lon
 	long const *prop_reference = &prop_index;
 	s_prop_candidate_view *const *candidate_reference = &candidate;
 	bool const *force_reference = &force;
+	bool unsupported = false;
 	short type = 0;
 	short priority = 0;
-	bool unsupported = false;
 	s_slot_object_view *object = (s_slot_object_view *)function_badc0(object_index, (dword)NONE);
 	if (object)
 	{
@@ -653,10 +658,10 @@ short function_269e60(long object_index, s_clump_activity_view const *clump, lon
 		point3f point;
 		function_b9dd0(*object_reference, &point);
 		vector3f delta;
-		delta.k = point.z - clump->center.z;
-		delta.j = point.y - clump->center.y;
 		delta.i = point.x - clump->center.x;
-		real distance_squared = delta.k * delta.k + delta.j * delta.j + delta.i * delta.i;
+		delta.j = point.y - clump->center.y;
+		delta.k = point.z - clump->center.z;
+		real distance_squared = delta.i * delta.i + delta.j * delta.j + delta.k * delta.k;
 		if (*force_reference || distance_squared < 2500.0)
 		{
 			switch ((char)object->type)
@@ -718,8 +723,8 @@ short function_269e60(long object_index, s_clump_activity_view const *clump, lon
 					if (index != NONE)
 					{
 						s_ai_object_iterator iterator;
-						iterator.next_index = perception_get(index)->object_index;
 						iterator.index = NONE;
+						iterator.next_index = perception_get(index)->object_index;
 						while (function_290c80(&iterator))
 							function_bec70(iterator.index);
 					}
@@ -763,7 +768,7 @@ done:
 }
 
 // @retail 0x269de0
-void function_269de0(long object_index, s_clump_activity_view const *clump, s_prop_candidate_view *candidates, short *count)
+void __stdcall function_269de0(long object_index, s_clump_activity_view const *clump, s_prop_candidate_view *candidates, short *count)
 {
 	long const *object_reference = &object_index;
 	s_clump_activity_view const *const *clump_reference = &clump;
@@ -1316,10 +1321,10 @@ long function_26a4f0(s_clump_activity_view *clump, short priority)
 				}
 				for (;;)
 				{
-					s_clump_activity_view *other = NULL;
+					iterator.current = NULL;
 					if (g_4f55d0->active)
-						other = (s_clump_activity_view *)data_iterator_next_inlined(&iterator.pool);
-					iterator.current = (s_clump *)other;
+						iterator.current = (s_clump *)data_iterator_next_inlined(&iterator.pool);
+					s_clump_activity_view *other = (s_clump_activity_view *)iterator.current;
 					if (!other) break;
 					if (other->update_state >= 4 || (other == *clump_reference && *priority_reference <= other->update_state + 1))
 						continue;
@@ -1650,9 +1655,10 @@ void function_26ae30(long object_index)
 {
 	long const *object_reference = &object_index;
 	s_slot_object_view *object = object_get(object_index);
-	bool group_object = false, unit = false;
+	short type = (char)object->type;
+	bool unit = false, group_object = false;
 	long replacement = NONE;
-	if ((char)object->type == 12)
+	if (type == 12)
 	{
 		if (*(long *)((byte *)object + 0x134) == 0)
 		{
@@ -1683,7 +1689,7 @@ void function_26ae30(long object_index)
 			}
 		}
 	}
-	else if ((1 << object->type) & 3)
+	else if ((1 << type) & 3)
 		unit = true;
 	s_clump_pool_iterator groups;
 	if (g_4f55d0->active)
@@ -1693,11 +1699,10 @@ void function_26ae30(long object_index)
 	}
 	for (;;)
 	{
-		s_clump *clump = NULL;
+		groups.current = NULL;
 		if (g_4f55d0->active)
-			clump = (s_clump *)data_iterator_next_inlined(&groups.pool);
-		groups.current = clump;
-		if (!clump) break;
+			groups.current = (s_clump *)data_iterator_next_inlined(&groups.pool);
+		if (!groups.current) break;
 		bool changed = false;
 		s_iterator props;
 		props.next = ((s_clump *)(g_502420->data + (groups.pool.datum_index & 0xffff) * sizeof(s_clump)))->first_prop;
