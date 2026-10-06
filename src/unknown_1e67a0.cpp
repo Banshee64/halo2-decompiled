@@ -332,9 +332,10 @@ void function_1e6360(s_biped_physics_output *output, real rate, long object_inde
  *(real *)((byte *)state + 0x28) = rate;
  state->enabled = true;
  byte *definition = (byte *)state->definition;
- real magnitude = (real)sqrt(state->control.i * state->control.i +
-  state->control.j * state->control.j + state->control.k * state->control.k);
- real input_fraction = 1.0f - (magnitude < 1.0f ? magnitude : 1.0f);
+ real input_fraction = 1.0f - ((real)sqrt(state->control.i * state->control.i +
+  state->control.j * state->control.j + state->control.k * state->control.k) < 1.0f ?
+  (real)sqrt(state->control.i * state->control.i + state->control.j * state->control.j +
+   state->control.k * state->control.k) : 1.0f);
  real factor = 1.0f;
  if (*(real *)(definition + 0x90) > 0.0f)
  {
@@ -519,5 +520,26 @@ void function_1e5bb0(s_biped_physics_output *output, void *physics, void *animat
    }
    state->forward = rotated;
   }
+ }
+}
+
+struct s_shape_state;
+struct s_direction_rotation_input;
+void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *up, vector3f *forward);
+void function_1faa20(byte const *state, vector3f *up, vector3f *forward, long *ticks);
+void function_1ecf50(s_direction_rotation_input *input, vector3f *up, vector3f *forward);
+
+// @retail 0x1e5af0
+void function_1e5af0(s_biped_physics_output *output, void *physics, vector3f const *up, vector3f const *forward)
+{
+ switch (*(byte *)physics)
+ {
+ case 1: function_1f1460((byte *)output, (s_shape_state *)((byte *)physics + 0x10), (vector3f *)up, (vector3f *)forward); break;
+ case 2: function_1faa20((byte *)output, (vector3f *)up, (vector3f *)forward, (long *)((byte *)physics + 0x10)); break;
+ case 3: function_1ecf50((s_direction_rotation_input *)output, (vector3f *)up, (vector3f *)forward); break;
+ case 4: break;
+ case 5: break;
+ case 6: break;
+ default: __assume(0);
  }
 }

@@ -290,3 +290,42 @@ bool function_1e12b0(long actor_index, const dword *clusters)
  }
  return result;
 }
+
+bool function_1e32e0(long actor_index, bool flag);
+void __stdcall function_2628f0(long actor_index, s_reference reference);
+void function_26def0(long actor_index, long owner_index);
+
+struct s_actor_options
+{
+ byte field_0[0x24];
+ dword flags;
+ short mode;
+};
+
+// @retail 0x1e4570
+void function_1e4570(long actor_index, const s_actor_options *options)
+{
+ const long *index_reference = &actor_index;
+ s_actor_view *actor = actor_get(*index_reference);
+ bool second = false;
+ bool first = second;
+ bool third = second;
+ function_2628f0(*index_reference, g_470fa0);
+ *((bool *)actor + 0x227) = false;
+ if (options)
+ {
+  first = (bool)((options->flags >> 6) & 1);
+  second = (bool)((options->flags >> 7) & 1);
+  third = (bool)((options->flags >> 8) & 1);
+  if (options->mode > 0)
+   function_1e4500(*index_reference, options->mode - 1);
+ }
+ *((bool *)actor + 0x224) = third;
+ *((bool *)actor + 0x223) = second;
+ function_1e32e0(*index_reference, first);
+ if (*((bool *)actor + 0x224) && actor->unknown26c != NONE &&
+  actor->unknown018 != NONE && *(long *)((byte *)actor + 0x858) == NONE)
+  function_e68c0(0x1d, actor->unknown018);
+ if (*(long *)((byte *)actor + 0x3f4) != NONE)
+  function_26def0(*index_reference, NONE);
+}

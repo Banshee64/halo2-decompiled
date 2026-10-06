@@ -150,10 +150,6 @@ void function_1c84a0(long a, long b)
 }
 
 
-// @stub 0x1e3400
-void function_1e3400(long actor_index, long squad_index)
-{
-}
 
 // @stub 0x2011f0
 void function_2011f0(long squad_index)
