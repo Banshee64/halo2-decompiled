@@ -517,6 +517,55 @@ void effects_delete_all(void)
 	function_x496c75();
 }
 
+// @retail 0x175d70
+void function_175d70(void)
+{
+	s_record_pool *array = g_4ea93c;
+	long datum = data_datum_index(array, function_16bc00(array, 0));
+	while (datum != NONE)
+	{
+		s_effect_datum *effect = DATUM(array, s_effect_datum, datum);
+		if (effect->object_index != NONE)
+		{
+			s_effect_object *object = (s_effect_object *)function_badc0(effect->object_index, (dword)NONE);
+			if (!object)
+			{
+				effect->object_index = NONE;
+				effect->location.leaf_index = NONE;
+				effect->location.cluster_index = NONE;
+				effect->location.bsp_index = g_4686c4;
+				function_1774f0(datum);
+			}
+			else
+			{
+				effect->location = object->location;
+				long index = effect->first_particle_system_index;
+				while (index != NONE)
+				{
+					s_particle_system_datum *system = DATUM(g_510c74, s_particle_system_datum, index);
+					index = system->next_index;
+					system->set_location(&effect->location);
+				}
+			}
+		}
+		else if (function_1789f0(effect))
+		{
+			long index = effect->first_particle_system_index;
+			while (index != NONE)
+			{
+				s_particle_system_datum *system = DATUM(g_510c74, s_particle_system_datum, index);
+				index = system->next_index;
+				system->set_location(&effect->location);
+			}
+		}
+		else
+			function_1774f0(datum);
+		array = g_4ea93c;
+		datum = data_datum_index(array, data_find_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+	}
+	particle_systems_update_locations();
+}
+
 // @retail 0x175ee0
 void effect_parameters_initialize(s_effect_parameters *parameters)
 {
@@ -2513,6 +2562,109 @@ bool function_1778d0(void)
 		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
 	}
 	return result;
+}
+
+extern long g_4b9ed8;
+bool function_3e9c0(long object_index);
+bool function_2dba0(long tag, vector3f const *direction, bool alternate, long c, long d, long e,
+	point3f const *position, color3f const *color, real alpha, real amount, real scale);
+void function_42850(long a, long b, point3f const *position, vector3f const *first,
+	vector3f const *second, real scale, real width, vector3f const *third);
+real function_17ca10(real x, short curve);
+
+PRIVATE inline real effect_remaining_fraction_179880(s_effect_datum const *effect)
+{
+	real result = 1.0f - effect->unknown60 / effect->event_delay;
+	if (result < 0.0f)
+		result = 0.0f;
+	else if (result > 1.0f)
+		result = 1.0f;
+	return result;
+}
+
+// @retail 0x179880
+void __stdcall function_179880(s_effect_datum *effect, long effect_index)
+{
+	/* Retail keeps both arguments on the stack; their local references retain that convention. */
+	s_effect_datum *const *effect_reference = &effect;
+	long const *index_reference = &effect_index;
+	effect = *effect_reference;
+	effect_index = *index_reference;
+	s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
+	s_effect_event *event = &definition->events[effect->event_index];
+	long flare_index = 0;
+	for (long i = 0; i < event->part_count; ++i)
+	{
+		s_effect_part *part = &event->parts[i];
+		if ((part->group_tag == 'lens' || part->group_tag == 'MGS2' || part->group_tag == 'tdtl') &&
+			part->tag_index != NONE && part->location >= 0 && part->location < definition->location_count)
+		{
+			long index = effect->location_indices[part->location];
+			short mode = 2;
+			if (effect->unknown58 != NONE && g_4b9ed8 == effect->unknown58 && !function_155760(effect->unknown58))
+				mode = 1;
+			s_effect_location_datum *location;
+			while ((location = effect_location_next(effect, &index, mode)) != 0)
+			{
+				point3f position = location->matrix.position;
+				vector3f forward = location->matrix.forward;
+				vector3f up = location->matrix.up;
+				color3f color = *(color3f *)&g_4686cc->red;
+				real scale = 1.0f;
+				if (part->a_scales & 0x20)
+					scale = effect->scale_a;
+				if (part->b_scales & 0x20)
+					scale *= effect->scale_b;
+				if (location->node_index != NONE)
+				{
+					transform4x3f matrix;
+					function_17aec0(&matrix, effect, location->node_index);
+					effect_matrix_transform_point(&matrix, &position, &position);
+					vector3f original_forward = forward;
+					vector3f original_up = up;
+					effect_matrix_transform_normal(&matrix, &original_forward, &forward);
+					effect_matrix_transform_normal(&matrix, &original_up, &up);
+				}
+				if (part->group_tag == 'lens')
+				{
+					if (flare_index < 64)
+					{
+						if (effect->event_delay != 0.0f)
+						{
+							byte *tag = TAG_GET(byte, part->tag_index);
+							real remaining = effect_remaining_fraction_179880(effect);
+							scale *= 1.0f - function_17ca10(1.0f - remaining, *(short *)(tag + 0x3c));
+						}
+						function_2dba0(part->tag_index, &forward, function_3e9c0(effect->object_index),
+							1, effect_index & 0xffff, flare_index, &position, (color3f const *)&effect->origin, 1.0f, scale, 1.0f);
+						++flare_index;
+					}
+				}
+				else if (part->group_tag == 'MGS2')
+				{
+					if (effect->event_delay != 0.0f)
+					{
+						byte *tag = TAG_GET(byte, part->tag_index);
+						if (*(long *)(tag + 8) > 0 && !(**(byte **)(tag + 0xc) & 0x10))
+						{
+							real remaining = effect_remaining_fraction_179880(effect);
+							color.red *= remaining;
+							color.green *= remaining;
+							color.blue *= remaining;
+						}
+					}
+					function_42850(effect->object_index, part->tag_index, &position, &forward, &up, 1.0f, scale, (vector3f const *)&color);
+				}
+				else if (part->group_tag == 'tdtl')
+				{
+					real remaining = 1.0f;
+					if (effect->event_delay > 0.0f)
+						remaining = effect_remaining_fraction_179880(effect);
+					function_c40f0(part->tag_index, effect->object_index, remaining);
+				}
+			}
+		}
+	}
 }
 
 // @retail 0x179e80
