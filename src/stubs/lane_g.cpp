@@ -69,10 +69,6 @@ void c_class_2c9e69::handle_item(s_controller_reference **controller, long *item
 {
 }
 
-// @stub 0x2ca0d9
-void c_class_2c9e69::fill()
-{
-}
 
 /* unknown_2b116a.cpp's list (only the member the stub defines) */
 class c_potential_squad_leader_player_list
@@ -81,10 +77,6 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 };
 
-// @stub 0x2b8497
-void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
 
 /* UI lane round 3: callees of user_interface_text_parser.cpp */
 

@@ -400,3 +400,39 @@ bool function_2b6db1(s_time_left *time, c_widget *screen, word *result_string)
 	result = true;
 	return result;
 }
+
+dword online_friend_get_flags(XONLINE_FRIEND const *friend_);
+void online_friend_get_title_name(XONLINE_FRIEND const *friend_, wchar_t *name, short name_length);
+dword function_217b70(word const *text);
+
+// @retail 0x2b635f
+void function_2b635f(XONLINE_FRIEND const *friend_, c_widget *screen)
+{
+    word message[256], format[256], title[256];
+    message[0] = 0;
+    format[0] = 0;
+    title[0] = 0;
+    dword flags = online_friend_get_flags(friend_);
+    c_class_1a2c81 *text = ((c_class_1a2c81 *)screen)->find_child(6, 2, false);
+    online_friend_get_title_name(friend_, (wchar_t *)title, 256);
+    if ((long)function_217b70(title) > 0)
+    {
+        if ((bool)((flags >> 2) & 1))
+        {
+            screen->function_230134(0x1500025d, format);
+            function_1630e0(message, format, title);
+        }
+        else
+        {
+            screen->function_230134(0x1400025c, format);
+            function_1630e0(message, format, title);
+        }
+    }
+    else
+        screen->function_230134(0x0e00024f, message);
+    if (text)
+    {
+        text->value6e = true;
+        text->function_22f52e()->set_text(message);
+    }
+}

@@ -83,6 +83,7 @@ class c_y_menu_recent_players_list : public c_class_1474e8
 {
 public:
 	c_y_menu_recent_players_list(word user_flags);
+	virtual void v20(c_class_1a2c81 *item, long index);
 
 	/* slots 18 and 19 are folded with c_actions_list's and the friends
 	   list's */
