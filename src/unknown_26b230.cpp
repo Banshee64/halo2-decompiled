@@ -1669,10 +1669,10 @@ void function_26ae30(long object_index)
 						if (index == NONE) break;
 						s_slot_object_view *member = object_get(index);
 						long current = index;
-						byte *member_data = NULL;
+						byte *member_extension = NULL;
 						if (*(long *)((byte *)member + 0x134) == 0)
-							member_data = (byte *)member + *(short *)((byte *)member + 0x13a);
-						index = member_data ? *(long *)(member_data + 0xc) : NONE;
+							member_extension = (byte *)member + *(short *)((byte *)member + 0x13a);
+						index = member_extension ? *(long *)(member_extension + 0xc) : NONE;
 						if (current != object_index)
 						{
 							replacement = current;
