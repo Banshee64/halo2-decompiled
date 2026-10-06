@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6242 functions match
+
+```
+matched 6242 of 11318 game functions (647596 of 2784283 bytes, 23.26%)
+```
+
+18 new matches, none lost:
+- **Codex lane AC**, round 2 (18): object-chain flags, groups and interface helpers in the 0x2729b0–0x29ffff range.
+
 ## 2026-10-06: 6224 functions match
 
 ```
