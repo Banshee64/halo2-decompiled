@@ -151,3 +151,67 @@ bool __stdcall function_8ca70(long mode, s_name_buffer *output)
 	}
 	return result;
 }
+
+
+#include "physical_memory.h"
+#include <d3d8.h>
+extern s_physical_object *g_4e6464;
+long __stdcall function_12d2f0(long size, long user_data, long update, long release);
+void function_12c600(void);
+void function_12d520(long memory);
+double timing_ticks_to_seconds(__int64 ticks);
+dword function_199560(void *data, dword size);
+bool __stdcall function_199740(byte *buffer, long size, byte *destination, long *decompressed_size);
+
+static inline __int64 message_read_ticks(void)
+{
+ volatile __int64 value = 0;
+ __asm rdtsc
+}
+
+// @retail 0x8c790
+bool function_8c790(const byte *request)
+{
+ volatile bool result = false;
+ if (*(short *)(request + 8) && (request[4] & 2) && *(short *)(request + 0xe) == 1)
+ {
+  byte *source = 0;
+  if (*(byte **)(request + 0x24) && *(dword *)(request + 0x28) > 16)
+   source = *(byte **)(request + 0x24) + 16;
+  dword size = *(dword *)(request + 0x28) - 16;
+  if (source && size && function_199560(source, size) == 0x25224)
+  {
+   __int64 start = message_read_ticks();
+   byte *allocation = 0;
+   if (g_4e6464->page_count > 0)
+   {
+    long attempts = 0;
+    while (!(allocation = (byte *)function_12d2f0(0x25224, 0, 0, 0)))
+    {
+     if (attempts < 90)
+     {
+      attempts++;
+      function_12c600();
+     }
+     else
+     {
+      __int64 elapsed = message_read_ticks() - start;
+      if (elapsed < 0) elapsed = 0;
+      if (timing_ticks_to_seconds(elapsed) >= 1.0f) break;
+      D3DDevice_KickPushBuffer();
+      D3DDevice_IsBusy();
+      SwitchToThread();
+     }
+    }
+   }
+   if (allocation)
+   {
+    long decompressed = 0;
+    if (function_199740(source, size, allocation, &decompressed) && function_8c900(allocation))
+     result = true;
+    function_12d520((long)allocation);
+   }
+  }
+ }
+ return result;
+}

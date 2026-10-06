@@ -8,6 +8,7 @@
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
+#include "unknown_123b30.h"
 #include "unknown_075870.h"
 #include "unknown_067e10.h"
 #include "unknown_0662e0.h"
@@ -738,4 +739,182 @@ void function_85650(c_simulation_view *view, s_network_observer *observer, const
  connection->callback = callback;
  view->flag78 = false;
  view->set_state(view->state, view->state_id);
+}
+
+
+struct s_ring_buffer
+{
+ void write_wrapped(long count, long offset, const void *src);
+ void read_wrapped(long offset, long count, void *dst);
+ long write(long count, const void *src);
+ long size;
+ byte *data;
+ long start;
+ long used;
+};
+static inline long view_buffer_write(s_ring_buffer *buffer, long count, const void *source)
+{
+ long result = NONE;
+ if (buffer->used + count <= buffer->size)
+ {
+  result = (buffer->start + buffer->used) % buffer->size;
+  if (count > 0) buffer->write_wrapped(count, result, source);
+  buffer->used += count;
+ }
+ return result;
+}
+bool function_1995a0(const byte *source, dword source_size, byte *destination, long *compressed_size, dword capacity, long level);
+
+// @retail 0x86800
+bool function_86800(dword capacity, c_simulation_view *view, dword source_size, byte *destination)
+{
+ long compressed_size;
+ bool result = function_1995a0(game_state_globals.base_address, source_size, destination, &compressed_size, capacity, 9);
+ if (result)
+ {
+  long remaining = compressed_size;
+  long offset = 0;
+  s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
+  for (;;)
+  {
+   struct { short kind; short size; long offset; } header;
+   memset(&header, 0, sizeof(header));
+   header.kind = 1;
+   if (remaining > 0)
+   {
+    header.size = (short)(remaining > 1024 ? 1024 : remaining);
+    header.offset = offset;
+    if (view_buffer_write(buffer, sizeof(header), &header) == NONE ||
+     view_buffer_write(buffer, header.size, destination + offset) == NONE)
+     return false;
+    offset += header.size;
+    remaining -= header.size;
+    view->unknownac++;
+   }
+   else
+   {
+    header.size = 0;
+    header.offset = offset;
+    if (view_buffer_write(buffer, sizeof(header), &header) == NONE)
+     return false;
+    view->unknownac++;
+    break;
+   }
+  }
+ }
+ return result;
+}
+
+#include "physical_memory.h"
+#include <d3d8.h>
+extern s_physical_object *g_4e6464;
+long __stdcall function_12d2f0(long size, long user_data, long update, long release);
+void function_12c600(void);
+double timing_ticks_to_seconds(__int64 ticks);
+void function_6a860(c_class_6a600 *world, long *size);
+
+static inline __int64 view_read_ticks(void)
+{
+ volatile __int64 value = 0;
+ __asm rdtsc
+}
+
+static __forceinline byte *view_allocate_buffer(long size, long owner, long release)
+{
+ __int64 start = view_read_ticks();
+ byte *memory = 0;
+ if (g_4e6464->page_count > 0)
+ {
+  long attempts = 0;
+  while (!(memory = (byte *)function_12d2f0(size, owner, 0, release)))
+  {
+   if (attempts < 30)
+   {
+    attempts++;
+    function_12c600();
+   }
+   else
+   {
+    __int64 elapsed = view_read_ticks() - start;
+    if (elapsed < 0) elapsed = 0;
+    if (timing_ticks_to_seconds(elapsed) >= 0.1f) break;
+    D3DDevice_KickPushBuffer();
+    D3DDevice_IsBusy();
+    SwitchToThread();
+   }
+  }
+ }
+ return memory;
+}
+
+// @retail 0x862e0
+bool function_862e0(c_simulation_view *view)
+{
+ bool result = false;
+ view->unknown90++;
+ byte *memory = view_allocate_buffer(0x80000, (long)view, (long)simulation_view_buffer_disposed);
+ byte *scratch = view_allocate_buffer(0x40000, 0, 0);
+ if (memory)
+ {
+  if (scratch)
+  {
+   view->buffer = memory;
+   view->unknown98 = 0x80000;
+   s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
+   buffer->size = 0x80000;
+   buffer->data = memory;
+   buffer->start = 0;
+   buffer->used = 0;
+   view->unknownac = 0;
+   struct { short kind; short size; long value; } header;
+   memset(&header, 0, sizeof(header));
+   result = true;
+   header.kind = 0;
+   header.size = 0;
+   header.value = view->world->unknown28;
+   if (view_buffer_write(buffer, sizeof(header), &header) == NONE)
+    result = false;
+   else
+   {
+    view->unknownac++;
+    long size;
+    function_6a860(view->world, &size);
+    if (!function_86800(0x40000, view, size, scratch)) result = false;
+    view->world->flag11fc = 0;
+    g_46e320[4](0);
+   }
+   if (!result) view->release_buffer();
+  }
+  else
+   function_12d520((long)memory);
+ }
+ if (scratch) function_12d520((long)scratch);
+ return result;
+}
+
+
+bool function_685f0(void *block, long *size, byte *destination, long capacity);
+
+// @retail 0x869a0
+bool function_869a0(c_simulation_view *view, void *block)
+{
+ byte encoded[0xffff];
+ long encoded_size;
+ volatile bool result = false;
+ if (function_685f0(block, &encoded_size, encoded, sizeof(encoded)))
+ {
+  struct { short kind; short size; long sequence; } header;
+  memset(&header, 0, sizeof(header));
+  header.kind = 2;
+  header.size = (short)encoded_size;
+  header.sequence = *(long *)block;
+  s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
+  if (view_buffer_write(buffer, sizeof(header), &header) != NONE &&
+   buffer->write(encoded_size, encoded) != NONE)
+  {
+   view->unknownac++;
+   return true;
+  }
+ }
+ return result;
 }

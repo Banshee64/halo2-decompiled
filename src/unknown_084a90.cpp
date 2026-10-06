@@ -264,3 +264,37 @@ bool function_84f30(const s_simulation_player_identity *identity)
 	}
 	return result;
 }
+
+
+void function_14c320(long first, long second);
+
+// @retail 0x84fb0
+bool function_84fb0(const s_simulation_player_update *update)
+{
+ long first_index = update->player_index;
+ s_simulation_player_datum *first = simulation_player_at_index(g_4e8c24, first_index);
+ long second_index = update->other_player_index;
+ s_simulation_player_datum *second = simulation_player_at_index(g_4e8c24, second_index);
+ bool result = false;
+ if ((first || second) && (!first || (*(byte *)((byte *)first + 2) & 2)) &&
+  (!second || (*(byte *)((byte *)second + 2) & 2)))
+ {
+  t_player_key first_key;
+  t_player_key second_key;
+  if (first)
+   memcpy(first_key, first->key, sizeof(first_key));
+  else
+   memset(first_key, 0, sizeof(first_key));
+  if (second)
+   memcpy(second_key, second->key, sizeof(second_key));
+  else
+   memset(second_key, 0, sizeof(second_key));
+  if (!memcmp(first_key, update->key, sizeof(first_key)) &&
+   !memcmp(second_key, update->other_key, sizeof(second_key)))
+  {
+   function_14c320(first_index, second_index);
+   result = true;
+  }
+ }
+ return result;
+}

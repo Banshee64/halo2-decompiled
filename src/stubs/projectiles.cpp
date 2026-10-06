@@ -14,16 +14,10 @@ void __stdcall function_b77d0(long object_index, union vector3f const *linear_ve
 void __stdcall function_b93b0(long parent_index, long object_index, long node_index) { }
 // @stub 0x1e2930
 void __stdcall function_1e2930(long object_index, long actor_index) { }
-// @stub 0xa83e0
-void function_a83e0(long object_index, long parent_index, point3f const *point, long node_index, union vector3f const *forward) { }
 struct s_damage_owner;
-// @stub 0xa84e0
-void __stdcall function_a84e0(long projectile_index, short *material_index, union vector3f const *vector, unsigned long flags) { }
 // @stub 0x1ca690
 void __stdcall function_1ca690(long object_index, void const *data, long a, long b, long c) { }
 struct s_collision_result_1697c0;
 struct s_type_1e6529;
 // @stub 0x184060
 void function_184060(long unknown3c, unsigned char unknown59, s_type_1e6529 *data, long unknown50) { }
-// @stub 0xa85c0
-void function_a85c0(long projectile_index, s_collision_result_1697c0 const *collision, union vector3f const *direction, bool unknown, float scale_a, float scale_b) { }

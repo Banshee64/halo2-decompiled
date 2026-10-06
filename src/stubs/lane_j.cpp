@@ -2,10 +2,6 @@
 // are not decompiled yet
 #include "unknown_11c920.h"
 
-// @stub 0xa9120
-void __stdcall function_a9120(long unit_index, long trick)
-{
-}
 
 struct s_bitstream;
 struct s_network_connection;
@@ -31,11 +27,6 @@ bool __stdcall function_05cb80(c_class_58d20 *session, void const *message)
 	return false;
 }
 
-// @stub 0x5d9e0
-bool __stdcall function_05d9e0(c_class_58d20 *session, void const *message)
-{
-	return false;
-}
 
 /* kept out of the build in src/unknown_059ad0.cpp: built there, its session
    moves into a register and the matched 0x94700 no longer matches */

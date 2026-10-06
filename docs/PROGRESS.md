@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6485 functions match
+
+```
+matched 6485 of 11318 game functions (699052 of 2784283 bytes, 25.11%)
+```
+
+6485 new matches, none lost:
+- Codex lane D round 23: 0x5d9e0, 0x68670, 0x69040, 0x6f940, 0x84fb0 and 0x86aa0, plus the wrappers 0xb2710 and 0xb2730.
+
+## 2026-10-06: 6477 functions match
+
+```
+matched 6477 of 11318 game functions (698071 of 2784283 bytes, 25.07%)
+```
+
+6477 new matches, none lost:
+- Codex lane Z rounds 6 and 7: 17 network event senders (0xa7c50 to 0xa9400), once 0xa76b0 and 0xa5980 kept retail's call boundaries.
+
 ## 2026-10-06: 6460 functions match
 
 ```
