@@ -6,6 +6,7 @@
 #include "unknown_03bcb0.h"
 #include <xtl.h>
 #include "globals.h"
+#include "geometry_cache.h"
 
 struct s_3c9a0_matrix
 {
@@ -113,6 +114,129 @@ PRIVATE __forceinline byte *record_format_groups(long tag_index)
 	else
 		reference = *(long **)(g_4e3b44[tag_index & 0xffff].bytes + 0x24);
 	return *(byte **)(g_4e3b44[*reference & 0xffff].bytes + 0x5c);
+}
+
+long function_30cd0(bool a, bool b);
+long function_30d10(bool a, bool b, bool c);
+long function_30da0(bool a, bool b);
+long function_30e00(bool a);
+bool function_0226d0(void);
+
+// @retail 0x15d70
+long function_15d70(long tag, long stage, long pass, bool first, bool second)
+{
+	(void)&pass; (void)&first; (void)&second;
+	byte *definition = g_4e3b44[tag & 0xffff].bytes;
+	long result = 0;
+	byte *groups = record_format_groups(tag);
+	long group = *(word *)(*(byte **)(groups + 4) + pass * 10) & 0x1ff;
+	word range = (*(word **)(groups + 0xc))[group + stage];
+	if (range >> 9)
+	{
+		switch (stage)
+		{
+		case 3: result = function_0226d0() ? NONE : 3; break;
+		case 10: result = function_30cd0(second, first); break;
+		case 11: result = function_30d10(*(word *)(definition + 0x3e) != 0, true, second); break;
+		case 12: result = function_30da0(*(word *)(definition + 0x3e) != 0, true); break;
+		case 13: result = function_30e00(*(word *)(definition + 0x3e) != 0); break;
+		}
+	}
+	else
+		result = NONE;
+	return result;
+}
+
+long function_4cbb0(long tag_index, dword block_index);
+
+PRIVATE __forceinline byte *record_material(long tag, long pass, long stage, long entry)
+{
+	byte *groups = record_format_groups(tag);
+	long group = *(word *)(*(byte **)(groups + 4) + pass * 10) & 0x1ff;
+	long first = (*(word **)(groups + 0xc))[group + stage] & 0x1ff;
+	long material = *(long *)(*(byte **)(groups + 0x14) + (first + entry) * 10 + 4);
+	return *(byte **)(*(byte **)(g_4e3b44[material & 0xffff].bytes + 0x20) + 4);
+}
+
+// @retail 0x4dfa0
+bool __stdcall function_4dfa0(long tag, long context, long pass, long stage, long entry, long handle, s_sort_record *out)
+{
+	(void)&tag; (void)&context; (void)&pass; (void)&stage;
+	(void)&entry; (void)&handle; (void)&out;
+	byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
+	byte *record = *(byte **)(table + 0x1c) + (((dword)handle >> 8) & 0x3fffff) * 24;
+	s_geometry_block_info *block = (s_geometry_block_info *)(*(byte **)(table + 0x14) + *(short *)(record + 6) * 0x2c);
+	if (function_12de70(block, 3) && *(word *)(record + 0xe) > 0)
+	{
+		out->unknown04 = 0;
+		out->group = 4;
+		out->subkey = 0xffff;
+		out->value0c = handle;
+		byte *material = record_material(tag, pass, stage, entry);
+		out->value10 = (dword)material;
+		out->value08 = 0;
+		out->unknown14 = 0;
+		return function_4cbb0(*(long *)(material + 0x100), 0) != 0;
+	}
+	return false;
+}
+
+// @retail 0x4de20
+bool __stdcall function_4de20(long tag, long context, long pass, long stage, long entry, long handle, s_sort_record *out)
+{
+	(void)&tag; (void)&context; (void)&pass; (void)&stage;
+	(void)&entry; (void)&handle; (void)&out;
+	out->unknown04 = 0;
+	if (stage == 1) return false;
+	byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
+	byte *record = *(byte **)(table + 0x1c) + (((dword)handle >> 8) & 0x3fffff) * 24;
+	long record_tag = (*(long **)((byte *)g_4e0350 + 0x37c))[(signed char)record[0] * 2 + 1];
+	byte *definition = g_4e3b44[record_tag & 0xffff].bytes;
+	s_geometry_block_info *block = (s_geometry_block_info *)(*(byte **)(table + 0x14) + *(short *)(record + 6) * 0x2c);
+	if (function_12de70((s_geometry_block_info *)(definition + 0x38), 3) && function_12de70(block, 3))
+	{
+		byte index = out->unknown04;
+		out->group = 1;
+		out->subkey = 0xffff;
+		out->value0c = handle;
+		byte *material = record_material(tag, pass, stage, entry) + index * 0x132;
+		out->value10 = (dword)material;
+		out->value08 = 1;
+		out->unknown14 = 0;
+		return function_4cbb0(*(long *)(material + 0x100), 1) != 0;
+	}
+	return false;
+}
+
+// @retail 0x4e0d0
+bool __stdcall function_4e0d0(long tag, long context, long pass, long stage, long entry, long handle, s_sort_record *out)
+{
+	(void)&tag; (void)&context; (void)&pass; (void)&stage;
+	(void)&entry; (void)&handle; (void)&out;
+	byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
+	byte *blocks = *(byte **)(table + 0x14);
+	byte *record = *(byte **)(table + 0x1c) + (((dword)handle >> 8) & 0x3fffff) * 24;
+	long record_tag = (*(long **)((byte *)g_4e0350 + 0x37c))[(signed char)record[0] * 2 + 1];
+	byte *definition = g_4e3b44[record_tag & 0xffff].bytes;
+	byte *part = *(byte **)(definition + 0x14) + record[1] * 20;
+	if (function_12de70((s_geometry_block_info *)(blocks + *(short *)(record + 6) * 0x2c), 3) && *(word *)(record + 0xe) > 0)
+	{
+		out->unknown04 = 0;
+		out->group = 4;
+		out->subkey = 0xffff;
+		out->value0c = handle;
+		byte *material = record_material(tag, pass, stage, entry);
+		out->value10 = (dword)material;
+		switch (part[4])
+		{
+		case 3: out->value08 = 7; break;
+		case 4: out->value08 = 8; break;
+		default: out->value08 = 0; break;
+		}
+		out->unknown14 = 0;
+		return function_4cbb0(*(long *)(material + 0x100), out->value08) != 0;
+	}
+	return false;
 }
 
 typedef bool (__stdcall *t_record_fill)(long, void *, long, long, long, void *, s_sort_record *);
@@ -313,6 +437,16 @@ void function_40f60(void *submission, surface_render_test fill, surface_render_d
 		if (fill(source->tag, 0, 0, 15, i, source->context, &record))
 			submit(source->tag, 0, 0, 15, i, source->context, &record);
 	}
+}
+
+bool __stdcall function_4cbf0(long, long, long, long, long, long, void *);
+void __stdcall function_4d0b0(long, long, long, long, long, long, void *);
+
+// @retail 0x41020
+void __stdcall function_41020(void *submission)
+{
+	void *const *submission_reference = &submission;
+	function_40f60(*submission_reference, function_4cbf0, function_4d0b0);
 }
 
 extern long g_467130;

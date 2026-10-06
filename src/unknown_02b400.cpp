@@ -40,6 +40,62 @@ struct s_2f800_size
 
 real g_5234dc;
 
+struct s_2f970_view
+{
+	byte unknown00[0x30];
+	short top, left, bottom, right;
+	short outer_top, outer_left, outer_bottom, outer_right;
+	byte unknown40[0x18];
+	bool crop;
+	byte unknown59[3];
+	real center_x, center_y, crop_scale;
+	bool offset;
+	byte unknown69[3];
+	real offset_x, offset_y;
+};
+
+bool g_4ba019;
+
+// @retail 0x2f970
+bool function_2f970(s_2f970_view const *view, real *out)
+{
+	real center_x = (view->outer_right + view->outer_left) * 0.5f;
+	real center_y = (view->outer_top + view->outer_bottom) * 0.5f;
+	real vertical_scale = 2.0f / (view->outer_bottom - view->outer_top);
+	real horizontal_scale = (real)(view->bottom - view->top) / (view->right - view->left) * vertical_scale;
+	out[0] = (view->left - center_x) * horizontal_scale;
+	out[1] = (view->right - center_x) * horizontal_scale;
+	out[2] = (center_y - view->bottom) * vertical_scale;
+	out[3] = (center_y - view->top) * vertical_scale;
+	g_4ba019 = view->crop || view->offset;
+	if (g_4e0350)
+		g_4ba019 |= *(short *)((byte *)g_4e0350 + 0x10) == 2;
+	if (view->crop)
+	{
+		real width = out[1] - out[0];
+		real height = out[3] - out[2];
+		real x = (view->center_x + 1.0f) * 0.5f * width + out[0];
+		real y = (view->center_y + 1.0f) * 0.5f * height + out[2];
+		real half_width = view->crop_scale * width * 0.5f;
+		real half_height = view->crop_scale * height * 0.5f;
+		out[0] = x - half_width;
+		out[2] = y - half_height;
+		out[3] = half_height + y;
+		out[1] = half_width + x;
+	}
+	else if (view->offset)
+	{
+		real x = (out[1] - out[0]) * (1.0f / 640.0f) * view->offset_x;
+		real y = (out[3] - out[2]) * (1.0f / 480.0f) * view->offset_y;
+		out[0] += x;
+		real right = out[1] + x;
+		out[2] -= y;
+		out[3] -= y;
+		out[1] = right;
+	}
+	return true;
+}
+
 // @retail 0x2f800
 void function_2f800(s_2f800_source const *source, s_2f800_size const *first,
 	s_2f800_size const *second, s_2f800_view *view)
@@ -76,6 +132,68 @@ void function_2f800(s_2f800_source const *source, s_2f800_size const *first,
 	view->near_distance = g_485ad4.lo;
 	view->far_distance = g_485ad4.hi;
 	view->flag58 = false;
+}
+
+extern byte g_485ac2;
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+struct s_projection_scalars
+{
+	box2f clip;
+	real width, height;
+	real half_width, half_height;
+	real offset_x, offset_y;
+	real scale_x, scale_y;
+	real left, right, bottom, top;
+};
+
+// @retail 0x2fb70
+void function_2fb70(s_2f800_view const *view, box2f const *clip, s_projection_scalars *out)
+{
+	short const *viewport = (short const *)view->unknown30;
+	out->width = (real)(viewport[3] - viewport[1]);
+	out->height = (real)(viewport[2] - viewport[0]);
+	if (!clip)
+	{
+		out->clip.x0 = out->clip.y0 = -1.0f;
+		out->clip.x1 = out->clip.y1 = 1.0f;
+	}
+	else
+		out->clip = *clip;
+	real half_width = (out->clip.x1 - out->clip.x0) * 0.5f;
+	real half_height = (out->clip.y1 - out->clip.y0) * 0.5f;
+	real offset_x = (out->clip.x1 + out->clip.x0) / half_width * -0.5f;
+	real offset_y = (out->clip.y0 + out->clip.y1) / half_height * -0.5f;
+	out->half_height = half_height;
+	out->half_width = half_width;
+	out->offset_x = offset_x;
+	out->offset_y = offset_y;
+	real tangent = (real)tan(view->angle * 0.5f);
+	real aspect = out->width / out->height;
+	if (!(g_4e6948 && g_4e6948->flag && g_4e6948->index != NONE && g_4e6948->state == 3) && g_485ac2)
+	{
+		aspect *= 4.0f / 3.0f;
+		if (g_510c50 && ((byte *)g_510c50)[5])
+			tangent = tangent * (4.0f / 3.0f) * 0.5625f;
+	}
+	else if (g_510c50 && ((byte *)g_510c50)[5])
+	{
+		real scale = out->height * (1.0f / 480.0f);
+		out->clip.y0 *= scale;
+		out->clip.y1 *= scale;
+	}
+	out->scale_x = 1.0f / (half_width * aspect * tangent);
+	real inverse_x = 1.0f / out->scale_x;
+	out->scale_y = 1.0f / (out->half_height * tangent);
+	real left = 0.0f - (offset_x + 1.0f) * inverse_x;
+	out->right = 0.0f - (offset_x - 1.0f) * inverse_x;
+	real inverse_y = 1.0f / out->scale_y;
+	real bottom = 0.0f - (out->offset_y + 1.0f) * inverse_y;
+	real top = 0.0f - (out->offset_y - 1.0f) * inverse_y;
+	out->left = left;
+	out->bottom = bottom;
+	out->top = top;
 }
 
 #define k_real_epsilon 0.0001f
