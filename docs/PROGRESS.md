@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6394 functions match
+
+```
+matched 6394 of 11318 game functions (678059 of 2784283 bytes, 24.35%)
+```
+
+6394 new matches, none lost:
+- Codex lane AB round 5: 8 matches in the object core (0xb7300, 0xb8840, 0xb8890, 0xbd020, 0xbe690, 0xc00a0, 0xc01c0, 0xc3f90).
+- Codex lane Y round 6: 0x74970.
+
 ## 2026-10-06: 6385 functions match
 
 ```
