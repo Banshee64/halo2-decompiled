@@ -45,6 +45,12 @@ void function_b3670(void)
 {
 }
 
+// @stub 0x59570
+long function_59570(void)
+{
+	return 0;
+}
+
 // @stub 0x63e90
 long __stdcall function_63e90(long index)
 {
