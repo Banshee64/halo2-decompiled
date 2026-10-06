@@ -12,6 +12,109 @@
 extern char const *g_4e9bb8;
 long map_location_get(char const *map_name);
 
+extern bool g_4d8ba0;
+bool network_session_manager_get_any_session(c_class_58d20 **session);
+
+struct s_watcher_session_link
+{
+	byte unknown00[0x80];
+	s_simulation_world_owner *watcher;
+	long index84;
+	long index88;
+};
+
+struct s_watcher_machine_options
+{
+	byte unknown00[0x270];
+	dword mask;
+	s_machine_address machines[16];
+	bool local_valid;
+	s_machine_address local;
+};
+
+struct s_watcher_membership
+{
+	long host;
+	long unknown04;
+	long count;
+	s_session_member members[16];
+};
+
+static inline s_watcher_membership *watcher_session_membership(c_class_58d20 *session)
+{
+	s_watcher_membership *result = 0;
+	if (session->state && session->value4c != NONE)
+		result = (s_watcher_membership *)&session->value4c;
+	return result;
+}
+
+// @retail 0x83000
+void function_83000(s_simulation_world_owner *watcher)
+{
+	s_watcher_machine_options *options = (s_watcher_machine_options *)g_4e6948;
+	if (g_4e6948->state == 1 || g_4e6948->state == 2)
+	{
+		c_class_58d20 *session = 0;
+		if (g_4d8ba0 && network_session_manager_get_any_session(&session) &&
+			watcher_session_membership(session))
+			watcher->session = session;
+	}
+	if (watcher->session)
+	{
+		s_watcher_membership *members = 0;
+		long local = NONE;
+		if (watcher_session_membership(watcher->session))
+		{
+			members = watcher_session_membership(watcher->session);
+			local = watcher->session->current_member;
+		}
+		s_watcher_session_link *link = 0;
+		if (g_527330.initialized)
+			link = (s_watcher_session_link *)g_527330.unknown48;
+		*(s_watcher_session_link **)watcher->unknown08 = link;
+		link->watcher = watcher;
+		link->index84 = NONE;
+		link->index88 = NONE;
+		dword mask = (1 << members->count) - 1;
+		s_machine_address machines[16];
+		memset(machines, 0, sizeof(machines));
+		for (long i = 0; i < members->count; i++)
+			machines[i] = *(s_machine_address *)((byte *)&members->members[i] + 10);
+		watcher->unknown10 = watcher->session->update7618;
+		watcher->unknown14 = members->host;
+		watcher->unknown1c = mask;
+		watcher->unknown20 = local;
+		memcpy(watcher->unknown24, machines, sizeof(machines));
+		watcher->world->local_address = ((s_machine_address *)watcher->unknown24)[local];
+		watcher->world->unknown0c = 1;
+		*(long *)(watcher->world->unknown13 + 1) = watcher->unknown20;
+		watcher->unknown84 = true;
+		watcher->unknownc30 = true;
+	}
+	else
+	{
+		watcher->unknown1c = options->mask;
+		memcpy(watcher->unknown24, options->machines, sizeof(options->machines));
+		watcher->unknown84 = false;
+		watcher->unknown20 = NONE;
+		if (options->local_valid)
+		{
+			for (long i = 0; i < 16; i++)
+			{
+				if ((watcher->unknown1c & (1 << i)) &&
+					!memcmp(&((s_machine_address *)watcher->unknown24)[i], &options->local, sizeof(s_machine_address)))
+					watcher->unknown20 = i;
+			}
+		}
+		if (watcher->unknown20 != NONE)
+		{
+			watcher->world->local_address = ((s_machine_address *)watcher->unknown24)[watcher->unknown20];
+			watcher->world->unknown0c = 1;
+			*(long *)(watcher->world->unknown13 + 1) = watcher->unknown20;
+		}
+	}
+}
+
 // @retail 0x83db0
 long function_83db0(s_simulation_world_owner *watcher)
 {

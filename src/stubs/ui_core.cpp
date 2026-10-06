@@ -12,11 +12,3 @@ void __stdcall function_23d260(void *a, void *b, void *c)
 void __stdcall function_23d790(void *a, void *b, void *c)
 {
 }
-
-/* reads a user's newest message (lane D's region) */
-struct s_channel_message;
-// @stub 0x6d080
-bool function_6d080(long controller_index, s_channel_message *message)
-{
-	return false;
-}

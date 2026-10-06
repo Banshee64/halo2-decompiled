@@ -322,6 +322,118 @@ void function_7fe40(long index)
 long g_4cf970;
 long g_4cf974;
 
+struct s_player_appearance;
+bool function_153750(s_player_appearance *appearance);
+
+// @retail 0x80660
+bool function_80660(void)
+{
+	bool valid = g_4cf970 == 8;
+	if (g_4cf978 < 0 || g_4cf978 > 350)
+		valid = false;
+	for (long i = 0; valid && i < g_4cf978; i++)
+	{
+		s_player_configuration_cache_entry *entry = &g_4cf98c[i];
+		if (entry > g_4cf98c && memcmp(&entry[-1].player, &entry->player, 12) >= 0)
+			valid = false;
+		if (valid)
+		{
+			byte appearance[16];
+			memset(appearance, 0, sizeof(appearance));
+			s_cached_player_view *view = (s_cached_player_view *)&entry->player;
+			*(dword *)appearance = view->field4c;
+			appearance[4] = view->field50;
+			appearance[5] = view->field51;
+			appearance[6] = view->field52;
+			appearance[7] = view->field53;
+			valid = function_153750((s_player_appearance *)appearance);
+			if (valid)
+				valid = !(view->identity.values[2] & 3) && view->identity.values[2] != 0xbad00000;
+		}
+	}
+	if ((g_4cf97c == NONE || g_4cf980 == NONE) && g_4cf97c != g_4cf980)
+		valid = false;
+	if (g_4cf97c != NONE && (g_4cf97c < 0 || g_4cf97c >= g_4cf978))
+		valid = false;
+	if (g_4cf980 != NONE && (g_4cf980 < 0 || g_4cf980 >= g_4cf978))
+		valid = false;
+	if ((g_4cf984 == NONE || g_4cf988 == NONE) && g_4cf984 != g_4cf988)
+		valid = false;
+	if (g_4cf984 != NONE && (g_4cf984 < 0 || g_4cf984 >= g_4cf978))
+		valid = false;
+	if (g_4cf988 != NONE && (g_4cf988 < 0 || g_4cf988 >= g_4cf978))
+		valid = false;
+	if (valid && g_4cf97c != NONE)
+	{
+		dword visited[11];
+		memset(visited, 0, sizeof(visited));
+		long index = g_4cf97c;
+		for (long j = 0; valid && j < g_4cf978; j++)
+		{
+			dword bit = 1 << (index & 31);
+			if (visited[index >> 5] & bit)
+				valid = false;
+			else
+			{
+				visited[index >> 5] |= bit;
+				s_player_configuration_cache_entry *entry = &g_4cf98c[index];
+				if (j == 0 ? entry->previous_other != NONE :
+					entry->previous_other < 0 || entry->previous_other >= g_4cf978)
+					valid = false;
+				if (j + 1 == g_4cf978)
+				{
+					if (entry->next_other != NONE || index != g_4cf980)
+						valid = false;
+				}
+				else if (entry->next_other < 0 || entry->next_other >= g_4cf978)
+					valid = false;
+				else
+				{
+					long next = entry->next_other;
+					if (g_4cf98c[next].previous_other != index)
+						valid = false;
+					index = next;
+				}
+			}
+		}
+	}
+	if (valid && g_4cf984 != NONE)
+	{
+		dword visited[11];
+		memset(visited, 0, sizeof(visited));
+		long index = g_4cf984;
+		for (long j = 0; valid && j < g_4cf978; j++)
+		{
+			dword bit = 1 << (index & 31);
+			if (visited[index >> 5] & bit)
+				valid = false;
+			else
+			{
+				visited[index >> 5] |= bit;
+				s_player_configuration_cache_entry *entry = &g_4cf98c[index];
+				if (j == 0 ? entry->unknown58 != NONE :
+					entry->unknown58 < 0 || entry->unknown58 >= g_4cf978)
+					valid = false;
+				if (j + 1 == g_4cf978)
+				{
+					if (entry->next != NONE || index != g_4cf988)
+						valid = false;
+				}
+				else if (entry->next < 0 || entry->next >= g_4cf978)
+					valid = false;
+				else
+				{
+					long next = entry->next;
+					if (g_4cf98c[next].unknown58 != index)
+						valid = false;
+					index = next;
+				}
+			}
+		}
+	}
+	return valid;
+}
+
 // @retail 0x7f930
 void function_7f930(void)
 {
@@ -460,6 +572,75 @@ void function_80aa0(s_cache_property_record *records, long count)
 }
 
 bool g_51055c;
+
+struct s_profile_record;
+void function_1537f0(s_profile_record *record);
+long function_7fe90(const s_cached_player_identity *identity, long position, const s_cached_player_source *source);
+
+// @retail 0x80490
+void function_80490(const s_cached_player_identity *identity, const s_cached_player_source *source,
+	bool local, bool recent)
+{
+	bool time_changed = false;
+	long position = 0;
+	long index = function_7fc80(identity, &position);
+	bool changed;
+	if (index == NONE)
+	{
+		index = function_7fe90(identity, position, source);
+		changed = true;
+	}
+	else
+	{
+		s_player_configuration_cache_entry *entry = &g_4cf98c[index];
+		s_cached_player_view player;
+		function_7f8b0(identity, &player, source, (const s_cached_player_view *)&entry->player);
+		changed = memcmp(&entry->player, &player, sizeof(entry->player)) != 0;
+		if (changed)
+			memcpy(&entry->player, &player, sizeof(entry->player));
+		entry->flags &= ~10;
+		unsigned __int64 time = 0;
+		GetSystemTimeAsFileTime((FILETIME *)&time);
+		dword hours = (dword)(time / 3600000000ULL);
+		if (hours != *(dword *)entry->unknown64)
+			time_changed = true;
+		*(dword *)entry->unknown64 = hours;
+	}
+	s_player_configuration_cache_entry *entry = &g_4cf98c[index];
+	if (local)
+	{
+		if (changed)
+			entry->flags |= 1;
+		entry->flags |= 4;
+	}
+	else
+		entry->flags &= ~4;
+	if (recent)
+	{
+		changed = changed || !(entry->flags & 16);
+		entry->flags |= 16;
+	}
+	function_7fe40(index);
+	if (changed || time_changed)
+		g_51055c = true;
+}
+
+// @retail 0x80330
+long function_80330(const s_cached_player_identity *identity, long position)
+{
+	s_cached_player_source source;
+	function_1537f0((s_profile_record *)&source);
+	((byte *)&source.field40)[2] = 0;
+	((byte *)&source.field40)[3] = 0;
+	source.field45 = 0;
+	source.field46 = 0;
+	((byte *)&source.field40)[0] = 10;
+	((byte *)&source.field40)[1] = 10;
+	long index = function_7fe90(identity, position, &source);
+	if (index != NONE)
+		g_4cf98c[index].flags |= 10;
+	return index;
+}
 
 // @retail 0x7fe90
 long function_7fe90(const s_cached_player_identity *identity, long position, const s_cached_player_source *source)

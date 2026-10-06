@@ -544,3 +544,54 @@ void __stdcall session_state_joining_send_target(c_session_state_joining *state_
 		state->unknown104 = 16;
 	}
 }
+
+// @retail 0x6e720
+bool function_06e720(c_class_58d20 *session)
+{
+	bool result = false;
+	if (session->state == 5)
+	{
+		if (!session->flag4f20 || !&session->data4f24 || !&session->data4f90)
+		{
+			s_session_summary *summary = session->flag49fd ? (s_session_summary *)session->data4a00 : NULL;
+			s_unknown_108 machines;
+			__declspec(align(8)) s_session_player players[16];
+			memset(&machines, 0, sizeof(machines));
+			memset(players, 0, sizeof(players));
+			machines.data[0] = (1 << session->member_count) - 1;
+			s_session_machine *addresses = (s_session_machine *)&machines.data[1];
+			for (long i = 0; i < session->member_count; i++)
+				addresses[i] = *(s_session_machine *)((byte *)session->members[i].words + 0xa);
+			for (long i = 0; i < 16; i++)
+			{
+				if ((session->player_mask & (1 << i)) && session->players[i].unknown14 != NONE)
+					function_6e910(&session->players[i], addresses, session->value49c8,
+						session->data4db0, summary, (char)i, &players[i]);
+			}
+			session->set_data_4f24(&machines, (s_unknown_3648 *)players);
+			if (SESSION_STATE_IS_LIVE(session->state) && session->value5dd0 != NONE)
+			{
+				if (SESSION_STATE_IS_LIVE(session->state))
+				{
+					if (session->state == 5 || session->state == 6 || session->state == 7 || session->state == 8)
+					{
+						session->value4994 = 2;
+						session->update_count++;
+					}
+					else { volatile long unused = session->state; }
+				}
+				if (SESSION_STATE_IS_LIVE(session->state))
+				{
+					if (session->state == 5 || session->state == 6 || session->state == 7 || session->state == 8)
+					{
+						session->value4990 = 1;
+						session->update_count++;
+					}
+					else { volatile long unused = session->state; }
+				}
+			}
+		}
+		result = true;
+	}
+	return result;
+}

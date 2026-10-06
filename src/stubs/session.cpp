@@ -19,11 +19,6 @@ bool function_06ec80(c_class_58d20 *s, bool flag)
 	return false;
 }
 
-// @stub 0x6e720
-bool function_06e720(c_class_58d20 *s)
-{
-	return false;
-}
 
 
 // @stub 0x1388e0
@@ -51,5 +46,4 @@ void function_06fcc0(c_session_state_joining *self)
 void __stdcall function_06dc60(c_session_client *client, long n)
 {
 }
-
 

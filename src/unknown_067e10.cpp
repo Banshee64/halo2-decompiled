@@ -10,6 +10,78 @@
 #include "unknown_067e10.h"
 #include "unknown_0662e0.h"
 #include "unknown_075870.h"
+#include "unknown_059ad0.h"
+
+struct s_68a90_entry
+{
+	byte unknown00[8];
+	word values[4];
+};
+
+struct s_connection_quality_members
+{
+	long current;
+	long unknown04;
+	long count;
+};
+
+// @retail 0x68a90
+bool function_68a90(s_68a90_entry *entry, long *quality)
+{
+	bool result = false;
+	long minimum = g_network_configuration.valuecdc;
+	if (g_4cf770)
+	{
+		c_class_58d20 *session = ((s_simulation_world_owner *)g_4cf780)->session;
+		if (session && session->value18 == 2)
+		{
+			s_connection_quality_members *members = 0;
+			if (session->state && session->value4c != NONE)
+				members = (s_connection_quality_members *)&session->value4c;
+			if (members && members->count > 1)
+				result = true;
+		}
+	}
+	for (dword i = 0; i < 4; i++)
+	{
+		real value;
+		switch (i)
+		{
+		case 0: value = (real)entry->values[0]; break;
+		case 1: value = (real)entry->values[1] * 0.1f; break;
+		case 2: value = (real)entry->values[2] * 0.1f * 1024.0f; break;
+		case 3: value = (real)entry->values[3]; break;
+		default: __assume(0);
+		}
+		long best = g_network_configuration.quality_ranges[i][0];
+		long worst = g_network_configuration.quality_ranges[i][1];
+		real fraction;
+		if (best > worst)
+		{
+			if (value >= (real)best) fraction = 1.0f;
+			else if (value <= (real)worst) fraction = 0.0f;
+			else fraction = (value - (real)worst) / (real)(best - worst);
+		}
+		else
+		{
+			if (value <= (real)best) fraction = 1.0f;
+			else if (value >= (real)worst) fraction = 0.0f;
+			else fraction = ((real)worst - value) / (real)(worst - best);
+		}
+		real scaled = (real)(g_network_configuration.valuecdc - 1) * fraction;
+		long rounded;
+		__asm
+		{
+			fld scaled
+			fistp rounded
+		}
+		long level = rounded + 1;
+		if (minimum > level)
+			minimum = level;
+	}
+	*quality = minimum;
+	return result;
+}
 
 #define SIMULATION_WORLD ((c_class_6a600 *)g_4cf77c)
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
@@ -1247,4 +1319,64 @@ void __stdcall function_68580(short type, const s_machine_address *address, long
 		view->world = world;
 		view->world_index = slot;
 	}
+}
+
+long simulation_watcher_find_machine(const s_simulation_world_owner *watcher, const s_machine_address *address);
+long samples_trimmed_mean(const long *samples, long count);
+
+// @retail 0x688c0
+bool function_688c0(long player_index, s_68a90_entry *entry)
+{
+	bool changed = false;
+	if (g_4cf770)
+	{
+		byte *player = (byte *)g_4e8c24->data + (player_index & 0xffff) * 0x21c;
+		s_68a90_entry previous = *entry;
+		memset(entry, 0, sizeof(*entry));
+		if (!(player[2] & 2))
+		{
+			const s_machine_address *address = (const s_machine_address *)((byte *)g_4e8c20 + 0x30 + *(short *)(player + 0x1a) * 6);
+			long machine = simulation_watcher_find_machine((s_simulation_world_owner *)g_4cf780, address);
+			if (machine != NONE)
+			{
+				c_class_6a600 *world = (c_class_6a600 *)g_4cf77c;
+				if (world->state != 3 && world->state != 5)
+				{
+				if (machine == *(long *)(world->unknown13 + 1))
+				{
+					long count = 0;
+					long delay[16], rate[16], received[16], loss[16];
+					s_view_iterator iterator = {0xffffffff, 0};
+					c_simulation_view *view;
+					while (world_next_view((c_class_6a600 *)g_4cf77c, &iterator, &view))
+					{
+						if (function_68800(view, &delay[count], &rate[count], &received[count], &loss[count]))
+							count++;
+					}
+					if (count > 0)
+					{
+						entry->values[0] = (word)samples_trimmed_mean(delay, count);
+						entry->values[1] = (word)samples_trimmed_mean(rate, count);
+						entry->values[2] = (word)samples_trimmed_mean(received, count);
+						entry->values[3] = (word)samples_trimmed_mean(loss, count);
+					}
+				}
+				else
+				{
+					c_simulation_view *view = function_6ace0(world, machine);
+					long delay, rate, received, loss;
+					if (function_68800(view, &delay, &rate, &received, &loss))
+					{
+						entry->values[0] = (word)delay;
+						entry->values[1] = (word)rate;
+						entry->values[2] = (word)received;
+						entry->values[3] = (word)loss;
+					}
+				}
+				}
+			}
+		}
+		changed = memcmp(&previous, entry, sizeof(previous)) != 0;
+	}
+	return changed;
 }
