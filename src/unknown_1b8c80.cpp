@@ -935,3 +935,115 @@ bool function_1baae0(long actor_index, long object_index, short seat_index, bool
 	}
 	return result;
 }
+
+// @retail 0x1bb1d0
+short function_1bb1d0(long actor_index, long object_index, s_object_seat const *seats,
+    short count, bool reject_single, long *chosen_object, s_seat_approach_result *out)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    short result = NONE;
+    if (actor->unknown26c != NONE)
+    {
+        if (actor->unknown26c == object_index && actor->unknown018 != NONE)
+        {
+            s_slot_object_view *unit = object_get(actor->unknown018);
+            if (chosen_object)
+                *chosen_object = unit->parent_index;
+            result = unit->unknown1fc;
+            if (out)
+            {
+                out->facing = true;
+                out->approaching = true;
+                out->direction = actor->unknown290;
+                out->point = actor->position;
+                out->score = 1.0f;
+                out->close = true;
+            }
+        }
+    }
+    else
+    {
+        real best_score = 0.0f;
+        long best_object = NONE;
+        short eligible = 0;
+        s_seat_approach_result best;
+        for (short i = 0; i < count; i++)
+        {
+            s_object_seat const *seat = &seats[i];
+            if (!TEST_FIELD_BIT(seat->definition->flags.bit11))
+            {
+                s_seat_approach_result approach;
+                if (function_1baae0(actor_index, seat->object_index, seat->seat_index, false, false, false, &approach))
+                {
+                    eligible++;
+                    if (approach.score > best_score)
+                    {
+                        best_object = seat->object_index;
+                        result = seat->seat_index;
+                        best = approach;
+                        best_score = approach.score;
+                    }
+                }
+            }
+        }
+        if (reject_single && eligible == 1)
+            return NONE;
+        if (result != NONE)
+        {
+            if (chosen_object)
+                *chosen_object = best_object;
+            if (out)
+                *out = best;
+        }
+    }
+    return result;
+}
+
+struct s_seat_selection
+{
+    long object_index;
+    short seat_index;
+    byte flags;
+    byte unknown7;
+};
+
+bool function_2676d0(long actor_index);
+bool function_1e2030(long actor_index);
+
+// @retail 0x1b9e70
+bool function_1b9e70(long actor_index, s_seat_selection *selection, bool reserved,
+    s_4c_element const *element, s_seat_approach_result *out)
+{
+    bool search = false;
+    bool result = false;
+    if (selection->seat_index != NONE)
+    {
+        if (function_1baae0(actor_index, selection->object_index, selection->seat_index, false, !reserved, false, out))
+            result = true;
+        else
+        {
+            object_seat_unreserve(object_get(selection->object_index), selection->seat_index);
+            search = ((selection->flags >> 3) & 1) != 0;
+            selection->seat_index = NONE;
+            selection->object_index = NONE;
+        }
+    }
+    else
+        search = true;
+    if (selection->seat_index == NONE && search)
+    {
+        s_object_seat seats[0x40];
+        short count = 0;
+        long object_index;
+        function_c8a40(element->object_index, seats, &count, 0x40);
+        bool reject_single = element->unknown85 && (!function_2676d0(actor_index) || !function_1e2030(actor_index));
+        selection->seat_index = function_1bb1d0(actor_index, element->object_index, seats, count,
+            reject_single, &object_index, out);
+        if (selection->seat_index != NONE && object_index != NONE)
+        {
+            selection->object_index = object_index;
+            return true;
+        }
+    }
+    return result;
+}

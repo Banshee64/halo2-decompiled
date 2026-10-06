@@ -558,3 +558,214 @@ bool function_c17f0(long light_index, s_light_shape_ab *shape, bool respect_engi
     }
     return false;
 }
+
+// @retail 0xc35a0
+bool function_c35a0(long light_index, point3f *corners)
+{
+    s_light_ab *light = &((s_light_ab *)g_4e030c->data)[light_index & 0xffff];
+    s_light_frame_ab *frame = (s_light_frame_ab *)((byte *)light + 0x84);
+    s_light_shape_ab shape;
+    bool result = false;
+    if (function_c17f0(light_index, &shape, true))
+    {
+        real far_width = shape.cone_render.slope_x * shape.cone.values[4] * 2.0f + shape.cone_render.width;
+        real far_height = shape.cone_render.aspect * far_width;
+        vector3f direction = shape.cone_render.direction;
+        function_30bf0(&direction);
+        point3f near_centre, far_centre;
+        near_centre.x = frame->position.x + direction.i * 0.0f;
+        near_centre.y = frame->position.y + direction.j * 0.0f;
+        near_centre.z = frame->position.z + direction.k * 0.0f;
+        far_centre.x = frame->position.x + direction.i * shape.cone.values[4];
+        far_centre.y = frame->position.y + direction.j * shape.cone.values[4];
+        far_centre.z = frame->position.z + direction.k * shape.cone.values[4];
+        point3f far_points[4], near_points[4];
+        long order[4] = {0, 1, 3, 2};
+        for (long i = 0; i < 4; i++)
+        {
+            real x = ((order[i] & 1) ? 1.0f : -1.0f) * 0.5f;
+            real y = ((order[i] & 2) ? 1.0f : -1.0f) * 0.5f;
+            far_points[i].x = far_centre.x;
+            far_points[i].y = far_centre.y;
+            far_points[i].z = far_centre.z;
+            near_points[i].x = near_centre.x;
+            near_points[i].y = near_centre.y;
+            near_points[i].z = near_centre.z;
+            real near_x = x * shape.cone_render.width;
+            real far_x = x * far_width;
+            near_points[i].x += shape.left.i * near_x;
+            near_points[i].y += shape.left.j * near_x;
+            near_points[i].z += shape.left.k * near_x;
+            far_points[i].x += shape.left.i * far_x;
+            far_points[i].y += shape.left.j * far_x;
+            far_points[i].z += shape.left.k * far_x;
+            real near_y = y * shape.cone_render.height;
+            real far_y = y * far_height;
+            near_points[i].x += frame->up.i * near_y;
+            near_points[i].y += frame->up.j * near_y;
+            near_points[i].z += frame->up.k * near_y;
+            far_points[i].x += frame->up.i * far_y;
+            far_points[i].y += frame->up.j * far_y;
+            far_points[i].z += frame->up.k * far_y;
+        }
+        memcpy(corners, near_points, sizeof(near_points));
+        memcpy(corners + 4, far_points, sizeof(far_points));
+        result = true;
+    }
+    return result;
+}
+
+
+void function_1df080(point3f const *points, long count, point3f *center, real *radius);
+
+// @retail 0xc2c50
+void function_c2c50(long light_index)
+{
+    s_light_ab *light = &((s_light_ab *)g_4e030c->data)[light_index & 0xffff];
+    s_light_shape_ab shape;
+    function_c19f0(light_index, &shape);
+    if ((short)shape.kind == 0)
+    {
+        light->fade_centre = *(point3f *)((byte *)light + 0x18);
+        light->fade_radius = light->radius;
+    }
+    else
+    {
+        point3f corners[8];
+        if (function_c35a0(light_index, corners))
+            function_1df080(corners, 8, &light->fade_centre, &light->fade_radius);
+        else
+        {
+            light->fade_radius = 0.0f;
+            light->fade_centre = *g_468788;
+        }
+    }
+}
+
+#include "object_markers.h"
+
+struct s_first_person_marker;
+short first_person_weapon_get_markers(long weapon_index, long marker_name, s_first_person_marker *markers, short count);
+bool function_3e9c0(long object_index);
+long function_b8c40(long object_index, short entry_index);
+bool function_2dba0(long tag, vector3f const *direction, bool alternate,
+    long kind, long index, long marker_index, point3f const *position, color3f const *color,
+    real alpha, real amount, real scale);
+void function_42850(long object_index, long tag_index, point3f const *position,
+    vector3f const *first, vector3f const *second, real scale, real width,
+    vector3f const *third);
+byte g_55e708;
+
+// @retail 0xc3340
+void __stdcall function_c3340(long light_index, long unused)
+{
+    long absolute_index = light_index & 0xffff;
+    byte *light = g_4e030c->data + absolute_index * 0x110;
+    byte *definition = g_4e3b44[*(long *)(light + 4) & 0xffff].bytes;
+    if (function_31520(light_index) && (light[2] & 2))
+    {
+        if (*(long *)(definition + 0x94) != NONE)
+        {
+            if (*(short *)(light + 0x54) != NONE)
+            {
+                long object_index = *(long *)(light + 0x4c);
+                byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+                long marker_name = function_b8c40(object_index, *(short *)(light + 0x54));
+                s_object_marker markers[2];
+                long count = 0;
+                if (object[0xaa] == 2 && *(long *)(object + 0x14) != NONE)
+                    count = first_person_weapon_get_markers(*(long *)(light + 0x4c), marker_name,
+                        (s_first_person_marker *)markers, 1);
+                if (!count)
+                    count = function_b8d30(*(long *)(light + 0x4c), marker_name, markers, 2, false);
+                if (count > 1)
+                {
+                    if (!g_55e708)
+                        g_55e708 = 1;
+                    count = 1;
+                }
+                for (long i = 0; i < count; i++)
+                    function_2dba0(*(long *)(definition + 0x94), &markers[i].matrix.forward,
+                        function_3e9c0(*(long *)(light + 0x4c)), 2, absolute_index, i,
+                        &markers[i].matrix.position, (color3f *)(light + 0xd4),
+                        1.0f - *(real *)(light + 0xc8), *(real *)(light + 0xd0), 1.0f);
+            }
+            else
+                function_2dba0(*(long *)(definition + 0x94), (vector3f *)(light + 0xac),
+                    function_3e9c0(*(long *)(light + 0x4c)), 2, absolute_index, 0,
+                    (point3f *)(light + 0x84), (color3f *)(light + 0xd4),
+                    1.0f - *(real *)(light + 0xc8), *(real *)(light + 0xd0), 1.0f);
+        }
+        if ((light[2] & 2) && *(long *)(definition + 0xa0) != NONE)
+        {
+            real opacity = (1.0f - *(real *)(light + 0xc8)) * *(real *)(light + 0xd0);
+            opacity = opacity < 0.0f ? 0.0f : opacity > 1.0f ? 1.0f : opacity;
+            function_42850(*(long *)(light + 0x4c), *(long *)(definition + 0xa0),
+                (point3f *)(light + 0x84), (vector3f *)(light + 0xac), (vector3f *)(light + 0xb8),
+                1.0f, opacity, (vector3f *)((byte *)g_4686cc + 4));
+        }
+    }
+}
+
+// @retail 0xc28b0
+void function_c28b0(long light_index)
+{
+    s_light_ab *light = &((s_light_ab *)g_4e030c->data)[light_index & 0xffff];
+    s_light_definition_ab *definition = (s_light_definition_ab *)g_4e3b44[light->tag_index & 0xffff].bytes;
+    s_light_shape_ab shape;
+    function_c19f0(light_index, &shape);
+    s_light_frame_ab *frame = (s_light_frame_ab *)((byte *)light + 0x84);
+    point3f *centre = (point3f *)((byte *)light + 0x18);
+    if ((short)shape.kind == 0)
+    {
+        real radius = (definition->flags & 2) ? shape.sphere.radius_a :
+            (shape.sphere.radius_a > shape.sphere.radius_b ? shape.sphere.radius_a : shape.sphere.radius_b);
+        radius *= *(real *)((byte *)definition + 0xc);
+        real minimum = *(real *)((byte *)definition + 0x98);
+        radius = radius > minimum ? radius : minimum;
+        if (frame->clip_distance > 0.0f)
+        {
+            *centre = frame->field_1c_3;
+            light->radius = frame->clip_distance + radius;
+        }
+        else
+        {
+            *centre = frame->position;
+            light->radius = radius;
+        }
+        *(point3f *)((byte *)light + 0x38) = *centre;
+        light->fade_centre = *centre;
+        light->fade_radius = light->radius;
+    }
+    else
+    {
+        function_c1a80(frame, &shape, definition);
+        real width = shape.cone_render.slope_x * shape.cone.values[4] * 2.0f + shape.cone_render.width;
+        real height = shape.cone_render.aspect * width;
+        vector3f *direction = &shape.cone_render.direction;
+        real side = direction->k * shape.left.k + direction->j * shape.left.j + direction->i * shape.left.i;
+        real side_sign = side < 0.0f ? -1.0f : 1.0f;
+        real up = direction->k * frame->up.k + direction->j * frame->up.j + direction->i * frame->up.i;
+        real up_sign = up < 0.0f ? -1.0f : 1.0f;
+        vector3f unit = *direction;
+        function_30bf0(&unit);
+        point3f corner;
+        corner.x = g_468788->x + unit.i * shape.cone.values[4];
+        corner.y = g_468788->y + unit.j * shape.cone.values[4];
+        corner.z = g_468788->z + unit.k * shape.cone.values[4];
+        real side_extent = side_sign * width * 0.5f;
+        corner.x += shape.left.i * side_extent;
+        corner.y += shape.left.j * side_extent;
+        corner.z += shape.left.k * side_extent;
+        real up_extent = up_sign * height * 0.5f;
+        corner.x += frame->up.i * up_extent;
+        corner.y += frame->up.j * up_extent;
+        corner.z += frame->up.k * up_extent;
+        real radius = (real)(sqrt((double)corner.z * corner.z + (double)corner.y * corner.y + (double)corner.x * corner.x) * *(real *)((byte *)definition + 0xc));
+        real minimum = *(real *)((byte *)definition + 0x98);
+        light->radius = radius > minimum ? radius : minimum;
+        *centre = frame->clip_distance > 0.0f ? frame->field_1c_3 : frame->position;
+        *(point3f *)((byte *)light + 0x38) = *centre;
+    }
+    function_c2c50(light_index);
+}

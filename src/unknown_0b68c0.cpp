@@ -115,7 +115,7 @@ struct s_object_visibility_header_ab
     short salt;
     byte flags;
     byte type;
-    short cluster;
+    volatile short cluster;
     byte unknown06[2];
     byte *object;
 };
@@ -126,7 +126,8 @@ static __forceinline bool object_cluster_contains_ab(dword const *clusters, long
     long word_index = index >> 5;
     dword mask = 1 << (index & 31);
     dword flags = clusters[word_index];
-    return (flags & mask) != 0;
+    bool result = (flags & mask) != 0;
+    return result;
 }
 
 // @retail 0xb6d60

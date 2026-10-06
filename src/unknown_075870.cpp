@@ -2070,6 +2070,27 @@ void function_78ac0(s_network_observer *observer)
 	function_79260(observer);
 }
 
+// @retail 0x81440
+s_network_observer::s_network_observer()
+{
+	for (long i = 0; i < MAXIMUM_OBSERVER_CHANNELS; i++)
+	{
+		channels[i].statistics_sent.interval = 0;
+		channels[i].statistics_sent.period = 0;
+		channels[i].statistics_sent.rate_scale = 0.0f;
+		channels[i].statistics_received.interval = 0;
+		channels[i].statistics_received.period = 0;
+		channels[i].statistics_received.rate_scale = 0.0f;
+		*(long *)channels[i].samples250 = 0;
+		*(long *)channels[i].samples360 = 0;
+	}
+	*(volatile long *)&statistics_sent.interval = 0;
+	*(volatile long *)&statistics_sent.period = 0;
+	*(volatile real *)&statistics_sent.rate_scale = 0.0f;
+	*(void *volatile *)&unknown04 = 0;
+	*(void *volatile *)&unknown0c = 0;
+	memset(owners, 0, sizeof(owners));
+}
 
 static inline real observer_budget_rate(s_network_observer *observer, long size, bool limit)
 {

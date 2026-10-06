@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6320 functions match
+
+```
+matched 6320 of 11318 game functions (667562 of 2784283 bytes, 23.98%)
+```
+
+5 new matches, none lost:
+- **Codex lane AB**, round 4 (5): object connection, cluster and light helpers in the 0x0b3d30–0x0c42df range.
+
+## 2026-10-06: 6315 functions match
+
+```
+matched 6315 of 11318 game functions (666928 of 2784283 bytes, 23.95%)
+```
+
+9 new matches, none lost:
+- **Codex lane D**, round 19 (8): network voice, observer and session join-state helpers in the 0x50000–0x6ffff and 0x80000–0x8ffff ranges.
+- **Codex lane B**, round 9 (1): an actor helper in the 0x1b0000–0x1bffff range.
+
 ## 2026-10-06: 6306 functions match
 
 ```

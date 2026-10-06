@@ -353,6 +353,111 @@ void function_7f930(void)
 	}
 }
 
+// @retail 0x80bf0
+void function_80bf0(s_cache_property_record *records, long record_capacity,
+	s_cache_property *properties, long property_capacity, byte *buffers,
+	long *record_count, long *property_count, long *buffer_count)
+{
+	long records_used = 0;
+	long properties_used = 0;
+	long buffers_used = 0;
+	for (long i = 0; i < g_4cf978; i++)
+	{
+		s_player_configuration_cache_entry *entry = &g_4cf98c[i];
+		if (entry->flags & 1)
+		{
+			if (record_capacity <= 0 || property_capacity < 4)
+				break;
+			long values[3];
+			memcpy(values, (byte *)&entry->player + 0x4c, sizeof(values));
+			memcpy(records->identity, &entry->player, sizeof(records->identity));
+			records->type = 0x61;
+			records->count = 4;
+			records->properties = properties;
+			records++;
+			record_capacity--;
+			records_used++;
+			memcpy(buffers, (byte *)&entry->player + 0xc, 0x40);
+			*(short *)&properties->unknown00 = -3;
+			properties->type = 4;
+			properties->unknown08 = (long)buffers;
+			properties++;
+			property_capacity--;
+			properties_used++;
+			buffers += 0x40;
+			buffers_used++;
+			for (long j = 0; j < 3; j++)
+			{
+				*(short *)&properties[j].unknown00 = (short)(j + 2);
+				properties[j].type = 1;
+				properties[j].unknown08 = values[j];
+			}
+			properties += 3;
+			property_capacity -= 3;
+			properties_used += 3;
+		}
+	}
+	if (record_count)
+		*record_count = records_used;
+	if (property_count)
+		*property_count = properties_used;
+	if (buffer_count)
+		*buffer_count = buffers_used;
+}
+
+#include <xtl.h>
+#include <wchar.h>
+
+// @retail 0x80aa0
+void function_80aa0(s_cache_property_record *records, long count)
+{
+	long position;
+	for (long i = 0; i < count; i++)
+	{
+		s_cache_property_record *record = &records[i];
+		if (record->type == 0x61 && record->count == 4)
+		{
+			long index = function_7fc80(record->identity, &position);
+			if (index != NONE)
+			{
+				s_cache_property *properties = record->properties;
+				long values[3];
+				long present = 0;
+				long absent = 0;
+				if (properties[0].type == 0)
+					absent = 1;
+				else if (properties[0].type == 4 && properties[0].unknown08 != 0)
+					present = 1;
+				for (long j = 0; j < 3; j++)
+				{
+					if (properties[j + 1].type == 0)
+						absent++;
+					else if (properties[j + 1].type == 1)
+					{
+						values[j] = properties[j + 1].unknown08;
+						present++;
+					}
+				}
+				if (absent + present == 4)
+				{
+					s_player_configuration_cache_entry *entry = &g_4cf98c[index];
+					if (present == 4)
+					{
+						wchar_t *name = (wchar_t *)((byte *)&entry->player + 0xc);
+						wcsncpy(name, (const wchar_t *)properties[0].unknown08, 31);
+						name[31] = 0;
+						memcpy((byte *)&entry->player + 0x4c, values, sizeof(values));
+						entry->flags &= ~8;
+					}
+					unsigned __int64 time = 0;
+					GetSystemTimeAsFileTime((FILETIME *)&time);
+					*(dword *)entry->unknown64 = (dword)(time / 3600000000ULL);
+					entry->flags &= ~2;
+				}
+			}
+		}
+	}
+}
 
 bool g_51055c;
 
