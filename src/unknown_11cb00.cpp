@@ -582,3 +582,91 @@ long function_11f9a0(
 	vertices[7].z = rectangle->z1;
 	return 8;
 }
+
+PRIVATE __forceinline void cross_11e130(vector3f const *a, vector3f const *b, vector3f *out)
+{
+	out->i = b->k * a->j - a->k * b->j;
+	out->j = b->i * a->k - b->k * a->i;
+	out->k = a->i * b->j - b->i * a->j;
+}
+
+PRIVATE __forceinline void point_11e130(point3f const *origin, vector3f const *direction, real parameter, point3f *out)
+{
+	out->x = direction->i * parameter + origin->x;
+	out->y = direction->j * parameter + origin->y;
+	out->z = direction->k * parameter + origin->z;
+}
+
+// @retail 0x11e130
+real function_11e130(point3f const *a, vector3f const *u, point3f const *b, vector3f const *v)
+{
+	vector3f normal;
+	cross_11e130(u, v, &normal);
+	vector3f delta;
+	vector3d_from_points3d(a, b, &delta);
+	real normal_squared = dot_11ea30(&normal, &normal);
+	real ta, tb;
+	if (!(fabs(normal_squared) < 0.0001f))
+	{
+		real inverse = 1.0f / normal_squared;
+		normal.i *= inverse;
+		normal.j *= inverse;
+		normal.k *= inverse;
+		vector3f cross_a;
+		cross_11e130(&delta, v, &cross_a);
+		ta = dot_11ea30(&cross_a, &normal);
+		vector3f cross_b;
+		cross_11e130(&delta, u, &cross_b);
+		tb = dot_11ea30(&cross_b, &normal);
+		bool outside_a = ta < 0.0f || ta > 1.0f;
+		bool outside_b = tb < 0.0f || tb > 1.0f;
+		if (outside_a || outside_b)
+		{
+			real distance_a = 3.402823466e+38f;
+			real distance_b = 3.402823466e+38f;
+			if (outside_a)
+			{
+				point3f endpoint;
+				point_11e130(a, u, ta < 0.0f ? 0.0f : 1.0f, &endpoint);
+				distance_a = function_11e000(&endpoint, b, v);
+			}
+			if (outside_b)
+			{
+				point3f endpoint;
+				point_11e130(b, v, tb < 0.0f ? 0.0f : 1.0f, &endpoint);
+				distance_b = function_11e000(&endpoint, a, u);
+			}
+			return distance_a > distance_b ? distance_b : distance_a;
+		}
+	}
+	else
+	{
+		real uv = dot_11ea30(u, v);
+		real uu = u->j * u->j + u->k * u->k + u->i * u->i;
+		if (uu > 0.0001f)
+		{
+			real inverse = 1.0f / uu;
+			real start = dot_11ea30(u, &delta) * inverse;
+			real end = uv * inverse + start;
+			ta = (clamp_11ea30(start) + clamp_11ea30(end)) * 0.5f;
+		}
+		else
+			ta = 0.0f;
+		real vv = v->j * v->j + v->k * v->k + v->i * v->i;
+		if (vv > 0.0001f)
+		{
+			real inverse = 1.0f / vv;
+			real start = 0.0f - dot_11ea30(v, &delta) * inverse;
+			real end = uv * inverse + start;
+			tb = (clamp_11ea30(start) + clamp_11ea30(end)) * 0.5f;
+		}
+		else
+			tb = 0.0f;
+	}
+	point3f point_a;
+	point_11e130(a, u, ta, &point_a);
+	point3f point_b;
+	point_11e130(b, v, tb, &point_b);
+	vector3d_from_points3d(&point_a, &point_b, &delta);
+	return dot_11ea30(&delta, &delta);
+}

@@ -77,8 +77,6 @@ bool function_10ff40(long unit_index, long type, short side, short value, bool *
 // @stub 0x1e2a90
 void function_1e2a90(long actor_index) { }
 
-// @stub 0x114e80
-void function_114e80(long unit_index) { }
 
 /* in the biped range (PR #28 writes it) */
 
@@ -88,8 +86,6 @@ void function_114e80(long unit_index) { }
 
 
 /* outside the unit range */
-// @stub 0x1147e0
-void function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard) { }
 
 // @stub 0x1c95d0
 void function_1c95d0(long unit_index, long attacker_index, short type, real amount) { }
@@ -98,3 +94,6 @@ void function_1c95d0(long unit_index, long attacker_index, short type, real amou
 struct s_unit_melee_hit;
 // @stub 0xa9260
 void function_a9260(long damage_index, s_unit_melee_hit const *hit) { }
+
+// @stub 0x20fec0
+void function_20fec0(long object_index, long sound_index) { }
