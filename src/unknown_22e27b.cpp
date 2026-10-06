@@ -350,7 +350,7 @@ void c_class_1a2c81::delete_children()
 // @retail 0x22e89c
 void c_class_1a2c81::set_animation(s_type_0cfb31 *definition)
 {
-	long time = g_54d5b8;
+	long time = g_54d598.m20;
 	long direction;
 
 	animation.type = definition->type;
@@ -790,7 +790,7 @@ void c_class_1a2c81::build_animation(s_type_0cfb31 *animation, short index, long
 			short direction = (count ? (count >= 0 ? 1 : -1) : 0) >= 0 ? 1 : -1;
 
 			animation->direction = direction;
-			animation->end_time = g_54d5b8;
+			animation->end_time = g_54d598.m20;
 			animation->value20 = value;
 			animation->value8 = frames;
 			animation->target = (long)keys;
@@ -821,15 +821,15 @@ void c_class_1a2c81::build_animation(s_type_0cfb31 *animation, short index, long
 			case 1:
 				animation->target = definition->b.target;
 				animation->value8 = definition->b.frames;
-				animation->direction = -1;
 				animation->valuea = animation->value8 > 0 ? animation->value8 - 1 : 0;
+				animation->direction = -1;
 				animation->value20 = definition->b.value;
 				break;
 			case 2:
 				animation->target = definition->a.target;
 				animation->value8 = definition->a.frames;
-				animation->direction = -1;
 				animation->valuea = animation->value8 > 0 ? animation->value8 - 1 : 0;
+				animation->direction = -1;
 				animation->value20 = definition->a.value;
 				break;
 			case 3:

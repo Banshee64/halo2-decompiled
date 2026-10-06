@@ -120,16 +120,13 @@ void __stdcall function_22fc08(c_class_1473c9 *screen)
 
 	if (pane)
 	{
-		bool animating = function_22f0ff((c_widget *)screen);
-		long bitmap_index;
-		long block_index;
-		long group_index;
-		long text_index;
-		long model_index;
+		long i;
 
-		for (bitmap_index = 0; bitmap_index < pane->bitmap_count; bitmap_index++)
+		bool animating = function_22f0ff((c_widget *)screen);
+
+		for (i = 0; i < pane->bitmap_count; i++)
 		{
-			c_class_1a2c81 *bitmap = function_22fa30(screen, &pane->bitmaps[bitmap_index]);
+			c_class_1a2c81 *bitmap = function_22fa30(screen, &pane->bitmaps[i]);
 
 			if (bitmap)
 			{
@@ -137,12 +134,12 @@ void __stdcall function_22fc08(c_class_1473c9 *screen)
 				{
 					bitmap->start_animation(screen->animation.type);
 				}
-				bitmap->value0a = (short)bitmap_index;
+				bitmap->value0a = (short)i;
 			}
 		}
-		for (block_index = 0; block_index < pane->block_24_count; block_index++)
+		for (i = 0; i < pane->block_24_count; i++)
 		{
-			c_class_1a2c81 *widget = function_2baf38(screen, &pane->blocks_24[block_index]);
+			c_class_1a2c81 *widget = function_2baf38(screen, &pane->blocks_24[i]);
 
 			if (widget)
 			{
@@ -150,12 +147,12 @@ void __stdcall function_22fc08(c_class_1473c9 *screen)
 				{
 					widget->start_animation(screen->animation.type);
 				}
-				widget->value0a = (short)block_index;
+				widget->value0a = (short)i;
 			}
 		}
-		for (group_index = 0; group_index < pane->block_18_count; group_index++)
+		for (i = 0; i < pane->block_18_count; i++)
 		{
-			s_widget_block_18 *block = &pane->blocks_18[group_index];
+			s_widget_block_18 *block = &pane->blocks_18[i];
 			long j;
 
 			for (j = 0; j < block->count; j++)
@@ -168,22 +165,22 @@ void __stdcall function_22fc08(c_class_1473c9 *screen)
 					{
 						widget->start_animation(screen->animation.type);
 					}
-					widget->value0a = (short)group_index;
+					widget->value0a = (short)i;
 				}
 			}
 		}
-		for (text_index = 0; text_index < pane->text_count; text_index++)
+		for (i = 0; i < pane->text_count; i++)
 		{
-			c_class_1a2c81 *text = function_22f9bf(screen, text_index, &pane->texts[text_index]);
+			c_class_1a2c81 *text = function_22f9bf(screen, i, &pane->texts[i]);
 
 			if (text && animating)
 			{
 				text->start_animation(screen->animation.type);
 			}
 		}
-		for (model_index = 0; model_index < pane->model_count; model_index++)
+		for (i = 0; i < pane->model_count; i++)
 		{
-			c_class_1a2c81 *model = function_22fa5b(screen, &pane->models[model_index]);
+			c_class_1a2c81 *model = function_22fa5b(screen, &pane->models[i]);
 
 			if (model)
 			{
@@ -191,7 +188,7 @@ void __stdcall function_22fc08(c_class_1473c9 *screen)
 				{
 					model->start_animation(screen->animation.type);
 				}
-				model->value0a = (short)model_index;
+				model->value0a = (short)i;
 			}
 		}
 	}
@@ -247,6 +244,7 @@ void function_22f6ca(c_class_1473c9 *screen, s_screen_layout *layout, bool rebui
 {
 	if (rebuild || (screen->value5f0 >= 0 && screen->value5f0 < layout->count))
 	{
+		long i;
 		s_screen_definition *definition = function_22f871(screen);
 		s_screen_pane *pane = screen->get_current_pane();
 
@@ -255,8 +253,6 @@ void function_22f6ca(c_class_1473c9 *screen, s_screen_layout *layout, bool rebui
 			screen->value68 = pane->value02 - 1;
 			if (rebuild)
 			{
-				long i;
-
 				for (i = 0; i < pane->button_count; i++)
 				{
 					c_class_1a2c81 *button = layout->lists[screen->value5f0].widget[i];
@@ -271,15 +267,15 @@ void function_22f6ca(c_class_1473c9 *screen, s_screen_layout *layout, bool rebui
 				if (pane->list_count > 0)
 				{
 					screen->add_child(layout->lists[screen->value5f0].list);
-					goto build_list;
+					function_24bc12(layout->lists[screen->value5f0].list, rebuild);
+					goto configure_list;
 				}
 			}
 			else if (layout->lists[screen->value5f0].type > 0)
 			{
 				long count = layout->lists[screen->value5f0].type;
-				long i;
 
-				if (count > pane->button_count)
+				if (pane->button_count <= count)
 				{
 					count = pane->button_count;
 				}
@@ -292,13 +288,14 @@ void function_22f6ca(c_class_1473c9 *screen, s_screen_layout *layout, bool rebui
 			else if (layout->lists[screen->value5f0].list)
 			{
 				screen->add_child(layout->lists[screen->value5f0].list);
-				rebuild = false;
-build_list:
-				function_24bc12(layout->lists[screen->value5f0].list, rebuild);
+				function_24bc12(layout->lists[screen->value5f0].list, false);
+configure_list:
 				if (definition->flag1)
 				{
 					layout->lists[screen->value5f0].list->notify_screen = true;
-					delegate_register(&layout->lists[screen->value5f0].list->head80, (c_list_item_delegate *)&screen->delegate);
+					s_list_head *head = &layout->lists[screen->value5f0].list->head80;
+					s_list_head *const *head_reference = &head;
+					delegate_register(*head_reference, (c_list_item_delegate *)&screen->delegate);
 				}
 			}
 			function_22fc08(screen);
@@ -325,7 +322,7 @@ void __stdcall function_22fda6(c_class_1473c9 *screen)
 	color.green = 0.7f;
 	color.blue = 0.7f;
 	font = 1;
-	if (definition ? !definition->no_title : true)
+	if (definition ? (bool)(definition->no_title == 0) : true)
 	{
 		bounds.left = -100;
 		bounds.right = 100;
@@ -362,7 +359,9 @@ void __stdcall function_22fda6(c_class_1473c9 *screen)
 			}
 		}
 		function_2538a6(&screen->title, pane_value, (short)font, &bounds, &color, 1);
-		screen->title.function_22f52e()->value14 |= 2;
+		c_class_22cc8e *text = screen->title.function_22f52e();
+		c_class_22cc8e *const *text_reference = &text;
+		(*text_reference)->value14 |= 2;
 		screen->title.function_22f52e()->set_text(name);
 		screen->title.value6a = 0x7fff;
 	}
@@ -396,6 +395,7 @@ void __stdcall function_22ff53(c_class_1473c9 *screen)
 		color = globals->title_color;
 		if (definition)
 		{
+			long subtitle_type = definition->value06;
 			color = definition->subtitle_color;
 			if (definition->flags & 1)
 			{
@@ -413,7 +413,7 @@ void __stdcall function_22ff53(c_class_1473c9 *screen)
 			{
 				bounds = globals->title_bounds[0].subtitle;
 			}
-			function_253bc9(&screen->subtitle, definition->value06);
+			function_253bc9(&screen->subtitle, subtitle_type);
 			function_08cc20((s_name_buffer *)name, (const wchar_t *)screen->subtitle.function_22f52e()->function_22f52e());
 		}
 	}
