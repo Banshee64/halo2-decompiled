@@ -252,8 +252,8 @@ Two entries have `@stub` definitions in `src/stubs/lane_r.cpp`, repeated at
 
 | Retail | Declared as | Where | What retail shows |
 | --- | --- | --- | --- |
-| `0xd2bb0` | `long function_d2bb0(void *source, s_effect_color_query *query)` | `src/stubs/lane_r.cpp:30` | The count agrees: the collision result in `eax` and the query on the stack (`ret 4`). `source` is an `s_structure_collision_result`. Retail returns 0 when it found a colour |
-| `0xd2a50` | `long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, point3f const *point)` | `src/stubs/lane_r.cpp:33` | The count agrees: the point in `ebx` and five stack arguments (`ret 0x14`). `a` is the flags (bit 0 five rays, bit 2 use `d`, bit 1 passed on to the samplers), `b` the object the rays ignore, `c` a bool, and `d` a `vector3f const *` direction rather than a long |
+| `0xd2bb0` | `long function_d2bb0(void *source, s_effect_color_query *query)` | `src/stubs/lane_r.cpp` | The count agrees: the collision result in `eax` and the query on the stack (`ret 4`). `source` is an `s_structure_collision_result`. Retail returns 0 when it found a colour |
+| `0xd2a50` | `long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, point3f const *point)` | `src/stubs/lane_r.cpp` | The count agrees: the point in `ebx` and five stack arguments (`ret 0x14`). `a` is the flags (bit 0 five rays, bit 2 use `d`, bit 1 passed on to the samplers), `b` the object the rays ignore, `c` a bool, and `d` a `vector3f const *` direction rather than a long |
 
 Lane R's caller reads `function_d2bb0`'s result the wrong way round.
 `src/unknown_175bd0.cpp:3014` goes to the fallback when it returns 0, but
