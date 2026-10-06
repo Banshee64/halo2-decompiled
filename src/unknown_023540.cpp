@@ -1164,3 +1164,56 @@ bool __stdcall function_251b0(void *context)
     function_1c710(g_51f0f0);
     return true;
 }
+
+
+// @retail 0x29370
+bool __stdcall function_29370(void *context)
+{
+    if (!g_4b99b0[0] && !g_4b99b0[1]) return false;
+    g_509400 = g_485ae0;
+    function_14bc0(*(short *)(g_4b99b0 + 0x44), 0, false);
+    for (short stage = 0; stage < 4; ++stage)
+    {
+        function_14f60(stage, *(short *)(g_4b99b0 + 0x38));
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
+    }
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 1);
+    function_0222d0(D3DRS_SRCBLEND, D3DBLEND_ONE);
+    function_0222d0(D3DRS_DESTBLEND, D3DBLEND_CONSTANTCOLOR);
+    color3f blend = *(color3f *)(g_4b99b0 + 0x10);
+    function_0222d0(D3DRS_BLENDCOLOR, pack_color3f(&blend));
+    function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+    function_0222d0(D3DRS_ZWRITEENABLE, 0);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    function_0222d0(D3DRS_ZENABLE, 0);
+    function_0222d0(D3DRS_ZBIAS, 0);
+    D3DPIXELSHADERDEF program;
+    memset(&program, 0, sizeof(program));
+    program.PSRGBOutputs[1] = 0x30d00;
+    program.PSRGBOutputs[2] = 0x30d00;
+    program.PSTextureModes = 0x8421;
+    program.PSCombinerCount = 0x11003;
+    program.PSRGBInputs[0] = 0x08200920;
+    program.PSRGBOutputs[0] = 0x30c00;
+    program.PSRGBInputs[1] = 0x0a200b20;
+    program.PSRGBInputs[2] = 0x0c200d20;
+    program.PSFinalCombinerInputsABCD = 0xd;
+    g_484f68 = program;
+    D3DDevice_SetPixelShaderProgram(&program);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+

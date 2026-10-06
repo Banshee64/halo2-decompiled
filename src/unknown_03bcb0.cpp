@@ -707,3 +707,199 @@ void function_3d000(real const *state)
     parameters[3] = 1.0f;
     D3DDevice_SetVertexShaderConstant(-71, parameters, 1);
 }
+
+
+#include <string.h>
+#include "visibility_slot.h"
+struct s_shader_cache;
+extern byte g_51f0f0[0x2d8];
+extern byte *g_485a80;
+extern long g_4858b8;
+void function_1c590(s_shader_cache *state, long tag, long index);
+void __stdcall function_1c710(void *state);
+void function_14bc0(short index, short element, bool use_depth);
+void function_12d50(real const *projection, bool scaled, real *output);
+point3f g_4c1b08[4];
+
+// @retail 0x3bf20
+long __stdcall function_3bf20(s_slot *slot, byte *data)
+{
+    g_4670bc = true;
+    function_16b10((s_render_reset_state *)g_485b48);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x14), 0);
+    function_1c710(g_51f0f0);
+    function_14bc0((short)g_4858b8, 0, true);
+    D3DPIXELSHADERDEF program;
+    memset(&program, 0, sizeof(program));
+    program.PSRGBOutputs[0] = 0xc0;
+    program.PSAlphaOutputs[0] = 0xc0;
+    program.PSCombinerCount = 0x11101;
+    program.PSTextureModes = 0;
+    program.PSInputTexture = 0;
+    program.PSDotMapping = 0;
+    program.PSCompareMode = 0;
+    program.PSRGBInputs[0] = 0xc4200000;
+    program.PSAlphaInputs[0] = 0xd4301010;
+    program.PSConstant0[0] = 0;
+    program.PSConstant1[0] = 0;
+    program.PSC0Mapping = 0xffffffff;
+    program.PSC1Mapping = 0xffffffff;
+    program.PSFinalCombinerConstants = 0x1ff;
+    D3DDevice_SetPixelShaderProgram(&program);
+    function_12d50(NULL, false, NULL);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(1, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(1, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(3, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(3, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
+    D3DDevice_SetRenderState(D3DRS_ZENABLE, 2);
+    D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0);
+    D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
+    D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 1);
+    D3DDevice_SetRenderState(D3DRS_STENCILFUNC, D3DCMP_ALWAYS);
+    D3DDevice_SetRenderState(D3DRS_STENCILREF, 0);
+    D3DDevice_SetRenderState(D3DRS_STENCILMASK, 0xffffffff);
+    D3DDevice_SetRenderState(D3DRS_STENCILWRITEMASK, 0xffffffff);
+    D3DDevice_SetRenderState(D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP);
+    D3DDevice_SetRenderState(D3DRS_STENCILZFAIL, D3DSTENCILOP_ZERO);
+    D3DDevice_SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_ZERO);
+    D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
+    D3DDevice_SetRenderState(D3DRS_ZWRITEENABLE, 0);
+    D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+    D3DDevice_SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
+    D3DDevice_Begin(D3DPT_QUADLIST);
+    D3DDevice_SetVertexDataColor(9, 0xffffffff);
+    D3DDevice_SetVertexData4f(0, g_4c1b08[0].x, g_4c1b08[0].y, g_4c1b08[0].z, 1.0f);
+    D3DDevice_SetVertexDataColor(9, 0xffffffff);
+    D3DDevice_SetVertexData4f(0, g_4c1b08[3].x, g_4c1b08[3].y, g_4c1b08[3].z, 1.0f);
+    D3DDevice_SetVertexDataColor(9, 0xffffffff);
+    D3DDevice_SetVertexData4f(0, g_4c1b08[2].x, g_4c1b08[2].y, g_4c1b08[2].z, 1.0f);
+    D3DDevice_SetVertexDataColor(9, 0xffffffff);
+    D3DDevice_SetVertexData4f(0, g_4c1b08[1].x, g_4c1b08[1].y, g_4c1b08[1].z, 1.0f);
+    D3DDevice_End();
+    D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x1010101);
+    D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
+    D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 0);
+    return 0x4b000;
+}
+
+
+
+#include <math.h>
+extern vector3f g_4b9dac;
+s_3c9a0_matrix g_4c1b9c;
+
+PRIVATE __forceinline void set_bump_component(long stage, D3DTEXTURESTAGESTATETYPE component, real value)
+{
+    D3DDevice_SetTextureStageState(stage, component, *(dword *)&value);
+}
+
+// @retail 0x3c650
+void function_3c650(byte const *state)
+{
+    double angle = atan2(g_4b9dac.i, g_4b9dac.j) + *(real const *)(state + 0x8c);
+    real sine = (real)sin(angle);
+    real cosine = (real)cos(angle);
+    vector3f const *axis = g_4687b0;
+    real xx = axis->i * axis->i;
+    real yy = axis->j * axis->j;
+    real zz = axis->k * axis->k;
+    real xs = axis->i * sine;
+    real ys = axis->j * sine;
+    real zs = axis->k * sine;
+    real inverse = 1.0f - cosine;
+    g_4c1b9c.scale = 1.0f;
+    g_4c1b9c.forward.i = (1.0f - xx) * cosine + xx;
+    g_4c1b9c.forward.j = inverse * axis->i * axis->j + zs;
+    g_4c1b9c.forward.k = inverse * axis->i * axis->k - ys;
+    g_4c1b9c.left.i = inverse * axis->i * axis->j - zs;
+    g_4c1b9c.left.j = (1.0f - yy) * cosine + yy;
+    g_4c1b9c.left.k = inverse * axis->k * axis->j + xs;
+    g_4c1b9c.up.i = inverse * axis->i * axis->k + ys;
+    g_4c1b9c.up.j = inverse * axis->k * axis->j - xs;
+    g_4c1b9c.up.k = (1.0f - zz) * cosine + zz;
+    g_4c1b9c.position.x = g_4c1b9c.position.y = g_4c1b9c.position.z = 0.0f;
+    set_bump_component(1, D3DTSS_BUMPENVMAT00, *(real const *)(state + 0x68) * g_4c1b9c.forward.i);
+    set_bump_component(1, D3DTSS_BUMPENVMAT01, *(real const *)(state + 0x68) * g_4c1b9c.forward.j);
+    set_bump_component(1, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x68) * g_4c1b9c.left.i);
+    set_bump_component(1, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x68) * g_4c1b9c.left.j);
+    set_bump_component(2, D3DTSS_BUMPENVMAT00, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.forward.i);
+    set_bump_component(2, D3DTSS_BUMPENVMAT01, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.forward.j);
+    set_bump_component(2, D3DTSS_BUMPENVMAT11, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.i);
+    set_bump_component(2, D3DTSS_BUMPENVMAT10, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.j);
+    set_bump_component(3, D3DTSS_BUMPENVMAT00, *(real const *)(state + 0x70) * g_4c1b9c.forward.i);
+    set_bump_component(3, D3DTSS_BUMPENVMAT01, *(real const *)(state + 0x70) * g_4c1b9c.forward.j);
+    set_bump_component(3, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x70) * g_4c1b9c.left.i);
+    set_bump_component(3, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x70) * g_4c1b9c.left.j);
+}
+
+
+
+extern byte g_485ac2;
+extern word g_485648, g_48564a, g_48564c, g_48564e;
+real g_485640;
+real g_4c1b38[3][4];
+s_3c9a0_matrix g_4c1b68;
+
+// @retail 0x3ca90
+void function_3ca90(byte const *state)
+{
+	real angle = *(real const *)(state + 0x7c);
+	if (angle == 0.0f) return;
+	real height = *(real const *)(state + 0x84);
+	real offset = *(real const *)(state + 0xa8);
+	point3f camera = g_485618.position;
+	real distance = camera.z - height;
+	if (distance < 0.0f) distance = 0.0f - distance;
+	if (distance < 0.0001f) distance = 0.0001f;
+	vector3f forward = g_4b9dac;
+	s_3c9a0_matrix basis;
+	function_3c9a0(&forward, g_4687b0, &basis);
+	basis.scale = distance;
+	basis.position.x = camera.x;
+	basis.position.y = camera.y;
+	basis.position.z = height - distance * offset;
+	g_4c1b68 = basis;
+	real aspect = ((real)(short)g_48564e - (real)(short)g_48564a) / ((short)g_48564c - (short)g_485648);
+	real tangent = (real)(tan((double)angle * 0.5f) * *(real const *)(state + 0x80));
+	if (!(g_4e6948 && g_4e6948->flag && g_4e6948->index != NONE && g_4e6948->state == 3) && g_485ac2)
+		aspect *= 1.5f;
+	real half_angle = g_485640 * 0.5f;
+	if (!(half_angle < 0.7806857824325562f)) half_angle = 0.7806857824325562f;
+	real view_tangent = (real)(tan((double)half_angle) * aspect);
+	real width_scale = view_tangent / tangent;
+	if (width_scale <= 1.0f) width_scale = 1.0f;
+	else if (width_scale > 1.0f) width_scale *= 1.13f;
+	width_scale *= distance;
+	g_4c1b38[0][0] = basis.forward.i * distance;
+	g_4c1b38[0][1] = basis.left.i * width_scale;
+	g_4c1b38[0][2] = basis.up.i;
+	g_4c1b38[0][3] = basis.position.x;
+	g_4c1b38[1][0] = basis.forward.j * distance;
+	g_4c1b38[1][1] = basis.left.j * width_scale;
+	g_4c1b38[1][2] = basis.up.j;
+	g_4c1b38[1][3] = basis.position.y;
+	g_4c1b38[2][0] = basis.forward.k * distance;
+	g_4c1b38[2][1] = basis.left.k * width_scale;
+	g_4c1b38[2][2] = basis.up.k;
+	g_4c1b38[2][3] = basis.position.z;
+	real near_x = (real)tan((double)angle * 0.04f * -12.0f);
+	double tangent2 = tan((double)angle * 0.5f) * *(real const *)(state + 0x80);
+	real near_y = (real)(sqrt((double)near_x * near_x + 1.0f) * tangent2);
+	real far_x = *(real const *)(state + 0x88);
+	real far_y = (real)(sqrt((double)far_x * far_x + 1.0f) * tangent2);
+	point3f corners[4];
+	for (long i = 0; i < 4; ++i)
+	{
+		real x = i < 2 ? near_x : far_x;
+		real y = i == 0 ? 0.0f - near_y : i == 1 ? near_y : i == 2 ? far_y : 0.0f - far_y;
+		corners[i].x = g_4c1b38[0][1] * y + g_4c1b38[0][0] * x + basis.up.i * 0.0f + camera.x;
+		corners[i].y = g_4c1b38[1][1] * y + g_4c1b38[1][0] * x + basis.up.j * 0.0f + camera.y;
+		corners[i].z = g_4c1b38[2][1] * y + g_4c1b38[2][0] * x + basis.up.k * 0.0f + basis.position.z;
+	}
+	memcpy(g_4c1b08, corners, sizeof(corners));
+}

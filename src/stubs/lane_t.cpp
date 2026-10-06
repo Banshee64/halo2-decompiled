@@ -66,10 +66,6 @@ void function_2232a0(void)
 {
 }
 
-// @stub 0x13f10
-void function_13f10(long a, long b)
-{
-}
 
 // @stub 0x12b6f0
 void function_12b6f0(real progress)
