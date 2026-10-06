@@ -9,8 +9,6 @@ void function_67f60(void) { }
 void function_67ee0(void) { }
 // @stub 0x125d60
 void function_125d60(void) { }
-// @stub 0x152f80
-void __stdcall function_152f80(void *a, void *c) { }
 // @stub 0x3e2ff0
 void __stdcall function_3e2ff0(void *p) { }
 // @stub 0x1c2b10

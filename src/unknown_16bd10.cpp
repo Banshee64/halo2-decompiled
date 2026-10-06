@@ -133,7 +133,7 @@ s_animation *function_1daea0(s_graph_tag *graph, c_type_709360 animation_id);
 extern point3f *g_468788;
 c_type_709360 function_1dd0b0(s_graph_tag *graph, long name);
 void function_3f660(transform4x3f const *matrix);
-void function_1554b0(long unknown);
+void function_1554b0(real elapsed);
 void __stdcall function_16f280(real dt);
 
 static inline long camera_seconds_to_ticks_round(real seconds)
