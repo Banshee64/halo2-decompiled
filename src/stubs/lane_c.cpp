@@ -32,9 +32,6 @@ void function_28d930(void) { }
 void function_292130(void) { }
 
 
-// @stub 0x28d9d0
-void function_28d9d0(void) { }
-
 // @stub 0x292e00
 void function_292e00(void) { }
 

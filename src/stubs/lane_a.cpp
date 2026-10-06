@@ -176,11 +176,6 @@ void function_201df0(void)
 {
 }
 
-// @stub 0x290bf0
-void function_290bf0(long field_1c, short team)
-{
-}
-
 // @stub 0x1c9a00
 void function_1c9a00(void)
 {
