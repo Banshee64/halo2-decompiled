@@ -7,6 +7,68 @@
 #include "unknown_0259d0.h"
 #include "unknown_1fa590.h"
 #include <math.h>
+#include "slot_handler.h"
+
+void function_11d180(vector3f *left, vector3f const *in, vector3f *out, vector3f const *up, vector3f *forward);
+
+struct s_motion_adjustment
+{
+	byte unknown00[0x20];
+	real scale;
+	byte unknown24[0xf4 - 0x24];
+	vector3f forward;
+	byte unknown100[0x124 - 0x100];
+	vector3f current;
+	byte unknown130[8];
+	vector3f target;
+	real rate;
+};
+
+struct s_motion_adjustment_result
+{
+	byte unknown00[0xc];
+	vector3f velocity;
+};
+
+// @retail 0x1fa810
+void __stdcall function_1fa810(long *ticks, s_motion_adjustment_result *out, s_motion_adjustment const *state)
+{
+	vector3f left;
+	vector3f up;
+	vector3f forward;
+	function_11d180(&left, &state->forward, &up, g_4687b0, &forward);
+	vector3f target;
+	target.i = state->target.i * state->scale;
+	target.j = state->target.j * state->scale;
+	target.k = state->target.k * state->scale;
+	vector3f offset;
+	offset.i = state->forward.i * target.i + left.i * target.j + up.i * target.k - state->current.i;
+	offset.j = state->forward.j * target.i + left.j * target.j + up.j * target.k - state->current.j;
+	offset.k = state->forward.k * target.i + left.k * target.j + up.k * target.k - state->current.k;
+	vector3f normalized = offset;
+	real length = (real)sqrt(normalized.i * normalized.i + (normalized.j * normalized.j + normalized.k * normalized.k));
+	if (!(fabs(length) < 0.0001f))
+	{
+		real inverse = 1.0f / length;
+		normalized.i *= inverse;
+		normalized.j *= inverse;
+		normalized.k *= inverse;
+	}
+	else
+		length = 0.0f;
+	real step = g_510c54->rate * state->rate;
+	if (length > step)
+	{
+		offset.i = normalized.i * step;
+		offset.j = normalized.j * step;
+		offset.k = normalized.k * step;
+	}
+	out->velocity.i = state->current.i + offset.i;
+	out->velocity.j = state->current.j + offset.j;
+	out->velocity.k = state->current.k + offset.k;
+	long remaining = *ticks - 1;
+	*ticks = remaining < 0 ? 0 : remaining;
+}
 
 /* a node of a 2d tree: a line and the two children (negative: a leaf) */
 struct s_tree2d_node
@@ -264,4 +326,255 @@ void function_1faf30(s_1faf30_timer *timer)
 	}
 	timer->ticks = ticks;
 	timer->vector = *g_4687a4;
+}
+
+struct s_contact_surface_range
+{
+    long key;
+    long first;
+    long last;
+    long unknown0c;
+};
+
+struct s_contact_surface_owner
+{
+    long unknown00;
+    long first;
+    long last;
+    long range_count;
+    s_contact_surface_range *ranges;
+    byte unknown14[8];
+};
+
+struct s_contact_surface_table
+{
+    long count;
+    byte unknown04[0x30 - 4];
+    long owner_count;
+    s_contact_surface_owner *owners;
+    byte unknown38[8];
+    long mapping_count;
+    short (*mapping)[2];
+};
+
+struct s_bsp3d;
+struct s_slot_entry_list;
+extern s_slot_entry_list *g_4e0340;
+plane3f *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, plane3f *plane);
+short function_120850(vector3f const *v);
+real *function_120810(real const *point, short axis, byte side, real *out);
+short function_296230(long object_index);
+
+// @retail 0x1fa3a0
+long function_1fa3a0(long structure_index, long surface_index, long object_index,
+    long node_index, point3f const *point)
+{
+    long result = NONE;
+    long type = object_index != NONE ? 4 : (structure_index != NONE ? 3 : 1);
+    s_contact_surface_table *table = NULL;
+    if (*(long *)((byte *)g_4e0348 + 0xc4) > 0)
+        table = *(s_contact_surface_table **)((byte *)g_4e0348 + 0xc8);
+    if (table)
+    {
+        switch (type)
+        {
+        case 4:
+            {
+                short owner_index = function_296230(object_index);
+                if (owner_index >= 0 && owner_index < table->owner_count)
+                {
+                    s_contact_surface_owner *owner = &table->owners[owner_index];
+                    for (short i = 0; i < owner->range_count; i++)
+                    {
+                        s_contact_surface_range *range = &owner->ranges[i];
+                        if (range->key == node_index)
+                        {
+                            result = range->first;
+                            if (result == NONE || surface_index < 0 || surface_index > range->last - result)
+                                result = NONE;
+                            else
+                            {
+                                result += surface_index;
+                                if (result < 0 || result >= table->count)
+                                    result = NONE;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            break;
+        case 3:
+            if (structure_index >= 0 && structure_index < table->mapping_count)
+            {
+                short owner_index = table->mapping[structure_index][0];
+                if (owner_index >= 0 && owner_index < table->owner_count)
+                {
+                    s_contact_surface_owner *owner = &table->owners[owner_index];
+                    long first = owner->first;
+                    if (first != NONE && surface_index >= 0 && surface_index <= owner->last - first)
+                    {
+                        result = first + surface_index;
+                        if (result < 0 || result >= table->count)
+                            result = NONE;
+                    }
+                }
+            }
+            break;
+        case 1:
+            {
+                s_slot_entry_list *bsp = g_4e0340;
+                if (bsp && surface_index != NONE)
+                {
+                    long *leaf = function_1fa5e0(surface_index, (s_tree2d *)table, object_index);
+                    if (leaf)
+                    {
+                        byte *surfaces = *(byte **)((byte *)bsp + 0x2c);
+                        plane3f plane;
+                        bsp3d_get_plane((s_bsp3d *)bsp, *(short *)(surfaces + surface_index * 8), &plane);
+                        short axis = function_120850((vector3f *)&plane);
+                        byte side = ((real *)&plane)[axis] > 0.0f;
+                        point2f projected;
+                        function_120810((real const *)point, axis, side, (real *)&projected);
+                        result = function_1fa590(*leaf, (s_tree2d *)table, &projected);
+                    }
+                }
+            }
+            break;
+        }
+    }
+    return result;
+}
+
+real g_557c70;
+real function_30bf0(vector3f *v);
+void function_c7840(vector3f const *desired, vector3f *current, transform4x3f const *frame, real rate,
+    vector3f *velocity, real const *limits, real max_speed, real acceleration);
+
+// @retail 0x1faf80
+bool function_1faf80(vector3f *facing, long object_index, void const *settings_pointer,
+    vector3f const *control, real threshold, real *turn)
+{
+    s_slot_object_view *object = object_get(object_index);
+    real const *settings = (real const *)settings_pointer;
+    vector3f *angular = (vector3f *)((byte *)object + 0x94);
+    vector3f desired;
+    if (object->velocity.i * object->velocity.i + object->velocity.j * object->velocity.j +
+        object->velocity.k * object->velocity.k < 0.25f &&
+        angular->i * angular->i + angular->j * angular->j + angular->k * angular->k < g_557c70 * g_557c70 &&
+        control->i * control->i + control->j * control->j + control->k * control->k < 0.0001f &&
+        object->forward.k * facing->k + object->forward.j * facing->j + object->forward.i * facing->i > threshold)
+        desired = object->forward;
+    else
+    {
+        real vertical = settings[3] * control->k;
+        desired = *facing;
+        if (vertical != 0.0f)
+        {
+            desired.k += vertical;
+            if (function_30bf0(&desired) == 0.0f)
+                desired = *facing;
+        }
+    }
+    vector3f const *up = (vector3f const *)((byte *)object + 0x7c);
+    vector3f left;
+    left.i = object->forward.j * up->k - up->j * object->forward.k;
+    left.j = up->i * object->forward.k - up->k * object->forward.i;
+    left.k = up->j * object->forward.i - up->i * object->forward.j;
+    real value = (facing->k * left.k + facing->j * left.j + facing->i * left.i) * 3.3333332538604736f * control->i - control->j;
+    if (value > 1.5f)
+        value = 1.5f;
+    real target = settings[0] * value;
+    real fraction;
+    if (*turn * target <= 0.0f)
+        fraction = 1.0f;
+    else if ((target >= 0.0f ? target : -target) > 0.001f)
+    {
+        real ratio = *turn / target;
+        fraction = 1.0f - (ratio > 1.0f ? 1.0f : ratio);
+    }
+    else
+        fraction = 0.0f;
+    real duration = ((1.0f - fraction) * settings[2] + settings[1] * fraction) * (real)g_510c54->field_2_3;
+    if (duration > 0.0f)
+        target = (target - *turn) / duration + *turn;
+    *turn = target;
+    real limits[4] = { -3.1415927410125732f, 3.1415927410125732f, -1.5707963705062866f, 1.5707963705062866f };
+    if (settings[9] == 0.0f)
+        object->forward = desired;
+    else
+        function_c7840(&desired, &object->forward, NULL, g_510c54->rate, angular, limits, settings[8], settings[9]);
+    return true;
+}
+
+PRIVATE inline vector3f motion_cross(vector3f const &a, vector3f const &b)
+{
+    vector3f result;
+    result.i = a.j * b.k - a.k * b.j;
+    result.j = a.k * b.i - a.i * b.k;
+    result.k = a.i * b.j - a.j * b.i;
+    return result;
+}
+
+// @retail 0x1faa20
+void function_1faa20(byte const *state, vector3f *up, vector3f *forward, long *ticks)
+{
+    if (*ticks > 0)
+    {
+        *up = *(vector3f const *)(state + 0x100);
+        *forward = *(vector3f const *)(state + 0xf4);
+        byte *settings = *(byte **)(state + 8);
+        real limits[4] = { -3.1415927410125732f, 3.1415927410125732f, -3.1415927410125732f, 3.1415927410125732f };
+        vector3f *velocity = (vector3f *)(ticks + 1);
+        function_c7840(g_4687b0, up, NULL, g_510c54->rate, velocity, limits,
+            *(real *)(settings + 0x88), *(real *)(settings + 0x8c));
+        vector3f axis = *velocity;
+        real angle = function_30bf0(&axis) * g_510c54->rate;
+        real cosine = (real)cos(angle);
+        real sine = (real)sin(angle);
+        real dot = (up->j * axis.j + up->k * axis.k + up->i * axis.i) * (1.0f - cosine);
+        vector3f cross = motion_cross(*up, axis);
+        vector3f rotated;
+        rotated.i = up->i * cosine + axis.i * dot - cross.i * sine;
+        rotated.j = up->j * cosine + axis.j * dot - cross.j * sine;
+        rotated.k = up->k * cosine + axis.k * dot - cross.k * sine;
+        *up = rotated;
+        real projection = up->k * forward->k + up->j * forward->j + forward->i * up->i;
+        forward->i -= up->i * projection;
+        forward->j -= up->j * projection;
+        forward->k -= up->k * projection;
+        if (function_30bf0(forward) == 0.0f)
+        {
+            *up = *g_4687b0;
+            *forward = *g_4687a8;
+        }
+        if (angle == 0.0f)
+            *ticks = 0;
+    }
+    else
+    {
+        vector3f axis = motion_cross(*forward, *g_4687b0);
+        vector3f base = motion_cross(axis, *forward);
+        if (function_30bf0(&base) == 0.0f)
+        {
+            base = *g_4687a8;
+            axis = *g_4687ac;
+        }
+        real angle = *(real const *)(state + 0x28);
+        real cosine = (real)cos(angle);
+        real sine = (real)sin(angle);
+        base.i *= cosine;
+        base.j *= cosine;
+        base.k *= cosine;
+        function_30bf0(&axis);
+        up->i = axis.i * sine + base.i;
+        up->j = axis.j * sine + base.j;
+        up->k = axis.k * sine + base.k;
+        function_30bf0(forward);
+        real projection = up->k * forward->k + up->j * forward->j + forward->i * up->i;
+        up->i -= forward->i * projection;
+        up->j -= projection * forward->j;
+        up->k -= projection * forward->k;
+        function_30bf0(up);
+    }
 }

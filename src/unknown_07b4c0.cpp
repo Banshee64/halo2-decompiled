@@ -3,6 +3,8 @@
 #include "globals.h"
 #include "data_array.h"
 #include "network_qos.h"
+#include "bitstream.h"
+#include "unknown_07f720.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -352,4 +354,194 @@ bool session_description_valid(const s_session_description *description)
 	}
 
 	return true;
+}
+
+void utf8_string_to_utf16_string(const char *source, word *destination, long destination_count);
+bool function_7efa0(s_bitstream *stream, s_player_appearance *appearance);
+
+struct s_description_identity
+{
+	dword words[3];
+};
+
+// @retail 0x7c110
+bool __stdcall function_07c110(s_bitstream *stream, void *session)
+{
+	s_session_description *description = (s_session_description *)session;
+	byte *data = (byte *)session;
+	*(word *)data = (word)function_1959c0(stream, 8);
+	description->field2 = (short)function_1959c0(stream, 2);
+	description->field4 = function_1959c0(stream, 3);
+	description->field8 = function_1959c0(stream, 16) - 1;
+	description->fieldc = function_1959c0(stream, 16) - 1;
+	description->field10 = (short)function_1959c0(stream, 2);
+	description->field12 = (short)function_1959c0(stream, 2);
+	description->field14 = (short)function_1959c0(stream, 2);
+	char name[32];
+	function_195820(stream, name, 256);
+	utf8_string_to_utf16_string(name, (word *)(data + 0x18), 32);
+	function_195820(stream, data + 0x58, 64);
+	function_195820(stream, data + 0x60, 128);
+	function_195820(stream, data + 0x70, 288);
+	description->field94 = (short)function_1959c0(stream, 5);
+	description->field96 = (short)function_1959c0(stream, 5);
+	description->field98 = (short)function_1959c0(stream, 5);
+	description->field9a = (short)function_1959c0(stream, 5);
+	description->field9c = (short)function_1959c0(stream, 3);
+	description->field9e = (short)function_1959c0(stream, 4);
+	*(long *)(data + 0xa0) = function_1959c0(stream, 4);
+	*(long *)(data + 0xa4) = function_1959c0(stream, 32);
+	description->fielda8 = function_1959c0(stream, 3) - 1;
+	*(long *)(data + 0xac) = function_1959c0(stream, 32);
+	*(bool *)(data + 0xb0) = function_1957d0(stream);
+	description->fieldb4 = function_1959c0(stream, 2);
+	description->fieldb8 = function_1959c0(stream, 32);
+	description->fieldbc = (short)function_1959c0(stream, 5);
+	bool valid = description->fieldbc >= 0 && description->fieldbc <= 16;
+	long count = function_1959c0(stream, 5);
+	valid = valid && count >= description->fieldbc && count <= 16;
+	if (count < description->fieldbc) count = description->fieldbc;
+	else if (count > 16) count = 16;
+	for (long i = 0; valid && i < count; i++)
+	{
+		s_description_identity identity;
+		char local_392e35[32];
+		s_player_appearance appearance;
+		function_195820(stream, &identity, 96);
+		function_195820(stream, local_392e35, 256);
+		long value = function_1959c0(stream, 32);
+		long index = function_1959c0(stream, 5);
+		function_7efa0(stream, &appearance);
+		if (i < description->fieldbc)
+		{
+			*(s_description_identity *)(data + 0xbe + i * 12) = identity;
+			utf8_string_to_utf16_string(local_392e35, (word *)(data + 0x17e + i * 64), 32);
+			*(long *)(data + 0x580 + i * 4) = value;
+			*(short *)(data + 0x5c0 + i * 2) = (short)(index - 1);
+			*(s_player_appearance *)(data + 0x5e0 + i * 16) = appearance;
+		}
+	}
+	description->field6e0 = function_1959c0(stream, 8);
+	dword mask = function_1959c0(stream, 8);
+	for (long j = 0; j < 8; j++)
+	{
+		if (mask & (1 << j))
+		{
+			long value = function_1959c0(stream, 32);
+			if (description->field6e0 & (1 << j))
+				*(long *)(data + 0x6e4 + j * 4) = value;
+		}
+	}
+	*(bool *)(data + 0x704) = stream_read_bit(stream);
+	if (*(bool *)(data + 0x704))
+		function_195820(stream, data + 0x705, 96);
+	else
+		memset(data + 0x705, 0, 12);
+	if (valid && !stream_overflowed(stream) && session_description_valid(description))
+		return true;
+	return false;
+}
+
+
+void utf16_string_to_utf8_string(const word *source, char *destination, long destination_count);
+void function_7ee10(s_bitstream *stream, const s_player_appearance *appearance);
+
+// @retail 0x7ba10
+void __stdcall function_07ba10(s_bitstream *stream, void *session)
+{
+	const s_session_description *description = (const s_session_description *)session;
+	const byte *data = (const byte *)session;
+	char name[32];
+	utf16_string_to_utf8_string((const word *)(data + 0x18), name, 32);
+	stream_write_checked(stream, *(const short *)data, 8);
+	stream_write_checked(stream, description->field2, 2);
+	stream_write_checked(stream, description->field4, 3);
+	stream_write_checked(stream, description->field8 + 1, 16);
+	stream_write_checked(stream, description->fieldc + 1, 16);
+	stream_write_checked(stream, description->field10, 2);
+	stream_write_checked(stream, description->field12, 2);
+	stream_write_checked(stream, description->field14, 2);
+	function_1955d0(stream, name, 256);
+	function_1955d0(stream, data + 0x58, 64);
+	function_1955d0(stream, data + 0x60, 128);
+	function_1955d0(stream, data + 0x70, 288);
+	stream_write_checked(stream, description->field94, 5);
+	stream_write_checked(stream, description->field96, 5);
+	stream_write_checked(stream, description->field98, 5);
+	stream_write_checked(stream, description->field9a, 5);
+	stream_write_checked(stream, description->field9c, 3);
+	stream_write_checked(stream, description->field9e, 4);
+	stream_write_checked(stream, *(const long *)(data + 0xa0), 4);
+	function_195720(stream, *(const dword *)(data + 0xa4), 32);
+	stream_write_checked(stream, description->fielda8 + 1, 3);
+	function_195720(stream, *(const dword *)(data + 0xac), 32);
+	stream_write_bit(stream, *(const bool *)(data + 0xb0));
+	stream_write_checked(stream, description->fieldb4, 2);
+	function_195720(stream, description->fieldb8, 32);
+	stream_write_checked(stream, description->fieldbc, 5);
+	long count = description->fieldbc;
+	stream_write_checked(stream, count, 5);
+	for (long i = 0; i < count; i++)
+	{
+		s_description_identity identity;
+		s_player_appearance appearance;
+		char local_392e35[32];
+		long value = 0;
+		short index = NONE;
+		if (i < description->fieldbc)
+		{
+			identity = *(const s_description_identity *)(data + 0xbe + i * 12);
+			memcpy(local_392e35, data + 0x17e + i * 64, sizeof(local_392e35));
+			utf16_string_to_utf8_string((const word *)(data + 0x17e + i * 64), local_392e35, 32);
+			value = *(const long *)(data + 0x580 + i * 4);
+			index = *(const short *)(data + 0x5c0 + i * 2);
+			appearance = *(const s_player_appearance *)(data + 0x5e0 + i * 16);
+		}
+		else
+		{
+			memset(local_392e35, 0, sizeof(local_392e35));
+			memset(&identity, 0, sizeof(identity));
+			memset(&appearance, 0, sizeof(appearance));
+		}
+		function_1955d0(stream, &identity, 96);
+		function_1955d0(stream, local_392e35, 256);
+		function_195720(stream, value, 32);
+		stream_write_checked(stream, index + 1, 5);
+		function_7ee10(stream, &appearance);
+	}
+	stream_write_checked(stream, description->field6e0, 8);
+	dword mask = description->field6e0;
+	stream_write_checked(stream, mask, 8);
+	for (long j = 0; j < 8; j++)
+	{
+		dword value = 0;
+		if (description->field6e0 & (1 << j)) value = *(const dword *)(data + 0x6e4 + j * 4);
+		if (mask & (1 << j)) function_195720(stream, value, 32);
+	}
+	stream_write_bit(stream, *(const bool *)(data + 0x704));
+	if (*(const bool *)(data + 0x704)) function_1955d0(stream, data + 0x705, 96);
+}
+
+void function_1947a0(s_bitstream *stream);
+
+// @retail 0x7c530
+bool function_7c530(const byte *data, long size, void *description)
+{
+	bool result = false;
+	if (size > 0 && data)
+	{
+		s_bitstream stream;
+		stream.unknown08 = 1;
+		stream.data = (byte *)data;
+		stream.size_in_bytes = size;
+		stream.mode = 0;
+		stream.bit_position = 0;
+		stream.checkpoint_count = 0;
+		stream.error = false;
+		function_1947a0(&stream);
+		result = function_07c110(&stream, description);
+		if (result && (stream.bit_position > (stream.size_in_bytes << 3) || stream.error))
+			result = false;
+	}
+	return result;
 }

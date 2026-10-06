@@ -220,3 +220,94 @@ long function_184400(long a, long b)
 	}
 	return result;
 }
+
+void function_a8e90(long slot);
+long g_4ea958;
+
+struct s_slot_group
+{
+	byte field_0[0x98];
+	long count;
+	short *references;
+	byte field_a0[0x10];
+};
+
+struct s_slot_groups_view
+{
+	byte field_0[0x9c];
+	long count;
+	s_slot_group *groups;
+};
+
+PRIVATE inline long slot_identifier(long entry, long owner)
+{
+	long result = NONE;
+	byte value = -1;
+	if (entry != NONE)
+	{
+		if (owner == NONE) value = g_4ea960[entry];
+		else value = g_4eaa60[owner][entry];
+	}
+	if (value != NONE) result = g_4eca60[value >> 5];
+	return result;
+}
+
+PRIVATE inline void slot_assign(long owner, long entry, long index, bool *used)
+{
+	long slot = index / 32;
+	if (owner == NONE) g_4ea960[entry] = (byte)index;
+	else g_4eaa60[owner][entry] = (byte)index;
+	g_4eca80[index].b = entry;
+	g_4eca80[index].a = owner;
+	if (!used[slot])
+	{
+		function_a8e90(slot);
+		++g_4ea95c;
+		used[slot] = true;
+		if (g_4e6948->mode == 4 && slot >= 0 && slot < 8)
+			g_4eca60[slot] = slot;
+	}
+}
+
+// @retail 0x185630
+void function_185630()
+{
+	bool used[8] = { false };
+	long count = 0;
+	s_match_globals_slot_view *globals = (s_match_globals_slot_view *)g_4e0348;
+	s_slot_entry_list *list = g_4e0340;
+	for (long i = 0; i < list->count; ++i)
+	{
+		s_slot_entry *entry = &list->entries[i];
+		if ((entry->flags & 8) && slot_identifier(entry->slot, NONE) == NONE)
+		{
+			slot_assign(NONE, entry->slot, count, used);
+			++count;
+		}
+	}
+	s_slot_groups_view *groups = (s_slot_groups_view *)globals;
+	for (long group_index = 0; group_index < groups->count; ++group_index)
+	{
+		s_slot_group *group = &groups->groups[group_index];
+		for (long i = 0; i < group->count; ++i)
+		{
+			long owner = group->references[i];
+			s_slot_owner *definition = &globals->owners[globals->references[owner].owner_index];
+			for (long j = 0; j < definition->list.count; ++j)
+			{
+				s_slot_entry *entry = &definition->list.entries[j];
+				if ((entry->flags & 8) && slot_identifier(entry->slot, owner) == NONE)
+				{
+					slot_assign(owner, entry->slot, count, used);
+					++count;
+				}
+			}
+		}
+	}
+	if (g_4e6948->mode == 4)
+	{
+		g_4ea95c = 0;
+		for (long i = 0; i < 8; ++i) g_4eca60[i] = NONE;
+	}
+	g_4ea958 = count;
+}

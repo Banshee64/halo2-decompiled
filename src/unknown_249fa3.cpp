@@ -24,7 +24,7 @@ c_unknown_249fa3::~c_unknown_249fa3()
 }
 
 // @retail 0x249fa3
-void c_unknown_249fa3::slot1()
+void c_unknown_249fa3::v1()
 {
 	g_470a60 = NONE;
 	function_24a190(this);
@@ -33,14 +33,14 @@ void c_unknown_249fa3::slot1()
 }
 
 // @retail 0x249fc0
-void c_unknown_249fa3::slot2()
+void c_unknown_249fa3::v2()
 {
 	g_470a60 = NONE;
 	((c_widget *)this)->c_widget::v10();
 }
 
 // @retail 0x24a01f
-void c_unknown_249fa3::slot3()
+void c_unknown_249fa3::v3()
 {
 	function_13ee20(g_459a98, 1);
 	function_13ee20(g_459ad0, 1);
@@ -54,7 +54,7 @@ void c_unknown_249fa3::slot3()
 			field8a = false;
 		}
 		field8c = g_54e5d0.profile_index;
-		slot24();
+		v24();
 	}
 	((c_widget *)this)->c_widget::v11();
 }

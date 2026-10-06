@@ -8,9 +8,13 @@
 #include "globals.h"
 #include "unknown_0820f0.h"
 #include "unknown_0662e0.h"
+#include "bitstream.h"
+#include "network_message_types.h"
 #include <xtl.h>
 #include <stdlib.h>
 #include <string.h>
+
+void function_194710(s_bitstream *stream, bool discard);
 
 
 /* a window over a range of sequence numbers: the messages oldest+1..newest,
@@ -130,8 +134,8 @@ public:
 	virtual bool v1(long *reason) { return false; }
 	virtual bool v2(bool *pending) { return false; }
 	virtual long v3(long a, long b) { return 0; }
-	virtual void v4() {}
-	virtual void v5() {}
+	virtual bool v4(long identifier, s_bitstream *stream, long unused, long reserved_bits) { return false; }
+	virtual long v5(long const *identifier, s_bitstream *stream) { return 0; }
 	virtual void v6() {}
 	virtual void v7(long identifier, bool delivered) {}
 };
@@ -143,6 +147,8 @@ public:
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
 	virtual void v7(long identifier, bool delivered);
+	virtual long v5(long const *identifier, s_bitstream *stream);
+	virtual bool v4(long identifier, s_bitstream *stream, long unused, long reserved_bits);
 
 	bool m_active;
 	bool m_unknown05;
@@ -169,6 +175,7 @@ public:
 	long read_acknowledgement(long *message_sequence, long sequence, bool valid, long distance);
 	void mark_received(long sequence);
 	void update_round_trip(long type, long round_trip_time, long sequence, long time);
+	long function_96910(long sequence, long bit_count, dword const *bits, bool complete);
 
 	bool m_active;
 	bool m_unknown05;
@@ -365,6 +372,155 @@ bool unreliable_stream_add_fragment(c_network_unreliable_stream *stream, long se
 	return false;
 }
 
+// @retail 0x94e90
+bool c_network_unreliable_stream::v4(long identifier, s_bitstream *stream, long unused, long reserved_bits)
+{
+	bool result = false;
+	if (identifier != NONE)
+	{
+		if (sequence_window_count(&m_message_window))
+		{
+			long previous = NONE;
+			for (long sequence = m_message_window.oldest + 1; sequence <= m_message_window.newest; sequence++)
+			{
+				long index = sequence_window_index(&m_message_window, sequence);
+				s_stream_message *message = 0;
+				if (index != NONE)
+					message = &m_messages[index];
+				if (message->flags & 4)
+				{
+					long delta = sequence - previous;
+					stream->checkpoints[stream->checkpoint_count] = stream->bit_position;
+					stream->checkpoint_count++;
+					if (previous != NONE && delta <= 16)
+					{
+						if (delta == 1)
+						{
+							stream_write_bit(stream, true);
+							stream_write_bit(stream, true);
+						}
+						else
+						{
+							stream_write_bit(stream, true);
+							stream_write_bit(stream, false);
+							stream_write_checked(stream, delta - 1, 4);
+						}
+					}
+					else
+					{
+						stream_write_bit(stream, false);
+						stream_write_bit(stream, true);
+						stream_write_checked(stream, sequence & 0x3ff, 10);
+					}
+					if (message->flags & 8)
+					{
+						stream_write_bit(stream, true);
+						stream_write_checked(stream, message->unknown02 - 1, 8);
+					}
+					else
+						stream_write_bit(stream, false);
+					function_1955d0(stream, message->data, message->unknown02);
+					if ((stream->size_in_bytes << 3) - stream->bit_position < reserved_bits + 2)
+					{
+						if (previous == NONE)
+							m_unknown05 = true;
+						result = true;
+						function_194710(stream, true);
+						break;
+					}
+					stream->checkpoint_count--;
+					message->flags = (message->flags & ~4) | 2;
+					message->unknown08 = identifier;
+					previous = sequence;
+				}
+			}
+		}
+		stream_write_bit(stream, false);
+		stream_write_bit(stream, false);
+	}
+	return result;
+}
+
+// @retail 0x951c0
+long c_network_unreliable_stream::v5(long const *identifier, s_bitstream *stream)
+{
+	long result = 0;
+	long previous = NONE;
+	if (*identifier != NONE)
+	{
+		for (;;)
+		{
+			bool relative = stream_read_bit(stream);
+			bool next = stream_read_bit(stream);
+			long sequence = NONE;
+			if (!relative)
+			{
+				if (!next)
+					break;
+				long value = function_1959c0(stream, 10);
+				if (stream->mode != 4)
+				{
+					long delta = value - (m_fragment_window.newest & 0x3ff);
+					if (delta > 0x200)
+						delta -= 0x400;
+					else if (delta <= -0x200)
+						delta += 0x400;
+					sequence = delta + m_fragment_window.newest;
+					if (sequence - m_fragment_window.newest > 0x180 || m_fragment_window.oldest - sequence > 0x180)
+					{
+						result = 2;
+						break;
+					}
+				}
+			}
+			else if (!next)
+			{
+				long delta = function_1959c0(stream, 4);
+				if (stream->mode != 4)
+				{
+					if (previous == NONE)
+					{
+						result = 3;
+						break;
+					}
+					sequence = delta + previous + 1;
+				}
+			}
+			else if (stream->mode != 4)
+			{
+				if (previous == NONE)
+				{
+					result = 3;
+					break;
+				}
+				sequence = previous + 1;
+			}
+			previous = sequence;
+			bool partial = stream_read_bit(stream);
+			long bits;
+			long size;
+			if (partial)
+			{
+				bits = function_1959c0(stream, 8) + 1;
+				size = (bits + 7) / 8;
+			}
+			else
+			{
+				bits = 256;
+				size = 32;
+			}
+			byte data[32];
+			function_195820(stream, data, bits);
+			if (stream->mode != 4 && !unreliable_stream_add_fragment(this, sequence, partial, (word)bits, data, size))
+			{
+				result = 2;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x95cf0
 void function_095cf0(s_network_stream_header *header)
 {
@@ -523,6 +679,63 @@ void c_network_reliable_stream::mark_received(long sequence)
 		if (!(*acknowledgement & 1))
 			*acknowledgement |= 1;
 	}
+}
+
+// @retail 0x96910
+long c_network_reliable_stream::function_96910(long sequence, long bit_count, dword const *bits, bool complete)
+{
+	long result = 0;
+	long delta = (m_message_window.newest & 0xff) - sequence;
+	if (delta < 0)
+		delta += 0x100;
+	long acknowledged = m_message_window.newest - delta;
+	long index = sequence_window_index(&m_message_window, acknowledged);
+	s_reliable_message *message = 0;
+	if (index != NONE)
+		message = &m_messages[index];
+	long previous;
+	if (message)
+		previous = acknowledged - message->distance;
+	else
+		previous = m_next_sequence;
+	m_unknown959 = false;
+	if (acknowledged <= m_message_window.oldest)
+	{
+		if (acknowledged < m_message_window.oldest - g_network_configuration.value16ac)
+			result = 2;
+	}
+	else
+	{
+		long bit = -1;
+		for (long current = acknowledged; current > m_message_window.oldest; current--, bit++)
+		{
+			long slot = sequence_window_index(&m_message_window, current);
+			s_reliable_message *entry = 0;
+			if (slot != NONE)
+				entry = &m_messages[slot];
+			if (!(entry->flags & 1))
+			{
+				bool delivered;
+				if (current == acknowledged)
+					delivered = true;
+				else if (bit < bit_count)
+					delivered = (bits[bit >> 5] & (1 << (bit & 31))) == 0;
+				else
+					delivered = current > m_next_sequence || current > previous;
+				if (delivered)
+				{
+					long start = entry->time;
+					entry->flags |= 1;
+					long type = ((entry->flags & 8) | 0x20) >> 3;
+					entry->unknown08 = network_time_now() - start;
+					update_round_trip(type, entry->unknown08, current, network_time_now());
+				}
+			}
+		}
+	}
+	if (acknowledged == m_message_window.newest && m_next_sequence == m_message_window.newest && complete)
+		m_unknown959 = true;
+	return result;
 }
 
 // @retail 0x96d80
@@ -734,4 +947,204 @@ void c_network_unreliable_stream::v7(long identifier, bool delivered)
 		message->data = 0;
 		sequence_window_advance(&m_message_window, sequence);
 	}
+}
+
+void network_message_write_header(s_bitstream *stream, long type, long size);
+void function_163ba0(dword *crc_reference, void const *buffer, long buffer_size);
+
+static inline void stream_begin_payload(s_bitstream *stream)
+{
+	stream->bit_position = 0;
+	stream->checkpoint_count = 0;
+	stream->error = false;
+	if (stream->mode == 1)
+	{
+		stream->unknown2c = 0;
+		stream->unknown30 = 0;
+	}
+	else if (stream->mode == 3 || stream->mode == 4)
+	{
+		if (function_1959c0(stream, 32) == 0x64656267)
+			stream->error = true;
+		else
+		{
+			stream->bit_position = 0;
+			stream->error = false;
+		}
+	}
+}
+
+// @retail 0x95580
+void __stdcall function_095580(void *header, long message_type, long message_size, void const *message_data)
+{
+	struct
+	{
+		dword crc;
+		byte data[0xffff];
+	} payload;
+	s_bitstream stream;
+	stream.data = payload.data;
+	stream.size_in_bytes = sizeof(payload.data);
+	stream.unknown08 = 1;
+	stream.mode = 1;
+	memset(payload.data, 0, sizeof(payload.data));
+	stream_begin_payload(&stream);
+	c_network_unreliable_stream *self = (c_network_unreliable_stream *)header;
+	c_type_659ceb *types = (c_type_659ceb *)self->m_unknown0c;
+	network_message_write_header(&stream, message_type, message_size);
+	types->m_types[message_type].encode(&stream, message_size, (void *)message_data);
+	long bits = stream.bit_position + 32;
+	long bytes = (bits + 7) / 8;
+	long encoded_bytes = (stream.bit_position + 7) / 8;
+	long remainder = encoded_bytes % stream.unknown08;
+	if (remainder)
+		encoded_bytes += stream.unknown08 - remainder;
+	stream.size_in_bytes = encoded_bytes;
+	stream.mode = 2;
+	payload.crc = NONE;
+	function_163ba0(&payload.crc, &payload, bytes);
+	byte const *source = (byte const *)&payload;
+	for (;;)
+	{
+		if (self->v1(0))
+			break;
+		if (sequence_window_count(&self->m_message_window) >= self->m_message_window.capacity)
+		{
+			self->m_unknown05 = true;
+			continue;
+		}
+		bool last;
+		long fragment_bits;
+		long size;
+		if (bits <= 256)
+		{
+			last = true;
+			fragment_bits = bits;
+			size = (bits + 7) / 8;
+		}
+		else
+		{
+			last = false;
+			fragment_bits = 256;
+			size = 32;
+		}
+		s_allocator_globals *globals = g_4d87f8;
+		void *block = globals->allocator->allocate(size, 0, 0);
+		if (!block)
+		{
+			globals->allocator->compact(0);
+			block = globals->allocator->allocate(size, 0, 0);
+		}
+		if (block)
+			globals->count++;
+		if (!block)
+		{
+			self->m_unknown05 = true;
+			continue;
+		}
+		long sequence = self->m_message_window.newest + 1;
+		sequence_window_extend(&self->m_message_window, sequence);
+		long index = sequence_window_index(&self->m_message_window, sequence);
+		s_stream_message *message = 0;
+		if (index != NONE)
+			message = &self->m_messages[index];
+		memcpy(block, source, size);
+		memset(message, 0, sizeof(*message));
+		message->flags = 4;
+		message->size = (byte)size;
+		message->unknown08 = NONE;
+		message->flags = (byte)(4 | (last ? 8 : 0));
+		message->unknown02 = (word)fragment_bits;
+		message->data = block;
+		self->m_message_bytes += size;
+		bits -= 256;
+		source += 32;
+		if (last)
+			break;
+	}
+}
+
+bool network_message_read_header(s_bitstream *stream, long *type, c_type_659ceb const *collection, long *size);
+
+// @retail 0x95840
+bool __stdcall function_095840(s_network_stream_header *header, long *message_type, long *message_size, void *message_data)
+{
+	c_network_unreliable_stream *self = (c_network_unreliable_stream *)header;
+	bool result = false;
+	if (sequence_window_count(&self->m_fragment_window))
+	{
+		long first = self->m_fragment_window.oldest + 1;
+		for (long sequence = first; sequence <= self->m_fragment_window.newest; sequence++)
+		{
+			long index = sequence_window_index(&self->m_fragment_window, sequence);
+			s_stream_fragment *fragment = 0;
+			if (index != NONE)
+				fragment = &self->m_fragments[index];
+			if (!fragment || !(fragment->flags & 1))
+				break;
+			if (fragment->flags & 2)
+				result = true;
+		}
+		if (result)
+		{
+			struct
+			{
+				dword crc;
+				byte data[0xffff];
+			} payload;
+			s_bitstream stream;
+			stream.mode = 0;
+			stream.bit_position = 0;
+			stream.checkpoint_count = 0;
+			stream.error = false;
+			stream.unknown08 = 1;
+			stream.data = payload.data;
+			stream.size_in_bytes = sizeof(payload.data);
+			long bytes = 0;
+			bool last = false;
+			for (long sequence = first; sequence <= self->m_fragment_window.newest; sequence++)
+			{
+				long index = sequence_window_index(&self->m_fragment_window, sequence);
+				s_stream_fragment *fragment = 0;
+				if (index != NONE)
+					fragment = &self->m_fragments[index];
+				long size;
+				if (fragment->flags & 2)
+				{
+					size = (fragment->unknown02 + 7) / 8;
+					last = true;
+				}
+				else
+					size = 32;
+				memcpy((byte *)&payload + bytes, fragment->data, size);
+				bytes += size;
+				free_block(fragment->data);
+				self->m_fragment_bytes -= fragment->size;
+				sequence_window_advance(&self->m_fragment_window, sequence);
+				if (last)
+					break;
+			}
+			dword expected = payload.crc;
+			payload.crc = NONE;
+			function_163ba0(&payload.crc, &payload, bytes);
+			if (expected == payload.crc)
+			{
+				stream.size_in_bytes = bytes - 4;
+				stream.data = payload.data;
+				stream.mode = 3;
+				stream_begin_payload(&stream);
+				c_type_659ceb *types = (c_type_659ceb *)self->m_unknown0c;
+				if (network_message_read_header(&stream, message_type, types, message_size))
+				{
+					s_message_type *type = &types->m_types[*message_type];
+					memset(message_data, 0, *message_size);
+					if (type->decode(&stream, *message_size, message_data))
+						return result;
+				}
+			}
+			self->m_unknown05 = true;
+			return false;
+		}
+	}
+	return result;
 }

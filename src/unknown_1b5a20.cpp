@@ -56,6 +56,43 @@ struct s_character_db0_delays
 void *function_1e4db0(long actor_index);
 bool function_26ba60(long prop_index, long actor_index, long clump_index);
 
+void function_25d420(long prop_ref_index, short type, long actor_index);
+
+// @retail 0x1b5aa0
+short __stdcall function_1b5aa0(long actor_index, s_slot *slot, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		if (node->unknown24 >= 3)
+		{
+			s_prop_view_fields *view = prop_node_view(node);
+			if (view && !view->unknown69)
+			{
+				s_slot_22 *state = (s_slot_22 *)slot;
+				if (state->unknown14 + state->unknown0e < g_510c54->game_time)
+				{
+					function_25d420(actor->prop_index, 1, actor_index);
+				}
+				else
+				{
+					if (state->unknown10 != NONE && state->unknown14 + state->unknown10 == g_510c54->game_time &&
+						function_26ba60(node->unknown08, actor_index, actor->unknown07c))
+						function_1fb7e0(actor_index, 0x2c, NULL, node->object_index, NONE);
+					result = g_46fbe8;
+				}
+			}
+			if (view->unknown69 && g_46eeb8[0x27]->unknown8 != g_46f348 &&
+				(g_46eeb8[0x27]->mask & g_4ee4ec) == g_4ee4ec &&
+				((g_557c40[0x27 >> 5] >> (0x27 & 31)) & 1))
+				result = 0x27;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1b5c00
 bool __stdcall function_1b5c00(long actor_index, s_slot *slot)
 {

@@ -104,7 +104,7 @@ static inline real random_range(real lower, real upper)
 }
 
 bool function_e68c0(long type, long unit_index);
-void function_26def0(long actor_index);
+void function_26def0(long actor_index, long owner_index = NONE);
 bool function_1f86f0(long index);
 short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next);
 void __stdcall function_1acda0(long actor_index, s_slot *slot);

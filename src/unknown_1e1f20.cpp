@@ -275,3 +275,172 @@ long function_1e06b0(long tag_index)
 	}
 	return result;
 }
+
+void function_290bf0(long perception_index, short team);
+void function_290040(long perception_index);
+
+// @retail 0x1e1150
+void function_1e1150(long actor_index, short team)
+{
+ s_actor_view *actor = actor_get(actor_index);
+ actor->unknown024 = team;
+ if (actor->unknown007)
+  function_290bf0(*(long *)actor->unknown01c, team);
+ else if (actor->unknown018 != NONE)
+  *(short *)((byte *)ai_object_get(actor->unknown018) + 0x138) = team;
+}
+
+// @retail 0x1e3240
+void function_1e3240(void)
+{
+ s_actor_iterator iterator;
+ function_x66da2b(&iterator, true);
+ while (function_1e46c0(&iterator))
+ {
+  s_actor_view *actor = actor_get(iterator.actor_index);
+  if (actor->unknown007 && *(long *)actor->unknown01c != NONE)
+   function_290040(*(long *)actor->unknown01c);
+  else
+   function_1e31b0(actor->unknown018);
+  actor->unknown008 = 1;
+ }
+}
+
+void function_1f86a0(long actor_index);
+
+// @retail 0x1e22d0
+void function_1e22d0(long actor_index, bool conditional)
+{
+ s_actor_view *actor = actor_get(actor_index);
+ function_2628f0(actor_index, g_470fa0);
+ if (actor->unknown4ac == 4 || actor->unknown4ac == 5 || actor->unknown4ac == 6)
+ {
+  if (!conditional || (*(word *)((byte *)actor + 0x4ba) & 0x8000))
+   function_1f86a0(actor_index);
+ }
+ byte *entry = (byte *)actor + 0x402;
+ long count = 4;
+ do
+ {
+  if (!conditional || (*(word *)(entry + 2) & 0x8000))
+   *(s_reference *)entry = g_470fa0;
+  entry += 6;
+ } while (--count);
+ for (short slot_index = 0; slot_index <= actor->current; ++slot_index)
+ {
+  short type = actor->slots[slot_index].type;
+  s_slot_handler *handler = g_46eeb8[type];
+  t_slot_notify callback = handler->notify34;
+  if (callback)
+   callback(actor_index, slot_index < 4 ? &actor->slots[slot_index] : NULL, conditional);
+ }
+}
+
+void function_28fd90(long perception_index, long index);
+
+// @retail 0x1e2150
+void function_1e2150(long actor_index, long object_index)
+{
+ s_actor_view *actor = actor_get(actor_index);
+ if (*(long *)((byte *)actor + 0x338) == object_index)
+  *(long *)((byte *)actor + 0x338) = NONE;
+ if (*(long *)((byte *)actor + 0x32c) == object_index)
+  *(long *)((byte *)actor + 0x32c) = NONE;
+ if (actor->unknown344 == object_index)
+  actor->unknown344 = NONE;
+ if (actor->unknown368 == object_index)
+ {
+  actor->unknown368 = NONE;
+  actor->unknown358 = 0;
+ }
+ if (*(short *)((byte *)actor + 0x722) == 1 && *(long *)((byte *)actor + 0x724) == object_index)
+ {
+  *(long *)((byte *)actor + 0x724) = NONE;
+  *(short *)((byte *)actor + 0x722) = 0;
+ }
+ if (*(long *)((byte *)actor + 0x7e0) == object_index)
+  *(long *)((byte *)actor + 0x7e0) = NONE;
+ if (actor->unknown3b4 == object_index)
+  actor->unknown3b4 = NONE;
+ if (actor->unknown4ac == 7 && *(long *)((byte *)actor + 0x4b8) == object_index)
+ {
+  actor->unknown4ac = 0;
+  actor->unknown4e4 = NONE;
+ }
+ if (*(short *)((byte *)actor + 0x688) == 1 && *(long *)((byte *)actor + 0x68c) == object_index)
+  *(long *)((byte *)actor + 0x68c) = NONE;
+ if (*(short *)((byte *)actor + 0x6a0) == 1 && *(long *)((byte *)actor + 0x6a4) == object_index)
+  *(long *)((byte *)actor + 0x6a4) = NONE;
+ if (*(short *)((byte *)actor + 0x6b0) == 1 && *(long *)((byte *)actor + 0x6b4) == object_index)
+  *(long *)((byte *)actor + 0x6b4) = NONE;
+ if (actor->unknown007 && *(long *)actor->unknown01c != NONE)
+  function_28fd90(*(long *)actor->unknown01c, object_index);
+ for (short i = 0; i <= actor->current; ++i)
+ {
+  s_slot *slot = &actor->slots[i];
+  t_slot_release callback = g_46eeb8[slot->type]->release28;
+  if (callback) callback(actor_index, i < 4 ? slot : NULL, object_index);
+ }
+}
+
+void function_28fdf0(long perception_index);
+
+// @retail 0x1e23c0
+void function_1e23c0(long actor_index)
+{
+ const long *index_reference = &actor_index;
+ s_actor_view *actor = actor_get(*index_reference);
+ *(long *)((byte *)actor + 0x250) = NONE;
+ *(short *)((byte *)actor + 0x254) = NONE;
+ *(short *)((byte *)actor + 0x256) = g_4686c4;
+ *(bool *)((byte *)actor + 0x278) = false;
+ *(long *)((byte *)actor + 0x28c) = NONE;
+ s_actor_view *state = actor_get(*index_reference);
+ *(bool *)((byte *)state + 0x50c) = false;
+ *(long *)((byte *)state + 0x5ac) = NONE;
+ *(short *)((byte *)state + 0x5b0) = NONE;
+ *(short *)((byte *)state + 0x5b4) = 0;
+ *(short *)((byte *)state + 0x5b6) = 0;
+ state->unknown4ac = 0;
+ *(short *)((byte *)state + 0x504) = 0;
+ if (actor->unknown4ac == 2)
+  *(long *)((byte *)actor + 0x4c8) = NONE;
+ *(long *)((byte *)actor + 0x4fc) = NONE;
+ if (actor->unknown007 && *(long *)actor->unknown01c != NONE)
+  function_28fdf0(*(long *)actor->unknown01c);
+ for (short i = 0; i <= actor->current; ++i)
+ {
+  s_slot *slot = &actor->slots[i];
+  t_slot_proc callback = g_46eeb8[slot->type]->proc30;
+  if (callback) callback(*index_reference, i < 4 ? slot : NULL);
+ }
+ long prop_index = actor_get(*index_reference)->first_prop_index;
+ while (prop_index != NONE)
+ {
+  s_prop_node_view *prop = (s_prop_node_view *)(g_502418->data + (prop_index & 0xffff) * 0x3c);
+  prop_index = prop->next_index;
+  byte *prop_block = (byte *)function_25d690((s_prop_datum *)prop);
+  byte *view = NULL;
+  if (prop->view_index != NONE)
+  {
+   byte *entry = g_502414->data + (prop->view_index & 0xffff) * 0x124;
+   if (entry) view = entry + 0x70;
+  }
+  *(long *)(prop_block + 0x28) = NONE;
+  *(short *)(prop_block + 0x2c) = NONE;
+  *(short *)(prop_block + 0x2e) = g_4686c4;
+  *(long *)(prop_block + 0x44) = NONE;
+  if (view && *(short *)(view + 0x70) == 1)
+  {
+   view[0x68] = false;
+   view[0x69] = false;
+   view[0x4c] = false;
+   *(short *)(view + 0x70) = 0;
+   view[0x6c] = true;
+   view[0x6d] = true;
+   view[0x88] = false;
+   *(short *)(view + 0x90) = 0;
+   *(short *)(view + 0x8a) = 0;
+  }
+ }
+}

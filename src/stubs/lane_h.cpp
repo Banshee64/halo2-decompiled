@@ -51,47 +51,18 @@ long function_59570(void)
 	return 0;
 }
 
-// @stub 0x594a0
-bool __stdcall function_594a0(long a, long b, long c)
-{
-	return false;
-}
-
 // @stub 0x63e90
 long __stdcall function_63e90(long index)
 {
 	return 0;
 }
 
-// @stub 0x6cb60
-void function_6cb60(void)
-{
-}
-
-// @stub 0x7f0d0
-void __stdcall function_7f0d0(const unsigned char *data)
-{
-}
 
 
-// @stub 0x73b10
-long __stdcall function_73b10(long a, long b)
-{
-	return 0;
-}
 
-// @stub 0x73ca0
-void function_73ca0(unsigned char *results)
-{
-}
 
 // @stub 0xb3e90
 void __stdcall function_b3e90(unsigned char *results)
-{
-}
-
-// @stub 0x232d77
-void function_232d77(void)
 {
 }
 
@@ -103,16 +74,6 @@ bool __stdcall function_19bfd0(struct s_content_item *item)
 
 struct s_network_session_player;
 
-// @stub 0x805d0
-void __fastcall function_805d0(s_network_session_player *player)
-{
-}
-
-// @stub 0x687e0
-long function_687e0(void)
-{
-	return 0;
-}
 
 // @stub 0x1391ed
 void function_1391ed(void)

@@ -6,6 +6,7 @@
 #include "unknown_1e3920.h"
 #include "unknown_0259d0.h"
 #include "slot_handler.h"
+#include "props.h"
 
 /* the prop view (unknown_25d690.cpp) starts with its state */
 struct s_type_f95cd3;
@@ -113,4 +114,250 @@ bool function_1fee20(long actor_index, s_combat_delay const *delay)
 	}
 
 	return !engaged;
+}
+
+real function_1e9720(long kind, short team);
+
+struct s_combat_wait_range
+{
+	byte unknown00[0x28];
+	real lower;
+	real upper;
+};
+
+// @retail 0x1fed70
+void function_1fed70(long actor_index, s_combat_wait_range const *range)
+{
+	s_actor_moving *actor = actor_moving_get(actor_index);
+	double upper = range->upper;
+	double lower = range->lower;
+	real seconds = (real)(lower + (upper - lower) * slot_random());
+	real ticks;
+	long result;
+	seconds *= function_1e9720(14, *(short *)((byte *)actor + 0x24));
+	ticks = (real)g_510c54->field_2_3 * seconds;
+	__asm
+	{
+		fld ticks
+		fistp result
+	}
+	actor->unknown700 = (short)result;
+}
+
+void function_118e80(long object_index, vector3f *forward);
+bool __stdcall function_cba50(long unit_index, vector3f *direction, bool looking);
+
+struct s_aim_definition
+{
+	byte unknown00[0x1ec];
+	dword flags;
+};
+
+// @retail 0x1fe120
+void function_1fe120(long actor_index, vector3f *direction)
+{
+	s_actor_moving *actor = actor_moving_get(actor_index);
+	long object_index = actor->unit_index;
+	if (actor->unknown268)
+	{
+		long target_index = actor->unknown274;
+		if (target_index != NONE)
+		{
+			object_index = target_index;
+			s_moving_object_header *header = &((s_moving_object_header *)g_4e0300->data)[object_index & 0xffff];
+			if (header->type == 1)
+			{
+				s_moving_object *object = (s_moving_object *)header->object;
+				s_aim_definition *definition = (s_aim_definition *)g_4e3b44[object->tag_index & 0xffff].bytes;
+				if ((bool)((definition->flags >> 8) & 1))
+				{
+					function_118e80(target_index, direction);
+					return;
+				}
+			}
+		}
+	}
+	*direction = *(vector3f *)((byte *)moving_object_get(object_index) + 0x168);
+	function_cba50(object_index, direction, false);
+}
+
+struct s_combat_blend_values
+{
+	real field_0;
+	real field_4;
+	real field_8;
+	real field_c;
+	real field_10;
+	real field_14;
+	real field_18;
+	real field_1c;
+	real field_20;
+	real field_24;
+	real field_28;
+	real field_2c;
+	real field_30;
+	real field_34;
+	real field_38;
+	real field_3c;
+};
+
+struct s_combat_blend_block
+{
+	byte unknown00[8];
+	long count;
+	s_combat_blend_values *values;
+};
+
+void *function_1e5300(long actor_index, long key);
+
+// @retail 0x1fe1e0
+bool function_1fe1e0(long actor_index, real blend, s_combat_blend_values *out)
+{
+	bool result = false;
+	long weapon_index = function_1e1f20(actor_index);
+	if (weapon_index != NONE)
+	{
+		s_combat_blend_block *block = (s_combat_blend_block *)function_1e5300(actor_index, moving_object_get(weapon_index)->tag_index);
+		if (block && block->count > 0)
+		{
+			s_combat_blend_values const *lower = &block->values[0];
+			result = true;
+			if (block->count < 2)
+				*out = *lower;
+			else
+			{
+				s_combat_blend_values const *upper = &block->values[1];
+				out->field_0 = upper->field_0 * blend + lower->field_0 * (1.0f - blend);
+				out->field_4 = lower->field_4 * (1.0f - blend) + upper->field_4 * blend;
+				out->field_8 = lower->field_8 * (1.0f - blend) + upper->field_8 * blend;
+				out->field_c = lower->field_c * (1.0f - blend) + upper->field_c * blend;
+				out->field_10 = lower->field_10 * (1.0f - blend) + upper->field_10 * blend;
+				out->field_14 = lower->field_14 * (1.0f - blend) + upper->field_14 * blend;
+				out->field_18 = lower->field_18 * (1.0f - blend) + upper->field_18 * blend;
+				out->field_1c = lower->field_1c * (1.0f - blend) + upper->field_1c * blend;
+				out->field_20 = lower->field_20 * (1.0f - blend) + upper->field_20 * blend;
+				out->field_24 = lower->field_24 * (1.0f - blend) + upper->field_24 * blend;
+				out->field_28 = lower->field_28 * (1.0f - blend) + upper->field_28 * blend;
+				out->field_2c = lower->field_2c * (1.0f - blend) + upper->field_2c * blend;
+				out->field_30 = lower->field_30 * (1.0f - blend) + upper->field_30 * blend;
+				out->field_34 = lower->field_34 * (1.0f - blend) + upper->field_34 * blend;
+				out->field_38 = lower->field_38 * (1.0f - blend) + upper->field_38 * blend;
+				out->field_3c = lower->field_3c * (1.0f - blend) + upper->field_3c * blend;
+			}
+		}
+	}
+	return result;
+}
+
+bool function_1ff7d0(long actor_index, point3f const *point, real enemy_radius, real friendly_radius, short *count_out);
+void *function_1e5380(long actor_index);
+
+// @retail 0x1fdce0
+bool function_1fdce0(long actor_index, short type)
+{
+	bool result = true;
+	if (type == 3)
+	{
+		s_actor_view *actor = actor_get(actor_index);
+		s_prop_node_view *node = prop_node_get(*(long *)((byte *)actor + 0x724));
+		s_type_5cfb45 *state = function_25d690((s_prop_datum *)node);
+		if (state->unknown3c != NONE)
+			return true;
+		byte *prop = g_50241c->data + (node->unknown08 & 0xffff) * 0xc4;
+		if (prop[0x25])
+			return false;
+		short count = 0;
+		function_1ff7d0(actor_index, &state->position, 6.0f, 0.0f, &count);
+		result = count >= 3;
+	}
+	return result;
+}
+
+// @retail 0x1fef40
+bool function_1fef40(s_type_c3b527 const *target, long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	byte *ranges = (byte *)function_1e5380(actor_index);
+	point3f point;
+	if (target->output_index == NONE || !function_2104b0(target->output_index, &target->point, &point))
+		point = target->point;
+	if (ranges && function_1ff7d0(actor_index, &point, *(real *)(ranges + 0xc), *(real *)(ranges + 0x20), NULL))
+	{
+		*(s_type_c3b527 *)((byte *)actor + 0x7d0) = *target;
+		return true;
+	}
+	return false;
+}
+
+real function_30bf0(vector3f *v);
+vector3f *function_11d000(vector3f const *v, vector3f *out);
+
+// @retail 0x1fddd0
+bool function_1fddd0(long actor_index, point3f const *origin, vector3f *direction,
+    long *out_index, real *arg_c9241c, long *out_object)
+{
+    byte *actor = (byte *)actor_moving_get(actor_index);
+    long object_index = NONE;
+    bool result = false;
+    short state = *(short *)(actor + 0x6fe);
+    if (state == 4)
+        result = true;
+    else if (state == 2)
+    {
+        result = true;
+        if (*(short *)(actor + 0x722) == 1 && *(long *)(actor + 0x724) != NONE)
+        {
+            s_prop_node_view *node = prop_node_get(*(long *)(actor + 0x724));
+            if (node->unknown24 >= 1)
+                object_index = *(long *)((byte *)node + 0x20);
+        }
+        if (actor[0x7a8])
+        {
+            *direction = *(vector3f *)(actor + 0x7b0);
+            if (out_index)
+                *out_index = *(long *)(actor + 0x7ac);
+        }
+        else
+        {
+            point3f *target = (point3f *)(actor + 0x79c);
+            direction->i = target->x - origin->x;
+            direction->j = target->y - origin->y;
+            direction->k = target->z - origin->z;
+            function_30bf0(direction);
+        }
+        vector3f forward;
+        function_1fe120(actor_index, &forward);
+        real dot = direction->k * forward.k + direction->j * forward.j + direction->i * forward.i;
+        if (dot < 0.8660253882408142f)
+        {
+            vector3f axis;
+            axis.i = direction->k * forward.j - direction->j * forward.k;
+            axis.j = direction->i * forward.k - direction->k * forward.i;
+            axis.k = direction->j * forward.i - direction->i * forward.j;
+            bool valid = true;
+            if (function_30bf0(&axis) == 0.0f)
+            {
+                function_11d000(&forward, &axis);
+                if (function_30bf0(&axis) == 0.0f)
+                    valid = false;
+            }
+            *direction = forward;
+            if (valid)
+            {
+                real amount = (direction->k * axis.k + direction->j * axis.j + direction->i * axis.i) * 0.1339746117591858f;
+                vector3f rotated;
+                rotated.i = amount * axis.i + direction->i * 0.8660253882408142f -
+                    (direction->j * axis.k - direction->k * axis.j) * 0.5f;
+                rotated.j = axis.j * amount + direction->j * 0.8660253882408142f -
+                    (direction->k * axis.i - direction->i * axis.k) * 0.5f;
+                rotated.k = axis.k * amount + direction->k * 0.8660253882408142f -
+                    (direction->i * axis.j - direction->j * axis.i) * 0.5f;
+                *direction = rotated;
+            }
+        }
+        *arg_c9241c = *(real *)(actor + 0x7bc);
+    }
+    if (out_object)
+        *out_object = object_index;
+    return result;
 }

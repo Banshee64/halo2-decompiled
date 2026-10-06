@@ -27,11 +27,6 @@ void __stdcall function_25d020(long actor_index, long prop_ref_index, long a, lo
 }
 
 
-// @stub 0x267a80
-short function_267a80(real *distance, point3f const *point, vector3f const *direction, point3f const *position, long unknown)
-{
-	return 0;
-}
 
 // @stub 0x29d7b0
 bool function_29d7b0(s_pathfinding_data *pathfinding, s_type_d4fbfa *definition, vector3f const *direction,
@@ -40,12 +35,6 @@ bool function_29d7b0(s_pathfinding_data *pathfinding, s_type_d4fbfa *definition,
 	return false;
 }
 
-
-// @stub 0x26ace0
-long function_26ace0(long object_index, long actor_index, short type)
-{
-	return 0;
-}
 
 // @stub 0x25c230
 void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown)

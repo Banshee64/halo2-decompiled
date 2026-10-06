@@ -7,6 +7,9 @@
 #include "data_array.h"
 #include "slot_handler.h"
 #include "unknown_20f040.h"
+#include "unknown_2551c0.h"
+#include <math.h>
+#include "unknown_1e46c0.h"
 
 
 typedef bool (__stdcall *t_transition_test)(long, real *, real *);
@@ -132,7 +135,7 @@ short __stdcall function_26b630(long clump_index, real *b, real *a)
 short __stdcall function_26b660(long clump_index, real *b, real *a)
 {
 	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
-	if ((real)(g_510c54->game_time - clump->state_time) * g_510c54->rate > 1.0f)
+	if ((real)(g_510c54->game_time - clump->state_time) * g_510c54->rate > 30.0f)
 	{
 		clump->unknown30 = 0;
 		return 0;
@@ -352,7 +355,8 @@ struct s_clump_activity_view
 
 struct s_clump_link_view
 {
-	byte unknown00[8];
+	byte unknown00[4];
+	long actor_index;
 	long prop_index;
 	byte unknown0c[0x28];
 	long next;
@@ -441,6 +445,35 @@ void function_268c60(long clump_index)
 	clump->time38 = g_510c54->game_time;
 }
 
+void function_1e2150(long actor_index, long object_index);
+
+// @retail 0x26abd0
+void function_26abd0(s_clump_link_view *node)
+{
+	s_actor_view *actor = actor_get(node->actor_index);
+	long removed;
+	if (*(long *)((byte *)node + 0x30) == NONE)
+	{
+		removed = *(long *)((byte *)actor + 0x58);
+		*(long *)((byte *)actor + 0x58) = *(long *)((byte *)node + 0x2c);
+	}
+	else
+	{
+		s_clump_link_view *previous = (s_clump_link_view *)(g_502418->data + (*(long *)((byte *)node + 0x30) & 0xffff) * sizeof(s_clump_link_view));
+		removed = *(long *)((byte *)previous + 0x2c);
+		*(long *)((byte *)previous + 0x2c) = *(long *)((byte *)node + 0x2c);
+	}
+	if (*(long *)((byte *)node + 0x2c) != NONE)
+	{
+		s_clump_link_view *next = (s_clump_link_view *)(g_502418->data + (*(long *)((byte *)node + 0x2c) & 0xffff) * sizeof(s_clump_link_view));
+		*(long *)((byte *)next + 0x30) = *(long *)((byte *)node + 0x30);
+	}
+	function_1e2150(node->actor_index, removed);
+	node->actor_index = NONE;
+	*(long *)((byte *)node + 0x30) = NONE;
+	*(long *)((byte *)node + 0x2c) = NONE;
+}
+
 // @retail 0x26ac60
 void function_26ac60(s_clump_link_view *node)
 {
@@ -462,6 +495,290 @@ void function_26ac60(s_clump_link_view *node)
 	node->prop_index = NONE;
 	node->previous = NONE;
 	node->next = NONE;
+}
+
+PRIVATE __forceinline s_prop_node_view *clump_member_prop_next(s_iterator *iterator);
+PRIVATE __forceinline s_type_76cf92 *clump_next_prop(s_iterator *iterator);
+
+// @retail 0x26b1d0
+void function_26b1d0(long actor_index)
+{
+	s_iterator iterator;
+	iterator.next = actor_get(actor_index)->first_prop_index;
+	s_prop_node_view *node;
+	while ((node = clump_member_prop_next(&iterator)) != NULL)
+	{
+		if (node->unknown24 <= 0)
+		{
+			function_26abd0((s_clump_link_view *)node);
+			record_pool_release(g_502418, iterator.index);
+		}
+	}
+}
+
+// @retail 0x26aaf0
+void function_26aaf0(s_clump *clump, long prop_index)
+{
+	s_clump *const *clump_reference = &clump;
+	long const *prop_reference = &prop_index;
+	long slot = prop_index & 0xffff;
+	long index = *(long *)((byte *)prop_get(prop_index) + 0x18);
+	while (index != NONE)
+	{
+		s_clump_link_view *node = (s_clump_link_view *)(g_502418->data + (index & 0xffff) * sizeof(s_clump_link_view));
+		long next = node->next;
+		function_26abd0(node);
+		function_26ac60(node);
+		long tracking = ((s_prop_datum *)node)->tracking_index;
+		if (tracking != NONE) record_pool_release(g_502414, tracking);
+		record_pool_release(g_502418, index);
+		index = next;
+	}
+	long *link = &(*clump_reference)->first_prop;
+	while (*link != NONE)
+	{
+		long current = *link & 0xffff;
+		s_clump_prop *prop = (s_clump_prop *)(g_50241c->data + current * sizeof(s_clump_prop));
+		if (current == slot)
+		{
+			*link = prop->next;
+			break;
+		}
+		link = &prop->next;
+	}
+	record_pool_release(g_50241c, *prop_reference);
+}
+
+void function_2694d0(long clump_index, long actor_index);
+
+// @retail 0x26a480
+short function_26a480(long clump_index, short minimum)
+{
+	short const *minimum_reference = &minimum;
+	s_clump *clump = &((s_clump *)g_502420->data)[clump_index & 0xffff];
+	s_iterator iterator;
+	iterator.next = clump->first_prop;
+	short count = 0;
+	s_type_76cf92 *prop;
+	while ((prop = clump_next_prop(&iterator)) != NULL)
+	{
+		if (*(short *)((byte *)prop + 0xc) < *minimum_reference)
+		{
+			function_26aaf0(clump, iterator.index);
+			count++;
+		}
+	}
+	return count;
+}
+
+// @retail 0x268700
+void function_268700(long clump_index)
+{
+	s_clump *clump = &((s_clump *)g_502420->data)[clump_index & 0xffff];
+	s_iterator iterator;
+	iterator.next = clump->first_prop;
+	s_type_76cf92 *prop;
+	while ((prop = clump_next_prop(&iterator)) != NULL)
+	{
+		long object_index = *(long *)((byte *)prop + 8);
+		byte *object = NULL;
+		if (object_index != NONE && (object_index & 0xffff) < g_4e0300->high_water_index)
+		{
+			s_object_header_view *header = (s_object_header_view *)(g_4e0300->data + g_4e0300->size * (object_index & 0xffff));
+			if (header->salt && header->salt == (object_index >> 16) && ((1 << header->type) & -1))
+				object = header->object;
+		}
+		if (!object) function_26aaf0(clump, iterator.index);
+	}
+}
+
+// @retail 0x2691b0
+void function_2691b0(long clump_index)
+{
+	long const *clump_reference = &clump_index;
+	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
+	s_iterator props;
+	props.next = clump->first_prop;
+	while (clump_next_prop(&props) != NULL)
+		function_26aaf0(clump, props.index);
+	s_iterator actors;
+	actors.next = ((s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump)))->first_object;
+	while (clump_next_actor(&actors) != NULL)
+		function_2694d0(*clump_reference, actors.index);
+	record_pool_release(g_502420, *clump_reference);
+}
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+point3f *function_b9dd0(long object_index, point3f *result);
+bool function_bec70(long object_index);
+extern long g_4de2fc;
+extern long g_4de300[0x800];
+extern bool g_4de2f8;
+bool function_26add0(long prop_index);
+
+struct s_prop_candidate_view
+{
+	short type;
+	short unknown02;
+	long object_index;
+	short priority;
+	short unknown0a;
+	long prop_index;
+};
+
+// @retail 0x269e60
+short function_269e60(long object_index, s_clump_activity_view const *clump, long prop_index,
+	s_prop_candidate_view *candidate, bool force)
+{
+	long const *object_reference = &object_index;
+	s_clump_activity_view const *const *clump_reference = &clump;
+	long const *prop_reference = &prop_index;
+	s_prop_candidate_view *const *candidate_reference = &candidate;
+	bool const *force_reference = &force;
+	short type = 0;
+	short priority = 0;
+	bool unsupported = false;
+	s_slot_object_view *object = (s_slot_object_view *)function_badc0(object_index, (dword)NONE);
+	if (object)
+	{
+		if (candidate)
+		{
+			if (g_4de300[object_index & 0xffff] == g_4de2fc)
+				goto done;
+			g_4de300[object_index & 0xffff] = g_4de2fc;
+		}
+		if (prop_index != NONE)
+			force = prop_get(prop_index)->unknown10 > g_510c54->game_time;
+		point3f point;
+		function_b9dd0(*object_reference, &point);
+		vector3f delta;
+		delta.k = point.z - clump->center.z;
+		delta.j = point.y - clump->center.y;
+		delta.i = point.x - clump->center.x;
+		real distance_squared = delta.k * delta.k + delta.j * delta.j + delta.i * delta.i;
+		if (*force_reference || distance_squared < 2500.0)
+		{
+			switch ((char)object->type)
+			{
+			case 1:
+				if (object->actor_index == NONE)
+				{
+					priority = 1;
+					type = 4;
+					break;
+				}
+			case 0:
+				{
+					bool flag = (bool)((*(byte *)((byte *)object + 0x10a) >> 2) & 1);
+					bool player = false;
+					short team;
+					if (object->actor_index != NONE)
+						team = actor_get(object->actor_index)->unknown024;
+					else if (object->player_index != NONE)
+					{
+						team = *(char *)(g_4e8c24->data + (object->player_index & 0xffff) * 0x21c + 0xc0);
+						player = true;
+					}
+					else
+						team = object->team;
+					bool enemy = team == clump->team ? false : function_1df560(team, clump->team);
+					if (flag)
+					{
+						priority = 1;
+						type = enemy ? 6 : 7;
+					}
+					else if (enemy)
+					{
+						priority = 3;
+						type = 1;
+					}
+					else
+					{
+						type = 2;
+						if (player) priority = 3;
+					}
+				}
+				break;
+			case 12:
+				if (*(long *)((byte *)object + 0x134) == 0)
+				{
+					byte *data = (byte *)object + *(short *)((byte *)object + 0x13a);
+					if (function_1df560(*(short *)((byte *)object + 0x12e), clump->team))
+					{
+						type = 1;
+						priority = 3;
+					}
+					else
+					{
+						type = 2;
+						priority = 0;
+					}
+					long index = *(long *)(data + 8);
+					if (index != NONE)
+					{
+						s_ai_object_iterator iterator;
+						iterator.next_index = perception_get(index)->object_index;
+						iterator.index = NONE;
+						while (function_290c80(&iterator))
+							function_bec70(iterator.index);
+					}
+				}
+				break;
+			case 5:
+				{
+					byte *tag = g_4e3b44[object->tag_index & 0xffff].bytes;
+					if (*(real *)(tag + 0xd0) > 0.0f &&
+						(object->parent_index == NONE || (bool)((*(dword *)((byte *)object + 0x12c) >> 5) & 1)))
+					{
+						priority = 3;
+						type = 3;
+					}
+				}
+				break;
+			default:
+				unsupported = true;
+				break;
+			}
+			if (!*force_reference && priority > 0)
+			{
+				real distance = (real)sqrt(distance_squared);
+				if (*prop_reference != NONE && function_26add0(prop_index))
+					priority -= (long)(distance / (*(real *)((byte *)*clump_reference + 0x2c) * 0.6666666865348816f));
+				else
+					priority -= (long)(distance / (*(real *)((byte *)*clump_reference + 0x2c) * 0.3333333432674408f));
+				priority = priority > 0 ? priority : 0;
+			}
+		}
+	}
+done:
+	if (*candidate_reference && !unsupported)
+	{
+		candidate->type = type;
+		candidate->prop_index = prop_index;
+		candidate->object_index = object_index;
+		candidate->priority = priority;
+	}
+	return priority;
+}
+
+// @retail 0x269de0
+void function_269de0(long object_index, s_clump_activity_view const *clump, s_prop_candidate_view *candidates, short *count)
+{
+	long const *object_reference = &object_index;
+	s_clump_activity_view const *const *clump_reference = &clump;
+	s_prop_candidate_view *const *candidates_reference = &candidates;
+	short *const *count_reference = &count;
+	while (*object_reference != NONE)
+	{
+		if (**count_reference >= 100) break;
+		s_slot_object_view *object = object_get(object_index);
+		if (function_269e60(object_index, *clump_reference, NONE, &(*candidates_reference)[*count], false) >= (*clump_reference)->update_state)
+			++*count;
+		if (object->first_child_index != NONE)
+			function_269de0(object->first_child_index, *clump_reference, candidates, count);
+		object_index = object->next_object_index;
+	}
 }
 
 // @retail 0x26add0
@@ -576,7 +893,20 @@ struct s_prop_copy_view
 	short salt;
 	short type;
 	short state;
-	byte unknown06[0x28 - 6];
+	short unknown06;
+	long object_index;
+	short field0c;
+	short unknown0e;
+	long field10;
+	long field14;
+	long field18;
+	long actor_index;
+	short team;
+	bool field22;
+	bool field23;
+	bool field24;
+	bool field25;
+	short unknown26;
 	long field28;
 	long field2c;
 	byte field30;
@@ -595,6 +925,81 @@ struct s_prop_copy_view
 	long field54;
 	s_type_5cfb45 observed;
 };
+
+void prop_state_initialize(s_type_5cfb45 *state);
+
+// @retail 0x26a310
+void function_26a310(s_prop_copy_view *prop, short type, long object_index, s_clump *clump, short value)
+{
+	prop->type = type;
+	prop->object_index = object_index;
+	prop->field14 = NONE;
+	prop->field0c = value;
+	prop->state = g_470f10[type].unknown4 == 0;
+	prop->field10 = NONE;
+	prop->field18 = NONE;
+	s_slot_object_view *object = object_get(object_index);
+	object->unknownb2 |= 2;
+	long type_mask = 1 << object->type;
+	if (type_mask & 3)
+	{
+		prop->actor_index = object->actor_index;
+		prop->team = object->team;
+		prop->field23 = function_1df560(clump->team, prop->team);
+		prop->field24 = !prop->field23;
+		prop->field25 = object->player_index != NONE;
+		prop->field22 = false;
+	}
+	else if (type_mask & 0x1000)
+	{
+		switch (*(long *)((byte *)object + 0x134))
+		{
+		case 0:
+		{
+			byte *extra = (byte *)object + *(short *)((byte *)object + 0x13a);
+			prop->actor_index = *(long *)(extra + 4);
+			prop->team = *(short *)((byte *)object + 0x12e);
+			prop->field23 = function_1df560(clump->team, prop->team);
+			prop->field24 = !prop->field23;
+			prop->field25 = false;
+			prop->field22 = *(long *)(extra + 8) != NONE;
+			break;
+		}
+		case 1:
+			prop->actor_index = NONE;
+			prop->team = NONE;
+			prop->field23 = false;
+			prop->field24 = false;
+			prop->field25 = false;
+			prop->field22 = false;
+			break;
+		}
+	}
+	else
+	{
+		prop->actor_index = NONE;
+		prop->team = NONE;
+		prop->field23 = false;
+		prop->field24 = false;
+		prop->field25 = false;
+		prop->field22 = false;
+	}
+	prop_state_initialize(&prop->observed);
+	*(short *)&prop->field54 = NONE;
+	*((short *)&prop->field54 + 1) = NONE;
+	prop->field38 = NONE;
+	*(real *)&prop->field2c = 0.0f;
+	*(real *)&prop->field28 = 0.0f;
+	prop->field36 = false;
+	prop->field53 = false;
+	prop->field52 = false;
+	*(bool *)&prop->unknown3c = false;
+	prop->field30 = false;
+	prop->field32 = false;
+	prop->field33 = false;
+	prop->field34 = false;
+	prop->field35 = false;
+}
 
 // @retail 0x26a7d0
 void function_26a7d0(s_prop_copy_view *destination, s_prop_copy_view const *source)
@@ -827,4 +1232,524 @@ long function_26bc60(long clump_index)
 	if (count * 0.8f > value)
 		return 0;
 	return 2;
+}
+
+// @retail 0x269040
+long function_269040(point3f const *center, short team)
+{
+	point3f const *const *center_reference = &center;
+	short const *team_reference = &team;
+	long result = record_pool_allocate(g_502420);
+	if (result == NONE)
+	{
+		s_clump_pool_iterator iterator;
+		if (g_4f55d0->active)
+		{
+			iterator.pool.data = g_502420;
+			iterator.pool.index = NONE;
+		}
+		long oldest = NONE;
+		long oldest_time = 0x7fffffff;
+		while (next_clump_in_pool(&iterator))
+		{
+			long time = ((s_clump_activity_view *)iterator.current)->active_time;
+			if (time < oldest_time)
+			{
+				oldest_time = time;
+				oldest = iterator.pool.datum_index;
+			}
+		}
+		if (oldest != NONE)
+		{
+			function_2691b0(oldest);
+			result = record_pool_allocate(g_502420);
+		}
+	}
+	if (result != NONE)
+	{
+		s_clump_activity_view *clump = (s_clump_activity_view *)(g_502420->data + (result & 0xffff) * sizeof(s_clump_activity_view));
+		clump->center = **center_reference;
+		clump->team = *team_reference;
+		clump->count = 0;
+		clump->first_actor = NONE;
+		clump->first_prop = NONE;
+		clump->active = true;
+		*(short *)((byte *)clump + 0x1e) = 0;
+		clump->active_time = g_510c54->game_time;
+		clump->state = 0;
+		clump->state_time = g_510c54->game_time;
+		*(bool *)((byte *)clump + 0x30) = false;
+		*(long *)((byte *)clump + 0x34) = NONE;
+		clump->time38 = NONE;
+		*(bool *)((byte *)clump + 0x3c) = false;
+		*(real *)((byte *)clump + 0x2c) = 50.0f;
+		clump->update_state = 1;
+		*(short *)((byte *)clump + 0x3e) = 0;
+		*(long *)((byte *)clump + 0x4c) = NONE;
+	}
+	return result;
+}
+
+// @retail 0x26a4f0
+long function_26a4f0(s_clump_activity_view *clump, short priority)
+{
+	s_clump_activity_view *const *clump_reference = &clump;
+	short const *priority_reference = &priority;
+	long result = NONE;
+	if (priority >= clump->update_state)
+	{
+		result = record_pool_allocate(g_50241c);
+		if (result == NONE)
+		{
+			long time = g_510c54->game_time;
+			short removed = 0;
+			long selected;
+			do
+			{
+				selected = NONE;
+				real best_score = 0.0f;
+				s_clump_pool_iterator iterator;
+				if (g_4f55d0->active)
+				{
+					iterator.pool.data = g_502420;
+					iterator.pool.index = NONE;
+				}
+				for (;;)
+				{
+					s_clump_activity_view *other = NULL;
+					if (g_4f55d0->active)
+						other = (s_clump_activity_view *)data_iterator_next_inlined(&iterator.pool);
+					iterator.current = (s_clump *)other;
+					if (!other) break;
+					if (other->update_state >= 4 || (other == *clump_reference && *priority_reference <= other->update_state + 1))
+						continue;
+					real score;
+					if (!other->active)
+					{
+						score = (real)(time - other->active_time) * g_510c54->rate * 0.0033333334140479565f;
+						if (score < 0.0f) score = 0.0f;
+						else if (score > 1.0f) score = 1.0f;
+						score = score * 10.100000381469727f + 8.0f;
+					}
+					else
+					{
+						score = (real)(3 - other->state) * 0.3333333432674408f;
+						if (score < 0.0f) score = 0.0f;
+						else if (score > 1.0f) score = 1.0f;
+						score *= 2.0f;
+					}
+					score = (real)(3 - other->update_state) * 5.0f + score;
+					if (score > best_score)
+					{
+						best_score = score;
+						selected = iterator.pool.datum_index;
+					}
+				}
+				if (selected != NONE)
+				{
+					s_clump_activity_view *other = (s_clump_activity_view *)(g_502420->data + (selected & 0xffff) * sizeof(s_clump_activity_view));
+					other->update_state++;
+					removed = function_26a480(selected, other->update_state);
+				}
+			} while (selected != NONE && removed <= 0);
+			if (removed > 0) result = record_pool_allocate(g_50241c);
+		}
+	}
+	return result;
+}
+
+// @retail 0x26a780
+long function_26a780(s_clump_activity_view *clump, s_prop_candidate_view const *candidate)
+{
+	long result = function_26a4f0(clump, candidate->priority);
+	if (result != NONE)
+	{
+		s_prop_copy_view *prop = (s_prop_copy_view *)(g_50241c->data + (result & 0xffff) * sizeof(s_prop_copy_view));
+		function_26a310(prop, candidate->type, candidate->object_index, (s_clump *)clump, candidate->priority);
+	}
+	return result;
+}
+
+// @retail 0x26a860
+long function_26a860(s_clump_activity_view *clump, s_prop_copy_view const *source)
+{
+	s_prop_copy_view copy = *source;
+	long result = function_26a4f0(clump, source->field0c);
+	if (result != NONE)
+	{
+		s_prop_copy_view *prop = (s_prop_copy_view *)(g_50241c->data + (result & 0xffff) * sizeof(s_prop_copy_view));
+		function_26a310(prop, copy.type, copy.object_index, (s_clump *)clump, copy.field0c);
+		function_26a7d0(prop, &copy);
+	}
+	return result;
+}
+
+// @retail 0x26a740
+long function_26a740(long object_index, s_clump_activity_view *clump)
+{
+	s_prop_candidate_view candidate;
+	g_4de2fc++;
+	g_4de2f8 = true;
+	function_269e60(object_index, clump, NONE, &candidate, true);
+	g_4de2f8 = false;
+	return function_26a780(clump, &candidate);
+}
+
+// @retail 0x269580
+void function_269580(long destination_index, long source_index)
+{
+	s_clump_activity_view *destination = (s_clump_activity_view *)(g_502420->data + (destination_index & 0xffff) * sizeof(s_clump_activity_view));
+	s_clump_activity_view *source = (s_clump_activity_view *)(g_502420->data + (source_index & 0xffff) * sizeof(s_clump_activity_view));
+	g_4de2fc++;
+	g_4de2f8 = true;
+	s_iterator iterator;
+	iterator.next = destination->first_prop;
+	s_type_76cf92 *prop;
+	while ((prop = clump_next_prop(&iterator)) != NULL)
+	{
+		long object_index = *(long *)((byte *)prop + 8);
+		byte *object = NULL;
+		if (object_index != NONE && (object_index & 0xffff) < g_4e0300->high_water_index)
+		{
+			s_object_header_view *header = (s_object_header_view *)(g_4e0300->data + g_4e0300->size * (object_index & 0xffff));
+			if (header->salt && header->salt == (object_index >> 16) && ((1 << header->type) & -1))
+				object = header->object;
+		}
+		if (!object) continue;
+		if (*(char *)(object + 0xaa) == 12 && *(long *)(object + 0x134) == 0)
+		{
+			byte *extra = object + *(short *)(object + 0x13a);
+			if (extra && *(long *)(extra + 8) != NONE)
+			{
+				long index = perception_get(*(long *)(extra + 8))->object_index;
+				while (index != NONE)
+				{
+					byte *child = (byte *)object_get(index);
+					long next = NONE;
+					if (*(long *)(child + 0x134) == 0)
+					{
+						byte *child_extra = child + *(short *)(child + 0x13a);
+						if (child_extra) next = *(long *)(child_extra + 0xc);
+					}
+					if (g_4de300[index & 0xffff] != g_4de2fc)
+						g_4de300[index & 0xffff] = g_4de2fc;
+					index = next;
+				}
+				continue;
+			}
+		}
+		if (g_4de300[object_index & 0xffff] != g_4de2fc)
+			g_4de300[object_index & 0xffff] = g_4de2fc;
+	}
+	long indices[50];
+	short count = 0;
+	iterator.next = ((s_clump_activity_view *)(g_502420->data + (source_index & 0xffff) * sizeof(s_clump_activity_view)))->first_prop;
+	while (clump_next_prop(&iterator)) indices[count++] = iterator.index;
+	for (short i = 0; i < count; i++)
+	{
+		long index = indices[i];
+		if (index == NONE || (index & 0xffff) >= g_50241c->high_water_index) continue;
+		s_prop_copy_view *copy = (s_prop_copy_view *)(g_50241c->data + g_50241c->size * (index & 0xffff));
+		if (!copy->salt || copy->salt != (index >> 16)) continue;
+		long object_index = copy->object_index;
+		if (!function_badc0(object_index, (dword)NONE)) continue;
+		if (g_4de300[object_index & 0xffff] == g_4de2fc) continue;
+		g_4de300[object_index & 0xffff] = g_4de2fc;
+		long added = function_26a860(destination, copy);
+		if (added != NONE) function_26a960((s_clump *)destination, added);
+	}
+	g_4de2f8 = false;
+	if (*(real *)((byte *)source + 0x2c) > *(real *)((byte *)destination + 0x2c))
+		*(real *)((byte *)destination + 0x2c) = *(real *)((byte *)source + 0x2c);
+	*(byte *)((byte *)destination + 0x30) |= *(byte *)((byte *)source + 0x30);
+	if (*(long *)((byte *)source + 0x34) > *(long *)((byte *)destination + 0x34))
+		*(long *)((byte *)destination + 0x34) = *(long *)((byte *)source + 0x34);
+	if (source->state > destination->state)
+	{
+		destination->state = source->state;
+		destination->state_time = source->state_time;
+	}
+}
+
+// @retail 0x26ace0
+long function_26ace0(long object_index, long actor_index, short type)
+{
+	long const *actor_reference = &actor_index;
+	short const *type_reference = &type;
+	s_actor_view *actor = actor_get(actor_index);
+	long result = NONE;
+	long clump_index = actor->unknown07c;
+	if (clump_index != NONE)
+	{
+		s_clump_activity_view *clump = (s_clump_activity_view *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump_activity_view));
+		long prop_index = function_26b120(object_index, clump_index);
+		if (prop_index == NONE)
+		{
+			prop_index = function_26a740(object_index, clump);
+			if (prop_index == NONE) return NONE;
+			((s_prop_copy_view *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_prop_copy_view)))->field0c = *type_reference;
+			function_26a960((s_clump *)clump, prop_index);
+		}
+		long next = ((s_clump_prop *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_clump_prop)))->first_node;
+		while (next != NONE)
+		{
+			long index = next;
+			s_clump_link_view *node = (s_clump_link_view *)(g_502418->data + (index & 0xffff) * sizeof(s_clump_link_view));
+			next = node->next;
+			if (node->actor_index == *actor_reference)
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+void function_269250(long clump_index, long actor_index);
+
+// @retail 0x2689d0
+void function_2689d0(void)
+{
+	s_actor_iterator actors;
+	function_x66da2b(&actors, true);
+	s_actor_view *actor;
+	while ((actor = (s_actor_view *)function_1e46c0(&actors)) != NULL)
+	{
+		s_clump_pool_iterator groups;
+		if (g_4f55d0->active)
+		{
+			groups.pool.data = g_502420;
+			groups.pool.index = NONE;
+		}
+		long selected = NONE;
+		real best = 0.0f;
+		for (;;)
+		{
+			s_clump_activity_view *group = NULL;
+			if (g_4f55d0->active)
+				group = (s_clump_activity_view *)data_iterator_next_inlined(&groups.pool);
+			groups.current = (s_clump *)group;
+			if (!group) break;
+			if (group->team != actor->unknown024) continue;
+			real score = function_268bb0(group, actor);
+			if (score > best)
+			{
+				best = score;
+				selected = groups.pool.datum_index;
+			}
+		}
+		if (selected != NONE)
+		{
+			if (selected != actor->unknown07c)
+			{
+				if (actor->unknown07c != NONE)
+				{
+					function_269580(selected, actor->unknown07c);
+					function_2694d0(actor->unknown07c, actors.actor_index);
+				}
+				function_269250(selected, actors.actor_index);
+			}
+		}
+		else
+		{
+			long created = function_269040(&actor->position, actor->unknown024);
+			if (created != NONE)
+			{
+				if (actor->unknown07c != NONE)
+				{
+					s_clump_activity_view *group = (s_clump_activity_view *)(g_502420->data + (created & 0xffff) * sizeof(s_clump_activity_view));
+					group->center = actor->position;
+					function_269580(created, actor->unknown07c);
+					function_2694d0(actor->unknown07c, actors.actor_index);
+				}
+				function_269250(created, actors.actor_index);
+			}
+		}
+	}
+}
+
+// @retail 0x269250
+void function_269250(long clump_index, long actor_index)
+{
+	long const *clump_reference = &clump_index;
+	long const *actor_reference = &actor_index;
+	s_actor_view *actor = actor_get(actor_index);
+	s_clump_activity_view *clump = (s_clump_activity_view *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump_activity_view));
+	clump->count++;
+	function_26b1d0(actor_index);
+	actor->unknown07c = clump_index;
+	actor->next_index = clump->first_actor;
+	clump->first_actor = actor_index;
+	if (actor->unknown009 && !clump->active)
+	{
+		s_clump_activity_view *updated = (s_clump_activity_view *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump_activity_view));
+		updated->active = true;
+		updated->update_state = 1;
+	}
+	if (*(bool *)((byte *)actor + 0xc))
+		*(bool *)((byte *)clump + 0x3c) = true;
+	g_4de2fc++;
+	g_4de2f8 = true;
+	s_iterator nodes;
+	nodes.next = actor_get(actor_index)->first_prop_index;
+	s_prop_node_view *node;
+	while ((node = clump_member_prop_next(&nodes)) != NULL)
+	{
+		long object_slot = node->object_index & 0xffff;
+		if (g_4de300[object_slot] != g_4de2fc)
+			g_4de300[object_slot] = g_4de2fc;
+		long prop_index = function_26b120(node->object_index, *clump_reference);
+		if (prop_index != NONE)
+		{
+			s_clump_prop *prop = (s_clump_prop *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_clump_prop));
+			s_clump_link_view *link = (s_clump_link_view *)prop_ref_get(nodes.index);
+			long first = prop->first_node;
+			if (first != NONE)
+				((s_clump_link_view *)prop_ref_get(first))->previous = nodes.index;
+			link->next = first;
+			prop->first_node = nodes.index;
+			link->prop_index = prop_index;
+		}
+		else
+		{
+			function_26abd0((s_clump_link_view *)node);
+			if (node->view_index != NONE) record_pool_release(g_502414, node->view_index);
+			record_pool_release(g_502418, nodes.index);
+		}
+	}
+	s_iterator props;
+	props.next = ((s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump)))->first_prop;
+	s_type_76cf92 *prop;
+	while ((prop = clump_next_prop(&props)) != NULL)
+	{
+		long slot = *(long *)((byte *)prop + 8) & 0xffff;
+		if (g_4de300[slot] != g_4de2fc)
+		{
+			g_4de300[slot] = g_4de2fc;
+			long index = function_26a8d0(props.index);
+			if (index != NONE)
+			{
+				s_clump_prop *current = (s_clump_prop *)(g_50241c->data + (props.index & 0xffff) * sizeof(s_clump_prop));
+				s_clump_link_view *link = (s_clump_link_view *)prop_ref_get(index);
+				long first = current->first_node;
+				if (first != NONE)
+					((s_clump_link_view *)prop_ref_get(first))->previous = index;
+				link->next = first;
+				current->first_node = index;
+				link->prop_index = props.index;
+				function_26aa40(*actor_reference, index);
+			}
+		}
+	}
+	g_4de2f8 = false;
+}
+
+// @retail 0x26ae30
+void function_26ae30(long object_index)
+{
+	long const *object_reference = &object_index;
+	s_slot_object_view *object = object_get(object_index);
+	bool group_object = false, unit = false;
+	long replacement = NONE;
+	if ((char)object->type == 12)
+	{
+		if (*(long *)((byte *)object + 0x134) == 0)
+		{
+			byte *data = (byte *)object + *(short *)((byte *)object + 0x13a);
+			if (data)
+			{
+				long perception = *(long *)(data + 8);
+				group_object = true;
+				if (perception != NONE)
+				{
+					long index = perception_get(perception)->object_index;
+					for (;;)
+					{
+						if (index == NONE) break;
+						s_slot_object_view *member = object_get(index);
+						long current = index;
+						byte *member_extension = NULL;
+						if (*(long *)((byte *)member + 0x134) == 0)
+							member_extension = (byte *)member + *(short *)((byte *)member + 0x13a);
+						index = member_extension ? *(long *)(member_extension + 0xc) : NONE;
+						if (current != object_index)
+						{
+							replacement = current;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	else if ((1 << object->type) & 3)
+		unit = true;
+	s_clump_pool_iterator groups;
+	if (g_4f55d0->active)
+	{
+		groups.pool.data = g_502420;
+		groups.pool.index = NONE;
+	}
+	for (;;)
+	{
+		s_clump *clump = NULL;
+		if (g_4f55d0->active)
+			clump = (s_clump *)data_iterator_next_inlined(&groups.pool);
+		groups.current = clump;
+		if (!clump) break;
+		bool changed = false;
+		s_iterator props;
+		props.next = ((s_clump *)(g_502420->data + (groups.pool.datum_index & 0xffff) * sizeof(s_clump)))->first_prop;
+		s_type_76cf92 *prop;
+		while ((prop = clump_next_prop(&props)) != NULL)
+		{
+			if (*(long *)((byte *)prop + 8) == *object_reference)
+			{
+				changed = true;
+				if (replacement != NONE)
+					*(long *)((byte *)prop + 8) = replacement;
+				else
+				{
+					function_26aaf0(groups.current, props.index);
+					if (!unit) break;
+					continue;
+				}
+			}
+			else if (prop->state.unknown3c == object_index)
+			{
+				prop->state.unknown3c = NONE;
+				prop->state.unknown66 = false;
+				prop->state.unknown65 = false;
+			}
+			if (group_object && prop->unknown22)
+			{
+				s_iterator nodes;
+				nodes.next = ((s_clump_prop *)(g_50241c->data + (props.index & 0xffff) * sizeof(s_clump_prop)))->first_node;
+				s_clump_node *node;
+				while ((node = clump_next_node(&nodes)) != NULL)
+				{
+					if (((s_prop_datum *)node)->object_index == object_index)
+					{
+						((s_prop_datum *)node)->object_index = replacement;
+						changed = true;
+					}
+				}
+			}
+			if (changed && !unit) break;
+		}
+	}
+	if (object->type == 1)
+	{
+		long index = NONE;
+		for (;;)
+		{
+			index = data_next_absolute_index_inlined(g_502414, index + 1);
+			if (index == NONE) break;
+			byte *tracking = g_502414->data + g_502414->size * index;
+			if (!tracking) break;
+			if (*(long *)(tracking + 0x40) == object_index)
+				*(long *)(tracking + 0x40) = NONE;
+		}
+	}
 }

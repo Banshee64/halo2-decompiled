@@ -554,6 +554,41 @@ struct s_player_29f5b0
 	byte unknown030[0x21c - 0x30];
 };
 
+long function_1ded60(void);
+
+inline void append_object_29f480(long list_index, long object_index)
+{
+	s_object_list_datum *list = &((s_object_list_datum *)g_4f55d8->data)[list_index & 0xffff];
+	long reference_index = record_pool_allocate(g_4f55d4);
+	if (reference_index != NONE)
+	{
+		s_object_reference_1dee50 *reference = (s_object_reference_1dee50 *)(g_4f55d4->data +
+			(reference_index & 0xffff) * g_4f55d4->size);
+		reference->object_index = object_index;
+		reference->next_reference_index = list->first_reference_index;
+		list->first_reference_index = reference_index;
+	}
+	list->count++;
+}
+
+// @retail 0x29f480
+long function_29f480(void)
+{
+	long list_index = function_1ded60();
+	s_record_pool *players = g_4e8c24;
+	long player_index = data_datum_index(players, function_16bc00(players, 0));
+	while (player_index != NONE)
+	{
+		s_player_29f5b0 *player = &((s_player_29f5b0 *)g_4e8c24->data)[player_index & 0xffff];
+		if (player->unit_index != NONE)
+			append_object_29f480(list_index, player->unit_index);
+		players = g_4e8c24;
+		player_index = data_datum_index(players, data_find_index(players,
+			player_index == NONE ? 0 : (player_index & 0xffff) + 1));
+	}
+	return list_index;
+}
+
 /* moves the unit of every player outside a trigger volume to a cutscene
    flag */
 // @retail 0x29f5b0
@@ -5248,7 +5283,7 @@ void __stdcall function_2a5c10(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ca84 = { _hs_type_void, 0, function_2a5c10, NULL, 2, { _hs_type_ai, _hs_type_short_integer } };
+s_type_f4462a const g_44ca84 = { _hs_type_void, 0, function_2a5c10, NULL, 2, { _hs_type_ai, _hs_type_ai_orders } };
 
 /* 334: short_integer (ai) */
 // @retail 0x2a5c60
@@ -6178,7 +6213,7 @@ void __stdcall function_2a6b30(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ce20 = { _hs_type_void, 0, function_2a6b30, NULL, 1, { _hs_type_point_reference } };
+s_type_f4462a const g_44ce20 = { _hs_type_void, 1, function_2a6b30, NULL, 1, { _hs_type_point_reference } };
 
 /* 379: void (point_reference, real) */
 // @retail 0x2a6bc0
@@ -6194,7 +6229,7 @@ void __stdcall function_2a6bc0(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ce34 = { _hs_type_void, 0, function_2a6bc0, NULL, 2, { _hs_type_point_reference, _hs_type_real } };
+s_type_f4462a const g_44ce34 = { _hs_type_void, 1, function_2a6bc0, NULL, 2, { _hs_type_point_reference, _hs_type_real } };
 
 /* 380: void (point_reference, point_reference) */
 // @retail 0x2a6c50
@@ -6210,7 +6245,7 @@ void __stdcall function_2a6c50(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ce48 = { _hs_type_void, 0, function_2a6c50, NULL, 2, { _hs_type_point_reference, _hs_type_point_reference } };
+s_type_f4462a const g_44ce48 = { _hs_type_void, 1, function_2a6c50, NULL, 2, { _hs_type_point_reference, _hs_type_point_reference } };
 
 /* 381: void (point_reference, point_reference, real) */
 // @retail 0x2a6ce0
@@ -6226,7 +6261,7 @@ void __stdcall function_2a6ce0(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ce5c = { _hs_type_void, 0, function_2a6ce0, NULL, 3, { _hs_type_point_reference, _hs_type_point_reference, _hs_type_real } };
+s_type_f4462a const g_44ce5c = { _hs_type_void, 1, function_2a6ce0, NULL, 3, { _hs_type_point_reference, _hs_type_point_reference, _hs_type_real } };
 
 /* 382: void (point_reference) */
 // @retail 0x2a6d70
@@ -6242,7 +6277,7 @@ void __stdcall function_2a6d70(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ce74 = { _hs_type_void, 0, function_2a6d70, NULL, 1, { _hs_type_point_reference } };
+s_type_f4462a const g_44ce74 = { _hs_type_void, 1, function_2a6d70, NULL, 1, { _hs_type_point_reference } };
 
 /* 383: void (point_reference, real) */
 // @retail 0x2a6e00
@@ -6258,7 +6293,7 @@ void __stdcall function_2a6e00(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ce88 = { _hs_type_void, 0, function_2a6e00, NULL, 2, { _hs_type_point_reference, _hs_type_real } };
+s_type_f4462a const g_44ce88 = { _hs_type_void, 1, function_2a6e00, NULL, 2, { _hs_type_point_reference, _hs_type_real } };
 
 /* 384: void (point_reference) */
 // @retail 0x2a6e90
@@ -6274,7 +6309,7 @@ void __stdcall function_2a6e90(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ce9c = { _hs_type_void, 0, function_2a6e90, NULL, 1, { _hs_type_point_reference } };
+s_type_f4462a const g_44ce9c = { _hs_type_void, 1, function_2a6e90, NULL, 1, { _hs_type_point_reference } };
 
 /* 385: void (point_reference, real) */
 // @retail 0x2a6f20
@@ -6290,7 +6325,7 @@ void __stdcall function_2a6f20(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ceb0 = { _hs_type_void, 0, function_2a6f20, NULL, 2, { _hs_type_point_reference, _hs_type_real } };
+s_type_f4462a const g_44ceb0 = { _hs_type_void, 1, function_2a6f20, NULL, 2, { _hs_type_point_reference, _hs_type_real } };
 
 /* 386: void (point_reference, point_reference) */
 // @retail 0x2a6fb0
@@ -6306,7 +6341,7 @@ void __stdcall function_2a6fb0(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44cec4 = { _hs_type_void, 0, function_2a6fb0, NULL, 2, { _hs_type_point_reference, _hs_type_point_reference } };
+s_type_f4462a const g_44cec4 = { _hs_type_void, 1, function_2a6fb0, NULL, 2, { _hs_type_point_reference, _hs_type_point_reference } };
 
 /* 387: void (point_reference, point_reference, real) */
 // @retail 0x2a7040
@@ -6322,7 +6357,7 @@ void __stdcall function_2a7040(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44ced8 = { _hs_type_void, 0, function_2a7040, NULL, 3, { _hs_type_point_reference, _hs_type_point_reference, _hs_type_real } };
+s_type_f4462a const g_44ced8 = { _hs_type_void, 1, function_2a7040, NULL, 3, { _hs_type_point_reference, _hs_type_point_reference, _hs_type_real } };
 
 /* 388: void (point_reference, point_reference) */
 // @retail 0x2a70d0
@@ -6338,7 +6373,7 @@ void __stdcall function_2a70d0(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44cef0 = { _hs_type_void, 0, function_2a70d0, NULL, 2, { _hs_type_point_reference, _hs_type_point_reference } };
+s_type_f4462a const g_44cef0 = { _hs_type_void, 1, function_2a70d0, NULL, 2, { _hs_type_point_reference, _hs_type_point_reference } };
 
 /* 389: void (point_reference) */
 // @retail 0x2a7160
@@ -6354,7 +6389,7 @@ void __stdcall function_2a7160(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44cf04 = { _hs_type_void, 0, function_2a7160, NULL, 1, { _hs_type_point_reference } };
+s_type_f4462a const g_44cf04 = { _hs_type_void, 1, function_2a7160, NULL, 1, { _hs_type_point_reference } };
 
 void function_2769d0(long point_reference);
 
@@ -6679,7 +6714,7 @@ void __stdcall function_2a7850(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d06c = { _hs_type_void, 0, function_2a7850, NULL, 2, { _hs_type_point_reference, _hs_type_short_integer } };
+s_type_f4462a const g_44d06c = { _hs_type_void, 1, function_2a7850, NULL, 2, { _hs_type_point_reference, _hs_type_short_integer } };
 
 /* 408: void (real, real) */
 // @retail 0x2a78e0
@@ -6695,7 +6730,7 @@ void __stdcall function_2a78e0(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d080 = { _hs_type_void, 0, function_2a78e0, NULL, 2, { _hs_type_real, _hs_type_real } };
+s_type_f4462a const g_44d080 = { _hs_type_void, 1, function_2a78e0, NULL, 2, { _hs_type_real, _hs_type_real } };
 
 /* 409: void (real, real) */
 // @retail 0x2a7970
@@ -6711,7 +6746,7 @@ void __stdcall function_2a7970(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d094 = { _hs_type_void, 0, function_2a7970, NULL, 2, { _hs_type_real, _hs_type_real } };
+s_type_f4462a const g_44d094 = { _hs_type_void, 1, function_2a7970, NULL, 2, { _hs_type_real, _hs_type_real } };
 
 /* 410: void (short) */
 // @retail 0x2a7a00
@@ -6727,7 +6762,7 @@ void __stdcall function_2a7a00(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d0a8 = { _hs_type_void, 0, function_2a7a00, NULL, 1, { _hs_type_short_integer } };
+s_type_f4462a const g_44d0a8 = { _hs_type_void, 1, function_2a7a00, NULL, 1, { _hs_type_short_integer } };
 
 /* 411: void (sound) */
 // @retail 0x2a7a80
@@ -6869,7 +6904,7 @@ void __stdcall function_2a7d70(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d14c = { _hs_type_void, 0, function_2a7d70, NULL, 1, { _hs_type_short_integer } };
+s_type_f4462a const g_44d14c = { _hs_type_void, 1, function_2a7d70, NULL, 1, { _hs_type_short_integer } };
 
 void function_2773d0(long facing_point_reference, long point_reference);
 
@@ -6948,8 +6983,8 @@ void __stdcall function_2a7f60(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d174 = { _hs_type_void, 0, function_2a7f60, NULL, 2, { _hs_type_long_integer, _hs_type_short_integer } };
-s_type_f4462a const g_44d1c4 = { _hs_type_void, 0, function_2a7f60, NULL, 1, { _hs_type_real } };
+s_type_f4462a const g_44d174 = { _hs_type_void, 1, function_2a7f60, NULL, 2, { _hs_type_long_integer, _hs_type_short_integer } };
+s_type_f4462a const g_44d1c4 = { _hs_type_void, 1, function_2a7f60, NULL, 1, { _hs_type_real } };
 
 /* 425: void (vehicle) */
 // @retail 0x2a7fc0
@@ -6965,7 +7000,7 @@ void __stdcall function_2a7fc0(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d1d8 = { _hs_type_void, 0, function_2a7fc0, NULL, 1, { _hs_type_vehicle } };
+s_type_f4462a const g_44d1d8 = { _hs_type_void, 1, function_2a7fc0, NULL, 1, { _hs_type_vehicle } };
 
 /* 426: void (ai_behavior) */
 // @retail 0x2a8040
@@ -6981,7 +7016,7 @@ void __stdcall function_2a8040(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d1ec = { _hs_type_void, 0, function_2a8040, NULL, 1, { _hs_type_ai_behavior } };
+s_type_f4462a const g_44d1ec = { _hs_type_void, 1, function_2a8040, NULL, 1, { _hs_type_ai_behavior } };
 
 /* 427: void (short_integer, ai, point_reference, point_reference) */
 // @retail 0x2a80c0
@@ -7013,7 +7048,7 @@ void __stdcall function_2a8130(short function_index, long thread_index, bool ini
 	}
 }
 
-s_type_f4462a const g_44d218 = { _hs_type_void, 0, function_2a8130, NULL, 1, { _hs_type_point_reference } };
+s_type_f4462a const g_44d218 = { _hs_type_void, 1, function_2a8130, NULL, 1, { _hs_type_point_reference } };
 
 /* 429: void (object, real, real, real) */
 // @retail 0x2a81b0

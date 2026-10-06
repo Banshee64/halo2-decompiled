@@ -9,6 +9,13 @@
 #include "unknown_07aec0.h"
 #include "unknown_092870.h"
 #include <string.h>
+#include "network_message_types.h"
+
+class c_class_938e0
+{
+public:
+	void function_938e0(const s_type_99af70 *address, long message_type, const void *message);
+};
 
 #ifndef MIN
 #define MIN(a,b) ((a)>(b)?(b):(a))
@@ -16,12 +23,13 @@
 
 struct s_network_message_gateway
 {
-	byte unknown00[8];
+	virtual bool read_packet(const s_type_99af70 *address, s_bitstream *stream);
+	byte unknown04[4];
 	c_class_93590 *link;
-	byte unknown0c[8];
+	c_type_659ceb *field_c_7;
+	c_class_938e0 *handler;
 	bool outgoing_packet_pending;
-	byte unknown15[3];
-	byte outgoing_packet_storage[0x600];
+	byte outgoing_packet_storage[0x603];
 	s_type_99af70 outgoing_packet_address;
 	s_bitstream outgoing_packet;
 };
@@ -60,4 +68,128 @@ void network_message_gateway_send_pending_messages_to_address(s_network_message_
 		if (a->address_length > 0 && a->address_length == address->address_length && memcmp(a, address, length) == 0)
 			network_message_gateway_send_pending_messages(gateway);
 	}
+}
+
+bool network_message_read_header(s_bitstream *stream, long *type, c_type_659ceb const *collection, long *size);
+void network_message_write_header(s_bitstream *stream, long type, long size);
+void function_194710(s_bitstream *stream, bool discard);
+
+static __forceinline void gateway_stream_begin(s_bitstream *stream)
+{
+	stream->unknown08 = 1;
+	stream->mode = 1;
+	memset(stream->data, 0, stream->size_in_bytes);
+	stream->bit_position = 0;
+	stream->checkpoint_count = 0;
+	stream->error = false;
+	if (stream->mode == 1)
+	{
+		stream->unknown2c = 0;
+		stream->unknown30 = 0;
+	}
+	else if (stream->mode == 3 || stream->mode == 4)
+	{
+		if (function_1959c0(stream, 32) == 'debg')
+			stream->error = true;
+		else
+		{
+			stream->bit_position = 0;
+			stream->error = false;
+		}
+	}
+}
+
+// @retail 0x7b140
+bool __stdcall function_07b140(void *object, long destination, long type, long size, void *message)
+{
+	s_network_message_gateway *gateway = (s_network_message_gateway *)object;
+	const s_type_99af70 *address = (const s_type_99af70 *)destination;
+	bool result = false;
+	if (gateway->outgoing_packet_pending)
+	{
+		const s_type_99af70 *old = &gateway->outgoing_packet_address;
+		short length = MIN(old->address_length, address->address_length);
+		if (!(old->address_length > 0 && old->address_length == address->address_length &&
+			memcmp(old, address, length) == 0))
+			network_message_gateway_send_pending_messages(gateway);
+	}
+	s_bitstream *stream = &gateway->outgoing_packet;
+	for (;;)
+	{
+		bool started = false;
+		if (!gateway->outgoing_packet_pending)
+		{
+			stream->size_in_bytes = 0x518;
+			stream->mode = 0;
+			stream->bit_position = 0;
+			stream->checkpoint_count = 0;
+			stream->error = false;
+			stream->data = (byte *)gateway + 0x15;
+			gateway_stream_begin(stream);
+			gateway->outgoing_packet_address = *address;
+			gateway->outgoing_packet_pending = true;
+			started = true;
+		}
+		stream->checkpoints[stream->checkpoint_count++] = stream->bit_position;
+		stream_write_bit(stream, true);
+		c_type_659ceb *collection = gateway->field_c_7;
+		network_message_write_header(stream, type, size);
+		collection->m_types[type].encode(stream, size, message);
+		if (stream->bit_position + 1 <= (stream->size_in_bytes << 3))
+		{
+			stream->checkpoint_count--;
+			result = true;
+			break;
+		}
+		if (started)
+		{
+			function_194710(stream, true);
+			break;
+		}
+		function_194710(stream, true);
+		network_message_gateway_send_pending_messages(gateway);
+	}
+	return result;
+}
+
+// @retail 0x7afd0
+bool s_network_message_gateway::read_packet(const s_type_99af70 *address, s_bitstream *stream)
+{
+	unsigned __int64 storage[8192];
+	bool result = true;
+	stream->mode = 3;
+	stream->bit_position = 0;
+	stream->checkpoint_count = 0;
+	stream->error = false;
+	if (function_1959c0(stream, 32) == 'debg')
+		stream->error = true;
+	else
+	{
+		stream->bit_position = 0;
+		stream->error = false;
+	}
+	if (!stream_overflowed(stream))
+	{
+		while (stream_read_bit(stream))
+		{
+			long type = NONE;
+			long size = 0;
+			c_type_659ceb *collection = field_c_7;
+			bool decoded = false;
+			if (network_message_read_header(stream, &type, collection, &size))
+			{
+				memset(storage, 0, size);
+				decoded = collection->m_types[type].decode(stream, size, storage);
+			}
+			result = decoded;
+			if (!result)
+				break;
+			if (handler)
+				handler->function_938e0(address, type, storage);
+		}
+		if (result)
+			stream->mode = 5;
+		return result;
+	}
+	return false;
 }

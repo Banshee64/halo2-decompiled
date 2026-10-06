@@ -15,17 +15,12 @@ bool __stdcall function_205be0(s_vehicle_physics_state *state, long vehicle_inde
 // @stub 0x2056e0
 void __stdcall function_2056e0(long vehicle_index, s_vehicle_physics_state *state, real braking, vector3f const *force, vector3f const *torque) { }
 
-// @stub 0x113e40
-bool function_113e40(long unit_index) { return 0; }
-
 // @stub 0xe6830
 bool __stdcall function_e6830(long unit_index) { return 0; }
 
 // @stub 0x111650
 bool __stdcall function_111650(long unit_index, long *names) { return 0; }
 
-// @stub 0x1fa3a0
-long function_1fa3a0(long a, long b, long c, point3f const *point) { return 0; }
 
 
 // @stub 0x168f40

@@ -7,6 +7,8 @@
 #include <math.h>
 #include "globals.h"
 #include "unknown_157450.h"
+#include "object_iterator.h"
+#include "unknown_0d0690.h"
 
 /* the influences' weights (g_502258, cleared by unknown_157450.cpp): two
    shared values, then three per influence type */
@@ -25,6 +27,70 @@ struct s_spawn_influence_globals
 };
 
 extern dword g_502258[0x27];
+
+PRIVATE const byte g_4709f0[48] =
+{
+	140, 7, 0, 5, 141, 7, 0, 6, 142, 7, 0, 13, 143, 7, 0, 16,
+	144, 7, 0, 13, 145, 7, 0, 17, 146, 7, 0, 17, 147, 7, 0, 14,
+	148, 7, 0, 14, 149, 7, 0, 14, 150, 7, 0, 9, 151, 7, 0, 20
+};
+byte const *g_5022f0;
+
+struct s_spawn_type_override_23aea0
+{
+	short type;
+	short unknown02;
+	s_spawn_influence_type values;
+};
+
+struct s_spawn_settings_23aea0
+{
+	real value0;
+	real value4;
+	byte unknown08[0x48 - 8];
+	long count;
+	s_spawn_type_override_23aea0 *types;
+};
+
+struct s_spawn_scenario_23aea0
+{
+	byte unknown00[0x318];
+	long count;
+	s_spawn_settings_23aea0 *settings;
+};
+
+// @retail 0x23aea0
+void function_23aea0()
+{
+	byte *tag = g_4e3b44[g_4e034c->index & 0xffff].bytes;
+	byte *definition = *(byte **)(tag + 0xc);
+	s_spawn_scenario_23aea0 *scenario = (s_spawn_scenario_23aea0 *)g_4e0350;
+	s_spawn_influence_globals *globals = (s_spawn_influence_globals *)g_502258;
+	g_5022f0 = g_4709f0;
+	globals->value4 = *(real *)(definition + 0x154);
+	globals->value0 = *(real *)(definition + 0x150);
+	for (long i = 0; i < 12; i++)
+	{
+		g_502258[2 + i * 3] = *(dword *)(definition + 0x180 + i * 0x1c);
+		g_502258[3 + i * 3] = *(dword *)(definition + 0x184 + i * 0x1c);
+		g_502258[4 + i * 3] = *(dword *)(definition + 0x188 + i * 0x1c);
+	}
+	if (scenario->count > 0)
+	{
+		s_spawn_settings_23aea0 *settings = scenario->settings;
+		if (settings->value0 != 0.f)
+			globals->value4 = settings->value0;
+		if (settings->value4 != 0.f)
+			globals->value0 = settings->value4;
+		for (long j = 0; j < settings->count; j++)
+		{
+			s_spawn_type_override_23aea0 *entry = &settings->types[j];
+			globals->types[entry->type].value0 = entry->values.value0;
+			globals->types[entry->type].value4 = entry->values.value4;
+			globals->types[entry->type].value8 = entry->values.value8;
+		}
+	}
+}
 
 /* an influence on the spawn points (0x20 bytes) */
 struct s_spawn_influence
@@ -230,6 +296,98 @@ struct s_spawn_player_view
 	byte unknown0c1[0x21c - 0xc1];
 };
 
+struct s_spawn_zone_23b170
+{
+	dword unknown00;
+	dword teams;
+	dword modes;
+	dword unknown0c;
+	point3f position;
+	real distance1c;
+	real distance20;
+	real inner_radius;
+	real outer_radius;
+	real weight;
+};
+
+struct s_spawn_zone_block_23b170
+{
+	long count;
+	s_spawn_zone_23b170 *zones;
+};
+
+class c_spawn_filter_23b170
+{
+public:
+#define SPAWN_FILTER_SLOT(n) virtual void slot##n() = 0;
+	SPAWN_FILTER_SLOT(0) SPAWN_FILTER_SLOT(1) SPAWN_FILTER_SLOT(2)
+	SPAWN_FILTER_SLOT(3) SPAWN_FILTER_SLOT(4) SPAWN_FILTER_SLOT(5)
+	SPAWN_FILTER_SLOT(6) SPAWN_FILTER_SLOT(7) SPAWN_FILTER_SLOT(8)
+	SPAWN_FILTER_SLOT(9) SPAWN_FILTER_SLOT(10) SPAWN_FILTER_SLOT(11)
+	SPAWN_FILTER_SLOT(12) SPAWN_FILTER_SLOT(13) SPAWN_FILTER_SLOT(14)
+	SPAWN_FILTER_SLOT(15) SPAWN_FILTER_SLOT(16) SPAWN_FILTER_SLOT(17)
+	SPAWN_FILTER_SLOT(18) SPAWN_FILTER_SLOT(19) SPAWN_FILTER_SLOT(20)
+	SPAWN_FILTER_SLOT(21) SPAWN_FILTER_SLOT(22) SPAWN_FILTER_SLOT(23)
+	SPAWN_FILTER_SLOT(24) SPAWN_FILTER_SLOT(25) SPAWN_FILTER_SLOT(26)
+	SPAWN_FILTER_SLOT(27) SPAWN_FILTER_SLOT(28) SPAWN_FILTER_SLOT(29)
+	SPAWN_FILTER_SLOT(30) SPAWN_FILTER_SLOT(31) SPAWN_FILTER_SLOT(32)
+#undef SPAWN_FILTER_SLOT
+	virtual bool accepts(long player_index, s_spawn_zone_23b170 const *zone) = 0;
+};
+
+// @retail 0x23b170
+void function_23b170(long player_index, s_spawn_influence_list *list)
+{
+	s_spawn_player_view *player = &((s_spawn_player_view *)g_4e8c24->data)[player_index & 0xffff];
+	s_spawn_scenario_23aea0 *scenario = (s_spawn_scenario_23aea0 *)g_4e0350;
+	if (scenario->count > 0)
+	{
+		s_spawn_zone_block_23b170 *block = (s_spawn_zone_block_23b170 *)((byte *)scenario->settings +
+			((player->unknown000[2] & 8) ? 0x58 : 0x50));
+		for (long i = 0; i < block->count; i++)
+		{
+			s_spawn_zone_23b170 *zone = &block->zones[i];
+			c_engine_peer *engine = game_engine_get();
+			if (engine && TEST_FIELD_BIT(g_4e6948->flags184.bit0) && player->team != NONE)
+			{
+				bool accepted = false;
+				for (long j = 0; j < 9; j++)
+				{
+					if ((function_xaee93d()->assigned_teams & (1 << j)) &&
+						(zone->teams & (1 << j)) && function_xaee93d()->team_designators[j] == player->team)
+						accepted = true;
+				}
+				if (!accepted)
+					continue;
+			}
+			if (zone->modes)
+			{
+				bool accepted;
+				switch (function_xaee93d()->engine_index)
+				{
+				case 1: accepted = (bool)((zone->modes >> 3) & 1); break;
+				case 2: accepted = (bool)(zone->modes & 1); break;
+				case 3: accepted = (bool)((zone->modes >> 1) & 1); break;
+				case 4: accepted = (bool)((zone->modes >> 2) & 1); break;
+				case 7: accepted = (bool)((zone->modes >> 6) & 1); break;
+				case 8: accepted = (bool)((zone->modes >> 7) & 1); break;
+				case 9: accepted = (bool)((zone->modes >> 3) & 1); break;
+				default: __assume(0);
+				}
+				if (!accepted)
+					continue;
+			}
+			if (((c_spawn_filter_23b170 *)engine)->accepts(player_index, zone))
+			{
+				real distance20, distance1c;
+				function_23b3f0((s_spawn_settings_view *)zone, &distance20, &distance1c);
+				spawn_influence_add(list, &zone->position, zone->inner_radius,
+					zone->outer_radius, distance20, distance1c, zone->weight);
+			}
+		}
+	}
+}
+
 struct s_spawn_player_iterator
 {
 	s_spawn_player_view *player;
@@ -318,6 +476,109 @@ void function_23b8e0(long player_index, s_spawn_influence_list *list)
 				{
 					function_23ba10(10, list, &state->position);
 				}
+			}
+		}
+	}
+}
+
+struct s_spawn_moving_object_23b500
+{
+	long tag_index;
+	dword flags;
+	byte unknown08[0x30 - 8];
+	point3f position;
+	byte unknown3c[0x88 - 0x3c];
+	vector3f velocity;
+	byte unknown94[0xaa - 0x94];
+	byte type;
+	byte unknownab[0x10a - 0xab];
+	byte unit_flags;
+	byte unknown10b[0x13c - 0x10b];
+	long player_index;
+};
+
+struct s_spawn_motion_settings_23b500
+{
+	byte unknown00[8];
+	real projectile_weight;
+	real projectile_inner;
+	real projectile_outer;
+	real projectile_time;
+	real minimum_speed;
+	real vehicle_weight;
+	real maximum_radius;
+	real vehicle_time;
+};
+
+// @retail 0x23b500
+void function_23b500(long player_index, s_spawn_influence_list *list)
+{
+	byte *globals_tag = *(byte **)(g_4e3b44[g_4e034c->index & 0xffff].bytes + 0xc);
+	s_spawn_motion_settings_23b500 *settings = *(s_spawn_motion_settings_23b500 **)(globals_tag + 0x534);
+	s_spawn_player_view *player = &((s_spawn_player_view *)g_4e8c24->data)[player_index & 0xffff];
+	struct
+	{
+		s_spawn_moving_object_23b500 *object;
+		s_type_f1af8e iterator;
+	} objects;
+	objects.iterator.signature = 0x86868686;
+	objects.iterator.type_mask = 0x22;
+	objects.iterator.flags = 0;
+	objects.iterator.index = 0;
+	objects.iterator.object_index = NONE;
+	while ((objects.object = (s_spawn_moving_object_23b500 *)function_baeb0(&objects.iterator)) != 0)
+	{
+		s_spawn_moving_object_23b500 *object = objects.object;
+		long type_mask = 1 << object->type;
+		if (type_mask & 2)
+		{
+			if ((bool)((object->unit_flags >> 2) & 1) || (bool)((object->flags >> 26) & 1))
+				continue;
+			bool empty = true;
+			bool friendly = true;
+			s_object_child_iterator children;
+			function_d0620(objects.iterator.object_index, &children);
+			while (function_d0690(&children))
+			{
+				s_spawn_moving_object_23b500 *child = (s_spawn_moving_object_23b500 *)
+					((s_spawn_object_header_view *)g_4e0300->data)[children.child_index & 0xffff].object;
+				if ((1 << child->type) & 1)
+				{
+					empty = false;
+					if (child->player_index != NONE &&
+						((s_spawn_player_view *)g_4e8c24->data)[child->player_index & 0xffff].team != player->team)
+						friendly = false;
+				}
+			}
+			long influence_type = empty ? 4 : friendly ? 3 : 2;
+			function_23ba10(influence_type, list, &object->position);
+			real speed_squared = object->velocity.i * object->velocity.i +
+				object->velocity.j * object->velocity.j + object->velocity.k * object->velocity.k;
+			if (speed_squared > settings->minimum_speed * settings->minimum_speed)
+			{
+				real radius = (real)sqrt(speed_squared);
+				radius = radius < 0.f ? 0.f : radius > settings->maximum_radius ? settings->maximum_radius : radius;
+				point3f predicted;
+				predicted.x = object->velocity.i * settings->vehicle_time + object->position.x;
+				predicted.y = object->velocity.j * settings->vehicle_time + object->position.y;
+				predicted.z = object->velocity.k * settings->vehicle_time + object->position.z;
+				spawn_influence_add(list, &predicted, radius, radius * 1.2f,
+					((s_spawn_influence_globals *)g_502258)->value0,
+					((s_spawn_influence_globals *)g_502258)->value4, settings->vehicle_weight);
+			}
+		}
+		else if (type_mask & 0x20)
+		{
+			byte *definition = g_4e3b44[object->tag_index & 0xffff].bytes;
+			if (*(real *)(definition + 0xcc) > 0.f && *(real *)(definition + 0xd0) > 0.f)
+			{
+				point3f predicted;
+				predicted.x = object->velocity.i * settings->projectile_time + object->position.x;
+				predicted.y = object->velocity.j * settings->projectile_time + object->position.y;
+				predicted.z = object->velocity.k * settings->projectile_time + object->position.z;
+				spawn_influence_add(list, &predicted, settings->projectile_inner, settings->projectile_outer,
+					((s_spawn_influence_globals *)g_502258)->value0,
+					((s_spawn_influence_globals *)g_502258)->value4, settings->projectile_weight);
 			}
 		}
 	}

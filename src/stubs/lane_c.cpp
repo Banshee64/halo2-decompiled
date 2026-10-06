@@ -2,10 +2,52 @@
 // not decompiled yet, and the library (Havok) functions the region calls
 #include "unknown_11c920.h"
 #include "unknown_1cec30.h"
+
+class c_library_30c470
+{
+public:
+	void detach(void *callback);
+};
+
+// @stub 0x30c470
+void c_library_30c470::detach(void *callback) { }
+
+class c_278da0_kind;
+class c_library_311690
+{
+public:
+	void update(long value);
+	byte unknown00[0x54];
+	c_278da0_kind *kind;
+};
+
+// @stub 0x311690
+void c_library_311690::update(long value) { }
+
+class c_278b60_filter;
+struct s_278b60_dispatch;
+struct s_278b60_filter;
+class c_library_30c190
+{
+public:
+	c_278b60_filter *filter();
+	byte unknown00[0xcc];
+	s_278b60_dispatch *dispatch;
+	s_278b60_filter *filter_object;
+};
+
+// @stub 0x30c190
+c_278b60_filter *c_library_30c190::filter() { return NULL; }
 #include "slot_owner.h"
 #include "unknown_1c62f0.h"
 #include "unknown_0259a0.h"
 #include "unknown_1765e0.h"
+
+// @stub 0x2d91d0
+void __cdecl function_2d91d0(void *array, long element_size) { }
+
+// @stub 0x30c170
+byte *__fastcall function_30c170(hkWorld *world) { return 0; }
 
 // @stub 0x3123a0
 hkPropertyValue hkEntity::removeProperty(dword key) { return hkPropertyValue(0); }
@@ -18,18 +60,11 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 
 /* game functions outside the region called by the ai lifecycle callbacks */
 
-// @stub 0x1dfae0
-void function_1dfae0(void) { }
 
-// @stub 0x28d930
-void function_28d930(void) { }
 
 // @stub 0x292130
 void function_292130(void) { }
 
-
-// @stub 0x28d9d0
-void function_28d9d0(void) { }
 
 // @stub 0x292e00
 void function_292e00(void) { }
@@ -45,8 +80,6 @@ struct s_havok_component;
 // @stub 0x1d1260
 void function_1d1260(s_havok_component *component) { }
 
-// @stub 0x1d01c0
-void __stdcall function_1d01c0(s_havok_component *component) { }
 // @stub 0x3126f0
 void hkRigidBody::setTransform(hkTransform const &transform) { }
 /* callees of the slot handler callbacks (unknown_0259a0.h) */
@@ -56,8 +89,6 @@ void hkRigidBody::setTransform(hkTransform const &transform) { }
 bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result) { return false; }
 
-// @stub 0x265d30
-real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
 
 // @stub 0x26d100
 long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point) { return 0; }
@@ -93,8 +124,6 @@ void function_1d6ca0(s_havok_component *component) { }
 
 /* in the region, not decompiled yet */
 
-// @stub 0x1c4b00
-void function_1c4b00(long object_index, void *a, void *b, long c) { }
 
 // @stub 0x30f2d0
 void hkWorld::addEntity(hkEntity *entity) { }
@@ -144,3 +173,167 @@ void __stdcall function_290250(long tag_index, long ticks, long object_index, lo
 	transform4x3f const *matrix)
 {
 }
+
+
+// @stub 0x2d9160
+void __cdecl function_2d9160(void *array, long capacity, long element_size) { }
+
+
+class c_component_rotation
+{
+public:
+	hkVector4 value;
+	void set(hkRotation const &rotation);
+};
+
+// @stub 0x2da2d0
+void c_component_rotation::set(hkRotation const &rotation) { }
+
+// @stub 0x2db880
+void __cdecl function_2db880(hkVector4 const *position, c_component_rotation const *rotation, real frequency, hkRigidBody *body) { }
+
+
+class c_contact_rule_fallback
+{
+public:
+ hkBool accepts(long a, long b);
+};
+
+// @stub 0x2df8a0
+hkBool c_contact_rule_fallback::accepts(long a, long b)
+{
+ hkBool result;
+ result.m_bool = 0;
+ return result;
+}
+
+class c_component_joint_strength
+{
+public:
+    void set_strength(real strength);
+};
+
+// @stub 0x312b80
+void c_component_joint_strength::set_strength(real strength) {}
+
+#include <xmmintrin.h>
+struct c_component_joint_snapshot_0
+{
+    __m128 data[6];
+    c_component_joint_snapshot_0();
+};
+struct c_component_joint_reader_0
+{
+    void read(c_component_joint_snapshot_0 *output);
+};
+
+struct c_component_joint_snapshot_1
+{
+    __m128 data[9];
+    c_component_joint_snapshot_1();
+};
+struct c_component_joint_reader_1
+{
+    void read(c_component_joint_snapshot_1 *output);
+};
+
+struct c_component_joint_snapshot_2
+{
+    __m128 data[9];
+    c_component_joint_snapshot_2();
+};
+struct c_component_joint_reader_2
+{
+    void read(c_component_joint_snapshot_2 *output);
+};
+
+struct c_component_joint_snapshot_4
+{
+    __m128 data[3];
+    c_component_joint_snapshot_4();
+};
+struct c_component_joint_reader_4
+{
+    void read(c_component_joint_snapshot_4 *output);
+};
+
+// @stub 0x313b30
+c_component_joint_snapshot_0::c_component_joint_snapshot_0() {}
+
+// @stub 0x313c50
+void c_component_joint_reader_0::read(c_component_joint_snapshot_0 *output) {}
+
+// @stub 0x313320
+c_component_joint_snapshot_1::c_component_joint_snapshot_1() {}
+
+// @stub 0x3134a0
+void c_component_joint_reader_1::read(c_component_joint_snapshot_1 *output) {}
+
+// @stub 0x312920
+c_component_joint_snapshot_2::c_component_joint_snapshot_2() {}
+
+// @stub 0x312ab0
+void c_component_joint_reader_2::read(c_component_joint_snapshot_2 *output) {}
+
+// @stub 0x3140c0
+c_component_joint_snapshot_4::c_component_joint_snapshot_4() {}
+
+// @stub 0x3141c0
+void c_component_joint_reader_4::read(c_component_joint_snapshot_4 *output) {}
+
+
+class c_world_callback_registration
+{
+public:
+    void remove(void *callback);
+};
+
+// @stub 0x30c3e0
+void c_world_callback_registration::remove(void *callback) {}
+
+struct c_contact_query_bounds_info { c_contact_query_bounds_info(); };
+struct c_contact_query_transform_info { c_contact_query_transform_info(); };
+class c_contact_query_bounds_volume
+{
+public:
+    c_contact_query_bounds_volume(c_contact_query_bounds_info const *info);
+};
+class c_contact_query_transform_volume
+{
+public:
+    c_contact_query_transform_volume(c_contact_query_transform_info const *info);
+};
+class c_contact_query_world
+{
+public:
+    void add(void *volume);
+    void remove(void *volume);
+};
+
+// @stub 0x312310
+c_contact_query_bounds_info::c_contact_query_bounds_info() {}
+
+// @stub 0x30b6a0
+c_contact_query_transform_info::c_contact_query_transform_info() {}
+
+// @stub 0x30b480
+c_contact_query_bounds_volume::c_contact_query_bounds_volume(c_contact_query_bounds_info const *info) {}
+
+// @stub 0x30bb50
+c_contact_query_transform_volume::c_contact_query_transform_volume(c_contact_query_transform_info const *info) {}
+
+// @stub 0x30e4b0
+void c_contact_query_world::add(void *volume) {}
+
+// @stub 0x30e5e0
+void c_contact_query_world::remove(void *volume) {}
+
+class hkMemory;
+struct s_fixed_memory_statistics_16;
+struct s_physics_pool_statistics;
+
+// @stub 0x22c390
+void function_22c390(hkMemory *memory, s_fixed_memory_statistics_16 *statistics) {}
+
+// @stub 0x22cb00
+void function_22cb00(hkMemory *memory, s_physics_pool_statistics *statistics) {}

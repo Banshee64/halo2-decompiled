@@ -474,6 +474,20 @@ void function_17cc60(long decal_index)
 	}
 }
 
+// @retail 0x17d690
+void function_17d690(void)
+{
+	s_record_pool_iterator iterator;
+	iterator.data = g_4ea950;
+	if (iterator.data->valid)
+	{
+		function_43990();
+		iterator.index = NONE;
+		while (data_iterator_next_inlined(&iterator))
+			function_17cc60(iterator.datum_index);
+	}
+}
+
 // @retail 0x17d520
 void function_17d520(void)
 {

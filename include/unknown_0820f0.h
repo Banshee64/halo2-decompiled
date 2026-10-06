@@ -6,6 +6,7 @@
 
 #include "unknown_11c920.h"
 #include "unknown_07aec0.h"
+#include "unknown_08b110.h"
 
 /* a link's list of connections (src/unknown_092e00.cpp) */
 struct s_link_entry
@@ -70,13 +71,14 @@ struct s_connection_timer
 
 struct s_network_connection
 {
+	s_network_connection();
 	s_link *link_list;
 	void *link;
 	class c_class_938e0 *handler;
 	s_connection_config const *config;
 	long reliable_stream_index;
 	long stream_index;
-	long unknown18;
+	c_base_450d40 unknown18;
 	bool unknown1c;
 	bool unknown1d;
 	byte unknown1e[2];
@@ -129,7 +131,7 @@ extern long g_4d87d0;
 bool link_remove_entry(s_link *link, long id);
 
 /* not decompiled yet (src/stubs/session.cpp, src/stubs/lane_d.cpp) */
-void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
+bool __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
 void __stdcall function_095580(void *stream, long message_type, long message_size, const void *message);
 
 long network_reliable_stream_allocate(long owner);

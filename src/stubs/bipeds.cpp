@@ -20,11 +20,7 @@ bool function_1ec500(long arg_159e6d) { return 0; }
 // @stub 0x1e5a60
 void function_1e5a60(s_biped_physics_result *result, s_biped_physics_input const *input, void *physics) { }
 
-// @stub 0x1e5bb0
-void function_1e5bb0(s_biped_physics_output *output, void *physics, void *state, real speed_scale, long havok_component_index, long arg_159e6d, void const *definition_physics, long a, bool b, bool turning, bool c, bool landing, bool d, bool grounded, bool e, bool f, real gravity, real boost, vector3f const *control, point3f const *position, vector3f const *forward, vector3f const *up, vector3f const *facing_goal, vector3f const *facing, vector3f const *ground_velocity, long material) { }
 
-// @stub 0x1e6360
-void function_1e6360(s_biped_physics_output *output, real height, long arg_159e6d, real crouch) { }
 
 
 // @stub 0xe5d50
@@ -46,30 +42,16 @@ bool function_1696d0(long flags, s_biped_ground_collision *collision, long objec
 bool function_1d5120(s_havok_component *component, long rigid_body_index, long a, long b, real rate, char *result, char value) { return 0; }
 
 
-// @stub 0x1d35d0
-void function_1d35d0(long rigid_body_index, s_havok_component *component, real scale) { }
 
 
-// @stub 0x1d1230
-real function_1d1230(long rigid_body_index, s_havok_component *component) { return 0; }
 
-// @stub 0xbfa40
-void function_bfa40(long object_index, long a) { }
 
-// @stub 0x1faf80
-void function_1faf80(vector3f *facing, long arg_159e6d, void const *definition_flight, vector3f const *control, real rate, real *turn) { }
 
-// @stub 0xbf5d0
-bool function_bf5d0(long object_index) { return 0; }
 
 // @stub 0xe63b0
 bool function_e63b0(vector3f const *aim, bool flag) { return 0; }
 
-// @stub 0x1cff80
-void function_1cff80(s_havok_component_element0c const *constraint, point3f *pivot_a, point3f *pivot_b) { }
 
-// @stub 0x114b60
-void function_114b60(long a, long b, long arg_159e6d, long c, long d) { }
 
 // @stub 0x1c9c00
 void function_1c9c00(long object_index) { }

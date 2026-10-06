@@ -9,6 +9,8 @@
 #include "data_array.h"
 #include "globals.h"
 #include "online_tasks.h"
+#include "online_message_entries.h"
+#include "unknown_234c64.h"
 
 byte g_4771c8[0x2580];
 long g_479748 = NONE;
@@ -714,4 +716,50 @@ void online_set_notification_state(const XNKID *session_id, DWORD user_index, BY
 			memset(&id, 0, sizeof(id));
 		XOnlineNotificationSetState(user_index, state_flags, id, 4, state_data);
 	}
+}
+
+void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+
+// @retail 0x6d080
+bool function_6d080(long controller, s_channel_message *result)
+{
+	bool found = false;
+	s_player_slot_flags *slot = &g_54e8e0[controller];
+	if (!(slot->flags & 3) && online_logon_connected())
+	{
+		XONLINE_NOTIFICATION_EX_INFO notification;
+		DWORD state_flags;
+		found = XOnlineGetNotificationEx(controller, &notification, &state_flags) != FALSE;
+		if (found)
+		{
+			switch (notification.bMessageType)
+			{
+			case 2: result->type = 1; break;
+			case 3: result->type = 2; break;
+			case 4: result->type = 3; break;
+			case 5: result->type = 4; break;
+			case 6: result->type = 5; break;
+			case 7: result->type = 6; break;
+			default: result->type = 0; break;
+			}
+			result->id = notification.dwMessageID;
+			memset(&result->entry, 0, sizeof(result->entry));
+			result->flags[0] = (notification.dwNotifyFlags & 8) != 0;
+			result->flags[1] = (notification.dwNotifyFlags & 4) != 0;
+			result->flags[2] = (notification.dwNotifyFlags & 0x100) != 0;
+			result->flags[3] = (notification.dwNotifyFlags & 0xff000000) != 0;
+			s_entry entries[125];
+			long count = 125;
+			online_messages_enumerate(controller, entries, &count);
+			for (long i = 0; i < count; i++)
+			{
+				if (entries[i].unknown20 == result->id)
+				{
+					result->entry = entries[i];
+					break;
+				}
+			}
+		}
+	}
+	return found;
 }

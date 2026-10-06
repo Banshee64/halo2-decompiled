@@ -170,7 +170,7 @@ void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
 void function_157670();
 void function_15e4d0();
-color3f *function_7f720(color3f *color, long team_index);
+color3f *function_7f720(color3f *color, short team_index);
 bool function_bacc0(long object_index, long index, point3f const *point);
 bool function_138860();
 bool function_138880();
@@ -1816,7 +1816,7 @@ bool function_2447f0()
 					continue;
 				function_b9dd0(entry->object_index, &position);
 				marker = *marker_position(marker_index);
-				if (distance_sq3f(&position, &marker) <= 0.04f)
+				if (distance_sq3f(&position, &marker) <= 0.2f * 0.2f)
 					continue;
 			}
 
@@ -2099,9 +2099,10 @@ void function_242ba0(long marker_index, long object_index, long player_index)
 void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
 	point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
 	real arg_9, point3f const *arg_10, real arg_11);
-void function_41490(long arg_0, long arg_1, long arg_2, real arg_3,
-	surface_render_test arg_4, surface_render_draw arg_5,
-	void (__stdcall *arg_6)(void *), long arg_7, point3f const *arg_8);
+struct s_sort_record;
+typedef bool (__stdcall *t_record_fill)(long, void *, long, long, long, void *, s_sort_record *);
+void function_41490(long tag, short group, word kind, real distance, t_record_fill fill,
+	dword value, void (__stdcall *callback)(void *), void *context, point3f const *position);
 
 // @retail 0x244470
 void __stdcall function_244470(long arg_0, long arg_1, long arg_2, long arg_3,
@@ -2155,7 +2156,7 @@ void function_244630(point3f const *arg_0, long arg_1)
 	byte *local_1 = *(byte **)(local_0 + 0xc);
 	byte *local_2 = *(byte **)(local_1 + 0x534);
 	function_41490(*(long *)(local_2 + 0xc4), 0, NONE, 640.f,
-		function_d4bc0, function_244470, function_244610, arg_1, arg_0);
+		(t_record_fill)function_d4bc0, (dword)function_244470, function_244610, (void *)arg_1, arg_0);
 }
 
 // @retail 0x2417a0

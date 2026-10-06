@@ -4,6 +4,8 @@
 #include "data_array.h"
 #include "unknown_1fb7e0.h"
 #include "unknown_1f4460.h"
+#include "unknown_1f9240.h"
+#include "unknown_0259a0.h"
 
 /* slot types 0x64, 0x65 and 0x66, the slot groups 0x62 and 0x63, and the
    slot tests 0x1c and 0x1f */
@@ -43,7 +45,7 @@ void __stdcall function_1b3880(long actor_index, s_slot *slot);
 bool __stdcall function_1b3a80(long actor_index, s_slot *slot);
 void __stdcall function_1b3c60(long actor_index, s_slot *slot);
 short __stdcall function_1b3f60(long actor_index, s_slot *slot, bool active);
-void __stdcall function_1b3fd0(long actor_index, s_slot *slot);
+bool __stdcall function_1b3fd0(long actor_index, s_slot *slot);
 bool __stdcall function_1b4240(long actor_index, s_slot *slot);
 short __stdcall function_1b4390(long actor_index, short level, bool active);
 short __stdcall function_1b3e20(long actor_index, short level, bool active);
@@ -303,6 +305,37 @@ void __stdcall function_1b4480(long actor_index, s_slot *slot)
 	state->unknown2c = NONE;
 }
 
+long function_26bc60(long clump_index);
+
+// @retail 0x1b4390
+short __stdcall function_1b4390(long actor_index, short level, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_64 *state = (s_slot_64 *)&actor->slots[level];
+	state->unknown10++;
+	state->unknown12--;
+	short result = function_1b3e20(actor_index, level, active);
+	if (state->unknown12 <= 0)
+	{
+		*(volatile short *)&state->unknown12 = 0;
+		if (((volatile s_slot_64 *)state)->header.unknown4 != NONE && actor->slots[level + 1].type == 5)
+			state->unknown19 = true;
+	}
+	if (state->unknown10 >= g_510c54->field_2_3 * 8 && !state->unknown16 && actor->unknown07c != NONE)
+	{
+		short type;
+		switch ((short)function_26bc60(actor->unknown07c))
+		{
+		case 0: type = 0x5f; break;
+		case 1: type = 0x5d; break;
+		case 2: type = 0x5e; break;
+		}
+		function_1fb7e0(actor_index, type, NULL, NONE, NONE);
+		state->unknown16 = true;
+	}
+	return result;
+}
+
 // @retail 0x1b4490
 bool __stdcall function_1b4490(long actor_index, s_slot *slot)
 {
@@ -354,7 +387,7 @@ s_slot_handler_2 g_47e2b0 =
 		function_1b3ea0, function_1b3f60, function_1b3ee0, 0, NONE, {0},
 		function_1c1520, 0, 0, 0, 0, 0, 0
 	},
-	function_1b3fd0, 0, slot_proc_nothing
+	(t_slot_proc)function_1b3fd0, 0, slot_proc_nothing
 };
 
 /* the children of slot group 0x62 */
@@ -401,3 +434,76 @@ s_slot_handler_0 g_47e3b0 =
 {
 	0x1f, 0, 0, -2, 0, function_1b4560
 };
+
+long function_1e4a50(long index);
+void function_26c180(long actor_index);
+short function_1a6fe0(long owner_index, short type);
+
+// @retail 0x1b3fd0
+bool __stdcall function_1b3fd0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = true;
+	if (actor->unknown07c == NONE)
+		return false;
+	if (actor->unknown040 && !((s_slot_66 *)slot)->unknown0c)
+	{
+		byte *movement = (byte *)function_1e4a50(actor->unknown054);
+		function_26c180(actor_index);
+		s_path_source source;
+		memset(&source, 0, sizeof(source));
+		source.radius = *(real *)(movement + 4);
+		source.unknown04 = false;
+		source.object_index = NONE;
+		source.unknown0c = NONE;
+		source.has_point = true;
+		source.point = *(s_path_point *)&actor->unknown27c.point;
+		source.unknown24 = actor->unknown27c.unknown10;
+		source.unknown45 = true;
+		source.unknown48 = 10.0f;
+		source.unknown4c = 0.0f;
+		s_path_settings settings;
+		function_1f9240(actor_index, &settings);
+		byte *scratch = ai_scratch_buffer_get();
+		function_271300((s_type_f17a25 *)scratch, NULL, &settings, &source, 0);
+		long best_index = NONE;
+		if (function_2715a0(scratch))
+		{
+			long member_index = element_502420_get(actor->unknown07c)->first_actor_index;
+			real best_distance = 50.0f;
+			while (member_index != NONE)
+			{
+				long current_index = member_index;
+				s_actor_view *member = actor_get(current_index);
+				member_index = member->next_index;
+				if (member != actor && function_1a6fe0(current_index, 0x66) == NONE)
+				{
+					function_26c180(current_index);
+					real distance;
+					if (function_270750(scratch, member->unknown27c.unknown10,
+							(s_actor_point_target const *)&member->unknown27c.point, &distance, 0, 0) && best_distance > distance)
+					{
+						best_index = current_index;
+						best_distance = distance;
+					}
+				}
+			}
+		}
+		if (best_index != NONE)
+		{
+			s_actor_view *member = actor_get(best_index);
+			if (function_1f4460(actor_index, &member->unknown27c.point, member->unknown27c.unknown10, member->unknown018, false))
+			{
+				actor->unknown4cc = 1.5f;
+				((s_slot_66 *)slot)->unknown10 = best_index;
+				member->unknown314.bit1 = true;
+			}
+			else
+				result = false;
+		}
+		else
+			result = false;
+		ai_scratch_buffer_release(scratch);
+	}
+	return result;
+}

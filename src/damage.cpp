@@ -963,7 +963,7 @@ void function_d74e0(s_type_1e6529 *data, long object_index, bool child)
 				real dx = data->origin.x - arg_149545.x;
 				real dy = data->origin.y - arg_149545.y;
 				real dz = data->origin.z - arg_149545.z;
-				if (0.0025f > dz * dz + dy * dy + dx * dx)
+				if (0.05f * 0.05f > dz * dz + dy * dy + dx * dx)
 				{
 					data->node_direction.i += 0.0f - normal.i;
 					data->node_direction.j += 0.0f - normal.j;

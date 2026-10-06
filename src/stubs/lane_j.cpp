@@ -24,16 +24,6 @@ struct s_session_member_identity;
 struct s_type_99af70;
 
 /* lane D's region: the session handlers the message handler calls */
-// @stub 0x61570
-void __stdcall function_061570(c_class_58d20 *session, bool flag)
-{
-}
-
-// @stub 0x5e3f0
-bool __stdcall function_05e3f0(c_class_58d20 *session, s_type_99af70 const *address)
-{
-	return false;
-}
 
 // @stub 0x5cb80
 bool __stdcall function_05cb80(c_class_58d20 *session, void const *message)
@@ -106,14 +96,5 @@ void __stdcall function_0b2fc0(s_network_message_session_query const *message)
 {
 }
 
-// @stub 0x63080
-void __stdcall function_063080(c_class_58d20 *session, s_network_message_session_query const *message, s_type_99af70 const *address)
-{
-}
-
-// @stub 0x785d0
-void __stdcall function_0785d0(void *unknown10, s_type_99af70 const *address, void const *message)
-{
-}
 
 class c_simulation_view;

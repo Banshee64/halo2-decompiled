@@ -7,11 +7,13 @@
 
 /* The collector base owns an eight-byte allocation. Its derived collector
    separately owns the array of 0x30-byte entries. */
+struct s_batch_contact;
+
 class c_query_collector
 {
 public:
 	virtual ~c_query_collector() {}
-	virtual void collect() {}
+	virtual void collect(s_batch_contact const *) {}
 	static void operator delete(void *block)
 	{
 		g_480118->allocate((long)block, 8, 0x1a);
@@ -37,7 +39,7 @@ class c_query_array_collector : public c_query_collector
 {
 public:
 	virtual ~c_query_array_collector();
-	virtual void collect() {}
+	virtual void collect(s_batch_contact const *) {}
 	byte unknown08[8];
 	s_query_collector_entries entries;
 };
@@ -151,7 +153,7 @@ struct s_query_batch_result
 class c_query_batch_collector : public c_query_collector
 {
 public:
-	virtual void collect() {}
+	virtual void collect(s_batch_contact const *contact);
 	s_query_batch_result *results;
 	real scale;
 	long count;
@@ -407,4 +409,167 @@ bool __stdcall function_183670(long component_a, long component_b, point3f *a, p
 		}
 	}
 	return result;
+}
+
+class c_material_shape;
+struct s_slot_entry_list;
+extern s_slot_entry_list *g_4e0340;
+struct s_lookup_source;
+struct s_bsp3d;
+plane3f *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, plane3f *plane);
+void function_1ee410(s_lookup_source const *source, short *result);
+void function_182b90(c_material_shape *shape, hkEntity const *entity, real *friction, short *material, real *restitution);
+long havok_entity_property_2002_get(hkEntity const *entity);
+bool function_181db0(long index, vector3f *result);
+
+class c_batch_contact_shape
+{
+public:
+	virtual void slot0() {}
+	virtual void slot1() {}
+	virtual void slot2() {}
+	virtual void slot3() {}
+	virtual void slot4() {}
+	virtual long shape_kind() { return 0; }
+	long field_4;
+	dword data;
+	real radius;
+};
+struct s_batch_contact_node
+{
+	c_batch_contact_shape *shape;
+	long key;
+	byte *transform;
+	s_batch_contact_node *next;
+	byte field_10[8];
+	long type;
+	long field_1c;
+	hkEntity *entity;
+};
+struct s_batch_contact
+{
+	point3f position;
+	real distance;
+	vector3f normal;
+	real field_1c;
+	s_batch_contact_node *first;
+	s_batch_contact_node *second;
+};
+struct s_batch_entity_property
+{
+	long key;
+	long value;
+};
+struct s_batch_entity_view
+{
+	byte field_0[0x30];
+	s_batch_entity_property *properties;
+	long count;
+};
+
+PRIVATE __forceinline s_batch_contact_node *batch_contact_root(s_batch_contact_node *node)
+{
+	while (node->next) node = node->next;
+	return node;
+}
+PRIVATE __forceinline long batch_contact_component(hkEntity *entity)
+{
+	s_batch_entity_view *view = (s_batch_entity_view *)entity;
+	for (long i = 0; i < view->count; ++i)
+		if (view->properties[i].key == 0x2001) return view->properties[i].value;
+	return 0;
+}
+PRIVATE __forceinline bool batch_shape_pointer(dword data)
+{
+	long value = (long)data;
+	long limited = value < 1 ? 1 : (value > 16 ? 16 : value);
+	return limited != value;
+}
+
+// @retail 0x1822f0
+void c_query_batch_collector::collect(s_batch_contact const *contact)
+{
+	s_batch_contact_node *first = contact->first;
+	s_batch_contact_node *second = contact->second;
+	s_batch_contact_node *root = batch_contact_root(second);
+	if (root->type != 1 || !root->entity) return;
+	long component = batch_contact_component(root->entity);
+	batch_contact_root(second);
+	if (component != NONE && second->shape->shape_kind() != 24 && second->shape->data &&
+		batch_shape_pointer(second->shape->data) && ((byte *)second->shape->data)[0x1e] != 0xff) return;
+	if (first->shape->shape_kind() != 4) return;
+	if (component_index != NONE && component_index == component) return;
+	long key = first->key;
+	if (first->next && first->next->shape && first->next->shape->shape_kind() == 9 && !batch_shape_pointer(second->shape->data))
+		key += first->next->shape->data * 8 - 8;
+	long limited = key < 0 ? 0 : (key > count - 1 ? count - 1 : key);
+	if (limited != key) return;
+	point3f origin = *(point3f *)(first->transform + 0x50);
+	point3f position = contact->position;
+	real distance = contact->distance + first->shape->radius;
+	if (!(results[key].fraction > distance)) return;
+	bool valid = true;
+	long index = NONE, other_index = NONE;
+	if (second->shape->shape_kind() == 24)
+	{
+		c_batch_contact_shape *shape = second->shape;
+		dword data = shape->data;
+		if (data)
+		{
+			long entry = data & 0xffff;
+			long surface = (data >> 16) & 0x1fff;
+			plane3f plane;
+			real side;
+			if ((data >> 29) == 1)
+			{
+				byte *record = *(byte **)((byte *)g_4e0340 + 0x2c) + entry * 8;
+				bsp3d_get_plane((s_bsp3d *)g_4e0340, *(short *)record, &plane);
+				if (record[4] & 0x20)
+					results[key].flag2c = function_181db0(*(short *)(record + 6), (vector3f *)((byte *)&results[key] + 0x30));
+				side = plane.n.j * origin.y + plane.n.k * origin.z + plane.n.i * origin.x - plane.d;
+			}
+			else
+			{
+				byte *bsp = (byte *)g_4e0348;
+				byte *instance = *(byte **)(bsp + 0x144) + entry * 0x58;
+				byte *definition = *(byte **)(bsp + 0x13c) + *(short *)(instance + 0x34) * 0xc8;
+				short plane_index = *(short *)(*(byte **)(definition + 0x9c) + surface * 8);
+				bsp3d_get_plane((s_bsp3d *)(definition + 0x70), plane_index, &plane);
+				transform4x3f *matrix = (transform4x3f *)instance;
+				vector3f normal;
+				normal.i = matrix->up.i * plane.n.k + matrix->left.i * plane.n.j + matrix->forward.i * plane.n.i;
+				normal.j = matrix->up.j * plane.n.k + matrix->left.j * plane.n.j + matrix->forward.j * plane.n.i;
+				normal.k = matrix->up.k * plane.n.k + matrix->left.k * plane.n.j + matrix->forward.k * plane.n.i;
+				plane.d = matrix->position.z * normal.k + matrix->position.y * normal.j + matrix->scale * plane.d + matrix->position.x * normal.i;
+				plane.n = normal;
+				side = plane.n.k * origin.z + plane.n.j * origin.y + plane.n.i * origin.x - plane.d;
+			}
+			if (side > 0.0f) *(vector3f *)((byte *)&results[key] + 0x18) = plane.n;
+			else valid = false;
+		}
+		short material;
+		function_1ee410((s_lookup_source *)shape, &material);
+		results[key].material = material;
+	}
+	else
+	{
+		s_query_node *node = (s_query_node *)((s_node *)second)->get_last();
+		hkEntity *entity = node->type == 1 ? node->entity : NULL;
+		real friction, restitution;
+		function_182b90((c_material_shape *)second->shape, entity, &friction, &results[key].material, &restitution);
+		if (entity)
+		{
+			index = havok_entity_component_index_get(entity);
+			other_index = havok_entity_property_2002_get(entity);
+		}
+	}
+	if (valid && contact->normal.k > scale)
+	{
+		results[key].found = true;
+		*(point3f *)((byte *)&results[key] + 0xc) = position;
+		*(vector3f *)((byte *)&results[key] + 0x18) = contact->normal;
+		results[key].fraction = distance;
+		results[key].index = index;
+		results[key].other_index = other_index;
+	}
 }

@@ -1,8 +1,45 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_08b110.h"
+#include "unknown_096ed0.h"
 
 // @flags /O2 /arch:SSE /Gr
+
+// @retail 0x81590
+c_replication_view_storage::c_replication_view_storage()
+{
+}
+
+struct s_z_input_packet;
+struct s_z_transform_state;
+void function_aaef0(s_bitstream *stream, s_z_input_packet const *state);
+void function_ab7f0(s_bitstream *stream, s_z_transform_state const *state);
+void function_194710(s_bitstream *stream, bool discard);
+
+// @retail 0x8b9e0
+void c_vtable_450c94::v3(s_node_450d1c *node, long a2, long a3, long key,
+	s_bitstream *stream, long reserved_bits)
+{
+	long index = (long)node;
+	stream->checkpoints[stream->checkpoint_count++] = stream->bit_position;
+	stream_write_bit(stream, true);
+	stream_write_checked(stream, index, 5);
+	stream_write_bit(stream, (active_mask & (1 << index)) != 0);
+	if (active_mask & (1 << index))
+		function_aaef0(stream, (const s_z_input_packet *)&data18[index]);
+	stream_write_bit(stream, (unknown718 & (1 << index)) != 0);
+	if (unknown718 & (1 << index))
+		function_ab7f0(stream, (const s_z_transform_state *)&data720[index]);
+	if ((stream->size_in_bytes << 3) - stream->bit_position < reserved_bits)
+		function_194710(stream, true);
+	else
+	{
+		stream->checkpoint_count--;
+		active_mask &= ~(1 << index);
+		unknown718 &= ~(1 << index);
+		times[index] = g_510548 ? g_51054c : GetTickCount();
+	}
+}
 
 s_definition_4ced60 g_4ced60[32];
 long g_4cf474;
@@ -13,6 +50,53 @@ real g_4cf484;
 real g_4cf488;
 real g_4cf48c;
 real g_4cf490;
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+long function_a5930(long index);
+long function_a5980(long index);
+
+struct s_object_relevance_source
+{
+	long object_index;
+	long identifier;
+	byte unknown08[0x1c - 8];
+	real first;
+	real second;
+};
+
+struct s_object_relevance_result
+{
+	real first;
+	real second;
+	long object_index;
+	long identifier;
+};
+
+// @retail 0x82ac0
+void function_82ac0(s_object_relevance_source *source, s_object_relevance_result *result)
+{
+	if (source->first > 0.0f || source->second > 0.0f)
+	{
+		long index = source->object_index;
+		if (index != NONE && function_badc0(index, (dword)NONE))
+		{
+			long mode = ((long *)g_4cf77c)[2];
+			long mapped;
+			if (mode != 3 && mode != 5)
+				mapped = function_a5930(index);
+			else
+				mapped = function_a5980(index);
+			if (mapped != NONE)
+			{
+				result->object_index = mapped;
+				result->identifier = source->identifier;
+				result->first = source->first;
+				result->second = source->second;
+			}
+		}
+	}
+}
 
 // @retail 0x8b110
 long c_vtable_450cb8::v0(long index, long a2, long a3, long *count, s_item_450cb8 *items, void *a6)
@@ -292,4 +376,75 @@ void c_vtable_450c94::set_data720(long index, s_dword40 const *data)
 {
 	data720[index] = *data;
 	unknown718 |= 1 << index;
+}
+
+bool function_ab2f0(s_bitstream *stream, s_z_input_packet *state);
+bool function_ab960(s_bitstream *stream, s_z_transform_state *state);
+
+static __forceinline void release_input_block(void *block, long *size)
+{
+ if (!g_4d87f8->allocator->get_info(block, size))
+  *size = NONE;
+ s_allocator_globals *globals = g_4d87f8;
+ globals->allocator->release(block, NONE);
+ globals->count--;
+}
+
+// @retail 0x8bbd0
+long c_vtable_450c94::v5(dword a1, s_bitstream *stream, long max_blocks, s_block_450c94 *blocks, long *count)
+{
+ long result = 0;
+ long used = 0;
+ while (stream_read_bit(stream))
+ {
+  long index = function_1959c0(stream, 5);
+  if (index < 0 || index >= 32 || used >= max_blocks)
+  {
+   result = 3;
+   break;
+  }
+  s_z_input_packet *input = 0;
+  s_z_transform_state *transform = 0;
+  bool has_input = stream_read_bit(stream);
+  if (has_input)
+  {
+   input = (s_z_input_packet *)handle_allocate(0x34);
+   if (input)
+   {
+    if (!function_ab2f0(stream, input)) result = 3;
+   }
+   else result = 2;
+  }
+  bool has_transform = stream_read_bit(stream);
+  if (has_transform)
+  {
+   transform = (s_z_transform_state *)handle_allocate(0x40);
+   if (transform)
+   {
+    if (!function_ab960(stream, transform)) result = 3;
+   }
+   else result = 2;
+  }
+  if (!result && !has_input && !has_transform)
+   result = 3;
+  if (result)
+  {
+   if (input) { long size; release_input_block(input, &size); }
+   if (transform) { long size; release_input_block(transform, &size); }
+   break;
+  }
+  s_block_450c94 *block = &blocks[used++];
+  block->unknown00 = NONE;
+  block->index = index;
+  block->count = 2;
+  s_item_450cb8 *items = (s_item_450cb8 *)block->data;
+  items[0].size = input ? 0x34 : 0;
+  items[0].type = 9;
+  items[0].data = input;
+  items[1].size = transform ? 0x40 : 0;
+  items[1].type = 10;
+  items[1].data = transform;
+ }
+ *count = used;
+ return result;
 }

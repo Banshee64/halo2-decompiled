@@ -19,14 +19,9 @@ struct s_effect_source;
 // @stub 0x248970
 void function_248970(s_particle_location_datum *particle_location, bool field_b4, real unknown, s_particle_system_datum *particle_system, real *values, transform4x3f const *matrix) { }
 
-// @stub 0x3ebd0
-bool __stdcall function_3ebd0(vector3f const *offset, transform4x3f const *matrices, transform4x3f *out, long count) { return false; }
-
 // @stub 0x3ddd0
 long __stdcall function_3ddd0(long object_index) { return NONE; }
 
-// @stub 0xbab40
-bool __stdcall function_bab40(long object_index, long name, real *value) { return false; }
 
 // @stub 0xd2bb0
 long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }
@@ -34,8 +29,6 @@ long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }
 // @stub 0xd2a50
 long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, point3f const *point) { return 0; }
 
-// @stub 0xa7640
-bool function_a7640(s_effect_object_placement *data) { return false; }
 
 // @stub 0xc0350
 void function_c0350(long tag_index, long object_index, long node_index, vector3f const *up, vector3f const *forward, point3f const *position, real scale) { }
@@ -49,10 +42,6 @@ void function_156b60(s_effect_beam *beam, real progress, transform4x3f const *ma
 /* in region */
 // @stub 0x174a30
 bool function_174a30(s_particle_system_datum *particle_system, real dt) { return false; }
-
-/* in region */
-// @stub 0x179880
-void __stdcall function_179880(s_effect_datum *effect, long effect_index) { }
 
 /* in region */
 // @stub 0x17e670

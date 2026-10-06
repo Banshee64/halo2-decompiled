@@ -6,6 +6,7 @@
 #include "unknown_1428b0.h"
 #include "unknown_1dacb0.h"
 #include "unknown_1c62f0.h"
+#include "unknown_1cafc0.h"
 
 /* the scenery definition (the tag data) */
 struct s_scenery_definition
@@ -49,14 +50,17 @@ struct s_scenery_placement
 struct s_scenery
 {
 	long definition_index;
-	byte unknown004[0xa4 - 4];
+	byte unknown004[0x1a - 4];
+	short placement_index;
+	byte unknown01c[0xa4 - 0x1c];
 	s_scenery_location location;
 	byte unknown0ac[0x116 - 0xac];
 	short node_matrices_offset;
 	byte unknown118[0x12a - 0x118];
 	short animation_state_offset;
 	dword flags;
-	byte unknown130[0x134 - 0x130];
+	short value_130;
+	short value_132;
 	long value_134;
 	long attached_object_index;
 };
@@ -66,7 +70,8 @@ struct s_scenery_header
 	short identifier;
 	byte flags;
 	byte type;
-	byte unknown04[4];
+	short cluster_index;
+	byte unknown06[2];
 	s_scenery *scenery;
 };
 
@@ -240,6 +245,9 @@ long function_10a460(long object_index)
 }
 
 /* the scenery object type definition */
+bool __stdcall function_10a1b0(long scenery_index, void *placement, bool *result);
+bool __stdcall function_10a2f0(long scenery_index);
+
 struct s_scenery_type_definition
 {
 	char const *name;
@@ -250,7 +258,11 @@ struct s_scenery_type_definition
 	short unknown0e;
 	void *unknown10[4];
 	void (__stdcall *handler20)(long);
-	void *unknown24[0x70 / 4 - 9];
+	void *unknown24[2];
+	bool (__stdcall *handler2c)(long, void *, bool *);
+	void *unknown30[4];
+	bool (__stdcall *handler40)(long);
+	void *unknown44[11];
 	void (__stdcall *handler70)(long, transform4x3f *);
 };
 
@@ -264,6 +276,10 @@ s_scenery_type_definition g_467ff0 =
 	0x5c,
 	{ 0, 0, 0, 0 },
 	function_10a030,
+	{ 0 },
+	function_10a1b0,
+	{ 0 },
+	function_10a2f0,
 	{ 0 },
 	function_10a390
 };
@@ -288,4 +304,156 @@ void function_10a3f0(long scenery_index)
 			scenery->flags |= 1;
 		}
 	}
+}
+
+struct s_scenery_placement_entry
+{
+	byte unknown00[0x58];
+	short name_index;
+	byte unknown5a[2];
+};
+
+struct s_scenery_scenario_view
+{
+	byte unknown00[0x54];
+	s_scenery_placement_entry *entries;
+};
+
+extern long *g_51e9cc;
+void function_b9b90(long object_index, bool disable);
+void function_bba20(long object_index);
+void __stdcall function_bf600(long user, real frame, s_animation_frame_event const *event);
+
+// @retail 0x10a1b0
+bool __stdcall function_10a1b0(long scenery_index, void *placement, bool *result)
+{
+	s_scenery *scenery = SCENERY_GET(scenery_index);
+	long name_index = NONE;
+	if (scenery->placement_index != NONE)
+		name_index = ((s_scenery_scenario_view *)g_4e0350)->entries[scenery->placement_index].name_index - 1;
+	function_10a820(scenery_index);
+	scenery->attached_object_index = NONE;
+	scenery->value_132 = 3;
+	function_b9b90(scenery_index, true);
+	function_10a3f0(scenery_index);
+	scenery->flags = 0;
+	if (name_index != NONE)
+		g_51e9cc[name_index] = scenery_index;
+	return true;
+}
+
+// @retail 0x10a2f0
+bool __stdcall function_10a2f0(long scenery_index)
+{
+	bool result = false;
+	s_scenery *scenery = SCENERY_GET(scenery_index);
+	if (SCENERY_GET(scenery_index)->animation_state_offset != NONE)
+	{
+		s_animation_state *state = (s_animation_state *)((byte *)scenery + scenery->animation_state_offset);
+		state->update(function_bf600, scenery_index, 0, NULL, NULL);
+		c_animation_channel *channel = &state->channels[0];
+		if (state->graph_tag_index != NONE && channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+		{
+			s_animation *animation = function_1daea0(graph_tag_get(channel->graph_tag_index), channel->animation_id);
+			if (((s_animation_view *)animation)->frame_count > 1)
+			{
+				function_bba20(scenery_index);
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+struct s_scenery_model_part
+{
+	byte unknown00[5];
+	char index;
+	byte unknown06[2];
+};
+
+struct s_scenery_model_region
+{
+	long name;
+	char index;
+	byte unknown05[3];
+	long count;
+	s_scenery_model_part *parts;
+};
+
+struct s_scenery_model_view
+{
+	byte unknown00[0xc];
+	long graph_index;
+	byte unknown10[0x70 - 0x10];
+	long count;
+	s_scenery_model_region *regions;
+};
+
+struct s_scenery_graph_part
+{
+	byte unknown00[0xc];
+	long value;
+	byte unknown10[4];
+};
+
+struct s_scenery_graph_region
+{
+	long name;
+	long count;
+	s_scenery_graph_part *parts;
+};
+
+struct s_scenery_graph_view
+{
+	byte unknown00[0x20];
+	s_scenery_graph_region *regions;
+};
+
+struct s_type_1a7926;
+bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+
+// @retail 0x10a520
+bool function_10a520(long object_index)
+{
+	s_scenery_header *header = &((s_scenery_header *)g_4e0300->data)[object_index & 0xffff];
+	s_scenery_definition *definition = TAG_DATA(s_scenery_definition, header->scenery->definition_index);
+	bool result = false;
+	byte info[0x54];
+	if (header->cluster_index == NONE)
+		return result;
+	{
+		if (function_20a9a0(object_index, (s_type_1a7926 *)info))
+			return true;
+		if (definition->model_index != NONE)
+		{
+			s_scenery_model_view *model = TAG_DATA(s_scenery_model_view, definition->model_index);
+			if (model->graph_index != NONE && model->count > 0)
+			{
+				s_scenery_graph_view *graph = TAG_DATA(s_scenery_graph_view, model->graph_index);
+				for (long i = 0; i < model->count; i++)
+				{
+					s_scenery_model_region *region = &model->regions[i];
+					if (region->index != NONE)
+					{
+						s_scenery_graph_region *graph_region = &graph->regions[region->index];
+						if (region->count > 0)
+						{
+							long count = 0;
+							for (long j = 0; j < region->count; j++)
+							{
+								char index = region->parts[j].index;
+								if (index != NONE && graph_region->parts[index].value == 1)
+									count++;
+							}
+							result = region->count == count;
+							if (!result)
+								return result;
+						}
+					}
+				}
+			}
+		}
+	}
+	return result;
 }

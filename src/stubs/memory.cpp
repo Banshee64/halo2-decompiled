@@ -4,22 +4,8 @@
 
 struct s_47f0d0;
 
-// @stub 0xb5e40
-void __stdcall function_b5e40(void *block)
-{
-}
-
-// @stub 0x78880
-void __stdcall function_78880(void *p)
-{
-}
-
 // @stub 0x81780
 void __stdcall function_81780(long stage)
 {
 }
 
-// @stub 0x18f3f0
-c_unknown_249fa3_base::~c_unknown_249fa3_base()
-{
-}

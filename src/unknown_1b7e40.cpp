@@ -2,6 +2,7 @@
 #include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_26e370.h"
+#include "props.h"
 
 /* slot type 0x12 */
 
@@ -62,6 +63,66 @@ void __stdcall function_1b8460(long actor_index, s_slot *slot, long index)
 }
 
 void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
+
+bool actor_has_joint_invitation(long actor_index, short type);
+long function_25d810(long object_index, long actor_index, bool create);
+bool function_25d9b0(long prop_index);
+
+// @retail 0x1b7e40
+short __stdcall function_1b7e40(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long prop_index = actor->prop_index;
+	s_prop_node_view *node = prop_index != NONE ? prop_node_get(prop_index) : NULL;
+	short priority;
+	if (actor_has_joint_invitation(actor_index, 0x12))
+	{
+		s_slot_entry_iterator iterator;
+		iterator.actor_index = actor_index;
+		iterator.reference.unknown2 = 0x12;
+		iterator.reference.unknown0 = NONE;
+		while (function_26f0c0(&iterator))
+		{
+			short invitation_index = iterator.reference.unknown0;
+			s_joint_invitation *invitation = &((s_slot_owner_entry *)actor)->joint_invitations[invitation_index];
+			s_502424_element *joint = element_502424_get(invitation->joint_index);
+			if (!node || joint->target.unknown0 != node->object_index)
+			{
+				long new_prop;
+				if (actor->unknown086 >= 4 || (new_prop = function_25d810(joint->target.unknown0, actor_index, false)) == NONE)
+				{
+					joint_decline(actor_index, iterator.reference.unknown0);
+					continue;
+				}
+				node = prop_node_get(new_prop);
+			}
+			priority = *(short *)((byte *)joint + invitation->participant_index * 12 + 0xa);
+			if (priority <= 0)
+				return 0;
+			goto evaluate;
+		}
+		return 0;
+	}
+	else
+	{
+		if (actor->unknown07c == NONE || !node)
+			return 0;
+		node = prop_node_get(prop_index);
+		if (node->unknown27 < 2)
+			return 0;
+		priority = 3;
+	}
+evaluate:
+	s_type_5cfb45 *state = function_25d690((s_prop_datum *)node);
+	s_prop_view_fields *view = prop_node_view(node);
+	vector3f velocity;
+	function_ba1d0(node->object_index, &velocity, NULL);
+	if (node->unknown28 > 1.6f && sqrt(length_sq3f(&velocity)) < 1.0f &&
+		view->unknown54 < 0.31 && node->unknown28 <= 15.0f &&
+		!state->unknown64 && !function_25d9b0(actor->prop_index))
+		return priority;
+	return 0;
+}
 
 // @retail 0x1b81c0
 short __stdcall function_1b81c0(long actor_index, s_slot *slot, bool active)

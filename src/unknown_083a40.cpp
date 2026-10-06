@@ -7,6 +7,177 @@
 #include "unknown_067e10.h"
 #include "globals.h"
 #include "unknown_059ad0.h"
+#include "unknown_058ee0.h"
+#include "unknown_075870.h"
+
+extern char const *g_4e9bb8;
+long map_location_get(char const *map_name);
+
+extern bool g_4d8ba0;
+bool network_session_manager_get_any_session(c_class_58d20 **session);
+
+struct s_watcher_session_link
+{
+	byte unknown00[0x80];
+	s_simulation_world_owner *watcher;
+	long index84;
+	long index88;
+};
+
+struct s_watcher_machine_options
+{
+	byte unknown00[0x270];
+	dword mask;
+	s_machine_address machines[16];
+	bool local_valid;
+	s_machine_address local;
+};
+
+struct s_watcher_membership
+{
+	long host;
+	long unknown04;
+	long count;
+	s_session_member members[16];
+};
+
+static inline s_watcher_membership *watcher_session_membership(c_class_58d20 *session)
+{
+	s_watcher_membership *result = 0;
+	if (session->state && session->value4c != NONE)
+		result = (s_watcher_membership *)&session->value4c;
+	return result;
+}
+
+// @retail 0x83000
+void function_83000(s_simulation_world_owner *watcher)
+{
+	s_watcher_machine_options *options = (s_watcher_machine_options *)g_4e6948;
+	if (g_4e6948->state == 1 || g_4e6948->state == 2)
+	{
+		c_class_58d20 *session = 0;
+		if (g_4d8ba0 && network_session_manager_get_any_session(&session) &&
+			watcher_session_membership(session))
+			watcher->session = session;
+	}
+	if (watcher->session)
+	{
+		s_watcher_membership *members = 0;
+		long local = NONE;
+		if (watcher_session_membership(watcher->session))
+		{
+			members = watcher_session_membership(watcher->session);
+			local = watcher->session->current_member;
+		}
+		s_watcher_session_link *link = 0;
+		if (g_527330.initialized)
+			link = (s_watcher_session_link *)g_527330.unknown48;
+		*(s_watcher_session_link **)watcher->unknown08 = link;
+		link->watcher = watcher;
+		link->index84 = NONE;
+		link->index88 = NONE;
+		dword mask = (1 << members->count) - 1;
+		s_machine_address machines[16];
+		memset(machines, 0, sizeof(machines));
+		for (long i = 0; i < members->count; i++)
+			machines[i] = *(s_machine_address *)((byte *)&members->members[i] + 10);
+		watcher->unknown10 = watcher->session->update7618;
+		watcher->unknown14 = members->host;
+		watcher->unknown1c = mask;
+		watcher->unknown20 = local;
+		memcpy(watcher->unknown24, machines, sizeof(machines));
+		watcher->world->local_address = ((s_machine_address *)watcher->unknown24)[local];
+		watcher->world->unknown0c = 1;
+		*(long *)(watcher->world->unknown13 + 1) = watcher->unknown20;
+		watcher->unknown84 = true;
+		watcher->unknownc30 = true;
+	}
+	else
+	{
+		watcher->unknown1c = options->mask;
+		memcpy(watcher->unknown24, options->machines, sizeof(options->machines));
+		watcher->unknown84 = false;
+		watcher->unknown20 = NONE;
+		if (options->local_valid)
+		{
+			for (long i = 0; i < 16; i++)
+			{
+				if ((watcher->unknown1c & (1 << i)) &&
+					!memcmp(&((s_machine_address *)watcher->unknown24)[i], &options->local, sizeof(s_machine_address)))
+					watcher->unknown20 = i;
+			}
+		}
+		if (watcher->unknown20 != NONE)
+		{
+			watcher->world->local_address = ((s_machine_address *)watcher->unknown24)[watcher->unknown20];
+			watcher->world->unknown0c = 1;
+			*(long *)(watcher->world->unknown13 + 1) = watcher->unknown20;
+		}
+	}
+}
+
+// @retail 0x83db0
+long function_83db0(s_simulation_world_owner *watcher)
+{
+	long result = 0;
+	if (watcher->world)
+	{
+		if (watcher->world->state == 1)
+		{
+			result = 1;
+			goto done;
+		}
+		if (g_4e9bb8)
+		{
+			long location = map_location_get(g_4e9bb8);
+			if (location != 3 && location != 4)
+			{
+				result = 2;
+				goto done;
+			}
+		}
+		if (g_527330.initialized && (g_527330.state == 3 || g_527330.state == 8))
+		{
+			c_class_6a600 *world = watcher->world;
+			if (world->state != 3 && world->state != 5)
+			{
+				switch (world->unknown18)
+				{
+				case 3: result = 4; goto done;
+				case 4: result = 3; goto done;
+				case 5: result = 5; goto done;
+				case 6: result = 6; goto done;
+				}
+			}
+			else
+			{
+				switch (world->unknown18)
+				{
+				case 3: result = 10; goto done;
+				case 4: result = 3; goto done;
+				case 6: result = 13; goto done;
+				}
+			}
+			if (watcher->session)
+			{
+				switch (watcher->session->state)
+				{
+				case 1: result = 11; break;
+				case 2: result = 12; break;
+				case 3: result = 9; break;
+				case 4: result = 13; break;
+				case 5: result = 4; break;
+				case 6: result = 6; break;
+				case 7: result = 5; break;
+				case 8: result = 7; break;
+				case 9: result = 8; break;
+				}
+			}
+		}
+	}
+done:
+	return result;
+}
 
 // @retail 0x83a40
 bool simulation_watcher_get_players(s_simulation_world_owner *watcher, long *unknown1c, dword *player_mask, dword *in_game_mask, dword *state, t_player_key *keys, bool force)
@@ -262,4 +433,54 @@ bool simulation_watcher_changed(s_simulation_world_owner *watcher)
 			result = true;
 	}
 	return result;
+}
+
+bool network_session_channel_has_member(c_class_58d20 *session, long channel_index);
+bool function_67e10(c_class_6a600 *world);
+c_simulation_view *function_6acb0(c_class_6a600 *world);
+c_simulation_view *function_6ad40(c_class_6a600 *world, const s_machine_address *address);
+void __stdcall function_68580(short type, const s_machine_address *address, long value, long unused);
+void function_85650(c_simulation_view *view, s_network_observer *observer, const XNADDR *address, long channel_index);
+
+// @retail 0x84630
+bool function_84630(long channel_index, s_simulation_world_owner *watcher, long value, const XNADDR *address)
+{
+ volatile bool result = false;
+ c_class_6a600 *world = watcher->world;
+ if (world->unknown2f && channel_index != NONE &&
+  network_session_channel_has_member(watcher->session, channel_index))
+ {
+  s_network_observer *observer = *(s_network_observer **)watcher->unknown08;
+  s_network_observer_channel *channel = &observer->channels[channel_index];
+  if (channel->state == 7)
+  {
+   s_network_connection *connection = &((s_network_connection *)g_4d87d4)[channel->connection_index];
+   if (connection->state == 5)
+   {
+    short type;
+    switch (world->state)
+    {
+    case 2: type = 2; break;
+    case 3: type = 1; break;
+    case 4: type = 4; break;
+    case 5: type = 3; break;
+    default: __assume(0);
+    }
+    s_machine_address machine = *(const s_machine_address *)((const byte *)address + 0xa);
+    function_68580(type, &machine, value, 0);
+    world = watcher->world;
+    c_simulation_view *view;
+    if (function_67e10(world))
+     view = function_6ad40(world, &machine);
+    else
+     view = function_6acb0(world);
+    if (view)
+    {
+     function_85650(view, *(s_network_observer **)watcher->unknown08, address, channel_index);
+     result = true;
+    }
+   }
+  }
+ }
+ return result;
 }

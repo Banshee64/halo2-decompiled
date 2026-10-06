@@ -81,6 +81,48 @@ short function_200ee0(long object_index, short mode, long *selected_object, shor
 	return (short)selected_seat;
 }
 
+// @retail 0x201010
+long function_201010(long object_index, short type_index, short mode, short *seat_index)
+{
+	(void)&type_index;
+	(void)&mode;
+	(void)&seat_index;
+	long result = NONE;
+	long selected = NONE;
+	short const *type_reference = &type_index;
+	short minimum = 0x7fff;
+	short best_seat;
+	if (mode != 3 && mode != 6 && object_index != NONE)
+	{
+		byte *definition = *(byte **)((byte *)g_4e0350 + 0x7c) + *type_reference * 0x28;
+		do
+		{
+			byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+			if (*(long *)(definition + 4) == *(long *)object)
+			{
+				long occupied = 0;
+				long selected_object = NONE;
+				short seat = function_200ee0(object_index, mode, &selected_object, (short *)&occupied);
+				if (seat != NONE && (short)occupied < minimum)
+				{
+					selected = selected_object;
+					minimum = (short)occupied;
+					best_seat = seat;
+					if (!(short)occupied)
+						break;
+				}
+			}
+			object_index = *(long *)(object + 0x3a4);
+		} while (object_index != NONE);
+		if (selected != NONE)
+		{
+			*seat_index = best_seat;
+			result = selected;
+		}
+	}
+	return result;
+}
+
 // @retail 0x211830
 bool function_211830(long filter_range, long object_index, long seat_index)
 {
@@ -161,4 +203,18 @@ long function_2116f0(long unit_index, long filter_range, long seat_type, long oc
 	}
 
 	return result_count;
+}
+
+
+bool function_290190(long object_index, point3f *position);
+
+// @retail 0x211680
+bool function_211680(long object_index, point3f *position)
+{
+    point3f *const *position_reference = &position;
+    byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+    bool result = false;
+    if (!*(long *)(object + 0x134))
+        result = function_290190(object_index, *position_reference);
+    return result;
 }

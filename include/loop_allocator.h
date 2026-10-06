@@ -64,47 +64,30 @@ bool function_18eea0(long stage);
 /* the list's item widgets (screen_widgets.h) */
 typedef c_class_14750b c_unknown_249fa3_entry;
 
-class c_unknown_249fa3_base
+class c_unknown_249fa3_base : public c_list_widget_26
 {
 public:
 	virtual ~c_unknown_249fa3_base();
+	byte field88;
+	byte field89;
+	bool field8a;
+	byte unknown8b;
+	long field8c;
+	c_list_item_handler handler;
 };
 
 class c_unknown_249fa3 : public c_unknown_249fa3_base
 {
 public:
 	virtual ~c_unknown_249fa3();
-	virtual void slot1();
-	virtual void slot2();
-	virtual void slot3();
-	virtual void slot4() {}
-	virtual void slot5() {}
-	virtual void slot6() {}
-	virtual void slot7() {}
-	virtual void slot8() {}
-	virtual void slot9() {}
-	virtual void slot10() {}
-	virtual void slot11() {}
-	virtual void slot12() {}
-	virtual void slot13() {}
-	virtual void slot14() {}
-	virtual void slot15() {}
-	virtual void slot16() {}
-	virtual void slot17() {}
-	virtual void slot18() {}
-	virtual void slot19() {}
-	virtual void slot20() {}
-	virtual void slot21() {}
-	virtual void slot22() {}
-	virtual void slot23() {}
-	virtual void slot24() {}
+	virtual void v1();
+	virtual void v2();
+	virtual void v3();
+	virtual void *get_item_data();
+	virtual void *get_items(long *count);
 
-	byte unknown04[0x86];
-	bool field8a;
-	byte unknown8b;
-	long field8c;
-	byte unknown90[0x18];
 	c_unknown_249fa3_entry entries[4];
+	byte profiles[4][0x248];
 };
 
 #endif

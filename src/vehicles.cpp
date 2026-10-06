@@ -823,13 +823,19 @@ struct s_vehicle_physics_point
 struct s_vehicle_contact
 {
 	transform4x3f matrix;
-	byte unknown34[0x80 - 0x34];
+	byte unknown34[0x70 - 0x34];
+	byte contact_type;
+	byte unknown71[3];
+	vector3f contact_velocity;
 	bool unknown80;
 	byte unknown81[2];
 	bool unknown83;
-	byte unknown84[0x8c - 0x84];
+	real compression;
+	byte unknown88[4];
 	real torque;
-	byte unknown90[0xb0 - 0x90];
+	byte unknown90[0xa0 - 0x90];
+	vector3f contact_normal;
+	long contact_handle;
 	short unknownb0;
 	byte unknownb2[0xd8 - 0xb2];
 };
@@ -839,7 +845,9 @@ struct s_vehicle_contact_definition
 {
 	byte unknown00[4];
 	dword flags;
-	byte unknown08[0x4c - 8];
+	byte unknown08[4];
+	real distance;
+	byte unknown10[0x4c - 0x10];
 };
 
 /* the vehicle's Havok physics definition as its state points to it */
@@ -870,6 +878,46 @@ struct s_vehicle_physics_state
 	s_vehicle_physics_point points[16];
 	s_vehicle_contact contacts[16];
 };
+
+struct s_vehicle_contact_result
+{
+	bool valid;
+	byte unknown01[3];
+	real distance;
+	short material;
+	byte unknown0a[0x18 - 0xa];
+	vector3f normal;
+	byte unknown24[8];
+	byte type;
+	byte unknown2d[3];
+	vector3f velocity;
+};
+
+extern short g_54e898;
+
+PRIVATE __forceinline void reset_vehicle_contact(s_vehicle_contact *contact)
+{
+	contact->contact_normal = *g_4687b0;
+	contact->unknownb0 = g_54e898;
+	contact->compression = 0.0f;
+}
+
+// @retail 0x207ab0
+void function_207ab0(long index, s_vehicle_physics_state *state, s_vehicle_contact_result const *result)
+{
+	s_vehicle_contact *contact = &state->contacts[index];
+	s_vehicle_contact_definition *definition = &state->definition->contacts[index];
+	reset_vehicle_contact(contact);
+	if (result->valid)
+	{
+		contact->unknownb0 = result->material;
+		contact->contact_normal = result->normal;
+		contact->compression = PIN(definition->distance - result->distance, 0.001f, definition->distance);
+		contact->contact_handle = NONE;
+		contact->contact_type = result->type;
+		contact->contact_velocity = result->velocity;
+	}
+}
 
 struct s_type_1e6529
 {
@@ -1470,7 +1518,7 @@ struct s_collision_result_1697c0;
 bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 point3f *function_b9dd0(long object_index, point3f *result);
-long function_1fa3a0(long a, long b, long c, point3f const *point);
+long function_1fa3a0(long a, long b, long object_index, long c, point3f const *point);
 extern vector3f *g_4687bc;
 
 /* the ground under the vehicle, found once a tick (for the vehicle types
@@ -1513,7 +1561,7 @@ void function_f1070(long vehicle_index, long *location, long *unknown3c0, point3
 			vehicle->unknown3cc = collision.unknown48;
 			if (collision.unknown50 != NONE)
 			{
-				vehicle->unknown3c0 = function_1fa3a0(collision.unknown3c, collision.unknown50, collision.unknown48,
+				vehicle->unknown3c0 = function_1fa3a0(collision.unknown3c, collision.unknown50, collision.unknown40, collision.unknown48,
 					&collision.point);
 			}
 			else
@@ -2698,7 +2746,7 @@ void __stdcall function_f3010(long vehicle_index, s_vehicle_physics_state *state
 			if (speed > 0.0f)
 			{
 				real pitch = state->unknown4c * speed * vehicle->unknown370 * -5.2359877f;
-				real lift = state->unknown6c * speed * vehicle->unknown370 * 3.6f;
+				real lift = state->unknown6c * speed * vehicle->unknown370 * 3.6000001f;
 
 				torque.i += pitch * left.i;
 				torque.j += left.j * pitch;
@@ -2718,8 +2766,8 @@ void __stdcall function_f3010(long vehicle_index, s_vehicle_physics_state *state
 				{
 					real fade = PIN(1.0f - vehicle->unknown34c * dt, 0.0f, 1.0f);
 					real push = (1.0f - vehicle->unknown370) * state->unknown6c * fade;
-					real forward_push = push * 1.8f;
-					real up_push = push * 0.9f;
+					real forward_push = push * 1.8000001f;
+					real up_push = push * 0.90000004f;
 
 					force.i = up_push * up->i + (direction.i * forward_push + force.i);
 					force.j = up->j * up_push + (direction.j * forward_push + force.j);
@@ -3080,7 +3128,7 @@ void function_f5ee0(long vehicle_index)
 	else
 	{
 		pushed = vehicle->throttle * vehicle->throttle + vehicle->steering * vehicle->steering +
-			vehicle->unknown1b8 * vehicle->unknown1b8 > 1.0e-6f;
+			vehicle->unknown1b8 * vehicle->unknown1b8 > 0.001f * 0.001f;
 	}
 	if ((!pushed || function_f5d70(vehicle_index)) &&
 		vehicle->unknown38e != (1 << *(long *)(definition + 0x2f0)) - 1 &&
