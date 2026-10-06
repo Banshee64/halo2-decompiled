@@ -497,4 +497,19 @@ bool function_98750(c_handle_table_450cd0 *self, s_bitstream *stream, long index
 bool function_988f0(c_handle_table_450cd0 *self, long index, s_bitstream *stream, long reserved_bits);
 bool function_989f0(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits);
 
+#include "unknown_096ed0.h"
+
+class c_replication_view_storage
+{
+public:
+	c_replication_view_storage();
+	long unknown00;
+	c_vtable_450cf4 aggregate;
+	long unknown2c;
+	c_handle_table_450cd0 handles;
+	c_vtable_450d1c sender;
+	c_vtable_450c94 updates;
+	c_vtable_450d14 source;
+};
+
 #endif

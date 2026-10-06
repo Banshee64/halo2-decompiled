@@ -941,3 +941,344 @@ bool function_07d520(s_bitstream *stream, void *part)
 }
 
 #undef SESSION_READ_RANGE
+
+
+// @retail 0x7c5a0
+void function_07c5a0(s_bitstream *stream, const void *source)
+{
+	const s_player_message_properties *properties = (const s_player_message_properties *)source;
+	for (long i = 0; i < 32; i++)
+	{
+		word character = properties->name[i];
+		function_195720(stream, character, 16);
+		if (!character) break;
+	}
+	function_7ee10(stream, &properties->appearance);
+	bool has_identity = memcmp(properties->identity, g_440070, sizeof(properties->identity)) != 0;
+	stream_write_bit(stream, has_identity);
+	if (has_identity)
+	{
+		function_1955d0(stream, properties->identity, 96);
+		for (long i = 0; i < 16; i++)
+		{
+			word character = properties->group_name[i];
+			function_195720(stream, character, 16);
+			if (!character) break;
+		}
+	}
+	stream_write_bit(stream, properties->index != NONE);
+	if (properties->index != NONE) stream_write_checked(stream, properties->index, 4);
+	stream_write_bit(stream, properties->value7e != NONE);
+	if (properties->value7e != NONE) stream_write_checked(stream, properties->value7e, 7);
+	stream_write_bit(stream, properties->value7f != NONE);
+	if (properties->value7f != NONE) stream_write_checked(stream, properties->value7f, 7);
+	stream_write_bit(stream, properties->value84 != NONE);
+	if (properties->value84 != NONE)
+	{
+		stream_write_checked(stream, properties->value84, 4);
+		stream_write_bit(stream, properties->value88 != NONE);
+		if (properties->value88 != NONE) stream_write_checked(stream, properties->value88, 7);
+		stream_write_bit(stream, properties->value8a != NONE);
+		if (properties->value8a != NONE) stream_write_checked(stream, properties->value8a, 7);
+		stream_write_bit(stream, properties->value8c != NONE);
+		if (properties->value8c != NONE) stream_write_checked(stream, properties->value8c, 30);
+	}
+	stream_write_checked(stream, (char)properties->flags, 2);
+	stream_write_bit(stream, *(const char *)&properties->flag80 > 0);
+	stream_write_checked(stream, properties->value81, 3);
+}
+
+#include "unknown_059ad0.h"
+
+struct s_surface_description
+{
+	long type;
+	long field_4;
+	dword field_8;
+	char names[9][0x10];
+	char descriptions[9][0x80];
+	char field_51c[128];
+	byte unknown59c[8];
+	long points[16];
+	long field_5e4;
+	bool flag_5e8;
+	byte unknown5e9[3];
+	long width, height, depth, field_5f8, field_5fc, field_600;
+	bool flag_604;
+	byte unknown605[3];
+	long field_608, field_60c;
+	byte unknown610[4];
+};
+struct s_game_variant_globals
+{
+	dword unknown0, flags;
+	word count, state;
+};
+extern s_game_variant_globals g_47d8f4;
+extern s_surface_description g_551ae8[16];
+s_surface_description *function_192e60(long index);
+bool function_1934f0(s_surface_description *variant);
+long function_1931a0(long count, s_surface_description *variant);
+long function_193250(s_surface_description *variant);
+long function_1932c0(s_surface_description *variant);
+bool balance_teams_by_count(long player_count, const long *parties, long team_count, long maximum_team_size,
+	bool flag_parties, long minimum, long maximum, bool use_parties, long *imbalance);
+bool balance_teams_can_add(long player_count, const long *parties, long extra_count, long team_count,
+	long maximum_team_size, bool flag_parties, long minimum, long maximum, bool use_parties, long maximum_imbalance);
+
+struct s_ratings_summary
+{
+	long machine_count;
+	s_session_id machine_ids[16];
+	s_message_identity machine_users[16];
+	long machine_times[16];
+	long player_count;
+	s_message_identity players[16];
+	long first[16], second[16], groups[16];
+};
+struct s_matchmaking_ratings
+{
+	long average, maximum, minimum, player_count, rated_count;
+	s_message_identity identities[16];
+	long first[16], second[16], adjusted[16], groups[16];
+	long group_count;
+	long rated_counts[16], total_counts[16], averages[16];
+	s_message_identity group_identities[16];
+	long imbalance;
+	dword add_mask, group_mask;
+};
+
+static inline long ratings_variant_capacity(s_surface_description *variant)
+{
+	switch (variant->type)
+	{
+	case 1: return variant->height;
+	case 2: return variant->height;
+	case 3: return variant->depth * variant->width;
+	case 4: return variant->depth * variant->width;
+	case 5: return variant->depth * variant->width;
+	default: __assume(0);
+	}
+}
+static inline long ratings_variant_teams(s_surface_description *variant)
+{
+	switch (variant->type)
+	{
+	case 1: return NONE;
+	case 2: return NONE;
+	case 3: return variant->width;
+	case 4: return variant->width;
+	case 5: return variant->width;
+	default: __assume(0);
+	}
+}
+static inline long ratings_party_minimum(s_surface_description *variant)
+{
+	if (variant->type == 5) return variant->height;
+	if (variant->type == 4 && variant->flag_604) return variant->field_608;
+	return 0;
+}
+static inline long ratings_party_maximum(s_surface_description *variant)
+{
+	if (variant->type == 5) return variant->depth;
+	if (variant->type == 4 && variant->flag_604) return variant->field_60c;
+	return 0;
+}
+static inline long ratings_party_spread(s_surface_description *variant)
+{
+	if (variant->type == 5) return variant->field_5f8;
+	if (variant->type == 4 && variant->flag_604) return *(long *)variant->unknown610;
+	return 0;
+}
+static inline bool ratings_party_limited(s_surface_description *variant)
+{
+	return (variant->type == 4 && variant->flag_604) || variant->type == 5;
+}
+static inline long ratings_allowed_imbalance(s_surface_description *variant)
+{
+	switch (variant->type)
+	{
+	case 1: return 0;
+	case 2: return 0;
+	case 3: return *(bool *)&variant->field_5f8 ? 1 : 0;
+	case 4: return variant->field_5f8;
+	case 5: return variant->field_5f8;
+	default: __assume(0);
+	}
+}
+
+// @retail 0x7e210
+bool function_7e210(c_class_58d20 *session, s_matchmaking_ratings *out)
+{
+	long variant_index = NONE;
+	if (session->state > 2 && session->state <= 8) variant_index = session->value49c8;
+	s_surface_description *variant = function_192e60(variant_index);
+	const s_ratings_summary *summary = NULL;
+	if (session->state > 2 && session->state <= 8 && session->flag49fd)
+		summary = (const s_ratings_summary *)session->data4a00;
+	long capacity = 16;
+	if (session->state > 2 && session->state <= 8) capacity = session->value4994;
+	volatile bool result = true;
+	memset(out, 0, sizeof(*out));
+	if (!summary || summary->player_count > capacity || !variant ||
+		capacity > ratings_variant_capacity(variant) || capacity < function_1932c0(variant))
+		return false;
+	if (variant->type == 5)
+	{
+		for (long i = 0; i < summary->machine_count; i++)
+			if (!memcmp(&summary->machine_users[i], g_440070, 12)) result = false;
+		if (!result) return result;
+	}
+	long available = capacity - summary->player_count;
+	out->maximum = NONE;
+	out->minimum = NONE;
+	out->average = NONE;
+	out->player_count = summary->player_count;
+	out->rated_count = 0;
+	out->maximum = 0;
+	out->minimum = 127;
+	out->average = 0;
+	bool adding_group = false;
+	for (long i = 0; i < out->player_count; i++)
+	{
+		long rating = summary->first[i];
+		out->identities[i] = summary->players[i];
+		out->groups[i] = summary->groups[i];
+		out->first[i] = rating;
+		out->second[i] = summary->second[i];
+		long adjusted = summary->first[i];
+		if (adjusted != NONE)
+		{
+			s_surface_description *rating_variant = NULL;
+			if (variant_index >= 0 && variant_index < 16 && g_47d8f4.count && (g_47d8f4.flags & 2) &&
+				function_1934f0(&g_551ae8[variant_index])) rating_variant = &g_551ae8[variant_index];
+			if (variant_index)
+			{
+				long highest = NONE;
+				for (long j = 0; j < summary->player_count; j++)
+					if (summary->groups[j] == summary->groups[i] && highest <= summary->first[j]) highest = summary->first[j];
+				if (highest != NONE)
+				{
+					long lower = highest;
+					while (lower > 0 && rating_variant->field_51c[lower - 1] >= highest) lower--;
+					if (adjusted <= lower) adjusted = function_1931a0(lower, rating_variant);
+				}
+			}
+		}
+		out->adjusted[i] = adjusted;
+		if (!(out->identities[i].words[2] & 3))
+		{
+			out->maximum = out->maximum > rating ? out->maximum : rating;
+			out->minimum = out->minimum > rating ? rating : out->minimum;
+			out->average += rating;
+			out->rated_count++;
+		}
+	}
+	if (!out->rated_count)
+	{
+		out->maximum = NONE;
+		out->minimum = NONE;
+		out->average = NONE;
+	}
+	else out->average /= out->rated_count;
+	out->group_count = summary->machine_count;
+	s_session_id machine_ids[16];
+	for (long i = 0; i < out->group_count; i++)
+	{
+		machine_ids[i] = summary->machine_ids[i];
+		out->total_counts[i] = 0;
+		out->rated_counts[i] = 0;
+		out->averages[i] = 0;
+		out->group_identities[i] = summary->machine_users[i];
+		for (long j = 0; j < out->player_count; j++)
+		{
+			if (out->groups[j] == i)
+			{
+				if (!(out->identities[j].words[2] & 3))
+				{
+					out->averages[i] += out->first[j];
+					out->rated_counts[i]++;
+				}
+				out->total_counts[i]++;
+			}
+		}
+		if (!out->rated_counts) out->averages[i] = NONE;
+		else out->averages[i] /= out->rated_counts[i];
+	}
+	long histogram[16];
+	memset(histogram, 0, sizeof(histogram));
+	for (long i = 0; i < out->group_count; i++) histogram[out->total_counts[i] - 1]++;
+	long last = NONE;
+	long first = NONE;
+	memset(histogram, 0, sizeof(histogram));
+	long spread = 0;
+	long parties = 0;
+	if (ratings_party_limited(variant))
+	{
+		for (long i = 0; i < out->group_count; i++)
+		{
+			long count = out->total_counts[i];
+			if (count >= ratings_party_minimum(variant) && count <= ratings_party_maximum(variant))
+			{
+				histogram[count - 1]++;
+				parties++;
+				if (first == NONE) first = count;
+				last = count;
+				spread = last - first;
+			}
+		}
+		if (spread > ratings_party_spread(variant)) result = false;
+		if (parties > ratings_variant_teams(variant)) result = false;
+	}
+	out->group_mask = 0;
+	out->add_mask = 0;
+	if (ratings_party_limited(variant) && parties > 0 && parties < ratings_variant_teams(variant))
+	{
+		adding_group = true;
+		for (long count = ratings_party_minimum(variant); count <= ratings_party_maximum(variant); count++)
+			if (last - count <= ratings_party_spread(variant) && count - first <= ratings_party_spread(variant))
+				out->group_mask |= 1 << (count - 1);
+		out->add_mask = out->group_mask;
+	}
+	long teams = NONE;
+	long team_size = NONE;
+	if (variant->type == 5 || variant->type == 3 || variant->type == 4)
+	{
+		teams = ratings_variant_teams(variant);
+		team_size = capacity / teams;
+	}
+	if (variant->type == 5 || variant->type == 3 || variant->type == 4)
+	{
+		bool use_parties = variant->type == 5 || variant->type == 2 || variant->type == 4;
+		if (!balance_teams_by_count(out->player_count, out->groups, teams, team_size,
+			ratings_party_limited(variant), ratings_party_minimum(variant), ratings_party_maximum(variant), use_parties, &out->imbalance))
+			result = false;
+	}
+	else out->imbalance = 0;
+	if (!adding_group)
+	{
+		long excess = out->imbalance > ratings_allowed_imbalance(variant) ? out->imbalance - ratings_allowed_imbalance(variant) : 0;
+		if (excess > available) return false;
+	}
+	if (result && !adding_group && variant->type != 5)
+	{
+		if (variant->type == 2 || variant->type == 4)
+		{
+			if (variant->type == 3 || variant->type == 4)
+			{
+				long minimum = variant->type == 4 ? variant->field_5fc : 1;
+				long maximum = function_193250(variant);
+				if (variant->type == 4 && variant->flag_604) maximum = ratings_party_minimum(variant) - 1;
+				for (long count = minimum; count <= maximum; count++)
+				{
+					if (count <= available && balance_teams_can_add(out->player_count, out->groups, count, teams, team_size,
+						ratings_party_limited(variant), ratings_party_minimum(variant), ratings_party_maximum(variant), true, ratings_allowed_imbalance(variant)))
+						out->add_mask |= 1 << (count - 1);
+				}
+			}
+			else if (available > 0) out->add_mask = 1;
+		}
+		else out->add_mask = (1 << available) - 1;
+	}
+	return result;
+}

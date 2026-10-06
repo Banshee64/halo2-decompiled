@@ -76,7 +76,8 @@ struct s_world_player_input
 // @retail 0x694c0
 void function_694c0(c_class_6a600 *world, long player_index)
 {
-	long index = (word)player_index;
+	long const *player_reference = &player_index;
+	long index = (word)*player_reference;
 	s_world_player_input *player = &((s_world_player_input *)g_4e8c24->data)[index];
 	short local_index = player->local_index;
 	bool local = local_index != NONE;
@@ -1199,4 +1200,51 @@ bool simulation_world_queue_block(c_class_6a600 *world, const s_simulation_block
 	}
 	world->flag2c = true;
 	return result;
+}
+
+
+// @retail 0x6a770
+void __stdcall function_6a770(void *pointer)
+{
+	c_class_6a600 *world = (c_class_6a600 *)pointer;
+	world->function_6a600();
+	s_record_pool_iterator iterator;
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	byte *player;
+	while ((player = data_iterator_next_inlined(&iterator)) != 0)
+	{
+		if (!(player[2] & 2))
+			function_694c0(world, iterator.datum_index);
+	}
+}
+
+class c_replication_view_storage;
+long function_821c0(void **arg_f0f1ad, c_replication_view_storage **out_storage);
+
+// The caller at 0x84630 supplies four stack arguments; the last is unused here.
+// @retail 0x68580
+void __stdcall function_68580(short type, const s_machine_address *address, long value, long unused)
+{
+	c_replication_view_storage *storage;
+	c_simulation_view *view;
+	long index = function_821c0((void **)&view, &storage);
+	if (index != NONE)
+	{
+		view->initialize(index, type, (s_simulation_view_data *)storage, address, value);
+		c_class_6a600 *world = SIMULATION_WORLD;
+		long slot;
+		for (slot = 0; slot < 15; slot++)
+		{
+			if (world->views[slot] == 0)
+			{
+				world->views[slot] = view;
+				world->view_count++;
+				break;
+			}
+		}
+		view->world = world;
+		view->world_index = slot;
+	}
 }

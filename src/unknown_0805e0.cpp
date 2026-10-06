@@ -7,6 +7,7 @@
 #include "unknown_11c920.h"
 #include "unknown_2312b4.h"
 #include <string.h>
+#include <xtl.h>
 
 struct s_player_configuration_cache_entry
 {
@@ -350,4 +351,198 @@ void function_7f930(void)
 		entry->flags = 0;
 		*(long *)entry->unknown64 = 0;
 	}
+}
+
+// @retail 0x80bf0
+void function_80bf0(s_cache_property_record *records, long record_capacity,
+	s_cache_property *properties, long property_capacity, byte *buffers,
+	long *record_count, long *property_count, long *buffer_count)
+{
+	long records_used = 0;
+	long properties_used = 0;
+	long buffers_used = 0;
+	for (long i = 0; i < g_4cf978; i++)
+	{
+		s_player_configuration_cache_entry *entry = &g_4cf98c[i];
+		if (entry->flags & 1)
+		{
+			if (record_capacity <= 0 || property_capacity < 4)
+				break;
+			long values[3];
+			memcpy(values, (byte *)&entry->player + 0x4c, sizeof(values));
+			memcpy(records->identity, &entry->player, sizeof(records->identity));
+			records->type = 0x61;
+			records->count = 4;
+			records->properties = properties;
+			records++;
+			record_capacity--;
+			records_used++;
+			memcpy(buffers, (byte *)&entry->player + 0xc, 0x40);
+			*(short *)&properties->unknown00 = -3;
+			properties->type = 4;
+			properties->unknown08 = (long)buffers;
+			properties++;
+			property_capacity--;
+			properties_used++;
+			buffers += 0x40;
+			buffers_used++;
+			for (long j = 0; j < 3; j++)
+			{
+				*(short *)&properties[j].unknown00 = (short)(j + 2);
+				properties[j].type = 1;
+				properties[j].unknown08 = values[j];
+			}
+			properties += 3;
+			property_capacity -= 3;
+			properties_used += 3;
+		}
+	}
+	if (record_count)
+		*record_count = records_used;
+	if (property_count)
+		*property_count = properties_used;
+	if (buffer_count)
+		*buffer_count = buffers_used;
+}
+
+#include <xtl.h>
+#include <wchar.h>
+
+// @retail 0x80aa0
+void function_80aa0(s_cache_property_record *records, long count)
+{
+	long position;
+	for (long i = 0; i < count; i++)
+	{
+		s_cache_property_record *record = &records[i];
+		if (record->type == 0x61 && record->count == 4)
+		{
+			long index = function_7fc80(record->identity, &position);
+			if (index != NONE)
+			{
+				s_cache_property *properties = record->properties;
+				long values[3];
+				long present = 0;
+				long absent = 0;
+				if (properties[0].type == 0)
+					absent = 1;
+				else if (properties[0].type == 4 && properties[0].unknown08 != 0)
+					present = 1;
+				for (long j = 0; j < 3; j++)
+				{
+					if (properties[j + 1].type == 0)
+						absent++;
+					else if (properties[j + 1].type == 1)
+					{
+						values[j] = properties[j + 1].unknown08;
+						present++;
+					}
+				}
+				if (absent + present == 4)
+				{
+					s_player_configuration_cache_entry *entry = &g_4cf98c[index];
+					if (present == 4)
+					{
+						wchar_t *name = (wchar_t *)((byte *)&entry->player + 0xc);
+						wcsncpy(name, (const wchar_t *)properties[0].unknown08, 31);
+						name[31] = 0;
+						memcpy((byte *)&entry->player + 0x4c, values, sizeof(values));
+						entry->flags &= ~8;
+					}
+					unsigned __int64 time = 0;
+					GetSystemTimeAsFileTime((FILETIME *)&time);
+					*(dword *)entry->unknown64 = (dword)(time / 3600000000ULL);
+					entry->flags &= ~2;
+				}
+			}
+		}
+	}
+}
+
+bool g_51055c;
+
+// @retail 0x7fe90
+long function_7fe90(const s_cached_player_identity *identity, long position, const s_cached_player_source *source)
+{
+	long removed = NONE;
+	if (g_4cf978 == 350)
+	{
+		removed = g_4cf980;
+		function_7fd10(removed);
+		function_7fd80(removed);
+	}
+	long lower, upper;
+	bool downward = false;
+	if (removed != NONE)
+	{
+		lower = removed < position ? removed : position;
+		upper = removed > position ? removed : position;
+		if (removed < position)
+		{
+			upper--;
+			position--;
+			downward = true;
+		}
+	}
+	else
+	{
+		lower = position;
+		upper = g_4cf978;
+	}
+	if (upper > lower)
+	{
+		if (downward)
+		{
+			for (long i = lower + 1; i <= upper; i++)
+				g_4cf98c[i - 1] = g_4cf98c[i];
+		}
+		else
+		{
+			for (long i = upper - 1; i >= lower; i--)
+				g_4cf98c[i + 1] = g_4cf98c[i];
+		}
+		long change = downward ? -1 : 1;
+		for (long i = 0; i < 350; i++)
+		{
+			s_player_configuration_cache_entry *entry = &g_4cf98c[i];
+			if (entry->previous_other >= lower && entry->previous_other <= upper) entry->previous_other += (short)change;
+			if (entry->next_other >= lower && entry->next_other <= upper) entry->next_other += (short)change;
+			if (entry->unknown58 >= lower && entry->unknown58 <= upper) entry->unknown58 += (short)change;
+			if (entry->next >= lower && entry->next <= upper) entry->next += (short)change;
+		}
+		if (g_4cf97c >= lower && g_4cf97c <= upper) g_4cf97c += change;
+		if (g_4cf980 >= lower && g_4cf980 <= upper) g_4cf980 += change;
+		if (g_4cf984 >= lower && g_4cf984 <= upper) g_4cf984 += change;
+		if (g_4cf988 >= lower && g_4cf988 <= upper) g_4cf988 += change;
+	}
+	s_player_configuration_cache_entry *entry = &g_4cf98c[position];
+	entry->next_other = (short)g_4cf97c;
+	entry->previous_other = NONE;
+	entry->next = NONE;
+	entry->unknown58 = (short)g_4cf988;
+	entry->flags = 0;
+	unsigned __int64 now = 0;
+	GetSystemTimeAsFileTime((FILETIME *)&now);
+	*(dword *)entry->unknown64 = (dword)(now / 3600000000ui64);
+	memset(&entry->player, 0, sizeof(entry->player));
+	s_cached_player_view *player = (s_cached_player_view *)&entry->player;
+	player->identity = *identity;
+	memcpy(player->name, source->name, sizeof(player->name));
+	player->field4c = source->field40;
+	player->field50 = source->field44;
+	player->field51 = source->field45;
+	player->field52 = source->field46;
+	player->field53 = source->field47;
+	player->field56 = source->field7f;
+	if (g_4cf97c != NONE && g_4cf97c != position)
+		g_4cf98c[g_4cf97c].previous_other = (short)position;
+	g_4cf97c = position;
+	if (g_4cf980 == NONE) g_4cf980 = position;
+	if (g_4cf988 != NONE && g_4cf988 != position)
+		g_4cf98c[g_4cf988].next = (short)position;
+	g_4cf988 = position;
+	if (g_4cf984 == NONE) g_4cf984 = position;
+	g_51055c = true;
+	if (removed == NONE) g_4cf978++;
+	return position;
 }

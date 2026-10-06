@@ -6,6 +6,8 @@
 #include "globals.h"
 #include "data_array.h"
 #include "effects.h"
+#include <xtl.h>
+#include "unknown_246cd0.h"
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
@@ -40,6 +42,133 @@ void effect_remove_event_slot(long effect_index, long value);
 void function_1753f0(s_particle_system_datum *particle_system);
 bool function_174a30(s_particle_system_datum *particle_system, real dt);
 void function_17af80(long effect_index, long particle_system_index);
+
+struct s_particle_callback_output_173cb0
+{
+	long field_0;
+	byte field_4;
+	byte field_5;
+	short field_6;
+	short field_8;
+	short field_a;
+	long field_c;
+	long field_10;
+	long field_14;
+};
+
+// @retail 0x173cb0
+bool __stdcall function_173cb0(long tag_index, long unused, long first, long second, long third, short value, s_particle_callback_output_173cb0 *output)
+{
+	/* This callback is passed at 0x1748f2 with all seven arguments on the stack. */
+	long const *tag_argument = &tag_index;
+	long const *unused_argument = &unused;
+	long const *first_argument = &first;
+	long const *second_argument = &second;
+	long const *third_argument = &third;
+	short const *value_argument = &value;
+	s_particle_callback_output_173cb0 *const *output_argument = &output;
+	tag_index = *tag_argument;
+	unused = *unused_argument;
+	first = *first_argument;
+	second = *second_argument;
+	third = *third_argument;
+	value = *value_argument;
+	output = *output_argument;
+	long const *reference;
+	dword group = TAG_GROUP(tag_index);
+	if (group == 0x5052544d || group == 'prt3')
+		reference = function_137bd0(tag_index)->function_x947334();
+	else
+		reference = *(long const **)(g_4e3b44[tag_index & 0xffff].bytes + 0x24);
+	byte *definition = g_4e3b44[*reference & 0xffff].bytes;
+	byte *table = *(byte **)(definition + 0x5c);
+	word *entries = *(word **)(table + 4);
+	long index = (entries[first * 5] & 0x1ff) + second;
+	word *indices = *(word **)(table + 0xc);
+	index = (indices[index] & 0x1ff) + third;
+	byte *items = *(byte **)(table + 0x14);
+	long item_tag = *(long *)(items + index * 10 + 4);
+	byte *item = g_4e3b44[item_tag & 0xffff].bytes;
+	output->field_10 = (*(long **)(item + 0x20))[1];
+	output->field_5 = 3;
+	output->field_4 = 0;
+	output->field_8 = 7;
+	output->field_14 = 0;
+	output->field_6 = value;
+	output->field_c = NONE;
+	return true;
+}
+
+extern long g_4b9f8c;
+extern real g_4b9fa4, g_4b9ff8, g_4b9f18, g_4b9f9c;
+bool function_16e210(long cluster_index, long value);
+void function_25ca0(bool enabled);
+
+// @retail 0x174f80
+void function_174f80(s_particle_system_datum *system, void *a, void *b, void *c)
+{
+	c_type_4e7709 *definition = function_137bd0(system->function_1751d0()->tag_index);
+	bool enabled = function_16e210(system->location.cluster_index, g_4b9f8c);
+	if (!enabled)
+		function_25ca0(false);
+	definition->render(system, a, b, c);
+	if (!enabled)
+	{
+		real divisor = g_4b9fa4;
+		if (0.0001f > divisor)
+			divisor = 0.0001f;
+		real value = g_4b9ff8;
+		value *= 1.0f / divisor;
+		value = 0.0f - value;
+		real constants[4];
+		constants[0] = value < 0.0f ? 0.0f : value > 1.0f ? 1.0f : value;
+		constants[1] = 0.0f;
+		constants[2] = g_4b9f18;
+		constants[3] = g_4b9f9c;
+		D3DDevice_SetVertexShaderConstant(-81, constants, 1);
+	}
+}
+
+struct s_particle_render_request_173c90
+{
+	s_particle_system_datum *system;
+	void *location;
+};
+
+// @retail 0x173c90
+void __stdcall function_173c90(s_particle_render_request_173c90 const *request)
+{
+	s_particle_render_request_173c90 const *const *argument = &request;
+	request = *argument;
+	function_174f80(request->system, request->location, (void *)15, 0);
+}
+
+// @retail 0x173d80
+void __stdcall function_173d80(long a, long b, long c, void *first, void *second, long system_index, void *unused)
+{
+	long const *a_argument = &a;
+	long const *b_argument = &b;
+	long const *c_argument = &c;
+	void *const *unused_argument = &unused;
+	a = *a_argument;
+	b = *b_argument;
+	c = *c_argument;
+	unused = *unused_argument;
+	void *const *first_argument = &first;
+	void *const *second_argument = &second;
+	long const *index_argument = &system_index;
+	first = *first_argument;
+	second = *second_argument;
+	system_index = *index_argument;
+	s_particle_system_datum *system = DATUM(g_510c74, s_particle_system_datum, system_index);
+	long index = system->location_index;
+	while (index != NONE)
+	{
+		s_particle_location_datum *location = DATUM(g_51ec8c, s_particle_location_datum, index);
+		function_174f80(system, location, first, second);
+		index = location->next_index;
+	}
+}
 
 // @retail 0x173b90
 long function_173b90(s_particle_system_datum *particle_system)
@@ -269,6 +398,129 @@ struct s_particle_value_cache
 	void *field_4c;
 	void const *field_50;
 };
+
+struct s_particle_emitter_175610
+{
+	short salt;
+	word count;
+	long first_particle_index;
+	long next_index;
+	byte unknown0c[0x40];
+};
+
+struct s_particle_175610
+{
+	short salt;
+	word flags;
+	long next_index;
+	byte unknown08[0x14];
+	point3f position;
+	vector3f velocity;
+	byte unknown34[0xc];
+};
+
+struct s_emitter_definition_175610
+{
+	byte unknown00[0x48];
+	s_particle_property scale;
+	s_particle_property color;
+	s_particle_property alpha;
+	byte unknown78[0x38];
+	dword flags;
+	dword mask;
+};
+
+struct s_particle_frame;
+void function_248450(matrix3x3 *rotation, s_particle_frame const *frame, point3f *position, matrix3x3 const **rotation_result, point3f const **position_result, bool field_b4);
+void function_246d80(s_particle_property const *property, real const *values, color3f *color);
+real function_3eb70(void);
+typedef void (__stdcall *particle_callback_175610)(s_particle_175610 *, s_particle_value_cache *, point3f const *, vector3f const *, real, color4f const *, void *);
+
+PRIVATE inline void particle_rotate_175610(matrix3x3 const *matrix, vector3f const *input, vector3f *output)
+{
+	vector3f value = *input;
+	output->i = matrix->left.i * value.j + matrix->forward.i * value.i + matrix->up.i * value.k;
+	output->j = matrix->forward.j * value.i + matrix->up.j * value.k + matrix->left.j * value.j;
+	output->k = matrix->forward.k * value.i + matrix->up.k * value.k + matrix->left.k * value.j;
+}
+
+// @retail 0x175610
+void function_175610(s_particle_value_cache *cache, s_particle_system_datum *system, s_particle_location_datum *location, particle_callback_175610 callback, void *context)
+{
+	s_effect_particle_system_definition *definition = system->function_1751d0();
+	if (system != cache->field_48)
+	{
+		cache->field_48 = system;
+		cache->mask &= 0xfffff98f;
+	}
+	if (location != cache->field_4c)
+	{
+		cache->field_4c = location;
+		cache->mask &= 0xfffecf7f;
+	}
+	long emitter_index = *(long *)((byte *)location + 4);
+	s_emitter_definition_175610 *emitter_definition = *(s_emitter_definition_175610 **)((byte *)definition + 0x34);
+	while (emitter_index != NONE)
+	{
+		s_particle_emitter_175610 *emitter = DATUM(g_51ec88, s_particle_emitter_175610, emitter_index);
+		long particle_index = emitter->first_particle_index;
+		if (particle_index != NONE)
+		{
+			real multiplier = 1.0f;
+			real scale = 1.0f;
+			if (TEST_FIELD_BIT(system->flag10))
+				multiplier = function_3eb70();
+			matrix3x3 rotation;
+			point3f origin;
+			matrix3x3 const *rotation_result;
+			point3f const *origin_result;
+			color4f color;
+			if (definition->unknown0c)
+				function_248450(&rotation, (s_particle_frame const *)emitter, &origin, &rotation_result, &origin_result, *((byte *)location + 2) != 0);
+			dword mask = emitter_definition->mask & 0x107f0;
+			function_173ba0(~cache->mask & mask, cache->field_48, cache->field_4c, cache->field_50, cache->values);
+			cache->mask |= mask;
+			if (emitter_definition->flags & 1)
+				color.alpha = function_246cd0(&emitter_definition->alpha, cache->values);
+			if (emitter_definition->flags & 2)
+				function_246d80(&emitter_definition->color, cache->values, (color3f *)&color.red);
+			if ((bool)((emitter_definition->flags >> 2) & 1))
+				scale = function_246cd0(&emitter_definition->scale, cache->values) * multiplier;
+			mask = emitter_definition->mask & 0xf80f;
+			while (particle_index != NONE)
+			{
+				s_particle_175610 *particle = DATUM(g_51ec84, s_particle_175610, particle_index);
+				point3f position = particle->position;
+				vector3f velocity = particle->velocity;
+				if (particle != cache->field_50)
+				{
+					cache->field_50 = particle;
+					cache->mask &= 0xffff07f0;
+				}
+				function_173ba0(~cache->mask & mask, cache->field_48, cache->field_4c, cache->field_50, cache->values);
+				cache->mask |= mask;
+				particle_index = particle->next_index;
+				if (!(emitter_definition->flags & 1))
+					color.alpha = function_246cd0(&emitter_definition->alpha, cache->values);
+				if (!(emitter_definition->flags & 2))
+					function_246d80(&emitter_definition->color, cache->values, (color3f *)&color.red);
+				if (!(bool)((emitter_definition->flags >> 2) & 1))
+					scale = function_246cd0(&emitter_definition->scale, cache->values) * multiplier;
+				if (definition->unknown0c)
+				{
+					particle_rotate_175610(rotation_result, (vector3f const *)&position, (vector3f *)&position);
+					position.x = origin_result->x + position.x;
+					position.y = origin_result->y + position.y;
+					position.z = origin_result->z + position.z;
+					particle_rotate_175610(rotation_result, &velocity, &velocity);
+				}
+				callback(particle, cache, &position, &velocity, scale, &color, context);
+			}
+		}
+		emitter_index = emitter->next_index;
+		++emitter_definition;
+	}
+}
 
 // @retail 0x173c10
 void function_173c10(dword mask, s_particle_value_cache *cache)

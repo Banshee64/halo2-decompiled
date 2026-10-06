@@ -40,6 +40,37 @@ bool function_e4050(long object_index);
 s_type_5cfb45 *function_25d670(long prop_ref_index);
 real normalize2d(point2f *v);
 bool function_1f57f0(long actor_index, long animation, long const *target);
+bool function_1be410(point3f *point, long object_index, long actor_index);
+point3f *function_b9dd0(long object_index, point3f *result);
+bool function_1f8100(long actor_index, point3f const *origin, point3f const *target);
+
+// @retail 0x1be4b0
+short __stdcall function_1be4b0(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
+	if (actor->prop_index != NONE && actor->unknown348 != NONE)
+	{
+		if (object_get(actor->unknown018)->type == 0)
+		{
+			point3f point;
+			function_b9dd0(actor->unknown348, &point);
+			real z = actor->position.z - point.z;
+			real x = actor->position.x - point.x;
+			real y = actor->position.y - point.y;
+			if (z * z + x * x + y * y < 16.0f && function_1be410(&point, actor->unknown348, actor_index))
+			{
+				point3f origin = point;
+				origin.x -= object_get(actor->unknown348)->unknown03c;
+				origin.z = actor->position.z;
+				if (function_1f8100(actor_index, &origin, &point))
+					return 3;
+			}
+			return 0;
+		}
+	}
+	return result;
+}
 
 // @retail 0x1be6e0
 short __stdcall function_1be6e0(long actor_index, s_slot *slot, bool active)
@@ -158,3 +189,31 @@ s_slot_handler_2 g_47ed58 =
 	},
 	(t_slot_proc)function_1be840, slot_proc_nothing, function_1be8f0
 };
+
+bool function_1f8160(long actor_index, signed char const *types, point3f const *target, bool force);
+
+// @retail 0x1be8f0
+void __stdcall function_1be8f0(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    s_slot_object_view *unit = object_get(actor->unknown018);
+    s_slot_20 *state = (s_slot_20 *)slot;
+    if ((actor->unknown348 == state->unknown10 || state->unknown0d) && !state->unknown0c &&
+        unit->type == 0 && state->unknown10 != NONE)
+    {
+        actor->unknown41c = 3;
+        actor->unknown420 = 6;
+        *(long *)&actor->unknown424 = state->unknown10;
+        point3f point;
+        if (function_1be410(&point, state->unknown10, actor_index) && function_1f8160(actor_index, NULL, &point, false))
+        {
+            actor->unknown228 = true;
+            state->unknown0c = true;
+        }
+    }
+    else
+    {
+        actor->unknown41c = 3;
+        actor->unknown420 = 2;
+    }
+}

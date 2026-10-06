@@ -1,12 +1,14 @@
 // @flags /O2 /arch:SSE /Gr
 #include "unknown_11c920.h"
 #include "slot_handler.h"
+#include "unknown_2605d0.h"
+#include "unknown_2626b0.h"
 
 /* slot type 0x6d */
 
 short __stdcall function_1b2ff0(long actor_index);
 bool __stdcall function_1b3360(long actor_index, s_slot *slot);
-void __stdcall function_1b3380(long actor_index, s_slot *slot);
+bool __stdcall function_1b3380(long actor_index, s_slot *slot);
 
 /* iterates the squads of an encounter (function_204ec0 and function_205010) */
 struct s_squad_iterator
@@ -79,7 +81,7 @@ s_slot_handler_2 g_47e1c0 =
 		function_1b2ff0, function_1bced0, function_1b3360, 0, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
-	function_1b3380, 0, function_1b3540
+	(t_slot_proc)function_1b3380, 0, function_1b3540
 };
 
 // @retail 0x1b3070
@@ -155,4 +157,51 @@ bool __stdcall function_1b3070(long actor_index, s_squad_choice *choice)
 		actor->unknown400[i].reference = g_470fa0;
 	function_1b3070(actor_index, choice);
 	return true;
+}
+
+real function_1f8940(long actor_index);
+
+// @retail 0x1b3380
+bool __stdcall function_1b3380(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    bool result = true;
+    if (actor->unknown040)
+    {
+        if (!REFERENCE_EQUAL(actor->unknown418, g_470fa0) &&
+            (actor->unknown504 == 2 || function_1f8940(actor_index) < 0.6f))
+        {
+            function_262800(actor_index, actor->unknown418, false);
+            result = function_1b3070(actor_index, &((s_slot_6d *)slot)->choice);
+            if (!result)
+                return result;
+        }
+        byte *scratch = ai_scratch_buffer_get();
+        s_2605d0_request request;
+        memset(&request, 0, sizeof(request));
+        request.type = 4;
+        request.unknown05b = true;
+        *((byte *)&request + 0x68c) = true;
+        *(short *)((byte *)&request + 0x68e) = ((s_slot_6d *)slot)->choice.unknown4;
+        *(short *)((byte *)&request + 0x690) = ((s_slot_6d *)slot)->choice.unknown6;
+        *(real *)((byte *)&request + 0x1c) = 50.0f;
+        request.unknown015 = true;
+        *((byte *)&request + 0x59) = true;
+        request.unknown69c = actor->unknown328 <= 2;
+        long other_index;
+        bool unknown;
+        s_reference reference = function_2605d0(actor_index, &request, 0, (long)&other_index, scratch, &unknown);
+        if (REFERENCE_EQUAL(reference, g_470fa0))
+        {
+            actor_get(actor_index)->unknown040 = false;
+            result = false;
+        }
+        else if (REFERENCE_EQUAL(function_2626b0(actor_index, reference, other_index, scratch, unknown, true), g_470fa0))
+        {
+            if (actor->unknown5b4 > 4 || (actor->unknown26c != NONE && actor->unknown5b4 > 2))
+                function_262800(actor_index, reference, false);
+        }
+        ai_scratch_buffer_release(scratch);
+    }
+    return result;
 }
