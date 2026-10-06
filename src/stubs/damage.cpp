@@ -18,8 +18,6 @@ void __stdcall function_bef30(long object_index, long a, long b, long c, long d)
 void function_a8360(long object_index, long region_index, long permutation_index, bool a) { }
 // @stub 0xe6460
 void __stdcall function_e6460(long object_index) { }
-// @stub 0xba7f0
-void __stdcall function_ba7f0(long object_index, long a, long b, long c) { }
 struct s_type_1e6529;
 #include "unknown_0259d0.h"
 /* the objects in a sphere */
