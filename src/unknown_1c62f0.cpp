@@ -610,76 +610,77 @@ long animation_events_dispatch(s_graph_tag *graph, s_animation *animation, dword
 	return events;
 }
 
-/* 0x1c66a0: retail passes all its arguments on the stack (its callers 0x1c68c0 and 0x1c6920 match against the
-   stub's __stdcall), while LTCG gives this one the channel in a register, which breaks both callers; kept
-   out until its convention can be reproduced (the stub is in src/stubs/lane_c.cpp).
-   Round 8 tried the "standard" marker: the callers still match and the arguments stay on the stack, but the
-   body differs (retail keeps the animation in esi across the variant path; ours spills it to a fourth local,
-   sub esp 0x10 against 0xc). The clamped frame as its own variable (below) puts it in the channel's argument
-   slot and last_frame in frame's slot, as retail does. */
-#if 0
-/* retail 0x1c66a0 */
-void c_animation_channel_advance(c_animation_channel *channel, real frame, s_animation_state *state,
+/* Parameter access through local pointers preserves the stack-only entry convention. */
+// @retail 0x1c66a0
+void __stdcall c_animation_channel_advance(c_animation_channel *channel, real frame, s_animation_state *state,
 	animation_event_callback callback, long user)
 {
-	c_type_709360 animation_id = channel->animation_id;
-	s_graph_tag *graph = c_animation_channel_get_graph(channel);
-	s_animation *animation = channel->function_1c6440();
-	real position = channel->frame_position;
+	c_animation_channel *const *local_0 = &channel;
+	real const *local_1 = &frame;
+	s_animation_state *const *local_2 = &state;
+	animation_event_callback const *local_3 = &callback;
+	long const *local_4 = &user;
+	c_type_709360 animation_id = (*local_0)->animation_id;
+	s_graph_tag *graph = c_animation_channel_get_graph(*local_0);
+	s_animation *animation = (*local_0)->function_1c6440();
+	real position = (*local_0)->frame_position;
 	real last_frame;
 	real next_frame;
 	long events;
 
-	channel->unknown14 = 0;
-	channel->unknown16 = 0;
-	next_frame = 0.0f > frame ? 0.0f : frame;
+	(*local_0)->unknown14 = 0;
+	(*local_0)->unknown16 = 0;
+	next_frame = *local_1;
 	last_frame = (real)animation->frame_count - 0.0001f;
-	channel->unknown11 &= ~0xe;
-	events = animation_events_dispatch(graph, animation, channel->flags, position, next_frame, callback, user);
-	if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
+	if (0.0f > next_frame)
 	{
-		channel->unknown14 |= events;
+		next_frame = 0.0f;
+	}
+	(*local_0)->unknown11 &= ~0xe;
+	events = animation_events_dispatch(graph, animation, (*local_0)->flags, position, next_frame, *(animation_event_callback volatile *)local_3, *local_4);
+	if (animation_id.graph_index == (*local_0)->animation_id.graph_index && animation_id.index == (*local_0)->animation_id.index)
+	{
+		(*local_0)->unknown14 |= events;
 		if (next_frame >= last_frame)
 		{
-			events = animation_events_dispatch(graph, animation, channel->flags, position, FLT_MAX, callback, user);
-			if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
+			events = animation_events_dispatch(graph, animation, (*local_0)->flags, position, FLT_MAX, *local_3, *local_4);
+			if (animation_id.graph_index == (*local_0)->animation_id.graph_index && animation_id.index == (*local_0)->animation_id.index)
 			{
-				channel->unknown14 |= events;
-				if (TEST_FIELD_BIT(channel->flag1))
+				(*local_0)->unknown14 |= events;
+				if (TEST_FIELD_BIT((*local_0)->flag1))
 				{
-					if ((channel->flags & 0x20) && animation->loop_frame_index == 0)
+					if (((*local_0)->flags & 0x20) && animation->loop_frame_index == 0)
 					{
-						channel->animation_id = state->variant_get(channel->animation_id);
-						if (channel->flags & 8)
+						animation_id = (*local_2)->variant_get((*local_0)->animation_id);
+						(*local_0)->animation_id = animation_id;
+						if ((*local_0)->flags & 8)
 						{
-							channel->rate = 1.0f;
+							(*local_0)->rate = 1.0f;
 						}
-						animation_id = channel->animation_id;
-						animation = channel->function_1c6440();
+						animation = (*local_0)->function_1c6440();
 					}
 					position = (real)animation->loop_frame_index;
 					next_frame = next_frame - last_frame + position;
-					events = animation_events_dispatch(graph, animation, channel->flags, position, next_frame, callback, user);
-					if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
+					events = animation_events_dispatch(graph, animation, (*local_0)->flags, position, next_frame, *local_3, *local_4);
+					if (animation_id.graph_index == (*local_0)->animation_id.graph_index && animation_id.index == (*local_0)->animation_id.index)
 					{
-						channel->unknown14 |= events;
-						channel->unknown11 |= 4;
+						(*local_0)->unknown14 |= events;
+						(*local_0)->unknown11 |= 4;
 					}
 				}
 				else
 				{
-					channel->unknown11 |= 8;
+					(*local_0)->unknown11 |= 8;
 					next_frame = (real)animation->frame_count - 0.0001f;
 				}
 			}
 		}
-		if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
+		if (animation_id.graph_index == (*local_0)->animation_id.graph_index && animation_id.index == (*local_0)->animation_id.index)
 		{
-			channel->set_frame_position(next_frame);
+			(*local_0)->set_frame_position(next_frame);
 		}
 	}
 }
-#endif
 
 // @retail 0x1c6c00
 bool c_animation_channel::velocity_get(vector3f *delta, vector3f *velocity) const
