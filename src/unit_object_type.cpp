@@ -327,7 +327,7 @@ void function_114240(long unit_index);
 void function_a94b0(long unit_index);
 void function_a9440(long unit_index, long player_index);
 void function_a7bc0(long unit_index);
-void function_a9500(long unit_index, long index);
+bool function_a9500(long unit_index, long index);
 bool function_101640(long weapon_index);
 bool function_e68c0(long type, long unit_index);
 struct s_effect_owner;

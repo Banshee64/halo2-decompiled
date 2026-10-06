@@ -948,3 +948,54 @@ bool c_device_type::v14(long a1, long a2, long a3, long a4, long a5, long a6, lo
  }
  return result;
 }
+
+// @retail 0xa04f0
+bool c_item_type::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+ return function_a0540(this, a1, a2, (long *)a3, a5, (s_bitstream *)a7, a8);
+}
+
+PRIVATE inline void z_write_weapon_fraction(s_bitstream *stream, real value)
+{
+ real scaled = value * 126.0f;
+ long quantized;
+ __asm
+ {
+  fld scaled
+  fistp quantized
+ }
+ function_195720(stream, quantized, 7);
+}
+
+// @retail 0xa2470
+bool c_weapon_type::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+ bool result = false;
+ long const *reserve_reference = &a8;
+ long reserve = a8 + 3;
+ s_bitstream *stream = (s_bitstream *)a7;
+ if (function_a0540(this, a1, a2 & 0x7ff, (long *)a3, a5, stream, reserve))
+ {
+  s_flags_writer writer;
+  flags_writer_initialize(&writer, stream, 11, 3, a2 & 0x3800, *reserve_reference);
+  if (writer.space)
+  {
+   if (flags_writer_begin(&writer, 11, "multiplayer-state-exists"))
+    stream_write_checked(stream, *(byte const *)(a5 + 0x94), 4);
+   flags_writer_end(&writer);
+   if (flags_writer_begin(&writer, 12, "multiplayer-team-exists"))
+    stream_write_checked(stream, *(short const *)(a5 + 0x96) + 1, 5);
+   flags_writer_end(&writer);
+   if (flags_writer_begin(&writer, 13, "weapon-ammo-exists"))
+   {
+    stream_write_checked(stream, *(short const *)(a5 + 0x98), 8);
+    stream_write_checked(stream, *(short const *)(a5 + 0x9a), 11);
+    z_write_weapon_fraction(stream, *(real const *)(a5 + 0x9c));
+   }
+   flags_writer_end(&writer);
+   *(long *)a3 |= writer.written;
+   result = true;
+  }
+ }
+ return result;
+}
