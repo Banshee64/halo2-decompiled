@@ -229,19 +229,21 @@ void function_8e240(void)
      s_pending_transfer_definition *definition = (s_pending_transfer_definition *)header->unknown00;
      long controller = header->unknown10;
      XUID owner = *(const XUID *)&header->values;
+     long kind = definition->kind;
+     const wchar_t *filename = definition->filename;
      long task = NONE;
      long status = 0;
      switch (queue)
      {
      case 0:
       if (header->kind == 3)
-       status = function_b4670(definition->kind, controller, owner, definition->filename, definition->directory, &task);
+       status = function_b4670(kind, controller, owner, filename, ((s_pending_transfer_definition *)header->unknown00)->directory, &task);
       else
-       status = function_b42b0(definition->kind, controller, owner, definition->filename, (byte *)message->data, message->size, &task);
+       status = function_b42b0(kind, controller, owner, filename, (byte *)message->data, message->size, &task);
       break;
      case 1:
       if (header->kind == 3)
-       status = function_b4810(definition->kind, controller, owner, definition->filename, definition->directory, &task);
+       status = function_b4810(kind, controller, owner, filename, ((s_pending_transfer_definition *)header->unknown00)->directory, &task);
       else
       {
        if (header->kind == 4 && !function_80e10((s_pending_message_storage *)header, &message->data, &message->size))
@@ -249,7 +251,7 @@ void function_8e240(void)
         failed = true;
         continue;
        }
-       status = function_b4450(definition->kind, controller, owner, definition->filename, (byte *)message->data, message->size, &task);
+       status = function_b4450(kind, controller, owner, filename, (byte *)message->data, message->size, &task);
       }
       break;
      }
