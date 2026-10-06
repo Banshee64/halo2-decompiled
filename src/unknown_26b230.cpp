@@ -135,7 +135,7 @@ short __stdcall function_26b630(long clump_index, real *b, real *a)
 short __stdcall function_26b660(long clump_index, real *b, real *a)
 {
 	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
-	if ((real)(g_510c54->game_time - clump->state_time) * g_510c54->rate > 1.0f)
+	if ((real)(g_510c54->game_time - clump->state_time) * g_510c54->rate > 30.0f)
 	{
 		clump->unknown30 = 0;
 		return 0;

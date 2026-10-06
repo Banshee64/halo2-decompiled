@@ -2,6 +2,36 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6417 functions match
+
+```
+matched 6417 of 11318 game functions (682868 of 2784283 bytes, 24.53%)
+```
+
+6417 new matches, none lost:
+- Codex lane Q round 5: 0x155b60, 0x155c60 and 0x155d80.
+- Codex lane FP round 1: the inline and call boundaries around 0x214ac0 and 0x214b80 are now explicit, so those two no longer depend on inlining choices elsewhere.
+
+## 2026-10-06: 6414 functions match
+
+```
+matched 6414 of 11318 game functions (682310 of 2784283 bytes, 24.51%)
+```
+
+6414 new matches, none lost:
+- Codex lane AB round 6: 0xb6df0, 0xb7150 and 0xc1670.
+- Codex near-match polish round 2: 0x2566c0.
+- @coldspear's #96: retail's values for the constants, string and script definitions from #90 and #91.
+
+## 2026-10-06: 6410 functions match
+
+```
+matched 6410 of 11318 game functions (681349 of 2784283 bytes, 24.47%)
+```
+
+6410 new matches, none lost:
+- Codex near-match polish round 1: 0x3d4f0, 0x3f220, 0x191300 and 0x28c470, four near matches finished by small rewrites.
+
 ## 2026-10-06: 6406 functions match
 
 ```

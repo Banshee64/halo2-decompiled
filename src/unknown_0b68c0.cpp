@@ -4,6 +4,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
+#include "object_list.h"
 #include "unknown_0b68c0.h"
 #include <string.h>
 
@@ -229,3 +230,188 @@ void function_b6ab0(void)
     pool_invalidate_ab(g_4de2dc);
     pool_invalidate_ab(g_4de2d8);
 }
+
+struct s_object_tick_flags_ab
+{
+    byte unknown00[0xc0];
+    word : 3;
+    word in_list : 1;
+    word : 12;
+};
+
+void __stdcall function_bc820(long object_index);
+void function_109660(long object_index, long entry_index);
+void function_fd910();
+
+// @retail 0xb7060
+void function_b7060()
+{
+    long *indices = g_5107f0->object_indices;
+    long count = g_5107f0->object_count;
+    ((byte *)g_4de2f4)[3] = 1;
+    for (long i = 0; i < count; i++)
+    {
+        long object_index = indices[i];
+        s_object_visibility_header_ab *header = &((s_object_visibility_header_ab *)g_4e0300->data)[object_index & 0xffff];
+        if ((header->flags & 4) && !(header->flags & 8))
+        {
+            function_bc820(object_index);
+            function_109660(object_index, i);
+        }
+    }
+    s_record_pool_iterator iterator;
+    iterator.data = g_4e0300;
+    iterator.index = NONE;
+    iterator.datum_index = NONE;
+    s_object_visibility_header_ab *header;
+    while ((header = (s_object_visibility_header_ab *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        if ((header->flags & 4) && !(header->flags & 8) &&
+            !TEST_FIELD_BIT(((s_object_tick_flags_ab *)header->object)->in_list))
+            function_bc820(iterator.datum_index);
+    }
+    function_fd910();
+    ((byte *)g_4de2f4)[3] = 0;
+}
+
+bool __stdcall function_bc470(long object_index);
+void function_109580(long object_index);
+void __stdcall function_b83b0(long object_index, bool flag);
+void __stdcall function_b8460(long object_index, bool flag);
+void function_bf380();
+
+// @retail 0xb6f10
+void function_b6f10()
+{
+    long *indices = g_5107f0->object_indices;
+    long count = g_5107f0->object_count;
+    ((byte *)g_4de2f4)[3] = 1;
+    for (long i = 0; i < count; i++)
+    {
+        long object_index = indices[i];
+        s_object_visibility_header_ab *header = &((s_object_visibility_header_ab *)g_4e0300->data)[object_index & 0xffff];
+        if ((header->flags & 1) && (header->flags & 2) && !(header->flags & 8))
+        {
+            function_bc470(object_index);
+            if ((header->flags & 4) && !(header->flags & 8))
+                function_109580(object_index);
+        }
+    }
+    s_record_pool_iterator iterator;
+    iterator.data = g_4e0300;
+    iterator.index = NONE;
+    iterator.datum_index = NONE;
+    s_object_visibility_header_ab *header;
+    while ((header = (s_object_visibility_header_ab *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        if ((header->flags & 1) && (header->flags & 2) && !(header->flags & 8))
+        {
+            s_object_tick_flags_ab *object = (s_object_tick_flags_ab *)((s_object_visibility_header_ab *)g_4e0300->data)[iterator.datum_index & 0xffff].object;
+            if (!TEST_FIELD_BIT(object->in_list))
+                function_bc470(iterator.datum_index);
+        }
+    }
+    ((byte *)g_4de2f4)[3] = 0;
+}
+
+// @retail 0xb7150
+void function_b7150()
+{
+    ((byte *)g_4de2f4)[3] = 1;
+    s_record_pool_iterator iterator;
+    iterator.data = g_4e0300;
+    iterator.index = NONE;
+    iterator.datum_index = NONE;
+    s_object_visibility_header_ab *header;
+    while ((header = (s_object_visibility_header_ab *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        header->flags &= ~0x20;
+        if ((header->flags & 8) && (header->flags & 1) && (header->flags & 2) && !(header->flags & 0x10))
+        {
+            header->flags &= ~8;
+            function_bc470(iterator.datum_index);
+            if (header->flags & 4)
+                function_bc820(iterator.datum_index);
+        }
+    }
+    function_fd910();
+    iterator.data = g_4e0300;
+    iterator.index = NONE;
+    iterator.datum_index = NONE;
+    while ((header = (s_object_visibility_header_ab *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        if (header->flags & 0x10)
+        {
+            function_b83b0(iterator.datum_index, true);
+            function_b8460(iterator.datum_index, true);
+        }
+    }
+    ((byte *)g_4de2f4)[3] = 0;
+    function_bf380();
+}
+
+void function_b7290(long object_index);
+void function_b7300(long object_index);
+void __stdcall function_b8540(long object_index);
+bool function_a7670(long object_index);
+void havok_component_contacts_mark1(long component_index);
+void havok_component_contacts_mark2(long component_index);
+
+// @retail 0xb6df0
+void __stdcall function_b6df0(dword const *previous, dword const *current, long count)
+{
+    s_record_pool_iterator iterator;
+    iterator.data = g_4e0300;
+    iterator.index = NONE;
+    iterator.datum_index = NONE;
+    s_object_visibility_header_ab *header;
+    while ((header = (s_object_visibility_header_ab *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        if (header->flags & 0x40)
+        {
+            long object_index = iterator.datum_index;
+            bool active = function_b6d60(object_index, current);
+            if (header->flags & 1)
+            {
+                if (!active)
+                {
+                    byte *object = ((s_object_visibility_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+                    if (!function_a7670(object_index))
+                    {
+                        if ((bool)((*(dword *)(object + 4) >> 17) & 1))
+                            function_b8540(object_index);
+                        else if (!(bool)((*(dword *)(object + 4) >> 1) & 1))
+                        {
+                            function_b7300(object_index);
+                            havok_component_contacts_mark2(*(long *)(object + 0xb4));
+                        }
+                    }
+                }
+            }
+            else if (active)
+            {
+                byte *object = ((s_object_visibility_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+                function_b7290(object_index);
+                havok_component_contacts_mark1(*(long *)(object + 0xb4));
+            }
+        }
+    }
+}
+
+void function_b67c0();
+void function_b6bb0();
+void function_b6c50();
+
+struct s_object_lifecycle_ab
+{
+    void (*events[8])();
+    void (__stdcall *clusters_changed)(dword const *previous, dword const *current, long count);
+};
+
+// The object's nine lifecycle slots, including the two unused slots.
+s_object_lifecycle_ab g_4411a4 =
+{
+    { function_b67c0, function_b68c0, function_b69d0, function_b6ab0,
+      function_b6bb0, function_b6c50, 0, 0 },
+    function_b6df0
+};

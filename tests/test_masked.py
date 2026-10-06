@@ -1,5 +1,7 @@
 import struct
 
+import pytest
+
 from masked import (bodies, explain, f32, hs_types, main, near_miss, numbers, script_differences,
                     split_top, strings)
 
@@ -66,6 +68,7 @@ def test_script_differences_compare_each_field():
     assert script_differences(fields, 0x100, image, types, {'named': 0x2a6b30}) == []
 
 
+@pytest.mark.retail
 def test_main_reads_the_retail_scripts(retail_xbe, capsys):
     assert main(['--scripts', '--xbe', retail_xbe]) in (0, 1)
     assert capsys.readouterr().out.rstrip().endswith('listed')
