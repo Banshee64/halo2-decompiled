@@ -84,6 +84,95 @@ real __stdcall function_134fe0(long index, real value)
 
 real function_134c50(real value);
 
+// @retail 0x134fc0
+inline real function_134fc0(long index)
+{
+	s_interpolator_state *state = &((s_interpolator_globals *)g_4e6740)->states[index];
+	real result = 0.0f;
+	if (state)
+		result = function_134fe0(index, state->value);
+	return result;
+}
+
+// @retail 0x1352e0
+real function_1352e0(long name, bool flag)
+{
+	long index = NONE;
+	s_interpolator_state *state = interpolator_get(name, &index);
+	real result = 0.0f;
+	if (state)
+	{
+		real value = state->value;
+		if (flag)
+			result = function_134fc0(index);
+		else
+			result = value;
+	}
+	return result;
+}
+
+__forceinline real interpolator_sample(s_interpolator_state *state, real value)
+{
+	if (state->flag1)
+		value = function_134c50(value);
+	else
+		value = value < 0.0f ? 0.0f : (value > 1.0f ? 1.0f : value);
+	return (1.0f - value) * state->start_value + state->target_value * value;
+}
+
+// @retail 0x135530
+real function_135530(long name, real value, bool flag)
+{
+	long index = NONE;
+	s_interpolator_state *state = interpolator_get(name, &index);
+	real result = 0.0f;
+	if (state)
+	{
+		value = interpolator_sample(state, value);
+		result = value;
+		if (flag)
+			result = function_134fe0(index, value);
+	}
+	return result;
+}
+
+// @retail 0x1355b0
+real function_1355b0(long name, real value, bool flag)
+{
+	long index = NONE;
+	s_interpolator_state *state = interpolator_get(name, &index);
+	real result = 0.0f;
+	if (state && state->end_time > state->time10)
+	{
+		value = 0.0f > (value - state->time10) / (state->end_time - state->time10) ?
+			0.0f : (value - state->time10) / (state->end_time - state->time10);
+		value = interpolator_sample(state, value);
+		result = value;
+		if (flag)
+			result = function_134fe0(index, value);
+	}
+	return result;
+}
+
+// @retail 0x135680
+real function_135680(long name, real value, bool flag)
+{
+	long index = NONE;
+	s_interpolator_state *state = interpolator_get(name, &index);
+	real result = 0.0f;
+	if (state && state->end_time > state->time10)
+	{
+		value += state->start_time;
+		value = 0.0f > (value - state->time10) / (state->end_time - state->time10) ?
+			0.0f : (value - state->time10) / (state->end_time - state->time10);
+		value = interpolator_sample(state, value);
+		result = value;
+		if (flag)
+			result = function_134fe0(index, value);
+	}
+	return result;
+}
+
 struct s_interpolator_tick_state
 {
 	real value;

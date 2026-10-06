@@ -155,29 +155,9 @@ void function_275380(long ai_index)
 {
 }
 
-// @stub 0x1352e0
-real function_1352e0(long name, bool flag)
-{
-	return 0.0f;
-}
 
-// @stub 0x135530
-real function_135530(long name, real value, bool flag)
-{
-	return 0.0f;
-}
 
-// @stub 0x1355b0
-real function_1355b0(long name, real value, bool flag)
-{
-	return 0.0f;
-}
 
-// @stub 0x135680
-real function_135680(long name, real value, bool flag)
-{
-	return 0.0f;
-}
 
 // @stub 0x13c5a0
 void function_13c5a0(long object_index, long a, long b, long c)
