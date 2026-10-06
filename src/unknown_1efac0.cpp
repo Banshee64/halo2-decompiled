@@ -518,6 +518,12 @@ struct s_model_regions
  s_model_region *regions;
 };
 
+PRIVATE inline bool surface_object_has_physics(long object_index)
+{
+ s_type_1a7926 info;
+ return function_20a9a0(object_index, &info);
+}
+
 // @retail 0x1ef500
 long function_1ef500(long object_index, long position)
 {
@@ -534,9 +540,9 @@ long function_1ef500(long object_index, long position)
   region_index = position & 31;
   choice_index = (position >> 5) & 255;
  }
- s_type_1a7926 info;
- if (function_20a9a0(object_index, &info))
+ if (surface_object_has_physics(object_index))
  {
+  s_type_1a7926 info;
   function_20a9a0(object_index, &info);
   s_model_regions *model = *(s_model_regions **)&info.unknown3c[8];
   byte *physics = (byte *)info.node_indices;
@@ -577,8 +583,13 @@ long function_1ef500(long object_index, long position)
    if (region->first != NONE)
    {
     for (++choice_index; result == NONE && choice_index < region->count; ++choice_index)
+    {
      if (region->choices[choice_index].second != NONE)
+     {
       result = region_index | (choice_index << 5);
+      break;
+     }
+    }
    }
    choice_index = NONE;
   }
@@ -686,13 +697,19 @@ dword function_1ef6d0(dword key)
  if (next_position == NONE)
  {
   index = function_1ef810(index);
-  if (index == NONE) return (dword)NONE;
-  object_index = objects[index];
-  next_position = function_1ef500(object_index, NONE);
+  if (index != NONE)
+  {
+   object_index = objects[index];
+   next_position = function_1ef500(object_index, NONE);
+  }
  }
- s_type_1a7926 info;
- long next_kind = function_20a9a0(object_index, &info) ? 3 : 4;
- return (((next_kind << 13) | next_position) << 16) | index;
+ if (index != NONE)
+ {
+  s_type_1a7926 info;
+  long next_kind = function_20a9a0(object_index, &info) ? 3 : 4;
+  return (((next_kind << 13) | next_position) << 16) | index;
+ }
+ return (dword)NONE;
 }
 
 #include <new>
