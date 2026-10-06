@@ -789,14 +789,14 @@ void function_a80f0(long index, s_damage_report const *report)
         byte const *input = (byte const *)report;
         long definition_index = *(long const *)(input + 8);
         byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
-        byte *damage_definition = g_4e3b44[definition_index & 0xffff].bytes;
+        byte *local_446d88 = g_4e3b44[definition_index & 0xffff].bytes;
         long mask = 1 << header->unknown00[3];
         long player = NONE;
         if (mask & 3)
             player = *(long *)(object + 0x13c);
         if ((mask & 3) || (mask & 0x800))
         {
-            real strength = *(real *)(damage_definition + 0x40) * *(real *)(definition + 0x14);
+            real strength = *(real *)(local_446d88 + 0x40) * *(real *)(definition + 0x14);
             bool send = strength > 0.0001f;
             if (!send && (mask & 3) && !((object[0x10a] >> 2) & 1))
                 send = *(real const *)(input + 0x44) > 0.0f || *(real const *)(input + 0x48) > 0.0f;
@@ -854,7 +854,7 @@ struct s_action_event_data
     long slot;
     long definition;
     long group;
-    bool has_target;
+    bool field_c_9;
     byte unknown0d;
     short node;
     point3f point;
@@ -929,7 +929,7 @@ void function_a7d50(long index, long group, long target, short node, point3f con
                     objects[1] = target;
                     data.node = node;
                     data.point = *point;
-                    data.has_target = true;
+                    data.field_c_9 = true;
                 }
                 if (source != NONE)
                 {
