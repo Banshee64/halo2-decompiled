@@ -337,7 +337,8 @@ void function_c3e90()
     }
 }
 
-void __stdcall function_507e0(s_random_draw *draw, s_liquid_element_ab const *element, real step);
+struct s_random_draw_definition;
+void __stdcall function_507e0(s_random_draw *draw, const s_random_draw_definition *definition, real elapsed);
 
 // @retail 0xc3f90
 void __stdcall function_c3f90(real step)
@@ -360,7 +361,7 @@ void __stdcall function_c3f90(real step)
             if ((liquid->flags & 1) && liquid->object_index != NONE)
             {
                 for (long i = 0; i < definition->count; i++)
-                    function_507e0((s_random_draw *)(liquid->entries + i * 0x50), &definition->elements[i], *step_reference);
+                    function_507e0((s_random_draw *)(liquid->entries + i * 0x50), (const s_random_draw_definition *)&definition->elements[i], *step_reference);
             }
             index = liquid_datum_ab(g_4e031c, function_16bc00(g_4e031c, index == NONE ? 0 : (index & 0xffff) + 1));
         }
