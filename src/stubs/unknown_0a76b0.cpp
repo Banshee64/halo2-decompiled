@@ -23,8 +23,6 @@ void function_2007b3(long a, long b, long c) { }
 // @stub 0xfff40
 void __stdcall function_fff40(long a, long b) { }
 
-// @stub 0x1ca260
-void __stdcall function_1ca260(long actor_index, long player_index, long weapon_index, long other_weapon_index) { }
 
 
 
