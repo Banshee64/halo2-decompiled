@@ -383,7 +383,7 @@ void function_1f2a80(vector3f const *velocity, byte const *request, bool moving,
 }
 
 // @retail 0x1f1460
-void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *forward_out, vector3f *up_out)
+void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *arg_9650d9, vector3f *arg_3a7661)
 {
     byte *settings = *(byte **)(state + 8);
     vector3f const *old_forward = (vector3f const *)(state + 0xf4);
@@ -428,16 +428,16 @@ void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *f
                 forward = *g_4687a8;
             }
         }
-        *forward_out = forward;
-        *up_out = up;
+        *arg_9650d9 = forward;
+        *arg_3a7661 = up;
     }
     else
     {
-        *forward_out = *old_forward;
-        *up_out = *g_4687b0;
-        forward_out->k = 0.0f;
-        if (function_30bf0(forward_out) == 0.0f)
-            *forward_out = *g_4687a8;
+        *arg_9650d9 = *old_forward;
+        *arg_3a7661 = *g_4687b0;
+        arg_9650d9->k = 0.0f;
+        if (function_30bf0(arg_9650d9) == 0.0f)
+            *arg_9650d9 = *g_4687a8;
     }
 }
 

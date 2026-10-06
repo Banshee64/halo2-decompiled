@@ -91,7 +91,7 @@ struct s_081550_fields;
 void function_081550(s_081550_fields *fields);
 
 // @retail 0x821c0
-long function_821c0(void **out_view, c_replication_view_storage **out_storage)
+long function_821c0(void **arg_f0f1ad, c_replication_view_storage **out_storage)
 {
 	s_record_pool *views = (s_record_pool *)g_4d87ec;
 	void *view = 0;
@@ -109,7 +109,7 @@ long function_821c0(void **out_view, c_replication_view_storage **out_storage)
 			storage = new (data->data + (storage_index & 0xffff) * 0xad30) c_replication_view_storage;
 		}
 	}
-	*out_view = view;
+	*arg_f0f1ad = view;
 	*out_storage = storage;
 	return index;
 }

@@ -1221,7 +1221,7 @@ void __stdcall function_6a770(void *pointer)
 }
 
 class c_replication_view_storage;
-long function_821c0(void **out_view, c_replication_view_storage **out_storage);
+long function_821c0(void **arg_f0f1ad, c_replication_view_storage **out_storage);
 
 // The caller at 0x84630 supplies four stack arguments; the last is unused here.
 // @retail 0x68580

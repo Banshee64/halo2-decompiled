@@ -115,13 +115,13 @@ bool __stdcall function_8ca70(long mode, s_name_buffer *output)
 		dword error;
 		if (function_136970(&file, 1, &error))
 		{
-			bool at_start = true;
+			bool local_c793c4 = true;
 			if (file.position != 0)
 			{
 				file.position = SetFilePointer(file.handle, 0, 0, FILE_BEGIN);
-				at_start = file.position != INVALID_SET_FILE_POINTER;
+				local_c793c4 = file.position != INVALID_SET_FILE_POINTER;
 			}
-			if (at_start)
+			if (local_c793c4)
 			{
 				if (mode == 1)
 				{

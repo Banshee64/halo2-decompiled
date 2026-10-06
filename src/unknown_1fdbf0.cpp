@@ -294,7 +294,7 @@ vector3f *function_11d000(vector3f const *v, vector3f *out);
 
 // @retail 0x1fddd0
 bool function_1fddd0(long actor_index, point3f const *origin, vector3f *direction,
-    long *out_index, real *out_value, long *out_object)
+    long *out_index, real *arg_c9241c, long *out_object)
 {
     byte *actor = (byte *)actor_moving_get(actor_index);
     long object_index = NONE;
@@ -355,7 +355,7 @@ bool function_1fddd0(long actor_index, point3f const *origin, vector3f *directio
                 *direction = rotated;
             }
         }
-        *out_value = *(real *)(actor + 0x7bc);
+        *arg_c9241c = *(real *)(actor + 0x7bc);
     }
     if (out_object)
         *out_object = object_index;
