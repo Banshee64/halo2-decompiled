@@ -12,8 +12,8 @@ It continues the [weapon object type](unknown_0fd910.md) analysis and
 shots that this function fires. It uses the names of `src/weapons.cpp` and
 `src/projectiles.cpp` and of the object documents
 ([lifecycle](unknown_0b67c0.md), [part 1](unknown_0b7740.md),
-[part 2](unknown_0bc190.md)). Three of its callees have no source and are
-described only as far as this function needs them.
+[part 2](unknown_0bc190.md)). Three callees with no source when this was
+written are described only as far as this function needs them.
 
 ## Boundary
 
@@ -216,9 +216,13 @@ data.
 
 ## Callees without source
 
-Three callees have neither source nor a stub. `0x320560` is the C library's
-`__chkstk`, which only reserves the frame. The other two are each called only
-from here, and are described as far as this function needs them.
+`0x320560` is the C library's `__chkstk`, which only reserves the frame. The
+other two are each called only from here, and are described as far as this
+function needs them. `0x1a4c00` has no source. `0xa7d50` gained source after
+this was written (`function_a7d50` in `src/unknown_0a7c50.cpp`, `todo`, from
+lane Z's rounds 6 and 7), and it agrees with the description below: the weapon,
+barrel index, hit object, node and point, and event type `0xc` sent through
+`function_b5a70`.
 
 ### `0xa7d50`: sending the shot (lane Z)
 
