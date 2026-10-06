@@ -25,7 +25,8 @@ declared in the source; see [Existing declarations](#existing-declarations).
   `src/unknown_0e5280.cpp`) and `0xe6800` (`todo`, `src/unknown_0e6800.cpp`)
   have source and are excluded.
 - No row of the Active claims table (issue #9) covers the range, so it is open.
-  This document makes no claim. Besides the bipeds and the unit actions, the
+  This document makes no claim. Draft #115 (@BrassMonkey71) claims `0xe5670`;
+  this document only describes it. Besides the bipeds and the unit actions, the
   callers include lane Q's `0x1515e0` and `0x150400`, lane AB's `0xbf600` and
   the vehicle update `0xefde0`.
 - No entry has an `@retail` marker.
