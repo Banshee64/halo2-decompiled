@@ -154,12 +154,19 @@ struct s_event_object_header
 void __stdcall function_a9120(long index, long trick)
 {
     long player = NONE;
+    bool send = true;
     if (g_4e6948->mode != 4)
         function_a7700(index, 0, &player);
-    else if (!function_a76b0(index, 0))
-        return;
-    long data = trick;
-    function_b5a70(player, 0x14, 1, (long)&index, sizeof(data), &data, g_4ceef4);
+    else
+    {
+        send = function_a76b0(index, 0);
+        player = NONE;
+    }
+    if (send)
+    {
+        long data = trick;
+        function_b5a70(player, 0x14, 1, (long)&index, sizeof(data), &data, g_4ceef4);
+    }
 }
 
 // @retail 0xa9390
@@ -494,16 +501,18 @@ void function_a8dd0(long index)
     if (mode >= 4 && mode <= 5)
     {
         long player;
+        bool send = true;
         if (mode != 4)
             player = event_player(index);
         else
         {
-            bool local = function_a76b0(index, 1);
+            send = function_a76b0(index, 1);
             player = NONE;
-            if (!local)
-                return;
         }
-        function_b5a70(player, 0xd, 1, (long)&index, 0, 0, g_4cee68);
+        if (send)
+        {
+            function_b5a70(player, 0xd, 1, (long)&index, 0, 0, g_4cee68);
+        }
     }
 }
 
@@ -519,21 +528,23 @@ void __stdcall function_a8cf0(long index, long target, long value)
     if (mode >= 4 && mode <= 5)
     {
         long player;
+        bool send = true;
         if (mode != 4)
             player = event_player(index);
         else
         {
-            bool local = function_a76b0(index, 1);
+            send = function_a76b0(index, 1);
             player = NONE;
-            if (!local)
-                return;
         }
-        long objects[2];
-        s_short_event_data data;
-        data.value = (short)value;
-        objects[0] = index;
-        objects[1] = target;
-        function_b5a70(player, 0xf, 2, (long)objects, sizeof(data), &data, g_4cee90);
+        if (send)
+        {
+            long objects[2];
+            s_short_event_data data;
+            objects[1] = target;
+            data.value = (short)value;
+            objects[0] = index;
+            function_b5a70(player, 0xf, 2, (long)objects, sizeof(data), &data, g_4cee90);
+        }
     }
 }
 
@@ -548,18 +559,20 @@ void __stdcall function_a8c10(long index)
         if (selected >= 0 && selected < 2)
         {
             long player;
+            bool send = true;
             if (mode != 4)
                 player = event_player(index);
             else
             {
-                bool local = function_a76b0(index, 1);
+                send = function_a76b0(index, 1);
                 player = NONE;
-                if (!local)
-                    return;
             }
-            s_short_event_data data;
-            data.value = *(signed char *)(object + 0x23c);
-            function_b5a70(player, 0xe, 1, (long)&index, sizeof(data), &data, g_4cee7c);
+            if (send)
+            {
+                s_short_event_data data;
+                data.value = *(signed char *)(object + 0x23c);
+                function_b5a70(player, 0xe, 1, (long)&index, sizeof(data), &data, g_4cee7c);
+            }
         }
     }
 }
