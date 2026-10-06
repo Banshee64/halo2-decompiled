@@ -7,10 +7,255 @@
 #include "props.h"
 #include <math.h>
 #include "unknown_26b230.h"
+#include "object_markers.h"
+#include "unknown_1fb7e0.h"
+#include "object_queries.h"
+#include "unknown_249e20.h"
+#include "units.h"
+#include "unknown_2729b0.h"
+#include "data_array.h"
 
-real __stdcall function_265d30(long actor_index, long prop_index);
+point3f *function_b9dd0(long object_index, point3f *result);
+long function_1469f0(real seconds);
+long function_1e4a90(long index);
+long function_25d810(long object_index, long actor_index, bool create);
+void function_118e10(long object_index, point3f *point);
+real function_20e190(long object_index);
+
+struct s_object_motion_view
+{
+	point3f point;
+	point3f center;
+	byte unknown18[0xc];
+	long location[2];
+	vector3f velocity;
+};
+
+// @retail 0x2640c0
+void function_2640c0(long object_index, s_object_motion_view *result)
+{
+	long const *object_reference = &object_index;
+	s_slot_object_view *object = object_get(object_index);
+	long root_index = NONE;
+	for (long index = object_index; index != NONE; index = object_get(index)->parent_index)
+		root_index = index;
+	s_slot_object_view *root = object_get(root_index);
+	function_b9dd0(object_index, &result->center);
+	result->velocity = root->velocity;
+	result->location[0] = *(long *)((byte *)root + 0x28);
+	result->location[1] = *(long *)((byte *)root + 0x2c);
+	if ((1 << object->type) & 3)
+	{
+		s_object_marker marker;
+		function_b8d30(*object_reference, 0x4000095, &marker, 1, false);
+		result->point = *(point3f *)((byte *)&marker + 0x60);
+	}
+	else if (object->type == 12)
+		function_118e10(*object_reference, &result->point);
+	else
+		result->point = result->center;
+}
+
+// @retail 0x266540
+void function_266540(long actor_index)
+{
+	long const *actor_reference = &actor_index;
+	s_actor_view *actor = actor_get(actor_index);
+	long index = *(long *)((byte *)actor + 0x338);
+	if (index != NONE)
+	{
+		long object_index = actor->unknown018;
+		if (object_index != NONE && *(char *)((byte *)actor + 0x324) >= 2)
+		{
+			s_prop_node *node = (s_prop_node *)prop_ref_get(index);
+			s_type_76cf92 *prop = prop_get(node->prop_index);
+			if (!prop->unknown35 && prop->unknown23 && *(real *)((byte *)prop + 0x2c) >= 2.0f)
+			{
+				s_type_f95cd3 *view = function_25d740(node);
+				if (view->unknown14 != NONE && *(short *)view < 9 &&
+					(real)(g_510c54->game_time - view->unknown14) > g_510c54->rate * 8.0f &&
+					function_20e190(object_index) > 0.0f)
+				{
+					function_1fb7e0(*actor_reference, 0xb7, NULL, node->object_index, NONE);
+					prop->unknown35 = 1;
+				}
+			}
+		}
+	}
+}
+
+bool function_25d9b0(long prop_index);
+bool function_1e2030(long actor_index);
+void *function_1e4f90(long actor_index);
+void *function_1e5240(long actor_index);
+long function_1b9190(long object_index, long *rider_index);
+
+// @retail 0x265d30
+real __stdcall function_265d30(long actor_index, long prop_index)
+{
+	long const *actor_reference = &actor_index;
+	long const *prop_reference = &prop_index;
+	s_prop_datum *node = prop_ref_get(prop_index);
+	s_actor_view *actor = actor_get(actor_index);
+	s_type_76cf92 *prop = prop_get(node->prop_index);
+	s_type_5cfb45 *state = function_25d690(node);
+	s_type_f95cd3 *view = NULL;
+	if (node->tracking_index != NONE)
+	{
+		s_type_e5ff81 *tracking = tracking_get(node->tracking_index);
+		if (tracking) view = &tracking->view;
+	}
+	if (*(bool *)((byte *)prop + 0x26) || !prop->unknown23 || node->state <= 0 ||
+		(state->unknown5e && *(short *)((byte *)state + 0x5c) * g_510c54->rate >= 5.0f) ||
+		object_get(node->object_index)->type == 15 || (node->type != 1 && node->type != 6))
+		return 0.0f;
+	short range_score = 0, state_score = 0, special_score = 0;
+	real current_bonus = 0.0f, view_bonus = 0.0f, direction_bonus = 0.0f;
+	if (actor->unknown007)
+		range_score = 0;
+	else if (function_25d9b0(*prop_reference))
+		range_score = 0;
+	else if (*(bool *)((byte *)actor + 0x269))
+		range_score = *(long *)((byte *)actor + 0x26c) == state->unknown3c ? 10 : 0;
+	else if (!function_1e2030(*actor_reference))
+	{
+		real minimum = 0.0f;
+		byte *settings = (byte *)function_1e4f90(actor_index);
+		if (settings) minimum = *(real *)(settings + 4);
+		if (node->unknown28 < 1.0f && !(node->state == 3 && view && view->unknown88))
+			range_score = 10;
+		else if (state->unknown3c != NONE)
+			range_score = 0;
+		else if (state->unknown69 != *(bool *)((byte *)actor + 0x265))
+			range_score = 10;
+		else if (minimum > node->unknown28)
+			range_score = 10;
+	}
+	else
+	{
+		byte *settings = (byte *)function_1e5240(actor_index);
+		if (node->unknown28 < 1.0f && !(node->state == 3 && view && view->unknown88))
+			range_score = 7;
+		else if (settings)
+		{
+			real minimum = *(real *)(settings + 0x18);
+			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+			if (variant)
+			{
+				switch (function_272ad0(variant))
+				{
+				case 1: minimum = *(real *)(settings + 0x28); break;
+				case 2: minimum = *(real *)(settings + 0x30); break;
+				}
+			}
+			if (minimum > node->unknown28) range_score = 5;
+			else if (*(real *)(settings + 0xc) > node->unknown28) range_score = 3;
+		}
+	}
+	if (state->unknown5e) state_score = 1;
+	else if (view && !actor->unknown007 && view->unknown2a) state_score = 6;
+	else if (node->state >= 1)
+	{
+		if (actor->unknown007) state_score = 2;
+		else if (view && (view->unknown06 == 0 || view->unknown06 == 1))
+			state_score = state->unknown63 && view->unknown39 <= 1 ? 5 : 4;
+		else if (node->state >= 3)
+			state_score = !view || view->unknown88 ? 1 : 2;
+		else state_score = 3;
+	}
+	if (*prop_reference == *(long *)((byte *)actor + 0x338) && actor->unknown086 >= 5 && !state->unknown5e)
+		current_bonus = *(bool *)((byte *)actor + 0x354) ? 0.2f : 2.0f;
+	if (state->unknown67) special_score = 10;
+	if (view)
+	{
+		view_bonus = (real)(view->unknown60 * 0.3);
+		if (view_bonus < 0.0f) view_bonus = 0.0f;
+		else if (view_bonus > 3.0f) view_bonus = 3.0f;
+	}
+	real distance_bonus = 5.0f / (node->unknown28 * 0.1f + 1.0f);
+	if (*(long *)((byte *)actor + 0x26c) != NONE && actor->unknown024 != NONE && !team_is_enemy(actor->unknown024, 1))
+	{
+		long rider_index;
+		function_1b9190(*(long *)((byte *)actor + 0x26c), &rider_index);
+		if (rider_index != NONE)
+		{
+			s_slot_object_view *rider = object_get(rider_index);
+			vector3f delta;
+			if (view) delta = *(vector3f *)((byte *)view + 0x2c);
+			else
+			{
+				delta.i = state->position.x - *(real *)((byte *)actor + 0x238);
+				delta.j = state->position.y - *(real *)((byte *)actor + 0x23c);
+				delta.k = state->position.z - *(real *)((byte *)actor + 0x240);
+			}
+			vector3f const *velocity = (vector3f *)((byte *)rider + 0x150);
+			direction_bonus = (velocity->k * delta.k + velocity->j * delta.j + velocity->i * delta.i) * 6.0f;
+			if (direction_bonus < 0.0f) direction_bonus = 0.0f;
+		}
+	}
+	return (real)(range_score + state_score) + (real)special_score + direction_bonus + distance_bonus + view_bonus + current_bonus;
+}
 
 void *function_1e51a0(long actor_index);
+bool function_11bf30(s_location const *location);
+
+struct s_perception_origin_view
+{
+	point3f point;
+	byte unknown0c[0xc];
+	vector3f direction;
+	s_location location;
+};
+
+// @retail 0x263ed0
+short function_263ed0(long actor_index, s_perception_origin_view const *origin, point3f const *point,
+	s_location const *location, short type, short mode)
+{
+	s_location const *const *location_reference = &location;
+	short const *type_reference = &type;
+	short const *mode_reference = &mode;
+	s_actor_view *actor = actor_get(actor_index);
+	byte *settings = (byte *)function_1e51a0(actor_index);
+	short result = 0;
+	if (settings && type && origin->location.cluster_index != NONE && location->cluster_index != NONE)
+	{
+		vector3f delta;
+		vector3d_from_points3d(&origin->point, point, &delta);
+		real distance_squared = length_sq3f(&delta);
+		real range = *(real *)(settings + 0x18);
+		if (dot3f(&origin->direction, &delta) < 0.0f)
+			range *= 0.8f;
+		if (actor->unknown084 == 3)
+			range *= 0.7f;
+		else if (actor->unknown084 == 1)
+			range *= 0.4f;
+		if (*type_reference == 4)
+			range *= 0.2f;
+		else if (*type_reference == 1)
+			range *= 0.45f;
+		else if (*type_reference == 3)
+			range *= 0.7f;
+		if (function_11bf30(&origin->location) || function_11bf30(*location_reference))
+			range *= 0.25f;
+		if (*mode_reference != 0 && *mode_reference != 1)
+			range *= 0.7f;
+		if (range * range > distance_squared)
+		{
+			long cluster_a = origin->location.cluster_index;
+			long cluster_b = location->cluster_index;
+			s_structure_bsp_view *bsp = (s_structure_bsp_view *)g_4e0348;
+			if (!function_249c20(cluster_b, cluster_a, bsp))
+			{
+				real distance = function_249d60(cluster_b, cluster_a, bsp) * 1.3333333730697632f;
+				real direct_distance = (real)sqrt(distance_squared);
+				distance = distance > direct_distance ? distance : direct_distance;
+				if (range > distance)
+					result = 2 + (*type_reference >= 3);
+			}
+		}
+	}
+	return result;
+}
 
 struct s_distance_rates_view
 {
@@ -107,6 +352,132 @@ void function_263740(long actor_index, vector3f const *direction, vector3f const
 	}
 	else
 		function_263d70(actor_index, (real)fabs(atan2(components.j, components.i)), rate, scale, secondary, primary);
+}
+
+short __stdcall function_c8b80(long object_index, s_object_seat *seats, short maximum_count);
+bool function_26d370(point3f const *point, vector3f const *direction, plane3f const *plane, real *distance);
+real function_30bf0(vector3f *vector);
+
+// @retail 0x263810
+short function_263810(long actor_index, point3f const *point, point3f const *origin,
+	point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range)
+{
+	long const *actor_reference = &actor_index;
+	point3f const *const *endpoint_reference = &endpoint;
+	char const *posture_reference = &posture;
+	short const *mode_reference = &mode;
+	bool const *facing_reference = &use_facing;
+	bool *const *range_reference = &out_of_range;
+	volatile short result = 0;
+	if (mode == 0 || mode == 1)
+	{
+		s_actor_view *actor = actor_get(actor_index);
+		byte *settings = (byte *)function_1e51a0(actor_index);
+		if (settings)
+		{
+			real range = *(real *)(settings + 4);
+			vector3f delta;
+			delta.i = point->x - origin->x;
+			delta.j = point->y - origin->y;
+			delta.k = point->z - origin->z;
+			if (*endpoint_reference && !actor->unknown007)
+			{
+				vector3f motion;
+				motion.i = endpoint->x - point->x;
+				motion.j = endpoint->y - point->y;
+				motion.k = endpoint->z - point->z;
+				if (motion.k * motion.k + motion.j * motion.j + motion.i * motion.i > 0.002500000176951289f)
+				{
+					plane3f plane;
+					plane.n = *(vector3f *)((byte *)actor + 0x2c0);
+					plane.d = origin->y * plane.n.j + origin->z * plane.n.k + origin->x * plane.n.i;
+					real amount;
+					if (function_26d370(point, &motion, &plane, &amount) && amount >= 0.0f)
+					{
+						if (amount > 1.0f) amount = 1.0f;
+						if (amount > 0.0f)
+						{
+							delta.i = motion.i * amount + point->x - origin->x;
+							delta.j = motion.j * amount + point->y - origin->y;
+							delta.k = motion.k * amount + point->z - origin->z;
+						}
+					}
+				}
+			}
+			real distance_squared = delta.k * delta.k + delta.j * delta.j + delta.i * delta.i;
+			if (!(range * range > distance_squared))
+			{
+				if (*range_reference) **range_reference = true;
+			}
+			else
+			{
+				real scale = 1.0f;
+				if (!(*settings & 1))
+				{
+					switch (*posture_reference)
+					{
+					case 0: scale = 0.3f; break;
+					case 1: scale = 0.7f; break;
+					}
+				}
+				real scaled_range = scale * range;
+				if (!(scaled_range * scaled_range > distance_squared))
+				{
+					if (*range_reference) **range_reference = true;
+				}
+				else
+				{
+					real secondary, primary;
+					if (!actor->unknown007 && *facing_reference)
+					{
+						function_263740(*actor_reference, &delta, (vector3f *)((byte *)actor + 0x2a8),
+							(vector3f *)((byte *)actor + 0x2b4), (vector3f *)((byte *)actor + 0x2c0),
+							range, scale, &secondary, &primary);
+						long object_index = *(long *)((byte *)actor + 0x26c);
+						if (object_index != NONE)
+						{
+							s_object_seat seats[64];
+							short count = function_c8b80(object_index, seats, 64);
+							for (short i = 0; i < count; ++i)
+							{
+								long occupant = function_c8f60(seats[i].object_index, seats[i].seat_index);
+								if (occupant != NONE)
+								{
+									s_slot_object_view *object = object_get(occupant);
+									if (object->player_index != NONE)
+									{
+										vector3f const *forward = (vector3f *)((byte *)object + 0x18c);
+										vector3f side, up;
+										side.i = g_4687b0->j * forward->k - g_4687b0->k * forward->j;
+										side.j = g_4687b0->k * forward->i - g_4687b0->i * forward->k;
+										side.k = g_4687b0->i * forward->j - g_4687b0->j * forward->i;
+										function_30bf0(&side);
+										up.i = side.k * forward->j - side.j * forward->k;
+										up.j = side.i * forward->k - side.k * forward->i;
+										up.k = side.j * forward->i - side.i * forward->j;
+										real a, b;
+										function_263740(*actor_reference, &delta, forward, &side, &up, range, scale, &a, &b);
+										if (a > secondary) secondary = a;
+										if (b > primary) primary = b;
+									}
+								}
+							}
+						}
+					}
+					else
+					{
+						primary = scaled_range;
+						secondary = scaled_range * 0.7f;
+					}
+					if (*mode_reference == 0 && secondary * secondary > distance_squared)
+						result = distance_squared < 36.0f ? 3 : 2;
+					else if (primary * primary > distance_squared)
+						result = 1;
+				}
+			}
+		}
+	}
+	return result;
 }
 
 short const g_44ae3c[13] = { 1, 1, 2, 3, 4, 6, 7, 8, 8, 9, 9, 9, 9 };
@@ -257,6 +628,46 @@ PRIVATE __forceinline s_type_f95cd3 *actor_tracked_prop_view(long prop_index)
 			result = (s_type_f95cd3 *)(base + 0x70);
 	}
 	return result;
+}
+
+// @retail 0x265c30
+void function_265c30(long prop_index, long actor_index, bool active)
+{
+	long const volatile *actor_reference = &actor_index;
+	bool const *active_reference = &active;
+	s_type_f95cd3 *view = actor_tracked_prop_view(prop_index);
+	if (view)
+	{
+		if (*active_reference)
+		{
+			view->unknown50 = g_510c54->game_time;
+			*(real *)((byte *)view + 0x3c) = function_265d30(*actor_reference, prop_index);
+		}
+		else
+		{
+			view->unknown50 = NONE;
+			*(real *)((byte *)view + 0x3c) = function_265d30(*actor_reference, prop_index);
+		}
+	}
+}
+
+// @retail 0x267770
+void function_267770(long prop_index, long actor_index)
+{
+	long const *actor_reference = &actor_index;
+	s_actor_view *actor = actor_get(actor_index);
+	long previous = *(long *)((byte *)actor + 0x338);
+	*(long *)((byte *)actor + 0x338) = prop_index;
+	if (previous != NONE)
+	{
+		s_type_f95cd3 *view = actor_tracked_prop_view(previous);
+		if (view) *(real *)((byte *)view + 0x3c) = function_265d30(*actor_reference, previous);
+	}
+	if (prop_index != NONE)
+	{
+		s_type_f95cd3 *view = actor_tracked_prop_view(prop_index);
+		if (view) *(real *)((byte *)view + 0x3c) = function_265d30(*actor_reference, *(long *)((byte *)actor + 0x338));
+	}
 }
 
 // @retail 0x267180
@@ -631,6 +1042,175 @@ short function_2684f0(s_actor_view *actor)
 	return 0;
 }
 
+long function_1e4a10(long index);
+short function_1a6fe0(long owner_index, short type);
+struct s_node_view;
+s_node_view *function_26be30(s_iterator *iterator);
+void function_1f86a0(long actor_index);
+void function_262800(long actor_index, s_reference reference, bool unknown);
+
+PRIVATE inline long round_tick_count(real ticks)
+{
+	long result;
+	__asm { fld ticks }
+	__asm { fistp result }
+	return result;
+}
+
+// @retail 0x267c50
+void function_267c50(long actor_index)
+{
+	long const *actor_reference = &actor_index;
+	s_actor_view *actor = actor_get(actor_index);
+	byte *data = (byte *)actor;
+	*(real *)(data + 0x3d4) = 0.0f;
+	short level = *(short *)(data + 0x328);
+	s_prop_threshold_table *table = (s_prop_threshold_table *)g_4e034c;
+	if (table && table->count > 0)
+	{
+		byte *values = (byte *)table->entries;
+		if (level >= 12)
+		{
+			real threshold_a = 0.25f, threshold_b = 0.25f;
+			byte *settings = (byte *)function_1e4a10(actor->unknown054);
+			if (settings)
+			{
+				if (*(real *)(settings + 0x60) > 0.0f) threshold_a = *(real *)(settings + 0x60);
+				if (*(real *)(settings + 0x5c) > 0.0f) threshold_b = *(real *)(settings + 0x5c);
+			}
+			if (*(real *)(data + 0x2d8) > threshold_a) *(real *)(data + 0x3d4) = *(real *)(values + 0x2c);
+			else if (*(real *)(data + 0x2d8) > 0.0f) *(real *)(data + 0x3d4) = *(real *)(values + 0x28);
+			else if (*(real *)(data + 0x2dc) > threshold_b) *(real *)(data + 0x3d4) = *(real *)(values + 0x24);
+			else *(real *)(data + 0x3d4) = *(real *)(values + 0x20);
+		}
+		else if (level >= 11) *(real *)(data + 0x3d4) = *(real *)(values + 0x18);
+		else if (level >= 10) *(real *)(data + 0x3d4) = *(real *)(values + 0x10);
+		else if (level >= 9) *(real *)(data + 0x3d4) = *(real *)(values + 8);
+		else if (level >= 8) *(real *)(data + 0x3d4) = *(real *)values;
+		else *(real *)(data + 0x3d4) = 0.0f;
+	}
+	long ticks;
+	if (*(real *)(data + 0x3d4) > *(real *)(data + 0x3d8))
+		ticks = round_tick_count((real)g_510c54->field_2_3 * 0.25f);
+	else
+		ticks = round_tick_count((real)g_510c54->field_2_3);
+	real blend = 1.0f - (real)exp(-0.6931471824645996 / ticks);
+	*(real *)(data + 0x3d8) += (*(real *)(data + 0x3d4) - *(real *)(data + 0x3d8)) * blend;
+	if (actor->unknown024 != NONE && !team_is_enemy(actor->unknown024, 1) &&
+		*(long *)(data + 0x26c) == NONE && !*(bool *)(data + 0x225) && actor->unknown858 == NONE &&
+		function_1a6fe0(actor_index, 0x38) == NONE && function_1a6fe0(actor_index, 0x10) == NONE &&
+		function_1a6fe0(actor_index, 0x11) == NONE)
+	{
+		bool moving_toward = false, nearby_player = false;
+		bool check_target = function_2684f0(actor) > 6;
+		vector3f target_direction;
+		if (check_target)
+		{
+			s_type_f95cd3 *view = function_25d700(*(long *)(data + 0x338));
+			if (view) target_direction = *(vector3f *)((byte *)view + 0x2c);
+		}
+		if (actor->unknown086 > 5)
+		{
+			s_iterator iterator;
+			function_26be00(*actor_reference, &iterator);
+			s_prop_datum *node;
+			while ((node = (s_prop_datum *)function_26be30(&iterator)) != NULL)
+			{
+				s_type_5cfb45 *state = function_25d690(node);
+				s_type_76cf92 *prop = prop_get(node->prop_index);
+				if (!prop->unknown23 && !function_25d690(node)->unknown5e && !prop->unknown22 &&
+					(prop->unknown25 || state->unknown3c == NONE))
+				{
+					vector3f direction;
+					if (function_267840(*actor_reference, iterator.index, &direction))
+					{
+						bool active = false;
+						vector3f offset = {0.0f, 0.0f, 0.0f};
+						short proximity = function_267a80(NULL, &state->position, &direction,
+							(point3f *)(data + 0x238), (long)&offset);
+						if (proximity >= 1)
+						{
+							*(bool *)(data + 0x3de) = true;
+							if (prop_get(node->prop_index)->unknown25)
+							{
+								*(bool *)(data + 0x3dc) = true;
+								nearby_player = true;
+							}
+						}
+						if (state->unknown63) active = true;
+						else
+						{
+							long player_index = object_get(node->object_index)->player_index;
+							s_ai_player *player;
+							if (player_index != NONE && (player = ai_player_get(player_index)) != NULL)
+								active = g_510c54->game_time - player->unknown0c < round_tick_count((real)g_510c54->field_2_3 * 2.5f);
+						}
+						if (prop_get(node->prop_index)->unknown25 && active)
+						{
+							real distance_squared = offset.k * offset.k + offset.j * offset.j + offset.i * offset.i;
+							if (distance_squared < 1.0f && *(bool *)(data + 0x5d0))
+							{
+								vector3f movement = *(vector3f *)(data + 0x5ec);
+								if (function_30bf0(&movement) > 0.0f)
+								{
+									point3f ahead;
+									ahead.x = movement.i * 0.4f + *(real *)(data + 0x238);
+									ahead.y = movement.j * 0.4f + *(real *)(data + 0x23c);
+									ahead.z = movement.k * 0.4f + *(real *)(data + 0x240);
+									short projected = function_267a80(NULL, &state->position, &direction, &ahead, 0);
+									if ((projected > proximity ? projected : proximity) >= 1)
+									{
+										real dot = movement.k * offset.k + movement.j * offset.j + movement.i * offset.i;
+										if (dot > (distance_squared < 0.25f ? 0.0f : 0.8660253882408142f))
+										{
+											*(bool *)(data + 0x3dd) = true;
+											moving_toward = true;
+										}
+									}
+								}
+							}
+						}
+					}
+					if (check_target && function_267a80(NULL, (point3f *)(data + 0x238), &target_direction, &state->position, 0) >= 2)
+						*(bool *)(data + 0x3df) = true;
+				}
+			}
+		}
+		if (moving_toward)
+		{
+			function_262800(*actor_reference, *(s_reference *)(data + 0x418), true);
+			function_1f86a0(actor_index);
+			*(short *)(data + 0x3e2) = (short)round_tick_count((real)g_510c54->field_2_3);
+		}
+		else if (*(short *)(data + 0x3e2) > 0)
+			--*(short *)(data + 0x3e2);
+		else
+			*(bool *)(data + 0x3dd) = false;
+		if (nearby_player || moving_toward)
+			*(short *)(data + 0x3e0) = (short)round_tick_count((real)g_510c54->field_2_3 * 1.5f);
+		else if (*(short *)(data + 0x3e0) > 0)
+			--*(short *)(data + 0x3e0);
+		else
+		{
+			*(bool *)(data + 0x3dc) = false;
+			*(bool *)(data + 0x3dd) = false;
+			*(bool *)(data + 0x3de) = false;
+			*(bool *)(data + 0x3df) = false;
+		}
+	}
+	else
+	{
+		*(bool *)(data + 0x3de) = false;
+		*(bool *)(data + 0x3dc) = false;
+		*(bool *)(data + 0x3df) = false;
+		*(bool *)(data + 0x3dd) = false;
+		*(short *)(data + 0x3e2) = 0;
+		*(short *)(data + 0x3e0) = 0;
+	}
+	if (actor->unknown086 >= 2) actor->unknown084 = 4;
+	else actor->unknown084 = 1 + 2 * (actor->unknown086 >= 1);
+}
+
 // @retail 0x2675b0
 bool function_2675b0(long node_index)
 {
@@ -896,4 +1476,232 @@ real function_2683f0(long actor_index, long node_index, short type)
 		}
 	}
 	return result;
+}
+
+// @retail 0x266640
+void function_266640(long actor_index)
+{
+	long const *actor_reference = &actor_index;
+	s_actor_view *actor = actor_get(actor_index);
+	byte *data = (byte *)actor;
+	long best_node = NONE, strongest_node = NONE;
+	short best_level = 0;
+	real strongest = 0.0f;
+	*(long *)(data + 0x324) = 0;
+	*(long *)(data + 0x328) = 0;
+	*(long *)(data + 0x32c) = 0;
+	*(long *)(data + 0x330) = 0;
+	long next = actor_get(actor_index)->first_prop_index;
+	while (next != NONE)
+	{
+		long index = next;
+		s_prop_datum *node = prop_ref_get(index);
+		next = *(long *)((byte *)node + 0x2c);
+		s_type_f95cd3 *view = NULL;
+		if (node->tracking_index != NONE)
+		{
+			s_type_e5ff81 *tracking = tracking_get(node->tracking_index);
+			if (tracking) view = &tracking->view;
+		}
+		s_type_5cfb45 *state = function_25d690(node);
+		s_type_76cf92 *prop = prop_get(node->prop_index);
+		if (node->state >= 1)
+		{
+			if (!view) continue;
+			if (!function_25d690(node)->unknown5e)
+			{
+				short level = function_267180(node);
+				if (level > best_level)
+				{
+					best_level = level;
+					best_node = index;
+				}
+				if (prop_get(node->prop_index)->unknown23)
+				{
+					function_2672e0(view, (s_prop_node_view *)node);
+					function_267700(*actor_reference, node, prop, view);
+					if (node->unknown27 >= 1) ++*(char *)(data + 0x325);
+					++*(char *)(data + 0x324);
+				}
+				else if (node->type == 2)
+				{
+					long other_index = object_get(node->object_index)->actor_index;
+					s_actor_view *other = other_index == NONE ? NULL : actor_get(other_index);
+					bool close = node->unknown28 < 8.0f;
+					if (!close && *(bool *)((byte *)state + 0x62) && other &&
+						*(long *)(data + 0x338) != NONE && *(long *)((byte *)other + 0x338) != NONE)
+						close = prop_ref_get(*(long *)(data + 0x338))->object_index == prop_ref_get(*(long *)((byte *)other + 0x338))->object_index;
+					bool very_close = (view->unknown06 == 0 || view->unknown06 == 1) && node->unknown28 < 3.0f;
+					if (close) ++*(char *)(data + 0x326);
+					if (very_close) ++*(char *)(data + 0x327);
+				}
+			}
+		}
+		if (view && *(real *)((byte *)view + 0x3c) > strongest)
+		{
+			strongest = *(real *)((byte *)view + 0x3c);
+			strongest_node = index;
+		}
+	}
+	*(short *)(data + 0x328) = best_level;
+	*(long *)(data + 0x32c) = best_node;
+	if (strongest_node != *(long *)(data + 0x338)) function_267770(strongest_node, *actor_reference);
+	function_266540(*actor_reference);
+	*(bool *)(data + 0x340) = false;
+	function_2662f0(*actor_reference);
+	if (*(bool *)(data + 0x30c) && *(short *)(data + 0x310) >= 0 &&
+		*(short *)(data + 0x310) < 2 && actor->unknown086 < 8)
+	{
+		s_ai_player *player = &g_4f55cc[*(short *)(data + 0x310)];
+		if (player->unknown0c <= 0 || g_510c54->game_time - player->unknown0c > g_510c54->field_2_3 * 3)
+		{
+			short first = g_510c54->field_2_3 * 3;
+			short second = g_510c54->field_2_3 * 15;
+			real *settings = (real *)function_1e4a90(*(long *)(data + 0x54));
+			if (settings)
+			{
+				first = (short)function_1469f0(settings[0]);
+				second = (short)function_1469f0(settings[1]);
+			}
+			short elapsed = ++*(short *)(data + 0x30e);
+			if (elapsed == first)
+			{
+				if (player->player_index != NONE)
+					function_1fb7e0(*actor_reference, 0xa8, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
+			}
+			else if (elapsed == second && player->player_index != NONE)
+				function_1fb7e0(*actor_reference, 0xa9, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
+		}
+		else *(short *)(data + 0x30e) = 0;
+	}
+	else *(short *)(data + 0x30e) = 0;
+	if (actor->unknown26c == NONE || actor->unknown018 == NONE ||
+		(actor->unknown024 != 1 && team_is_enemy(actor->unknown024, 1)))
+	{
+		actor->unknown31e = 0;
+		*(short *)(data + 0x320) = 0;
+		actor->unknown31c = NONE;
+		return;
+	}
+	s_slot_object_view *vehicle = object_get(actor->unknown26c);
+	short vehicle_type = *(short *)(g_4e3b44[vehicle->tag_index & 0xffff].bytes + 0x1f0);
+	if (vehicle_type != 0 && vehicle_type != 1 && vehicle_type != 4)
+	{
+		actor->unknown31e = 0;
+		*(short *)(data + 0x320) = 0;
+		actor->unknown31c = NONE;
+		return;
+	}
+	s_data_datum_iterator players;
+	players.data = g_4e8c24;
+	players.index = NONE;
+	players.datum_index = NONE;
+	while (data_datum_iterator_next(&players))
+	{
+		s_ai_player *player = NULL;
+		for (long p = 0; p < 2; p++)
+			if (g_4f55cc[p].player_index == players.datum_index) { player = &g_4f55cc[p]; break; }
+		short player_slot = NONE;
+		for (long i = 0; i < 2; i++)
+			if (g_4f55cc[i].player_index == players.datum_index) { player_slot = (short)i; break; }
+		long threshold = round_tick_count((real)g_510c54->field_2_3 * 2.0f);
+		if (player && *(long *)(players.datum + 0x2c) != NONE)
+		{
+			long unit_index = *(long *)(players.datum + 0x2c);
+			if (actor->unknown31c != NONE && actor->unknown31c != player_slot) continue;
+			s_slot_object_view *unit = object_get(unit_index);
+			if (*(short *)((byte *)unit + 0x1fc) == NONE)
+			{
+				vector3f forward = *(vector3f *)((byte *)unit + 0x70);
+				if (unit->parent_index != NONE)
+				{
+					byte *parent = (byte *)object_get(unit->parent_index);
+					real *matrix = (real *)(parent + *(short *)(parent + 0x116) + *(char *)((byte *)unit + 0x18) * 0x34);
+					vector3f transformed;
+					transformed.i = matrix[7] * forward.k + matrix[4] * forward.j + matrix[1] * forward.i;
+					transformed.j = matrix[8] * forward.k + matrix[5] * forward.j + matrix[2] * forward.i;
+					transformed.k = matrix[9] * forward.k + matrix[6] * forward.j + matrix[3] * forward.i;
+					forward = transformed;
+				}
+				point3f point;
+				function_b9dd0(unit_index, &point);
+				vector3f direction;
+				direction.i = actor->position.x - point.x;
+				direction.j = actor->position.y - point.y;
+				direction.k = actor->position.z - point.z;
+				real distance = function_30bf0(&direction);
+				bool established = actor->unknown31c == player_slot && actor->unknown31e > (short)threshold;
+				if (!(distance > 0.0f)) continue;
+				long reference = function_25d810(unit_index, *actor_reference, false);
+				vector3f velocity = unit->velocity;
+				vector3f relative;
+				relative.i = velocity.i - vehicle->velocity.i;
+				relative.j = velocity.j - vehicle->velocity.j;
+				relative.k = velocity.k - vehicle->velocity.k;
+				real approach = 0.0f;
+				if (function_30bf0(&velocity) > 0.0f)
+					approach = velocity.k * direction.k + velocity.j * direction.j + velocity.i * direction.i;
+				if (function_30bf0(&relative) > 0.0f)
+				{
+					real value = relative.k * direction.k + relative.j * direction.j + relative.i * direction.i;
+					if (value > approach) approach = value;
+				}
+				bool visible = reference == NONE || prop_ref_get(reference)->unknown27 >= 1;
+				real facing = 0.0f, score = 0.0f;
+				bool positive = false;
+				if (distance < 15.0f)
+				{
+					if (visible)
+					{
+						facing = direction.k * forward.k + direction.j * forward.j + direction.i * forward.i;
+						if (facing > 0.8660253882408142f) score = (facing - 0.8660253882408142f) * 7.4641008377075195f;
+						else if (distance < 1.0f) score = 1.0f;
+					}
+					if (established)
+					{
+						if (distance < 2.5f) score += 1.0f;
+						else if (distance <= 3.5f)
+						{
+							real decrease = distance - 2.5f;
+							if (decrease < 0.0f) decrease = 0.0f;
+							score += 1.0f - decrease;
+						}
+						if (approach > 0.5f) score += 1.0f;
+						positive = score > 0.0f;
+					}
+					else if (visible && !(distance > 3.5f && approach < 0.5f)) positive = score > 0.0f;
+				}
+				bool retain = true;
+				if (positive)
+				{
+					if (actor->unknown31c != NONE)
+					{
+						if (actor->unknown31c != player_slot) continue;
+						if (*(short *)(data + 0x320) > 0) *(short *)(data + 0x320) -= 2;
+					}
+					else { actor->unknown31e = 0; *(short *)(data + 0x320) = 0; }
+					actor->unknown31c = player_slot;
+				}
+				else
+				{
+					if (actor->unknown31c != player_slot) continue;
+					++*(short *)(data + 0x320);
+					if (approach < 0.0f) ++*(short *)(data + 0x320);
+					if (*(short *)(data + 0x320) > round_tick_count((real)g_510c54->field_2_3 * 4.0f) || actor->unknown31e < (short)threshold) retain = false;
+				}
+				if (actor->unknown31c == player_slot)
+				{
+					++actor->unknown31e;
+					if (facing > 0.8660253882408142f && distance < 2.5f) ++actor->unknown31e;
+				}
+				if (retain) continue;
+			}
+		}
+		if (actor->unknown31c == player_slot)
+		{
+			actor->unknown31c = NONE;
+			actor->unknown31e = 0;
+			*(short *)(data + 0x320) = 0;
+		}
+	}
 }

@@ -32,11 +32,39 @@ struct s_location_record_actor_view
 {
 	byte unknown000[0x3f4];
 	long record_index;
-	byte unknown3f8[0x888 - 0x3f8];
+	long owner_index;
+	short update_count;
+	byte unknown3fe[0x888 - 0x3fe];
 };
 
 void function_26bfa0(long object_index, long *location_index, s_location_view *location);
 void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
+void function_1e22d0(long actor_index, bool conditional);
+
+// @retail 0x26dc20
+void function_26dc20(long actor_index)
+{
+	s_location_record_actor_view *actor = (s_location_record_actor_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_location_record_actor_view));
+	long record_index = actor->record_index;
+	function_1e22d0(actor_index, true);
+	actor->record_index = NONE;
+	s_location_record_view *record = (s_location_record_view *)(g_51eca4->data + (record_index & 0xffff) * sizeof(s_location_record_view));
+	if (--record->users == 0)
+		record_pool_release(g_51eca4, record_index);
+}
+
+// @retail 0x26def0
+void function_26def0(long actor_index, long owner_index)
+{
+	s_location_record_actor_view *actor = (s_location_record_actor_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_location_record_actor_view));
+	if (actor->owner_index != owner_index)
+	{
+		if (actor->record_index != NONE)
+			function_26dc20(actor_index);
+		actor->owner_index = owner_index;
+		actor->update_count = 0;
+	}
+}
 
 // @retail 0x26d3f0
 long function_26d3f0(long object_index, short type)
