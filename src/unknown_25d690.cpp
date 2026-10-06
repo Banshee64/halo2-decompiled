@@ -134,6 +134,154 @@ void function_25ac00(long prop_ref_index, long actor_index)
 	}
 }
 
+short function_1a6fe0(long owner_index, short type);
+bool function_26ba40(long clump_index, long actor_index, long prop_index);
+bool __stdcall function_20ba60(short type, long unit_index, long target_index, long unknown, long unknown2, s_1fb7e0_data const *data);
+real normalize2d(point2f *v);
+bool function_1f57f0(long actor_index, long animation, long const *target);
+
+// @retail 0x25ace0
+void function_25ace0(long arg_0, long arg_1, short arg_2, vector3f const *arg_3)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	if (arg_2 > local_0->unknown3b0)
+	{
+		local_0->unknown3b0 = arg_2;
+		local_0->unknown3b4 = arg_1;
+		if (arg_2 >= 3)
+		{
+			function_1a8220(arg_0, 0x43, 1, 3, 1, 0x38, 3);
+			long local_1 = NONE;
+			if (arg_1 != NONE)
+			{
+				local_1 = prop_ref_get(arg_1)->object_index;
+			}
+			long local_2 = actor_get(arg_0)->unknown018;
+			if (local_2 != NONE)
+			{
+				function_20ba60(0x27, local_2, local_1, NONE, NONE, NULL);
+			}
+			if (arg_3 && local_0->unknown018 != NONE && !function_110ab0(local_0->unknown018))
+			{
+				point2f local_3 = *(point2f const *)arg_3;
+				if (normalize2d(&local_3) != 0.f)
+				{
+					real local_4 = local_0->unknown290.i * local_3.x + local_0->unknown290.j * local_3.y;
+					if (local_4 > 0.7071067690849304f)
+					{
+						function_1f57f0(arg_0, 0xe00002a, (long const *)&local_3);
+					}
+					else if (local_4 < -0.7071067690849304f)
+					{
+						local_3.x *= -1.f;
+						local_3.y *= -1.f;
+						function_1f57f0(arg_0, 0xd00002b, (long const *)&local_3);
+					}
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x25b9f0
+void function_25b9f0(long arg_0, long arg_1, vector3f const *arg_2)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_prop_datum *local_1 = NULL;
+	vector3f const *local_2 = NULL;
+	vector3f local_3;
+	s_type_f95cd3 *local_4 = NULL;
+	if (arg_1 != NONE)
+	{
+		local_1 = prop_ref_get(arg_1);
+		local_4 = prop_ref_view(local_1);
+	}
+	if (local_4)
+	{
+		local_2 = (vector3f *)&local_4->unknown2b[1];
+	}
+	else if (arg_2)
+	{
+		real local_5 = length_sq3f(arg_2);
+		if (local_5 > 0.25f)
+		{
+			real local_6 = -1.f / (real)sqrt(local_5);
+			local_3.i = (real)(local_6 * arg_2->i);
+			local_3.j = (real)(local_6 * arg_2->j);
+			local_3.k = (real)(local_6 * arg_2->k);
+			local_2 = &local_3;
+		}
+	}
+	if ((!local_1 || prop_get(local_1->prop_index)->unknown23) && local_0->unknown084 < 4)
+	{
+		function_25ace0(arg_0, arg_1, 5, local_2);
+	}
+	if (local_1 && prop_get(local_1->prop_index)->unknown23)
+	{
+		actor_get(arg_0)->unknown223 = false;
+	}
+	s_actor_prop_view *local_7 = (s_actor_prop_view *)local_0;
+	if (arg_1 != NONE && local_7->unknown684 <= 0)
+	{
+		real local_8 = g_510c54->field_2_3 * 2.f;
+		long local_9;
+		__asm
+		{
+			fld local_8
+			fistp local_9
+		}
+		local_7->unknown686 = (short)local_9;
+		local_7->unknown688 = 1;
+		local_7->unknown68c = arg_1;
+		local_7->unknown684 = 0;
+	}
+}
+
+// @retail 0x25af70
+void function_25af70(long arg_0, long arg_1)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_prop_datum *local_1 = prop_ref_get(arg_1);
+	s_type_f95cd3 *local_2 = prop_ref_view(local_1);
+	if ((g_510c54->game_time - local_2->unknownb0) * g_510c54->rate > 2.f &&
+		arg_1 == *(long *)((byte *)local_0 + 0x338))
+	{
+		if (function_1a6fe0(arg_0, 0x2b) != NONE)
+		{
+			if (local_2->unknown39 <= 2)
+			{
+				function_1fb7e0(arg_0, 0x1a, NULL, local_1->object_index, NONE);
+			}
+		}
+		else if (function_1a6fe0(arg_0, 0x38) != NONE)
+		{
+			if (local_2->unknown39 <= 2)
+			{
+				function_1fb7e0(arg_0, 0x1b, NULL, local_1->object_index, NONE);
+			}
+		}
+		else if (function_26ba40(local_0->unknown07c, arg_0, local_1->prop_index))
+		{
+			if (local_2->unknown69)
+			{
+				function_1fb7e0(arg_0, 0x19, NULL, local_1->object_index, NONE);
+			}
+			else if (function_1a6fe0(arg_0, 0x1b) != NONE)
+			{
+				function_1fb7e0(arg_0, 0x18, NULL, local_1->object_index, NONE);
+			}
+			else if (local_2->unknown70 == 0)
+			{
+				function_1fb7e0(arg_0, 0x17, NULL, local_1->object_index, NONE);
+			}
+			else
+			{
+				function_1fb7e0(arg_0, 0x19, NULL, local_1->object_index, NONE);
+			}
+		}
+	}
+}
+
 // @retail 0x25bba0
 void function_25bba0(long actor_index, long unknown)
 {
