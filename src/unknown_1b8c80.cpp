@@ -1192,8 +1192,8 @@ void __stdcall function_1bb570(long vehicle_index, long actor_index)
             }
             else
             {
-                byte *driver_unit = (byte *)object_get(*(long *)(vehicle + 0x248));
-                if (*(long *)(driver_unit + 0x13c) != NONE && !team_is_enemy(actor->unknown024, 1))
+                byte *local_11eac6 = (byte *)object_get(*(long *)(vehicle + 0x248));
+                if (*(long *)(local_11eac6 + 0x13c) != NONE && !team_is_enemy(actor->unknown024, 1))
                     goto event;
                 if (!squad)
                     function_1e3400(actor_index, NONE);
