@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6410 functions match
+
+```
+matched 6410 of 11318 game functions (681349 of 2784283 bytes, 24.47%)
+```
+
+6410 new matches, none lost:
+- Codex near-match polish round 1: 0x3d4f0, 0x3f220, 0x191300 and 0x28c470, four near matches finished by small rewrites.
+
+## 2026-10-06: 6406 functions match
+
+```
+matched 6406 of 11318 game functions (680567 of 2784283 bytes, 24.44%)
+```
+
+6406 new matches, none lost:
+- Codex lane V round 5: 10 matches in 0x260000-0x26e36f, plus 0x1a9e00 and 0x1b3820, whose stub callees became real code.
+
 ## 2026-10-06: 6394 functions match
 
 ```

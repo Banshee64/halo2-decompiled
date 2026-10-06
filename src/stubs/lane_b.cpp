@@ -30,8 +30,6 @@ struct s_squad_iterator;
 
 struct s_location_view;
 
-// @stub 0x267770
-void function_267770(long prop_index, long actor_index) { }
 
 
 struct s_prop_node_view;
@@ -39,8 +37,6 @@ struct s_prop_node_view;
 // @stub 0x1f4810
 bool __stdcall function_1f4810(long actor_index, long prop_index, real distance, long unknown) { return 0; }
 
-// @stub 0x265c30
-void function_265c30(long prop_index, long actor_index, bool unknown) { }
 
 
 

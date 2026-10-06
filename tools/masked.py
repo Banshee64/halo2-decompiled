@@ -123,9 +123,10 @@ def float_loads(image, va, size, lo, hi):
     loads from [lo, hi) by its absolute address."""
     md = Cs(CS_ARCH_X86, CS_MODE_32)
     md.detail = True
+    md.skipdata = True  # jump tables inside a function
     found = []
     for i in md.disasm(image.read(va, size), va):
-        if i.mnemonic not in _FLOAT_OPS:
+        if i.id == 0 or i.mnemonic not in _FLOAT_OPS:  # skipped data has id 0
             continue
         for op in i.operands:
             if op.type == x86.X86_OP_MEM and op.mem.base == 0 and op.mem.index == 0 and op.size == 4:
@@ -178,8 +179,11 @@ def string_refs(image, va, size, lo, hi):
     code at va refers to by an immediate."""
     md = Cs(CS_ARCH_X86, CS_MODE_32)
     md.detail = True
+    md.skipdata = True  # jump tables inside a function
     found = []
     for i in md.disasm(image.read(va, size), va):
+        if i.id == 0:  # skipped data
+            continue
         for op in i.operands:
             if op.type == x86.X86_OP_IMM and lo <= op.imm & 0xffffffff < hi:
                 text = cstring(image, op.imm & 0xffffffff)
