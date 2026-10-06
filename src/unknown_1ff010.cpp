@@ -2,11 +2,138 @@
 #include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_0259d0.h"
+#include "unknown_1e3920.h"
+#include "unknown_2551c0.h"
 
 /* the actor's props as targets */
 
 void *function_1e5380(long actor_index);
+void *function_1e5280(long actor_index, long key);
 bool function_25d970(s_prop_datum *datum);
+
+bool weapon_barrel_aim(long weapon_index, short barrel_index, point3f const *origin, point3f const *target,
+	real const *unknown3, bool unknown5, vector3f *direction, real *speed_out, real *time, real *distance, bool *linear);
+
+struct s_weapon_aim_ranges
+{
+	byte unknown00[0x38];
+	real minimum_distance;
+	real maximum_distance;
+	real minimum_fraction;
+	real maximum_fraction;
+};
+
+// @retail 0x1ffbd0
+bool function_1ffbd0(long actor_index, long weapon_index, short barrel_index,
+	point3f const *origin, point3f const *target, bool flag, vector3f *direction,
+	void *unknown0, void *unknown1, void *unknown2, void *unknown3)
+{
+	long definition_index = moving_object_get(weapon_index)->tag_index;
+	s_weapon_aim_ranges *ranges = (s_weapon_aim_ranges *)function_1e5280(actor_index, definition_index);
+	bool result = false;
+	if (ranges)
+	{
+		byte *definition = g_4e3b44[definition_index & 0xffff].bytes;
+		real fraction = 0.0f;
+		bool use_fraction = false;
+		if (barrel_index >= 0 && barrel_index < *(long *)(definition + 0x2d0))
+		{
+			byte *barrel = *(byte **)(definition + 0x2d4) + barrel_index * 0xec;
+			s_actor_view *actor = actor_get(actor_index);
+			long projectile_index = *(long *)(barrel + 0x90);
+			byte *projectile;
+			if (projectile_index != NONE &&
+				((*(long *)((projectile = g_4e3b44[projectile_index & 0xffff].bytes) + 0xbc) >> 1) & 1) &&
+				*(real *)(projectile + 0x164) > 0.0f)
+			{
+				real distance = distance3d(origin, target);
+				real upper = 1.0f - (0.0f > ranges->maximum_fraction ? 0.0f : ranges->maximum_fraction > 1.0f ? 1.0f : ranges->maximum_fraction);
+				real lower = 1.0f - (0.0f > ranges->minimum_fraction ? 0.0f : ranges->minimum_fraction > 1.0f ? 1.0f : ranges->minimum_fraction);
+				if (distance >= ranges->maximum_distance)
+					fraction = upper;
+				else if (ranges->minimum_distance >= distance)
+					fraction = lower;
+				else
+					fraction = (distance - ranges->minimum_distance) * (upper - lower) /
+						(ranges->maximum_distance - ranges->minimum_distance) + lower;
+				use_fraction = true;
+			}
+			else if (actor->unknown26c == NONE)
+			{
+				point3f adjusted_origin = actor->position;
+				adjusted_origin.z = origin->z;
+				return weapon_barrel_aim(weapon_index, barrel_index, &adjusted_origin, target, NULL, flag,
+					direction, (real *)unknown0, (real *)unknown1, (real *)unknown2, (bool *)unknown3);
+			}
+			result = weapon_barrel_aim(weapon_index, barrel_index, origin, target, use_fraction ? &fraction : NULL, flag,
+				direction, (real *)unknown0, (real *)unknown1, (real *)unknown2, (bool *)unknown3);
+		}
+	}
+	return result;
+}
+
+real function_fa170(long definition_index);
+bool function_fa6a0(long definition_index, real const *speed_override, point3f const *origin, point3f const *target,
+	real *unknown2, real const *unknown3, real const *unknown4, bool unknown5, vector3f *direction, real *speed_out,
+	real *time, real *distance, bool *linear);
+
+struct s_projectile_choice
+{
+	byte unknown00[0x28];
+	long definition_index;
+};
+
+struct s_projectile_choices
+{
+	byte unknown00[0x100];
+	long count;
+	s_projectile_choice *choices;
+};
+
+PRIVATE inline s_projectile_choice *projectile_choice_get(short type)
+{
+	s_projectile_choices *globals = (s_projectile_choices *)g_4e034c;
+	s_projectile_choice *result;
+	if (globals->count)
+		result = &globals->choices[type];
+	else
+		result = NULL;
+	return result;
+}
+
+// @retail 0x1ff200
+bool function_1ff200(short type, point3f const *origin, real speed, point3f const *target,
+	real const *limit, bool alternate, vector3f *direction, real *speed_out, real *time,
+	vector3f *velocity, real *gravity)
+{
+	real *const *speed_reference = &speed_out;
+	s_projectile_choice *choice = projectile_choice_get(type);
+	bool result = false;
+	if (choice && choice->definition_index != NONE)
+	{
+		long definition_index = choice->definition_index;
+		real adjusted_speed;
+		bool linear = false;
+		if (function_fa6a0(definition_index, &speed, origin, target, &adjusted_speed, limit, NULL,
+			alternate, direction, *speed_reference, time, NULL, &linear) ||
+			(adjusted_speed > 0.0f && speed > adjusted_speed &&
+			function_fa6a0(definition_index, &(adjusted_speed += 0.01f), origin, target, NULL, limit, NULL,
+			alternate, direction, *speed_reference, time, NULL, &linear)))
+		{
+			result = true;
+			if (velocity)
+			{
+				real scale = **speed_reference;
+				velocity->i = direction->i * scale;
+				velocity->j = direction->j * scale;
+				velocity->k = direction->k * scale;
+			}
+			if (gravity)
+				*gravity = linear ? 0.0f : function_fa170(definition_index);
+		}
+	}
+	return result;
+}
 
 /* the block function_1e5380 returns */
 struct s_character_variant_ranges
@@ -63,5 +190,98 @@ bool function_1ff6c0(long actor_index, long prop_index, point3f const *point, lo
 			return true;
 		}
 	}
+	return result;
+}
+
+
+/* Shared request layout used by the point/radius actor iterator. */
+struct s_actor_point_request
+{
+	byte field_0[0x14];
+	s_record_pool *pool;
+	long iterator_index;
+	long datum_index;
+	long group_index;
+	long actor_index;
+	long next_actor_index;
+	short type;
+	short mode;
+	real radius;
+	real radius_squared;
+	long index;
+	point3f point;
+	long result_index;
+	real squared_distance;
+};
+
+
+void function_1e4770(s_actor_point_request *request, short mode, point3f const *point, short type, real radius);
+s_actor_moving *function_1e47d0(s_actor_point_request *request);
+
+// @retail 0x1ff7d0
+bool function_1ff7d0(long actor_index, point3f const *point, real enemy_radius, real friendly_radius, short *count_out)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	real radius = enemy_radius > friendly_radius ? enemy_radius : friendly_radius;
+	real enemy_squared = enemy_radius * enemy_radius;
+	real friendly_squared = friendly_radius * friendly_radius;
+	bool result = true;
+	short count = 0;
+	s_actor_point_request request;
+	function_1e4770(&request, actor->unknown024, point, 2, radius);
+	s_actor_view *other = (s_actor_view *)function_1e47d0(&request);
+	while (other)
+	{
+		if (actor->unknown024 != other->unknown024 && function_1df560(actor->unknown024, other->unknown024))
+		{
+			if (enemy_squared > request.squared_distance)
+			{
+				long perception_index = *(long *)other->unknown01c;
+				if (perception_index != NONE)
+					count += *(short *)((byte *)perception_get(perception_index) + 0x14);
+				else
+					count++;
+			}
+		}
+		else if (friendly_squared > request.squared_distance)
+			goto blocked;
+		other = (s_actor_view *)function_1e47d0(&request);
+	}
+	{
+		s_record_pool *players = g_4e8c24;
+		long index = NONE;
+		for (;;)
+		{
+			index = data_next_absolute_index_inlined(players, index + 1);
+			if (index == NONE)
+				break;
+			byte *player = players->data + players->size * index;
+			if (!player)
+				break;
+			long object_index = *(long *)(player + 0x2c);
+			if (object_index != NONE)
+			{
+				s_moving_object *object = moving_object_get(object_index);
+				vector3f delta;
+				delta.i = ((point3f *)((byte *)object + 0x30))->x - point->x;
+				delta.j = ((point3f *)((byte *)object + 0x30))->y - point->y;
+				delta.k = ((point3f *)((byte *)object + 0x30))->z - point->z;
+				real squared_distance = delta.k * delta.k + delta.j * delta.j + delta.i * delta.i;
+				if (actor->unknown024 != 1 && team_is_enemy(actor->unknown024, 1))
+				{
+					if (enemy_squared > squared_distance)
+						count++;
+				}
+				else if (friendly_squared > squared_distance)
+					goto blocked;
+			}
+		}
+	}
+	goto finished;
+blocked:
+	result = false;
+finished:
+	if (count_out)
+		*count_out = count;
 	return result;
 }

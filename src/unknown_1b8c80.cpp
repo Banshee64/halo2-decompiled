@@ -858,3 +858,80 @@ short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active)
 
 	return g_46fbe4;
 }
+
+long __stdcall function_c7160(long unit_index, short seat_index, long marker_position, long vehicle_index, long position);
+bool function_cc750(long unit_index, short seat_index);
+bool function_cc7b0(long unit_index, short seat_index);
+real normalize2d(point2f *vector);
+
+struct s_seat_approach_result
+{
+	point3f point;
+	vector3f direction;
+	real score;
+	bool close;
+	bool facing;
+	bool approaching;
+};
+
+// @retail 0x1baae0
+bool function_1baae0(long actor_index, long object_index, short seat_index, bool ignore_bonus,
+	bool ignore_reserved, bool vertical, s_seat_approach_result *out)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = false;
+	if (function_1b8eb0(actor_index, object_index, seat_index, ignore_reserved))
+	{
+		point3f marker;
+		point3f position;
+		if (function_c7160(actor->unknown018, seat_index, (long)&marker, object_index, (long)&position) != NONE)
+		{
+			vector3f direction;
+			direction.i = marker.x - position.x;
+			direction.j = marker.y - position.y;
+			direction.k = 0.0f;
+			real bonus = 0.0f;
+			if (normalize2d((point2f *)&direction) == 0.0f)
+				direction = actor->unknown290;
+			real distance;
+			double dx = (double)position.x - actor->position.x;
+			double dy = (double)position.y - actor->position.y;
+			if (vertical)
+			{
+				double dz = (double)position.z - actor->position.z;
+				distance = (real)sqrt(dx * dx + dy * dy + dz * dz);
+			}
+			else
+			{
+				real mx = marker.x - actor->position.x;
+				real my = marker.y - actor->position.y;
+				point3f const *nearest = sqrt(dx * dx + dy * dy) > sqrt(mx * mx + my * my) ? &marker : &position;
+				double nx = (double)nearest->x - actor->position.x;
+				double ny = (double)nearest->y - actor->position.y;
+				distance = (real)sqrt(nx * nx + ny * ny);
+			}
+			s_slot_object_view *object = object_get(object_index);
+			if (object->type == 1 && !ignore_bonus && function_cc750(object_index, seat_index) &&
+					((*(long *)(g_4e3b44[object->tag_index & 0xffff].bytes + 0x1ec) >> 11) & 1))
+				bonus = 50.0f;
+			real dot = actor->unknown290.i * direction.i + actor->unknown290.j * direction.j;
+			bool close = distance < 0.4f;
+			bool facing = dot > 0.6f;
+			bool approaching = distance < 1.1f && dot > 0.0f;
+			real score = 10.0f / (distance + 1.0f) + bonus;
+			if (function_cc7b0(object_index, seat_index))
+				score += 200.0f;
+			if (out)
+			{
+				out->point = position;
+				out->direction = direction;
+				out->score = score;
+				out->close = close;
+				out->facing = facing;
+				out->approaching = approaching;
+			}
+			result = true;
+		}
+	}
+	return result;
+}

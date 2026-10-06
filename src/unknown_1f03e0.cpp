@@ -7,6 +7,7 @@
 #include "unknown_0259d0.h"
 #include "data_array.h"
 #include <math.h>
+#include "object_list.h"
 
 #define PIN(x, lower, upper) ((x) < (lower) ? (lower) : ((x) > (upper) ? (upper) : (x)))
 
@@ -107,6 +108,51 @@ void function_1f1df0(long component_index, long material_index, vector3f const *
 		state->material = component->materials[material_index].material;
 	else
 		state->material = g_54e898;
+}
+
+struct s_shape_carrier_contact
+{
+	byte unknown00[0x10];
+	long object_index;
+	byte unknown14[0x58 - 0x14];
+	transform4x3f transform;
+	byte unknown8c[0xe8 - 0x8c];
+	point3f point;
+};
+
+struct s_shape_carrier_state
+{
+	vector3f previous_velocity;
+	byte unknown0c[0x24 - 0xc];
+	transform4x3f matrix;
+};
+
+bool function_182020(long component_index, vector3f *previous_velocity, point3f const *point,
+	transform4x3f const *transform, transform4x3f *matrix, vector3f *velocity,
+	vector3f *delta_velocity, matrix3x3 *rotation);
+
+// @retail 0x1f1e50
+bool function_1f1e50(s_shape_carrier_state *state, s_shape_carrier_contact const *contact,
+	vector3f *velocity, vector3f *delta_velocity, matrix3x3 *rotation)
+{
+	bool result = false;
+	long object_index = contact->object_index;
+	if (object_index != NONE)
+	{
+		s_object_list_state *objects = g_5107f0;
+		for (long i = 0; i < objects->object_count; i++)
+		{
+			if (objects->object_indices[i] == object_index)
+			{
+				struct s_carrier_header { byte unknown00[8]; byte *object; };
+				byte *object = ((s_carrier_header *)g_4e0300->data)[object_index & 0xffff].object;
+				result = function_182020(*(long *)(object + 0xb4), &state->previous_velocity,
+					&contact->point, &contact->transform, &state->matrix, velocity, delta_velocity, rotation);
+				break;
+			}
+		}
+	}
+	return result;
 }
 
 /* the surfaces' minimum and maximum heights: whether the shape stands at a

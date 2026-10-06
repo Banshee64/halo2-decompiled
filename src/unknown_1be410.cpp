@@ -2,6 +2,7 @@
 #include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_1f4460.h"
+#include "props.h"
 
 /* slot type 0x20 */
 
@@ -35,6 +36,40 @@ struct s_character_a50
 long function_1e4a50(long index);
 bool function_26fc80(long actor_index, long object_index, real distance, void *path, point3f *point);
 bool function_e4050(long object_index);
+
+s_type_5cfb45 *function_25d670(long prop_ref_index);
+real normalize2d(point2f *v);
+bool function_1f57f0(long actor_index, long animation, long const *target);
+
+// @retail 0x1be6e0
+short __stdcall function_1be6e0(long actor_index, s_slot *slot, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_20 *state = (s_slot_20 *)slot;
+	short result = g_46fbe4;
+	if (actor->prop_index != NONE && state->unknown10 != NONE &&
+		(actor->unknown348 == state->unknown10 || state->unknown0d))
+	{
+		vector3f const *velocity = &object_get(state->unknown10)->velocity;
+		if (state->unknown0c || velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k < 0.1f * 0.1f)
+		{
+			result = g_46fbe8;
+			s_slot_object_view *unit = object_get(actor->unknown018);
+			if (unit->type == 0 && state->unknown0d && !function_e4050(actor->unknown018) &&
+				*(short *)((byte *)unit + 0x34c) == NONE)
+			{
+				point3f const *point = &function_25d670(actor->prop_index)->position;
+				point2f direction;
+				direction.x = point->x - actor->position.x;
+				direction.y = point->y - actor->position.y;
+				if (normalize2d(&direction) > 0.0f)
+					function_1f57f0(actor_index, 0x700002c, (long const *)&direction);
+				result = g_46fbe4;
+			}
+		}
+	}
+	return result;
+}
 
 /* where the actor goes to reach the object */
 // @retail 0x1be410
