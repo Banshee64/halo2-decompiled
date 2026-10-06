@@ -430,3 +430,147 @@ void sound_audible_clusters_update(void)
 		}
 	}
 }
+#include "object_markers.h"
+#include "object_queries.h"
+
+extern long const g_444ae0;
+extern s_record_pool *g_4ea93c;
+extern s_record_pool *g_51ebfc;
+struct s_impact;
+struct s_impact_sound_location;
+void impact_sound_location_get(s_impact const *impact, s_impact_sound_location *location, real *scale);
+bool function_17b2d0(long effect_index, point3f *point, vector3f *forward, real *scale);
+bool __stdcall function_bab40(long object_index, long name, real *value);
+long function_b8c40(long object_index, short entry_index);
+short function_188790(real angle);
+void function_18d4f0(long object_index, char *audible, long *local_player_index);
+
+struct s_loop_location_datum
+{
+	short salt;
+	byte field_2;
+	char type;
+	union
+	{
+		word flags;
+		struct { word flag0 : 1; word flag1 : 1; word field_4_2 : 3; word flag5 : 1; };
+	};
+	short marker;
+	real scale;
+	long tag;
+	long owner;
+	union { long name; struct { char source; char listener; short cluster; }; };
+};
+
+struct s_loop_location_object
+{
+	byte field_0[0x12c];
+	byte field_12c;
+	byte field_12d[3];
+	long field_130;
+	real field_134;
+	real field_138;
+	real field_13c;
+	real field_140;
+	real field_144;
+};
+
+PRIVATE inline long loop_location_object_index(s_loop_location_datum const *sound)
+{
+	return sound->type == 1 ? sound->owner : NONE;
+}
+
+PRIVATE __forceinline void loop_location_clear(s_type_99c531 *location)
+{
+	location->flags |= 2;
+	location->scale = 0.0f;
+	memset(&location->spatial, 0, sizeof(location->spatial));
+	function_11bed0(&location->spatial.location, g_468788);
+	location->spatial.compressed_forward = vector3d_compress(g_4687b0);
+}
+
+// @retail 0x18cbc0
+void function_18cbc0(long looping_sound_index, s_type_99c531 *location)
+{
+	s_loop_location_datum *sound = &((s_loop_location_datum *)g_4ed28c->data)[looping_sound_index & 0xffff];
+	byte *definition = g_4e3b44[sound->tag & 0xffff].bytes;
+	location->flags = 0;
+	location->unknown08 = sound->type == 0 ? sound->owner : g_444ae0;
+	location->unknown02 = 0;
+	switch (sound->type)
+	{
+	case 3:
+		{
+			location->audible = 1;
+			vector3f forward;
+			bool failed = true;
+			if (!TEST_FIELD_BIT(sound->flag1))
+				failed = !function_17b2d0(sound->owner, &location->spatial.position, &forward, &location->scale);
+			if (!failed)
+			{
+				location->spatial.compressed_forward = vector3d_compress(&forward);
+				location->spatial.velocity = *(vector3f *)((byte *)g_4ea93c->data + (sound->owner & 0xffff) * 0x190 + 0x30);
+				function_11bed0(&location->spatial.location, &location->spatial.position);
+			}
+			else loop_location_clear(location);
+			return;
+		}
+	case 2:
+		location->audible = 1;
+		if (!TEST_FIELD_BIT(sound->flag1))
+			impact_sound_location_get((s_impact *)((byte *)g_51ebfc->data + (sound->owner & 0xffff) * 0xa0),
+				(s_impact_sound_location *)&location->spatial, &location->scale);
+		else loop_location_clear(location);
+		return;
+	case 0:
+	{
+		long cluster = sound->type == 0 ? sound->cluster : NONE;
+		if (cluster != NONE)
+		{
+			*(short *)((byte *)&location->spatial.location + 4) = (short)cluster;
+			*(long *)&location->spatial.location = NONE;
+			*(short *)((byte *)&location->spatial.location + 6) = sound->type == 0 ? sound->listener : NONE;
+			((byte *)&location->flags)[1] |= 0x10;
+		}
+		break;
+	}
+	}
+	if (!(sound->flags & 1))
+	{
+		long object_index = loop_location_object_index(sound);
+		if ((1 << sound_object_header(object_index)->type) & 0x400)
+		{
+			s_loop_location_object *object = (s_loop_location_object *)sound_object_header(sound->owner)->object;
+			location->unknown02 = object->field_12c;
+			*(long *)(location->unknown30) = object->field_130;
+			if (object->field_134 > 0.0f) { location->flags |= 4; *(real *)(location->unknown30 + 4) = object->field_134; }
+			if (object->field_138 > 0.0f) { location->flags |= 8; *(real *)(location->unknown30 + 8) = object->field_138; }
+			if (object->field_13c > 0.0f) { location->flags |= 0x10; *(short *)(location->unknown30 + 0xc) = function_188790(object->field_13c); }
+			if (object->field_140 > 0.0f) { location->flags |= 0x20; *(short *)(location->unknown30 + 0xe) = function_188790(object->field_140); }
+			if (object->field_144 < 0.0f) { location->flags |= 0x40; *(real *)(location->unknown30 + 0x10) = object->field_144; }
+		}
+		function_bab40(loop_location_object_index(sound), sound->name, &location->scale);
+	}
+	else location->scale = sound->scale;
+	if (sound->type == 1)
+	{
+		long marker_name = 0;
+		if (sound->marker != NONE) marker_name = function_b8c40(sound->owner, sound->marker);
+		s_object_marker marker;
+		function_b8d30(sound->owner, marker_name, &marker, 1, false);
+		location->spatial.position = marker.matrix.position;
+		location->spatial.compressed_forward = vector3d_compress(&marker.matrix.forward);
+		function_ba1d0(loop_location_object_index(sound), &location->spatial.velocity, NULL);
+		object_get_root_location(loop_location_object_index(sound), &location->spatial.location);
+		char audible = 1;
+		function_18d4f0(loop_location_object_index(sound), &audible, NULL);
+		location->audible = audible;
+		if ((*definition & 8) && !location->audible)
+		{
+			location->audible = 1;
+			location->flags |= 1;
+		}
+	}
+	else location->audible = 0;
+	if (TEST_FIELD_BIT(sound->flag5)) location->flags |= 0x400;
+}

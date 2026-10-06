@@ -41,7 +41,3 @@ long function_122db0(char const *map_name)
 /* callee of the window manager's main screen (unknown_147f6d.cpp); lane F's
    finished range, open */
 
-// @stub 0x18f5e3
-void function_18f5e3(void)
-{
-}

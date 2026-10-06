@@ -68,10 +68,6 @@ void __stdcall function_189cd0(long sound_index, long object_index, real scale, 
 {
 }
 
-// @stub 0x18a430
-void __stdcall function_18a430(long looping_sound_index, long object_index, real scale)
-{
-}
 
 
 
