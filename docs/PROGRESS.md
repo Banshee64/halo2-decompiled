@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6294 functions match
+
+```
+matched 6294 of 11318 game functions (659320 of 2784283 bytes, 23.68%)
+```
+
+4 new matches, none lost:
+- **Codex lane U**, round 8 (4): game variant, saved-game and image helpers in the 0x200000–0x217fff range.
+
 ## 2026-10-06: 6290 functions match
 
 ```
