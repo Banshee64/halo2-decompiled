@@ -339,10 +339,11 @@ barrel loop then fires it.
 
 `0x102fb0` marks the shot for `0x104150`: it sets barrel flag1 and weapon
 `+0x16c` bit 0 (`0x103708`, `0x103710`), and `0xfd980` fires it later in the
-tick. It sets neither when a random draw from `g_4e7408` falls below
-(heat - definition `+0x25c`) × `+0x260` / (1 - `+0x25c`), which it tests
-only when `+0x25c` is between 0 and 1 and heat is above it (`0x1033be`–
-`0x10343b`); this reads as a heat-driven misfire.
+tick. It sets neither for a shot it refuses, or when a random draw from
+`g_4e7408` falls below (heat - definition `+0x25c`) × `+0x260` / (1 -
+`+0x25c`). It tests that only for a barrel with firing effects (barrel
+definition `+0xe4` positive), when `+0x25c` is between 0 and 1 and heat is
+above it (`0x1033be`–`0x10343b`); this reads as a heat-driven misfire.
 
 ### `0xfdd50` and `0xfdc70`: a magazine's tick and the reload request
 
