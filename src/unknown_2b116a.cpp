@@ -566,7 +566,7 @@ void function_19052c(long index, long *best_key, long *best_index);
 void function_148d42(long value);
 bool function_148c3e(long controller, long type);
 c_class_1473c9 *__stdcall function_2524a8(s_screen_parameters *parameters);
-bool function_124360(s_saved_game_header *header, s_saved_game_read *read);
+bool function_124360(long index, s_saved_game_header *header, s_saved_game_read *read);
 void __stdcall function_2acab4(long a, long user_flags, long string_handle, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list);
 void function_120d50(bool volatile *done, bool idle);
 bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real *fraction, long *error);
@@ -610,15 +610,7 @@ c_campaign_options_list::c_campaign_options_list(word user_flags) :
 	read.done = false;
 }
 
-/* 0x2b166d is written below but kept out of the build: with it, LTCG moves
-   0x19a76d's argument from eax to ecx, and 0x199a92 and 0x2c9d38 lose their
-   matches. Retried once 0x19a76d and 0x19a728 matched: both lose their
-   matches again, with 0x199a92 and 0x2c9d38. It can't match anyway until
-   0x124360 (a callee with a register
-   convention, stubbed for now) is written. The list's constructor needs
-   a handler, so an empty one stands in. */
-#if 0
-/* retail 0x2b166d */
+// @retail 0x2b166d
 void c_campaign_options_list::handle_item(s_controller_reference **controller, long *item)
 {
 	short *datum = (short *)record_pool_lookup(data, *item);
@@ -633,9 +625,10 @@ void c_campaign_options_list::handle_item(s_controller_reference **controller, l
 		case 0:
 			if (!reading)
 			{
-				if (player_slot_get_single_profile_index() != NONE)
+				long profile = player_slot_get_single_profile_index();
+				if (profile != NONE)
 				{
-					reading = function_124360(&header, &read);
+					reading = function_124360(profile, &header, &read);
 					if (reading)
 					{
 						function_2acab4(4, 1 << (*controller)->controller_index, 0x1b000719, function_2b186e, 0, this);
@@ -670,11 +663,6 @@ void c_campaign_options_list::handle_item(s_controller_reference **controller, l
 	}
 	get_screen()->start_animation(3);
 }
-#else
-void c_campaign_options_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-#endif
 
 // @retail 0x2b1845
 void c_campaign_options_list::v2()
@@ -737,17 +725,6 @@ bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real 
 	return done;
 }
 
-class c_screen_45b0b8 : public c_class_1473c9
-{
-public:
-	virtual screen_load_proc get_load_proc();
-};
-
-// @retail 0x2b1a7c
-screen_load_proc c_screen_45b0b8::get_load_proc()
-{
-	return function_2b19dc;
-}
 
 // @retail 0x2b1ab3
 c_variant_game_engine_type_screen::c_variant_game_engine_type_screen(long a, long b, word user_flags, long screen_id, bool edit_settings, bool create, bool edit_alternate) :
@@ -5384,4 +5361,200 @@ void c_level_select_screen::v18(void *parameters)
 // @retail 0x2b1942
 c_list_45af88::c_list_45af88(word user_flags) : c_list_24a64d(user_flags)
 {
+}
+
+// @retail 0x2b19a1 deleting c_list_45af88
+
+class c_screen_45b0b8 : public c_screen_with_menu
+{
+public:
+    c_screen_45b0b8(long a, long b, word user_flags);
+    virtual screen_load_proc get_load_proc();
+    c_list_45af88 profile_list;
+    s_profile_list_entry selected;
+    bool value19b4;
+};
+
+// @retail 0x2b1a7c
+screen_load_proc c_screen_45b0b8::get_load_proc()
+{
+    return function_2b19dc;
+}
+
+// @retail 0x2b1a1c
+c_screen_45b0b8::c_screen_45b0b8(long a, long b, word user_flags) :
+    c_screen_with_menu(0xc1, a, b, user_flags, &profile_list),
+    profile_list(user_flags)
+{
+    value19b4 = false;
+    profile_list.field_89 = true;
+    memset(&selected, 0, sizeof(selected));
+}
+
+// @retail 0x2b1a9e destructor c_screen_45b0b8
+
+// @retail 0x2b0b96
+void c_class_2b0b5e::v1()
+{
+    c_class_1a2c81::v1();
+    function_2b0eeb(this, 0x20001b3);
+}
+
+#include "unknown_07f720.h"
+
+// @retail 0x2b10a3
+void function_2b10a3(dword const *appearance, c_class_2b0b5e *widget, long type)
+{
+    bool visible = false;
+    if (appearance)
+        visible = type == ((char const *)appearance)[4];
+    widget->value6e = visible;
+    if (visible)
+    {
+        color3f colors[4];
+        function_7f790(NONE, false, (s_player_appearance const *)appearance, colors);
+        function_2b102f(widget, (dword const *)((byte const *)appearance + 5));
+        function_2b0f76(widget, 0, (point3f *)&colors[0]);
+        function_2b0f76(widget, 1, (point3f *)&colors[1]);
+        function_2b0f76(widget, 2, (point3f *)&colors[2]);
+        function_2b0f76(widget, 3, (point3f *)&colors[3]);
+    }
+}
+
+struct s_friend_request { byte data[0x6a2]; };
+bool friend_request_get(s_friend_request *request);
+bool friends_list_task_running();
+bool function_230265(c_class_1473c9 *screen);
+void friends_lists_get_user(XUID const *xuid, bool *is_friend, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *details);
+bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
+bool network_session_interface_has_user(XUID const *xuid);
+bool online_title_is_this_title(DWORD title_id);
+bool online_messages_find_from(XUID const *sender, DWORD controller_index, long kind);
+bool online_messages_find_flagged_from(XUID const *sender, DWORD controller_index);
+bool online_mutelist_contains(long controller_index, XUID const *xuid);
+bool function_19a935();
+bool function_592f0();
+bool function_19ab77(long player_index);
+bool function_19a250();
+bool function_19a203();
+
+/* Retail tail-calls this separate update body from the list tick. */
+PRIVATE __declspec(noinline) void update_player_actions_2b55ae(c_y_menu_player_selected_list *list)
+{
+    long controller = list->get_controller_index();
+    s_player_selection selection;
+    dword identity[28];
+    s_player_slot_blockb82 local_status;
+    function_14887e((s_screen_settings_54dc6c *)&selection);
+    function_18ff47(controller, identity);
+    function_18ffc3(controller, &local_status);
+    XUID const *xuid = player_selection_get_xuid(&selection);
+    if (xuid && xuid->qwUserID)
+    {
+        record_pool_release_all(list->data);
+        bool is_friend, is_player, same_title;
+        dword flags;
+        DWORD title;
+        friends_lists_get_user(xuid, &is_friend, &is_player, &flags, &title, &same_title, 0);
+        bool from_friends = selection.type == 2;
+        bool self = xuid_equal(xuid, (XUID *)identity, false);
+        bool online = (bool)(flags & 1);
+        bool in_session = network_session_interface_has_user(xuid);
+        long player = function_19adca(xuid);
+        bool has_player = function_19acc6(xuid);
+        bool joinable = ((flags & 8) != 0 || in_session);
+        bool can_join = online && same_title && joinable && !self && !has_player && from_friends;
+        bool can_join_title = online_title_is_this_title(title) && can_join;
+        long mode = list->value3a0;
+        bool message = online_messages_find_from(xuid, controller, mode);
+        bool muted = online_mutelist_contains(controller, xuid);
+        bool host = function_19a935();
+        bool allow_remove = function_592f0();
+        bool protected_player = in_session && player != NONE && function_19ab77(player);
+        s_friend_request request;
+        bool request_valid = friend_request_get(&request);
+        bool regular_friend = is_friend && !(flags & 0x30);
+        bool regular_player = is_player && !(flags & 0xc00);
+        bool allow_join = function_19a250();
+        bool pending = list->value3a0 == 1 && !online_messages_find_flagged_from(xuid, controller) && (flags & 0x10);
+        bool invite = (regular_friend || regular_player) && !self;
+        can_join_title = can_join_title && !self && allow_join;
+        bool join_other = !can_join_title && can_join && !self && allow_join;
+        bool remove_player = allow_remove && has_player && !protected_player;
+        bool feedback = !self && (list->value3a0 == 3 || list->value3a0 == 4);
+        bool offer = !has_player && !self && ((list->value3a0 == 4 && in_session) || (list->value3a0 != 3 && invite));
+        bool promote = host && !self && (flags & 0x100);
+        bool add_friend = !is_friend && !self;
+        bool cancel_friend = is_friend && (flags & 0x20) && (list->value3a0 == 1 || list->value3a0 == 3);
+        bool remove_friend = is_friend && !(flags & 0x30) && list->value3a0 == 1;
+        long rank = *(long *)(local_status.data + 0x1c);
+        bool add_member = request_valid && !is_player && !self && rank >= 1 && list->value3a0 != 4 && list->value3a0 != 2;
+        bool pending_member = false;
+        bool change_member = false;
+        if (!add_member && is_player && !self && (flags & 0x800) && list->value3a0 == 2)
+            pending_member = true;
+        else
+            change_member = regular_player && rank >= 2 && !self && list->value3a0 == 2;
+        bool remove_member = regular_player && rank >= 2 && !self && list->value3a0 == 2;
+        bool mute = !muted && !self;
+        bool unmute = !mute && muted && !self;
+        bool kick = allow_remove && has_player && !protected_player && function_19a203();
+        if (message) list_item_add(list, 0);
+        if (pending) { list_item_add(list, 1); list_item_add(list, 2); }
+        if (invite) list_item_add(list, 3);
+        if (can_join_title) list_item_add(list, 4);
+        if (join_other) list_item_add(list, 5);
+        if (remove_player) list_item_add(list, 6);
+        if (offer) list_item_add(list, 8);
+        if (promote) list_item_add(list, 9);
+        if (add_friend) list_item_add(list, 10);
+        if (cancel_friend) list_item_add(list, 11);
+        if (add_member) list_item_add(list, 12);
+        if (remove_member) list_item_add(list, 13);
+        if (mute) list_item_add(list, 14);
+        if (unmute) list_item_add(list, 15);
+        if (kick) list_item_add(list, 16);
+        if (remove_friend) list_item_add(list, 17);
+        if (change_member) list_item_add(list, 18);
+        if (pending_member) list_item_add(list, 19);
+        if (feedback) list_item_add(list, 7);
+        function_24c0c4((c_widget *)list);
+    }
+    list->value3a4 = true;
+}
+
+// @retail 0x2b557a
+void c_y_menu_player_selected_list::v3()
+{
+    ((c_widget *)this)->c_widget::v11();
+    if (!value3a4 && !function_230265(get_screen()) && friends_list_task_running())
+        update_player_actions_2b55ae(this);
+}
+
+// @retail 0x2b1a82 deleting c_screen_45b0b8
+
+// @retail 0x2b19dc
+c_class_1473c9 *__stdcall function_2b19dc(s_screen_parameters *parameters)
+{
+    c_screen_45b0b8 *screen = new c_screen_45b0b8(parameters->a, parameters->b, parameters->user_flags);
+    screen->m6c = true;
+    screen->function_147f6d(parameters);
+    return screen;
+}
+
+struct s_bitmap_view;
+struct s_predicted_resource_block;
+void function_12360(s_bitmap_view *bitmap, real priority);
+bool function_16e5e0(s_predicted_resource_block const *block, short mode);
+
+// @retail 0x2b1179
+void c_widget_45adf0::v3()
+{
+    c_class_1a2c81::v3();
+    s_type_7ba8e9 *bitmap = function_137550(definition->tag_index, *(short *)((byte *)definition + 0xa));
+    if (bitmap)
+        function_12360((s_bitmap_view *)bitmap, 0.0f);
+    long tag = *(long *)((byte *)definition + 0x18);
+    if (tag != NONE)
+        function_16e5e0((s_predicted_resource_block const *)(g_4e3b44[tag & 0xffff].bytes + 0x2c), 0);
 }

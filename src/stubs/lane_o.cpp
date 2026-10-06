@@ -13,8 +13,6 @@ void function_1396c7(long a, point2f *point) { }
 void function_1fa30(word const *text, short_rectangle2d *bounds) { }
 
 class c_class_2b0b5e;
-// @stub 0x2b10a3
-void function_2b10a3(dword const *arg_0, c_class_2b0b5e *arg_1, long arg_2) { }
 
 #include "flexible_surface_calls.h"
 // @stub 0x19f680
@@ -23,3 +21,7 @@ void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4
 	real arg_9, point3f const *arg_10, real arg_11) { }
 
 struct s_bsp3d;
+
+class c_class_1a2c81;
+// @stub 0x253b65
+void __stdcall function_253b65(c_class_1a2c81 *widget, long string_handle) {}

@@ -44,7 +44,9 @@ class c_custom_game_profile_screen : public c_screen_with_menu
 public:
 	c_custom_game_profile_screen(long screen_id, long a, long b, word user_flags);
 
+	virtual void v3();
 	virtual void v17();
+	__declspec(noinline) void update_variant_info();
 	virtual screen_load_proc get_load_proc();
 
 	c_class_2c9e69 list;
@@ -650,4 +652,107 @@ void c_class_2c9e69::fill()
         variants[i] = index;
     }
     function_24c0c4((c_widget *)this);
+}
+
+void __stdcall function_148b27(long index);
+
+// @retail 0x2cb001
+bool __stdcall function_2cb001(long unused)
+{
+    function_148b27(g_50933c);
+    g_50933c = NONE;
+    return true;
+}
+
+void function_253af2(c_class_1a2c81 *widget, word *string);
+void __stdcall function_253b65(c_class_1a2c81 *widget, long string_handle);
+struct s_widget_view_2b0a;
+void function_2b0a14(s_widget_view_2b0a *widget, short frame);
+
+// @retail 0x2caf0f
+void c_custom_game_profile_screen::update_variant_info()
+{
+    long selected = list.get_focused_datum();
+    s_record_pool *data = list.data;
+    if (selected != NONE && data)
+    {
+        s_variant_item *entry = &((s_variant_item *)data->data)[selected & 0xffff];
+        if (entry)
+        {
+            c_class_1a2c81 *saved = find_child(6, 6, false);
+            c_class_1a2c81 *bitmap = find_child(8, 2, false);
+            c_class_1a2c81 *name = find_child(6, 3, false);
+            c_class_1a2c81 *description = find_child(6, 4, false);
+            bool is_saved = false;
+            if (entry->variant != NONE && ((entry->variant >> 21) & 1))
+                is_saved = true;
+            if (saved) saved->value6e = is_saved;
+            if (bitmap) bitmap->value6e = false;
+            if (name)
+            {
+                if (entry->variant == NONE)
+                    function_253b65(name, 0x120001db);
+                else
+                {
+                    word text[128];
+                    function_215b50(entry->variant, text);
+                    function_253af2(name, text);
+                }
+            }
+            if (description) function_253b65(description, entry->string_handle);
+        }
+    }
+}
+
+// @retail 0x2cad45
+void c_custom_game_profile_screen::v3()
+{
+    c_text_widget_45a5e0 *title = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+    c_text_widget_45a5e0 *help = (c_text_widget_45a5e0 *)find_child(6, 5, false);
+    c_class_1a2c81 *bitmap = find_child(8, 4, false);
+    if (title) title->value6e = true;
+    if (help) help->value6e = true;
+    if (bitmap) bitmap->value6e = true;
+    switch (game_type)
+    {
+    case 8:
+        if (title) title->function_253b1a(0x180001ce);
+        if (help) help->function_253b1a(0x110001d8);
+        if (bitmap) function_2b0a14((s_widget_view_2b0a *)bitmap, 7);
+        break;
+    case 7:
+        if (title) title->function_253b1a(0x210001cd);
+        if (help) help->function_253b1a(0x1a0001d7);
+        if (bitmap) function_2b0a14((s_widget_view_2b0a *)bitmap, 6);
+        break;
+    case 1:
+        if (title) title->function_253b1a(0x170001c7);
+        if (help) help->function_253b1a(0x100001d1);
+        if (bitmap) function_2b0a14((s_widget_view_2b0a *)bitmap, 0);
+        break;
+    case 4:
+        if (title) title->function_253b1a(0x180001ca);
+        if (help) help->function_253b1a(0x110001d4);
+        if (bitmap) function_2b0a14((s_widget_view_2b0a *)bitmap, 3);
+        break;
+    case 2:
+        if (title) title->function_253b1a(0x210001c8);
+        if (help) help->function_253b1a(0x1a0001d2);
+        if (bitmap) function_2b0a14((s_widget_view_2b0a *)bitmap, 1);
+        break;
+    case 3:
+    case 5:
+    case 6:
+        if (title) title->function_253b1a(0x1b0001cb);
+        if (help) help->function_253b1a(0x140001d5);
+        if (bitmap) function_2b0a14((s_widget_view_2b0a *)bitmap, 4);
+        break;
+    case 9:
+        if (title) title->function_253b1a(0x1c0001cf);
+        if (help) help->function_253b1a(0x150001d9);
+        if (bitmap) function_2b0a14((s_widget_view_2b0a *)bitmap, 8);
+        break;
+    }
+    update_variant_info();
+    c_class_1a2c81::v3();
 }

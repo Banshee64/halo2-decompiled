@@ -51,7 +51,9 @@ public:
 	virtual bool v23();
 	virtual bool v25();
 	virtual void v28(long);
+	virtual void v35(long);
 	virtual void v36(long);
+	virtual void v40();
 	virtual void v37(long);
 };
 
@@ -272,7 +274,7 @@ PRIVATE __forceinline long find_hill_team_player_2bd(word team_mask)
 }
 
 // @retail 0x2bd460
-void function_2bd460(word before_players, word after_players)
+void function_2bd460(long before_players, long after_players)
 {
     word before = (word)function_2bd330(before_players);
     word after = (word)function_2bd330(after_players);
@@ -302,6 +304,75 @@ void function_2bd460(word before_players, word after_players)
                 if (player != NONE)
                     game_engine_event_set_cause_player(&event, player);
                 function_19eb90(&event);
+            }
+        }
+    }
+}
+
+void function_2be670(s_polygon_2be *hill);
+
+// @retail 0x2bd240
+void c_game_engine_45c878::v35(long unused)
+{
+    long count = *(long *)((byte *)g_51ecc8 + 0x60);
+    if (count >= 4 && !(count & 1))
+        function_2be670((s_polygon_2be *)g_51ecc8);
+}
+
+void __stdcall function_a7810(dword mask);
+void function_2beee0();
+
+// @retail 0x2bd680
+void c_game_engine_45c878::v40()
+{
+    if (!((s_game_options_2bd0 *)g_4e6948)->flag1128 && g_4e6948->mode != 4)
+    {
+        s_player_iterator_2bd0 iterator;
+        word occupants = 0;
+        iterator.data = g_4e8c24;
+        iterator.absolute_index = NONE;
+        iterator.index = NONE;
+        while (function_19f300((long *)&iterator))
+        {
+            if (iterator.player->time_inside)
+                occupants |= 1 << (byte)iterator.index;
+        }
+        word previous = *(word *)((byte *)g_51ecc8 + 0x1a8);
+        if (occupants != previous)
+        {
+            function_2bd460(previous, occupants);
+            *(word *)((byte *)g_51ecc8 + 0x1a8) = occupants;
+            function_a7810(0x40);
+        }
+        function_2beee0();
+        if (*(short *)((byte *)g_4e6948 + 0x230))
+        {
+            s_state_2bd0 *state = (s_state_2bd0 *)g_51ecc8;
+            if (--state->time_to_move <= 0)
+            {
+                ((s_state_2bd0 *)g_51ecc8)->time_to_move = *(short *)((byte *)g_4e6948 + 0x230) * g_510c54->field_2_3;
+                long next = function_2bd0b0(state->hill_index);
+                if (next == NONE)
+                    goto changed;
+                for (;;)
+                {
+                    hill_set((s_polygon_2be *)state, next);
+                    long count = *(long *)((byte *)state + 0x60);
+                    if (count >= 4 && !(count & 1))
+                        break;
+                    next = function_2bd0b0(state->hill_index);
+                    if (next == NONE)
+                        goto changed;
+                }
+                if (state->hill_index != next)
+                {
+                    s_event event;
+                    game_engine_event_initialize_inline(&event, 6, 4);
+                    function_19eb90(&event);
+                    ((s_state_2bd0 *)g_51ecc8)->hill_index = next;
+                }
+            changed:
+                function_a7810(0x20);
             }
         }
     }
