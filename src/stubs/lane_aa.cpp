@@ -20,3 +20,9 @@ void function_137da0() {}
 
 // @stub 0x137d40
 void function_137d40() {}
+
+union vector3f;
+
+// @stub 0xe5840
+void function_e5840(long arg_0, vector3f const *arg_1, bool arg_2) {}
+

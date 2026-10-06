@@ -1943,10 +1943,10 @@ void function_1132f0(long arg_0, dword const *arg_1, long arg_2, transform4x3f *
             s_object_marker local_3;
             if (function_b8d30(arg_0, 0x4000095, &local_3, 1, false) > 0)
             {
-                long local_4 = local_0->index1f6;
+                char local_4 = local_0->index1f6;
                 if (local_4 >= 0 && local_4 < arg_2 && (!arg_1 || function_0bfe60(arg_1, local_4)))
                     function_112e20(&arg_3[local_4], &local_3.matrix, local_1);
-                long local_5 = local_0->index1f7;
+                char local_5 = local_0->index1f7;
                 if (local_5 >= 0 && local_5 < arg_2 && (!arg_1 || function_0bfe60(arg_1, local_5)))
                     function_112e20(&arg_3[local_5], &local_3.matrix, local_1);
             }
@@ -1973,14 +1973,14 @@ void function_114c60(long arg_0)
 {
     s_unit_animation_object *local_0 = UNIT_ANIMATION_OBJECT(arg_0);
     byte *local_1 = (byte *)local_0 + *(short *)((byte *)local_0 + 0x342);
-    long local_2 = *(word *)(local_1 + 0x3c);
+    short local_2 = *(short *)(local_1 + 0x3c);
     if ((short)local_2 > 0)
     {
         local_2--;
         *(short *)(local_1 + 0x3c) = (short)local_2;
         if (!(short)local_2)
         {
-            long local_3 = *(word *)(local_1 + 0x3e);
+            short local_3 = *(short *)(local_1 + 0x3e);
             if ((short)local_3 > 0)
             {
                 *(short *)(local_1 + 0x3e) = (short)(local_3 - 1);
@@ -1988,10 +1988,10 @@ void function_114c60(long arg_0)
             }
         }
     }
-    long local_4 = *(word *)(local_1 + 0x42);
+    short local_4 = *(short *)(local_1 + 0x42);
     if ((short)local_4 > 0)
         *(short *)(local_1 + 0x42) = (short)(local_4 - 1);
-    long local_5 = *(word *)(local_1 + 0x40);
+    short local_5 = *(short *)(local_1 + 0x40);
     if ((short)local_5 > 0)
         *(short *)(local_1 + 0x40) = (short)(local_5 - 1);
     if (*(short *)(local_1 + 0xc) > 0)
@@ -2014,10 +2014,10 @@ void function_114c60(long arg_0)
             function_20d220(*(long *)(local_1 + 0x1c), arg_0, *(word *)(local_1 + 0xe), (long const *)(local_1 + 0x20));
             local_1[0x48] = true;
         }
-        long local_9 = *(word *)(local_1 + 0x4e);
+        short local_9 = *(short *)(local_1 + 0x4e);
         if ((short)local_9 > 0)
             *(short *)(local_1 + 0x4e) = (short)(local_9 - 1);
-        long local_10 = *(word *)(local_1 + 0x4c);
+        short local_10 = *(short *)(local_1 + 0x4c);
         if ((short)local_10 > 0)
         {
             local_10--;
@@ -2029,7 +2029,7 @@ void function_114c60(long arg_0)
         {
             if (!local_1[0x4a])
                 local_1[0x4a] = true;
-            long local_11 = *(word *)(local_1 + 0x50);
+            short local_11 = *(short *)(local_1 + 0x50);
             if ((short)local_11 > 0)
                 *(short *)(local_1 + 0x50) = (short)(local_11 - 1);
         }
@@ -2056,4 +2056,314 @@ void function_114c60(long arg_0)
     else if (local_12 > 0.1f)
         local_12 = 0.1f;
     *(real *)((byte *)local_0 + 0x208) += local_12;
+}
+
+struct s_bit_owner;
+long function_10eef0(long arg_0, bool arg_1, bool arg_2);
+void __stdcall function_bf600(long arg_0, real arg_1, s_animation_frame_event const *arg_2);
+void function_e6a20(long arg_0, long arg_1, bool arg_2, bool arg_3);
+void function_e6b00(long arg_0, long arg_1, long *arg_2, long *arg_3);
+bool function_bfc90(long arg_0);
+void c_animation_channel_data_get(c_animation_channel const *arg_0, s_animation_data *arg_1);
+bool function_10eea0(s_bit_owner *arg_0, short arg_1);
+byte *function_10ee70(s_bit_owner *arg_0);
+long bit_vector_count_bits(dword const *arg_0, long arg_1);
+transform4x3f *function_ba160(long arg_0, transform4x3f *arg_1);
+void c_animation_channel_node_position_get(c_animation_channel const *arg_0, point3f *arg_1, real arg_2, short arg_3);
+point3f *transform4x3f_apply_point(transform4x3f const *arg_0, point3f const *arg_1, point3f *arg_2);
+transform4x3f *function_b8bd0(long arg_0, short arg_1);
+void function_e4300(long arg_0);
+void function_e5840(long arg_0, vector3f const *arg_1, bool arg_2);
+long function_10f5f0(long arg_0);
+bool function_a7670(long arg_0);
+void __stdcall function_d6bc0(long arg_0);
+void function_1060a0(long arg_0, long arg_1);
+void function_ba350(long arg_0, real arg_1);
+bool function_10dc70(long arg_0);
+bool function_10eaf0(long arg_0);
+long g_55e70c;
+
+PRIVATE __forceinline bool function_111651(c_animation_channel const *arg_0)
+{
+    return arg_0->graph_tag_index != NONE && arg_0->animation_id.index != NONE;
+}
+
+// @retail 0x111650
+bool __stdcall function_111650(long arg_0, long *arg_1)
+{
+    // Retail keeps the second argument on the stack (ret 8).
+    long *const *local_38 = &arg_1;
+    arg_1 = *local_38;
+    s_unit_animation_object *local_0 = UNIT_ANIMATION_OBJECT(arg_0);
+    s_unit_animation_control *local_1 = UNIT_ANIMATION_CONTROL(local_0);
+    s_animation_state *local_2 = UNIT_ANIMATION_STATE(local_0);
+    s_unit_animation_definition *local_3 = (s_unit_animation_definition *)TAG_BYTES(local_0->definition_index);
+    long local_4 = 0x7000101;
+    long local_5 = 0x7000101;
+    bool local_6 = false;
+    bool local_7 = false;
+    bool local_8 = false;
+    long local_9 = 0;
+    bool local_10 = function_113910(arg_0);
+    if (arg_1[0] != NONE && arg_1[0])
+        local_4 = arg_1[0];
+    if (arg_1[1] != NONE && arg_1[1])
+    {
+        local_5 = arg_1[1];
+        local_8 = ((byte *)arg_1)[8] != 0;
+    }
+    if (local_0->parent_index == NONE)
+    {
+        if (local_2->unknown70 == 0x20001b3)
+            local_4 = 0x20001b3;
+        else if (TEST_FIELD_BIT(local_0->animation_frozen))
+            local_4 = 0x6000086;
+        else
+        {
+            byte *local_11 = (byte *)UNIT_ANIMATION_OBJECT(arg_0);
+            if (*(short *)(local_11 + *(short *)(local_11 + 0x346) + 0x36))
+                local_5 = 0x7000101;
+            else
+            {
+                if (local_4 == 0x7000101)
+                    local_4 = function_10eef0(arg_0, ((byte *)arg_1)[9] != 0, false);
+                if (*((byte *)local_0 + 0x1f4) > 0)
+                    local_4 = 0x7000039;
+                if (*(long *)((byte *)local_1 + 0x2c) != NONE)
+                    local_4 = *(long *)((byte *)local_1 + 0x2c);
+            }
+        }
+    }
+    if (function_111651(&local_2->channels[0]))
+    {
+        byte *local_12 = (byte *)UNIT_ANIMATION_OBJECT(arg_0);
+        local_2->update(function_bf600, arg_0,
+            (unsigned long)(long)*(short *)(local_12 + 0x110) >> 5,
+            (s_blend_orientation *)(local_12 + *(short *)(local_12 + 0x10e)),
+            (s_blend_orientation *)(local_12 + *(short *)(local_12 + 0x112)));
+        long local_13 = local_2->unknown70;
+        long local_14 = local_2->unknown7c;
+        if (local_2->channels[0].unknown14)
+            function_e6a20(arg_0, local_14, (local_2->channels[0].unknown14 & 1) != 0, (local_2->channels[0].unknown16 & 1) != 0);
+        if (!(local_2->flags & 1) && (local_2->channels[0].flags & 1) &&
+            !(local_2->channels[0].unknown11 & 9) && local_2->channels[0].function_1c6440()->frame_count > 1)
+        {
+            local_10 = true;
+            if (local_2->channels[0].unknown11 & 0xa)
+            {
+                if ((local_2->channels[0].flags & 0x4000) && (local_2->channels[0].flags & 2))
+                    local_6 = false;
+                else if ((local_2->channels[0].flags & 0x4000) && !(local_1->flags & 0x100))
+                {
+                    local_2->flags |= 1;
+                    local_6 = false;
+                }
+                else
+                {
+                    long local_15 = 0x7000101;
+                    long local_16 = 0x7000101;
+                    function_e6b00(arg_0, local_14, &local_15, &local_16);
+                    if (local_15 != 0x7000101 || local_16 != 0x7000101)
+                    {
+                        local_4 = local_15;
+                        local_5 = local_16;
+                        local_7 = true;
+                    }
+                    switch (local_14)
+                    {
+                    case 0x800001c:
+                    case 0xa00001d:
+                        if (!*((byte *)local_0 + 0xaa) && !function_bfc90(arg_0))
+                        {
+                            long local_17 = *(short *)(TAG_BYTES(UNIT_ANIMATION_OBJECT(arg_0)->definition_index) + 0x254);
+                            if (local_17 != NONE)
+                            {
+                                s_animation_data local_18;
+                                c_animation_channel_data_get(&local_2->channels[0], &local_18);
+                                vector3f local_19;
+                                if (function_10eea0((s_bit_owner *)&local_18, (short)local_17))
+                                {
+                                    long local_20 = bit_vector_count_bits((dword *)function_10ee70((s_bit_owner *)&local_18), local_17 + 1) - 1;
+                                    transform4x3f local_21;
+                                    function_ba160(arg_0, &local_21);
+                                    point3f local_22;
+                                    c_animation_channel_node_position_get(&local_2->channels[0], &local_22, 0.0f, (short)local_20);
+                                    transform4x3f_apply_point(&local_21, &local_22, &local_22);
+                                    transform4x3f *local_23 = function_b8bd0(arg_0, (short)local_17);
+                                    local_19.i = local_23->position.x - local_22.x;
+                                    local_19.j = local_23->position.y - local_22.y;
+                                    local_19.k = local_23->position.z - local_22.z;
+                                }
+                                else
+                                    local_19 = *g_4687a4;
+                                function_e5840(arg_0, &local_19, local_5 != local_14 || local_4 != local_13);
+                                local_6 = local_5 != local_14;
+                            }
+                        }
+                        break;
+                    case 0x700005c:
+                    case 0x700005d:
+                        if (function_111651(&local_2->channels[2]) && (local_2->channels[2].flags & 1))
+                            local_2->channels[2].unknown11 |= 1;
+                        if (function_111651(&local_2->channels[0]) && (local_2->channels[0].flags & 1))
+                            local_2->channels[0].unknown11 |= 1;
+                        if (function_111651(&local_2->channels[1]) && (local_2->channels[1].flags & 1))
+                            local_2->channels[1].unknown11 |= 1;
+                        break;
+                    case 0x900001f:
+                    case 0x9000020:
+                    case 0x90006b2:
+                        if (!*((byte *)local_0 + 0xaa))
+                        {
+                            function_e4300(arg_0);
+                            local_6 = true;
+                        }
+                        break;
+                    case 0xe0000c2:
+                        function_11b710(arg_0, local_4);
+                        local_7 = true;
+                        break;
+                    case 0xd000042:
+                        local_6 = false;
+                        break;
+                    case 0xc000043:
+                        {
+                            bool local_24 = false;
+                            if ((bool)((local_3->flags >> 1) & 1))
+                            {
+                                if (function_10f5f0(arg_0) != 0xd000042 || (*((byte *)local_0 + 0xc1) & 1))
+                                    local_24 = true;
+                            }
+                            if (!function_a7670(arg_0) && local_24)
+                                function_d6bc0(arg_0);
+                            else
+                            {
+                                local_1->flags |= 4;
+                                local_2->flags |= 1;
+                            }
+                        }
+                        break;
+                    }
+                    if (!function_111010(arg_0))
+                    {
+                        local_6 = true;
+                        if (local_5 == 0x7000101)
+                            local_5 = 0x400000c;
+                    }
+                    long local_25 = local_0->parent_index;
+                    if (local_25 != NONE && function_0c7070(arg_0))
+                    {
+                        byte *local_26 = TAG_BYTES(UNIT_ANIMATION_OBJECT(local_25)->definition_index);
+                        byte *local_27 = *(byte **)(local_26 + 0x1cc) + *(short *)((byte *)local_0 + 0x1fc) * 0xb0;
+                        if ((bool)((*(dword *)local_27 >> 11) & 1) && *(short *)(local_27 + 0x3e) != NONE)
+                        {
+                            local_9 = 4;
+                            local_4 = 0x7000101;
+                            local_5 = 0x400000c;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    bool local_28 = function_111651(&local_2->channels[0]);
+    bool local_29 = false;
+    if (local_4 != local_2->unknown70 && local_4 != 0x7000101)
+        local_29 = true;
+    if (local_5 != local_2->unknown7c && local_5 != 0x7000101)
+        local_29 = true;
+    bool local_30 = local_6 || !local_28;
+    if ((local_29 && (local_7 || function_1103a0(arg_0, local_5, local_8))) || local_30)
+    {
+        if (!function_10f430(arg_0, local_4, 0x7000101, 0x7000101, local_5, 0.0f, false, local_9 | 0x401))
+        {
+            if ((local_5 == 0x7000101 ? local_2->unknown7c == 0x400000c : local_5 == 0x400000c) && !(local_2->unknown6e & 1))
+                local_2->channels_clear();
+        }
+        if (local_2->graph_tag_index != NONE && function_111651(&local_2->channels[0]) && !function_10ee20(local_2))
+            local_10 = true;
+    }
+    else if (!((++g_55e70c ^ arg_0) & 0xf))
+    {
+        if (local_2->graph_tag_index != NONE && !(local_2->flags & 1))
+            local_2->resources_request(local_2->unknown70, local_2->unknown74, local_2->unknown78, true, true);
+        long *local_31 = (long *)((byte *)local_0 + 0x218);
+        long local_32 = 4;
+        do
+        {
+            if (*local_31 != NONE)
+                function_1060a0(*local_31, arg_0);
+            ++local_31;
+        } while (--local_32);
+    }
+    if (!(local_2->flags & 1))
+    {
+        c_animation_channel *local_33 = &local_1->channel_dc;
+        if (function_111651(local_33))
+        {
+            if (local_2->graph_tag_index != NONE && !(local_2->flags & 1))
+                local_33->update(local_2, function_bf600, arg_0);
+            if ((local_33->unknown11 & 0xa) && TEST_FIELD_BIT(local_1->flag7))
+            {
+                local_33->clear();
+                local_1->flag7 = false;
+                function_114330(arg_0);
+            }
+            if (function_111651(local_33) && (local_33->flags & 1) && !(local_33->unknown11 & 9))
+                local_10 = true;
+        }
+    }
+    if (!(local_2->flags & 1))
+    {
+        c_animation_channel *local_34 = &local_1->channel_9c;
+        if (function_111651(local_34))
+        {
+            if (local_2->graph_tag_index != NONE && !(local_2->flags & 1))
+                local_34->update(local_2, function_bf600, arg_0);
+            long local_35 = local_34->unknown08;
+            if (local_34->unknown14)
+                function_e6a20(arg_0, local_35, (local_34->unknown14 & 1) != 0, (local_34->unknown16 & 1) != 0);
+            if ((local_34->unknown11 & 0xe) && !((local_34->flags & 0x4000) && (local_34->flags & 2)))
+            {
+                if ((bool)((local_34->flags >> 14) & 1))
+                    function_11b710(arg_0, local_2->unknown70);
+                function_e6b00(arg_0, local_35, NULL, NULL);
+                if (local_34->unknown08 == local_35 && !function_110fc0(arg_0))
+                {
+                    local_34->clear();
+                    if (*((byte *)local_0 + 0xaa) != 1)
+                        function_ba350(arg_0, 0.267f);
+                }
+            }
+        }
+        if (function_111651(local_34) && (local_34->flags & 1) && !(local_34->unknown11 & 9))
+            local_10 = true;
+    }
+    if (!(local_2->flags & 1))
+    {
+        c_animation_channel *local_36 = &local_1->channel_bc;
+        if (function_111651(local_36))
+        {
+            if (local_2->graph_tag_index != NONE && !(local_2->flags & 1))
+                local_36->update(local_2, function_bf600, arg_0);
+            long local_37 = local_36->unknown08;
+            if (local_36->unknown14)
+                function_e6a20(arg_0, local_37, (local_36->unknown14 & 1) != 0, (local_36->unknown16 & 1) != 0);
+            if (local_36->unknown11 & 0xe)
+            {
+                function_e6b00(arg_0, local_37, NULL, NULL);
+                if (local_36->unknown08 == local_37 && !function_110fc0(arg_0))
+                {
+                    local_36->clear();
+                    if (*((byte *)local_0 + 0xaa) != 1)
+                        function_ba350(arg_0, 0.1335f);
+                }
+            }
+            if (function_111651(local_36) && (local_36->flags & 1) && !(local_36->unknown11 & 9))
+                local_10 = true;
+        }
+    }
+    local_10 |= function_10dc70(arg_0);
+    local_10 |= function_10eaf0(arg_0);
+    return local_10;
 }
