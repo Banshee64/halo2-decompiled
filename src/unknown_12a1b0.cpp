@@ -1650,9 +1650,9 @@ long function_219290(short index, s_permutation_group *group);
 void function_12a420(short voice_index);
 void sound_voice_queue_chunk(short voice_index, s_sound_permutation const *permutation, short chunk_index);
 void function_12a1b0(short voice_index, s_looping_track_sound *sound, s_looping_channel_spatialization const *spatialization, s_looping_channel_properties *properties);
-void function_21f8a0(short channel_index, s_looping_channel_properties const *properties, s_looping_effect_playback const *effects);
+void function_21f8a0(long channel_index, s_looping_channel_properties const *properties, s_looping_effect_playback const *effects);
 void __stdcall function_21f720(s_looping_impulse_parameters const *parameters);
-void function_21fa80(short channel_index, s_looping_channel_properties const *properties, s_looping_effect_playback const *effects, bool force);
+void function_21fa80(long channel_index, s_looping_channel_properties const *properties, s_looping_effect_playback const *effects, bool force);
 
 // @retail 0x21c400
 void function_21c400(short voice_index, real gain, s_looping_channel_spatialization const *spatialization)
