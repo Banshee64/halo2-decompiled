@@ -1744,7 +1744,7 @@ void __stdcall function_dfba0(long arg_159e6d, long other_index, long object_ind
 
 struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
-long function_1fa3a0(long a, long b, long c, point3f const *point);
+long function_1fa3a0(long a, long b, long object_index, long c, point3f const *point);
 
 /* the ground the biped stands on: its surface, its location, the point and
    the object (with that object's surface) under it, probed again at most
@@ -1794,7 +1794,7 @@ void function_dfdb0(long arg_159e6d, long *surface, long *location, point3f *poi
 		{
 			if (biped->unknown354 != NONE)
 			{
-				biped->unknown358 = function_1fa3a0(biped->unknown35c, biped->unknown354, biped->unknown364,
+				biped->unknown358 = function_1fa3a0(biped->unknown35c, biped->unknown354, biped->unknown360, biped->unknown364,
 					&biped->unknown368);
 			}
 			else
@@ -2384,7 +2384,7 @@ bool __stdcall function_e0ef0(long arg_159e6d)
 
 struct rigid_transform_scaled;
 struct real_quaternion_transform;
-void function_1faf80(vector3f *facing, long arg_159e6d, void const *definition_flight, vector3f const *control,
+bool function_1faf80(vector3f *facing, long arg_159e6d, void const *definition_flight, vector3f const *control,
 	real rate, real *turn);
 bool function_bf5d0(long object_index);
 void matrix4x3_rotation_between_vectors(transform4x3f *matrix, vector3f const *arg_5f338b,

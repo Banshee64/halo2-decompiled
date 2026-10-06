@@ -4,6 +4,8 @@
 #include "unknown_2626b0.h"
 #include "unknown_1f4460.h"
 #include "units.h"
+#include "data_array.h"
+#include "unknown_0d0690.h"
 #include "unknown_2605d0.h"
 #include "unknown_0259a0.h"
 
@@ -396,3 +398,91 @@ s_slot_handler_2 g_47eb08 =
 	},
 	(t_slot_proc)function_1bcab0, function_1bcc10, function_1bcc50
 };
+
+s_ai_player *ai_player_get(long player_index);
+short ai_player_index_get(long player_index);
+long function_1b8d40(long object_index);
+short function_1b8cc0(long object_index, long *seat_object_index);
+bool function_1b9200(long object_index, long prop_index);
+point3f *function_b9dd0(long object_index, point3f *result);
+
+// @retail 0x1bbf40
+short __stdcall function_1bbf40(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    bool allow_exit = false;
+    if (actor->unknown858 == NONE && actor->unknown26c != NONE && !actor->unknown269)
+    {
+        byte *tag = g_4e3b44[object_get(actor->unknown26c)->tag_index & 0xffff].bytes;
+        bool special = *(short *)(tag + 0x1f0) == 6 && actor->unknown268;
+        if (!special)
+        {
+            if (function_1b8d40(actor->unknown26c) != NONE)
+                return g_46fbe4;
+            long seat_object = NONE;
+            short seat = function_1b8cc0(actor->unknown26c, &seat_object);
+            allow_exit = true;
+            if (!team_is_enemy(actor->unknown024, 1))
+            {
+                s_data_datum_iterator iterator;
+                iterator.data = g_4e8c24;
+                iterator.index = NONE;
+                iterator.datum_index = NONE;
+                while (data_datum_iterator_next(&iterator))
+                {
+                    if (iterator.datum_index == NONE)
+                        continue;
+                    s_ai_player *player = ai_player_get(iterator.datum_index);
+                    short player_index = ai_player_index_get(iterator.datum_index);
+                    if (player)
+                    {
+                        if (player->unit_index == seat_object && *(short *)((byte *)player + 8) == seat &&
+                            *(short *)((byte *)player + 0xa) > 0)
+                            return g_46fbe4;
+                        if (actor->unknown31c == player_index)
+                            return g_46fbe4;
+                    }
+                    long unit_index = *(long *)((byte *)iterator.datum + 0x2c);
+                    if (unit_index != NONE)
+                    {
+                        point3f vehicle_point;
+                        point3f unit_point;
+                        function_b9dd0(actor->unknown26c, &vehicle_point);
+                        function_b9dd0(unit_index, &unit_point);
+                        real z = unit_point.z - vehicle_point.z;
+                        real y = unit_point.y - vehicle_point.y;
+                        real x = unit_point.x - vehicle_point.x;
+                        if (z * z + y * y + x * x < 6.25f)
+                        {
+                            short minimum = (short)real_to_long((real)g_510c54->field_2_3 * 3.0f);
+                            if (*(short *)actor->unknown2f4 < minimum)
+                                *(short *)actor->unknown2f4 = minimum;
+                            return g_46fbe4;
+                        }
+                    }
+                }
+            }
+        }
+        if (actor->unknown268)
+        {
+            if (actor->unknown086 >= 3)
+            {
+                short minimum = (short)real_to_long((real)g_510c54->field_2_3 * 10.0f);
+                if (*(short *)actor->unknown2f4 < minimum)
+                    *(short *)actor->unknown2f4 = minimum;
+                allow_exit = false;
+            }
+            else
+                allow_exit = true;
+        }
+        if (special && actor->prop_index != NONE && prop_node_get(actor->prop_index)->unknown24 >= 1 &&
+            prop_node_get(actor->prop_index)->unknown24 <= 2 && !function_1b9200(actor->unknown26c, actor->prop_index))
+        {
+            *(short *)actor->unknown2f4 = 0;
+            allow_exit = true;
+        }
+        if (allow_exit && *(short *)actor->unknown2f4 <= 0)
+            function_e68c0(0x1d, actor->unknown018);
+    }
+    return g_46fbe4;
+}

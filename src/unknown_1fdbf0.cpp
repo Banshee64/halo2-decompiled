@@ -288,3 +288,76 @@ bool function_1fef40(s_type_c3b527 const *target, long actor_index)
 	}
 	return false;
 }
+
+real function_30bf0(vector3f *v);
+vector3f *function_11d000(vector3f const *v, vector3f *out);
+
+// @retail 0x1fddd0
+bool function_1fddd0(long actor_index, point3f const *origin, vector3f *direction,
+    long *out_index, real *out_value, long *out_object)
+{
+    byte *actor = (byte *)actor_moving_get(actor_index);
+    long object_index = NONE;
+    bool result = false;
+    short state = *(short *)(actor + 0x6fe);
+    if (state == 4)
+        result = true;
+    else if (state == 2)
+    {
+        result = true;
+        if (*(short *)(actor + 0x722) == 1 && *(long *)(actor + 0x724) != NONE)
+        {
+            s_prop_node_view *node = prop_node_get(*(long *)(actor + 0x724));
+            if (node->unknown24 >= 1)
+                object_index = *(long *)((byte *)node + 0x20);
+        }
+        if (actor[0x7a8])
+        {
+            *direction = *(vector3f *)(actor + 0x7b0);
+            if (out_index)
+                *out_index = *(long *)(actor + 0x7ac);
+        }
+        else
+        {
+            point3f *target = (point3f *)(actor + 0x79c);
+            direction->i = target->x - origin->x;
+            direction->j = target->y - origin->y;
+            direction->k = target->z - origin->z;
+            function_30bf0(direction);
+        }
+        vector3f forward;
+        function_1fe120(actor_index, &forward);
+        real dot = direction->k * forward.k + direction->j * forward.j + direction->i * forward.i;
+        if (dot < 0.8660253882408142f)
+        {
+            vector3f axis;
+            axis.i = direction->k * forward.j - direction->j * forward.k;
+            axis.j = direction->i * forward.k - direction->k * forward.i;
+            axis.k = direction->j * forward.i - direction->i * forward.j;
+            bool valid = true;
+            if (function_30bf0(&axis) == 0.0f)
+            {
+                function_11d000(&forward, &axis);
+                if (function_30bf0(&axis) == 0.0f)
+                    valid = false;
+            }
+            *direction = forward;
+            if (valid)
+            {
+                real amount = (direction->k * axis.k + direction->j * axis.j + direction->i * axis.i) * 0.1339746117591858f;
+                vector3f rotated;
+                rotated.i = amount * axis.i + direction->i * 0.8660253882408142f -
+                    (direction->j * axis.k - direction->k * axis.j) * 0.5f;
+                rotated.j = axis.j * amount + direction->j * 0.8660253882408142f -
+                    (direction->k * axis.i - direction->i * axis.k) * 0.5f;
+                rotated.k = axis.k * amount + direction->k * 0.8660253882408142f -
+                    (direction->i * axis.j - direction->j * axis.i) * 0.5f;
+                *direction = rotated;
+            }
+        }
+        *out_value = *(real *)(actor + 0x7bc);
+    }
+    if (out_object)
+        *out_object = object_index;
+    return result;
+}
