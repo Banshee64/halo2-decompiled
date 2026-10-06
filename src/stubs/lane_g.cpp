@@ -19,11 +19,7 @@ long function_212380(long arg_9db745, long controller_index, byte *buffer)
 
 
 
-// @stub 0x124770
-bool function_124770(long profile_index)
-{
-	return false;
-}
+
 
 // @stub 0x147cdb
 void c_render_window::function_147cdb(dword color)
@@ -126,8 +122,4 @@ struct s_saved_game_header;
 struct s_saved_game_read;
 class c_campaign_options_list;
 
-// @stub 0x124360
-bool function_124360(s_saved_game_header *header, s_saved_game_read *read)
-{
-	return false;
-}
+

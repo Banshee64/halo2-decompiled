@@ -260,3 +260,52 @@ bool game_state_core_read(char const *name, void *buffer, dword size)
 	}
 	return result;
 }
+
+#include "main_globals.h"
+extern long g_5020e4;
+extern bool g_5020f2[2];
+void __stdcall game_state_cache_lock_release(void *arg_0, long arg_1);
+bool game_state_cache_read(short arg_0);
+bool __stdcall function_11c1b0(short arg_0, bool arg_1);
+void function_199520(dword arg_0);
+void function_199540(dword arg_0);
+
+// @retail 0x123f60
+void function_123f60(dword arg_0)
+{
+	s_arena_header local_0;
+	if (game_state_globals.flag2)
+	{
+		short local_1 = game_state_globals.slot;
+		if (g_5020e4)
+			game_state_cache_lock_release((void *)g_5020e4, 0);
+		if (g_5020f2[local_1])
+		{
+			local_0 = game_state_globals.saved_headers[game_state_globals.slot];
+			if (function_124520(&local_0))
+			{
+				*((byte *)local_0.field_130_2 + 4) = true;
+				*((byte *)game_state_globals.arena->field_130_2 + 4) = true;
+				if (g_4e6948 && g_4e6948->flag1120 &&
+					function_1384a0((s_session_options const *)((byte *)g_4e6948 + 8), (s_session_options const *)local_0.field_130_2) &&
+					function_11c1b0((short)*(long *)((byte *)&local_0 + 0x1248), true) &&
+					game_state_headers_match(&local_0, game_state_globals.arena))
+				{
+					dword local_2 = ((byte)arg_0 & 1) << 5;
+					if ((bool)((arg_0 >> 1) & 1)) local_2 |= 0x40;
+					else local_2 &= ~0x40;
+					function_199520(local_2);
+					for (;;)
+					{
+						game_state_cache_read(game_state_globals.slot);
+						if (game_state_headers_match(&local_0, game_state_globals.arena))
+							break;
+					}
+					function_199540(local_2);
+					return;
+				}
+			}
+		}
+	}
+	main_globals.reset_map = true;
+}
