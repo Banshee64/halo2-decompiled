@@ -8,6 +8,67 @@
 #include "unknown_1fa590.h"
 #include <math.h>
 
+void function_11d180(vector3f *left, vector3f const *in, vector3f *out, vector3f const *up, vector3f *forward);
+
+struct s_motion_adjustment
+{
+	byte unknown00[0x20];
+	real scale;
+	byte unknown24[0xf4 - 0x24];
+	vector3f forward;
+	byte unknown100[0x124 - 0x100];
+	vector3f current;
+	byte unknown130[8];
+	vector3f target;
+	real rate;
+};
+
+struct s_motion_adjustment_result
+{
+	byte unknown00[0xc];
+	vector3f velocity;
+};
+
+// @retail 0x1fa810
+void __stdcall function_1fa810(long *ticks, s_motion_adjustment_result *out, s_motion_adjustment const *state)
+{
+	vector3f left;
+	vector3f up;
+	vector3f forward;
+	function_11d180(&left, &state->forward, &up, g_4687b0, &forward);
+	vector3f target;
+	target.i = state->target.i * state->scale;
+	target.j = state->target.j * state->scale;
+	target.k = state->target.k * state->scale;
+	vector3f offset;
+	offset.i = state->forward.i * target.i + left.i * target.j + up.i * target.k - state->current.i;
+	offset.j = state->forward.j * target.i + left.j * target.j + up.j * target.k - state->current.j;
+	offset.k = state->forward.k * target.i + left.k * target.j + up.k * target.k - state->current.k;
+	vector3f normalized = offset;
+	real length = (real)sqrt(normalized.i * normalized.i + (normalized.j * normalized.j + normalized.k * normalized.k));
+	if (!(fabs(length) < 0.0001f))
+	{
+		real inverse = 1.0f / length;
+		normalized.i *= inverse;
+		normalized.j *= inverse;
+		normalized.k *= inverse;
+	}
+	else
+		length = 0.0f;
+	real step = g_510c54->rate * state->rate;
+	if (length > step)
+	{
+		offset.i = normalized.i * step;
+		offset.j = normalized.j * step;
+		offset.k = normalized.k * step;
+	}
+	out->velocity.i = state->current.i + offset.i;
+	out->velocity.j = state->current.j + offset.j;
+	out->velocity.k = state->current.k + offset.k;
+	long remaining = *ticks - 1;
+	*ticks = remaining < 0 ? 0 : remaining;
+}
+
 /* a node of a 2d tree: a line and the two children (negative: a leaf) */
 struct s_tree2d_node
 {

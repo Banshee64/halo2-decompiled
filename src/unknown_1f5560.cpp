@@ -12,6 +12,38 @@
 #include <string.h>
 #include <math.h>
 
+long function_1e4a50(long index);
+real function_26f290(short type);
+
+struct s_movement_speed_definition
+{
+	byte unknown00[0x1a];
+	short type;
+};
+
+// @retail 0x1f8050
+real function_1f8050(long actor_index, bool *fast)
+{
+	s_actor_moving *actor = actor_moving_get(actor_index);
+	s_moving_object *object = moving_object_get(actor->unit_index);
+	s_movement_speed_definition *definition = (s_movement_speed_definition *)function_1e4a50(actor->tag_index);
+	real result = 1.5f;
+	if (fast)
+		*fast = false;
+	if (definition && definition->type > 0)
+	{
+		short type = definition->type;
+		result = function_26f290((type < 6 ? type : 6) - 1);
+		if (fast)
+			*fast = type >= 7;
+	}
+	else if (*(byte *)((byte *)object + 0xaa) == 0)
+	{
+		result = *(real *)(g_4e3b44[object->tag_index & 0xffff].bytes + 0x1f8);
+	}
+	return result;
+}
+
 static inline void vector3d_set(vector3f *vector, real i, real j, real k)
 {
 	vector->i = i;
@@ -418,4 +450,83 @@ bool function_1f9490(long actor_index, s_reference reference, s_actor_move_reque
 		result = true;
 	}
 	return result;
+}
+
+// @retail 0x1f9760
+bool function_1f9760(long actor_index, long object_index, point3f const *point, real distance,
+	bool *last_out, bool *direction_valid_out, vector3f *direction_out)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	byte *definition = g_4e3b44[moving_object_get(object_index)->tag_index & 0xffff].bytes;
+	bool reached = false;
+	bool last = actor->unknown53a + 1 >= actor->unknown539;
+	bool direction_valid = false;
+	vector3f direction;
+	if (actor->unknown456)
+	{
+		direction_valid = false;
+		last = true;
+	}
+	else if (!last)
+	{
+		s_type_c3b527 *current = &actor->unknown53c[actor->unknown53a].point;
+		s_type_c3b527 *next = &actor->unknown53c[actor->unknown53a + 1].point;
+		function_210be0(current, next, &direction);
+		if (function_30bf0(&direction) > 0.0001f)
+		{
+			direction_valid = true;
+			s_type_c3b527 *previous = actor->unknown53a > 0 ? &actor->unknown53c[actor->unknown53a - 1].point : (s_type_c3b527 *)actor->unknown528;
+			vector3f approach;
+			function_210be0(previous, current, &approach);
+			if (function_30bf0(&approach) > 0.0f)
+			{
+				real remaining = dot3f((vector3f *)&current->point, &approach) - dot3f((vector3f const *)point, &approach);
+				if (*(real *)(definition + 4) * 1.2f > remaining)
+					reached = true;
+			}
+		}
+	}
+	else
+	{
+		if (actor->unknown4d5 || actor->unknown4d4)
+		{
+			direction = *(vector3f *)((byte *)actor + 0x4d8);
+			if (function_30bf0(&direction) != 0.0f)
+				direction_valid = true;
+		}
+		if (function_1e3920(actor_index) > distance)
+			reached = true;
+		else if (direction_valid && actor->unknown4d4)
+		{
+			s_type_c3b527 *current = &actor->unknown53c[actor->unknown53a].point;
+			real remaining = dot3f((vector3f *)&current->point, &direction) - dot3f((vector3f const *)point, &direction);
+			if (*(real *)(definition + 4) * 1.2f > remaining)
+				reached = true;
+		}
+	}
+	*last_out = last;
+	if (last && !actor->unknown4d5)
+		*direction_valid_out = false;
+	else
+	{
+		*direction_valid_out = direction_valid;
+		*direction_out = direction;
+	}
+	return reached;
+}
+
+bool function_fa1a0(real speed, real gravity_scale, point3f const *origin, point3f const *target,
+	real *minimum_speed, real const *time_scale, real const *forced_speed, bool high_arc, vector3f *direction,
+	real *speed_out, real *time_out, real *distance, real *vertical_speed, real *horizontal_speed);
+
+// @retail 0x1f8100
+bool function_1f8100(long actor_index, point3f const *origin, point3f const *target)
+{
+	bool fast;
+	real speed = function_1f8050(actor_index, &fast);
+	if (fast)
+		return true;
+	vector3f direction;
+	return function_fa1a0(speed, 1.0f, origin, target, NULL, NULL, NULL, false, &direction,
+		NULL, NULL, NULL, NULL, NULL);
 }

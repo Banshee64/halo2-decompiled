@@ -48,6 +48,53 @@ struct s_character_d10
 void *function_1e4d10(long actor_index);
 void function_1f86a0(long index);
 
+short function_2684f0(s_actor_view *actor);
+long function_1469f0(real seconds);
+
+// @retail 0x1bf0f0
+short __stdcall function_1bf0f0(long actor_index, s_slot *slot, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_0a *state = (s_slot_0a *)slot;
+	short result = g_46fbe8;
+	s_reference reference = state->reference;
+	if (REFERENCE_EQUAL(reference, g_470fa0))
+	{
+		function_1f86a0(actor_index);
+	}
+	else if (actor->unknown504 == 2)
+	{
+		byte *unit = (byte *)object_get(actor->unknown018);
+		if (*(short *)(unit + *(short *)(unit + 0x346) + 0x36) == 5)
+		{
+			if (state->unknown12 > 0)
+				state->unknown12--;
+			else if (function_2684f0(actor) >= 10)
+			{
+				real wait;
+				real delay = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 3.0f, 5.0f);
+				wait = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 0.0f, 0.5f);
+				state->unknown10 = (short)function_1469f0(delay);
+				state->unknown12 = (short)function_1469f0(wait);
+				function_262800(actor_index, state->reference, false);
+				function_1f86a0(actor_index);
+				state->reference = g_470fa0;
+			}
+			else if (--state->unknown10 <= 0)
+			{
+				g_46eeb8[0x2b]->unknown8 = g_46f348;
+				g_46eeb8[0xa]->unknown8 = g_46f348;
+				result = g_46fbe4;
+			}
+		}
+		else
+		{
+			result = g_46fbe4;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1bef40
 short __stdcall function_1bef40(long actor_index)
 {
