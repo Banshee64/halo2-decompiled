@@ -337,3 +337,18 @@ void function_22c390(hkMemory *memory, s_fixed_memory_statistics_16 *statistics)
 
 // @stub 0x22cb00
 void function_22cb00(hkMemory *memory, s_physics_pool_statistics *statistics) {}
+
+
+struct s_physics_mass_array;
+struct s_physics_mass;
+// @stub 0x2dba80
+void __cdecl function_2dba80(s_physics_mass_array const *array, s_physics_mass *result) {}
+
+class c_havok_reference_counted;
+class c_physics_shape_list
+{
+public:
+    c_physics_shape_list(c_havok_reference_counted **shapes, long count);
+};
+// @stub 0x2fc320
+c_physics_shape_list::c_physics_shape_list(c_havok_reference_counted **shapes, long count) {}

@@ -673,3 +673,72 @@ bool __stdcall function_beb30(long object_index)
     }
     return result;
 }
+
+struct s_post_physics_object_ab
+{
+    byte unknown00[0xc];
+    long sibling;
+    long child;
+    byte unknown14[0xb4 - 0x14];
+    long component;
+    byte unknownb8[0xc0 - 0xb8];
+    word : 1;
+    word flag1 : 1;
+    word flag2 : 1;
+    word : 3;
+    word flag6 : 1;
+    word : 9;
+    byte unknownc2[0x114 - 0xc2];
+    short nodes_size;
+};
+struct s_post_physics_header_ab
+{
+    short salt;
+    byte flags;
+    byte type;
+    byte unknown04[4];
+    s_post_physics_object_ab *object;
+};
+void __stdcall function_bc5e0(long object_index);
+void __stdcall function_1d3920(byte *component, dword *mask, real value);
+void function_108cd0(long object_index);
+void __stdcall function_bef30(long object_index, long remove, long add, long siblings, long own_flags);
+
+// @retail 0xbc820
+void __stdcall function_bc820(long object_index)
+{
+    (void)&object_index;
+    dword mask[8];
+    s_post_physics_header_ab *header = &((s_post_physics_header_ab *)g_4e0300->data)[object_index & 0xffff];
+    s_post_physics_object_ab *object = header->object;
+    if (object->component != NONE)
+        function_bc5e0(object_index);
+    if (!((1 << header->type) & 0x80))
+        function_bd090(object_index);
+    else if (object->component != NONE && TEST_FIELD_BIT(object->flag6))
+    {
+        byte *component = g_51e9b8->data + (object->component & 0xffff) * 0xa0;
+        if ((bool)((*(dword *)(component + 4) >> 15) & 1))
+        {
+            long count = (dword)(long)object->nodes_size / sizeof(transform4x3f);
+            memset(mask, 0, ((count + 31) >> 5) * sizeof(dword));
+            function_1d3920(component, mask, 0.0f);
+        }
+    }
+    function_108cd0(object_index);
+    if (TEST_FIELD_BIT(object->flag2))
+        object->flag1 = true;
+    else
+        object->flag1 = false;
+    object->flag2 = false;
+    bool moved = function_bdef0(object_index);
+    if ((header->flags & 0x40) && !moved)
+        function_bef30(object_index, 1, 1, 0, 0);
+    long child = object->child;
+    while (child != NONE)
+    {
+        function_bc820(child);
+        child = ((s_post_physics_header_ab *)g_4e0300->data)[child & 0xffff].object->sibling;
+    }
+    function_be1d0(object_index);
+}

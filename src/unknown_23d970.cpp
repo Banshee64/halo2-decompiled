@@ -169,7 +169,7 @@ struct s_camera_scenario_23cea0
 };
 
 // @retail 0x23cea0
-void function_23cea0(s_view_state *state, bool temporary)
+void function_23cea0(s_view_state *state, long temporary)
 {
 	if (!g_51ec13)
 	{
