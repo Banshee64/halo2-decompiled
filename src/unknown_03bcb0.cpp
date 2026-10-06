@@ -653,3 +653,57 @@ void function_41490(long tag, short group, word kind, real distance, t_record_fi
         }
     }
 }
+
+#include <math.h>
+dword __cdecl pack_color3f(color3f const *color);
+
+// @retail 0x3d000
+void function_3d000(real const *state)
+{
+    real direction[4] = { 1.0f, -1.0f, -1.0f, 0.5f };
+    D3DDevice_SetVertexShaderConstant(-75, direction, 1);
+    double sine = sin(state[30]);
+    direction[0] = (real)(cos(state[29]) * sine);
+    direction[1] = (real)(sin(state[29]) * sine);
+    direction[2] = (real)cos(state[30]);
+    direction[3] = state[25];
+    real mapped[4];
+    mapped[0] = (real)((direction[0] + 1.0) * 0.5);
+    mapped[1] = (real)((direction[1] + 1.0) * 0.5);
+    mapped[2] = (real)((direction[2] + 1.0) * 0.5);
+    mapped[3] = 0.4970000088214874f;
+    D3DDevice_SetVertexShaderConstant(-73, mapped, 1);
+    if (state[34] > 0.0001f && state[40] > 0.0001f && state[41] > 0.0001f &&
+        state[41] - state[40] > 0.0001f)
+    {
+        double inverse = 1.0 / state[34];
+        real low = (real)(inverse * state[40] * 16777215.0);
+        real high = (real)(inverse * state[41] * 16777215.0);
+        direction[0] = 1.0f / (high - low);
+        direction[1] = 0.0f - direction[0] * low;
+        direction[2] = 0.0f;
+        direction[3] = 0.0f;
+    }
+    else
+    {
+        direction[0] = 0.0f;
+        direction[1] = 0.0f;
+        direction[2] = 0.0f;
+        direction[3] = 0.0f;
+    }
+    D3DDevice_SetVertexShaderConstant(-72, direction, 1);
+    D3DDevice_SetRenderState(D3DRS_TEXTUREFACTOR, pack_color3f((color3f const *)(state + 22)));
+    real parameters[4];
+    memcpy(parameters, state + 36, sizeof(parameters));
+    if (parameters[2] > 0.0001f)
+        parameters[2] = 1.0f / parameters[2];
+    if (parameters[3] > 0.0001f)
+        parameters[3] = 1.0f / parameters[3];
+    parameters[1] = 0.0f - state[37];
+    D3DDevice_SetVertexShaderConstant(-74, parameters, 1);
+    parameters[0] = state[13];
+    parameters[1] = state[14];
+    parameters[2] = state[15];
+    parameters[3] = 1.0f;
+    D3DDevice_SetVertexShaderConstant(-71, parameters, 1);
+}

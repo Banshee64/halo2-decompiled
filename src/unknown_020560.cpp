@@ -923,3 +923,91 @@ void function_1ba00(byte *state)
     }
     *(dword *)(state + 0x14f8) = (output < 1 ? 1 : output) | 0x11100;
 }
+
+struct s_shader_cache;
+void function_1c590(s_shader_cache *state, long tag, long index);
+void __stdcall function_1c710(void *state);
+extern byte g_51f0f0[0x2d8];
+
+// @retail 0x246a0
+bool __stdcall function_246a0(void *context)
+{
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x1010101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_ZFUNC, D3DCMP_ALWAYS);
+    function_0222d0(D3DRS_ZWRITEENABLE, 0);
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_BORDER);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_BORDER);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_BORDER);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 0x1001;
+    g_484f68.PSConstant0[0] = 0xff4c961c;
+    g_484f68.PSRGBInputs[0] = 0x1080000;
+    g_484f68.PSRGBOutputs[0] = 0x20c0;
+    g_484f68.PSFinalCombinerInputsABCD = 0xc;
+    g_484f68.PSFinalCombinerInputsEFG = 0x2000;
+    D3DDevice_SetPixelShaderProgram(&g_484f68);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+
+typedef long (__stdcall *visibility_draw_callback)(s_slot *slot, byte *data);
+
+// @retail 0x20bb0
+void __stdcall function_20bb0(long player, dword mask, long const *indices, long count, bool query, visibility_draw_callback draw)
+{
+    long frame = (long)g_485aa0;
+    if (g_51f408 && g_5234b0 == frame && g_5234c4 != NONE && g_5234c4 == player)
+    {
+        long set = frame % 3;
+        if (!indices)
+            count = g_51f40c.count;
+        for (long i = 0; i < count; ++i)
+        {
+            long index = indices ? indices[i] : i;
+            s_slot *slot = &g_51f40c.slots[index];
+            if (slot->valid && player == slot->b && (mask & (1 << slot->c)))
+            {
+                if (query)
+                {
+                    long test = index * 3 + set;
+                    HRESULT status = S_OK;
+                    if (g_51f40c.bitsets[set][index >> 5] & (1 << (index & 31)))
+                    {
+                        UINT pixels;
+                        ULONGLONG timestamp;
+                        status = D3DDevice_GetVisibilityTestResult(test, &pixels, &timestamp);
+                        if (status != S_OK)
+                            continue;
+                    }
+                    long total = 0;
+                    if (status == S_OK)
+                    {
+                        D3DDevice_BeginVisibilityTest();
+                        total = draw(slot, slot->data);
+                        status = D3DDevice_EndVisibilityTest(test);
+                        total = PIN(total, 0, 65535);
+                    }
+                    slot->k = total;
+                    if (status == S_OK)
+                        g_51f40c.bitsets[set][index >> 5] |= 1 << (index & 31);
+                }
+                else
+                    draw(slot, slot->data);
+            }
+        }
+    }
+}
