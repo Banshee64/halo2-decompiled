@@ -105,3 +105,31 @@ s_sprite_placement *function_14837a(short index)
 	}
 	return result;
 }
+
+#include "unknown_19d220.h"
+long function_216b00(long type);
+bool function_19d650(s_game_variant *variant);
+void function_2373be(long index, void *base, long value);
+
+struct s_variant_option_1489b5 { long index; long value; };
+struct s_variant_defaults_1489b5
+{
+    byte unknown00[8];
+    long count;
+    s_variant_option_1489b5 *options;
+    long unknown10;
+};
+
+// @retail 0x1489b5
+void function_1489b5(long type, s_game_variant *variant)
+{
+    function_19d220(variant, function_216b00(type));
+    long tag_index = *(long *)((byte *)function_1482e8() + 0x14);
+    if (tag_index != NONE)
+    {
+        s_variant_defaults_1489b5 *defaults = (s_variant_defaults_1489b5 *)(g_4e3b44[tag_index & 0xffff].bytes + 0x1c) + type;
+        for (long i = 0; i < defaults->count; i++)
+            function_2373be(defaults->options[i].index, variant, defaults->options[i].value);
+    }
+    function_19d650(variant);
+}

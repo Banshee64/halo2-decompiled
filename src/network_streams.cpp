@@ -165,6 +165,7 @@ public:
 class c_network_reliable_stream : public c_network_stream
 {
 public:
+	virtual bool v4(long arg_0, s_bitstream *arg_1, long arg_2, long arg_3);
 	virtual bool v1(long *reason);
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
@@ -1217,4 +1218,95 @@ bool __stdcall function_095840(s_network_stream_header *header, long *message_ty
 		}
 	}
 	return result;
+}
+
+
+void function_194830(s_bitstream *arg_0, bool arg_1);
+
+// @retail 0x95e40
+bool c_network_reliable_stream::v4(long arg_0, s_bitstream *arg_1, long arg_2, long arg_3)
+{
+	long local_0 = m_message_window.newest;
+	long local_1 = local_0 - m_next_sequence;
+	stream_write_bit(arg_1, arg_0 != NONE);
+	stream_write_checked(arg_1, local_0 & 0xff, 8);
+	stream_write_checked(arg_1, local_1, 7);
+	if (!local_1)
+		m_unknown959 = true;
+	advance_acknowledgements();
+	if (m_acknowledgement_window.valid)
+	{
+		long local_2 = m_acknowledgement_window.newest - 1;
+		stream_write_checked(arg_1, m_acknowledgement_window.newest & 0xff, 8);
+		m_unknown950 = m_acknowledgement_window.newest;
+		if (!sequence_window_count(&m_acknowledgement_window))
+		{
+			stream_write_bit(arg_1, false);
+			stream_write_bit(arg_1, false);
+			function_194830(arg_1, m_unknown958);
+		}
+		else if (sequence_window_count(&m_acknowledgement_window) <= 9)
+		{
+			struct s_95e40
+			{
+				dword field_0;
+				volatile long field_4;
+			} local_12;
+			bool local_5 = false;
+			local_12.field_4 = NONE;
+			local_12.field_0 = 0;
+			long local_6 = 0;
+			for (; local_2 > m_acknowledgement_window.oldest; local_2--, local_6++)
+			{
+				long local_7 = sequence_window_index(&m_acknowledgement_window, local_2);
+				word *local_8 = 0;
+				if (local_7 != NONE)
+					local_8 = &m_acknowledgements[local_7];
+				if (!(*local_8 & 1))
+				{
+					local_12.field_0 |= 1 << local_6;
+					if (local_12.field_4 == NONE)
+						local_12.field_4 = local_6;
+					else
+						local_5 = true;
+				}
+			}
+			if (local_5)
+			{
+				stream_write_bit(arg_1, true);
+				stream_write_bit(arg_1, false);
+				for (long local_9 = 0; local_9 < 8; local_9++)
+					stream_write_bit(arg_1, (local_12.field_0 & (1 << local_9)) != 0);
+			}
+			else
+			{
+				stream_write_bit(arg_1, false);
+				stream_write_bit(arg_1, true);
+				stream_write_checked(arg_1, local_12.field_4, 3);
+			}
+		}
+		else
+		{
+			stream_write_bit(arg_1, true);
+			stream_write_bit(arg_1, true);
+			stream_write_bit(arg_1, false);
+			stream_write_checked(arg_1, sequence_window_count(&m_acknowledgement_window) - 1, 7);
+			for (; local_2 > m_acknowledgement_window.oldest; local_2--)
+			{
+				long local_10 = sequence_window_index(&m_acknowledgement_window, local_2);
+				word *local_11 = 0;
+				if (local_10 != NONE)
+					local_11 = &m_acknowledgements[local_10];
+				stream_write_bit(arg_1, !(*local_11 & 1));
+			}
+		}
+	}
+	else
+	{
+		stream_write_checked(arg_1, 0, 8);
+		stream_write_bit(arg_1, true);
+		stream_write_bit(arg_1, true);
+		stream_write_bit(arg_1, true);
+	}
+	return false;
 }

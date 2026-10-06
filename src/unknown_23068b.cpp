@@ -55,6 +55,7 @@ public:
 	c_xbox_live_menu_screen(long a, long b, word user_flags);
 
 	/* A or start of a signed in player opens the four way sign in */
+	virtual void v3();
 	virtual bool v10(s_widget_event *event);
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
@@ -920,6 +921,7 @@ word *unicode_string_append(word *destination, const word *source, long maximum_
 // @retail 0x23223d
 void function_23223d(c_pause_game_screen *screen)
 {
+	c_pause_game_screen **screen_reference = &screen;
 	c_class_1a2c81 *text = screen->find_child(6, 2, false);
 
 	s_text_object_view *text_object;
@@ -1043,4 +1045,30 @@ void c_pause_game_screen::v18(void *parameters)
 	{
 		function_253bc9(text, 14);
 	}
+}
+
+struct s_name_buffer;
+bool message_of_the_day_available();
+bool __stdcall function_8ca70(long mode, s_name_buffer *output);
+void function_08cc20(s_name_buffer *buffer, const wchar_t *name);
+
+// @retail 0x231227
+void c_xbox_live_menu_screen::v3()
+{
+    word buffer[256];
+    c_class_1a2c81 *widget = find_child(6, 5, false);
+    if (!name_valid)
+    {
+        buffer[0] = 0;
+        name.text[0] = 0;
+        if (message_of_the_day_available())
+        {
+            if (function_8ca70(0, (s_name_buffer *)buffer))
+                function_08cc20((s_name_buffer *)name.text, (wchar_t *)buffer);
+            name_valid = true;
+        }
+    }
+    if (widget)
+        widget->function_22f52e()->set_text(name.text);
+    c_class_1a2c81::v3();
 }

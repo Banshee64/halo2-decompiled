@@ -426,3 +426,41 @@ overflow:
 		*point_mask = mask;
 	return NONE;
 }
+
+// @retail 0x23a2b0
+short function_23a2b0(short count, point2f const *points, short clip_count,
+    point2f const *clip, short capacity, point2f *output, real epsilon)
+{
+    point2f buffers[2][512];
+    for (short i = 0; i < clip_count && count > 0; i++)
+    {
+        short previous = i ? i - 1 : clip_count - 1;
+        point2f *destination = i == clip_count - 1 ? output : buffers[i & 1];
+        plane2f plane;
+        plane.n.i = clip[previous].y - clip[i].y;
+        plane.n.j = clip[i].x - clip[previous].x;
+        real length = (real)sqrt(plane.n.i * plane.n.i + plane.n.j * plane.n.j);
+        if (!(fabs(length) < 0.0001f))
+        {
+            real inverse = 1.f / length;
+            plane.n.i *= inverse;
+            plane.n.j *= inverse;
+        }
+        else
+            length = 0.f;
+        if (length != 0.f)
+        {
+            plane.d = plane.n.i * clip[i].x + plane.n.j * clip[i].y;
+            count = function_23a430(count, points, &plane, epsilon, capacity, destination);
+            if (count == NONE)
+                return NONE;
+        }
+        else
+        {
+            plane.d = 0.f;
+            memcpy(destination, points, count * sizeof(point2f));
+        }
+        points = destination;
+    }
+    return count;
+}

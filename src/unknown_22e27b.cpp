@@ -32,9 +32,9 @@ void function_22d13d(c_class_22cc8e *text, short_rectangle2d const *bounds,
 	buffer[length] = 0;
 	function_22d2ee(buffer, 0x400);
 	function_13ed90(text->value04);
-	long flags = text->value16;
-	long justification = text->value1c;
-	long style = text->value18;
+	long flags = *(volatile short *)&text->value16;
+	long justification = *(volatile long *)&text->value1c;
+	long style = *(volatile long *)&text->value18;
 	g_4e73a0.flags = flags;
 	g_4e73a0.justification = justification;
 	g_4e73a0.style = style;
@@ -1377,4 +1377,21 @@ void c_text_widget_45a5e0::function_253b1a(long string_handle)
 			function_22f52e()->set_text(buffer);
 		}
 	}
+}
+
+// @retail 0x22d0e3
+void function_22d0e3(c_class_22cc8e *text, short_rectangle2d const *bounds,
+    real depth, short_rectangle2d const *screen, short length, short_rectangle2d *ink_bounds)
+{
+    short_rectangle2d output;
+    function_22d13d(text, bounds, depth, screen, length, ink_bounds, &output);
+}
+
+// @retail 0x22d108
+void function_22d108(c_class_22cc8e *text, short_rectangle2d const *bounds,
+    real depth, short_rectangle2d const *screen, short_rectangle2d *output)
+{
+    short_rectangle2d ink_bounds;
+    short length = (short)wcslen((wchar_t *)text->function_22f52e());
+    function_22d13d(text, bounds, depth, screen, length, &ink_bounds, output);
 }

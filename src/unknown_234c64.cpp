@@ -252,7 +252,11 @@ void c_window_channel::v9()
 {
 	if (current)
 	{
-		function_149f49((s_message *)&request, 0x7fff, 0, current->user_flags, current->v20(), current->v21(), (long)current->get_load_proc());
+		word users = current->user_flags;
+		long load = (long)current->get_load_proc();
+		long b = current->v21();
+		long a = current->v20();
+		function_149f49((s_message *)&request, 0x7fff, 0, users, a, b, load);
 	}
 	dispose();
 }
@@ -265,7 +269,8 @@ void c_window_channel::v10()
 		s_screen_request new_request;
 		request.type = 0;
 		function_149f49((s_message *)&new_request, 0, (dword *)&request.id, request.user_flags, request.a, request.b, (long)request.load);
-		set_next(request.load(&new_request), &new_request);
+		c_class_1473c9 *screen = request.load(&new_request);
+		set_next(screen, &new_request);
 	}
 }
 
@@ -913,7 +918,7 @@ void c_window_channel_459a34::render(long window)
 /* ---- drawing the screens back to front ---- */
 
 // @retail 0x23566a
-void function_23566a(c_class_1a2c81 *screen, s_screen_sort_entry *entries, long *count)
+void __stdcall function_23566a(c_class_1a2c81 *screen, s_screen_sort_entry *entries, long *count)
 {
 	if (screen->v16())
 	{

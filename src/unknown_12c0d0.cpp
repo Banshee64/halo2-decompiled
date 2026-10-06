@@ -941,3 +941,144 @@ void __stdcall function_12d6d0(s_bitmap_texture_view const *bitmap, long level, 
 	}
 	texture->Data = bitmap->level_addresses[level] & 0xfffffff;
 }
+
+// @retail 0x12d5a0
+bool function_12d5a0(s_bitmap_data *arg_0, long arg_1, bool arg_2, bool arg_3, long arg_4)
+{
+	long local_0 = function_13d370(g_4e6464, arg_0->field_34[arg_1], (arg_2 || arg_3) ? 2 : 5);
+	if (arg_2 && !arg_3)
+		arg_4 = 7;
+	if (local_0 == NONE)
+		return false;
+	long local_1 = (((s_physical_block *)g_4e6464->blocks->data)[local_0 & 0xffff].offset << g_4e6464->page_shift) + g_4e6460;
+	datum_new_at_index_with_salt(g_4e6454, local_0);
+	s_texture_cache_entry *local_2 = texture_cache_entry_get(local_0);
+	local_2->resident = false;
+	local_2->flags &= ~1;
+	local_2->pending = arg_1;
+	local_2->bitmap = arg_0;
+	memset(&local_2->resource, 0, sizeof(D3DTexture));
+	arg_0->block_indices[arg_1] = local_0;
+	arg_0->unknown40[arg_1] = local_1;
+	if (!arg_1)
+		arg_0->unknown54 = local_1;
+	function_12d6d0((s_bitmap_texture_view *)arg_0, arg_1, (D3DTexture *)&local_2->resource);
+	long local_3 = arg_0->field_34[arg_1];
+	if (local_3 & 0x1ff)
+		local_3 = (local_3 | 0x1ff) + 1;
+	volatile long local_4 = arg_0->unknown40[3];
+	local_2->hardware_format = function_213760(arg_0->data_offsets[arg_1], local_3, (void *)local_1, NULL, &local_2->resident, 3, arg_4);
+	*(long *)local_2->unknown08 = arg_4;
+	g_4e6484++;
+	return true;
+}
+
+bool function_120ce0(long arg_0, long arg_1);
+void function_125d60(void);
+
+// @retail 0x12c990
+D3DTexture *function_12c990(s_bitmap_data *arg_0, long arg_1, bool arg_2, bool arg_3, bool arg_4, long arg_5, bool *arg_6, bool *arg_7)
+{
+	D3DTexture *local_0 = NULL;
+	bool local_1 = async_globals.tasks_added > 25 || g_4e6484 >= 10;
+	if (arg_2 && (arg_3 || arg_5 > 2 || !local_1))
+	{
+		if (arg_0->data_offsets[arg_1] != NONE && arg_0->field_34[arg_1] && (!arg_1 || arg_0->field_34[arg_1] > 0x400))
+		{
+			if (arg_0->block_indices[arg_1] == NONE)
+			{
+				if (!function_12d5a0(arg_0, arg_1, arg_3, arg_4, arg_5))
+					*arg_7 = true;
+			}
+			if (arg_0->block_indices[arg_1] != NONE)
+			{
+				long local_2 = arg_0->block_indices[arg_1];
+				s_texture_cache_entry *local_3 = texture_cache_entry_get(local_2);
+				((s_physical_block *)g_4e6464->blocks->data)[local_2 & 0xffff].time = g_4e6464->time;
+				if (!*(volatile bool *)&local_3->resident)
+				{
+					if (arg_3)
+					{
+						*arg_6 = true;
+						function_120ce0(local_3->hardware_format, 7);
+						function_120d50(&local_3->resident, true);
+					}
+					else if (arg_5 > *(long *)local_3->unknown08)
+					{
+						*(long *)local_3->unknown08 = arg_5;
+						function_120ce0(local_3->hardware_format, arg_5);
+					}
+				}
+				if (*(volatile bool *)&local_3->resident)
+					local_0 = (D3DTexture *)&local_3->resource;
+			}
+		}
+	}
+	else if (arg_0->block_indices[arg_1] != NONE)
+	{
+		long local_4 = arg_0->block_indices[arg_1];
+		s_texture_cache_entry *local_5 = texture_cache_entry_get(local_4);
+		((s_physical_block *)g_4e6464->blocks->data)[local_4 & 0xffff].time = g_4e6464->time;
+		if (*(volatile bool *)&local_5->resident)
+			local_0 = (D3DTexture *)&local_5->resource;
+	}
+	return local_0;
+}
+
+// @retail 0x12cb80
+bool function_12cb80(s_bitmap_data *arg_0)
+{
+	bool local_0 = true;
+	for (long local_1 = 0; local_1 < 3; local_1++)
+	{
+		if (arg_0->data_offsets[local_1] != NONE && arg_0->field_34[local_1] && (!local_1 || arg_0->field_34[local_1] > 0x400))
+		{
+			bool local_2;
+			bool local_3;
+			function_12c990(arg_0, local_1, true, true, false, 7, &local_2, &local_3);
+			long local_4 = arg_0->block_indices[local_1];
+			if (local_4 != NONE)
+			{
+				byte *local_5 = &texture_cache_entry_get(local_4)->flags;
+				*local_5 |= 2;
+			}
+			else
+				local_0 = false;
+		}
+	}
+	return local_0;
+}
+
+#include <xmmintrin.h>
+void function_12ce00(s_bitmap_data *arg_0, dword arg_1, real arg_2);
+
+// @retail 0x12c450
+void function_12c450(void)
+{
+	if (g_4e6458->valid && async_globals.tasks_added <= 25)
+	{
+		long local_0 = 0;
+		s_record_pool_iterator local_1;
+		local_1.data = g_4e6458;
+		local_1.index = NONE;
+		local_1.datum_index = NONE;
+		s_texture_cache_request *local_2;
+		while ((local_2 = (s_texture_cache_request *)data_iterator_next_calling(&local_1)) != NULL && local_0 < 5)
+		{
+			s_bitmap_data *local_3 = local_2->bitmap;
+			if (local_3->unknown70 <= g_4e6488 || !local_3->texture)
+			{
+				_mm_prefetch((char const *)&local_3->flags, _MM_HINT_T0);
+				_mm_prefetch((char const *)&local_3->block_indices[0], _MM_HINT_T0);
+				_mm_prefetch((char const *)&local_3->block_indices[1], _MM_HINT_T0);
+				_mm_prefetch((char const *)&local_3->block_indices[2], _MM_HINT_T0);
+				_mm_prefetch((char const *)local_3->texture, _MM_HINT_T0);
+				if (!texture_cache_bitmap_get_texture(local_3, 2, 0.0f))
+					function_12ce00(local_3, 2, 0.0f);
+			}
+			local_2->bitmap->flags &= ~0x400;
+			record_pool_release(g_4e6458, local_1.datum_index);
+			local_0++;
+		}
+	}
+}

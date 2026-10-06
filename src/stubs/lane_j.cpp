@@ -21,11 +21,6 @@ struct s_type_99af70;
 
 /* lane D's region: the session handlers the message handler calls */
 
-// @stub 0x5cb80
-bool __stdcall function_05cb80(c_class_58d20 *session, void const *message)
-{
-	return false;
-}
 
 
 /* kept out of the build in src/unknown_059ad0.cpp: built there, its session

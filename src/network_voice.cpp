@@ -285,12 +285,12 @@ void voice_xhv_set_voice_mask(c_voice_xhv *xhv, long port, const XHV_VOICE_MASK 
 }
 
 // @retail 0x55250
-void voice_xhv_set_playback_priority(c_voice_xhv *xhv, long id, DWORD port, XHV_PLAYBACK_PRIORITY priority)
+void voice_xhv_set_mix_bins(c_voice_xhv *xhv, long id, DWORD port, const DSMIXBINS *bins)
 {
 	if (xhv->initialized)
 	{
 		XUID xuid = voice_xuid(id);
-		xhv->engine->SetPlaybackPriority(xuid, port, priority);
+		xhv->engine->SetMixBinMapping(xuid, port, bins);
 	}
 }
 
@@ -2564,4 +2564,232 @@ void function_54030(void)
    }
   }
  }
+}
+
+class c_voice_observer;
+void function_586f0(long player, c_voice_observer *observer, long *count,
+	DSMIXBINVOLUMEPAIR *bins, const point3f *position);
+
+// @retail 0x58590
+void function_58590(long mode, long talker, c_voice_observer *observer, long player)
+{
+	if (mode == 0)
+	{
+		if (g_476fc8.initialized)
+			g_476fc8.engine->SetPlaybackPriority(voice_xuid(talker), 4, (XHV_PLAYBACK_PRIORITY)-1);
+		return;
+	}
+	if (mode == 2)
+	{
+		DSMIXBINVOLUMEPAIR pairs[4] = {0};
+		DSMIXBINS bins = {0};
+		bins.dwMixBinCount = 3;
+		bins.lpMixBinVolumePairs = pairs;
+		pairs[0].dwMixBin = 0;
+		pairs[1].dwMixBin = 1;
+		pairs[0].lVolume = 0;
+		pairs[1].lVolume = 0;
+		pairs[2].dwMixBin = 2;
+		pairs[2].lVolume = 0;
+		voice_xhv_set_mix_bins(&g_476fc8, talker, 4, &bins);
+	}
+	else if (mode == 3)
+	{
+		point3f position = {0};
+		if (function_54df0(talker))
+		{
+			byte *world_player = voice_get_world_player(talker);
+			if (world_player && *(long *)(world_player + 0x2c) != NONE)
+			{
+				function_caf90(*(long *)(world_player + 0x2c), &position);
+				DSMIXBINVOLUMEPAIR pairs[4] = {0};
+				DSMIXBINS bins = {0};
+				bins.lpMixBinVolumePairs = pairs;
+				function_586f0(player, observer, (long *)&bins.dwMixBinCount, pairs, &position);
+				voice_xhv_set_mix_bins(&g_476fc8, talker, 4, &bins);
+			}
+		}
+	}
+	if (g_476fc8.initialized)
+		g_476fc8.engine->SetPlaybackPriority(voice_xuid(talker), 4, (XHV_PLAYBACK_PRIORITY)0);
+}
+
+struct s_voice_route_choice
+{
+	long player;
+	long mode;
+	real distance;
+};
+
+// @retail 0x57eb0
+void function_57eb0(s_voice_player_settings *settings, long talker,
+	const s_voice_route_choice *choices, long count)
+{
+	bool radio = false;
+	long nearest = NONE;
+	dword headset = 0;
+	for (long i = 0; i < count; i++)
+	{
+		long player = choices[i].player;
+		long mode = choices[i].mode;
+		if (mode == 1)
+			headset |= 1 << player;
+		else
+			headset &= ~(1 << player);
+		if (mode == 2 || mode == 3)
+		{
+			settings->unknownc8[player] |= 1 << talker;
+			if (choices[i].mode == 2)
+				radio = true;
+			else if (!radio && choices[i].mode == 3 &&
+				(nearest == NONE || choices[nearest].distance > choices[i].distance))
+				nearest = i;
+		}
+		else
+			settings->unknownc8[player] &= ~(1 << talker);
+	}
+	function_583c0(settings, headset, talker);
+	if (radio)
+	{
+		DSMIXBINVOLUMEPAIR pairs[4] = {0};
+		DSMIXBINS bins = {0};
+		bins.dwMixBinCount = 3;
+		bins.lpMixBinVolumePairs = pairs;
+		pairs[0].dwMixBin = 0;
+		pairs[1].dwMixBin = 1;
+		pairs[2].dwMixBin = 2;
+		pairs[0].lVolume = 0;
+		pairs[1].lVolume = 0;
+		pairs[2].lVolume = 0;
+		if (g_476fc8.initialized)
+			g_476fc8.engine->SetMixBinMapping(voice_xuid(talker), 4, &bins);
+		if (g_476fc8.initialized)
+			g_476fc8.engine->SetPlaybackPriority(voice_xuid(talker), 4, (XHV_PLAYBACK_PRIORITY)0);
+	}
+	else if (nearest != NONE)
+		function_58590(3, talker, (c_voice_observer *)settings, choices[nearest].player);
+	else if (g_476fc8.initialized)
+		g_476fc8.engine->SetPlaybackPriority(voice_xuid(talker), 4, (XHV_PLAYBACK_PRIORITY)-1);
+}
+
+// @retail 0x57960
+void __stdcall function_57960(s_voice_player_settings *settings)
+{
+	dword local = voice_get_local_player_mask();
+	dword enabled = 0;
+	if (voice_available())
+		enabled = g_4c9878.unknownEE;
+	settings->unknownc4 = 0;
+	for (long talker = 0; talker < 16; talker++)
+	{
+		dword bit = 1 << talker;
+		if (!(local & bit) && (enabled & bit) && voice_available() &&
+			voice_xhv_has_remote_talker(&g_476fc8, talker))
+		{
+			s_voice_route_choice choices[16] = {0};
+			for (long player = 0; player < 16; player++)
+			{
+				long mode = 0;
+				if (local & (1 << player))
+				{
+					mode = voice_players_share_team(player, talker);
+					mode = function_57d60(mode, player, talker);
+					if (mode) settings->unknownc4 |= bit;
+				}
+				choices[player].player = player;
+				choices[player].mode = mode;
+			}
+			function_57eb0(settings, talker, choices, 16);
+		}
+	}
+}
+
+// @retail 0x56df0
+void __stdcall function_56df0(s_voice_player_settings *settings, long talker, long mode)
+{
+	// The retail entry reads the talker from its stack argument slot.
+	long const *talker_reference = &talker;
+	bool active = false;
+	if (settings->initialized && voice_available())
+		active = g_4c9878.mode == 1;
+	if (active && voice_xhv_has_remote_talker(&g_476fc8, *talker_reference))
+	{
+		dword local = voice_get_local_player_mask();
+		bool valid = function_54df0(talker);
+		s_voice_route_choice choices[16] = {0};
+		for (long player = 0; player < 16; player++)
+		{
+			long route = 0;
+			if ((local & (1 << player)) && function_54df0(player) && valid)
+			{
+				long requested = function_57c20(settings, player, talker, mode);
+				route = function_57d60(requested, player, talker);
+				if (requested == 1) settings->unknown148[talker] = g_510c54->game_time;
+				if (route == 3) choices[player].distance = function_57a80(player, talker);
+				if (route) settings->unknownc4 |= 1 << talker;
+			}
+			choices[player].player = player;
+			choices[player].mode = route;
+		}
+		function_57eb0(settings, talker, choices, 16);
+	}
+}
+
+void __stdcall function_56f60(c_voice_observer *observer);
+void __stdcall function_57360(c_voice_observer *observer);
+
+// @retail 0x56b70
+void function_56b70(s_voice_player_settings *settings)
+{
+	if (settings->initialized)
+	{
+		bool active = false;
+		if (g_4c9878.initialized && g_476fc8.initialized)
+			active = g_4c9878.mode == 1;
+		if (active)
+		{
+			function_56f60((c_voice_observer *)settings);
+			function_57080((s_voice_player_values *)settings);
+			function_57360((c_voice_observer *)settings);
+			function_577d0(settings);
+		}
+		else
+		{
+			bool passive = false;
+			if (g_4c9878.initialized && g_476fc8.initialized)
+				passive = g_4c9878.mode == 2 || g_4c9878.mode == 3;
+			if (passive) function_57960(settings);
+		}
+	}
+}
+
+// @retail 0x53610
+void function_53610(void)
+{
+	if (voice_available())
+	{
+		voice_do_work();
+		if (g_4c9878.pool_mode == 2)
+		{
+			voice_update_session_kind();
+			voice_update_mode();
+			long kind = 0;
+			if (voice_available()) kind = g_4c9878.session_kind;
+			if (!kind) g_4c9878.mode = 0;
+			function_54590();
+			bool (*query_enabled)(void) = voice_is_enabled;
+			if (!query_enabled())
+			{
+				voice_xhv_unregister_remote_talkers(&g_476fc8);
+				voice_reset_talkers();
+			}
+			else
+			{
+				function_54030();
+				function_53e30();
+				function_56b70(&g_527104.settings);
+				if (g_5259b8.enabled) function_55990(&g_5259b8);
+			}
+		}
+	}
 }

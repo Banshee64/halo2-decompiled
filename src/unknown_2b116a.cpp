@@ -10,6 +10,7 @@
 #include "unknown_18f576.h"
 #include "unknown_2b6106.h"
 #include "network_qos.h"
+#include "loop_allocator.h"
 #include "unknown_24b5bc.h"
 
 // @flags /O1 /Oi /arch:SSE /Gr
@@ -2695,16 +2696,43 @@ long c_campaign_options_list::get_item_count()
 	return data->actual_count;
 }
 
-/* the 26-slot list at 0x45af88; its item count (6) is shared by the lists at
-   0x45b370, 0x45bb78, 0x45bdb8, 0x45bea0, 0x45d020 and 0x45d240 */
-class c_list_45af88 : public c_list_widget_26
+class c_list_24a64d : public c_list_widget_with_items
 {
 public:
+	c_list_24a64d(word arg_0);
+	virtual void v20(c_class_1a2c81 *item, long);
+	virtual void *function_24a64d(long index);
+	virtual void v24();
+	virtual word const *function_24a691(long index, bool append);
+	bool function_24a2e7(long controller);
+	void function_24a30e(s_controller_reference **arg_0, long *arg_1);
+	byte field_88;
+	bool field_89;
+	bool field_8a;
+	long field_8c;
+	c_list_item_handler field_90;
+};
+
+struct s_profile_list_entry
+{
+	s_profile_list_entry();
+	long profile_index;
+	s_player_profile_settings settings;
+	byte unknown1e4[0x248 - 0x1e4];
+};
+
+
+/* the 26-slot list at 0x45af88; its item count (6) is shared by the lists at
+   0x45b370, 0x45bb78, 0x45bdb8, 0x45bea0, 0x45d020 and 0x45d240 */
+class c_list_45af88 : public c_list_24a64d
+{
+public:
+	c_list_45af88(word user_flags);
 	virtual long get_item_count();
 	virtual void *get_items(long *count);
 
-	byte unknown88[0x3a8 - 0x88];
-	byte items[6][0x10];
+	c_class_14750b entries[6];
+	s_profile_list_entry items[6];
 };
 
 // @retail 0x2b198a
@@ -5158,4 +5186,202 @@ void c_screen_458a00::v3()
 		text->function_253b1a(string_handle);
 	}
 	c_class_1a2c81::v3();
+}
+
+// @retail 0x2b19bd destructor c_list_45af88
+
+struct s_model_names_2b
+{
+    byte unknown00[12];
+    long count;
+    char (*names)[32];
+};
+struct s_object_header_2b
+{
+    short salt;
+    byte flags;
+    byte type;
+    long unused;
+    byte *object;
+};
+struct s_name_table_11c0b0;
+short function_11c0b0(char const *name, s_name_table_11c0b0 *table);
+long function_bb760(short index);
+bool function_10f5c0(long unit_index, real blend, long flags, long mode, long set);
+bool function_bacc0(long object_index, long index, point3f const *point);
+
+// @retail 0x2b102f
+void function_2b102f(c_class_2b0b5e *widget, dword const *value)
+{
+    s_name_table_11c0b0 *table = (s_name_table_11c0b0 *)g_4e0350;
+    for (long i = 0; i < ((s_model_names_2b *)widget->definition)->count; ++i)
+    {
+        char const *name = ((s_model_names_2b *)widget->definition)->names[i];
+        if (name[0])
+        {
+            short index = function_11c0b0(name, table);
+            if (index != NONE)
+            {
+                long object_index = function_bb760(index);
+                if (object_index != NONE)
+                {
+                    s_object_header_2b *header = &((s_object_header_2b *)g_4e0300->data)[object_index & 0xffff];
+                    if (header->type == 0)
+                        *(dword *)(header->object + 0x24) = *value;
+                }
+            }
+        }
+    }
+}
+
+// @retail 0x2b0eeb
+void function_2b0eeb(c_class_2b0b5e *widget, long mode)
+{
+    s_model_names_2b *definition = (s_model_names_2b *)widget->definition;
+    if (definition && definition->count > 0)
+    {
+        s_name_table_11c0b0 *table = (s_name_table_11c0b0 *)g_4e0350;
+        for (long i = 0; i < ((s_model_names_2b *)widget->definition)->count; ++i)
+        {
+            char const *name = ((s_model_names_2b *)widget->definition)->names[i];
+            if (name[0])
+            {
+                short index = function_11c0b0(name, table);
+                if (index != NONE)
+                {
+                    long object_index = function_bb760(index);
+                    if (object_index != NONE && ((s_object_header_2b *)g_4e0300->data)[object_index & 0xffff].type == 0)
+                        function_10f5c0(object_index, 0.0f, 2, mode, 0x7000101);
+                }
+            }
+        }
+    }
+}
+
+// @retail 0x2b0f76
+void function_2b0f76(c_class_2b0b5e *widget, long index, point3f const *point)
+{
+    for (long i = 0; i < ((s_model_names_2b *)widget->definition)->count; ++i)
+    {
+        char const *name = ((s_model_names_2b *)widget->definition)->names[i];
+        if (name[0])
+        {
+            short named_index = function_11c0b0(name, (s_name_table_11c0b0 *)g_4e0350);
+            if (named_index != NONE)
+            {
+                long object_index = function_bb760(named_index);
+                if (object_index != NONE && ((s_object_header_2b *)g_4e0300->data)[object_index & 0xffff].type == 0)
+                {
+                    function_bacc0(object_index, index, point);
+                    long tag = *(long *)((s_object_header_2b *)g_4e0300->data)[object_index & 0xffff].object;
+                    *(dword *)(g_4e3b44[tag & 0xffff].bytes + 0x1c) |= 1;
+                }
+            }
+        }
+    }
+}
+
+#include "online_tasks.h"
+long qos_service_lookup();
+bool qos_is_complete(long handle);
+void function_1486b8(long error, bool keep);
+
+// @retail 0x2bb04e
+bool function_2bb04e(long task_index, bool * volatile completion)
+{
+    bool *complete = completion;
+    bool result = false;
+    *complete = false;
+    if (g_475338 != NONE)
+    {
+        result = true;
+        if (qos_is_complete(g_475338))
+            *complete = true;
+    }
+    else if (task_index != NONE)
+    {
+        s_type_9df9da *task = function_6b910(task_index);
+        if (task)
+        {
+            long status = online_task_get_logon_status(task_index);
+            long type = online_task_get_type(task_index);
+            if (status != 0)
+            {
+                if (status == 1)
+                {
+                    g_475338 = qos_service_lookup();
+                    result = true;
+                }
+                else if (type == 1)
+                    function_1486b8(status, true);
+            }
+            else if (!(task->flags & 4) && (type == 0 || type == 1))
+                result = true;
+        }
+    }
+    if (!result || *completion)
+        function_2bb0e9();
+    return result;
+}
+
+bool function_19a902();
+long function_199f34();
+bool function_19a7e9(long controller, long value);
+void __stdcall function_2395dc(XONLINE_FRIEND *friend_, long controller_index, long mode);
+
+// @retail 0x2b8497
+void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
+{
+    s_list_item_value volatile *entry = (s_list_item_value *)record_pool_lookup(data, *item);
+    if (entry && function_19a951(entry->value))
+    {
+        if (!function_19a179(entry->value))
+        {
+            if (!value288)
+            {
+                get_screen()->start_animation(3);
+                return;
+            }
+            if (!function_19a179(NONE))
+                goto finish;
+        }
+        if (function_19a902())
+        {
+            function_199f34();
+            function_19a7e9((*controller)->controller_index, 10);
+        }
+    }
+finish:
+    if (value288)
+    {
+        s_feedback_target selection;
+        function_14887e((s_screen_settings_54dc6c *)&selection);
+        function_2395dc((XONLINE_FRIEND *)((byte *)&selection + 4), (*controller)->controller_index, 4);
+    }
+    get_screen()->start_animation(3);
+}
+
+real g_509330;
+real g_509334;
+dword g_509338;
+void function_28980(long index);
+
+// @retail 0x2c5224
+void c_level_select_screen::v18(void *parameters)
+{
+    volatile long definition_index = function_1480ff(screen_id);
+    s_screen_layout layout = { 0, 1, { { 0, 0, 0, 0 } } };
+    build(&layout);
+    c_class_1a2c81::v2();
+    delete_children();
+    g_509330 = -1.0f;
+    g_509334 = 0.0f;
+    g_509338 = GetTickCount();
+    function_28980((long)&g_509334);
+    c_class_1a2c81::v1();
+}
+
+// @retail 0x2b1942
+c_list_45af88::c_list_45af88(word user_flags) : c_list_24a64d(user_flags)
+{
 }
