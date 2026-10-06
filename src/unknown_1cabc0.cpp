@@ -160,3 +160,36 @@ void function_1cac60(dword const *bits, s_cluster_partition *partition, long dat
 	} while (--remaining);
 	}
 }
+
+
+void function_2962e0(s_record_pool *pool, long *head, long key, long size, void const *value);
+
+// @retail 0x1cadf0
+void function_1cadf0(s_cluster_partition *partition, long reference_index, long data_index, long payload_size, void const *payload)
+{
+	while (reference_index != NONE)
+	{
+		s_cluster_reference *reference = (s_cluster_reference *)cluster_partition_datum(partition->cluster_references, reference_index);
+		function_2962e0(partition->data_references, &partition->cluster_first_data_references[reference->cluster_index], data_index, payload_size, payload);
+		reference_index = reference->next_reference_index;
+	}
+}
+
+
+void *function_123d40(char const *name, char const *type, long size);
+char *function_11c9c0(char *buffer, long maximum_count, char const *format, ...);
+s_record_pool *function_296270(char const *name, long size, long count);
+
+// @retail 0x1cabc0
+void function_1cabc0(s_cluster_partition *partition, char const *name, long payload_size)
+{
+	(void)&partition;
+	(void)&name;
+	(void)&payload_size;
+	char label[256];
+	partition->cluster_first_data_references = (long *)function_123d40(NULL, NULL, 0x800);
+	function_11c9c0(label, sizeof(label), "cluster %s", name);
+	partition->data_references = function_296270(label, payload_size, 0x800);
+	function_11c9c0(label, sizeof(label), "%s cluster", name);
+	partition->cluster_references = function_296270(label, 0, 0x800);
+}

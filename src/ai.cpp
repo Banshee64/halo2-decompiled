@@ -1038,3 +1038,136 @@ void __stdcall function_1ca9f0(long object_index, long target_index)
 	if (g_4f55d0->active)
 		function_200240(object_index, target_index);
 }
+
+
+void hash_table_initialize(hash_table *table);
+void function_200b30(void);
+void function_20b9b0(void);
+void function_295970(void);
+extern s_record_pool *g_5044c8;
+extern long g_502428;
+extern long g_50242c;
+
+PRIVATE inline void ai_pool_reset(s_record_pool *pool)
+{
+	pool->valid = true;
+	record_pool_release_all(pool);
+}
+
+// @retail 0x1c79e0
+void function_1c79e0(void)
+{
+	if (g_4e6948->state == 2)
+		g_4f55d0->active = false;
+	else
+	{
+		ai_globals_initialize_for_new_map();
+		ai_pool_reset(g_4f55f0);
+		hash_table_initialize((hash_table *)g_557c6c);
+		ai_pool_reset(g_5044c8);
+		ai_pool_reset(g_50241c);
+		ai_pool_reset(g_502418);
+		ai_pool_reset(g_502414);
+		function_200b30();
+		memset(g_5044cc, 0, 0x20);
+		ai_pool_reset(g_502420);
+		ai_pool_reset(g_502424);
+		ai_pool_reset(g_51eca4);
+		ai_pool_reset(g_502408);
+		ai_pool_reset(g_502404);
+		g_502428 = NONE;
+		g_50242c = NONE;
+		function_20b9b0();
+		memset(g_5044d0, 0, 0x10);
+		ai_pool_reset(g_51ecb4);
+		function_295970();
+		*(short *)((byte *)g_4f55d0 + 0x3e) = 0;
+		*(short *)((byte *)g_4f55d0 + 0x3c) = 0;
+		memset((byte *)g_4f55d0 + 0x40, 0, 0x300);
+		g_4f55d0->active = true;
+	}
+}
+
+
+long function_25d810(long object_index, long actor_index, bool create);
+
+// @retail 0x1c89b0
+short __stdcall function_1c89b0(long actor_index, short maximum_count, s_ai_capsule_view *capsules)
+{
+ (void)&actor_index;
+ (void)&maximum_count;
+ (void)&capsules;
+ s_actor_view *actor = actor_get(actor_index);
+ long count = 0;
+ if (actor->unknown07c != NONE)
+ {
+  long next = element_502420_get(actor->unknown07c)->first_actor_index;
+  while (next != NONE)
+  {
+   long index = next;
+   s_actor_view *other = actor_get(index);
+   next = other->next_index;
+   if (index != actor_index && (short)count < maximum_count && other->unknown018 != NONE && other->unknown26c == NONE)
+   {
+    long object_index = other->unknown018;
+    if (((s_ai_object_header *)g_4e0300->data)[object_index & 0xffff].type == 0)
+     function_1c8940(&capsules[(short)count++], object_index, NONE);
+   }
+  }
+ }
+ long next = actor_get(actor_index)->first_prop_index;
+ while (next != NONE)
+ {
+  long index = next;
+  s_prop_node_view *node = &((s_prop_node_view *)g_502418->data)[index & 0xffff];
+  next = node->next_index;
+  s_prop_state_view *state = prop_node_state(node);
+  s_ai_prop_target *target = &((s_ai_prop_target *)g_50241c->data)[node->unknown08 & 0xffff];
+  if (!target->unknown23 && !*((bool *)state + 0x5e) && node->unknown24 == 1 && state->unknown3c == NONE)
+  {
+   long object_index = node->object_index;
+   if (((1 << object_get(object_index)->type) & 1) && (short)count < maximum_count)
+    function_1c8940(&capsules[(short)count++], object_index, index);
+  }
+ }
+ if (!team_is_enemy(actor->unknown024, 1))
+ {
+  s_record_pool_iterator iterator;
+  iterator.data = g_4e8c24;
+  iterator.index = NONE;
+  s_ai_player_datum *player;
+  while ((player = (s_ai_player_datum *)data_iterator_next_inlined(&iterator)) != NULL)
+  {
+   long object_index = player->unit_index;
+   if (object_index == NONE)
+    continue;
+   s_ai_object_header *headers = (s_ai_object_header *)g_4e0300->data;
+   if (headers[object_index & 0xffff].type != 0)
+    continue;
+   long parent = object_get(object_index)->parent_index;
+   if (parent != NONE)
+   {
+    long root = function_baf40(parent);
+    if (headers[root & 0xffff].type == 1)
+     parent = root;
+    if (parent == actor->unknown26c)
+     continue;
+   }
+   long prop_index = function_25d810(object_index, actor_index, false);
+   object_index = player->unit_index;
+   s_ai_capsule_view *capsule = &capsules[(short)count];
+   real height;
+   real radius;
+   function_df5f0(object_index, &capsule->center, &height, &radius);
+   capsule->active = height == 0.0f ? 1 : 0;
+   capsule->value10 = 0.0f;
+   capsule->value14 = 0.0f;
+   capsule->height = height;
+   capsule->radius = radius + 0.15f;
+   capsule->value1c = prop_index;
+   capsule->object_index = object_index;
+   ++count;
+  }
+ }
+ return (short)count;
+}
