@@ -352,3 +352,51 @@ public:
 };
 // @stub 0x2fc320
 c_physics_shape_list::c_physics_shape_list(c_havok_reference_counted **shapes, long count) {}
+
+class c_2de7b0
+{
+public:
+    virtual ~c_2de7b0();
+    byte field_4[0x4c];
+};
+
+// @stub 0x2de7b0
+c_2de7b0::~c_2de7b0() {}
+
+struct s_2dc030
+{
+    byte field_0[8];
+    long field_8;
+    real field_c;
+    real field_10;
+    s_2dc030();
+};
+
+class c_2dbfc0
+{
+public:
+    byte field_0[4];
+    word field_4;
+    byte field_6[0x3a];
+    c_2dbfc0(long arg_0, void *arg_1, real arg_2);
+    void function_2dbcf0(s_2dc030 const *arg_0);
+};
+
+// @stub 0x2dbfc0
+c_2dbfc0::c_2dbfc0(long arg_0, void *arg_1, real arg_2) {}
+
+// @stub 0x2dc030
+s_2dc030::s_2dc030() {}
+
+// @stub 0x2dbcf0
+void c_2dbfc0::function_2dbcf0(s_2dc030 const *arg_0) {}
+
+class c_314710
+{
+public:
+    byte field_0[0x60];
+    c_314710(hkEntity *arg_0);
+};
+
+// @stub 0x314710
+c_314710::c_314710(hkEntity *arg_0) {}

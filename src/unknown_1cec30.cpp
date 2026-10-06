@@ -1129,7 +1129,7 @@ struct s_component_collision_header
 };
 
 // @retail 0x1d1d00
-bool function_1d1d00(long shape_index, long other_component_index, long component_index)
+bool function_1d1d00(long other_component_index, long shape_index, long component_index)
 {
 	bool result = false;
 	if (other_component_index != NONE)
@@ -1461,7 +1461,7 @@ void function_1d1e40(hkEntity const *entity, s_havok_component *component, long 
 	long other_component = havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX);
 	long body_index = havok_entity_property_get(entity, HAVOK_PROPERTY_2002);
 	if (other_component != NONE && other_component != component_index &&
-		function_1d1d00(shape_index, other_component, component_index))
+		function_1d1d00(other_component, shape_index, component_index))
 	{
 		long other_object_index = havok_component_get(other_component)->object_index;
 		if (!component->unknown94)

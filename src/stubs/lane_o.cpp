@@ -23,5 +23,3 @@ void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4
 	real arg_9, point3f const *arg_10, real arg_11) { }
 
 struct s_bsp3d;
-// @stub 0x1ddda0
-short function_1ddda0(s_bsp3d const *arg_0, long arg_1, point3f *arg_2) { return 0; }
