@@ -443,27 +443,31 @@ bool function_20f6a0(s_node_owner *owner, long node_index)
 				owner->first = node_index;
 			*(long *)(record + 0x50) = next;
 			owner->count++;
-			byte *last = (byte *)NODE(node_index);
-			while (next != NONE)
+			if (next != NONE)
 			{
-				byte *other = (byte *)NODE(next);
-				long time = *(long *)(other + 0x14);
-				if (time < *(long *)(last + 0x14) + audio_queue_delay())
-					time = *(long *)(last + 0x14) + audio_queue_delay();
-				*(long *)(other + 0x14) = time;
-				function_20f5a0((s_audio_priority_record *)other, (s_audio_priority_record *)last);
-				if (!other[0x48])
+				byte *last = (byte *)NODE(node_index);
+				do
 				{
-					if (*(long *)(other + 0x14) - *(long *)(other + 0x10) > *(short *)(other + 0x1e) ||
-						(other[0xe] && *(long *)(other + 0x44) != NONE && *(long *)(other + 0x44) != previous))
-						function_20fda0(next);
-					else
+					byte *other = (byte *)NODE(next);
+					long delay = audio_queue_delay();
+					long time = *(long *)(other + 0x14);
+					if (time < *(long *)(last + 0x14) + delay)
+						time = *(long *)(last + 0x14) + audio_queue_delay();
+					*(long *)(other + 0x14) = time;
+					function_20f5a0((s_audio_priority_record *)other, (s_audio_priority_record *)last);
+					if (!other[0x48])
 					{
-						last = other;
-						previous = next;
+						if (*(long *)(other + 0x14) - *(long *)(other + 0x10) > *(short *)(other + 0x1e) ||
+							(other[0xe] && *(long *)(other + 0x44) != NONE && *(long *)(other + 0x44) != previous))
+							function_20fda0(next);
+						else
+						{
+							last = other;
+							previous = next;
+						}
 					}
-				}
-				next = *(long *)(other + 0x50);
+					next = *(long *)(other + 0x50);
+				} while (next != NONE);
 			}
 			result = true;
 		}
@@ -1468,4 +1472,109 @@ void function_210c90(s_type_c3b527 const *a, point3f const *b, vector3f *out)
 		function_210850(a, &point);
 		vector3d_from_points3d(b, &point, out);
 	}
+}
+
+
+struct s_2960e0_counts;
+long function_2960e0(s_2960e0_counts *counts, long *objects, long maximum_count);
+
+// @retail 0x210280
+void function_210280(void)
+{
+    long objects[2000];
+    long count = function_2960e0((s_2960e0_counts *)g_4e0350, objects, 2000);
+    s_pair_table *table = NULL;
+    s_unknown_4e0348 *globals = (s_unknown_4e0348 *)g_4e0348;
+    if (globals->count > 0)
+        table = globals->table;
+    for (long i = 0; i < 100; i++)
+        g_4f93a0[i].object_index = NONE;
+    if (table)
+    {
+        for (short i = 0; i < count; i++)
+        {
+            long object_index = objects[i];
+            if (object_index != NONE)
+                function_2101d0(table, object_index);
+        }
+    }
+}
+
+
+point3f *function_b9dd0(long object_index, point3f *result);
+real function_30bf0(vector3f *vector);
+long function_25d810(long object_index, long actor_index, bool create);
+
+// @retail 0x20e190
+real function_20e190(long object_index)
+{
+    byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+    long actor_index = *(long *)(object + 0x12c);
+    real result = 0.0f;
+    if (actor_index != NONE)
+    {
+        byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+        if (actor[0x2e0])
+            return *(real *)(actor + 0x2e4);
+        real maximum = 0.0f;
+        bool found = false;
+        s_record_pool *players = g_4e8c24;
+        long index = NONE;
+        for (;;)
+        {
+            index = record_pool_next_used(players, index + 1);
+            if (index == NONE)
+                break;
+            byte *player = players->data + index * players->size;
+            if (!player)
+                break;
+            long unit_index = *(long *)(player + 0x2c);
+            if (unit_index != NONE)
+            {
+                real weight = 0.0f;
+                found = true;
+                point3f position;
+                function_b9dd0(unit_index, &position);
+                point3f *actor_position = (point3f *)(actor + 0x238);
+                real y = position.y - actor_position->y;
+                real x = position.x - actor_position->x;
+                real z = position.z - actor_position->z;
+                real squared = z * z + y * y + x * x;
+                if (squared > 64.0f)
+                    result = 0.0f;
+                else
+                {
+                    byte *unit = *(byte **)(g_4e0300->data + (unit_index & 0xffff) * 12 + 8);
+                    vector3f forward = *(vector3f *)(unit + 0x168);
+                    vector3f direction;
+                    direction.i = actor_position->x - position.x;
+                    direction.j = actor_position->y - position.y;
+                    direction.k = actor_position->z - position.z;
+                    if (function_30bf0(&direction) > 0.0f)
+                    {
+                        weight = 1.0f - squared * 0.015625f;
+                        real dot = forward.k * direction.k + forward.j * direction.j + forward.i * direction.i;
+                        if (dot < 0.0f)
+                        {
+                            real fraction = dot + 1.0f;
+                            fraction = fraction < 0.0f ? 0.0f : fraction > 1.0f ? 1.0f : fraction;
+                            weight = (fraction + 1.0f) * weight * 0.5f;
+                        }
+                        long reference_index = function_25d810(unit_index, *(long *)(object + 0x12c), false);
+                        if (reference_index != NONE && (signed char)g_502418->data[(reference_index & 0xffff) * 0x3c + 0x27] < 1)
+                            weight *= 0.5f;
+                    }
+                    result = weight * 0.3f + 0.7f;
+                }
+                if (result > maximum)
+                    maximum = result;
+            }
+        }
+        if (!found)
+            maximum = 1.0f;
+        result = maximum;
+        *(real *)(actor + 0x2e4) = result;
+        actor[0x2e0] = true;
+    }
+    return result;
 }

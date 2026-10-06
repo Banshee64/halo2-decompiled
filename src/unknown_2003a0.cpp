@@ -1325,3 +1325,105 @@ void function_2036c0(long definition_index, short mode, bool *enabled, bool *for
 		*forced = true;
 	}
 }
+
+
+bool function_1df560(short team_a, short team_b);
+bool function_2104b0(short output_index, point3f const *point, point3f *out);
+
+// @retail 0x204950
+real function_204950(long actor_index, long squad_index, short mode)
+{
+    (void)&mode;
+    real result = 3.402823466e+38F;
+    byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+    byte *squad = (byte *)squad_get(squad_index);
+    if (*(short *)(squad + 0x7e) == g_4686c4 &&
+        !function_1df560(*(short *)(actor + 0x24), (signed char)squad[0x76]))
+    {
+        s_squad_iterator iterator;
+        function_204ec0(&iterator, (short)squad_index, 15, mode);
+        while (function_205010(&iterator) != NONE)
+        {
+            byte *palette = *(byte **)((byte *)g_4e0350 + 0x16c) + (word)iterator.palette_index * 0x38;
+            byte *entry = *(byte **)(palette + 0x34) + iterator.current * 0x88;
+            point3f const *point = (point3f const *)(entry + 0x24);
+            point3f transformed;
+            real squared;
+            if (*(short *)(entry + 0x30) == NONE)
+            {
+                real x = *(real *)(actor + 0x238) - point->x;
+                real z = *(real *)(actor + 0x240) - point->z;
+                real y = *(real *)(actor + 0x23c) - point->y;
+                squared = x * x + z * z + y * y;
+            }
+            else
+            {
+                if (!function_2104b0(*(short *)(entry + 0x30), point, &transformed))
+                    transformed = *point;
+                real z = *(real *)(actor + 0x240) - transformed.z;
+                real x = *(real *)(actor + 0x238) - transformed.x;
+                real y = *(real *)(actor + 0x23c) - transformed.y;
+                squared = z * z + x * x + y * y;
+            }
+            real distance = (real)sqrt(squared) - *(real *)(entry + 0x34);
+            real clamped = distance > 0.0f ? distance : 0.0f;
+            if (clamped < result)
+                result = clamped;
+        }
+    }
+    return result;
+}
+
+
+// @retail 0x204b20
+long function_204b20(long actor_index, short mode)
+{
+    (void)&actor_index;
+    (void)&mode;
+    byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+    real best = 15.0f;
+    long result = NONE;
+    s_record_pool_iterator iterator;
+    if (g_4f55d0->active)
+    {
+        iterator.data = g_51e9d8;
+        iterator.index = NONE;
+    }
+    for (;;)
+    {
+        byte *squad = NULL;
+        long squad_index = NONE;
+        if (g_4f55d0->active)
+        {
+            squad = data_iterator_next_inlined(&iterator);
+            squad_index = iterator.datum_index;
+        }
+        squad_index &= 0xffff;
+        if (!squad)
+            break;
+        if ((signed char)squad[2] >= 0)
+            continue;
+        short team = (signed char)squad[0x76];
+        short actor_team = *(short *)(actor + 0x24);
+        real weight;
+        if (team == actor_team)
+            weight = 1.0f;
+        else if (function_1df560(team, actor_team))
+            continue;
+        else
+            weight = 1.333f;
+        real distance = function_204950(actor_index, squad_index, mode);
+        if (distance < 3.402823466e+38F)
+        {
+            if (squad_index == *(long *)(actor + 0x28))
+                weight *= 0.666f;
+            distance *= weight;
+            if (distance < best)
+            {
+                result = squad_index;
+                best = distance;
+            }
+        }
+    }
+    return result;
+}
