@@ -46,11 +46,6 @@ void function_07a840(void)
 {
 }
 
-// @stub 0x7f660
-bool __stdcall function_07f660(wchar_t *name, long length, const wchar_t *requested, long count, const wchar_t **names)
-{
-	return false;
-}
 
 // @stub 0x199740
 bool __stdcall function_199740(unsigned char *buffer, long size, unsigned char *destination, long *decompressed_size)

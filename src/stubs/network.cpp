@@ -27,11 +27,6 @@ bool function_07ca70(s_bitstream *stream, void *destination)
 	return false;
 }
 
-// @stub 0x7d520
-bool function_07d520(s_bitstream *stream, void *part)
-{
-	return false;
-}
 
 // @stub 0x86f90
 void function_86f90(s_bitstream *stream, s_player_action *action)
