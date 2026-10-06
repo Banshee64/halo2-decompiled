@@ -152,3 +152,288 @@ bool function_b4120(long kind, struct _XUID owner, wchar_t const *filename, wcha
         return false;
     return true;
 }
+
+#include "unknown_0b4da0.h"
+
+struct s_http_connection_ab
+{
+    s_type_99af70 address;
+    char hostname[16];
+    s_transport_endpoint internal_endpoint;
+    s_transport_endpoint *endpoint;
+    byte unknown30[4];
+    char path[0x80];
+    byte unknownb4[0x634 - 0xb4];
+    long upload_header_length;
+    long upload_part_length;
+    long upload_ending_length;
+    byte unknown640[0x96c - 0x640];
+    long upload_file_length;
+    long upload_position;
+    char response[0x200];
+    long response_length;
+    long attempt_count;
+    long state;
+    bool connect(long address, word port, char const *path, bool flag);
+    bool receive(bool *complete);
+    bool send();
+};
+
+
+word g_546a80;
+char const *g_4672d8 = "/upload_server/stats.ashx";
+bool online_result_get_address(long index, IN_ADDR *address);
+
+// @retail 0xb40b0
+bool function_b40b0()
+{
+    long index = (dword)g_547620 % g_5107d8;
+    bool result = false;
+    IN_ADDR address;
+    if (online_result_get_address(index, &address))
+    {
+        if (((s_http_connection_ab *)g_546a8c)->connect(address.s_addr, g_546a80, g_4672d8, false))
+            result = true;
+    }
+    return result;
+}
+
+dword g_547624;
+bool function_b5e90(s_http_connection_ab *connection, bool *complete);
+
+// @retail 0xb3fc0
+void function_b3fc0()
+{
+    if (!((s_http_connection_ab *)g_546a8c)->state)
+    {
+        if (!g_510580 || !function_b40b0())
+            function_b4050();
+    }
+    else
+    {
+        bool complete = false;
+        if (!function_b5e90((s_http_connection_ab *)g_546a8c, &complete) || GetTickCount() >= g_547624)
+            function_b4050();
+        else if (complete)
+            function_b4020();
+    }
+}
+
+bool g_546a89;
+bool online_result_service_connected();
+void online_result_cache_start();
+void online_result_cache_update();
+
+// @retail 0xb3de0
+void function_b3de0()
+{
+    bool connected = online_result_service_connected();
+    if (g_546a89 != connected)
+    {
+        g_546a89 = connected;
+        online_result_registration_clear();
+        if (g_510584 != NONE)
+        {
+            function_6b640(g_510584);
+            g_510584 = NONE;
+        }
+        g_510580 = false;
+        function_b5e40(g_546a8c);
+        g_547620 = 0;
+    }
+    else if (connected && g_510584 != NONE)
+    {
+        if (GetTickCount() < g_547624)
+        {
+            online_result_cache_update();
+            if (g_510584 != NONE || g_510580)
+                return;
+        }
+        function_b4050();
+    }
+    else if (g_54761c)
+    {
+        if (!connected)
+            function_b4050();
+        else if (!g_510580)
+            online_result_cache_start();
+        else
+            function_b3fc0();
+    }
+}
+
+static inline long storage_facility_ab(long kind)
+{
+    switch (kind)
+    {
+    case 0: return 4;
+    case 1: return 5;
+    default: return 3;
+    }
+}
+
+static __forceinline long storage_error_ab(HRESULT error)
+{
+    switch (error)
+    {
+    case 0x8007000e:
+    case 0x80150002:
+    case 0x80150003:
+    case 0x80150005:
+    case 0x80150006:
+    case 0x80150008:
+        return 2;
+    case 0x80150004:
+    case 0x8015c002:
+        return 3;
+    case 0x8015c006:
+    case 0x8015c008:
+    case 0x8015c009:
+        return 4;
+    case 0x8015c004:
+    case 0x8015c007:
+        return 5;
+    default:
+        return 1;
+    }
+}
+
+// @retail 0xb4810
+long function_b4810(long kind, long controller, struct _XUID owner, wchar_t const *filename, char const *directory, long *task_out)
+{
+    (void)&controller;
+    long result = 1;
+    *task_out = NONE;
+    long facility = storage_facility_ab(kind);
+    wchar_t path[0x100];
+    dword path_size = 0x100;
+    if (function_b4120(kind, owner, filename, path, &path_size))
+    {
+        long task_index = online_task_new_if_logged_on();
+        s_type_9df9da *task = function_6b910(task_index);
+        if (task)
+        {
+            HRESULT status = XOnlineStorageDownload(facility, controller, path, directory, 0, 0, (XONLINETASK_HANDLE *)&task->handle);
+            if (status >= 0)
+            {
+                *task_out = task_index;
+                task->flags = 1;
+                task->type = 0x2c;
+                task->controller_index = controller;
+                return 0;
+            }
+            result = storage_error_ab(status);
+            function_6b640(task_index);
+        }
+    }
+    return result;
+}
+
+// @retail 0xb4450
+long function_b4450(long kind, long controller, struct _XUID owner, wchar_t const *filename, byte *buffer, dword size, long *task_out)
+{
+    (void)&controller;
+    long result = 1;
+    *task_out = NONE;
+    long facility = storage_facility_ab(kind);
+    wchar_t path[0x100];
+    dword path_size = 0x100;
+    if (function_b4120(kind, owner, filename, path, &path_size))
+    {
+        long task_index = online_task_new_if_logged_on();
+        s_type_9df9da *task = function_6b910(task_index);
+        if (task)
+        {
+            HRESULT status = XOnlineStorageDownloadToMemory(facility, controller, path, buffer, size, 0, 0, (XONLINETASK_HANDLE *)&task->handle);
+            if (status >= 0)
+            {
+                *task_out = task_index;
+                task->flags = 1;
+                task->type = 0x2a;
+                task->controller_index = controller;
+                return 0;
+            }
+            result = storage_error_ab(status);
+            function_6b640(task_index);
+        }
+    }
+    return result;
+}
+
+// @retail 0xb4670
+long function_b4670(long kind, long controller, struct _XUID owner, wchar_t const *filename, char const *directory, long *task_out)
+{
+    (void)&controller;
+    long result = 1;
+    *task_out = NONE;
+    long facility = storage_facility_ab(kind);
+    wchar_t path[0x100];
+    dword path_size = 0x100;
+    if (function_b4120(kind, owner, filename, path, &path_size))
+    {
+        long task_index = online_task_new_if_logged_on();
+        s_type_9df9da *task = function_6b910(task_index);
+        if (task)
+        {
+            FILETIME expiration = { 0, 0 };
+            HRESULT status = XOnlineStorageUploadByServerPath(facility, controller, path, expiration, directory, 0, 0, (XONLINETASK_HANDLE *)&task->handle);
+            if (status >= 0)
+            {
+                *task_out = task_index;
+                task->flags = 1;
+                task->type = 0x2c;
+                task->controller_index = controller;
+                return 0;
+            }
+            result = storage_error_ab(status);
+            function_6b640(task_index);
+        }
+    }
+    return result;
+}
+
+// @retail 0xb42b0
+long function_b42b0(long kind, long controller, struct _XUID owner, wchar_t const *filename, byte *buffer, dword size, long *task_out)
+{
+    (void)&controller;
+    long result = 1;
+    *task_out = NONE;
+    long facility = storage_facility_ab(kind);
+    wchar_t path[0x100];
+    dword path_size = 0x100;
+    if (function_b4120(kind, owner, filename, path, &path_size))
+    {
+        long task_index = online_task_new_if_logged_on();
+        s_type_9df9da *task = function_6b910(task_index);
+        if (task)
+        {
+            FILETIME expiration = { 0, 0 };
+            HRESULT status = XOnlineStorageUploadFromMemory(facility, controller, path, expiration, buffer, size, 0, 0, (XONLINETASK_HANDLE *)&task->handle);
+            if (status >= 0)
+            {
+                *task_out = task_index;
+                task->flags = 1;
+                task->type = 0x29;
+                task->controller_index = controller;
+                return 0;
+            }
+            switch (status)
+            {
+            case 0x8007000e:
+            case 0x80150002:
+            case 0x80150003:
+            case 0x80150005:
+            case 0x80150006:
+            case 0x80150008: result = 2; break;
+            case 0x80150004:
+            case 0x8015c002: result = 3; break;
+            case 0x8015c006:
+            case 0x8015c008:
+            case 0x8015c009: result = 4; break;
+            default: result = 1; break;
+            }
+            function_6b640(task_index);
+        }
+    }
+    return result;
+}

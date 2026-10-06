@@ -84,7 +84,9 @@ struct s_object
 	dword : 5;
 	byte unknown08[0xc];
 	long parent_index;
-	byte unknown18[0x10c];
+	byte unknown18[0xc0 - 0x18];
+    word flags_c0;
+    byte unknownc2[0x124 - 0xc2];
 	short markers_size;
 	short markers_offset;
 };
@@ -238,4 +240,240 @@ bool function_bafb0(long object_index, long ancestor_index)
 		object_index = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object->parent_index;
 	}
 	return ancestor_index != NONE && current == ancestor_index;
+}
+
+void function_3dd10(long object_index, bool force);
+
+// @retail 0xbacc0
+bool function_bacc0(long object_index, long index, point3f const *point)
+{
+    bool result = false;
+    s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+    point3f *points = (point3f *)((byte *)object + object->markers_offset);
+    long count = (long)((dword)(long)object->markers_size / 12) / 2;
+    if (index >= 0 && index < count)
+    {
+        points[index] = *point;
+        points[index + count] = *point;
+        function_3dd10(object_index, true);
+        result = true;
+    }
+    return result;
+}
+
+#include <xmmintrin.h>
+extern void *g_4de2e0;
+extern void *g_4de2e4;
+extern void *g_4de2d4;
+extern void *g_4de2d8;
+extern bool g_4de2f8;
+extern long g_4de2fc;
+extern long g_4de300[0x800];
+
+struct s_cluster_link_ab
+{
+    long salt;
+    long object_index;
+    long next;
+};
+
+static __forceinline long cluster_link_next_ab(s_record_pool *array, long *next)
+{
+    long result;
+    if (*next != NONE)
+    {
+        s_cluster_link_ab *link = (s_cluster_link_ab *)(array->data + (*next & 0xffff) * array->size);
+        *next = link->next;
+        if (*next != NONE)
+            _mm_prefetch((char const *)(array->data + (*next & 0xffff) * array->size), _MM_HINT_T0);
+        result = link->object_index;
+    }
+    else
+        result = NONE;
+    return result;
+}
+
+// @retail 0xbb430
+short function_bb430(long mask, short cluster_count, short const *clusters, short maximum, long *objects)
+{
+    short count = 0;
+    if (!mask)
+        mask = NONE;
+    ++g_4de2fc;
+    g_4de2f8 = true;
+    for (short i = 0; i < cluster_count; ++i)
+    {
+        short cluster = clusters[i];
+        long next;
+        long object;
+        if (mask & 1)
+        {
+            next = ((long *)g_4de2e0)[cluster];
+            while ((object = cluster_link_next_ab((s_record_pool *)g_4de2e4, &next)) != NONE)
+            {
+                if (g_4de300[object & 0xffff] != g_4de2fc)
+                {
+                    g_4de300[object & 0xffff] = g_4de2fc;
+                    if (count >= maximum)
+                        goto done;
+                    objects[count++] = object;
+                }
+            }
+        }
+        if (mask & 2)
+        {
+            next = ((long *)g_4de2d4)[cluster];
+            while ((object = cluster_link_next_ab((s_record_pool *)g_4de2d8, &next)) != NONE)
+            {
+                if (g_4de300[object & 0xffff] != g_4de2fc)
+                {
+                    g_4de300[object & 0xffff] = g_4de2fc;
+                    if (count >= maximum)
+                        goto done;
+                    objects[count++] = object;
+                }
+            }
+        }
+    }
+done:
+    g_4de2f8 = false;
+    return count;
+}
+
+struct s_tag_data
+{
+    long size;
+    byte *address;
+};
+struct s_object_function_ab
+{
+    dword flags;
+    long input_name;
+    long output_name;
+    long enable_name;
+    real threshold;
+    s_tag_data curve;
+    long scale_name;
+};
+struct s_object_functions_definition_ab
+{
+    byte unknown00[0x64];
+    long count;
+    s_object_function_ab *functions;
+};
+bool function_108d90(long object_index, long name, real *value, bool *enabled);
+bool function_10aac0(long object_index, long name, real *value, long *index);
+real function_13bb90(s_tag_data const *function, real input, real range);
+bool __stdcall function_bab40(long object_index, long name, real *value);
+
+// @retail 0xba8c0
+bool function_ba8c0(s_object_function_ab const *function, long object_index, real *out)
+{
+    bool implicit_enable = !(bool)((function->flags >> 1) & 1);
+    bool periodic = function->curve.address[0] == 3;
+    bool enabled = false;
+    real value = 0.0f;
+    s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+    if ((bool)(((dword)object->flags_c0 >> 9) & 1))
+    {
+        long index;
+        if (function_10aac0(object_index, function->input_name, out, &index))
+            return true;
+    }
+    function_108d90(object_index, function->input_name, &value, &enabled);
+    if (enabled || implicit_enable || periodic)
+    {
+        if (!periodic)
+        {
+            if (function->flags & 1)
+                value = 1.0f - value;
+            value = function_13bb90(&function->curve, value, 1.0f);
+            if (implicit_enable)
+                enabled = value > 0.0f;
+        }
+        else
+        {
+            real time = g_510c54->game_time * g_510c54->rate;
+            if (function->flags & 8)
+            {
+                dword random = ((dword)object_index * 0x19660d + 0x3c6ef35f) >> 16;
+                time += random * 0.000015259021893143654f;
+            }
+            value *= function_13bb90(&function->curve, time, 1.0f);
+        }
+    }
+    if (function->scale_name)
+    {
+        real scale;
+        bool scale_enabled = function_bab40(object_index, function->scale_name, &scale);
+        value = scale * value;
+        enabled = enabled && scale_enabled;
+    }
+    if (enabled && function->threshold > 0.0f)
+        enabled = value > function->threshold;
+    if (function->flags & 4)
+        enabled = true;
+    if (function->enable_name && enabled)
+    {
+        real ignored = 0.0f;
+        bool gate = false;
+        function_108d90(object_index, function->enable_name, &ignored, &gate);
+        if (!gate)
+        {
+            *out = 0.0f;
+            return false;
+        }
+    }
+    if (enabled)
+        *out = value < 0.0f ? 0.0f : value > 1.0f ? 1.0f : value;
+    else
+        *out = 0.0f;
+    return enabled;
+}
+
+// @retail 0xbab40
+bool __stdcall function_bab40(long object_index, long name, real *value)
+{
+    *value = 0.0f;
+    bool enabled = false;
+    s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+    if ((bool)(((dword)object->flags_c0 >> 9) & 1))
+    {
+        long index;
+        if (function_10aac0(object_index, name, value, &index))
+            return true;
+    }
+    if (!name || name == 0x030005a6)
+    {
+        *value = 1.0f;
+        return true;
+    }
+    if (name == 0x040005a7)
+    {
+        *value = 0.0f;
+        return false;
+    }
+    if (object_index != NONE && !function_108d90(object_index, name, value, &enabled))
+    {
+        object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+        s_object_functions_definition_ab *definition = (s_object_functions_definition_ab *)g_4e3b44[*(long *)object & 0xffff].bytes;
+        bool found = false;
+        for (long i = 0; i < definition->count; ++i)
+        {
+            s_object_function_ab *function = &definition->functions[i];
+            if (function->output_name == name)
+            {
+                enabled = function_ba8c0(function, object_index, value);
+                found = true;
+            }
+        }
+        if (!found)
+        {
+            if (TEST_FIELD_BIT(object->flag26) && object->parent_index != NONE)
+                return function_bab40(object->parent_index, name, value);
+            *value = 0.0f;
+            return false;
+        }
+    }
+    return enabled;
 }

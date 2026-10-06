@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6164 functions match
+
+```
+matched 6164 of 11318 game functions (636418 of 2784283 bytes, 22.86%)
+```
+
+9 new matches, none lost:
+- **Codex lane W**, round 9 (9): more core utilities in the 0x11000–0x4ffff range.
+
+## 2026-10-05: 6155 functions match
+
+```
+matched 6155 of 11318 game functions (634827 of 2784283 bytes, 22.80%)
+```
+
+14 new matches, none lost:
+- **Codex lane Z**, round 3 (14): object creation codecs, event definitions and device helpers in the 0xa0000–0xac48f range.
+
+## 2026-10-05: 6141 functions match
+
+```
+matched 6141 of 11318 game functions (630928 of 2784283 bytes, 22.66%)
+```
+
+11 new matches, none lost:
+- **Codex lane AB**, round 3 (11): more object core iterators, storage and light helpers; one lane O function (0x240fe0) now matches too.
+
 ## 2026-10-05: 6130 functions match
 
 ```

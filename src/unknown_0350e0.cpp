@@ -7,6 +7,74 @@
 
 real g_4670e4 = 0.85f;
 
+struct s_355e0_function
+{
+	long size;
+	byte *data;
+};
+
+struct s_355e0_curve
+{
+	real period;
+	long input;
+	real duration;
+	s_355e0_function function;
+};
+
+real function_13b390(void const *function, real input, real range);
+
+PRIVATE __forceinline real curve_endpoint(s_355e0_function const *curve, real input)
+{
+	real result = function_13b390(curve, input, 0.0f);
+	byte *data = curve->data;
+	if (!(data[1] & 0xf0))
+	{
+		real lower = *(real *)(data + 4);
+		real upper = *(real *)(data + 8);
+		real clamped = 0.0f > result ? 0.0f : result > 1.0f ? 1.0f : result;
+		return (upper - lower) * clamped + lower;
+	}
+	return result;
+}
+
+// @retail 0x355e0
+bool function_355e0(long tag, long index, real *first, real *second)
+{
+	long count = 0;
+	(void)&index;
+	(void)&first;
+	(void)&second;
+	byte *definition = *(byte **)(g_4e3b44[tag & 0xffff].bytes + 0x24);
+	*first = 0.0f;
+	*second = 0.0f;
+	long selection = (*(short **)(definition + 0x60))[index * 2 + 1];
+		if (selection != NONE)
+	{
+		word const *range = *(word **)(definition + 0x50) + selection;
+		short const *entry = *(short **)(definition + 0x48) + (*range & 0x1ff) * 2;
+		for (long i = 0; i < (*range >> 9); entry += 2, ++i)
+		{
+			if (entry[1] == 4 || entry[1] == 5)
+			{
+				s_355e0_curve const *curve = *(s_355e0_curve **)(definition + 0x40) + entry[0];
+				real duration = 1.0f;
+				if (curve->duration != 0.0f) duration = curve->duration;
+				s_355e0_function const *function = &curve->function;
+				real initial = curve_endpoint(function, 0.0f);
+				real final = curve_endpoint(function, 1.0f);
+				real slope = (final - initial) / duration;
+				switch (entry[1])
+				{
+				case 4: *first = slope; break;
+				case 5: *second = slope; break;
+				}
+				++count;
+			}
+		}
+	}
+	return count > 0;
+}
+
 struct s_4ca40_colors
 {
 	byte unknown00[0x14];
@@ -132,6 +200,40 @@ struct s_2e3f0_record
 	byte amount;
 	dword color;
 };
+
+dword __cdecl function_131f40(real alpha, color3f const *color);
+
+PRIVATE inline byte placement_byte(real value)
+{
+	real clamped = 0.0f > value ? 0.0f : value > 255.0f ? 255.0f : value;
+	return (byte)clamped;
+}
+
+// @retail 0x2e230
+void function_2e230(long tag, point3f const *position, vector3f const *direction,
+	color3f const *color, real alpha, real amount, real scale, s_2e3f0_record *record)
+{
+	(void)&color;
+	(void)&alpha;
+	(void)&amount;
+	(void)&scale;
+	byte *definition = g_4e3b44[tag & 0xffff].bytes;
+	record->tag = tag;
+	record->position = *position;
+	record->direction[0] = placement_byte((direction->i + 1.0f) * 128.0f);
+	record->direction[1] = placement_byte((direction->j + 1.0f) * 128.0f);
+	record->direction[2] = placement_byte((direction->k + 1.0f) * 128.0f);
+	if (definition[0x28] & 0x40)
+	{
+		record->amount = placement_byte(alpha * 256.0f);
+		record->color = *(dword *)&scale;
+	}
+	else
+	{
+		record->amount = placement_byte(amount * 256.0f);
+		record->color = function_131f40(alpha, color);
+	}
+}
 
 // @retail 0x2e3f0
 void function_2e3f0(s_2e3f0_record const *record, long *tag, point3f *position,
@@ -752,4 +854,133 @@ void function_4b160(long first, s_4b160_entry *entries, long mode, long last)
 			}
 		}
 	}
+}
+
+real g_509418;
+real function_30bf0(vector3f *vector);
+
+struct s_vector_perturbation
+{
+	dword unknown00;
+	vector3f direction;
+	real speed_spread;
+	real speed_minimum;
+	real speed_maximum;
+	real speed_fraction;
+	vector3f velocity;
+	vector3f base_direction;
+	real direction_spread;
+	real magnitude_spread;
+	dword unknown40;
+	real magnitude;
+	real direction_scale;
+	real first_fraction;
+	real second_fraction;
+	real magnitude_fraction;
+	vector3f first_axis;
+	vector3f second_axis;
+	vector3f perturbation;
+	real step_scale;
+	byte unknown80[0x18];
+	real step;
+};
+
+// @retail 0x4b3d0
+void function_4b3d0(s_vector_perturbation *state)
+{
+	state->speed_fraction = function_36a40(state->speed_fraction, state->speed_spread * g_509418, 0.0f, 1.0f);
+	real speed = (state->speed_maximum - state->speed_minimum) * state->speed_fraction + state->speed_minimum;
+	state->velocity.i = state->direction.i * speed;
+	state->velocity.j = state->direction.j * speed;
+	state->velocity.k = state->direction.k * speed;
+	state->first_fraction = function_36a40(state->first_fraction, state->direction_spread * g_509418, -1.0f, 1.0f);
+	state->second_fraction = function_36a40(state->second_fraction, state->direction_spread * g_509418, -1.0f, 1.0f);
+	state->magnitude_fraction = function_36a40(state->magnitude_fraction, state->magnitude_spread * g_509418, 0.0f, 1.0f);
+	real first = state->first_fraction * state->direction_scale;
+	state->perturbation.i = state->first_axis.i * first + state->base_direction.i;
+	state->perturbation.j = state->first_axis.j * first + state->base_direction.j;
+	state->perturbation.k = state->first_axis.k * first + state->base_direction.k;
+	real second = state->second_fraction * state->direction_scale;
+	state->perturbation.i = state->second_axis.i * second + state->perturbation.i;
+	state->perturbation.j = state->second_axis.j * second + state->perturbation.j;
+	state->perturbation.k = state->second_axis.k * second + state->perturbation.k;
+	function_30bf0(&state->perturbation);
+	real magnitude = state->magnitude * state->magnitude_fraction;
+	state->perturbation.i *= magnitude;
+	state->perturbation.j *= magnitude;
+	state->perturbation.k *= magnitude;
+	state->velocity.i += state->perturbation.i;
+	state->velocity.j += state->perturbation.j;
+	state->velocity.k += state->perturbation.k;
+	state->step = state->step_scale * g_509418;
+}
+
+struct s_33a0b_view;
+extern s_33a0b_view *g_485a58;
+extern real g_485774, g_485a6c;
+extern long g_4b9ed8;
+real g_485a30, g_4857f8, g_485864, g_485858;
+real g_48578c, g_485868, g_4857a4;
+long g_4b9f5c;
+real g_4b9f84, g_4b9f80;
+real g_4e69c0[4];
+real g_4c19b0, g_4c19b4;
+
+// @retail 0x336f0
+real function_336f0(long selector)
+{
+    switch (selector)
+    {
+    case 0: return 0.0f;
+    case 2: return 0.0f;
+    case 13: return 0.0f;
+    case 38: return 0.0f;
+    case 16: return 1.0f > g_485a30 ? g_485a30 : 1.0f;
+    case 23:
+        if (g_485a58)
+        {
+            real const *values = (real const *)g_485a58;
+            real red = values[4] + values[12];
+            real green = values[5] + values[13];
+            real blue = values[6] + values[14];
+            real value = blue * 0.114f + green * 0.587f + red * 0.299f;
+            return 0.0f > value ? 0.0f : value > 1.0f ? 1.0f : value;
+        }
+        return 1.0f;
+    case 12: return 1.0f;
+    case 22: return 1.0f;
+    case 17: return g_485a30;
+    case 10: return g_485774;
+    case 24: return g_485774;
+    case 3: return g_4857f8;
+    case 33: return g_4857f8;
+    case 4: return g_485864;
+    case 25: return g_485864;
+    case 18: return g_485864 * g_485774;
+    case 27: return g_485864 * g_485774;
+    case 19: return g_485858 * g_4857f8;
+    case 36: return g_485858 * g_4857f8;
+    case 20: return (1.0f - g_485858) * g_4857f8;
+    case 35: return (1.0f - g_485858) * g_4857f8;
+    case 21: return g_485a6c;
+    case 26: return (1.0f - g_485864) * g_4857f8;
+    case 28: return g_48578c;
+    case 29: return g_485868;
+    case 30: return (1.0f - g_485868) * g_48578c;
+    case 31: return g_485868 * g_485774;
+    case 32: return g_4857a4;
+    case 34: return g_485858;
+    case 37: return function_33670(*(long *)g_485a58);
+    case 39:
+        if (g_4b9f5c != NONE && g_4b9f84 > g_4b9f80)
+            return 0.0f - (1.0f / (g_4b9f84 - g_4b9f80)) * g_4b9f80;
+        return 0.0f;
+    case 40:
+        if (g_4b9ed8 >= 0 && g_4b9ed8 < 4)
+            return g_4e69c0[g_4b9ed8];
+        return 1.0f;
+    case 41: return g_4c19b0;
+    case 42: return g_4c19b4;
+    default: __assume(0);
+    }
 }
