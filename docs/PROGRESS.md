@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6385 functions match
+
+```
+matched 6385 of 11318 game functions (677037 of 2784283 bytes, 24.32%)
+```
+
+7 new matches, none lost:
+- **Codex lane D**, round 21 (4): session and network helpers in the 0x50000–0x6ffff and 0x80000–0x8ffff ranges, plus lane J's 0x94100 through a now-real callee.
+- **Codex lane AA**, round 2 (3): unit and object helpers in the 0x110000–0x11ffff range.
+
+## 2026-10-06: 6378 functions match
+
+```
+matched 6378 of 11318 game functions (676266 of 2784283 bytes, 24.29%)
+```
+
+4 new matches, none lost:
+- **Codex lane U**, round 9 (4): squad and image helpers in the 0x200000–0x217fff range.
+
 ## 2026-10-06: 6374 functions match
 
 ```

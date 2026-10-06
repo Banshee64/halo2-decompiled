@@ -50,7 +50,7 @@ public:
 	virtual long v2();
 	virtual void v3(s_node_450d1c *node, long a2, long a3, long key, s_bitstream *stream, long reserved_bits) {}
 	virtual void v4(long a1, s_counter_450c94 *a2);
-	virtual void v5() {}
+	virtual long v5(dword a1, s_bitstream *stream, long max_blocks, s_block_450c94 *blocks, long *count) { return 0; }
 	virtual void v6(s_block_450c94 *block) {}
 	virtual void v7() {}
 	virtual void v8() {}
@@ -92,6 +92,7 @@ public:
 	virtual bool v0();
 	virtual long v1(long a1, long max_count, void *entries);
 	virtual void v3(s_node_450d1c *node, long a2, long a3, long key, s_bitstream *stream, long reserved_bits);
+	virtual long v5(dword a1, s_bitstream *stream, long max_blocks, s_block_450c94 *blocks, long *count);
 	virtual void v6(s_block_450c94 *block);
 
 	void reset(c_source_450c94 *new_source);

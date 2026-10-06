@@ -588,7 +588,7 @@ void function_bba20(long object_index);
 long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
 	point3f const *origin, vector3f const *direction);
 void function_15cbf0(long attacker_index, long player_index, long flags);
-void function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard);
+bool function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard);
 void function_c86e0(long unit_index, bool keep_weapon_zoom);
 void function_1c95d0(long unit_index, long attacker_index, short type, real amount);
 void function_1c9e10(long unit_index, vector3f const *direction, real shake);

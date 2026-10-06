@@ -5,6 +5,9 @@
 #include "unknown_11c920.h"
 #include "pending_messages.h"
 #include "crc.h"
+#include "physical_memory.h"
+#include <xtl.h>
+#include <d3d8.h>
 
 bool function_0b49a0(long index, real *result);
 
@@ -215,4 +218,82 @@ retry:
 		else
 			g_55e700++;
 	}
+}
+
+void __stdcall function_8e0f0(long index, long result);
+void function_12d520(long memory);
+
+// @retail 0x812d0
+void __stdcall function_812d0(void *allocation, s_pending_message_header *header)
+{
+ if (header->kind && header->pending_index != NONE)
+  function_8e0f0(header->pending_index, 13);
+ if (header->data)
+ {
+  function_12d520((long)header->data);
+  header->data = 0;
+  header->size = 0;
+ }
+}
+
+extern s_physical_object *g_4e6464;
+long __stdcall function_12d2f0(long size, long user_data, long update, long release);
+void function_12c600(void);
+double timing_ticks_to_seconds(__int64 ticks);
+
+static inline __int64 pending_read_ticks(void)
+{
+ volatile __int64 value = 0;
+ __asm rdtsc
+}
+
+struct s_pending_message_storage : s_pending_message_header
+{
+ long capacity;
+};
+
+// @retail 0x80e10
+bool function_80e10(s_pending_message_storage *request, void **output, long *size)
+{
+ long capacity = request->capacity;
+ bool result = false;
+ if ((dword)capacity >= 16 && !request->data)
+ {
+  __int64 start = pending_read_ticks();
+  void *allocation = 0;
+  if (capacity > 0 && g_4e6464->page_count > 0)
+  {
+   long attempts = 0;
+   while (!(allocation = (void *)function_12d2f0(capacity, (long)request, 0, (long)function_812d0)))
+   {
+    if (attempts < 90)
+    {
+     attempts++;
+     function_12c600();
+    }
+    else
+    {
+     __int64 elapsed = pending_read_ticks() - start;
+     if (elapsed < 0)
+      elapsed = 0;
+     if (timing_ticks_to_seconds(elapsed) >= 1.0f)
+      break;
+     D3DDevice_KickPushBuffer();
+     D3DDevice_IsBusy();
+     SwitchToThread();
+    }
+   }
+  }
+  request->data = allocation;
+  if (allocation)
+  {
+   request->size = request->capacity;
+   result = true;
+   if (output)
+    *output = allocation;
+   if (size)
+    *size = request->capacity;
+  }
+ }
+ return result;
 }
