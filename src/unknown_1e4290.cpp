@@ -220,3 +220,73 @@ bool function_1e13f0(long actor_index)
 	}
 	return result;
 }
+
+void function_268810(long clump_index);
+
+// @retail 0x1e11b0
+bool function_1e11b0(long actor_index, bool active)
+{
+ s_actor_view *actor = actor_get(actor_index);
+ bool result = true;
+ if (actor->unknown009 != active)
+ {
+  if (active)
+  {
+   if (function_1e13f0(actor_index))
+   {
+    long clump_index = actor->unknown07c;
+    if (clump_index != NONE && !*(bool *)(g_502420->data + (clump_index & 0xffff) * 0x50 + 0x1c))
+     function_268810(clump_index);
+    actor->unknown009 = true;
+    ++*(short *)((byte *)g_4f55d0 + 0x36a);
+   }
+   else result = false;
+  }
+  else
+  {
+   actor->unknown009 = false;
+   *(long *)((byte *)actor + 0x10) = g_510c54->game_time;
+   --*(short *)((byte *)g_4f55d0 + 0x36a);
+  }
+ }
+ return result;
+}
+
+// @retail 0x1e12b0
+bool function_1e12b0(long actor_index, const dword *clusters)
+{
+ const dword *const *cluster_reference = &clusters;
+ s_actor_view *actor = actor_get(actor_index);
+ bool result = false;
+ if (function_1e13f0(actor_index))
+ {
+  if (actor->unknown007)
+  {
+   long perception_index = *(long *)actor->unknown01c;
+   if (perception_index != NONE)
+   {
+    long object_index = perception_get(perception_index)->object_index;
+    while (object_index != NONE)
+    {
+     s_actor_object_query *object = actor_query_object(object_index);
+     long current = object_index;
+     byte *links = object->flags134 == 0 ? (byte *)object + object->link_offset : NULL;
+     object_index = links ? *(long *)(links + 0xc) : NONE;
+     long cluster = *(short *)((byte *)actor_query_object(actor_query_root(current)) + 0x2c);
+     if (cluster != NONE)
+     {
+      result = ((*cluster_reference)[cluster >> 5] & (1 << (cluster & 31))) != 0;
+      if (result) break;
+     }
+    }
+   }
+  }
+  else
+  {
+   long cluster = *(short *)((byte *)actor_query_object(function_baf80(actor->unknown018)) + 0x2c);
+   if (cluster != NONE)
+    result = ((*cluster_reference)[cluster >> 5] & (1 << (cluster & 31))) != 0;
+  }
+ }
+ return result;
+}
