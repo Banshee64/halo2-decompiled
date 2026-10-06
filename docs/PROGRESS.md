@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6098 functions match
+
+```
+matched 6098 of 11318 game functions (622981 of 2784283 bytes, 22.37%)
+```
+
+21 new matches, none lost:
+- **Codex lane Y**, round 2 (21): game-session state, network bandwidth estimation and observer helpers in the 0x70000–0x7ffff range.
+
 ## 2026-10-05: 6077 functions match
 
 ```
