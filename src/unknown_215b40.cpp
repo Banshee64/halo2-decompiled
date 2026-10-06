@@ -496,3 +496,224 @@ void function_212f40(long preset, s_game_variant *variant)
         break;
     }
 }
+
+
+#include <xtl.h>
+
+extern bool g_55c14c;
+void function_125d60(void);
+
+// @retail 0x2160b0
+bool function_2160b0(long file_index, char *path)
+{
+    bool result = false;
+    if (!((bool)(((dword)file_index >> 21) & 1)))
+    {
+        struct
+        {
+            char path[0x14];
+            word name[0x16];
+        } location;
+        location.path[0] = 0;
+        location.name[0] = 0;
+        if (!g_55c14c)
+        {
+            while (!g_55c14c)
+            {
+                SwitchToThread();
+                function_125d60();
+            }
+        }
+        if (function_216800(&location, file_index))
+        {
+            strncpy(path, location.path, 0x100);
+            path[0xff] = 0;
+            result = true;
+        }
+    }
+    return result;
+}
+
+
+struct s_saved_game_file_location
+{
+    char name[0x14];
+    wchar_t display_name[0x12];
+    long type;
+    byte unknown3c;
+    char language;
+    byte unknown3e[2];
+};
+
+char *function_216400(long memory_unit, char *buffer, short capacity);
+bool function_216da0(wchar_t *name, long type, wchar_t const *display_name, long language);
+
+// @retail 0x215e60
+void __stdcall function_215e60(long file_index)
+{
+    (void)&file_index;
+    if (file_index != NONE)
+    {
+        if (!g_55c14c)
+        {
+            while (!g_55c14c)
+            {
+                SwitchToThread();
+                function_125d60();
+            }
+        }
+        long unit = (file_index >> 4) & 15;
+        s_saved_game_file_location location;
+        location.name[0] = 0;
+        location.display_name[0] = 0;
+        if (function_216800(&location, file_index))
+        {
+            if (!((bool)(((dword)file_index >> 21) & 1)))
+            {
+                char root[8] = "";
+                char drive;
+                if (function_1249f0(unit, &drive))
+                {
+                    wchar_t name[128];
+                    name[0] = 0;
+                    function_216da0(name, file_index & 15, location.display_name, location.language);
+                    XDeleteSaveGame(function_216400(unit, root, 8), name);
+                }
+            }
+            function_2169e0(file_index);
+        }
+    }
+}
+
+
+#include "files.h"
+
+extern long g_55c154;
+long function_217590(long memory_unit);
+bool function_216d70(char *path, const char *directory, long type);
+s_type_acf665 *function_136710(s_type_acf665 *file, bool replace, const char *name);
+bool function_216f80(long type, s_saved_game_file_location *location);
+long saved_game_file_type_size_in_blocks(long type);
+bool saved_game_storage_has_free_blocks(long blocks);
+
+// @retail 0x215c00
+long function_215c00(long type, wchar_t const *display_name)
+{
+    long result = NONE;
+    long const *type_reference = &type;
+    (void)&display_name;
+    if (!g_55c14c)
+    {
+        while (!g_55c14c)
+        {
+            SwitchToThread();
+            function_125d60();
+        }
+    }
+    if (g_51ea14)
+    {
+        long count = function_217590(0);
+        if ((g_51ea14 && *(long *)((byte *)g_51ea14 + 0xbef8) >= 0x1000) || count >= 0x1000)
+        {
+            g_55c154 = 1;
+            goto done;
+        }
+        long index = g_55c280;
+        wchar_t name[128];
+        name[0] = 0;
+        if (function_216da0(name, (*type_reference), display_name, index))
+        {
+            char directory[256] = "";
+            char root[8];
+            function_216400(0, root, 8);
+            if (!XCreateSaveGame(root, name, 1, 0, directory, sizeof(directory)))
+            {
+                s_saved_game_file_location location;
+                memset(&location, 0, sizeof(location));
+                char path[256];
+                path[0] = 0;
+                wcsncpy(location.display_name, display_name, 16);
+                location.display_name[16] = 0;
+                location.type = (*type_reference);
+                location.language = (char)index;
+                strncpy(location.name, directory, sizeof(location.name));
+                location.name[sizeof(location.name) - 1] = 0;
+                function_216d70(path, location.name, (*type_reference));
+                struct
+                {
+                    dword signature;
+                    word flags;
+                    short location;
+                    char path[256];
+                    __int64 state;
+                } file;
+                if (function_136710((s_type_acf665 *)&file, false, path) &&
+                    function_1367d0((s_type_acf665 *)&file) &&
+                    function_216f80((*type_reference), (s_saved_game_file_location *)directory) &&
+                    function_216990(0, (c_location_record const *)&location, &index))
+                {
+                    long generation = *(long *)((byte *)g_51ea14 + 0x4befc);
+                    result = (((generation & 0x1ff) << 14 | (index & 0x1fff)) << 8) | ((*type_reference) & 15);
+                }
+                if (result == NONE)
+                {
+                    wchar_t remove_name[128];
+                    remove_name[0] = 0;
+                    function_216da0(remove_name, (*type_reference), display_name, location.language);
+                    XDeleteSaveGame(root, remove_name);
+                }
+            }
+            if (result == NONE)
+                g_55c154 = saved_game_storage_has_free_blocks(saved_game_file_type_size_in_blocks((*type_reference))) ? 4 : 2;
+            else
+                g_55c154 = 0;
+        }
+    }
+done:
+    return result;
+}
+
+
+struct s_saved_game_read;
+struct s_saved_game_file_task;
+char *function_122810(char *path, const char *suffix);
+bool signed_file_read_begin(void *header, dword header_size, void *body, dword body_size, bool non_roamable, s_saved_game_file_task *task, const char *path);
+bool signed_file_write_begin(void *header, dword header_size, void *body, dword body_size, bool non_roamable, s_saved_game_file_task *task, const char *path);
+
+// @retail 0x2174b0
+bool __stdcall function_2174b0(long file_index, void *header, long header_size, void *body, long body_size, s_saved_game_read *task)
+{
+    (void)&header;
+    (void)&header_size;
+    (void)&body;
+    (void)&body_size;
+    (void)&task;
+    bool result = false;
+    char path[256];
+    path[0] = 0;
+    if (function_2160b0(file_index, path))
+    {
+        function_122810(path, "auxilary.bin");
+        result = signed_file_read_begin(header, header_size, body, body_size, false, (s_saved_game_file_task *)task, path);
+    }
+    return result;
+}
+
+// @retail 0x217520
+bool __stdcall function_217520(long file_index, void const *header, long header_size, void const *body, long body_size, s_saved_game_read *task)
+{
+    (void)&header;
+    (void)&header_size;
+    (void)&body;
+    (void)&body_size;
+    (void)&task;
+    bool result = false;
+    char path[256];
+    path[0] = 0;
+    if (function_2160b0(file_index, path))
+    {
+        function_122810(path, "auxilary.bin");
+        result = signed_file_write_begin((void *)header, header_size, (void *)body, body_size, false, (s_saved_game_file_task *)task, path);
+    }
+    return result;
+}

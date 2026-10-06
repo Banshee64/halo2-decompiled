@@ -507,3 +507,31 @@ bool __stdcall function_1b3fd0(long actor_index, s_slot *slot)
 	}
 	return result;
 }
+
+
+bool function_255b10(long actor_index, s_type_c3b527 const *point, long target_index, bool unknown);
+void *function_1e5380(long actor_index);
+
+// @retail 0x1b4560
+short __stdcall function_1b4560(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    if (actor->prop_index != NONE && !function_110ab0(actor->unknown018) && g_4f55d0->unknown340)
+    {
+        s_prop_node_view *node = prop_node_get(actor->prop_index);
+        s_prop_view_fields *view = (s_prop_view_fields *)function_25d740((s_prop_node *)node);
+        if (view && view->unknown06 == 3 && *(long *)((byte *)view + 0x10) >= 0)
+        {
+            byte *entry = (byte *)function_1e5380(actor_index);
+            if (entry && *(short *)(entry + 6) != NONE &&
+                (*(long *)((byte *)actor + 0x7c8) == NONE ||
+                 (g_510c54->game_time - *(long *)((byte *)actor + 0x7c8)) * g_510c54->rate >= *(real *)(entry + 0x28)) &&
+                function_259a0(&g_4e7408->unknown0) < *(real *)(entry + 0x2c) && actor->unknown07c != NONE &&
+                function_255b10(actor_index, (s_type_c3b527 *)((byte *)view + 0x18), NONE, false))
+            {
+                function_1fb7e0(actor_index, 0x21, 0, *(long *)((byte *)node + 0x20), NONE);
+            }
+        }
+    }
+    return g_46fbe4;
+}

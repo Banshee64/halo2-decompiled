@@ -73,7 +73,8 @@ void function_1bbc00(long player_index, long vehicle_index)
 			ai_player->unknown0a = 0;
 		}
 		unit_index = player->unit_index;
-		seat_index = object_get(unit_index)->unknown1fc;
+		s_slot_object_view *unit = object_get(unit_index);
+		seat_index = *(volatile short *)&unit->unknown1fc;
 		if (seat_index != NONE)
 		{
 			s_ai_event_unit_definition *definition = (s_ai_event_unit_definition *)g_4e3b44[object_get(vehicle_index)->tag_index & 0xffff].bytes;
@@ -138,4 +139,55 @@ void function_1bbcc0(long player_index, long vehicle_index, long seat_index)
 			}
 		}
 	}
+}
+
+
+void function_1e3400(long actor_index, long squad_index);
+real function_204950(long actor_index, long squad_index, short mode);
+void function_26def0(long actor_index, long owner_index);
+bool function_f5dc0(long object_index);
+
+// @retail 0x1bba70
+void function_1bba70(long actor_index, long vehicle_index, long seat_index)
+{
+    if (g_4f55d0->active)
+    {
+        s_actor_view *actor = actor_get(actor_index);
+        byte *vehicle = (byte *)object_get(vehicle_index);
+        long tag_index = *(long *)vehicle;
+        byte *definition = (byte *)g_4e3b44[tag_index & 0xffff].bytes;
+        if (*(short *)(definition + 0x1f0) != 6 || *(long *)(vehicle + 0x14) != NONE)
+        {
+            s_tag_element *entry = function_1e5450(actor_index, tag_index);
+            if (entry && (*(byte *)((byte *)entry + 0x10) & 1) && *(long *)((byte *)actor + 0x28) != NONE)
+                function_1e3400(actor_index, *(word *)((byte *)actor + 0x28));
+            else
+            {
+                real distance = 3.4028234663852886e+38f;
+                if (*(long *)((byte *)actor + 0x28) != NONE)
+                    distance = function_204950(actor_index, *(long *)((byte *)actor + 0x28), 0);
+                if (*(long *)((byte *)actor + 0x28) != NONE && distance < 3.0f)
+                    function_1e3400(actor_index, *(word *)((byte *)actor + 0x28));
+                else
+                {
+                    long squad_index = *(long *)(vehicle + 0x3a0);
+                    if (squad_index == NONE || function_204950(actor_index, squad_index, 0) >= 3.0f)
+                    {
+                        *((byte *)actor + 0x3c) = true;
+                        *(short *)((byte *)actor + 0x2c) = g_510c54->field_2_3 * 10;
+                        function_26def0(actor_index, vehicle_index);
+                    }
+                }
+            }
+        }
+        if (!*((byte *)actor + 0x3c))
+            *(long *)((byte *)actor + 0x28) = NONE;
+        actor->unknown2ec = (short)seat_index;
+        actor->unknown2e8 = vehicle_index;
+        *(short *)actor->unknown2ee = g_510c54->field_2_3 * 15;
+        actor->unknown2f0 = function_f5dc0(vehicle_index);
+        actor = actor_get(actor_index);
+        *((byte *)actor + 0x5d4) = false;
+        *(dword *)((byte *)actor + 0x810) &= ~1;
+    }
 }

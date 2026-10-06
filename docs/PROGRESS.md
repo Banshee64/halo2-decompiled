@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6600 functions match
+
+```
+matched 6600 of 11318 game functions (713625 of 2784283 bytes, 25.63%)
+```
+
+6600 new matches, none lost:
+- Codex lane B round 10: 0x1b3f60 and 0x1bbc00.
+
+## 2026-10-06: 6598 functions match
+
+```
+matched 6598 of 11318 game functions (713331 of 2784283 bytes, 25.62%)
+```
+
+6598 new matches, none lost:
+- Codex lane U round 11: 0x204ca0, and lane L's 0x124360, 0x124790, 0x124800 and 0x124840 once their callees 0x2174b0 and 0x217520 became real code.
+
+## 2026-10-06: 6593 functions match
+
+```
+matched 6593 of 11318 game functions (712902 of 2784283 bytes, 25.60%)
+```
+
+6593 new matches, none lost:
+- Codex UI-core lane rounds 7 and 8: 16 more UI-core functions (0x22df04 to 0x23dda0).
+
 ## 2026-10-06: 6577 functions match
 
 ```

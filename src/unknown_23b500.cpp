@@ -222,9 +222,11 @@ void function_23b3f0(s_spawn_settings_view *settings, real *distance20, real *di
 
 	if (settings->distance1c == 0.0f)
 	{
-		byte *globals = ((s_spawn_globals_tag_view *)tags[header->globals_index & 0xffff].flags)->data;
+		s_spawn_globals_tag_view *tag = (s_spawn_globals_tag_view *)tags[header->globals_index & 0xffff].flags;
+		long scenario_count = scenario->spawn_data_count;
+		byte *globals = tag->data;
 
-		if (scenario->spawn_data_count <= 0 || scenario->spawn_data[0] == 0.0f)
+		if (scenario_count <= 0 || scenario->spawn_data[0] == 0.0f)
 		{
 			*distance1c = (real)fabs(*(real *)(globals + 0x154));
 		}
@@ -239,15 +241,20 @@ void function_23b3f0(s_spawn_settings_view *settings, real *distance20, real *di
 	}
 	if (settings->distance20 == 0.0f)
 	{
-		byte *globals = ((s_spawn_globals_tag_view *)tags[header->globals_index & 0xffff].flags)->data;
+		s_spawn_globals_tag_view *tag = (s_spawn_globals_tag_view *)tags[header->globals_index & 0xffff].flags;
+		long scenario_count = scenario->spawn_data_count;
+		byte *globals = tag->data;
 
-		if (scenario->spawn_data_count <= 0 || scenario->spawn_data[1] == 0.0f)
+		if (scenario_count > 0)
 		{
-			*distance20 = (real)fabs(*(real *)(globals + 0x150));
+			if (scenario->spawn_data[1] == 0.0f)
+				*distance20 = (real)fabs(*(real *)(globals + 0x150));
+			else
+				*distance20 = (real)fabs(scenario->spawn_data[1]);
 		}
 		else
 		{
-			*distance20 = (real)fabs(scenario->spawn_data[1]);
+			*distance20 = (real)fabs(*(real *)(globals + 0x150));
 		}
 	}
 	else
@@ -286,7 +293,15 @@ real function_23ba90(point3f const *point, long player_index, bool deterministic
 		s_spawn_tag_header_view *header = (s_spawn_tag_header_view *)g_4e034c;
 		byte *globals = ((s_spawn_globals_tag_view *)g_4e3b44[header->globals_index & 0xffff].flags)->data;
 
-		weight += **(real **)(globals + 0x534) * spawn_random(deterministic, seed);
+		real *random_weight_pointer = *(real **)(globals + 0x534);
+		real *const *random_weight_reference = &random_weight_pointer;
+		double random_weight = **random_weight_reference;
+		real random;
+		if (deterministic)
+			random = (real)_random(seed, NULL, 0);
+		else
+			random = (real)(dword)_random(&g_4e7408->seed, NULL, 0);
+		weight += random_weight * ((real)random * (1.f / 65535.f));
 	}
 	return weight;
 }
