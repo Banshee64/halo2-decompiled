@@ -469,10 +469,10 @@ struct s_looping_sound_tag_flags
 void __stdcall function_18a430(long tag_index, long object_index, real scale)
 {
 	// Retail passes all three arguments on the stack.
-	long const *tag_reference = &tag_index;
+	long const *tag_index_pointer = &tag_index;
 	long const *object_reference = &object_index;
 	real const *scale_reference = &scale;
-	if (*tag_reference != NONE)
+	if (*tag_index_pointer != NONE)
 	{
 		s_looping_sound_tag_flags *sound = (s_looping_sound_tag_flags *)g_4e3b44[tag_index & 0xffff].bytes;
 		bool detached;
@@ -486,11 +486,11 @@ void __stdcall function_18a430(long tag_index, long object_index, real scale)
 		detached = function_18d360(tag_index);
 		if (detached)
 		{
-			datum_index = function_18a600(*tag_reference, *scale_reference);
+			datum_index = function_18a600(*tag_index_pointer, *scale_reference);
 		}
 		else
 		{
-			datum_index = function_18a5a0(*tag_reference, *object_reference, *scale_reference);
+			datum_index = function_18a5a0(*tag_index_pointer, *object_reference, *scale_reference);
 		}
 		if (datum_index != NONE)
 		{
