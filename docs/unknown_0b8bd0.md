@@ -14,8 +14,8 @@ provisional. The `function_<va>` form is primary; the descriptions are
 offered for whoever decompiles the range.
 
 It uses the names of parts 1 and 2, the [lights and liquids](unknown_0bffa0.md)
-document and the object lifecycle document (#84). It is written for lane AB,
-whose claim covers the range.
+document and the [object lifecycle](unknown_0b67c0.md) document. It is written
+for lane AB, whose claim covers the range.
 
 ## Boundary
 
@@ -25,8 +25,12 @@ whose claim covers the range.
 - Lane AB's row of the Active claims table (issue #9) covers the range. This
   document makes no claim of its own.
 - The 45 entries with source are listed under
-  [Other entries](#other-entries). Fifteen of the 21 analysed here have `@stub`
-  definitions; see [Existing declarations](#existing-declarations).
+  [Other entries](#other-entries). Fifteen of the 21 analysed here had `@stub`
+  definitions at `119b4df`; see
+  [Existing declarations](#existing-declarations). Since then lane AB has
+  given `0xba8c0`, `0xbab40`, `0xbacc0` (now matched), `0xbb050` and `0xbb430`
+  source, so twelve keep stubs at `e02c566`, and it has matched `0xbb7f0` and
+  `0xbb8f0` among the other entries.
 - None of the 21 is reached through a pointer: every caller calls it
   directly.
 
@@ -72,7 +76,7 @@ part 1. Two header flags go with it:
 | Flag | Meaning |
 | --- | --- |
 | `0x80` | has a parent: `0xb93b0` sets it (`0xb9532`) and `function_b9890` clears it |
-| `0x20` | `0xb93b0` sets it after attaching (`0xb97df`); the tick's last pass (#84) clears it on every object, and part 2's `0xbc470` returns at once for an object that has it |
+| `0x20` | `0xb93b0` sets it after attaching (`0xb97df`); the tick's last pass ([lifecycle](unknown_0b67c0.md)) clears it on every object, and part 2's `0xbc470` returns at once for an object that has it |
 
 Object flag bit 0 hides an object (`0xb9c60`). Bit 7 is the one
 `include/object_default_placement.h` calls `hidden`; `0xb93b0` clears it and
@@ -135,9 +139,10 @@ direction at `+0x60` and three values at `+0x54`.
    header flag `0x80` at `0xb9532`), and resets its location to NONE with the
    bsp in `g_4686c4`.
 4. It brings the position, forward and up into the node's space through the
-   inverse of the node matrix, then calls `0xb7430` (#84) and
-   `function_b9b90(object, true)`. If the parent's root is connected it calls
-   part 2's `0xbef30(..., 0, 1, 0, 0)`; then part 2's `0xbd020`.
+   inverse of the node matrix, then calls `0xb7430`
+   ([lifecycle](unknown_0b67c0.md)) and `function_b9b90(object, true)`. If the
+   parent's root is connected it calls part 2's `0xbef30(..., 0, 1, 0, 0)`;
+   then part 2's `0xbd020`.
 5. It sets header flag `0x20` (`0xb97e4`). It activates the root when the
    root's cluster is set in the vector at `g_4e6948` `+0x11b8`, and calls
    `function_bba20(root)` when the object had been woken.
@@ -258,12 +263,15 @@ lights use. It returns whether the value is active:
    It does not stop at a match, so the last match wins.
 6. With no element, the parent's value when object flag bit 26 is set.
 
-`0xba8c0`, with the element in `eax`, takes the input value: an interpolated
-value of the input id when object `+0xc1` bit 1 is set, otherwise the type
-handlers' (`function_108d90`). It maps it through the element's function with
-`function_13bb90`, or uses the game time for a periodic function. Then it
-multiplies by `0xbab40`'s value for the scale id, applies the threshold, the
-always-active flag and the gate id, and clamps the result to 0 to 1.
+`0xba8c0`, with the element in `eax`, takes the input value. When object
+`+0xc1` bit 1 is set and `0x10aac0` finds an interpolated value for the input
+id, it returns that value and true at once (`0xba918`–`0xba938`), with no
+mapping, scale, threshold, gate or clamp. Otherwise it takes the type
+handlers' value (`function_108d90`) and maps it through the element's
+function with `function_13bb90`, or uses the game time for a periodic
+function. Then it multiplies by `0xbab40`'s value for the scale id, applies
+the threshold, the always-active flag and the gate id, and clamps the result
+to 0 to 1.
 
 ### `0xbacc0` and `0xbaff0`
 
