@@ -252,3 +252,43 @@ void function_215790(void)
         g_55c150 &= ~1;
     }
 }
+
+#include "globals.h"
+
+extern bool g_55c14c;
+extern long g_55c154;
+extern long g_55c158;
+extern long g_55c15c;
+extern long g_55c280;
+byte g_55c030[0x11c];
+dword g_51e9f8;
+dword g_51e9fc;
+
+bool __stdcall function_216440(char const *path);
+long function_11ca80(long language);
+
+// @retail 0x215690
+void function_215690(void)
+{
+    function_216440("n:\\sgf");
+    // The retail zeroed range is represented by separate existing globals.
+    memset(g_55c030, 0, sizeof(g_55c030));
+    g_55c14c = true;
+    g_55c14d = true;
+    g_55c14e = 0;
+    g_55c14f = 0;
+    g_55c150 = 3;
+    g_55c154 = 0;
+    g_55c158 = NONE;
+    g_55c15c = 123;
+    g_55c160 = 0;
+    memset(g_55c164, 0, 4 * sizeof(g_55c164[0]));
+    g_55c274 = true;
+    g_55c278 = 0;
+    g_55c27c = 0;
+    g_51e9f8 = 0;
+    g_51e9fc = 1;
+    if (g_47ff38 == NONE)
+        g_47ff38 = function_11ca80(XGetLanguage());
+    g_55c280 = g_47ff38;
+}
