@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6443 functions match
+
+```
+matched 6443 of 11318 game functions (690371 of 2784283 bytes, 24.80%)
+```
+
+6443 new matches, none lost:
+- Merge batch r5: the second machine's Codex PRs #73, #74, #75, #77, #78, #79, #80, #81 and #83 (lanes O, M, I, P, L and J): +15 that main didn't already have.
+
 ## 2026-10-06: 6428 functions match
 
 ```
