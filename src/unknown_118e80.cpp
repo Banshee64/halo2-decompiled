@@ -796,7 +796,7 @@ long function_119c10(long arg_0)
     long local_1 = NONE;
     vector3f local_2;
     function_ba1d0(arg_0, &local_2, NULL);
-    real local_3 = (real)sqrt(local_2.j * local_2.j + local_2.k * local_2.k + local_2.i * local_2.i);
+    real local_3 = (real)sqrt(local_2.i * local_2.i + local_2.k * local_2.k + local_2.j * local_2.j);
     if (local_3 > 0.0001f)
     {
         real local_4 = *(real *)((byte *)local_0 + 0x3c) + 0.1f;
