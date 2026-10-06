@@ -84,6 +84,9 @@ long function_a5930(long index)
 	return result;
 }
 
+// Event distribution retains this entity lookup as an out-of-line call.
+__declspec(noinline) long function_a5980(long index);
+
 // @retail 0xa5980
 long function_a5980(long index)
 {
@@ -435,6 +438,8 @@ bool function_a7700(long index, long which, long *player_out)
 	return player != NONE;
 }
 
+// Event senders retain this local player eligibility call boundary.
+__declspec(noinline) bool function_a76b0(long index, long which);
 
 // @retail 0xa76b0
 bool function_a76b0(long index, long which)

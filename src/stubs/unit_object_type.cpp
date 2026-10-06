@@ -34,8 +34,6 @@ void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real u
 
 /* outside the unit range */
 
-// @stub 0xa8950
-void function_a8950(long unit_index, long definition_index) { }
 
 /* outside the unit range */
 /* in the biped range (PR #28 writes it) */
@@ -65,8 +63,6 @@ bool function_1d48f0(s_havok_component *component, short rigid_body_index, long 
 /* outside the unit range */
 
 /* outside the unit range */
-// @stub 0xa8a30
-void function_a8a30(long unit_index, long definition_index) { }
 
 // @stub 0x10ff40
 bool function_10ff40(long unit_index, long type, short side, short value, bool *flag, short *side_out, short *value_out)
