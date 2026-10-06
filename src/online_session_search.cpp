@@ -636,6 +636,7 @@ void __stdcall function_90420(s_session_search *arg_0, long arg_1)
 	}
 }
 
+
 // @retail 0x90b30
 void function_90b30(s_session_search *arg_0)
 {
@@ -660,10 +661,10 @@ void function_90b30(s_session_search *arg_0)
 	local_0.x = SEARCH_LONG(arg_0, 0x10);
 	local_0.y = SEARCH_LONG(arg_0, 0x4c);
 	local_0.count = SEARCH_LONG(arg_0, 0x38);
+	local_0.min = SEARCH_LONG(arg_0, 0x30);
+	local_0.max = SEARCH_LONG(arg_0, 0x28);
 	local_0.has_min = SEARCH_FLAG(arg_0, 0x2c);
 	local_0.has_max = SEARCH_FLAG(arg_0, 0x24);
-	local_0.max = SEARCH_LONG(arg_0, 0x28);
-	local_0.min = SEARCH_LONG(arg_0, 0x30);
 	memset(arg_0->results, 0, arg_0->unknown88);
 	memset(arg_0->unknown90, 0, arg_0->unknown88);
 	local_0.has_count = true;
@@ -707,4 +708,98 @@ void function_90f70(s_session_search *arg_0)
 		else
 			arg_0->state = 0;
 	}
+}
+
+
+struct s_surface_description;
+s_surface_description *function_192e60(long arg_0);
+long function_193250(s_surface_description *arg_0);
+long function_1931a0(long arg_0, s_surface_description *arg_1);
+
+struct s_90880
+{
+	long field_0;
+	byte field_4[0x518];
+	char field_51c[128];
+};
+
+struct s_909ff
+{
+	dword field_0[3];
+};
+
+PRIVATE inline void *function_90891(long arg_0)
+{
+	s_allocator_globals *local_0 = g_4d87f8;
+	void *local_1 = local_0->allocator->allocate(arg_0, 0, 0);
+	if (!local_1)
+	{
+		local_0->allocator->compact(0);
+		local_1 = local_0->allocator->allocate(arg_0, 0, 0);
+	}
+	if (local_1)
+		local_0->count++;
+	return local_1;
+}
+
+// @retail 0x90880
+bool function_90880(s_session_search *arg_0, long arg_1, long arg_2, long arg_3, long arg_4, long arg_5, long arg_6, long arg_7, s_909ff const *arg_8, long arg_9)
+{
+	s_surface_description *local_0 = function_192e60(arg_1);
+	arg_0->unknown88 = 50 * sizeof(s_search_result);
+	arg_0->results = (s_search_result *)function_90891(arg_0->unknown88);
+	arg_0->unknown90 = function_90891(arg_0->unknown88);
+	arg_0->seen_capacity = g_network_configuration.value1f8;
+	arg_0->unknown9c = arg_0->seen_capacity * sizeof(XNKID);
+	arg_0->seen = (XNKID *)function_90891(arg_0->unknown9c);
+	if (arg_0->results && arg_0->unknown90 && arg_0->seen)
+	{
+		SEARCH_LONG(arg_0, 0x6c) = arg_9;
+		SEARCH_LONG(arg_0, 0x4c) = arg_3;
+		SEARCH_LONG(arg_0, 0x50) = arg_4;
+		SEARCH_LONG(arg_0, 0x54) = arg_5;
+		SEARCH_LONG(arg_0, 0x10) = arg_1;
+		s_90880 *local_1 = (s_90880 *)local_0;
+		arg_0->flag14 = local_1->field_0 == 5 || local_1->field_0 == 2 || local_1->field_0 == 4;
+		SEARCH_FLAG(arg_0, 0x15) = local_1->field_0 == 5;
+		SEARCH_LONG(arg_0, 0x18) = function_193250(local_0);
+		long local_2 = function_1931a0(arg_4, local_0);
+		SEARCH_LONG(arg_0, 0x60) = local_2;
+		SEARCH_LONG(arg_0, 0x68) = local_2 > arg_5 ? local_2 : arg_5;
+		SEARCH_LONG(arg_0, 0x64) = local_1->field_51c[SEARCH_LONG(arg_0, 0x68)];
+		long local_3 = SEARCH_LONG(arg_0, 0x68) - SEARCH_LONG(arg_0, 0x60);
+		long local_4 = SEARCH_LONG(arg_0, 0x64) - arg_4;
+		arg_0->unknown20 = local_3 > local_4 ? local_3 : local_4;
+		SEARCH_LONG(arg_0, 0x38) = arg_2;
+		arg_0->unknown1c = 0;
+		SEARCH_FLAG(arg_0, 0x3c) = arg_8 != 0;
+		if (arg_8)
+			*(s_909ff *)((byte *)arg_0 + 0x3d) = *arg_8;
+		SEARCH_LONG(arg_0, 0x58) = arg_6;
+		SEARCH_LONG(arg_0, 0x5c) = arg_7;
+		SEARCH_LONG(arg_0, 0xc) = 0;
+		arg_0->seen_count = 0;
+		arg_0->active = true;
+		arg_0->state = 1;
+		function_90b30(arg_0);
+	}
+	else
+	{
+		if (arg_0->results)
+		{
+			free_block(arg_0->results);
+			arg_0->results = 0;
+		}
+		if (arg_0->unknown90)
+		{
+			free_block(arg_0->unknown90);
+			arg_0->unknown90 = 0;
+		}
+		if (arg_0->seen)
+		{
+			free_block(arg_0->seen);
+			arg_0->seen = 0;
+		}
+	}
+	return arg_0->active;
 }

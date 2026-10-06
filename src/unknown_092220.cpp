@@ -162,6 +162,13 @@ long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG
 	return task_index;
 }
 
+
+PRIVATE __forceinline bool function_925ee(XUID const *arg_0)
+{
+	dword local_0 = arg_0->dwUserFlags;
+	return local_0 == 0xbad00000 || (local_0 & 3);
+}
+
 // @retail 0x925c0
 long function_925c0(XNKID const *arg_0, ULONGLONG const *arg_1, long arg_2, XONLINE_STAT_PROC const *arg_3, bool arg_4, bool arg_5)
 {
@@ -171,7 +178,7 @@ long function_925c0(XNKID const *arg_0, ULONGLONG const *arg_1, long arg_2, XONL
 		XUID const *local_2 = 0;
 		if (arg_3[local_1].wProcedureID == 0x8001 || arg_3[local_1].wProcedureID == 0x8003 || arg_3[local_1].wProcedureID == 0x8007)
 			local_2 = (XUID const *)((byte const *)&arg_3[local_1] + 8);
-		if (local_2->dwUserFlags == 0xbad00000 || (local_2->dwUserFlags & 3))
+		if (function_925ee(local_2))
 			goto local_6;
 	}
 	if (arg_2 > 1000)
@@ -179,10 +186,30 @@ long function_925c0(XNKID const *arg_0, ULONGLONG const *arg_1, long arg_2, XONL
 
 	{
 		if (online_logon_connected())
-			local_0 = online_task_new_inline();
+			{
+			local_0 = record_pool_allocate(g_4cf78c);
+			if (local_0 != NONE)
+			{
+				s_type_9df9da *local_10 = (s_type_9df9da *)g_4cf78c->data + (local_0 & 0xffff);
+				local_10->handle = 0;
+				local_10->type = NONE;
+				local_10->controller_index = NONE;
+				local_10->flags = 0;
+			}
+		}
+		else
+			local_0 = NONE;
+		s_record_pool *local_7 = g_4cf78c;
 		if (local_0 != NONE)
 		{
-			s_type_9df9da *local_3 = online_task_try_and_get(local_0);
+			s_type_9df9da *local_3 = 0;
+			long local_8 = local_0 & 0xffff;
+			if (local_8 < local_7->high_water_index)
+			{
+				s_type_9df9da *local_9 = (s_type_9df9da *)(local_7->data + local_7->size * local_8);
+				if (local_9->salt != 0 && local_9->salt == (local_0 >> 16))
+					local_3 = local_9;
+			}
 			if (local_3)
 			{
 				XONLINE_ARB_ID local_4;

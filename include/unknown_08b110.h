@@ -46,7 +46,7 @@ public:
 	virtual bool v0() { return false; }
 	virtual long v1(long a1, long max_count, void *entries) { return 0; }
 	virtual long v2();
-	virtual void v3() {}
+	virtual void v3(void *arg_0, long arg_1, long arg_2, long arg_3, s_bitstream *arg_4, long arg_5) {}
 	virtual void v4(long a1, s_counter_450c94 *a2);
 	virtual void v5() {}
 	virtual void v6(s_block_450c94 *block) {}
@@ -299,7 +299,7 @@ class c_manager_450d1c
 public:
 	virtual long v0(long type, dword *items, long count, long *produced, dword *data, s_bitstream *stream) { return 0; }
 	virtual void v1(long type, dword *items, long count, dword *data) {}
-	virtual void v2() {}
+	virtual void v2(long arg_0, long arg_1, void *arg_2, s_bitstream *arg_3) {}
 	virtual void v3(s_node_450d1c *node) {}
 	virtual void v4(s_node_450d1c *node, long a1, real *a2, long *a3) {}
 };
@@ -334,6 +334,7 @@ struct s_request_450d1c
 class c_vtable_450d1c : public c_interface_450c94
 {
 public:
+	virtual void v3(void *arg_0, long arg_1, long arg_2, long arg_3, s_bitstream *arg_4, long arg_5);
 	virtual bool v0();
 	virtual long v1(long a1, long max_count, void *entries);
 	virtual long v5(dword a1, s_bitstream *stream, long max_blocks, s_block_450c94 *blocks, long *count);

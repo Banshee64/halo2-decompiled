@@ -16,6 +16,7 @@
 #include <string.h>
 
 void network_message_write_header(s_bitstream *arg_0, long arg_1, long arg_2);
+bool network_message_read_header(s_bitstream *arg_0, long *arg_1, c_type_659ceb const *arg_2, long *arg_3);
 
 
 /* a window over a range of sequence numbers: the messages oldest+1..newest,
@@ -135,7 +136,7 @@ public:
 	virtual bool v1(long *reason) { return false; }
 	virtual bool v2(bool *pending) { return false; }
 	virtual long v3(long a, long b) { return 0; }
-	virtual void v4() {}
+	virtual bool v4(long arg_0, s_bitstream *arg_1, long arg_2, long arg_3) { return false; }
 	virtual long v5(long *arg_0, s_bitstream *arg_1) { return 0; }
 	virtual void v6() {}
 	virtual void v7(long identifier, bool delivered) {}
@@ -144,6 +145,7 @@ public:
 class c_network_unreliable_stream : public c_network_stream
 {
 public:
+	virtual bool v4(long arg_0, s_bitstream *arg_1, long arg_2, long arg_3);
 	virtual bool v1(long *reason);
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
@@ -165,6 +167,7 @@ public:
 class c_network_reliable_stream : public c_network_stream
 {
 public:
+	virtual bool v4(long arg_0, s_bitstream *arg_1, long arg_2, long arg_3);
 	virtual bool v1(long *reason);
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
@@ -864,6 +867,9 @@ long c_network_reliable_stream::v5(long *arg_0, s_bitstream *arg_1)
 	return local_0;
 }
 
+
+
+
 // @retail 0x951c0
 long c_network_unreliable_stream::v5(long *arg_0, s_bitstream *arg_1)
 {
@@ -941,7 +947,70 @@ long c_network_unreliable_stream::v5(long *arg_0, s_bitstream *arg_1)
 			}
 		}
 	}
-	return local_0;
+	return *(volatile long *)&local_0;
+}
+
+PRIVATE __forceinline void function_95580(c_network_unreliable_stream *arg_0, long arg_1, void *arg_2)
+{
+	byte *local_7 = (byte *)arg_2;
+	for (;;)
+	{
+		if (arg_0->v1(0))
+			break;
+		if (sequence_window_count(&arg_0->m_message_window) < arg_0->m_message_window.capacity)
+		{
+			bool local_8;
+			long local_9;
+			long local_10;
+			if (arg_1 <= 256)
+			{
+				local_8 = true;
+				local_9 = arg_1;
+				local_10 = (arg_1 + 7) / 8;
+			}
+			else
+			{
+				local_8 = false;
+				local_9 = 256;
+				local_10 = 32;
+			}
+			s_allocator_globals *local_11 = g_4d87f8;
+			void *local_12 = local_11->allocator->allocate(local_10, 0, 0);
+			if (!local_12)
+			{
+				local_11->allocator->compact(0);
+				local_12 = local_11->allocator->allocate(local_10, 0, 0);
+			}
+			if (local_12)
+				local_11->count++;
+			if (local_12)
+			{
+				long local_13 = arg_0->m_message_window.newest + 1;
+				sequence_window_extend(&arg_0->m_message_window, local_13);
+				long local_14 = sequence_window_index(&arg_0->m_message_window, local_13);
+				s_stream_message *local_15 = 0;
+				if (local_14 != NONE)
+					local_15 = &arg_0->m_messages[local_14];
+				memcpy(local_12, local_7, local_10);
+				memset(local_15, 0, sizeof(*local_15));
+				*(volatile byte *)&local_15->flags = 4;
+				local_15->size = (byte)local_10;
+				local_15->unknown08 = NONE;
+				local_15->flags = (local_15->flags & ~8) | ((local_8 != 0) << 3);
+				local_15->unknown02 = (word)local_9;
+				local_15->data = local_12;
+				arg_0->m_message_bytes += local_10;
+				arg_1 -= 256;
+				local_7 += 32;
+				if (local_8)
+					break;
+			}
+			else
+				arg_0->m_unknown05 = true;
+		}
+		else
+			arg_0->m_unknown05 = true;
+	}
 }
 
 // @retail 0x95580
@@ -989,61 +1058,290 @@ void __stdcall function_095580(void *arg_0, long arg_1, long arg_2, const void *
 	local_1.mode = 2;
 	local_0.field_0 = 0xffffffff;
 	function_163ba0(&local_0.field_0, &local_0, local_5);
-	byte *local_7 = (byte *)&local_0;
-	while (!local_2->v1(0))
+	function_95580(local_2, local_4, &local_0);
+}
+
+
+void function_194710(s_bitstream *arg_0, bool arg_1);
+
+// @retail 0x94e90
+bool c_network_unreliable_stream::v4(long arg_0, s_bitstream *arg_1, long arg_2, long arg_3)
+{
+	bool local_0 = false;
+	if (arg_0 != NONE)
 	{
-		if (sequence_window_count(&local_2->m_message_window) < local_2->m_message_window.capacity)
+		if (sequence_window_count(&m_message_window))
 		{
-			bool local_8;
-			long local_9;
-			long local_10;
-			if (local_4 <= 256)
+			long local_1 = NONE;
+			for (long local_2 = m_message_window.oldest + 1; local_2 <= m_message_window.newest; local_2++)
 			{
-				local_9 = local_4;
-				local_10 = (local_4 + 7) / 8;
-				local_8 = true;
+				long local_3 = sequence_window_index(&m_message_window, local_2);
+				s_stream_message *local_4 = 0;
+				if (local_3 != NONE)
+					local_4 = &m_messages[local_3];
+				if (local_4->flags & 4)
+				{
+					long local_5 = local_2 - local_1;
+					arg_1->checkpoints[arg_1->checkpoint_count] = arg_1->bit_position;
+					arg_1->checkpoint_count++;
+					if (local_1 != NONE && local_5 <= 16)
+					{
+						if (local_5 == 1)
+						{
+							stream_write_bit(arg_1, true);
+							stream_write_bit(arg_1, true);
+						}
+						else
+						{
+							stream_write_bit(arg_1, true);
+							stream_write_bit(arg_1, false);
+							{
+							dword local_6 = local_5 - 1;
+							if (local_6 >= 16)
+							{
+								char local_7[256];
+								local_7[0] = 0;
+								csprintf_256(local_7, "%u exceeds max value of %u", local_6, 16);
+							}
+							function_195720(arg_1, local_6, 4);
+						}
+						}
+					}
+					else
+					{
+						stream_write_bit(arg_1, false);
+						stream_write_bit(arg_1, true);
+						{
+							dword local_6 = local_2 & 0x3ff;
+							if (local_6 >= 1024)
+							{
+								char local_7[256];
+								local_7[0] = 0;
+								csprintf_256(local_7, "%u exceeds max value of %u", local_6, 1024);
+							}
+							function_195720(arg_1, local_6, 10);
+						}
+					}
+					if (local_4->flags & 8)
+					{
+						stream_write_bit(arg_1, true);
+						{
+							dword local_6 = local_4->unknown02 - 1;
+							if (local_6 >= 256)
+							{
+								char local_7[256];
+								local_7[0] = 0;
+								csprintf_256(local_7, "%u exceeds max value of %u", local_6, 256);
+							}
+							function_195720(arg_1, local_6, 8);
+						}
+					}
+					else
+						stream_write_bit(arg_1, false);
+					function_1955d0(arg_1, local_4->data, local_4->unknown02);
+					if ((arg_1->size_in_bytes << 3) - arg_1->bit_position >= arg_3 + 2)
+					{
+						arg_1->checkpoint_count--;
+						local_4->flags = (local_4->flags & ~4) | 2;
+						local_4->unknown08 = arg_0;
+						local_1 = local_2;
+					}
+					else
+					{
+						if (local_1 == NONE)
+							m_unknown05 = true;
+						local_0 = true;
+						function_194710(arg_1, true);
+						break;
+					}
+				}
+			}
+		}
+		stream_write_bit(arg_1, false);
+		stream_write_bit(arg_1, false);
+	}
+	return local_0;
+}
+
+
+// @retail 0x95840
+bool __stdcall function_095840(s_network_stream_header *arg_0, long *arg_1, long *arg_2, void *arg_3)
+{
+	c_network_unreliable_stream *local_0 = (c_network_unreliable_stream *)arg_0;
+	bool local_1 = false;
+	if (!sequence_window_count(&local_0->m_fragment_window))
+		return false;
+	{
+		long local_2 = local_0->m_fragment_window.oldest + 1;
+		for (long local_3 = local_2; local_3 <= local_0->m_fragment_window.newest; local_3++)
+		{
+			long local_4 = sequence_window_index(&local_0->m_fragment_window, local_3);
+			s_stream_fragment *local_5 = 0;
+			if (local_4 != NONE)
+				local_5 = &local_0->m_fragments[local_4];
+			if (!local_5 || !(local_5->flags & 1))
+				break;
+			if (local_5->flags & 2)
+				local_1 = true;
+		}
+		if (local_1)
+		{
+			struct s_95840
+			{
+				dword field_0;
+				byte field_4[65535];
+			} local_6;
+			s_bitstream local_7;
+			local_7.data = local_6.field_4;
+			local_7.size_in_bytes = sizeof(local_6.field_4);
+			local_7.unknown08 = 1;
+			local_7.mode = 0;
+			local_7.bit_position = 0;
+			local_7.checkpoint_count = 0;
+			local_7.error = false;
+			long local_8 = 0;
+			bool local_9 = false;
+			for (long local_10 = local_2; local_10 <= local_0->m_fragment_window.newest && !local_9; local_10++)
+			{
+				long local_11 = sequence_window_index(&local_0->m_fragment_window, local_10);
+				s_stream_fragment *local_12 = 0;
+				if (local_11 != NONE)
+					local_12 = &local_0->m_fragments[local_11];
+				long local_13;
+				if (local_12->flags & 2)
+				{
+					local_13 = (local_12->unknown02 + 7) / 8;
+					local_9 = true;
+				}
+				else
+					local_13 = 32;
+				memcpy((byte *)&local_6 + local_8, local_12->data, local_13);
+				local_8 += local_13;
+				free_block(local_12->data);
+				local_0->m_fragment_bytes -= local_12->size;
+				sequence_window_advance(&local_0->m_fragment_window, local_10);
+			}
+			dword local_14 = local_6.field_0;
+			local_6.field_0 = 0xffffffff;
+			function_163ba0(&local_6.field_0, &local_6, local_8);
+			if (local_14 == local_6.field_0)
+			{
+				local_7.data = local_6.field_4;
+				local_7.size_in_bytes = local_8 - 4;
+				local_7.mode = 3;
+				local_7.bit_position = 0;
+				local_7.checkpoint_count = 0;
+				local_7.error = false;
+				if (function_1959c0(&local_7, 32) == 0x64656267)
+					local_7.error = true;
+				else
+				{
+					local_7.bit_position = 0;
+					local_7.error = false;
+				}
+				c_type_659ceb *local_15 = (c_type_659ceb *)local_0->m_unknown0c;
+				if (network_message_read_header(&local_7, arg_1, local_15, arg_2))
+				{
+					s_message_type *local_16 = &local_15->m_types[*arg_1];
+					memset(arg_3, 0, *arg_2);
+					if (local_16->decode(&local_7, *arg_2, arg_3))
+						return local_1;
+				}
+			}
+			local_0->m_unknown05 = true;
+			return false;
+		}
+	}
+	return local_1;
+}
+
+
+void function_194830(s_bitstream *arg_0, bool arg_1);
+
+// @retail 0x95e40
+bool c_network_reliable_stream::v4(long arg_0, s_bitstream *arg_1, long arg_2, long arg_3)
+{
+	long local_0 = m_message_window.newest;
+	long local_1 = local_0 - m_next_sequence;
+	stream_write_bit(arg_1, arg_0 != NONE);
+	stream_write_checked(arg_1, local_0 & 0xff, 8);
+	stream_write_checked(arg_1, local_1, 7);
+	if (!local_1)
+		m_unknown959 = true;
+	advance_acknowledgements();
+	if (m_acknowledgement_window.valid)
+	{
+		long local_2 = m_acknowledgement_window.newest - 1;
+		stream_write_checked(arg_1, m_acknowledgement_window.newest & 0xff, 8);
+		m_unknown950 = m_acknowledgement_window.newest;
+		if (!sequence_window_count(&m_acknowledgement_window))
+		{
+			stream_write_bit(arg_1, false);
+			stream_write_bit(arg_1, false);
+			function_194830(arg_1, m_unknown958);
+		}
+		else if (sequence_window_count(&m_acknowledgement_window) <= 9)
+		{
+			struct s_95e40
+			{
+				dword field_0;
+				volatile long field_4;
+			} local_12;
+			bool local_5 = false;
+			local_12.field_4 = NONE;
+			local_12.field_0 = 0;
+			long local_6 = 0;
+			for (; local_2 > m_acknowledgement_window.oldest; local_2--, local_6++)
+			{
+				long local_7 = sequence_window_index(&m_acknowledgement_window, local_2);
+				word *local_8 = 0;
+				if (local_7 != NONE)
+					local_8 = &m_acknowledgements[local_7];
+				if (!(*local_8 & 1))
+				{
+					local_12.field_0 |= 1 << local_6;
+					if (local_12.field_4 == NONE)
+						local_12.field_4 = local_6;
+					else
+						local_5 = true;
+				}
+			}
+			if (local_5)
+			{
+				stream_write_bit(arg_1, true);
+				stream_write_bit(arg_1, false);
+				for (long local_9 = 0; local_9 < 8; local_9++)
+					stream_write_bit(arg_1, (local_12.field_0 & (1 << local_9)) != 0);
 			}
 			else
 			{
-				local_9 = 256;
-				local_10 = 32;
-				local_8 = false;
+				stream_write_bit(arg_1, false);
+				stream_write_bit(arg_1, true);
+				stream_write_checked(arg_1, local_12.field_4, 3);
 			}
-			s_allocator_globals *local_11 = g_4d87f8;
-			void *local_12 = local_11->allocator->allocate(local_10, 0, 0);
-			if (!local_12)
-			{
-				local_11->allocator->compact(0);
-				local_12 = local_11->allocator->allocate(local_10, 0, 0);
-			}
-			if (local_12)
-				local_11->count++;
-			if (local_12)
-			{
-				long local_13 = local_2->m_message_window.newest + 1;
-				sequence_window_extend(&local_2->m_message_window, local_13);
-				long local_14 = sequence_window_index(&local_2->m_message_window, local_13);
-				s_stream_message *local_15 = 0;
-				if (local_14 != NONE)
-					local_15 = &local_2->m_messages[local_14];
-				memcpy(local_12, local_7, local_10);
-				memset(local_15, 0, sizeof(*local_15));
-				local_15->flags = 4;
-				local_15->size = (byte)local_10;
-				local_15->unknown08 = NONE;
-				local_15->flags = (local_15->flags & ~8) | ((local_8 != 0) << 3);
-				local_15->unknown02 = (word)local_9;
-				local_15->data = local_12;
-				local_2->m_message_bytes += local_10;
-				local_4 -= 256;
-				local_7 += 32;
-				if (local_8)
-					break;
-			}
-			else
-				local_2->m_unknown05 = true;
 		}
 		else
-			local_2->m_unknown05 = true;
+		{
+			stream_write_bit(arg_1, true);
+			stream_write_bit(arg_1, true);
+			stream_write_bit(arg_1, false);
+			stream_write_checked(arg_1, sequence_window_count(&m_acknowledgement_window) - 1, 7);
+			for (; local_2 > m_acknowledgement_window.oldest; local_2--)
+			{
+				long local_10 = sequence_window_index(&m_acknowledgement_window, local_2);
+				word *local_11 = 0;
+				if (local_10 != NONE)
+					local_11 = &m_acknowledgements[local_10];
+				stream_write_bit(arg_1, !(*local_11 & 1));
+			}
+		}
 	}
+	else
+	{
+		stream_write_checked(arg_1, 0, 8);
+		stream_write_bit(arg_1, true);
+		stream_write_bit(arg_1, true);
+		stream_write_bit(arg_1, true);
+	}
+	return false;
 }
