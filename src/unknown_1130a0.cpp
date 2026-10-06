@@ -4,12 +4,17 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_107590.h"
+#include <string.h>
 
 /* the units (a local view of the object data) */
 struct s_unit_1130a0
 {
 	long definition_index;
-	byte unknown004[0x134 - 4];
+	byte unknown004[0x10a - 4];
+	word : 2;
+	word frozen : 1;
+	word : 13;
+	byte unknown10c[0x134 - 0x10c];
 	dword unit_flags;
 	byte unknown138[0x1f6 - 0x138];
 	char index1f6;
@@ -158,5 +163,88 @@ void function_114ec0(long unit_index, long name)
 			if (variant->value && variant->value != NONE)
 				state->value8 = variant->value;
 		}
+	}
+}
+
+// @retail 0x114520
+bool function_114520(long unit_index, short entry_index, short priority, long *previous, long *tag_index)
+{
+	s_unit_1130a0 *unit = ((s_object_header_1130a0 *)g_4e0300->data)[unit_index & 0xffff].object;
+	byte *state = (byte *)unit + unit->state_offset;
+	bool result = false;
+	long tag = NONE;
+	if (tag_index)
+		tag = *tag_index;
+	if (tag == NONE && entry_index != NONE)
+	{
+		function_1144a0(unit_index, entry_index, &tag);
+		if (tag == NONE)
+			goto done;
+	}
+	if (!TEST_FIELD_BIT(unit->frozen) || priority == 15)
+	{
+		short current = *(short *)(state + 0xc);
+		if (!current)
+			result = true;
+		else
+		{
+			switch (priority)
+			{
+			case 12:
+				if (current >= 10 && !state[0x49])
+					result = false;
+				else
+					result = priority > current;
+				break;
+			case 13:
+			case 14:
+				result = priority >= current;
+				break;
+			default:
+				result = priority > current;
+				break;
+			}
+		}
+	}
+done:
+	if (tag_index)
+		*tag_index = tag;
+	if (previous)
+		*previous = *(long *)(state + 0x44);
+	return result;
+}
+
+void function_20fec0(long object_index, long sound_index);
+short function_1145f0(long definition_index, s_sound_permutation_reference const *reference, short type);
+
+// @retail 0x114e80
+void function_114e80(long unit_index)
+{
+	s_unit_1130a0 *unit = ((s_object_header_1130a0 *)g_4e0300->data)[unit_index & 0xffff].object;
+	byte *state = (byte *)unit + unit->state_offset;
+	long sound_index = *(long *)(state + 0x1c);
+	if (sound_index != NONE)
+		function_20fec0(unit_index, sound_index);
+	*(short *)(state + 0xc) = 0;
+}
+
+// @retail 0x114680
+void function_114680(long unit_index, void const *request)
+{
+	s_unit_1130a0 *unit = ((s_object_header_1130a0 *)g_4e0300->data)[unit_index & 0xffff].object;
+	byte *state = (byte *)unit + unit->state_offset;
+	if (!TEST_FIELD_BIT(unit->frozen) || *(short const *)request == 15)
+	{
+		if (*(short *)(state + 0xc) > 0)
+			function_114e80(unit_index);
+		memcpy(state + 0xc, request, 0x30);
+		*(short *)(state + 0x50) = *(short *)(state + 0x16);
+		*(short *)(state + 0x4e) = *(short *)(state + 0x14);
+		state[0x48] = 0;
+		state[0x49] = 0;
+		state[0x4a] = 0;
+		*(long *)(state + 0x54) = NONE;
+		*(short *)(state + 0x4c) = function_1145f0(*(long *)(state + 0x10),
+			(s_sound_permutation_reference const *)((byte const *)request + 0xc), *(short const *)request);
 	}
 }

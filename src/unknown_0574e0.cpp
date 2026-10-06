@@ -9,6 +9,9 @@
 #include <xhv.h>
 #include "network_voice.h"
 #include "unknown_0662e0.h"
+#include "local_cameras.h"
+#include "unknown_1428b0.h"
+#include <math.h>
 
 /* a sound to play by label (unknown_189010.cpp) */
 struct s_sound_label_play
@@ -52,7 +55,10 @@ public:
 	dword local_masks[16];
 	byte unknown084[0x148 - 0x84];
 	long recent_times[16];
-	byte unknown188[0x194 - 0x188];
+	long distance_volume;
+	long directional_volume;
+	bool linear_gain;
+	byte unknown191[3];
 	long talk_times[16];
 	long last_talk_times[16];
 };
@@ -297,4 +303,69 @@ void __stdcall function_57360(c_voice_observer *observer)
 			}
 		}
 	}
+}
+
+
+byte *voice_get_world_player(long player_index);
+real function_30bf0(vector3f *vector);
+void function_192d40(point3f const *direction, real *gains, bool linear);
+
+// @retail 0x586f0
+void function_586f0(long player, c_voice_observer *observer, long *count, DSMIXBINVOLUMEPAIR *bins, const point3f *position)
+{
+ byte *world_player = voice_get_world_player(player);
+ if (world_player && *(short *)(world_player + 0x28) != NONE)
+ {
+  s_local_camera *camera = local_camera_get(*(short *)(world_player + 0x28));
+  if (camera && camera->active)
+  {
+   point3f local;
+   function_142700((const transform4x3f *)((const byte *)camera + 8), position, &local);
+   point3f direction = local;
+   real distance = sqrtf(direction.z * direction.z + direction.y * direction.y + direction.x * direction.x);
+   real range = g_510c94 ? g_510c94->motion_sensor_range : 8.f;
+   real attenuation;
+   if (distance > range)
+   {
+    real beyond = distance - (g_510c94 ? g_510c94->motion_sensor_range : 8.f);
+    real divisor = g_510c94 ? g_510c94->motion_sensor_range : 8.f;
+    real extra_divisor = g_510c94 ? g_510c94->motion_sensor_range : 8.f;
+    attenuation = ((real)observer->distance_volume * distance) / (divisor + 1.5f) + ((real)observer->distance_volume / extra_divisor) * beyond * 150.f;
+   }
+   else
+    attenuation = ((real)observer->distance_volume * distance) / ((g_510c94 ? g_510c94->motion_sensor_range : 8.f) + 1.5f);
+   function_30bf0((vector3f *)&direction);
+   real gains[5];
+   function_192d40(&direction, gains, observer->linear_gain);
+   long smallest = 0;
+   real minimum = gains[0];
+   for (long i = 0; i < 5; i++)
+   {
+    if (minimum > gains[i])
+    {
+     minimum = gains[i];
+     smallest = i;
+    }
+   }
+   long used = 0;
+   if (smallest != 0) { gains[used] = gains[0]; bins[used++].dwMixBin = 0; }
+   if (smallest != 1) { gains[used] = gains[1]; bins[used++].dwMixBin = 1; }
+   if (smallest != 2) { gains[used] = gains[2]; bins[used++].dwMixBin = 4; }
+   if (smallest != 3) { gains[used] = gains[3]; bins[used++].dwMixBin = 5; }
+   if (smallest != 4) { gains[used] = gains[4]; bins[used++].dwMixBin = 2; }
+   for (long j = 0; j < 4; j++)
+   {
+    long directional = (long)((1.f - gains[j]) * (real)observer->directional_volume);
+    long volume = (long)((real)directional + attenuation);
+    if (volume < -10000) volume = -10000;
+    else if (volume > 0) volume = 0;
+    bins[j].lVolume = volume;
+   }
+   *count = 4;
+   return;
+  }
+ }
+ bins[0].lVolume = 0;
+ bins[0].dwMixBin = 2;
+ *count = 1;
 }

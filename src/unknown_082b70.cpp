@@ -151,3 +151,110 @@ bool function_828b0(long player_index, s_player_object_motion *result)
 	}
 	return valid;
 }
+
+struct s_object_relevance_source;
+struct s_object_relevance_result
+{
+ real first;
+ real second;
+ long object_index;
+ long identifier;
+};
+void function_82ac0(s_object_relevance_source *source, s_object_relevance_result *result);
+
+struct s_weapon_activity_result
+{
+ byte unknown00[0x18];
+ bool active[2][2];
+ bool update_relevance;
+ byte unknown1d[3];
+ s_object_relevance_result relevance;
+ bool consumed[2];
+};
+
+struct s_weapon_trigger_view
+{
+ byte unknown00[8];
+ short barrel;
+ byte unknown0a[2];
+ short mode;
+ byte unknown0e[0x40 - 0xe];
+};
+
+struct s_weapon_definition_view
+{
+ byte unknown00[0x2c8];
+ long trigger_count;
+ s_weapon_trigger_view *triggers;
+ long barrel_count;
+ byte *barrels;
+};
+
+// @retail 0x82d20
+void function_82d20(long object_index, s_object_relevance_source *source, s_weapon_activity_result *result)
+{
+ result->relevance.object_index = NONE;
+ result->relevance.identifier = NONE;
+ result->relevance.first = 0.0f;
+ result->relevance.second = 0.0f;
+ result->active[0][0] = false;
+ result->active[0][1] = false;
+ result->active[1][0] = false;
+ result->active[1][1] = false;
+ result->consumed[0] = false;
+ result->consumed[1] = false;
+ result->update_relevance = false;
+ if (object_index == NONE)
+  return;
+ long weapons[2];
+ weapons[0] = object_query_weapon(object_index, object_get_082b70(object_index)->weapon_slots[0]);
+ weapons[1] = object_query_weapon(object_index, object_get_082b70(object_index)->weapon_slots[1]);
+ if (weapons[0] == NONE && weapons[1] == NONE)
+ {
+  function_82b70(object_index, weapons);
+  if (weapons[0] == NONE && weapons[1] == NONE)
+   function_82c10(object_index, weapons);
+ }
+ for (long hand = 0; hand < 2; hand++)
+ {
+  long weapon_index = weapons[hand];
+  if (weapon_index != NONE)
+  {
+   byte *weapon = (byte *)object_get_082b70(weapon_index);
+   s_weapon_definition_view *definition = (s_weapon_definition_view *)g_4e3b44[*(dword *)weapon & 0xffff].bytes;
+   for (long trigger_index = 0; trigger_index < definition->trigger_count; trigger_index++)
+   {
+    s_weapon_trigger_view *trigger = &definition->triggers[trigger_index];
+    long barrel = trigger->barrel;
+    if (barrel >= 0 && barrel < definition->barrel_count)
+    {
+     byte *state = (byte *)object_get_082b70(weapon_index) + 0x1a4 + barrel * 0x34;
+     word flags = *(word *)(state + 4);
+     if (flags & 0x80)
+     {
+      *(word *)(state + 4) = flags & 0xff7f;
+      result->consumed[hand] = true;
+     }
+    }
+    byte *trigger_state = weapon + 0x20c + trigger_index * 0xc;
+    switch (trigger->mode)
+    {
+    case 2:
+     if (*trigger_state == 1 || *trigger_state == 2)
+      result->active[hand][trigger_index] = true;
+     break;
+    case 1:
+     if ((trigger_state[4] & 0x20) && trigger->barrel != NONE &&
+      *(short *)(definition->barrels + trigger->barrel * 0xec + 0x34) == 1)
+     {
+      result->active[hand][trigger_index] = true;
+      result->update_relevance = true;
+     }
+     break;
+    }
+   }
+  }
+ }
+ if (result->update_relevance)
+  function_82ac0(source, &result->relevance);
+}

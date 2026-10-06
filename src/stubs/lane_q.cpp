@@ -11,10 +11,6 @@ void __stdcall function_1c9f30(long object_index)
 {
 }
 
-// @stub 0x2095e0
-void __stdcall function_2095e0(long object_index)
-{
-}
 
 // @stub 0x15b650
 void __stdcall function_15b650(long team, long delta) { }

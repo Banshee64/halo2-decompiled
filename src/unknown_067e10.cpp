@@ -1380,3 +1380,16 @@ bool function_688c0(long player_index, s_68a90_entry *entry)
 	}
 	return changed;
 }
+
+void function_85880(c_simulation_view *view);
+
+// @retail 0x68550
+void __stdcall function_68550(c_simulation_view *view)
+{
+ if (!view->failure_reason)
+ {
+  view->set_state(0, NONE);
+  view->failure_reason = 1;
+ }
+ function_85880(view);
+}

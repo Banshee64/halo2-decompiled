@@ -2799,7 +2799,7 @@ bool __stdcall function_e23e0(long arg_159e6d, point3f const *point, real value,
 struct s_1faf30_timer;
 void function_1faf30(s_1faf30_timer *timer);
 bool function_1cb920(void *data, long mode);
-void function_114b60(long a, long b, long arg_159e6d, long c, long d);
+bool function_114b60(short entry_index, short fallback_index, long unit_index, long priority, void const *extra);
 void __stdcall function_b8890(long unit_index);
 
 /* counts down the biped's landing (+0x39d); a ragdolling biped that can

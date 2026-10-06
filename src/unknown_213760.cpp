@@ -14,7 +14,7 @@ struct s_cache_file
 	byte unknown04[0x800];
 };
 
-s_cache_file g_557c90[3];
+s_cache_file g_557c90[6];
 long g_55aca8;
 
 #include "async.h"
@@ -1074,6 +1074,130 @@ void function_213484(void)
         {
             s_buffer_pair values = { 0, 0 };
             function_13d50(&values, 0, 0x55);
+        }
+    }
+}
+
+
+#include <string.h>
+
+long cache_file_size_limit(long index);
+void __stdcall function_2138f0(long first, long last);
+void cache_file_path_from_slot(long index, char *path, long path_size);
+bool cache_file_header_read(long index);
+s_cache_file *cache_file_from_type(long type);
+long __stdcall function_1a08f0(s_async_task *task);
+
+PRIVATE inline void cache_wait_for_completion(bool volatile *done)
+{
+    if (!*done)
+    {
+        while (!*done)
+            SwitchToThread();
+    }
+}
+
+PRIVATE inline void cache_header_initialize_strings(s_cache_header *header)
+{
+    byte *data = (byte *)header;
+    data[0x20] = 0;
+    data[0x120] = 0;
+    data[0x198] = 0;
+    data[0x1bc] = 0;
+}
+
+// @retail 0x213970
+void function_213970(void)
+{
+    bool valid_types[3];
+    memset(valid_types, 1, sizeof(valid_types));
+    bool remove_later = true;
+    function_2138f0(6, 20);
+    for (long index = 0; index < 6; index++)
+    {
+        s_cache_file *file = &g_557c90[index];
+        char path[256];
+        cache_file_path_from_slot(index, path, sizeof(path));
+        dword expected_size = cache_file_size_limit(index);
+        s_async_task task;
+        memset(&task, 0, sizeof(task));
+        task.create_file.path = path;
+        task.create_file.access = GENERIC_READ | GENERIC_WRITE;
+        task.create_file.share_mode = 0;
+        task.create_file.creation_disposition = OPEN_ALWAYS;
+        task.create_file.flags = FILE_FLAG_RANDOM_ACCESS;
+        task.create_file.file = (s_file_handle *)&file->handle;
+        task.create_file.create_path = false;
+        bool volatile done;
+        function_120ba0(6, &task, 0, function_1a08f0, &done);
+        cache_wait_for_completion(&done);
+        bool valid = false;
+        if (file->handle != INVALID_HANDLE_VALUE)
+        {
+            dword size;
+            function_1a15f0(*(s_file_handle *)&file->handle, 0, 6, &size, &done);
+            cache_wait_for_completion(&done);
+            if (size != expected_size)
+            {
+                if (remove_later)
+                {
+                    function_2138f0(index + 1, 6);
+                    remove_later = false;
+                }
+                bool resized;
+                function_1a1310(*(s_file_handle *)&file->handle, expected_size, 0, 6, &resized, &done);
+                cache_wait_for_completion(&done);
+                bool written = false;
+                if (resized)
+                {
+                    s_cache_header empty_header;
+                    cache_header_initialize_strings(&empty_header);
+                    dword bytes_written;
+                    function_1a1050(*(s_file_handle *)&file->handle, &empty_header, 0x800, 0, 0, 0, 6, &bytes_written, &done);
+                    cache_wait_for_completion(&done);
+                    written = bytes_written == 0x800;
+                }
+                if (!written && file->handle != INVALID_HANDLE_VALUE)
+                {
+                    function_1a1550(*(s_file_handle *)&file->handle, 0, 6, &done);
+                    cache_wait_for_completion(&done);
+                    file->handle = INVALID_HANDLE_VALUE;
+                }
+            }
+            else if (cache_file_header_read(index))
+            {
+                valid = true;
+                if (index >= 1 && index <= 1)
+                {
+                    s_cache_header header;
+                    cache_header_initialize_strings(&header);
+                    valid = function_213800((char const *)file + 0x24, &header);
+                    if (valid)
+                        valid = *(long *)((byte *)file + 0x148) == *(long *)((byte *)&header + 0x144);
+                    if (valid && index != 0 && index != 1)
+                    {
+                        for (long type = 0; type < 3; type++)
+                        {
+                            if (*((byte *)file + 0x178 + type) && valid_types[type])
+                            {
+                                FILETIME const *current = (FILETIME const *)((byte *)cache_file_from_type(type) + 0x17c);
+                                FILETIME const *stored = (FILETIME const *)((byte *)file + 0x184 + type * 8);
+                                valid = CompareFileTime(current, stored) == 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (!valid)
+        {
+            memset(file->unknown04, 0, sizeof(file->unknown04));
+            switch (index)
+            {
+            case 0: valid_types[1] = false; break;
+            case 1: valid_types[2] = false; break;
+            case 2: valid_types[0] = false; break;
+            }
         }
     }
 }

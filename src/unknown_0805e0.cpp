@@ -727,3 +727,23 @@ long function_7fe90(const s_cached_player_identity *identity, long position, con
 	if (removed == NONE) g_4cf978++;
 	return position;
 }
+
+struct s_network_session_player;
+
+// @retail 0x805d0
+void __fastcall function_805d0(s_network_session_player *player)
+{
+ function_80490((const s_cached_player_identity *)player,
+  (const s_cached_player_source *)((const byte *)player + 0xa8), false, true);
+}
+
+// @retail 0x80440
+void function_80440(const s_cached_player_identity *identity, s_recent_player *player)
+{
+ long position = 0;
+ long index = function_7fc80(identity, &position);
+ if (index == NONE)
+  index = function_80330(identity, position);
+ memcpy(player, &g_4cf98c[index].player, sizeof(*player));
+ function_7fdf0(index);
+}

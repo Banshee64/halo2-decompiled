@@ -651,3 +651,91 @@ bool c_simulation_view::baseline_update(long id, long sequence, const s_input_up
 	}
 	return result;
 }
+
+long network_observer_attach_channel(s_network_observer *observer, long owner_index, const XNADDR *address);
+void function_97f60(s_handle_peers *peers, long index, c_handle_table_450cd0 *table);
+void replication_table_attach_sender(s_handle_peers *peers, long index, c_handle_table_450cd0 *table);
+void __stdcall function_68550(c_simulation_view *view);
+void network_connection_callback_initialize(s_connection_callback *callback, c_connection_client *const *clients,
+ void *context, void (__stdcall *function)(void *), long count, const dword *types, bool active);
+
+static __forceinline void view_add_child(c_vtable_450cf4 *aggregate, long index, c_interface_450c94 *child)
+{
+ aggregate->children[index] = child;
+ long count = child->v2();
+ aggregate->unknown24 += count;
+ ((long *)aggregate->unknown18)[index] = count;
+ *((long *)child + 1) = index;
+}
+
+// @retail 0x85650
+void function_85650(c_simulation_view *view, s_network_observer *observer, const XNADDR *address, long channel_index)
+{
+ network_observer_attach_channel(observer, 3, address);
+ long connection_index = observer->channels[channel_index].connection_index;
+ s_network_connection *connection = &((s_network_connection *)g_4d87d4)[connection_index];
+ view->unknown3c = connection_index;
+ view->observer = observer;
+ view->channel_index = channel_index;
+ view->unknown40 = connection->local_sequence;
+ view->failure_reason = 0;
+ if (view->type == 3 || view->type == 4)
+ {
+  s_view_distribution_senders *distribution = (s_view_distribution_senders *)view->world->distribution;
+  c_replication_view_storage *storage = (c_replication_view_storage *)view->data;
+  *(long *)&storage->aggregate.unknown04[4] = view->world_index;
+  storage->aggregate.unknown24 = 0;
+  for (long i = 0; i < 3; i++)
+  {
+   storage->aggregate.children[i] = 0;
+   ((long *)storage->aggregate.unknown18)[i] = 0;
+  }
+  storage->unknown2c = 0;
+  storage->aggregate.unknown04[0] = 1;
+  ((c_replication_view_storage *)view->data)->source.world = (s_world_450d14 *)view;
+  ((c_replication_view_storage *)view->data)->unknown2c = (long)&((c_replication_view_storage *)view->data)->source;
+  c_vtable_450d1c *sender = &((c_replication_view_storage *)view->data)->sender;
+  sender->player = view->world_index;
+  sender->requests = 0;
+  sender->request_count = 0;
+  sender->unknown08 = 1;
+  sender->unknown09 = 0;
+  sender->pending = 0;
+  sender->unknown1c = 0;
+  sender->unknown24 = 0;
+  sender->owner = (s_owner_450d1c *)((byte *)distribution + 0x2048);
+  view_add_child(&((c_replication_view_storage *)view->data)->aggregate, 0, sender);
+  distribution->sender_mask |= 1 << view->world_index;
+  distribution->senders[view->world_index] = (s_sender *)&((c_replication_view_storage *)view->data)->sender;
+  function_97f60(&distribution->handles, view->world_index, &((c_replication_view_storage *)view->data)->handles);
+  view_add_child(&((c_replication_view_storage *)view->data)->aggregate, 1,
+   (c_interface_450c94 *)&((c_replication_view_storage *)view->data)->handles);
+  replication_table_attach_sender(&distribution->handles, view->world_index,
+   &((c_replication_view_storage *)view->data)->handles);
+  ((c_replication_view_storage *)view->data)->updates.reset(
+   (c_source_450c94 *)&((c_replication_view_storage *)view->data)->source);
+  view_add_child(&((c_replication_view_storage *)view->data)->aggregate, 2,
+   &((c_replication_view_storage *)view->data)->updates);
+  s_simulation_view_baseline *baseline = &view->data->baseline;
+  baseline->view = view;
+  *((byte *)baseline + 6) = 0;
+  *((byte *)baseline + 5) = 0;
+  *((byte *)baseline + 4) = 0;
+ }
+ dword types[4];
+ c_connection_client *clients[4];
+ long count = 0;
+ if (view->type == 3 || view->type == 4)
+ {
+  types[0] = 0x1a;
+  clients[0] = (c_connection_client *)&((c_replication_view_storage *)view->data)->aggregate;
+  count = 1;
+ }
+ bool active = view->world->state != 3 && view->world->state != 5;
+ s_connection_callback *callback = (s_connection_callback *)view->unknown44;
+ network_connection_callback_initialize(callback, clients, view,
+  (void (__stdcall *)(void *))function_68550, count, types, active);
+ connection->callback = callback;
+ view->flag78 = false;
+ view->set_state(view->state, view->state_id);
+}

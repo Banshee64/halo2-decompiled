@@ -57,10 +57,6 @@ long __stdcall function_63e90(long index)
 	return 0;
 }
 
-// @stub 0x6cb60
-void function_6cb60(void)
-{
-}
 
 
 
@@ -82,10 +78,6 @@ bool __stdcall function_19bfd0(struct s_content_item *item)
 
 struct s_network_session_player;
 
-// @stub 0x805d0
-void __fastcall function_805d0(s_network_session_player *player)
-{
-}
 
 // @stub 0x1391ed
 void function_1391ed(void)

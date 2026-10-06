@@ -67,6 +67,32 @@ PRIVATE inline long next_script_record(s_record_pool *records, long index)
 	return data_datum_index(records, function_16bc00(records, next));
 }
 
+void object_lists_garbage_collect(void);
+
+// @retail 0x209310
+void function_209310(void)
+{
+	if (g_4f9388)
+	{
+		long current_time = g_510c54->game_time;
+		s_record_pool *records = g_4f9384;
+		long index = next_script_record(records, NONE);
+		while (index != NONE)
+		{
+			s_hs_due_thread *thread = (s_hs_due_thread *)(records->data + (index & 0xffff) * sizeof(s_hs_due_thread));
+			if (thread->unknown00[2] != 4 && thread->sleep_until >= 0 && thread->sleep_until <= current_time)
+			{
+				function_209850(index);
+				records = g_4f9384;
+			}
+			index = data_datum_index(records, function_16bc00(records, (index & 0xffff) + 1));
+			if (!g_4f9388)
+				break;
+		}
+		object_lists_garbage_collect();
+	}
+}
+
 // @retail 0x209e70
 long function_209e70(short script_index)
 {
@@ -194,4 +220,45 @@ void function_20a750(void)
     g_4f55d4->valid = true;
     record_pool_release_all(g_4f55d4);
     function_2090a0();
+}
+
+
+void function_20a1a0(void);
+long function_16b990(s_record_pool *data, long index);
+
+// @retail 0x208ff0
+void function_208ff0(void)
+{
+    g_4f9384 = data_new_inlined("hs thread", 0x140, 0x418, 0, g_510c2c);
+    g_4f9380 = data_new_inlined("hs globals", 0xc00, 8, 0, g_510c2c);
+    if (g_4f9384 && g_4f9380)
+    {
+        g_4f9380->valid = true;
+        record_pool_release_all(g_4f9380);
+        for (long i = 0; i < 0x41d; i++)
+            function_16b990(g_4f9380, i);
+    }
+    function_20a1a0();
+}
+
+
+void function_1ded00(void);
+
+
+PRIVATE inline s_record_pool *script_expression_pool_new(char const *name, long count, long size, c_data_allocator *allocator)
+{
+    long bitmap_size = ((count + 31) >> 5) * sizeof(dword);
+    s_record_pool *expressions = (s_record_pool *)allocator->allocate(sizeof(s_record_pool) + bitmap_size);
+    if (expressions)
+        data_array_construct(expressions, name, count, size, 0, allocator, (dword *)(expressions + 1));
+    return expressions;
+}
+
+// @retail 0x20a700
+void function_20a700(void)
+{
+    g_4f9394 = script_expression_pool_new("script node", 0x9000, 20, g_468758);
+    function_1ded00();
+    function_208ff0();
+    function_20a750();
 }
