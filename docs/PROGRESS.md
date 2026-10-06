@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6130 functions match
+
+```
+matched 6130 of 11318 game functions (629567 of 2784283 bytes, 22.61%)
+```
+
+10 new matches, none lost:
+- **Codex lane U**, round 6 (10): actor and squad iterators, script and widget helpers in the 0x200000–0x217fff range; its callee 0x216120 also makes two UI functions (0x2380a6, 0x2380c0) match.
+
 ## 2026-10-05: 6120 functions match
 
 ```
