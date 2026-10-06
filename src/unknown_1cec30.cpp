@@ -1685,3 +1685,486 @@ void function_1d3d20(s_havok_component *component, long node_index, dword *updat
   child = next->sibling;
  }
 }
+
+class c_extent_shape;
+real __stdcall function_182aa0(c_extent_shape *shape, real *minimum, real *maximum);
+
+// @retail 0x1d1230
+real function_1d1230(long rigid_body_index, s_havok_component *component)
+{
+    real minimum, maximum;
+    hkRigidBody *body = component->rigid_bodies[rigid_body_index].rigid_body;
+    return function_182aa0(*(c_extent_shape **)((byte *)body + 0xc), &minimum, &maximum);
+}
+
+struct s_component_joint_override
+{
+    short type;
+    short index;
+    long unknown04;
+    real strength;
+};
+
+struct s_component_joint_override_group
+{
+    byte unknown00[8];
+    long count;
+    s_component_joint_override *entries;
+    byte unknown10[8];
+};
+
+struct s_component_joint_angles
+{
+    byte unknown00[0x78];
+    real twist_minimum, twist_maximum;
+    real cone_minimum, cone_maximum;
+    real plane_minimum, plane_maximum;
+    real strength;
+};
+
+struct s_component_joint_hinge
+{
+    byte unknown00[0x78];
+    real strength;
+    real minimum, maximum;
+};
+
+struct s_component_joint_model
+{
+    byte unknown00[0x30];
+    long override_count;
+    s_component_joint_override_group *overrides;
+    byte unknown38[0xbc - 0x38];
+    s_component_joint_angles *angles;
+    byte unknownc0[0xec - 0xc0];
+    s_component_joint_hinge *hinges;
+};
+
+class c_component_joint_strength
+{
+public:
+    void set_strength(real strength);
+};
+
+// @retail 0x1d35d0
+void function_1d35d0(long constraint_index, s_havok_component *component, real scale)
+{
+    real const *scale_reference = &scale;
+    s_havok_component_element0c *constraint = &component->unknown7c.data[constraint_index];
+    s_component_object_transform_view *object = (s_component_object_transform_view *)havok_object_get(component->object_index);
+    s_component_transform_definition *definition = (s_component_transform_definition *)g_4e3b44[object->definition_index & 0xffff].bytes;
+    s_component_collision_model_link *model = (s_component_collision_model_link *)g_4e3b44[definition->model_index & 0xffff].bytes;
+    s_component_joint_model *physics = (s_component_joint_model *)g_4e3b44[model->physics_model_index & 0xffff].bytes;
+    real strength = 0.0f;
+    for (long i = 0; i < physics->override_count; ++i)
+    {
+        s_component_joint_override_group *group = &physics->overrides[i];
+        for (long j = 0; j < group->count; ++j)
+        {
+            s_component_joint_override *entry = &group->entries[j];
+            if (entry->type == constraint->unknown00 && entry->index == constraint->unknown02)
+            {
+                strength = entry->strength;
+                break;
+            }
+        }
+    }
+    switch (constraint->unknown00)
+    {
+    case 2:
+        {
+            s_component_joint_angles *angles = &physics->angles[constraint->unknown02];
+            real *joint = (real *)constraint->contact;
+            joint[0x8c / 4] = (angles->twist_minimum > angles->twist_maximum ? angles->twist_maximum : angles->twist_minimum) * *scale_reference * 0.01745329238474369f;
+            joint[0x90 / 4] = (angles->twist_minimum > angles->twist_maximum ? angles->twist_minimum : angles->twist_maximum) * *scale_reference * 0.01745329238474369f;
+            joint[0x84 / 4] = (real)sin((angles->plane_minimum > angles->plane_maximum ? angles->plane_maximum : angles->plane_minimum) * *scale_reference * 0.01745329238474369f);
+            joint[0x88 / 4] = (real)sin((angles->plane_minimum > angles->plane_maximum ? angles->plane_minimum : angles->plane_maximum) * *scale_reference * 0.01745329238474369f);
+            joint[0x80 / 4] = (real)cos((angles->cone_minimum > angles->cone_maximum ? angles->cone_minimum : angles->cone_maximum) * *scale_reference * 0.01745329238474369f);
+            ((c_component_joint_strength *)joint)->set_strength((strength != 0.0f ? strength : angles->strength) * *scale_reference);
+        }
+        break;
+    case 1:
+        {
+            s_component_joint_hinge *hinge = &physics->hinges[constraint->unknown02];
+            real *joint = (real *)constraint->contact;
+            if (strength == 0.0f)
+                strength = hinge->strength;
+            joint[0xd0 / 4] = strength * *scale_reference;
+            real lower = 0.0f - hinge->minimum;
+            real upper = 0.0f - hinge->maximum;
+            joint[0xc8 / 4] = (lower > upper ? upper : lower) * *scale_reference * 0.01745329238474369f;
+            lower = 0.0f - hinge->minimum;
+            upper = 0.0f - hinge->maximum;
+            joint[0xcc / 4] = (lower > upper ? lower : upper) * *scale_reference * 0.01745329238474369f;
+        }
+        break;
+    }
+}
+
+struct c_component_joint_snapshot_0
+{
+    __m128 data[6];
+    c_component_joint_snapshot_0();
+};
+struct c_component_joint_reader_0
+{
+    void read(c_component_joint_snapshot_0 *output);
+};
+
+struct c_component_joint_snapshot_1
+{
+    __m128 data[9];
+    c_component_joint_snapshot_1();
+};
+struct c_component_joint_reader_1
+{
+    void read(c_component_joint_snapshot_1 *output);
+};
+
+struct c_component_joint_snapshot_2
+{
+    __m128 data[9];
+    c_component_joint_snapshot_2();
+};
+struct c_component_joint_reader_2
+{
+    void read(c_component_joint_snapshot_2 *output);
+};
+
+struct c_component_joint_snapshot_4
+{
+    __m128 data[3];
+    c_component_joint_snapshot_4();
+};
+struct c_component_joint_reader_4
+{
+    void read(c_component_joint_snapshot_4 *output);
+};
+
+// @retail 0x1cff80
+void function_1cff80(s_havok_component_element0c const *constraint, point3f *pivot_a, point3f *pivot_b)
+{
+    switch (constraint->unknown00)
+    {
+    case 2:
+        {
+            c_component_joint_reader_2 *joint = (c_component_joint_reader_2 *)constraint->contact;
+            c_component_joint_snapshot_2 snapshot;
+            joint->read(&snapshot);
+            real x = snapshot.data[1].m128_f32[0];
+            real y = snapshot.data[1].m128_f32[1];
+            real z = snapshot.data[1].m128_f32[2];
+            pivot_a->x = x;
+            pivot_a->y = y;
+            pivot_a->z = z;
+            pivot_b->x = x;
+            pivot_b->y = y;
+            pivot_b->z = z;
+        }
+        break;
+    case 1:
+        {
+            c_component_joint_reader_1 *joint = (c_component_joint_reader_1 *)constraint->contact;
+            c_component_joint_snapshot_1 snapshot;
+            joint->read(&snapshot);
+            real x = snapshot.data[1].m128_f32[0];
+            real y = snapshot.data[1].m128_f32[1];
+            real z = snapshot.data[1].m128_f32[2];
+            pivot_a->x = x;
+            pivot_a->y = y;
+            pivot_a->z = z;
+            pivot_b->x = x;
+            pivot_b->y = y;
+            pivot_b->z = z;
+        }
+        break;
+    case 0:
+        {
+            c_component_joint_reader_0 *joint = (c_component_joint_reader_0 *)constraint->contact;
+            c_component_joint_snapshot_0 snapshot;
+            joint->read(&snapshot);
+            real x = snapshot.data[1].m128_f32[0];
+            real y = snapshot.data[1].m128_f32[1];
+            real z = snapshot.data[1].m128_f32[2];
+            pivot_a->x = x;
+            pivot_a->y = y;
+            pivot_a->z = z;
+            pivot_b->x = x;
+            pivot_b->y = y;
+            pivot_b->z = z;
+        }
+        break;
+    case 4:
+        {
+            c_component_joint_reader_4 *joint = (c_component_joint_reader_4 *)constraint->contact;
+            c_component_joint_snapshot_4 snapshot;
+            joint->read(&snapshot);
+            real x = snapshot.data[1].m128_f32[0];
+            real y = snapshot.data[1].m128_f32[1];
+            real z = snapshot.data[1].m128_f32[2];
+            pivot_a->x = x;
+            pivot_a->y = y;
+            pivot_a->z = z;
+            pivot_b->x = x;
+            pivot_b->y = y;
+            pivot_b->z = z;
+        }
+        break;
+    default:
+        *pivot_a = *g_468788;
+        *pivot_b = *g_468788;
+        break;
+    }
+}
+
+struct s_component_bounds
+{
+    __m128 lower;
+    __m128 upper;
+};
+
+class c_component_bounds_lookup
+{
+public:
+    virtual void slot0() = 0;
+    virtual void slot1() = 0;
+    virtual void slot2() = 0;
+    virtual void slot3() = 0;
+    virtual void slot4() = 0;
+    virtual void slot5() = 0;
+    virtual void slot6() = 0;
+    virtual void slot7() = 0;
+    virtual void bounds(void *handle, s_component_bounds *output) = 0;
+};
+
+struct s_component_bounds_world
+{
+    byte unknown00[0xc4];
+    c_component_bounds_lookup *lookup;
+};
+
+struct s_component_bounds_body
+{
+    byte unknown00[0x80];
+    real padding;
+    byte unknown84[0xc];
+};
+
+struct s_component_bounds_model
+{
+    byte unknown00[0x3c];
+    s_component_bounds_body *bodies;
+};
+
+extern hkWorld *g_51e9a4;
+
+// @retail 0x1d44f0
+bool __stdcall function_1d44f0(s_havok_component *component, point3f *center, real *radius)
+{
+    s_havok_component *const *component_reference = &component;
+    point3f *const *center_reference = &center;
+    real *const *radius_reference = &radius;
+    bool result = false;
+    if ((*component_reference)->rigid_bodies.size > 0 && TEST_FIELD_BIT((*component_reference)->flag5) && TEST_FIELD_BIT((*component_reference)->flag11))
+    {
+        s_component_object_transform_view *object = (s_component_object_transform_view *)havok_object_get((*component_reference)->object_index);
+        byte *definition_bytes = g_4e3b44[object->definition_index & 0xffff].bytes;
+        if (!(definition_bytes[0x1c] & 2))
+        {
+            s_component_transform_definition *definition = (s_component_transform_definition *)definition_bytes;
+            s_component_collision_model_link *model = (s_component_collision_model_link *)g_4e3b44[definition->model_index & 0xffff].bytes;
+            s_component_bounds_model *physics = (s_component_bounds_model *)g_4e3b44[model->physics_model_index & 0xffff].bytes;
+            s_component_bounds combined;
+            for (long i = 0; i < (*component_reference)->rigid_bodies.size; ++i)
+            {
+                s_havok_component_rigid_body *body = &(*component_reference)->rigid_bodies.data[i];
+                void *shape = (byte *)body->rigid_body + 0xc;
+                real padding = 0.0f;
+                for (long j = 0; j < body->node_count; ++j)
+                {
+                    padding = padding > physics->bodies[body->nodes[j]].padding ? padding : physics->bodies[body->nodes[j]].padding;
+                }
+                s_component_bounds bounds;
+                ((s_component_bounds_world *)g_51e9a4)->lookup->bounds(shape ? (byte *)shape + 0x10 : NULL, &bounds);
+                if (padding != 0.0f)
+                {
+                    bounds.lower.m128_f32[0] -= padding;
+                    bounds.upper.m128_f32[0] += padding;
+                    bounds.lower.m128_f32[1] -= padding;
+                    bounds.upper.m128_f32[1] += padding;
+                    bounds.lower.m128_f32[2] -= padding;
+                    bounds.upper.m128_f32[2] += padding;
+                }
+                if (i == 0)
+                {
+                    combined.lower = bounds.lower;
+                    combined.upper = bounds.upper;
+                }
+                else
+                {
+                    combined.lower = _mm_min_ps(combined.lower, bounds.lower);
+                    combined.upper = _mm_max_ps(combined.upper, bounds.upper);
+                }
+            }
+            __m128 half = _mm_set1_ps(0.5f);
+            __m128 middle = _mm_mul_ps(half, _mm_add_ps(combined.lower, combined.upper));
+            __m128 extent = _mm_mul_ps(half, _mm_sub_ps(combined.upper, combined.lower));
+            (*center_reference)->x = middle.m128_f32[0];
+            (*center_reference)->y = middle.m128_f32[1];
+            (*center_reference)->z = middle.m128_f32[2];
+            __m128 square = _mm_mul_ps(extent, extent);
+            __m128 sum = _mm_add_ss(_mm_shuffle_ps(square, square, 0xaa), _mm_add_ss(_mm_shuffle_ps(square, square, 0x55), square));
+            __m128 length = _mm_sqrt_ss(sum);
+            real value;
+            _mm_store_ss(&value, length);
+            **radius_reference = value + 0.001f;
+            result = true;
+        }
+    }
+    return result;
+}
+
+struct s_component_surface
+{
+    byte unknown00[6];
+    short material;
+};
+
+struct s_component_surface_mesh
+{
+    byte unknown00[0x2c];
+    s_component_surface *surfaces;
+};
+
+struct s_slot_entry_list;
+extern s_slot_entry_list *g_4e0340;
+bool function_181db0(long index, vector3f *result);
+
+PRIVATE __forceinline real component_surface_length(vector3f const *v)
+{
+    return (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
+}
+
+PRIVATE __forceinline void component_surface_property_set(hkEntity *entity, long value)
+{
+    if (havok_entity_property_exists(entity, HAVOK_PROPERTY_2003))
+        entity->removeProperty(HAVOK_PROPERTY_2003);
+    entity->addProperty(HAVOK_PROPERTY_2003, hkPropertyValue(value));
+}
+
+// @retail 0x1d87b0
+void __stdcall function_1d87b0(s_havok_component_rigid_body *body, long body_index, s_havok_component *component)
+{
+    (void)&body;
+    (void)&body_index;
+    (void)&component;
+    vector3f normal = *g_4687a4;
+    long materials[3];
+    long material_count = 0;
+    long other_contacts = 0;
+    long contact_count = component->unknown88.size;
+    for (long i = 0; i < contact_count; ++i)
+    {
+        s_havok_component_element48 *contact = &component->unknown88.data[i];
+        if (contact->rigid_body_index_a == body_index && (((byte *)contact)[0x44] & 0x20) && material_count < 3)
+        {
+            s_component_surface *surface = &((s_component_surface_mesh *)g_4e0340)->surfaces[*(long *)((byte *)contact + 0xc)];
+            long j;
+            for (j = 0; j < material_count; ++j)
+                if (materials[j] == surface->material)
+                    break;
+            if (j == material_count)
+            {
+                normal.i = contact->normal.i + normal.i;
+                normal.j = contact->normal.j + normal.j;
+                normal.k = contact->normal.k + normal.k;
+                materials[material_count++] = surface->material;
+            }
+        }
+    }
+    if (material_count == 0)
+    {
+        havok_entity_property_2003_set((hkEntity *)body->rigid_body, hkPropertyValue(0));
+        *( __m128 *)((byte *)body + 0x30) = _mm_setzero_ps();
+        body->unknown44 = 0;
+        return;
+    }
+    real length = component_surface_length(&normal);
+    if (!(fabs(length) < 0.0001f))
+    {
+        real inverse = 1.0f / length;
+        normal.i = inverse * normal.i;
+        normal.j = normal.j * inverse;
+        normal.k = normal.k * inverse;
+    }
+    else
+        normal = *g_4687b0;
+    for (long i = 0; i < contact_count; ++i)
+    {
+        s_havok_component_element48 *contact = &component->unknown88.data[i];
+        if (contact->rigid_body_index_a == body_index && !(((byte *)contact)[0x44] & 0x20) &&
+            dot3f(&contact->normal, &normal) > 0.25f)
+            ++other_contacts;
+    }
+    vector3f velocity = *g_4687a4;
+    real speed_sum = 0.0f;
+    for (long i = 0; i < material_count; ++i)
+    {
+        vector3f local_c7c2ff;
+        if (!function_181db0(materials[i], &local_c7c2ff))
+            local_c7c2ff = *g_4687a4;
+        velocity.i = local_c7c2ff.i + velocity.i;
+        velocity.j = local_c7c2ff.j + velocity.j;
+        velocity.k = local_c7c2ff.k + velocity.k;
+        speed_sum += component_surface_length(&local_c7c2ff);
+    }
+    length = component_surface_length(&velocity);
+    if (!(fabs(length) < 0.0001f))
+    {
+        real inverse = 1.0f / length;
+        velocity.i = inverse * velocity.i;
+        velocity.j = velocity.j * inverse;
+        velocity.k = velocity.k * inverse;
+    }
+    real speed = ((bool)((component->unknown04 >> 18) & 1) ? 1.0f : 2.5f) * speed_sum / material_count;
+    hkVector4 *result = (hkVector4 *)((byte *)body + 0x30);
+    result->set(speed * velocity.i, velocity.j * speed, velocity.k * speed);
+    if (other_contacts == 0)
+    {
+        body->unknown44 = 1;
+        if ((bool)((component->unknown04 >> 18) & 1))
+            component_surface_property_set((hkEntity *)body->rigid_body, 0);
+        else
+            component_surface_property_set((hkEntity *)body->rigid_body, (long)result);
+    }
+    else
+    {
+        body->unknown44 = 2;
+        component_surface_property_set((hkEntity *)body->rigid_body, 0);
+    }
+}
+
+struct s_impact;
+extern s_record_pool *g_51ebfc;
+void impact_release(long impact_index, s_impact *impact);
+
+// @retail 0x1d06c0
+void __stdcall function_1d06c0(s_havok_component *component, long contact_index)
+{
+    // Retail keeps both arguments on the stack and reuses the index slot.
+    s_havok_component *const *component_reference = &component;
+    long const *index_reference = &contact_index;
+    long removed_index = contact_index;
+    s_havok_component_element48 *contact = &component->unknown88.data[contact_index];
+    bool update_surface = (bool)((((byte *)contact)[0x44] >> 5) & 1);
+    contact_index = contact->rigid_body_index_a;
+    long impact_index = contact->impact_index;
+    if (impact_index != NONE)
+    {
+        impact_release(impact_index, (s_impact *)(g_51ebfc->data + (impact_index & 0xffff) * 0xa0));
+        contact->impact_index = NONE;
+    }
+    component->unknown88.data[removed_index] = component->unknown88.data[--component->unknown88.size];
+    if (update_surface)
+        function_1d87b0(&component->rigid_bodies.data[contact_index], contact_index, component);
+}

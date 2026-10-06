@@ -42,12 +42,8 @@ bool function_1696d0(long flags, s_biped_ground_collision *collision, long objec
 bool function_1d5120(s_havok_component *component, long rigid_body_index, long a, long b, real rate, char *result, char value) { return 0; }
 
 
-// @stub 0x1d35d0
-void function_1d35d0(long rigid_body_index, s_havok_component *component, real scale) { }
 
 
-// @stub 0x1d1230
-real function_1d1230(long rigid_body_index, s_havok_component *component) { return 0; }
 
 
 
@@ -55,8 +51,6 @@ real function_1d1230(long rigid_body_index, s_havok_component *component) { retu
 // @stub 0xe63b0
 bool function_e63b0(vector3f const *aim, bool flag) { return 0; }
 
-// @stub 0x1cff80
-void function_1cff80(s_havok_component_element0c const *constraint, point3f *pivot_a, point3f *pivot_b) { }
 
 // @stub 0x114b60
 void function_114b60(long a, long b, long arg_159e6d, long c, long d) { }

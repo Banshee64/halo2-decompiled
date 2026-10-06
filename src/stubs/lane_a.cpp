@@ -95,10 +95,6 @@ real const g_44f710 = -64.0f;
 /* the saved game files manager (0x216000-0x218000) */
 struct s_saved_game_file_location;
 
-// @stub 0x203360
-void function_203360(long squad_index)
-{
-}
 
 struct s_bitmap_data;
 
@@ -137,10 +133,6 @@ long __stdcall function_1e0160(long squad_index, long entry_index, long unit_ind
 	return NONE;
 }
 
-// @stub 0x201df0
-void function_201df0(void)
-{
-}
 
 // @stub 0x1c9a00
 void function_1c9a00(void)
@@ -169,10 +161,6 @@ void function_1c84a0(long a, long b)
 {
 }
 
-// @stub 0x204010
-void function_204010(long squad_index, long other_squad_index)
-{
-}
 
 // @stub 0x1e3400
 void function_1e3400(long actor_index, long squad_index)
