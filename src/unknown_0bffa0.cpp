@@ -838,3 +838,158 @@ void function_c28b0(long light_index)
     }
     function_c2c50(light_index);
 }
+
+
+struct s_light_projection_ab
+{
+    bool orthogonal;
+    byte unknown01[3];
+    transform4x3f inverse;
+    transform4x3f matrix;
+    bool has_plane;
+    byte unknown6d[3];
+    real plane_offset;
+    vector3f plane_normal;
+    real plane_distance;
+    bool flag84, flag85;
+    byte unknown86[2];
+    real depth;
+    bool flag8c;
+    byte unknown8d[3];
+    byte frustum[0x108];
+    long point_count;
+    point2f points[4];
+};
+struct s_frustum_1648d0;
+struct s_camera_163db0;
+extern box2f *g_4687dc;
+void function_11f5f0(box2f *bounds, point2f const *points, long count);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+
+PRIVATE inline void light_projection_cross_ab(vector3f const *a, vector3f const *b, vector3f *result)
+{
+    result->i = a->j * b->k - a->k * b->j;
+    result->j = a->k * b->i - a->i * b->k;
+    result->k = a->i * b->j - a->j * b->i;
+}
+
+PRIVATE inline void light_projection_point_ab(transform4x3f const *matrix, vector3f const *point, point2f *result)
+{
+    real vi = point->i;
+    real vj = point->j;
+    real vk = point->k;
+    if (matrix->scale != 1.0f)
+    {
+        real scale = 1.0f / matrix->scale;
+        vi *= scale;
+        vj *= scale;
+        vk *= scale;
+    }
+    real x = matrix->forward.k * vk + matrix->forward.j * vj + matrix->forward.i * vi;
+    real y = matrix->left.k * vk + matrix->left.i * vi + matrix->left.j * vj;
+    real z = matrix->up.k * vk + matrix->up.i * vi + matrix->up.j * vj;
+    real scale = -1.0f / z;
+    result->x = scale * x;
+    result->y = scale * y;
+}
+
+// @retail 0xc1d90
+void __stdcall function_c1d90(s_light_frame_ab const *frame, s_light_shape_ab const *shape, s_light_projection_ab *entries, short *count)
+{
+    *count = (short)shape->kind == 0 ? 6 : 1;
+    for (long i = 0; i < *count; i++)
+    {
+        box2f bounds = *g_4687dc;
+        s_light_projection_ab *entry = &entries[i];
+        memset(entry, 0, sizeof(*entry));
+        if ((short)shape->kind == 0)
+        {
+            real radius = shape->sphere_render.radius;
+            vector3f vertices[8] = {
+                { radius, radius, -radius }, { -radius, radius, -radius },
+                { -radius, -radius, -radius }, { radius, -radius, -radius },
+                { radius, radius, radius }, { -radius, radius, radius },
+                { -radius, -radius, radius }, { radius, -radius, radius }
+            };
+            vector3f directions[6] = {
+                { 0, 0, -1 }, { 1, 0, 0 }, { 0, 1, 0 },
+                { -1, 0, 0 }, { 0, -1, 0 }, { 0, 0, 1 }
+            };
+            long faces[6][4] = {
+                { 0, 1, 2, 3 }, { 0, 3, 7, 4 }, { 0, 4, 5, 1 },
+                { 1, 5, 6, 2 }, { 2, 6, 7, 3 }, { 4, 7, 6, 5 }
+            };
+            entry->depth = radius;
+            entry->orthogonal = false;
+            entry->has_plane = false;
+            entry->matrix.up.i = 0.0f - directions[i].i;
+            entry->matrix.up.j = 0.0f - directions[i].j;
+            entry->matrix.up.k = 0.0f - directions[i].k;
+            vector3f reference = *g_4687a8;
+            if (i == 1 || i == 3)
+                reference = *g_4687ac;
+            light_projection_cross_ab(&entry->matrix.up, &reference, &entry->matrix.left);
+            vector3f *up = &entry->matrix.left;
+            real length = (real)sqrt((double)up->i * up->i + (double)up->k * up->k + (double)up->j * up->j);
+            if (fabs(length) >= 0.0001f)
+            {
+                real scale = 1.0f / length;
+                up->i *= scale;
+                up->j *= scale;
+                up->k *= scale;
+            }
+            light_projection_cross_ab(&entry->matrix.left, &entry->matrix.up, &entry->matrix.forward);
+            entry->matrix.position = shape->origin;
+            entry->matrix.scale = 1.0f;
+            light_projection_point_ab(&entry->matrix, &vertices[faces[i][0]], &entry->points[0]);
+            light_projection_point_ab(&entry->matrix, &vertices[faces[i][1]], &entry->points[1]);
+            light_projection_point_ab(&entry->matrix, &vertices[faces[i][2]], &entry->points[2]);
+            light_projection_point_ab(&entry->matrix, &vertices[faces[i][3]], &entry->points[3]);
+            entry->point_count = 4;
+            function_11f5f0(&bounds, entry->points, entry->point_count);
+        }
+        else
+        {
+            *count = 1;
+            memset(entries, 0, sizeof(*entries));
+            entry = entries;
+            entry->matrix.forward = shape->left;
+            entry->matrix.left = frame->up;
+            entry->matrix.up.i = 0.0f - frame->forward.i;
+            entry->matrix.up.j = 0.0f - frame->forward.j;
+            entry->matrix.up.k = 0.0f - frame->forward.k;
+            entry->matrix.position = shape->origin;
+            entry->matrix.scale = 1.0f;
+            entry->orthogonal = shape->kind == 1;
+            entry->has_plane = shape->origin_offset > 0.0f;
+            entry->plane_offset = shape->origin_offset;
+            point3f plane_point;
+            plane_point.x = entry->matrix.position.x + frame->forward.i * entry->plane_offset;
+            plane_point.y = entry->matrix.position.y + frame->forward.j * entry->plane_offset;
+            plane_point.z = entry->matrix.position.z + frame->forward.k * entry->plane_offset;
+            entry->plane_normal = frame->forward;
+            entry->plane_distance = entry->plane_normal.k * plane_point.z + entry->plane_normal.j * plane_point.y + entry->plane_normal.i * plane_point.x;
+            entry->depth = shape->cone_render.far_distance + shape->origin_offset;
+            point2f center;
+            light_projection_point_ab(&entry->matrix, &shape->cone_render.direction, &center);
+            real scale = 1.0f / shape->origin_offset;
+            real half_width = shape->cone_render.width * scale * 0.5f;
+            real half_height = shape->cone_render.height * scale * 0.5f;
+            bounds.x0 = center.x - half_width;
+            bounds.x1 = center.x + half_width;
+            bounds.y0 = center.y - half_height;
+            bounds.y1 = center.y + half_height;
+            entry->points[0].x = bounds.x0; entry->points[0].y = bounds.y0;
+            entry->points[1].x = bounds.x1; entry->points[1].y = bounds.y0;
+            entry->points[2].x = bounds.x1; entry->points[2].y = bounds.y1;
+            entry->points[3].x = bounds.x0; entry->points[3].y = bounds.y1;
+            entry->point_count = 4;
+        }
+        entry->flag8c = true;
+        entry->flag84 = true;
+        entry->flag85 = false;
+        function_141590(&entry->matrix, &entry->inverse);
+        function_163db0((s_frustum_1648d0 *)entry->frustum, &bounds, (s_camera_163db0 *)entry, 0);
+    }
+}

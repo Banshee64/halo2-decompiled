@@ -252,3 +252,57 @@ long function_2bd330(word player_mask)
 	}
 	return team_mask;
 }
+
+bool function_19f300(long *iterator);
+bool function_15eaf0();
+
+PRIVATE __forceinline long find_hill_team_player_2bd(word team_mask)
+{
+    s_player_iterator_2bd0 iterator;
+    iterator.data = g_4e8c24;
+    iterator.absolute_index = NONE;
+    iterator.index = NONE;
+    while (function_19f300((long *)&iterator))
+    {
+        if (iterator.player->time_inside && iterator.player->team != NONE &&
+            (team_mask & (1 << iterator.player->team)))
+            return iterator.index;
+    }
+    return NONE;
+}
+
+// @retail 0x2bd460
+void function_2bd460(word before_players, word after_players)
+{
+    word before = (word)function_2bd330(before_players);
+    word after = (word)function_2bd330(after_players);
+    if (before != after && after != 0)
+    {
+        long multiple = (after - 1) & after;
+        if (!multiple)
+        {
+            long player = find_hill_team_player_2bd(after);
+            s_event event;
+            game_engine_event_initialize_inline(&event, 6, function_15eaf0() ? 5 : 1);
+            if (player != NONE)
+            {
+                event.cause_player_index = player;
+                event.cause_team = player_get_2bd0(player)->team;
+            }
+            game_engine_event_send_inline(&event);
+        }
+        if (multiple && before && !((before - 1) & before))
+        {
+            word added = before ^ after;
+            if (added)
+            {
+                long player = find_hill_team_player_2bd(added);
+                s_event event;
+                game_engine_event_initialize_inline(&event, 6, function_15eaf0() ? 6 : 2);
+                if (player != NONE)
+                    game_engine_event_set_cause_player(&event, player);
+                function_19eb90(&event);
+            }
+        }
+    }
+}

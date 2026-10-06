@@ -798,3 +798,50 @@ void __stdcall function_b7880(long object_index, long node_index, point3f const 
         object->angular_velocity = angular;
     }
 }
+
+
+struct s_location;
+void function_109290(long object_index, long position, long forward, long up);
+bool __stdcall function_b7430(long object_index, point3f const *position, vector3f const *forward, vector3f const *up,
+    s_location const *location, bool a, bool b, bool c, bool d);
+void __stdcall function_b8540(long object_index);
+void function_b7360(long object_index);
+
+// @retail 0xb75a0
+void function_b75a0(long object_index, point3f const *point, vector3f const *forward, vector3f const *up,
+    s_location const *location, bool unknown)
+{
+    point3f saved_point;
+    vector3f saved_forward, saved_up;
+    point3f *position_copy = 0;
+    vector3f *forward_copy = 0;
+    vector3f *up_copy = 0;
+    if (point)
+    {
+        saved_point = *point;
+        position_copy = &saved_point;
+    }
+    if (forward)
+    {
+        saved_forward = *forward;
+        forward_copy = &saved_forward;
+    }
+    if (up)
+    {
+        saved_up = *up;
+        up_copy = &saved_up;
+    }
+    function_109290(object_index, (long)position_copy, (long)forward_copy, (long)up_copy);
+    if (!function_b7430(object_index, position_copy, forward_copy, up_copy, location, true, true, unknown, false))
+    {
+        bool attached = false;
+        if (g_4e6948->mode == 4)
+        {
+            byte *object = (byte *)((s_object_transform_header *)g_4e0300->data)[object_index & 0xffff].object;
+            attached = *(long *)(object + 0xd4) != NONE;
+        }
+        if (!attached)
+            function_b8540(object_index);
+    }
+    function_b7360(object_index);
+}

@@ -1129,7 +1129,7 @@ struct s_component_collision_header
 };
 
 // @retail 0x1d1d00
-bool function_1d1d00(long shape_index, long other_component_index, long component_index)
+bool function_1d1d00(long other_component_index, long shape_index, long component_index)
 {
 	bool result = false;
 	if (other_component_index != NONE)
@@ -1461,7 +1461,7 @@ void function_1d1e40(hkEntity const *entity, s_havok_component *component, long 
 	long other_component = havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX);
 	long body_index = havok_entity_property_get(entity, HAVOK_PROPERTY_2002);
 	if (other_component != NONE && other_component != component_index &&
-		function_1d1d00(shape_index, other_component, component_index))
+		function_1d1d00(other_component, shape_index, component_index))
 	{
 		long other_object_index = havok_component_get(other_component)->object_index;
 		if (!component->unknown94)
@@ -2537,4 +2537,152 @@ void function_1d7ef0(hkTransform *frame_a, s_havok_component *component,
             (s_extent_transform const *)frame_a);
         *body_b = (hkRigidBody *)function_30c170(g_51e9a4);
     }
+}
+
+struct s_1cf520
+{
+ word field_0;
+ byte field_2[0x1a];
+ point3f field_1c;
+ vector3f field_28;
+ real field_34;
+ real field_38;
+ byte field_3c[8];
+ byte field_44;
+ signed char field_45;
+};
+struct s_1cf521
+{
+ hkVector4 field_0;
+ hkVector4 field_10;
+};
+class c_1cf520
+{
+public:
+ virtual void function_1cf520() = 0;
+ virtual void function_1cf521() = 0;
+ virtual void function_1cf522() = 0;
+ virtual void function_1cf523() = 0;
+ virtual void function_1cf524() = 0;
+ virtual s_havok_friction *function_1cf525(word arg_0) = 0;
+ virtual s_1cf521 *function_1cf526(word arg_0) = 0;
+};
+struct s_scale_definition
+{
+ byte unknown00[0x2c];
+ real scale;
+};
+struct s_scale_owner
+{
+ byte unknown00[0x3c];
+ s_scale_definition *definition;
+ real get_inverse_scale() const;
+};
+struct s_1d8e40 : hkRigidBody
+{
+ void function_1d8e40(hkVector4 const &arg_0);
+ void function_1d8ec0(hkVector4 const &arg_0, hkVector4 const &arg_1);
+};
+
+PRIVATE __forceinline __m128 function_1cf527(__m128 arg_0)
+{
+ __m128 local_0 = _mm_add_ss(_mm_shuffle_ps(arg_0, arg_0, 0x55), arg_0);
+ return _mm_add_ss(_mm_shuffle_ps(arg_0, arg_0, 0xaa), local_0);
+}
+
+PRIVATE __forceinline bool function_1cf528(s_havok_component const *arg_0)
+{
+ long local_0 = g_510c54->game_time;
+ real local_1 = g_510c54->field_2_3 * 0.35f;
+ long local_2;
+ __asm { fld local_1 }
+ __asm { fistp local_2 }
+ return local_0 - arg_0->unknown10 < local_2;
+}
+
+PRIVATE __forceinline void function_1cf529(hkVector4 const *arg_0, real *arg_1)
+{
+ real local_0 = (*arg_0)(0), local_2 = (*arg_0)(2), local_1 = (*arg_0)(1);
+ arg_1[0] = local_0;
+ arg_1[1] = local_1;
+ arg_1[2] = local_2;
+}
+
+struct s_1cf530
+{
+ dword field_0;
+ dword field_4 : 18;
+ dword field_5 : 1;
+ dword field_6 : 13;
+};
+
+struct s_1cf531
+{
+ word field_0 : 11;
+ word field_1 : 1;
+ word field_2 : 4;
+};
+
+// @retail 0x1cf520
+void function_1cf520(s_1cf520 *arg_1, c_1cf520 *arg_0, bool arg_2, bool arg_3, long arg_4, long arg_5)
+{
+ (void)&arg_2; (void)&arg_3; (void)&arg_4; (void)&arg_5;
+ s_1cf521 *local_0 = arg_0->function_1cf526(arg_1->field_0);
+ s_havok_friction *local_1 = arg_0->function_1cf525(arg_1->field_0);
+ s_havok_component *local_2 = havok_component_get(arg_4);
+ arg_1->field_34 = local_0->field_0(3);
+ function_1cf529(&local_0->field_0, (real *)&arg_1->field_1c);
+ function_1cf529(&local_0->field_10, (real *)&arg_1->field_28);
+ local_2->rigid_bodies.data[arg_5].rigid_body->m_motion->getType();
+ real local_3 = 1.0f > local_2->rigid_bodies.data[arg_5].rigid_body->m_motion->getMass()
+  ? 1.0f : local_2->rigid_bodies.data[arg_5].rigid_body->m_motion->getMass();
+ real local_4 = *(real *)local_1 >= 0.0f ? *(real *)local_1 : 0.0f - *(real *)local_1;
+ if ((*(dword *)&local_4 & 0x7f800000) == 0x7f800000) local_4 = 0.0f;
+ arg_1->field_38 = local_4 / local_3;
+ if (arg_3)
+ {
+  arg_1->field_28.i *= -1.0f;
+  arg_1->field_28.j *= -1.0f;
+  arg_1->field_28.k *= -1.0f;
+ }
+ else havok_component_friction_get(arg_4, local_1, (s_havok_material *)arg_1);
+ if (arg_1->field_38 > 0.4f || (arg_1->field_44 & 8) || function_1cf528(local_2))
+ {
+  byte *local_5 = *(byte **)(g_4e0300->data + (local_2->object_index & 0xffff) * 12 + 8);
+  s_1cf531 *local_24 = (s_1cf531 *)(local_5 + 0xc0);
+  local_24->field_1 = true;
+ }
+ if (!arg_2 && (arg_1->field_44 & 0x20))
+ {
+  s_havok_component_rigid_body *local_6 = &local_2->rigid_bodies.data[arg_1->field_45];
+  if (local_6->unknown44 == 2 && !TEST_FIELD_BIT(((s_1cf530 *)local_2)->field_5))
+  {
+   hkVector4 local_7;
+   const real *local_8 = (const real *)((byte *)local_6 + 0x30);
+   local_7.set(local_8[0], local_8[1], local_8[2]);
+   hkRigidBody *local_9 = local_6->rigid_body;
+   __m128 local_10 = _mm_mul_ps(_mm_set1_ps(0.6f), local_7.m_quad);
+   volatile __m128 local_11 = _mm_mul_ps(local_10, local_10);
+   real local_12;
+   _mm_store_ss(&local_12, function_1cf527(_mm_load_ps((const real *)&local_11)));
+   local_7.m_quad = local_10;
+   if (local_12 > 0.0000010000001f)
+   {
+    hkVector4 local_13, local_14;
+    local_13.m_quad = local_10;
+    local_9->m_motion->getPointVelocity(local_0->field_0, local_14);
+    __m128 local_15 = function_1cf527(_mm_load_ps((const real *)&local_11));
+    __m128 local_16 = _mm_rsqrt_ss(local_15);
+    __m128 local_17 = _mm_sub_ss(_mm_set_ss(3.0f), _mm_mul_ss(_mm_mul_ss(local_15, local_16), local_16));
+    local_17 = _mm_mul_ss(_mm_mul_ss(_mm_set_ss(0.5f), local_16), local_17);
+    __m128 local_18 = _mm_mul_ps(_mm_shuffle_ps(local_17, local_17, 0), local_7.m_quad);
+    __m128 local_19 = _mm_mul_ps(local_14.m_quad, local_18);
+    _mm_store_ss(&local_12, function_1cf527(local_19));
+    local_13.m_quad = _mm_sub_ps(local_13.m_quad, _mm_mul_ps(_mm_set1_ps(local_12), local_18));
+    real local_20 = ((s_scale_owner *)local_9)->get_inverse_scale() * 0.2f;
+    local_13.m_quad = _mm_mul_ps(_mm_set1_ps(local_20), local_13.m_quad);
+    ((s_1d8e40 *)local_9)->function_1d8ec0(local_13, local_0->field_0);
+   }
+  }
+ }
 }

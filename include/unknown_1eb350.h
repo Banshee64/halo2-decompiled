@@ -4,8 +4,12 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 
+class c_havok_reference_counted;
+
 struct c_shape_library_base_a
 {
+	c_shape_library_base_a() {}
+	c_shape_library_base_a(c_havok_reference_counted *arg_0, long arg_1);
 	virtual ~c_shape_library_base_a();
 	word allocation_size;
 	word references;

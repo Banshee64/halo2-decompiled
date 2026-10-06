@@ -2,6 +2,35 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6537 functions match
+
+```
+matched 6537 of 11318 game functions (704840 of 2784283 bytes, 25.31%)
+```
+
+6537 new matches, none lost:
+- Codex UI-screens lane round 6: 0x2b635f, 0x2b9670, 0x2be650, 0x2c5224 and 0x2c52af.
+- Codex lane D round 25: 0x53610 and 0x56b70.
+
+## 2026-10-06: 6530 functions match
+
+```
+matched 6530 of 11318 game functions (703949 of 2784283 bytes, 25.28%)
+```
+
+6530 new matches, none lost:
+- Merge batch r7: the second machine's lane C rounds 20 and 21 (+27; PRs #106, #108), lane L rounds 2 and 3 (+6 including 0x2155f4; #105, #107), and written source for lanes O and J (#100, #103).
+
+## 2026-10-06: 6497 functions match
+
+```
+matched 6497 of 11318 game functions (701247 of 2784283 bytes, 25.19%)
+```
+
+6497 new matches, none lost:
+- Codex lane D round 24: 0x68f30, 0x69880, 0x69c80, 0x69d50, 0x6f700 and 0x860b0.
+- Codex lane AB round 7: 0xb75a0 and 0xb8460.
+
 ## 2026-10-06: 6489 functions match
 
 ```
