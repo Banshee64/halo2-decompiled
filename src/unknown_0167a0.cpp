@@ -316,3 +316,64 @@ real function_1b230(s_1b230_function const *definition, long input_index, long r
 	}
 	return function_13b390(definition, input, range);
 }
+
+// @retail 0x17550
+void function_17550(byte *context, word const *range)
+{
+	word const *const *range_reference = &range;
+	if (((dword)*range >> 9) > 0)
+	{
+		byte *definition = *(byte **)(context + 0xc);
+		byte *entry = *(byte **)(definition + 0x58) + (*range & 0x1ff) * 4;
+		for (long i = 0; i < (**range_reference >> 9); entry += 4, ++i)
+		{
+			definition = *(byte **)(context + 0xc);
+			word const *subrange = *(word **)(definition + 0x50) + entry[3];
+			short const *item = *(short **)(definition + 0x48) + (*subrange & 0x1ff) * 2;
+			for (long j = 0; j < (*subrange >> 9); item += 2, ++j)
+			{
+				byte *function = *(byte **)(*(byte **)(context + 0xc) + 0x40) + item[0] * 20;
+				s_1b230_function const *curve = (s_1b230_function *)(function + 12);
+				real value = function_1b230(curve, *(long *)function, *(long *)(function + 4), *(real *)(function + 8));
+				byte *data = curve->data;
+				if (!(data[1] & 0xf0))
+				{
+					real lower = *(real *)(data + 4);
+					real upper = *(real *)(data + 8);
+					if (0.0f > value) value = 0.0f;
+					else if (value > 1.0f) value = 1.0f;
+					value = (upper - lower) * value + lower;
+				}
+				((real *)(context + 0x338))[entry[0] * 16 + item[1]] = value;
+			}
+		}
+	}
+}
+
+// @retail 0x174d0
+void function_174d0(byte *context, long group, long stage, long pass, long entry)
+{
+	byte *const *context_reference = &context;
+	byte *definition = *(byte **)(*context_reference + 0xc);
+	if (group < *(long *)(definition + 0x1c))
+	{
+		byte *record = *(byte **)(definition + 0x20) + group * 6;
+		if (*(dword *)record & (1 << stage))
+		{
+			word range = *(word *)(record + 4);
+			if (stage < (range >> 9))
+			{
+				range = (*(word **)(definition + 0x28))[(range & 0x1ff) + stage];
+				if (pass < (range >> 9))
+				{
+					range = (*(word **)(definition + 0x30))[(range & 0x1ff) + pass];
+					if (entry < (range >> 9))
+					{
+						word const *selected = (word *)(*(byte **)(definition + 0x38) + ((range & 0x1ff) + entry) * 10);
+						function_17550(*context_reference, selected);
+					}
+				}
+			}
+		}
+	}
+}

@@ -128,11 +128,3 @@ bool function_1691a0(long object_index, dword flags, dword test_flags, point3f c
 {
 	return false;
 }
-
-/* unowned: draws a filled rectangle (retail passes the color in eax) */
-struct color4f;
-struct s_short_rectangle;
-// @stub 0x36880
-void function_36880(color4f const *color, s_short_rectangle const *rectangle)
-{
-}

@@ -739,6 +739,25 @@ bool g_4b6294;
 
 void function_1ef70(void);
 
+// @retail 0x1ee60
+void function_1ee60(long primitive)
+{
+	if (g_4b6298 != primitive)
+	{
+		function_1ef70();
+		D3DDevice_SetRenderState(D3DRS_LINEWIDTH, 0x3f800000);
+		switch (primitive)
+		{
+		case 1: D3DDevice::Begin(D3DPT_LINELIST); break;
+		case 2: D3DDevice::Begin(D3DPT_LINESTRIP); break;
+		case 3: D3DDevice::Begin(D3DPT_TRIANGLELIST); break;
+		case 4: D3DDevice::Begin(D3DPT_QUADLIST); break;
+		default: __assume(0);
+		}
+		g_4b6298 = primitive;
+	}
+}
+
 // @retail 0x1ee50
 void function_1ee50(void)
 {

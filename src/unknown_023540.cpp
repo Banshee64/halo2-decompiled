@@ -305,6 +305,88 @@ bool __stdcall function_0254c0(
 real g_509400;
 extern real g_485ae0;
 
+real g_48565c;
+real g_485778, g_48577c, g_485790, g_485794;
+real g_4b9c74[5][14];
+real g_4b9d90, g_4b9d94;
+void function_350e0(real *out, real const *a, real const *b, real x);
+
+// @retail 0x26710
+bool __stdcall function_26710(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+	(void)&mode;
+	(void)&bounds;
+	(void)&t;
+	(void)&out;
+	(void)&unused;
+	if (g_509400 <= 0.0f)
+		g_509400 = g_485ae0;
+	switch (mode)
+	{
+	case 0:
+		function_350e0(out, bounds, t, g_509400);
+		return true;
+	case 1: case 4:
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		out[2] = 0.0f;
+		out[3] = 1.0f;
+		return true;
+	case 2:
+		{
+			real span = g_48577c - g_485778;
+			real scale = 1.0f / (0.0001f > span ? 0.0001f : span);
+			out[0] = g_48565c * scale;
+			out[1] = 0.0f;
+			out[2] = 0.0f - g_485778 * scale;
+			out[3] = 0.0f;
+			return true;
+		}
+	case 3:
+		{
+			real span = g_485794 - g_485790;
+			real scale = 1.0f / (0.0001f > span ? 0.0001f : span);
+			out[0] = g_48565c * scale;
+			out[1] = 0.0f;
+			out[2] = 0.0f - g_485790 * scale;
+			out[3] = 0.0f;
+			return true;
+		}
+	default: return false;
+	}
+}
+
+// @retail 0x26ca0
+bool __stdcall function_26ca0(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+	(void)&mode;
+	(void)&bounds;
+	(void)&t;
+	(void)&out;
+	(void)&unused;
+	real const *matrix = g_4b9c74[mode];
+	if (g_509400 <= 0.0f)
+		g_509400 = g_485ae0;
+	if (mode == 0)
+	{
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		clip_depth_terms(out, 1.0f);
+		out[0] *= g_4b9d90;
+		out[1] *= g_4b9d90;
+		return true;
+	}
+	if (mode > 0 && mode <= 4)
+	{
+		out[0] = (t[0] * 2.0f - 1.0f) * matrix[6] - (t[1] * 2.0f - 1.0f) * matrix[7] * g_4b9d94 + matrix[9];
+		out[1] = (t[0] * 2.0f - 1.0f) * matrix[10] - (t[1] * 2.0f - 1.0f) * matrix[11] * g_4b9d94 + matrix[13];
+		out[2] = 0.0f;
+		out[3] = 1.0f;
+		return true;
+	}
+	return false;
+}
+
 // @retail 0x27960
 bool __stdcall function_27960(long mode, real const *bounds, real const *t, real *out, long unused)
 {

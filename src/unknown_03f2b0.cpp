@@ -754,6 +754,108 @@ void *function_449e0(short index, bool load, bool instance)
 	return result;
 }
 
+struct s_geometry_visibility_list
+{
+	dword *indices;
+	long count;
+};
+
+PRIVATE __forceinline byte *visible_entry_geometry(s_44940_entry *entry)
+{
+	if (entry->tag != NONE)
+	{
+		byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+		byte *sections = *(byte **)(definition + 0x28);
+		return *(byte **)(sections + ((entry->flags >> 9) & 0x1ff) * 0x5c + 0x34);
+	}
+	byte *structure = (byte *)g_4e0348;
+	byte *section;
+	if (!((entry->unknown00 >> 12) & 1))
+		section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+	else
+	{
+		byte *instances = *(byte **)(structure + 0x144);
+		short index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+		section = *(byte **)(structure + 0x13c) + index * 0xc8;
+	}
+	return *(byte **)(section + 0x50);
+}
+
+// @retail 0x458d0
+void function_458d0(short index, bool ranges, s_geometry_visibility_list const *first, s_geometry_visibility_list const *second)
+{
+	short const *index_reference = &index;
+	(void)&ranges; (void)&first; (void)&second;
+	s_44940_entry *entry = &g_4ba138[*index_reference];
+	byte *geometry = visible_entry_geometry(entry);
+	dword *mask = *(dword **)(entry->unknown10 + 4);
+	if (first->count > 0 || second->count > 0)
+		entry->unknown00 |= 1;
+	for (long i = 0; i < first->count; ++i)
+	{
+		if (!ranges)
+		{
+			dword bit = (word)first->indices[i];
+			mask[bit >> 5] |= 1 << (bit & 31);
+		}
+		else
+		{
+			word *mapping = *(word **)(geometry + 0x34);
+			long offset = *(long *)(geometry + 8);
+			long end = mapping[(short)first->indices[i + 1] + offset];
+			for (long j = mapping[(short)first->indices[i] + offset]; j <= end; ++j)
+			{
+				dword bit = (*(word **)(geometry + 0x34))[(short)j];
+				mask[bit >> 5] |= 1 << (bit & 31);
+			}
+			++i;
+		}
+	}
+	for (long i = 0; i < second->count; ++i)
+	{
+		dword bit = (word)second->indices[i];
+		mask[bit >> 5] |= 1 << (bit & 31);
+	}
+}
+
+PRIVATE __forceinline void mark_visible_part(byte *geometry, long index, dword *mask)
+{
+	byte *part = *(byte **)(geometry + 4) + index * 0x48;
+	for (long bit = *(short *)(part + 0xa); bit < *(short *)(part + 0xa) + *(short *)(part + 0xc); ++bit)
+		mask[bit >> 5] |= 1 << (bit & 31);
+}
+
+// @retail 0x45a80
+void function_45a80(short index, bool ranges, s_geometry_visibility_list const *first, s_geometry_visibility_list const *second)
+{
+	short const *index_reference = &index;
+	(void)&ranges; (void)&first; (void)&second;
+	s_44940_entry *entry = &g_4ba138[*index_reference];
+	byte *geometry = visible_entry_geometry(entry);
+	dword *mask = *(dword **)(entry->unknown10 + 4);
+	if (first->count > 0 || second->count > 0)
+		entry->unknown00 |= 1;
+	for (long i = 0; i < first->count; ++i)
+	{
+		if (!ranges)
+			mark_visible_part(geometry, (word)first->indices[i], mask);
+		else
+		{
+			word *mapping = *(word **)(geometry + 0x34);
+			long offset = *(long *)geometry + 2 * *(long *)(geometry + 8);
+			long end = mapping[(short)first->indices[i + 1] + offset];
+			for (long j = mapping[(short)first->indices[i] + offset]; j <= end; ++j)
+			{
+				long part = (*(word **)(geometry + 0x34))[(short)j + 2 * *(long *)(geometry + 8)];
+				mark_visible_part(geometry, part, mask);
+			}
+			++i;
+		}
+	}
+	for (long i = 0; i < second->count; ++i)
+		mark_visible_part(geometry, second->indices[i], mask);
+}
+
 struct s_3d4f0_entry
 {
 	long tag;
@@ -840,4 +942,66 @@ bool function_460d0(dword const *mask, short index, long part_index)
 			result = (mask[i >> 5] & (1 << (i & 31))) != 0;
 	}
 	return result;
+}
+
+// @retail 0x4c2b0
+bool function_4c2b0(long tag, byte const *wanted, signed char *current, long level,
+    bool request, signed char *sections, bool *fallback)
+{
+    (void)&wanted; (void)&current; (void)&level;
+    (void)&request; (void)&sections; (void)&fallback;
+    byte *definition = g_4e3b44[tag & 0xffff].bytes;
+    *fallback = false;
+    word available = 0;
+    bool result = true;
+    for (long i = 0; i < *(long *)(definition + 0x1c); ++i)
+    {
+        long selection = wanted[i];
+        byte *group = *(byte **)(definition + 0x20) + i * 16;
+        if (selection != NONE && selection < *(long *)(group + 8))
+        {
+            byte *variant = *(byte **)(group + 0xc) + selection * 16;
+            short section = ((short *)(variant + 4))[level];
+            s_geometry_block_info *block = (s_geometry_block_info *)(*(byte **)(definition + 0x28) + section * 0x5c + 0x38);
+            if (request)
+            {
+                if (function_12de70(block, 3)) available |= 1 << i;
+            }
+            else
+            {
+                if (function_12de70(block, 0)) available |= 1 << i;
+            }
+        }
+    }
+    for (long i = 0; i < *(long *)(definition + 0x1c); ++i)
+    {
+        byte *group = *(byte **)(definition + 0x20) + i * 16;
+        if (available & (1 << i))
+        {
+            byte *variant = *(byte **)(group + 0xc) + (signed char)wanted[i] * 16;
+            sections[i] = (signed char)((short *)(variant + 4))[level];
+            current[i] = wanted[i];
+        }
+        else if (wanted[i] != 0xff)
+        {
+            if (current[i] != -1)
+            {
+                byte *variant = *(byte **)(group + 0xc) + current[i] * 16;
+                short section = ((short *)(variant + 4))[level];
+                if (function_12de70((s_geometry_block_info *)(*(byte **)(definition + 0x28) + section * 0x5c + 0x38), 0))
+                {
+                    sections[i] = (signed char)((short *)(variant + 4))[level];
+                    *fallback = true;
+                }
+                else result = false;
+            }
+            else
+            {
+                *fallback = true;
+                sections[i] = -1;
+            }
+        }
+        else sections[i] = -1;
+    }
+    return result;
 }

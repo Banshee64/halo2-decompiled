@@ -3,7 +3,83 @@
 #include "globals.h"
 #include <xtl.h>
 #include <string.h>
+#include <math.h>
+#include <xmmintrin.h>
 #include "unknown_058ee0.h"
+#include "unknown_163110.h"
+
+bool function_015b10(long index, D3DPalette **out);
+const long g_43e8e8[4] = { 32, 64, 128, 256 };
+
+// @retail 0x1d3f0
+bool function_1d3f0(long index, void const *colors, D3DPalette **out)
+{
+	D3DPalette *palette = NULL;
+	bool result = function_015b10(index, &palette);
+	if (result && colors)
+	{
+		D3DCOLOR *destination = D3DPalette_Lock2(palette, 0);
+		if (destination)
+			memcpy(destination, colors, g_43e8e8[index] * sizeof(D3DCOLOR));
+		D3DPalette_Unlock(palette);
+	}
+	*out = palette;
+	return result;
+}
+
+// @retail 0x15780
+void function_15780(long stage, long mode)
+{
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
+	switch (mode)
+	{
+	case 0:
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, 1);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, 1);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, 1);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, 2);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, 2);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 2);
+		break;
+	case 1: case 5:
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, 2);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, 2);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 2);
+		break;
+	case 2: case 6:
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, 4);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, 4);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, 4);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, 2);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, 2);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 2);
+		break;
+	case 3: case 7:
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, 1);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, 1);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 0);
+		break;
+	case 4:
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, 3);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, 2);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, 2);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 0);
+		break;
+	default: __assume(0);
+	}
+}
 
 struct s_buffer_pair
 {
@@ -172,6 +248,50 @@ D3DSurface *g_509384;
 D3DTexture *g_50938c;
 D3DSurface *g_509390, *g_509394, *g_509398, *g_50939c, *g_5093a0, *g_5093a4, *g_5093a8;
 short g_485602;
+
+void function_1cf50(void);
+
+struct s_363a0_vertex
+{
+	real x, y, u, v;
+	dword color;
+};
+
+// @retail 0x363a0
+void __stdcall function_363a0(void *vertices)
+{
+	if (g_485602 == 0)
+	{
+		function_1cf50();
+		D3DDevice::Begin(D3DPT_TRIANGLEFAN);
+		s_363a0_vertex const *vertex = (s_363a0_vertex *)vertices;
+		for (long i = 0; i < 4; ++i, ++vertex)
+		{
+			D3DDevice_SetVertexDataColor(9, vertex->color);
+			D3DDevice_SetVertexData2f(3, vertex->u, vertex->v);
+			D3DDevice_SetVertexData2f(0, vertex->x, vertex->y);
+		}
+		D3DDevice::End();
+	}
+}
+
+// @retail 0x36880
+void function_36880(color4f const *color, s_short_rectangle const *rectangle)
+{
+	(void)&rectangle;
+	function_1cf50();
+	D3DDevice::Begin(D3DPT_TRIANGLEFAN);
+	D3DDevice_SetVertexData4f(9, color->red, color->green, color->blue, color->alpha);
+	for (short i = 0; i < 4; ++i)
+	{
+		bool top = i < 2;
+		bool right = i == 1 || i == 2;
+		short y = top ? rectangle->top : rectangle->bottom;
+		short x = right ? rectangle->right : rectangle->left;
+		D3DDevice_SetVertexData2f(0, (real)x, (real)y);
+	}
+	D3DDevice::End();
+}
 
 // @retail 0x14980
 void function_14980(void)
@@ -668,6 +788,33 @@ struct s_shader_cache
 	bool streams_changed;
 	byte field_2d5[3];
 };
+
+// @retail 0x1c710
+void __stdcall function_1c710(void *memory)
+{
+	s_shader_cache *state = (s_shader_cache *)memory;
+	bool changed = false;
+	if (state->descriptors_changed)
+		function_1c330((byte *)state, (s_1c330_output *)state->field_10c);
+	if (state->descriptors_changed || state->streams_changed)
+	{
+		D3DDevice_SetVertexShaderInputDirect(
+			state->stream_count > 0 ? (D3DVERTEXATTRIBUTEFORMAT *)state->field_10c : NULL,
+			state->stream_count,
+			state->stream_count > 0 ? (D3DSTREAM_INPUT *)state->streams : NULL);
+		state->streams_changed = false;
+		changed = true;
+	}
+	if (state->field_88 || state->descriptors_changed)
+	{
+		changed = true;
+		D3DDevice_SelectVertexShaderDirect((D3DVERTEXATTRIBUTEFORMAT *)state->field_10c, state->field_84);
+		state->field_88 = false;
+	}
+	state->stream_count = 0;
+	if (changed)
+		state->descriptors_changed = false;
+}
 
 // @retail 0x1c4a0
 void function_1c4a0(s_shader_cache *state)
@@ -1491,6 +1638,95 @@ struct s_1e4e0_record
 	point3f position;
 };
 
+extern point3f g_4b9da0;
+extern dword g_4b8348;
+extern real g_4b8494;
+void function_35aa0(void);
+typedef bool (__stdcall *t_sort_2byte_compare_function)(word, word, void const *);
+void sort_2byte(word *elements, unsigned long count, void *unused, t_sort_2byte_compare_function compare, void const *context);
+
+struct s_depth_sort_record
+{
+	long type;
+	real depth;
+	long flags;
+	byte active;
+	byte unknown0d[3];
+	plane3f plane;
+	byte unknown20[0x44];
+	point3f position;
+};
+
+// @retail 0x1e700
+bool __stdcall function_1e700(word first, word second, void const *context)
+{
+	s_depth_sort_record const *a = (s_depth_sort_record const *)context + (short)first;
+	s_depth_sort_record const *b = (s_depth_sort_record const *)context + (short)second;
+	long comparison = a->type - b->type;
+	if (!comparison)
+	{
+		if (a->active)
+		{
+			real point = b->position.z * a->plane.k;
+			point += b->position.y * a->plane.j;
+			point += b->position.x * a->plane.i;
+			// Retail rereads these record fields in camera-dot-product order.
+			plane3f const volatile *camera_plane = &a->plane;
+			real camera = camera_plane->k * g_4b9da0.z;
+			camera = camera_plane->j * g_4b9da0.y + camera;
+			camera = camera_plane->i * g_4b9da0.x + camera;
+			long camera_side = a->plane.d > camera ? 1 : 0;
+			long point_side = a->plane.d > point ? 1 : 0;
+			comparison = camera_side != point_side ? 1 : -1;
+		}
+		else if (b->active)
+		{
+			real point = a->position.z * b->plane.k;
+			point += a->position.y * b->plane.j;
+			point += a->position.x * b->plane.i;
+			plane3f const volatile *camera_plane = &b->plane;
+			real camera = camera_plane->k * g_4b9da0.z;
+			camera = camera_plane->j * g_4b9da0.y + camera;
+			camera = camera_plane->i * g_4b9da0.x + camera;
+			long camera_side = b->plane.d > camera ? 1 : 0;
+			long point_side = b->plane.d > point ? 1 : 0;
+			comparison = camera_side == point_side ? 1 : -1;
+		}
+		else if (a->depth > b->depth)
+			comparison = 1;
+		else if (b->depth > a->depth)
+			comparison = -1;
+		else
+			comparison = a->flags - b->flags;
+	}
+	return comparison > 0;
+}
+
+// @retail 0x1e370
+void function_1e370(void)
+{
+	long scratch;
+	function_35aa0();
+	long first = g_4b6280.unknown04;
+	word *indices = (word *)g_4b6280.buffer;
+	for (long i = first; i < g_4b6280.count; ++i)
+		indices[i - first] = (word)i;
+	sort_2byte(indices, g_4b6280.count - first, &scratch, function_1e700, g_4b6280.records);
+	for (long i = 0; i < g_4b6280.count - (long)g_4b6280.unknown04; ++i)
+	{
+		s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[((word *)g_4b6280.buffer)[i]];
+		if (record->callback)
+			record->callback(record->payload);
+	}
+	g_4b8348 = 0;
+	D3DDevice_SetRenderState(D3DRS_STIPPLEENABLE, 0);
+	if (!(fabs(g_4b8494 - 1.0f) < 0.0001f))
+	{
+		D3DDevice_SetStipple(function_1c290(1.0f));
+		g_4b8494 = 1.0f;
+	}
+}
+
 // @retail 0x1e4e0
 bool function_1e4e0(point3f const *position, t_1e4e0_callback callback, void const *data, long size)
 {
@@ -1524,6 +1760,49 @@ bool function_1e4e0(point3f const *position, t_1e4e0_callback callback, void con
 	return result;
 }
 
+
+void __stdcall function_35b00(void *payload);
+
+// @retail 0x1e5e0
+bool function_1e5e0(point3f const *position, long size, long a, long b, long c,
+	long d, long e, long f, long g, void const *data)
+{
+	(void)&a; (void)&b; (void)&c; (void)&d;
+	(void)&e; (void)&f; (void)&g; (void)&data;
+	bool result = false;
+	if (g_4b6280.count < 1024)
+	{
+		s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[g_4b6280.count++];
+		record->type = 0;
+		record->active = false;
+		long *payload = (long *)record->payload;
+		payload[0] = a;
+		payload[1] = b;
+		payload[2] = c;
+		payload[3] = d;
+		payload[4] = e;
+		payload[5] = f;
+		payload[6] = g;
+		if (size > 0)
+			memcpy(payload + 7, data, size);
+		record->type = 3;
+		record->flags = 0;
+		record->callback = function_35b00;
+		vector3f delta;
+		delta.k = position->z - g_485618.position.z;
+		delta.j = position->y - g_485618.position.y;
+		delta.i = position->x - g_485618.position.x;
+		real depth = g_485618.forward.k * delta.k;
+		depth += g_485618.forward.j * delta.j;
+		depth += g_485618.forward.i * delta.i;
+		record->depth = 0.0f - depth;
+		record->position = *position;
+		result = true;
+	}
+	else if (g_4b6280.available)
+		g_4b6280.available = false;
+	return result;
+}
 
 DWORD const g_43fdc0[5] = {1, 2, 5, 8, 6};
 bool g_47fe85 = true;
@@ -1594,6 +1873,72 @@ void function_152a0(long handle, long index)
     }
 }
 
+long function_4cb80(long element_index, long tag_index);
+
+struct s_render_transform_record
+{
+	dword unknown00;
+	long tag;
+	long handle;
+	dword flags;
+	byte unknown10[0xc];
+	transform4x3f const *transform;
+};
+
+// @retail 0x4d830
+void function_4d830(s_render_transform_record const *record)
+{
+	if (record->transform)
+	{
+		real const *matrix = (real const *)record->transform;
+		real constants[12];
+		constants[0] = matrix[1];
+		constants[1] = matrix[4];
+		constants[2] = matrix[7];
+		constants[3] = matrix[10];
+		constants[4] = matrix[2];
+		constants[5] = matrix[5];
+		constants[6] = matrix[8];
+		constants[7] = matrix[11];
+		constants[8] = matrix[3];
+		constants[9] = matrix[6];
+		constants[10] = matrix[9];
+		constants[11] = matrix[12];
+		D3DDevice_SetVertexShaderConstant(-46, constants, 3);
+		g_5093d8 = 0;
+	}
+	else if (record->handle != NONE)
+	{
+		byte *data = (byte *)table_entry_data(record->handle);
+		long size = 0;
+		if (*(word *)data > 0)
+			size = *(word *)data * 48 + 0x44;
+		for (long i = size / 32; i > 0; --i, data += 32)
+			_mm_prefetch((char const *)data, _MM_HINT_T0);
+		dword flags = record->flags;
+		if ((flags & 0xe0000000) == 0x20000000)
+		{
+			long index = function_4cb80((flags >> 9) & 0x1ff, record->tag);
+			if (index != NONE)
+			{
+				s_shader_transform_table *table = (s_shader_transform_table *)table_entry_data(record->handle);
+				s_shader_transform_row *constants;
+				if (table->entries[flags & 15].count == 1)
+					constants = table->transforms[table->entries[flags & 15].first];
+				else
+					constants = table->transforms[index];
+				if (constants)
+				{
+					D3DDevice_SetVertexShaderConstant(-46, constants, 3);
+					g_5093d8 = 0;
+					return;
+				}
+			}
+		}
+		function_152a0(record->handle, flags & 15);
+	}
+}
+
 real g_4b9fa4, g_4b9ff8, g_4b9f18, g_4b9f9c;
 
 PRIVATE __forceinline real maximum_25ca0(real first, real second)
@@ -1625,4 +1970,70 @@ void function_25ca0(bool enabled)
         constants[3] = 0.0f;
         D3DDevice_SetVertexShaderConstant(-81, constants, 1);
     }
+}
+
+// @retail 0x1cd90
+void function_1cd90(void)
+{
+	function_1c710(g_51f0f0);
+}
+
+PRIVATE __forceinline void select_immediate_descriptor(long format)
+{
+	byte const *descriptor = g_43f408[format];
+	function_1c6b0(g_51f0f0);
+	s_shader_cache *state = (s_shader_cache *)g_51f0f0;
+	state->wanted[0] = descriptor;
+	if (state->current[0] != descriptor)
+		state->descriptors_changed = true;
+	function_1c710(g_51f0f0);
+}
+
+// @retail 0x1ccb0
+void function_1ccb0(long format)
+{
+	select_immediate_descriptor(format);
+}
+
+// @retail 0x1cc60
+void function_1cc60(long index)
+{
+	function_1c590((s_shader_cache *)g_51f0f0, NONE, index);
+	select_immediate_descriptor(g_4670ec[index].field_0c);
+}
+
+// @retail 0x40870
+bool function_40870(void)
+{
+	function_1e370();
+	g_4b6280.count = g_4b6280.unknown04;
+	return true;
+}
+
+struct s_queued_material_payload
+{
+	void (__stdcall *begin)(void *);
+	t_4b220_fill fill;
+	void (__stdcall *end)(void *);
+	long stride;
+	long format;
+	long primitive;
+	long count;
+	byte data[1];
+};
+
+// @retail 0x35b00
+void __stdcall function_35b00(void *payload)
+{
+	g_4670bc = true;
+	function_16b10((s_render_reset_state *)g_485b48);
+	s_queued_material_payload *request = (s_queued_material_payload *)payload;
+	if (request->begin)
+		request->begin(request->data);
+	select_immediate_descriptor(request->format);
+	function_1c710(g_51f0f0);
+	function_1cf50();
+	function_4b220(0, request->primitive, request->stride, request->fill, request->data, request->count);
+	if (request->end)
+		request->end(request->data);
 }
