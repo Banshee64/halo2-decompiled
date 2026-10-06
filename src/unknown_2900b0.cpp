@@ -138,6 +138,88 @@ struct s_28f8d0
 	long field_18;
 };
 
+struct s_28f3b0
+{
+	byte field_0[0x14];
+	real field_14;
+	real field_18;
+	real field_1c;
+	real field_20;
+	real field_24;
+};
+
+struct s_295600_state;
+void *function_1e4b50(long actor_index);
+void function_295600(s_295600_state *state, bool planar, real magnitude,
+	real minimum_time, real maximum_time, vector3f *result);
+
+__forceinline real function_28f594(real const &arg_0)
+{
+	return arg_0 < -1.0f ? -1.0f : arg_0 > 1.0f ? 1.0f : arg_0;
+}
+
+__forceinline void function_28f500(vector3f *arg_0, real arg_1)
+{
+	arg_0->i = arg_1 * arg_0->i;
+	arg_0->j = arg_1 * arg_0->j;
+	arg_0->k = arg_0->k * arg_1;
+}
+
+__forceinline void function_28f521(vector3f const *arg_0, vector3f const *arg_1, vector3f *arg_2)
+{
+	arg_2->i = arg_0->i + arg_1->i;
+	arg_2->j = arg_0->j + arg_1->j;
+	arg_2->k = arg_0->k + arg_1->k;
+}
+
+// @retail 0x28f3b0
+void function_28f3b0(long arg_0, long arg_1)
+{
+	s_handler_object_view *local_0 = handler_object_get(arg_1);
+	if (!local_0->flags134)
+	{
+		s_28e600 *local_1 = (s_28e600 *)((byte *)local_0 + local_0->ai_offset);
+		if (local_1)
+		{
+			s_28f3b0 *local_2 = (s_28f3b0 *)function_1e4b50(arg_0);
+			if (local_2)
+			{
+				vector3f local_3 = *g_4687a4;
+				function_295600((s_295600_state *)((byte *)local_1 + 0x64), true, 1.0f,
+					local_2->field_18, local_2->field_1c, &local_3);
+				real local_4 = *(short *)((byte *)actor_get(arg_0) + 0x86) <= 1 ? local_2->field_20 : local_2->field_24;
+				if (local_4 > fabs(local_3.i))
+					local_3.i = 0.0f;
+				if (local_4 > fabs(local_3.j))
+					local_3.j = 0.0f;
+				vector3f *local_5 = (vector3f *)((byte *)local_1 + 0x98);
+				if (*(short *)((byte *)local_1 + 0x24) == 0)
+				{
+					if (function_30bf0(&local_3) > 0.0f)
+					{
+						local_1->field_80 = local_3;
+						function_28e600(arg_1, local_1);
+						local_5->i = local_2->field_14;
+						local_5->j = 0.0f;
+						local_5->k = 0.0f;
+					}
+				}
+				else
+				{
+					function_28f500(&local_3, local_2->field_14);
+					function_28f521(local_5, &local_3, local_5);
+				}
+				real local_6 = function_28f594(local_5->i);
+				real local_7 = function_28f594(local_5->j);
+				real local_8 = function_28f594(local_5->k);
+				local_5->i = local_6;
+				local_5->j = local_7;
+				local_5->k = local_8;
+			}
+		}
+	}
+}
+
 struct s_object_ai_data;
 struct s_actor_object_sample;
 void function_28f890(long arg_0, s_object_ai_data *arg_1);

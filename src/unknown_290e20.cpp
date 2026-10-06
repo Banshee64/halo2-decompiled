@@ -7,6 +7,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
+#include "unknown_272b70.h"
 #include <string.h>
 
 /* a condition of a trigger (0x38 bytes) */
@@ -383,6 +384,57 @@ struct s_ai_scene_assignment
 	short variant_indices[10];
 };
 
+// @retail 0x2919e0
+void __stdcall function_2919e0(s_ai_scene *arg_0, s_ai_scene_assignment *arg_1, short *arg_2, short arg_3,
+	short arg_4, short arg_5, long arg_6, long arg_7, long arg_8)
+{
+	s_ai_scene *const *local_8 = &arg_0;
+	s_ai_scene_assignment *const *local_9 = &arg_1;
+		s_ai_scene_assignment *local_0 = &(*local_9)[*arg_2];
+	s_291800 *local_1 = &((s_291800 *)(*local_8)->roles)[arg_4];
+	bool local_2 = arg_4 + 1 >= arg_5;
+	long local_3;
+	switch (*(short *)((byte *)local_1 + 4))
+	{
+	case 0: local_3 = arg_6; break;
+	case 1: local_3 = arg_7; break;
+	case 2: local_3 = arg_8; break;
+	default: return;
+	}
+	if (local_3 == NONE)
+		return;
+	s_ai_actor_iterator local_4;
+	ai_actor_iterator_new(local_3, &local_4);
+	while (ai_actor_iterator_next(&local_4))
+	{
+		if (*arg_2 >= arg_3)
+			break;
+		long local_5;
+		short local_6;
+		real local_7 = function_291800(local_4.actor_index, local_1, (s_291801 *)local_0, arg_4, &local_5, &local_6);
+		if (local_7 > 0.0f)
+		{
+			local_0->actor_indices[arg_4] = local_4.actor_index;
+			local_0->variant_names[arg_4] = local_5;
+			local_0->scores[arg_4] = local_7;
+			local_0->variant_indices[arg_4] = local_6;
+			if (local_2)
+			{
+				++*arg_2;
+				if (*arg_2 >= arg_3)
+					break;
+				local_0 = &(*local_9)[*arg_2];
+				*local_0 = *(local_0 - 1);
+			}
+			else
+			{
+				function_2919e0(*local_8, *local_9, arg_2, arg_3, arg_4 + 1, arg_5, arg_6, arg_7, arg_8);
+				local_0 = &(*local_9)[*arg_2];
+			}
+		}
+	}
+}
+
 /* the actors and the units (local views) */
 struct s_ai_scene_actor
 {
@@ -430,7 +482,7 @@ extern void *g_5044d0;
 
 long function_272b70(long ai_index);
 bool function_2580c0(short squad_index, short script_index, long *actor_indices, short count);
-void function_2919e0(s_ai_scene *scene, s_ai_scene_assignment *assignments, short *assignment_count, short maximum_count,
+void __stdcall function_2919e0(s_ai_scene *scene, s_ai_scene_assignment *assignments, short *assignment_count, short maximum_count,
 	short role_index, short role_count, long ai_index, long ai_index2, long ai_index3);
 
 /* starts a scene (by name) with the actors the ai indices name when its
@@ -605,4 +657,145 @@ bool function_291670(short trigger_volume_index, bool all_players)
 		}
 	}
 	return result;
+}
+
+struct s_290f60
+{
+	short field_0;
+	short field_2;
+	short field_4;
+	short field_6;
+	real field_8;
+	short field_c;
+	byte field_e[0x22];
+	short field_30;
+	short field_32;
+	byte field_34;
+};
+
+struct s_290f61
+{
+	byte field_0[2];
+	byte field_2;
+	byte field_3[7];
+	short field_a;
+	byte field_c[4];
+	real field_10;
+	short field_14;
+	short field_16;
+	byte field_18[0xe];
+	signed char field_26;
+	byte field_27[5];
+	long field_2c;
+};
+
+bool function_203240(long arg_0);
+bool function_2032b0(long arg_0);
+long function_209490(long arg_0);
+bool function_2765e0(long arg_0, real arg_1);
+bool function_226190(void);
+long function_1469f0(real arg_0);
+
+// @retail 0x290f60
+bool function_290f60(s_ai_trigger_condition *arg_0, bool *arg_1, long arg_2)
+{
+	s_290f60 *local_0 = (s_290f60 *)arg_0;
+	bool local_1 = false;
+	if (local_0->field_2 != NONE)
+		arg_2 = local_0->field_2;
+	else if (local_0->field_4 != NONE)
+		return function_2912c0(arg_0, NONE, arg_1);
+	s_290f61 *local_2 = arg_2 == NONE ? NULL : (s_290f61 *)(g_51e9d8->data + (arg_2 & 0xffff) * 0x98);
+	switch (local_0->field_0)
+	{
+	case 0: case 1: case 2: case 3: case 4: case 6:
+	case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18:
+		if (!local_2 || !(local_2->field_2 & 4))
+			return false;
+		break;
+	}
+	switch (local_0->field_0)
+	{
+	case 0:
+		local_1 = local_2 && local_2->field_a >= local_0->field_6;
+		break;
+	case 1:
+		local_1 = local_2 && local_2->field_a <= local_0->field_6;
+		break;
+	case 2:
+		local_1 = local_2 && local_2->field_10 >= local_0->field_8;
+		break;
+	case 3:
+		local_1 = local_2 && local_2->field_10 <= local_0->field_8;
+		break;
+	case 4:
+		local_1 = local_2 && (local_2->field_2 & 0x10);
+		break;
+	case 5:
+		local_1 = local_2 && g_510c54->game_time > local_2->field_2c + local_0->field_6;
+		break;
+	case 6:
+		break;
+	case 7: case 8:
+		if (local_2 && local_0->field_30 != NONE)
+		{
+			s_291746 *local_3 = (s_291746 *)g_4e0350;
+			g_50242c = arg_2 & 0xffff;
+			long local_4 = function_209490(local_3->field_1bc[local_0->field_30].field_24);
+			local_1 = *(bool *)&local_4;
+			if (local_0->field_0 == 8)
+				local_1 = !local_1;
+		}
+		break;
+	case 9: case 10:
+		if (local_0->field_c != NONE)
+			local_1 = function_291670(local_0->field_c, local_0->field_0 == 10);
+		else
+			*arg_1 = true;
+		break;
+	case 11:
+		if (local_2)
+			local_1 = local_2->field_26 >= local_0->field_6;
+		break;
+	case 12:
+		if (local_2)
+			local_1 = local_2->field_26 <= local_0->field_6;
+		break;
+	case 13:
+		if (arg_2 != NONE)
+			local_1 = function_203240(arg_2);
+		break;
+	case 14:
+		if (arg_2 != NONE)
+			local_1 = function_2032b0(arg_2);
+		break;
+	case 15:
+		if (local_2)
+			local_1 = (local_2->field_2 >> 3) & 1;
+		break;
+	case 16:
+		if (local_2)
+			local_1 = local_2->field_16 >= local_0->field_6;
+		break;
+	case 17:
+		if (local_2)
+			local_1 = local_2->field_16 <= local_0->field_6;
+		break;
+	case 18:
+		if (local_2)
+			local_1 = function_2765e0(arg_2 & 0xffff, local_0->field_8);
+		break;
+	case 19:
+		local_1 = g_4f55d0->unknown36c == NONE || g_510c54->game_time - g_4f55d0->unknown36c > function_1469f0(local_0->field_8);
+		break;
+	case 20:
+		local_1 = function_226190();
+		break;
+	default:
+		local_1 = false;
+		break;
+	}
+	if (local_0->field_34 & 1)
+		local_1 = !local_1;
+	return local_1;
 }

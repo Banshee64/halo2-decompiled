@@ -27,12 +27,21 @@ __forceinline hkEntity *function_277efd(s_277ec0 *arg_0)
 	return arg_0->field_18 == 1 ? arg_0->field_20 : NULL;
 }
 
+__forceinline real function_278005(real arg_0, real arg_1)
+{
+	return (real)sqrt(arg_0 * arg_1);
+}
+
 // @retail 0x277ec0
 void function_277ec0(real *arg_0, real *arg_1, short *arg_4, short *arg_5,
 	s_277ec0 *arg_2, s_277ec0 *arg_3, long arg_6, long arg_7)
 {
-	s_277ec0 *local_0[2] = { arg_2, arg_3 };
-	short *local_1[2] = { arg_4, arg_5 };
+	s_277ec0 *local_0[2];
+	short *local_1[2];
+	local_1[0] = arg_4;
+	local_1[1] = arg_5;
+	local_0[0] = arg_2;
+	local_0[1] = arg_3;
 	real local_2[2];
 	real local_3[2];
 	long local_4 = 0;
@@ -65,6 +74,6 @@ void function_277ec0(real *arg_0, real *arg_1, short *arg_4, short *arg_5,
 			}
 		}
 	}
-	*arg_0 = (real)sqrt(local_2[1] * local_2[0]);
-	*arg_1 = (real)sqrt(local_3[1] * local_3[0]);
+	*arg_0 = function_278005(local_2[0], local_2[1]);
+	*arg_1 = function_278005(local_3[0], local_3[1]);
 }

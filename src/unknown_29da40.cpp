@@ -94,6 +94,16 @@ struct s_29db95
 
 long function_1fa7f0(void);
 
+__forceinline bool function_29dc40(dword const *arg_0, long arg_1)
+{
+	return (arg_0[arg_1 >> 5] & (1 << (arg_1 & 31))) != 0;
+}
+
+__forceinline void function_29dc62(dword *arg_0, short const &arg_1)
+{
+	arg_0[arg_1 >> 5] |= 1 << (arg_1 & 31);
+}
+
 // @retail 0x29db90
 void function_29db90(short arg_1, short arg_0, s_29db90 *arg_2)
 {
@@ -113,9 +123,9 @@ void function_29db90(short arg_1, short arg_0, s_29db90 *arg_2)
 				{
 					short *local_6 = local_4->field_84[local_5];
 					short local_7 = *local_6;
-					if (!(local_3[local_7 >> 5] & (1 << (local_7 & 31))))
+					if (!function_29dc40(local_3, local_7))
 					{
-						local_3[local_7 >> 5] |= 1 << (local_7 & 31);
+						function_29dc62(local_3, local_7);
 						for (short local_8 = 0; local_8 < arg_2->field_b4; local_8++)
 						{
 							if (arg_2->field_0[local_8].field_0 == local_7)
