@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6378 functions match
+
+```
+matched 6378 of 11318 game functions (676266 of 2784283 bytes, 24.29%)
+```
+
+4 new matches, none lost:
+- **Codex lane U**, round 9 (4): squad and image helpers in the 0x200000–0x217fff range.
+
 ## 2026-10-06: 6374 functions match
 
 ```
