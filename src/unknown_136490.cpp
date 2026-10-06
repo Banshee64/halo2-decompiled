@@ -401,3 +401,97 @@ dword function_135ca0(void const *pixels, short format, long index)
 		return 0;
 	}
 }
+
+#include "unknown_223b60.h"
+struct S3TCBlockRGB;
+struct S3TCBlockRGBA_explicit;
+struct S3TCBlockRGBA_interpolated;
+void function_223ed0(S3TCBlockRGB const *block, S3TC_COLOR *out, short x, short y);
+void DecodeBlockRGBA_explicit__single_pixel(S3TCBlockRGBA_explicit const *block, S3TC_COLOR *out, short x, short y);
+void DecodeBlockRGBA_interpolated__single_pixel(S3TCBlockRGBA_interpolated const *block, S3TC_COLOR *out, short x, short y);
+void function_358d0(short width, short x, short y, short height, dword *out);
+bool g_55e72c;
+
+// @retail 0x136140
+dword function_136140(void const *base, long size, void const *pixels, short x, short height, short format, word flags, short width, short y)
+{
+	short const *x_reference = &x;
+	x = *x_reference;
+	if (flags & 2)
+	{
+		long bits = 0;
+		if (format != NONE)
+			bits = g_453550[format];
+		short block_bytes = (short)((short)bits * 16 / 8);
+		byte const *block = (byte const *)pixels + ((short)(y / 4) * width / 4 + (short)(x / 4)) * block_bytes;
+		x &= 3;
+		y &= 3;
+		if (block < base || block >= (byte const *)base + size)
+		{
+			if (!g_55e72c)
+				g_55e72c = true;
+			block = (byte const *)base;
+			x = y = 0;
+		}
+		dword result;
+		switch (format)
+		{
+		case 14: function_223ed0((S3TCBlockRGB const *)block, (S3TC_COLOR *)&result, x, y); break;
+		case 15: DecodeBlockRGBA_explicit__single_pixel((S3TCBlockRGBA_explicit const *)block, (S3TC_COLOR *)&result, x, y); break;
+		case 16: DecodeBlockRGBA_interpolated__single_pixel((S3TCBlockRGBA_interpolated const *)block, (S3TC_COLOR *)&result, x, y); break;
+		default: return 0;
+		}
+		return result;
+	}
+	if (flags & 8)
+	{
+		dword offsets[2];
+		function_358d0(width, x, y, height, offsets);
+		return function_135ca0(pixels, format, offsets[0] | offsets[1]);
+	}
+	return function_135ca0(pixels, format, y * width + x);
+}
+
+__forceinline long bitmap_round(real value)
+{
+	long result;
+	__asm { fld value }
+	__asm { fistp result }
+	return result;
+}
+
+// @retail 0x1362b0
+dword function_1362b0(s_type_7ba8e9 const *bitmap, point2f const *uv, real detail)
+{
+	if (!bitmap->base_address)
+		return 0xffffffff;
+	long mipmap = 0;
+	if (detail < 1.0f && bitmap->mipmap_count > 0)
+		mipmap = bitmap_round((1.0f - detail) * bitmap->mipmap_count);
+	short width = bitmap->width >> (short)mipmap > 1 ? bitmap->width >> (short)mipmap : 1;
+	if (bitmap->flags & 2)
+		width += (byte)(-(byte)width) & 3;
+	short height = bitmap->height >> (short)mipmap > 1 ? bitmap->height >> (short)mipmap : 1;
+	if (bitmap->flags & 2)
+		height += (byte)(-(byte)height) & 3;
+	real value = width * uv->x - 0.5f;
+	long x;
+	if (!(width & (width - 1)))
+		x = bitmap_round(value) & (width - 1);
+	else
+		x = (bitmap_round(value) % width + width) % width;
+	value = height * uv->y - 0.5f;
+	long y;
+	if (!(height & (height - 1)))
+		y = bitmap_round(value) & (height - 1);
+	else
+		y = (bitmap_round(value) % height + height) % height;
+	void *pixels;
+	switch (bitmap->type)
+	{
+	case 0: pixels = function_135a30(bitmap, (short)mipmap, 0, 0); break;
+	case 1: pixels = function_135af0(bitmap, 0, 0, 0, (short)mipmap); break;
+	default: pixels = function_135c00(bitmap, 0, 0, 0, (short)mipmap); break;
+	}
+	return function_136140(bitmap->base_address, *(long *)((byte *)bitmap + 0x34), pixels, (short)x, height, bitmap->format, bitmap->flags, width, (short)y);
+}

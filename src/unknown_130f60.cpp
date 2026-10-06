@@ -90,3 +90,157 @@ long function_130f60(s_palette_owner const *owner, long *palette_index)
 
 	return result;
 }
+
+#include "unknown_0259d0.h"
+#include <math.h>
+#include <string.h>
+
+struct s_fog_accumulator
+{
+	color3f color;
+	real intensity;
+	real distance;
+	real height;
+	real weight;
+	real remaining;
+};
+struct s_fog_direction_sample
+{
+	color3f color;
+	real intensity;
+	real distance;
+	real height;
+	real angle_start;
+	real angle_end;
+	real weights[3];
+};
+struct s_fog_direction
+{
+	vector3f direction;
+	real yaw;
+	real pitch;
+	byte unknown14[8];
+	long forward_count;
+	s_fog_direction_sample *forward;
+	long opposite_count;
+	s_fog_direction_sample *opposite;
+	byte unknown2c[8];
+};
+struct s_fog_base_layer
+{
+	color3f color;
+	real intensity;
+	real distance;
+	real height;
+};
+struct s_fog_direction_tag
+{
+	byte unknown00[0x48];
+	long first_count;
+	s_fog_base_layer *first;
+	long second_count;
+	s_fog_base_layer *second;
+	long third_count;
+	s_fog_base_layer *third;
+	byte unknown60[0x18];
+	long direction_count;
+	s_fog_direction *directions;
+};
+real function_11ce20(vector3f const *a, vector3f const *b);
+
+__forceinline void fog_accumulate(s_fog_accumulator *out, color3f const *color, real intensity, real distance, real height, real weight)
+{
+	weight = weight < 0.0f ? 0.0f : (weight > 1.0f ? 1.0f : weight);
+	out->color.red += color->red * weight;
+	out->color.green += color->green * weight;
+	out->color.blue += color->blue * weight;
+	out->intensity += intensity * weight;
+	out->distance += distance * weight;
+	out->height += height * weight;
+	out->weight += weight;
+	out->remaining *= 1.0f - weight;
+}
+
+// @retail 0x131030
+void function_131030(long tag_index, vector3f const *view_direction, s_fog_accumulator *first, s_fog_accumulator *second, s_fog_accumulator *third)
+{
+	s_fog_direction_tag *tag = (s_fog_direction_tag *)g_4e3b44[tag_index & 0xffff].bytes;
+	memset(first, 0, sizeof(*first));
+	first->remaining = 1.0f;
+	memset(second, 0, sizeof(*second));
+	second->remaining = 1.0f;
+	memset(third, 0, sizeof(*third));
+	third->remaining = 1.0f;
+	for (long i = 0; i < tag->direction_count; i++)
+	{
+		s_fog_direction *source = &tag->directions[i];
+		vector3f direction = source->direction;
+		vector3f opposite;
+		if (direction.i == 0.0f && direction.j == 0.0f && direction.k == 0.0f)
+		{
+			real angles[2] = { source->yaw, source->pitch };
+			double yaw = (double)angles[0] + 3.1415927410125732422f;
+			double pitch_cosine = cos(source->pitch);
+			direction.i = (real)(cos(source->yaw) * pitch_cosine);
+			direction.j = (real)(sin(source->yaw) * pitch_cosine);
+			direction.k = (real)sin(source->pitch);
+			opposite.i = (real)(cos(yaw) * cos(0.0));
+			opposite.j = (real)(sin(yaw) * cos(0.0));
+			opposite.k = (real)sin(0.0);
+		}
+		else
+		{
+			opposite.i = -direction.i;
+			opposite.j = -direction.j;
+			opposite.k = 0.0f;
+			real magnitude = (real)sqrt((double)opposite.j * opposite.j + (double)opposite.i * opposite.i);
+			if (!(0.0001f > fabs(magnitude)))
+			{
+				real reciprocal = 1.0f / magnitude;
+				opposite.i *= reciprocal;
+				opposite.j *= reciprocal;
+				opposite.k *= reciprocal;
+			}
+		}
+		if (direction.k * direction.k + direction.j * direction.j + direction.i * direction.i > 0.0f)
+		{
+			long j = 0;
+			do
+			{
+				s_fog_direction_sample *sample;
+				vector3f const *axis;
+				switch (j)
+				{
+				case 0: sample = source->forward_count > 0 ? source->forward : NULL; axis = &direction; break;
+				case 1: sample = source->opposite_count > 0 ? source->opposite : NULL; axis = &opposite; break;
+				default: __assume(0);
+				}
+				real angle = function_11ce20(view_direction, axis);
+				if (sample && sample->angle_end > sample->angle_start)
+				{
+					real weight = (angle - sample->angle_end) / (sample->angle_start - sample->angle_end);
+					weight = weight < 0.0f ? 0.0f : (weight > 1.0f ? 1.0f : weight);
+					fog_accumulate(first, &sample->color, sample->intensity, sample->distance, sample->height, sample->weights[0] * weight);
+					fog_accumulate(second, &sample->color, sample->intensity, sample->distance, sample->height, sample->weights[1] * weight);
+					fog_accumulate(third, &sample->color, sample->intensity, sample->distance, sample->height, sample->weights[2] * weight);
+				}
+				j++;
+			}
+			while (j < 2);
+		}
+	}
+	real remaining = first->remaining * second->remaining;
+	real third_remaining = third->remaining;
+	if (tag->first_count > 0)
+		fog_accumulate(first, &tag->first->color, tag->first->intensity, tag->first->distance, tag->first->height, remaining);
+	else
+		first->weight += remaining;
+	if (tag->second_count > 0)
+		fog_accumulate(second, &tag->second->color, tag->second->intensity, tag->second->distance, tag->second->height, remaining);
+	else
+		second->weight += remaining;
+	if (tag->third_count > 0)
+		fog_accumulate(third, &tag->third->color, tag->third->intensity, 0.0f, 1.0f, third_remaining);
+	else
+		third->weight += third_remaining;
+}
