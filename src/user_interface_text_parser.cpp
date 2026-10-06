@@ -86,7 +86,7 @@ long function_14de70(long local_player_index);
 long saved_film_size_in_blocks();
 long minimal_storage_size_in_blocks();
 long saved_game_file_type_size_in_blocks(long type);
-real __stdcall function_122dd0(byte *map_name, long unknown);
+real __stdcall function_122dd0(byte *map_name, long mode, long type = 0);
 struct s_name_buffer;
 void function_13934d(s_name_buffer *buffer, long string_handle);
 void function_15ea80(long string_handle, word *buffer, long maximum_count);
