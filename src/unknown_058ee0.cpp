@@ -14,6 +14,37 @@
 
 s_session_states g_527330;
 
+long function_70570(c_session_state_matchmaking *state);
+bool function_705f0(c_session_state_matchmaking *state, long *players, long *maximum, long *minimum);
+
+// @retail 0x59570
+inline long function_59570(void)
+{
+	long result = 0;
+	switch (g_527330.state)
+	{
+	case 6: result = function_70570(&g_527330.state_matchmaking); break;
+	case 7: result = 5; break;
+	}
+	return result;
+}
+
+// @retail 0x594a0
+bool __stdcall function_594a0(long a, long b, long c)
+{
+	bool result = false;
+	long mode = g_527330.state_matchmaking.mode;
+	if (mode == 2)
+		mode = g_527330.state_start_match.mode;
+	if (mode == 3)
+	{
+		long state = function_59570();
+		if (state == 2 || state == 4)
+			result = function_705f0(&g_527330.state_matchmaking, (long *)a, (long *)b, (long *)c);
+	}
+	return result;
+}
+
 /* the session being tracked for debugging: when it changes, the flags are set */
 long g_510518;
 bool g_51051c;

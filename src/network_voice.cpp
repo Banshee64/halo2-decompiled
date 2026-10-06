@@ -12,12 +12,16 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <math.h>
 #include "globals.h"
 #include "unknown_059ad0.h"
 #include "network_voice.h"
 #include "unknown_067e10.h"
 #include "unknown_058ee0.h"
 #include "crc.h"
+
+void function_caf90(long unit_index, point3f *position);
+bool juggernaut_is(short player_index);
 
 c_voice_xhv g_476fc8;
 s_voice_globals g_4c9878;
@@ -1787,4 +1791,104 @@ long voice_players_share_team(long other, long player)
 		return false;
 	}
 	return true;
+}
+
+// @retail 0x56c60
+dword function_56c60(s_voice_player_settings *settings, long player)
+{
+	dword result = 0;
+	if (settings->initialized && voice_available())
+	{
+		if (g_4c9878.mode == 2 || g_4c9878.mode == 3)
+		{
+			long mode = g_4c9878.mode;
+			dword mask = 0;
+			byte *membership = (byte *)voice_get_membership();
+			if (membership)
+				mask = *(dword *)(membership + 0x10d0);
+			if (mode == 3)
+			{
+				s_network_session_player *players = (s_network_session_player *)voice_get_players();
+				if (mask & (1 << player))
+				{
+					long team = (char)players[player].propertiesa8[0x7c];
+					for (long i = 0; i < 16; i++)
+					{
+						if (i != player && (mask & (1 << i)))
+						{
+							long other_team = (char)players[i].propertiesa8[0x7c];
+							if (team != NONE && other_team != NONE && team == other_team)
+								result |= 1 << i;
+						}
+					}
+				}
+			}
+			else
+				result = mask;
+		}
+	}
+	return result;
+}
+
+// @retail 0x57270
+bool function_57270(long player, long other)
+{
+	bool result = false;
+	s_network_session_player *players = voice_get_players_inlined();
+	dword local_mask = voice_get_local_player_mask();
+	dword mask = voice_get_player_mask_inlined();
+	if ((mask & (1 << player)) && (mask & (1 << other)) &&
+		(local_mask & (1 << player)) && !(local_mask & (1 << other)))
+	{
+		if (!function_53d40())
+			result = true;
+		else if (function_53d90())
+		{
+			if (!juggernaut_is((short)player) && !juggernaut_is((short)other))
+				result = true;
+		}
+		else
+		{
+			long team = (char)players[player].propertiesa8[0x7c];
+			long other_team = (char)players[other].propertiesa8[0x7c];
+			if (team != NONE && other_team != NONE && team == other_team)
+				result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x57a80
+real function_57a80(long player, long other)
+{
+	point3f first = { 0 };
+	point3f second = { 0 };
+	real result = -1.0f;
+	if (function_54df0(player))
+	{
+		byte *datum = voice_get_world_player(player);
+		if (datum)
+		{
+			long unit = *(long *)(datum + 0x2c);
+			if (unit == NONE)
+				unit = *(long *)(datum + 0x30);
+			if (unit != NONE)
+			{
+				function_caf90(unit, &first);
+				if (function_54df0(other))
+				{
+					datum = voice_get_world_player(other);
+					if (datum && *(long *)(datum + 0x2c) != NONE)
+					{
+						function_caf90(*(long *)(datum + 0x2c), &second);
+						double x = (double)second.x - first.x;
+						double y = (double)second.y - first.y;
+						double z = (double)second.z - first.z;
+						result = (real)sqrt(z * z + x * x + y * y);
+					}
+				}
+			}
+		}
+	}
+	return result;
 }

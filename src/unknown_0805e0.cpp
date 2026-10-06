@@ -79,6 +79,101 @@ extern long g_4cf984;
 long g_4cf988;
 long g_4cf978;
 
+long __stdcall function_7fc80(const void *identity, long *position);
+
+struct s_cache_property
+{
+	long unknown00;
+	long type;
+	long unknown08;
+	long unknown0c;
+};
+
+struct s_cache_property_record
+{
+	byte identity[12];
+	long type;
+	long count;
+	s_cache_property *properties;
+};
+
+// @retail 0x80940
+void function_80940(s_cache_property_record *records, long record_capacity,
+	s_cache_property *properties, long property_capacity, long buffer_capacity,
+	byte *buffers, long *record_count, long *property_count, long *buffer_count)
+{
+	long records_used = 0;
+	long properties_used = 0;
+	long buffers_used = 0;
+	for (long i = 0; i < g_4cf978; i++)
+	{
+		s_player_configuration_cache_entry *entry = &g_4cf98c[i];
+		if (entry->flags & 2)
+		{
+			if (record_capacity <= 0 || property_capacity < 4 || buffer_capacity <= 0)
+				break;
+			memcpy(records->identity, &entry->player, sizeof(records->identity));
+			records->type = 0x61;
+			records->count = 4;
+			records->properties = properties;
+			records++;
+			record_capacity--;
+			records_used++;
+			*(short *)&properties->unknown00 = -3;
+			properties->type = 4;
+			properties->unknown08 = (long)buffers;
+			properties++;
+			property_capacity--;
+			properties_used++;
+			buffers += 0x40;
+			buffer_capacity--;
+			buffers_used++;
+			for (long j = 0; j < 3; j++)
+			{
+				*(short *)&properties[j].unknown00 = (short)(j + 2);
+				properties[j].type = 1;
+				properties[j].unknown08 = 0;
+			}
+			properties += 3;
+			property_capacity -= 3;
+			properties_used += 3;
+		}
+	}
+	if (record_count)
+		*record_count = records_used;
+	if (property_count)
+		*property_count = properties_used;
+	if (buffer_count)
+		*buffer_count = buffers_used;
+}
+
+// @retail 0x80d70
+void function_80d70(s_cache_property_record *records, long count)
+{
+	long position;
+	for (long i = 0; i < count; i++)
+	{
+		s_cache_property_record *record = &records[i];
+		if (record->type == 0x61 && record->count == 4)
+		{
+			long index = function_7fc80(record->identity, &position);
+			if (index != NONE)
+			{
+				s_cache_property *properties = record->properties;
+				long valid = properties[0].type == 4 ? 1 : 0;
+				if (properties[1].type == 1)
+					valid++;
+				if (properties[2].type == 1)
+					valid++;
+				if (properties[3].type == 1)
+					valid++;
+				if (valid == 4)
+					g_4cf98c[index].flags &= ~1;
+			}
+		}
+	}
+}
+
 // @retail 0x7fd10
 void function_7fd10(long index)
 {

@@ -13,6 +13,23 @@
 #include "online_tasks.h"
 #include "unknown_0662e0.h"
 
+struct s_member_quality_collection;
+void function_7e100(long current, const s_member_quality_collection *collection,
+	long *selected, long *first, long *second, long *level);
+
+// @retail 0x63ec0
+long function_63ec0(void)
+{
+	long result = 0;
+	if (g_527330.initialized)
+	{
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+		if (session->state)
+			function_7e100(session->member_index, (const s_member_quality_collection *)((byte *)session + 0x4c), 0, 0, 0, &result);
+	}
+	return result;
+}
+
 /* one local user's state (0xd0 bytes) */
 #pragma pack(push, 1)
 struct s_session_interface_user

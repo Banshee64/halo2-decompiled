@@ -7,6 +7,66 @@
 #include <xonline.h>
 #include <string.h>
 #include "online_tasks.h"
+#include "globals.h"
+#include "unknown_0662e0.h"
+#include <wchar.h>
+
+struct s_presence_name_cache_entry
+{
+	XUID user;
+	XUID team;
+	wchar_t name[16];
+	dword time;
+	long state;
+};
+
+static inline dword presence_cache_time(void)
+{
+	return g_510548 ? g_51054c : GetTickCount();
+}
+
+// @retail 0x8c150
+bool __stdcall function_8c150(void *cache, long allow_stale, unsigned __int64 *user_id,
+	void *name, unsigned __int64 *team_id)
+{
+	unsigned __int64 *const *user_reference = &user_id;
+	s_presence_name_cache_entry *entries = (s_presence_name_cache_entry *)cache;
+	bool found = false;
+	bool result = false;
+	s_presence_name_cache_entry *oldest = 0;
+	*(wchar_t *)name = 0;
+	for (long i = 0; i < 150; i++)
+	{
+		s_presence_name_cache_entry *entry = &entries[i];
+		if ((!oldest || entry->time < oldest->time) && (entry->state == 3 || entry->state == 0))
+			oldest = entry;
+		if (*user_reference && **user_reference == entry->user.qwUserID)
+		{
+			found = true;
+			if (entry->state == 3)
+			{
+				long duration = g_network_configuration.value1728 * 1000;
+				dword time = entry->time;
+				if (!allow_stale && (long)(presence_cache_time() - time) > duration)
+				{
+					entry->state = 1;
+					return result;
+				}
+				wcsncpy((wchar_t *)name, entry->name, 15);
+				((wchar_t *)name)[15] = 0;
+				*(XUID *)team_id = entry->team;
+				result = true;
+			}
+			break;
+		}
+	}
+	if (!allow_stale && !found && oldest)
+	{
+		oldest->user = *(XUID *)*user_reference;
+		oldest->state = 1;
+	}
+	return result;
+}
 
 /* a user's presence state as the game's friend flags */
 // @retail 0x8c280

@@ -47,11 +47,6 @@ void function_06fcc0(c_session_state_joining *self)
 {
 }
 
-// @stub 0x6d380
-void __stdcall function_06d380(c_session_client *client, const s_session_id *id)
-{
-}
-
 // @stub 0x6dc60
 void __stdcall function_06dc60(c_session_client *client, long n)
 {
@@ -61,5 +56,4 @@ void __stdcall function_06dc60(c_session_client *client, long n)
 void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local)
 {
 }
-
 

@@ -50,6 +50,7 @@ public:
 
 	byte unknown000[0x194];
 	long talk_times[16];
+	long last_talk_times[16];
 };
 
 static inline bool voice_available(void)
@@ -137,4 +138,60 @@ bool voice_observer_talked_recently(c_voice_observer *observer, long player_inde
 			return true;
 	}
 	return false;
+}
+
+struct s_input_state
+{
+	byte unknown00[0x10];
+	byte values[0x38];
+};
+
+extern byte g_4e61b9;
+extern s_input_state g_4e61dc[3];
+extern s_input_state g_4e630c;
+bool function_589e0(long player_index);
+bool function_53750(long player);
+
+// @retail 0x57620
+void function_57620(c_voice_observer *observer, long player, short controller)
+{
+	short const *controller_reference = &controller;
+	s_input_state *input = 0;
+	if (g_4e61cc[*controller_reference])
+		input = g_4e61b9 ? &g_4e630c : &g_4e61dc[*controller_reference];
+	if (input)
+	{
+		bool unavailable = !function_589e0(player);
+		long start = observer->talk_times[player];
+		long now = g_510c54->game_time;
+		bool started = start != 0;
+		bool pressed = input->values[5] > 0 || input->values[8] > 0;
+		if (!started)
+		{
+			if (pressed && !unavailable)
+			{
+				observer->play_radio_effect(player, 0);
+				observer->talk_times[player] = now;
+				observer->last_talk_times[player] = now;
+			}
+		}
+		else if ((real)(now - start) * g_510c54->rate >= g_network_configuration.real16f8 || unavailable)
+		{
+			if (observer->last_talk_times[player])
+			{
+				observer->play_radio_effect(player, 1);
+				observer->last_talk_times[player] = 0;
+			}
+			if (!pressed)
+				observer->talk_times[player] = 0;
+		}
+		else if (pressed || function_53750(player))
+			observer->last_talk_times[player] = now;
+		else if ((real)(now - observer->last_talk_times[player]) * g_510c54->rate >= g_network_configuration.real16f4)
+		{
+			observer->play_radio_effect(player, 1);
+			observer->talk_times[player] = 0;
+			observer->last_talk_times[player] = 0;
+		}
+	}
 }

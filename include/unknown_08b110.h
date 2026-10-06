@@ -86,6 +86,7 @@ struct s_dword40
 class c_vtable_450c94 : public c_interface_450c94
 {
 public:
+	c_vtable_450c94() : initialized(false) {}
 	virtual bool v0();
 	virtual long v1(long a1, long max_count, void *entries);
 	virtual void v6(s_block_450c94 *block);
@@ -334,6 +335,7 @@ struct s_request_450d1c
 class c_vtable_450d1c : public c_interface_450c94
 {
 public:
+	c_vtable_450d1c() : unknown08(0) {}
 	virtual bool v0();
 	virtual long v1(long a1, long max_count, void *entries);
 	virtual long v5(dword a1, s_bitstream *stream, long max_blocks, s_block_450c94 *blocks, long *count);
@@ -369,6 +371,7 @@ public:
 class c_vtable_450cf4 : public c_base_450d40
 {
 public:
+	c_vtable_450cf4() { unknown04[0] = 0; }
 	virtual bool v2(bool *a1);
 	virtual long v3(long a1, long a2);
 	virtual void v4() {}
