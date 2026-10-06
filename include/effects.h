@@ -388,7 +388,7 @@ public:
 	virtual struct s_effect_particle_system_definition *function_1751d0(word index) { return 0; }
 	virtual void v8() {}
 	virtual void v9() {}
-	virtual long const *tag_reference() { return 0; }
+	virtual long const *function_x947334() { return 0; }
 	virtual void render(s_particle_system_datum *system, void *a, void *b, void *c) {}
 	virtual void v12() {}
 	virtual void v13() {}

@@ -876,7 +876,7 @@ struct s_polygon_cache_173520
 	} *geometry;
 	s_polygon_context_173910::s_planes *planes;
 	byte *view;
-	plane3f clip_plane;
+	plane3f field_c_8;
 	dword visited[16];
 	s_projected_polygon_173520 polygons[512];
 	long point_count;
@@ -902,7 +902,7 @@ s_projected_polygon_173520 *function_173520(long polygon_index, s_polygon_cache_
 			return 0;
 		s_polygon_173910 const *polygon = &cache->geometry->polygons[polygon_index];
 		function_1429d0((transform4x3f const *)(cache->view + 4), polygon->count, polygon->points, transformed);
-		long count = function_11fc80(&cache->clip_plane, true, 0.0078125f, polygon->count, transformed, 64, clipped);
+		long count = function_11fc80(&cache->field_c_8, true, 0.0078125f, polygon->count, transformed, 64, clipped);
 		bool inside;
 		result->state = (byte)function_173890((s_polygon_context_173910 const *)cache, polygon, count, &inside);
 		result->field_6 = ((short const *)polygon)[0];

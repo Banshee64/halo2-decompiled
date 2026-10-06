@@ -77,7 +77,7 @@ bool __stdcall function_173cb0(long tag_index, long unused, long first, long sec
 	long const *reference;
 	dword group = TAG_GROUP(tag_index);
 	if (group == 0x5052544d || group == 'prt3')
-		reference = function_137bd0(tag_index)->tag_reference();
+		reference = function_137bd0(tag_index)->function_x947334();
 	else
 		reference = *(long const **)(g_4e3b44[tag_index & 0xffff].bytes + 0x24);
 	byte *definition = g_4e3b44[*reference & 0xffff].bytes;
