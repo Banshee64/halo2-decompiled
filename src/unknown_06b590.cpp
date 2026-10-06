@@ -8,6 +8,9 @@
 #include <string.h>
 #include "online_tasks.h"
 #include "online_presence.h"
+#include "globals.h"
+#include "unknown_075870.h"
+#include "unknown_0662e0.h"
 
 /* the services the logon asks for; the last one is not a Live service */
 struct s_online_service
@@ -302,4 +305,111 @@ void online_connect_to_service_20(void)
 		if (SUCCEEDED(XOnlineGetServiceInfo(0x14, &info)))
 			XNetConnect(info.serviceIP);
 	}
+}
+
+extern bool g_50944f;
+
+// @retail 0x6c8b0
+long function_6c8b0(XONLINE_USER *user, long controller)
+{
+ long result = NONE;
+ if (g_transport_globals.initialized && g_transport_globals.started)
+ {
+  XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
+  memset(users, 0, sizeof(users));
+  users[controller] = *user;
+  if (g_467214 == NONE)
+  {
+   g_467214 = online_task_new();
+   s_type_9df9da *task = function_6b910(g_467214);
+   if (task)
+   {
+    DWORD services[k_online_service_count];
+    online_get_service_ids(services);
+    g_50944f = false;
+    if (SUCCEEDED(XOnlineLogon(users, services, k_online_service_count, 0,
+     (XONLINETASK_HANDLE *)&task->handle)))
+    {
+     task->flags = 1;
+     task->type = 0;
+     task->controller_index = NONE;
+     result = g_467214;
+    }
+    else
+    {
+     function_6b640(g_467214);
+     g_467214 = NONE;
+    }
+   }
+  }
+  else
+  {
+   for (long i = 0; i < XONLINE_MAX_LOGON_USERS; i++)
+   {
+    if (i != controller && (bool)((*(dword *)&g_54e8e0[i] >> 5) & 1))
+     users[i] = *(const XONLINE_USER *)((const byte *)&g_54e8e0[i] + 0x470);
+   }
+   long index = online_task_new_if_logged_on();
+   s_type_9df9da *task = online_task_try_get(index);
+   if (task)
+   {
+    g_50944f = false;
+    online_connect_to_service_20();
+    if (SUCCEEDED(XOnlineChangeLogonUsers(users, 0, (XONLINETASK_HANDLE *)&task->handle)))
+    {
+     task->flags = 1;
+     task->type = 1;
+     task->controller_index = controller;
+     result = index;
+    }
+    else
+     function_6b640(index);
+   }
+  }
+ }
+ return result;
+}
+
+extern s_network_observer *g_4cf8e4;
+extern bool g_4cf95c;
+struct s_message_of_the_day_globals
+{
+ dword flags;
+ short length;
+};
+struct s_game_variant_globals
+{
+ dword unknown0;
+ dword flags;
+ word count;
+ word state;
+};
+extern s_message_of_the_day_globals g_479784;
+extern s_game_variant_globals g_47d8f4;
+void __stdcall function_8e0f0(long index, long result);
+void online_tasks_dispose_all(void);
+void function_190da5(long index);
+void function_7f410(void);
+
+// @retail 0x6cb60
+void function_6cb60(void)
+{
+ if (g_467214 != NONE)
+ {
+  for (long i = 0; i < 32; i++)
+   function_8e0f0(i, 13);
+  online_tasks_dispose_all();
+  g_467214 = NONE;
+ }
+ for (long controller = 0; controller != NONE; controller = controller_index_next(controller))
+  function_190da5(controller);
+ g_4cf8e4->flag4e00 = false;
+ g_4cf95c = false;
+ function_7f410();
+ for (long i = 0; i < g_transport_globals.transition_function_count; i++)
+  if (g_transport_globals.reset_functions[i])
+   g_transport_globals.reset_functions[i](g_transport_globals.contexts[i]);
+ g_479784.flags &= ~2;
+ g_47d8f4.flags &= ~2;
+ g_477058.flags &= ~2;
 }

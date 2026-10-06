@@ -377,3 +377,74 @@ void c_vtable_450c94::set_data720(long index, s_dword40 const *data)
 	data720[index] = *data;
 	unknown718 |= 1 << index;
 }
+
+bool function_ab2f0(s_bitstream *stream, s_z_input_packet *state);
+bool function_ab960(s_bitstream *stream, s_z_transform_state *state);
+
+static __forceinline void release_input_block(void *block, long *size)
+{
+ if (!g_4d87f8->allocator->get_info(block, size))
+  *size = NONE;
+ s_allocator_globals *globals = g_4d87f8;
+ globals->allocator->release(block, NONE);
+ globals->count--;
+}
+
+// @retail 0x8bbd0
+long c_vtable_450c94::v5(dword a1, s_bitstream *stream, long max_blocks, s_block_450c94 *blocks, long *count)
+{
+ long result = 0;
+ long used = 0;
+ while (stream_read_bit(stream))
+ {
+  long index = function_1959c0(stream, 5);
+  if (index < 0 || index >= 32 || used >= max_blocks)
+  {
+   result = 3;
+   break;
+  }
+  s_z_input_packet *input = 0;
+  s_z_transform_state *transform = 0;
+  bool has_input = stream_read_bit(stream);
+  if (has_input)
+  {
+   input = (s_z_input_packet *)handle_allocate(0x34);
+   if (input)
+   {
+    if (!function_ab2f0(stream, input)) result = 3;
+   }
+   else result = 2;
+  }
+  bool has_transform = stream_read_bit(stream);
+  if (has_transform)
+  {
+   transform = (s_z_transform_state *)handle_allocate(0x40);
+   if (transform)
+   {
+    if (!function_ab960(stream, transform)) result = 3;
+   }
+   else result = 2;
+  }
+  if (!result && !has_input && !has_transform)
+   result = 3;
+  if (result)
+  {
+   if (input) { long size; release_input_block(input, &size); }
+   if (transform) { long size; release_input_block(transform, &size); }
+   break;
+  }
+  s_block_450c94 *block = &blocks[used++];
+  block->unknown00 = NONE;
+  block->index = index;
+  block->count = 2;
+  s_item_450cb8 *items = (s_item_450cb8 *)block->data;
+  items[0].size = input ? 0x34 : 0;
+  items[0].type = 9;
+  items[0].data = input;
+  items[1].size = transform ? 0x40 : 0;
+  items[1].type = 10;
+  items[1].data = transform;
+ }
+ *count = used;
+ return result;
+}

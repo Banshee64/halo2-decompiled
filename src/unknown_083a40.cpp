@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "unknown_059ad0.h"
 #include "unknown_058ee0.h"
+#include "unknown_075870.h"
 
 extern char const *g_4e9bb8;
 long map_location_get(char const *map_name);
@@ -432,4 +433,54 @@ bool simulation_watcher_changed(s_simulation_world_owner *watcher)
 			result = true;
 	}
 	return result;
+}
+
+bool network_session_channel_has_member(c_class_58d20 *session, long channel_index);
+bool function_67e10(c_class_6a600 *world);
+c_simulation_view *function_6acb0(c_class_6a600 *world);
+c_simulation_view *function_6ad40(c_class_6a600 *world, const s_machine_address *address);
+void __stdcall function_68580(short type, const s_machine_address *address, long value, long unused);
+void function_85650(c_simulation_view *view, s_network_observer *observer, const XNADDR *address, long channel_index);
+
+// @retail 0x84630
+bool function_84630(long channel_index, s_simulation_world_owner *watcher, long value, const XNADDR *address)
+{
+ volatile bool result = false;
+ c_class_6a600 *world = watcher->world;
+ if (world->unknown2f && channel_index != NONE &&
+  network_session_channel_has_member(watcher->session, channel_index))
+ {
+  s_network_observer *observer = *(s_network_observer **)watcher->unknown08;
+  s_network_observer_channel *channel = &observer->channels[channel_index];
+  if (channel->state == 7)
+  {
+   s_network_connection *connection = &((s_network_connection *)g_4d87d4)[channel->connection_index];
+   if (connection->state == 5)
+   {
+    short type;
+    switch (world->state)
+    {
+    case 2: type = 2; break;
+    case 3: type = 1; break;
+    case 4: type = 4; break;
+    case 5: type = 3; break;
+    default: __assume(0);
+    }
+    s_machine_address machine = *(const s_machine_address *)((const byte *)address + 0xa);
+    function_68580(type, &machine, value, 0);
+    world = watcher->world;
+    c_simulation_view *view;
+    if (function_67e10(world))
+     view = function_6ad40(world, &machine);
+    else
+     view = function_6acb0(world);
+    if (view)
+    {
+     function_85650(view, *(s_network_observer **)watcher->unknown08, address, channel_index);
+     result = true;
+    }
+   }
+  }
+ }
+ return result;
 }

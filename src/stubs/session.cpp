@@ -27,10 +27,6 @@ void function_1388e0()
 }
 
 
-// @stub 0x6f4b0
-void function_06f4b0(c_session_state_joining *self)
-{
-}
 
 // @stub 0x6f700
 void function_06f700(c_session_state_joining *self)
@@ -42,8 +38,4 @@ void function_06fcc0(c_session_state_joining *self)
 {
 }
 
-// @stub 0x6dc60
-void __stdcall function_06dc60(c_session_client *client, long n)
-{
-}
 

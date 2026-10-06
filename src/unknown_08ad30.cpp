@@ -9,6 +9,7 @@
 #include "unknown_096ed0.h"
 #include "unknown_067e10.h"
 #include <string.h>
+#include <xtl.h>
 
 struct s_entry;
 
@@ -763,4 +764,104 @@ failed:
 			discard_block(states[i], (long *)&table);
 	}
 	return false;
+}
+
+void replication_table_initialize(s_handle_peers *peers);
+void world_set_substate(c_class_6a600 *world, long substate);
+
+struct s_distribution_sender_setup
+{
+ s_handle_peers *peers;
+ void *owner;
+ dword mask;
+ void *senders[15];
+ long count;
+ void *head;
+};
+
+struct s_distribution_event_setup
+{
+ void *vtable;
+ bool initialized;
+ byte unknown05[3];
+ c_class_6a600 *world;
+ s_distribution_sender_setup *senders;
+ void *definitions;
+ c_entry_table *entities;
+};
+
+// @retail 0x68c00
+void function_68c00(s_simulation_world_owner *owner, void *definitions,
+ s_simulation_distribution *distribution, c_class_6a600 *world)
+{
+ world->owner = owner;
+ switch (g_4e6948->mode)
+ {
+ case 1: world->state = 1; break;
+ case 2: world->state = 3; break;
+ case 3: world->state = 2; break;
+ case 4: world->state = 5; break;
+ case 5: world->state = 4; break;
+ default: __assume(0);
+ }
+ world->unknown18 = 0;
+ world->flag24 = false;
+ world->flag25 = false;
+ world->unknown2f = false;
+ world->flag2c = false;
+ world->unknown28 = 0;
+ world->flag2e = false;
+ world->unknown30 = 0;
+ world->time34 = g_510548 ? g_51054c : GetTickCount();
+ world->unknown38 = 0;
+ if (world->state == 4 || world->state == 5)
+ {
+  world->distribution = distribution;
+  replication_table_initialize((s_handle_peers *)distribution->peers);
+  s_distribution_sender_setup *senders = (s_distribution_sender_setup *)world->distribution->unknown2048;
+  senders->peers = (s_handle_peers *)world->distribution->peers;
+  senders->owner = 0;
+  senders->mask = 0;
+  memset(senders->senders, 0, sizeof(senders->senders));
+  senders->count = 0;
+  senders->head = 0;
+  c_entry_table *entities = (c_entry_table *)&world->distribution->field_2098;
+  entities->busy = false;
+  entities->unknown08 = (long)world;
+  entities->unknown0c = (long)world->distribution;
+  *(void **)&entities->handlers = definitions;
+  ((s_handle_peers *)world->distribution->peers)->owner = (c_handle_owner *)entities;
+  entities->function_08a030();
+  entities->initialized = true;
+  s_distribution_event_setup *events = (s_distribution_event_setup *)((byte *)world->distribution + 0xa0ac);
+  events->definitions = definitions;
+  events->world = world;
+  events->senders = (s_distribution_sender_setup *)world->distribution->unknown2048;
+  events->entities = (c_entry_table *)&world->distribution->field_2098;
+  events->senders->owner = events;
+  events->initialized = true;
+ }
+ else
+ {
+  world->flag11fc = false;
+  world->buffer_size = NONE;
+  world->buffer = 0;
+  *(long *)world->unknown1208 = NONE;
+ }
+ if (world->state == 3)
+ {
+  world->block_count = 0;
+  world->first_block = 0;
+  world->last_block = 0;
+  function_6ab10(world);
+ }
+ world->view_count = 0;
+ memset(world->views, 0, sizeof(world->views));
+ *(long *)((byte *)world + 0x14) = NONE;
+ world->unknown0c = false;
+ if (world->unknown18 != 2)
+ {
+  world_set_substate(world, 2);
+  world->unknown1c = g_510548 ? g_51054c : GetTickCount();
+ }
 }

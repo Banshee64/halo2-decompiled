@@ -8,6 +8,7 @@
 #include <xonline.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "globals.h"
 #include "language.h"
 #include "unknown_059ad0.h"
@@ -16,11 +17,13 @@
 #include "unknown_058dd0.h"
 #include "unknown_0662e0.h"
 
+struct s_session_join_request;
+
 /* the session listener at +0x78a8 */
 class c_network_session_listener
 {
 public:
-	virtual void unknown00();
+	virtual void unknown00(const s_type_99af70 *address, const s_session_join_request *request);
 	virtual void member_left(const s_session_id *id);
 	virtual void session_closed();
 	virtual bool player_can_join(const void *identity);
@@ -3474,4 +3477,192 @@ bool __stdcall function_5c720(c_class_58d20 *session, const s_session_member_ide
 	session->value4c++;
 	session->update7618++;
 	return result;
+}
+
+// @retail 0x630f0
+bool function_630f0(c_class_58d20 *session, const s_session_join_request *request,
+ long address, long reason)
+{
+ bool result = false;
+ if (!reason && function_5c720(session, &request->identity, request->player_count,
+  request->identities, (const long *)((const byte *)request + 0xc4),
+  request->ignore_reservations, *(const long *)((const byte *)request + 0x150),
+  (const s_session_id *)((const byte *)request + 0x144), &reason))
+  return true;
+ long message[3];
+ memset(message, 0, sizeof(message));
+ message[0] = session->unknown1c;
+ message[1] = session->unknown20;
+ message[2] = reason;
+ function_07b140(session->unknown04, address, 10, sizeof(message), message);
+ return result;
+}
+
+bool network_observer_channel_timed_out(s_network_observer *observer, long channel_index);
+
+// @retail 0x5e3f0
+bool __stdcall function_05e3f0(c_class_58d20 *session, const s_type_99af70 *address)
+{
+ long member = network_session_find_member_by_address(session, address);
+ bool was_host = false;
+ bool leave = false;
+ if (member != NONE && member != session->current_member)
+ {
+  long state = session->state;
+  if (state == 9 || ((state > 2 && state <= 8) && member != session->member_index &&
+   (member == session->value44 || (!session->function_058d20() &&
+    !network_observer_channel_timed_out(session->observer, session->member_states[session->member_index].unknown04)))))
+  {
+   if (session->function_058d20())
+   {
+    struct s_handoff_announcement
+    {
+     s_session_id id;
+     byte flags[4];
+     s_session_member_identity identity;
+    } message;
+    memset(&message, 0, sizeof(message));
+    message.id = *(s_session_id *)&session->unknown1c;
+    message.flags[0] = 1;
+    message.flags[1] = 1;
+    message.flags[2] = 1;
+    memcpy(&message.identity, session->members[member].words, sizeof(message.identity));
+    network_session_send_to_members(session, 0, 0x13, sizeof(message), &message);
+    was_host = true;
+    if (session->state == 7 && *(byte *)&session->value7420)
+     leave = true;
+   }
+   session->member_index = member;
+   session->value44 = NONE;
+   if (was_host)
+    network_session_reset_membership(session, false);
+   if (session->state != 4)
+    function_612c0(session);
+  }
+ }
+ if (!network_session_address_is_peer(session, address))
+  return false;
+ s_session_id id = *(s_session_id *)&session->unknown1c;
+ s_network_session_member_state *member_state = &session->member_states[session->member_index];
+ if (member_state->flag1)
+  network_observer_send_message(session->observer, session->value10, member_state->unknown04,
+   false, 0x14, sizeof(id), &id);
+ if (leave)
+  session->leave(false);
+ return true;
+}
+
+struct s_network_session_list;
+c_class_58d20 *network_session_manager_find_session(s_network_session_list *manager, const s_session_id *id);
+bool function_07ab10(long key_index, s_type_99af70 *address, long local, word port, const XNADDR *xnaddr);
+
+// @retail 0x59e50
+bool __stdcall function_59e50(c_class_58d20 *session, long mode, long local,
+ const XNKID *kid, const XNKEY *key, const s_session_member_identity *host,
+ long count, const dword *identities, const long *values, const long *other_values,
+ bool reserve, long timeout, const s_session_id *id, const void *extra)
+{
+ volatile bool result = false;
+ c_class_58d20 *existing = network_session_manager_find_session(
+  *(s_network_session_list **)session->unknown0c, (const s_session_id *)kid);
+ if (existing)
+  network_session_close(existing);
+ if (g_transport_globals.initialized && g_transport_globals.started)
+  function_07a9b0();
+ XNADDR identity = g_4cf793;
+ if (g_4cf792)
+ {
+  network_session_release_key(session);
+  if (transport_security_register_key(session->value38, local, false, kid, key))
+  {
+   network_session_set_key(session, kid, key, local);
+   s_type_99af70 address;
+   if (function_07ab10(session->value38, &address, local, 0x3e9, (const XNADDR *)host))
+   {
+    const byte *raw_address = (const byte *)&address;
+    if (*(word *)(raw_address + 0x12) != 4 || *(dword *)raw_address != 0x7f000001)
+    {
+     long channel = network_observer_attach_channel(session->observer, session->value10, (const XNADDR *)host);
+     if (channel != NONE)
+     {
+      session->value18 = mode;
+      memset(&session->update_count, 0, 0x14b0);
+      session->update_count = NONE;
+      session->flag48 = false;
+      memset(&session->value4c, 0, 0x2494);
+      session->value4c = NONE;
+      session->member_index = NONE;
+      memset(session->member_states, 0, sizeof(session->member_states));
+      session->current_member = NONE;
+      session->time78b0 = -network_session_time_now();
+      session->flag78ac = true;
+      s_session_remote remote;
+      memset(&remote, 0, sizeof(remote));
+      remote.id = count;
+      memcpy(remote.address04, identities, count * 12);
+      memcpy((byte *)&remote + 0xc4, values, count * 4);
+      memcpy((byte *)&remote + 0x104, other_values, count * 4);
+      remote.has_address = reserve;
+      if (reserve)
+       *(long *)((byte *)&remote + 0x150) = timeout;
+      memcpy(remote.address144, id, sizeof(*id));
+      memcpy(remote.key188, &identity, sizeof(identity));
+      if (extra)
+       memcpy((byte *)&remote + 0x154, extra, 0x2c);
+      function_61050(session, channel, host, &remote, &address);
+      return true;
+     }
+     result = false;
+    }
+   }
+  }
+ }
+ network_session_release_key(session);
+ return result;
+}
+
+struct s_network_message_session_query;
+
+// @retail 0x63080
+void __stdcall function_063080(c_class_58d20 *session, const s_network_message_session_query *message,
+ const s_type_99af70 *address)
+{
+ __declspec(align(8)) s_session_join_request request;
+ memcpy(&request, (const byte *)message + 0xc, sizeof(request));
+ long reason = network_session_evaluate_join_request(session, &request);
+ if (!reason && session->listener)
+  session->listener->unknown00(address, &request);
+ else
+  function_630f0(session, &request, (long)address, reason);
+}
+
+long count_bits(dword value);
+
+// @retail 0x619b0
+bool function_619b0(const s_session_member *members, long first_index, long second_index, long player_count)
+{
+ const s_session_member *first = &members[first_index];
+ const s_session_member *second = &members[second_index];
+ long first_bits = count_bits(*(const dword *)first->properties.unknown74);
+ long second_bits = count_bits(*(const dword *)second->properties.unknown74);
+ if (first_bits > second_bits)
+  return true;
+ if (first_bits < second_bits)
+  return false;
+ if (first->player_count < second->player_count)
+  return true;
+ if (first->player_count > second->player_count)
+  return false;
+ long maximum = g_network_configuration.value84[player_count];
+ long first_value = first->unknown94;
+ long second_value = second->unknown94;
+ if (first_value > maximum) first_value = maximum;
+ if (second_value > maximum) second_value = maximum;
+ real score = (real)(first_value - second_value) * g_network_configuration.real34;
+ real delta = (real)(*(const long *)(second->properties.unknown74 + 8) - *(const long *)(first->properties.unknown74 + 8)) * g_network_configuration.real38;
+ if (delta > 0.f)
+  score += (real)pow(delta, g_network_configuration.real3c);
+ else
+  score -= (real)pow(-delta, g_network_configuration.real3c);
+ return score > 0.3f;
 }

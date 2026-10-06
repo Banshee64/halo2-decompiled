@@ -97,11 +97,6 @@ void c_potential_squad_leader_player_list::handle_item(s_controller_reference **
 
 /* lane D */
 struct _XONLINE_USER;
-// @stub 0x6c8b0
-long function_6c8b0(_XONLINE_USER *user, long player)
-{
-	return 0;
-}
 
 /* my own, not written yet */
 // @stub 0x24b869

@@ -11,6 +11,8 @@
 #include "unknown_058ee0.h"
 #include "unknown_0662e0.h"
 #include "online_tasks.h"
+#include "unknown_234c64.h"
+#include "unknown_19b510.h"
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
 
@@ -594,4 +596,206 @@ bool function_06e720(c_class_58d20 *session)
 		result = true;
 	}
 	return result;
+}
+
+void function_148823();
+void function_14a152();
+bool __stdcall function_236917(long controller);
+bool __stdcall function_236953(long controller);
+bool __stdcall function_2323ab(long controller);
+void network_session_check_tracking(c_class_58d20 *session);
+void network_session_close(c_class_58d20 *session);
+
+static inline bool session_dialog_is(c_class_1473c9 *screen, long id)
+{
+ return screen && ((screen->screen_id >= 7 && screen->screen_id <= 8) ||
+  screen->screen_id == 0xf0) && ((c_dialog_screen *)screen)->dialog_id == id;
+}
+
+// @retail 0x6d270
+void function_6d270(void)
+{
+ function_148823();
+ function_14a152();
+ bool choice = true;
+ long id = 0x38;
+ dialog_choice_callback accept = function_236917;
+ if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 1 && !g_4e6948->flag134)
+ {
+  choice = false;
+  id = 0xb8;
+  accept = function_2323ab;
+ }
+ c_window_channel *channel = &g_54d598.windows_1[4];
+ if (!session_dialog_is(channel->current, id) && !session_dialog_is(channel->next, id))
+ {
+  if (choice)
+   dialog_choice_show(1, id, 4, (word)-1, accept, function_236953, 0);
+  else
+   dialog_ok_show(1, id, 4, (word)-1, accept, 0);
+ }
+ c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+ if (session->state)
+ {
+  network_session_check_tracking(session);
+  network_session_close(session);
+ }
+ session = (c_class_58d20 *)g_527330.session_b;
+ if (session->state)
+ {
+  network_session_check_tracking(session);
+  network_session_close(session);
+ }
+}
+
+
+struct s_session_join_request;
+long network_session_evaluate_join_request(c_class_58d20 *session, const s_session_join_request *request);
+bool function_630f0(c_class_58d20 *session, const s_session_join_request *request, long address, long reason);
+
+// @retail 0x6dc60
+void __stdcall function_06dc60(c_session_client *client, long reason)
+{
+ s_session_request *request = client->requests;
+ while (request)
+ {
+  s_session_request *next = request->next;
+  long rejection = reason;
+  if (!rejection)
+   rejection = network_session_evaluate_join_request(client->session,
+    (const s_session_join_request *)&request->remote);
+  function_630f0(client->session, (const s_session_join_request *)&request->remote,
+   (long)request->key04, rejection);
+  session_client_remove_request(client, request);
+  request = next;
+ }
+}
+
+long function_19989d(void);
+
+// @retail 0x6cad0
+void __stdcall function_6cad0(long unused)
+{
+ long const *argument_reference = &unused;
+ if (g_467214 != NONE)
+  function_6d270();
+ else
+ {
+  long state = function_19989d();
+  if ((state == 2 || state == 3) && g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 2)
+  {
+   c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+   if (session->state)
+   {
+    network_session_check_tracking(session);
+    network_session_close(session);
+   }
+   session = (c_class_58d20 *)g_527330.session_b;
+   if (session->state)
+   {
+    network_session_check_tracking(session);
+    network_session_close(session);
+   }
+   dialog_ok_show(1, 0x3a, 4, (word)-1, 0, 0);
+  }
+ }
+}
+
+
+struct s_match_result_data
+{
+ XNKEY key;
+ XNKID id;
+ XNADDR address;
+ DWORD public_filled, public_open, private_filled, private_open;
+ long properties[7];
+};
+struct s_qos_target
+{
+ XNKID kid;
+ XNKEY key;
+ XNADDR xna;
+};
+#include "network_qos.h"
+bool function_90160(long task_index, s_match_result_data *result);
+long online_match_session_find(XNKID const *session_id);
+long qos_lookup(long kind, long count, long bits_per_second, s_qos_target *targets);
+bool qos_is_complete(long handle);
+bool function_7c530(const byte *data, long size, void *description);
+
+// @retail 0x6f4b0
+void function_06f4b0(c_session_state_joining *self)
+{
+ s_session_state_joining_view *state = (s_session_state_joining_view *)self;
+ if (state->unknowne9)
+ {
+  state->unknown104 = 1;
+  return;
+ }
+ if (state->unknownf0 != NONE)
+ {
+  switch (online_task_poll(state->unknownf0))
+  {
+  case 0:
+  case 1:
+   return;
+  case 2:
+   {
+    s_match_result_data result;
+    if (function_90160(state->unknownf0, &result))
+    {
+     s_qos_target target;
+     target.kid = result.id;
+     target.key = result.key;
+     target.xna = result.address;
+     state->unknownf4 = qos_lookup(1, 1, g_network_configuration.value18c, &target);
+     if (state->unknownf4 == NONE)
+      state->unknown104 = 4;
+    }
+    else
+     state->unknown104 = 3;
+   }
+   break;
+  }
+  function_6b640(state->unknownf0);
+  state->unknownf0 = NONE;
+ }
+ else if (state->unknownf4 != NONE)
+ {
+  if (!qos_is_complete(state->unknownf4))
+   return;
+  s_qos_result result;
+  if (qos_target_result(state->unknownf4, &result, 0))
+  {
+   struct { s_session_description description; byte remaining[0x714 - sizeof(s_session_description)]; } buffer;
+   s_session_description *description = &buffer.description;
+   if (function_7c530(result.data, result.data_size, description))
+   {
+    self->function_06f2b0(description, state->entry_count);
+    state->unknown10 = false;
+    state->unknown11 = false;
+    if (!state->unknown104)
+    {
+     state->part.unknown40 = description->unknown10;
+     state->part.unknown00 = description->unknown02;
+     *(XNKID *)state->part.unknown04 = description->kid;
+     *(XNKEY *)state->part.unknown0c = description->key;
+     *(XNADDR *)state->part.unknown1c = description->address;
+     state->unknown68 = true;
+    }
+   }
+   else
+    state->unknown104 = 6;
+  }
+  else
+   state->unknown104 = 5;
+  qos_release(state->unknownf4);
+  state->unknownf4 = NONE;
+ }
+ else
+ {
+  state->unknownf0 = online_match_session_find((const XNKID *)(state->target + 0x28));
+  if (state->unknownf0 == NONE)
+   state->unknown104 = 16;
+ }
 }
