@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6414 functions match
+
+```
+matched 6414 of 11318 game functions (682310 of 2784283 bytes, 24.51%)
+```
+
+6414 new matches, none lost:
+- Codex lane AB round 6: 0xb6df0, 0xb7150 and 0xc1670.
+- Codex near-match polish round 2: 0x2566c0.
+- @coldspear's #96: retail's values for the constants, string and script definitions from #90 and #91.
+
 ## 2026-10-06: 6410 functions match
 
 ```
