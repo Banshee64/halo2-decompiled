@@ -1145,7 +1145,7 @@ void function_06f700(c_session_state_joining *self)
     session_state_joining_set_mode(self);
   }
   else
-   state->unknown104 = 16;
+   goto failed;
  }
  else
  {
@@ -1158,14 +1158,17 @@ void function_06f700(c_session_state_joining *self)
   }
   bool local = false;
   if (session_state_is_live(session)) local = session->current_member == session->value50;
-  if (local)
+  if (!local)
   {
-   if (!state->unknowne8)
-    session_state_joining_send_target(self);
-   else
-    state->unknown104 = 16;
-  }
-  else
    state->unknown104 = session->type == 1 ? 1 : 16;
+   return;
+  }
+  if (!state->unknowne8)
+  {
+   session_state_joining_send_target(self);
+   return;
+  }
+failed:
+  state->unknown104 = 16;
  }
 }

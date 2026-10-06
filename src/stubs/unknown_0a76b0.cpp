@@ -45,11 +45,12 @@ void function_e5300(long unit_index, long a) { }
 // @stub 0x1bba70
 void function_1bba70(long actor_index, long vehicle_index, long seat_index) { }
 
-
-
-
 // @stub 0xb9a50
 void __stdcall function_b9a50(long unit_index) { }
+
+
+
+
 
 // @stub 0xe56f0
 void __stdcall function_e56f0(long unit_index, point3f const *point) { }
