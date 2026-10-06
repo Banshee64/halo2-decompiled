@@ -275,7 +275,7 @@ void function_1de50(void)
 			for (i = 0; i < entry->element_count; ++i)
 			{
 				if (D3DResource_IsBusy((D3DResource *)entry->elements[i]))
-					goto next_entry;
+					goto entry_in_use;
 			}
 			function_12d520((long)entry->data);
 		}
@@ -286,7 +286,7 @@ void function_1de50(void)
 		entry->data = 0;
 		entry->flag95 = 0;
 		*(long *)entry->unknown00 = 0;
-	next_entry:;
+	entry_in_use:;
 	}
 	bool needed = false;
 	if (g_510c50 && ((byte *)g_510c50)[5])
