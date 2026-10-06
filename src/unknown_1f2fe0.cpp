@@ -7,6 +7,7 @@
 #include "unknown_0259d0.h"
 #include "unknown_20fe20.h"
 #include "unknown_1e3920.h"
+#include "slot_handler.h"
 
 void function_1caa40(long object_index, point3f *position);
 bool __stdcall function_1f8a70(long actor_index, long unknown);
@@ -240,4 +241,42 @@ bool function_1f3610(long actor_index, short value)
 	if (actor->unknown61e < value)
 		actor->unknown61e = value;
 	return true;
+}
+
+void function_11d180(vector3f *left, vector3f const *in, vector3f *out, vector3f const *up, vector3f *forward);
+
+// @retail 0x1f3e40
+void __stdcall function_1f3e40(long object_index, vector3f const *forward, vector3f *vector)
+{
+	vector3f unused0;
+	vector3f left;
+	vector3f up;
+	function_11d180(&left, forward, &up, g_4687b0, &unused0);
+	vector3f object_forward;
+	s_slot_object_view *object = object_get(object_index);
+	if (object->parent_index == NONE)
+		object_forward = object->forward;
+	else
+	{
+		transform4x3f *matrix = object_node_matrix(object_get(object->parent_index), object->parent_node);
+		real i = object->forward.i;
+		real j = object->forward.j;
+		real k = object->forward.k;
+		object_forward.i = matrix->forward.i * i + matrix->left.i * j + matrix->up.i * k;
+		object_forward.j = matrix->forward.j * i + matrix->left.j * j + matrix->up.j * k;
+		object_forward.k = matrix->forward.k * i + matrix->left.k * j + matrix->up.k * k;
+	}
+	vector3f unused1;
+	vector3f object_left;
+	vector3f object_up;
+	function_11d180(&object_left, &object_forward, &object_up, g_4687b0, &unused1);
+	vector3f world;
+	world.i = g_4687a4->i + object_forward.i * vector->i + object_left.i * vector->j + object_up.i * vector->k;
+	world.j = g_4687a4->j + object_forward.j * vector->i + object_left.j * vector->j + object_up.j * vector->k;
+	world.k = g_4687a4->k + object_forward.k * vector->i + object_left.k * vector->j + object_up.k * vector->k;
+	vector3f result;
+	result.i = forward->i * world.i + forward->j * world.j + forward->k * world.k;
+	result.j = left.i * world.i + left.j * world.j + left.k * world.k;
+	result.k = up.i * world.i + up.j * world.j + up.k * world.k;
+	*vector = result;
 }

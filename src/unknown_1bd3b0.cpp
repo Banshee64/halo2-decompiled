@@ -2,6 +2,7 @@
 #include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_26e370.h"
+#include "unknown_26c380.h"
 #include <math.h>
 
 /* slot type 0x5d */
@@ -52,6 +53,73 @@ struct s_5d_object_tag
 };
 
 bool function_f5dc0(long object_index);
+
+real function_30bf0(vector3f *v);
+long function_1fa7f0(void);
+
+struct s_trace_path_globals
+{
+	byte unknown00[0xc4];
+	long count;
+	s_pathfinding_data *first;
+};
+
+// @retail 0x1bd400
+bool function_1bd400(long object_index, long actor_index, s_type_c3b527 const *point,
+	long node_index, vector3f const *direction, short selected, bool check_sides,
+	s_type_c3b527 *out_point, long *out_node)
+{
+	s_slot_object_view *object = object_get(object_index);
+	bool result = false;
+	s_tag_element *element = function_1e5450(actor_index, object->tag_index);
+	vector3f local_direction;
+	s_sector_trace_result traces[3];
+	function_210770(point->output_index, direction, &local_direction);
+	if (element)
+	{
+		real distance = *(real *)((byte *)element + 0x14) * 0.8f;
+		s_trace_path_globals *globals = (s_trace_path_globals *)g_4e0348;
+		s_pathfinding_data *pathfinding = NULL;
+		if (globals->count > 0)
+			pathfinding = globals->first;
+		if (!function_26c590(pathfinding, &point->point, node_index, NONE, &local_direction, distance, NULL,
+			(s_path_trace_result *)&traces[0]))
+		{
+			if (check_sides)
+			{
+				function_210770(point->output_index, &object->forward, &local_direction);
+				local_direction.k = 0.0f;
+				if (function_30bf0(&local_direction) != 0.0f)
+				{
+					pathfinding = (s_pathfinding_data *)function_1fa7f0();
+					if (!function_26c590(pathfinding, &traces[0].point, traces[0].sector_index,
+						NONE, &local_direction, 0.5f, NULL, (s_path_trace_result *)&traces[1]))
+					{
+						local_direction.i *= -1.0f;
+						local_direction.j *= -1.0f;
+						local_direction.k *= -1.0f;
+						pathfinding = (s_pathfinding_data *)function_1fa7f0();
+						result = !function_26c590(pathfinding, &traces[0].point, traces[0].sector_index,
+							NONE, &local_direction, 0.5f, NULL, (s_path_trace_result *)&traces[2]);
+					}
+				}
+			}
+			else
+				result = true;
+			if (result)
+			{
+				if (out_point)
+				{
+					out_point->point = traces[selected].point;
+					out_point->output_index = point->output_index;
+				}
+				if (out_node)
+					*out_node = traces[selected].sector_index;
+			}
+		}
+	}
+	return result;
+}
 
 /* the object's velocity is under 0.2 */
 // @retail 0x1bd3b0

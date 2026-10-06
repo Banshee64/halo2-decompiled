@@ -81,3 +81,78 @@ s_slot_handler_2 g_47e1c0 =
 	},
 	function_1b3380, 0, function_1b3540
 };
+
+// @retail 0x1b3070
+bool __stdcall function_1b3070(long actor_index, s_squad_choice *choice)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short current = 0;
+	real best_score = -3.402823466e38f;
+	short best = NONE;
+	short best_encounter = NONE;
+	short best_squad = NONE;
+	short previous = NONE;
+	s_squad_iterator iterator;
+	function_204ec0(&iterator, (short)actor->unknown030, 5, actor->unknown26c != NONE);
+	short squad = function_205010(&iterator);
+	if (squad == NONE)
+		return false;
+	do
+	{
+		if (current >= 32)
+			break;
+		if (!(choice->tried & (1 << current)))
+		{
+			word encounter = *(word *)(iterator.unknown00 + 6);
+			byte *encounters = *(byte **)((byte *)g_4e0350 + 0x16c);
+			byte *squads = *(byte **)(encounters + encounter * 0x38 + 0x34);
+			s_type_c3b527 *target = (s_type_c3b527 *)(squads + squad * 0x88 + 0x24);
+			point3f point;
+			if (target->output_index == NONE || !function_2104b0(target->output_index, &target->point, &point))
+				point = target->point;
+			vector3f direction;
+			direction.i = point.x - actor->position.x;
+			direction.j = point.y - actor->position.y;
+			direction.k = point.z - actor->position.z;
+			real distance = (real)sqrt(direction.i * direction.i + (direction.j * direction.j + direction.k * direction.k));
+			if (!(fabs(distance) < 0.0001f))
+			{
+				real inverse = 1.0f / distance;
+				direction.i = inverse * direction.i;
+				direction.j *= inverse;
+				direction.k *= inverse;
+			}
+			else
+				distance = 0.0f;
+			real score = (real)((double)direction.i * actor->unknown290.i +
+				((double)direction.j * actor->unknown290.j + (double)direction.k * actor->unknown290.k) - distance * 0.1);
+			if (score > best_score)
+			{
+				best = current;
+				best_squad = *(short *)(iterator.unknown00 + 2);
+				best_encounter = *(short *)(iterator.unknown00 + 6);
+				best_score = score;
+			}
+		}
+		else if (squad == choice->unknown6 && *(short *)(iterator.unknown00 + 6) == choice->unknown4)
+			previous = current;
+		current++;
+		squad = function_205010(&iterator);
+	} while (squad != NONE);
+	if (current < 2)
+		return false;
+	if (best != NONE)
+	{
+		choice->unknown4 = best_encounter;
+		choice->unknown6 = best_squad;
+		choice->tried |= 1 << best;
+		return true;
+	}
+	choice->tried = 1 << previous;
+	actor = actor_get(actor_index);
+	actor->unknown3fe = 3;
+	for (long i = 0; i < 4; i++)
+		actor->unknown400[i].reference = g_470fa0;
+	function_1b3070(actor_index, choice);
+	return true;
+}

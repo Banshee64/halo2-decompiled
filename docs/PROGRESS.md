@@ -2,6 +2,34 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6253 functions match
+
+```
+matched 6253 of 11318 game functions (650189 of 2784283 bytes, 23.35%)
+```
+
+11 new matches, none lost:
+- **Codex lane Z**, round 4 (4): more object type and event helpers in the 0xa0000–0xac48f range.
+- **Codex lane V**, round 4 (7): path and clump helpers in the 0x260000–0x26e36f range.
+
+## 2026-10-06: 6242 functions match
+
+```
+matched 6242 of 11318 game functions (647596 of 2784283 bytes, 23.26%)
+```
+
+18 new matches, none lost:
+- **Codex lane AC**, round 2 (18): object-chain flags, groups and interface helpers in the 0x2729b0–0x29ffff range.
+
+## 2026-10-06: 6224 functions match
+
+```
+matched 6224 of 11318 game functions (644727 of 2784283 bytes, 23.16%)
+```
+
+4 new matches, none lost:
+- **Codex lane B**, round 8 (4): actor slot handlers in the 0x1b0000–0x1bffff and 0x1f0000–0x1fffff ranges.
+
 ## 2026-10-05: 6220 functions match
 
 ```

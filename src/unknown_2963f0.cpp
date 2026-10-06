@@ -7,10 +7,79 @@
 #include "data_array.h"
 #include "globals.h"
 #include "slot_handler.h"
+#include "object_iterator.h"
 #include <string.h>
 
 
 #define ANY_NAME 0x30000d9
+
+struct s_scenario_identifier_ab;
+void *__stdcall function_b7a40(s_scenario_identifier_ab const *identifier, long *index_out);
+
+struct s_2960e0_counts
+{
+	byte unknown00[0x50];
+	long first_count;
+	byte unknown54[0xa8 - 0x54];
+	long second_count;
+};
+
+__forceinline long combined_2960e0(s_2960e0_counts const *counts)
+{
+	return (word)(counts->first_count + counts->second_count);
+}
+
+// @retail 0x2960e0
+long function_2960e0(s_2960e0_counts *counts, long *objects, long maximum_count)
+{
+	memset(objects, 0xff, maximum_count * sizeof(long));
+	struct
+	{
+		s_object *object;
+		s_type_f1af8e iterator;
+	} state;
+	state.iterator.signature = 0x86868686;
+	state.iterator.type_mask = 0x40;
+	state.iterator.flags = 0;
+	state.iterator.index = 0;
+	state.iterator.object_index = NONE;
+	while ((state.object = function_baeb0(&state.iterator)) != NULL)
+	{
+		long index = NONE;
+		if (function_b7a40((s_scenario_identifier_ab const *)((byte *)state.object + 0xa4), &index))
+		{
+			short slot = (short)index;
+			if (slot >= maximum_count)
+				break;
+			objects[slot] = state.iterator.object_index;
+		}
+	}
+	state.iterator.signature = 0x86868686;
+	state.iterator.type_mask = 0x80;
+	state.iterator.flags = 0;
+	state.iterator.index = 0;
+	state.iterator.object_index = NONE;
+	while ((state.object = function_baeb0(&state.iterator)) != NULL)
+	{
+		long index = NONE;
+		if (function_b7a40((s_scenario_identifier_ab const *)((byte *)state.object + 0xa4), &index))
+		{
+			short slot = (short)(counts->first_count + (short)index);
+			if (slot >= maximum_count)
+				break;
+			objects[slot] = state.iterator.object_index;
+		}
+	}
+	short extra_count = *(short *)((byte *)g_4e0348 + 0x140);
+	for (short i = 0; i < extra_count; i++)
+	{
+		short slot = (short)(combined_2960e0(counts) + i);
+		if (slot >= maximum_count)
+			break;
+		objects[slot] = NONE;
+	}
+	return counts->first_count + counts->second_count + extra_count;
+}
 
 // @retail 0x2963f0
 s_graph_weapon_type *graph_weapon_type_iterate(s_graph_weapon_type_iterator *iterator, long *found_mode,

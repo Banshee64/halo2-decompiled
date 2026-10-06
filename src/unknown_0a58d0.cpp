@@ -959,3 +959,108 @@ void function_a9b40(long index, s_z_copy_state *state)
   state->flags &= ~2;
  }
 }
+
+// @retail 0xa9570
+void function_a9570(long index)
+{
+ s_object_view *object = ((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+ if (object->field_d8 & 1)
+ {
+  if (*(long *)((byte *)object + 0x14) != NONE)
+   function_a9640(index);
+  else
+  {
+   bool changed = false;
+   s_z_copy_state state;
+   z_copy_state_clear(&state);
+   function_a9820((long *)&state, index);
+   if (state.flags & 1)
+   {
+    function_a9a70(index, &state);
+    changed = true;
+   }
+   if (state.flags & 2)
+   {
+    function_a9b40(index, &state);
+    changed = true;
+   }
+   if (changed)
+   {
+    function_a99f0(index, (long *)&state);
+    if (state.flags) return;
+   }
+   object->field_d8 &= ~1;
+  }
+ }
+}
+
+class c_class_6a600;
+long function_6a690(long index, c_class_6a600 *world, long value);
+
+// @retail 0xa9500
+bool function_a9500(long unit_index, long index)
+{
+ s_object_header *headers = (s_object_header *)g_4e0300->data;
+ s_z_unit_mapping_view *object = (s_z_unit_mapping_view *)headers[unit_index & 0xffff].object;
+ bool result = false;
+ if (object->player_index == NONE)
+ {
+  s_z_unit_mapping_world *world = (s_z_unit_mapping_world *)g_4cf77c;
+  if (world->entries[index].first == NONE)
+  {
+   long mapping = function_6a690(index, (c_class_6a600 *)world, unit_index);
+   object = (s_z_unit_mapping_view *)((s_object_header *)g_4e0300->data)[unit_index & 0xffff].object;
+   object->mapping_index = mapping;
+   function_cbf60(unit_index, true);
+   result = true;
+  }
+ }
+ return result;
+}
+
+// @retail 0xa7b30
+void function_a7b30(long index)
+{
+ long mode = g_4e6948->mode;
+ if (mode >= 4 && mode <= 5)
+ {
+  switch (mode)
+  {
+  case 2:
+  case 4:
+   break;
+  default:
+  {
+   s_z_unit_mapping_view *object = (s_z_unit_mapping_view *)((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+   object->mapping_index = function_6a690(NONE, (c_class_6a600 *)g_4cf77c, index);
+   function_cbf60(index, true);
+   function_a7870(index);
+   object = (s_z_unit_mapping_view *)((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+   if (object->identifier != NONE)
+    function_b58c0(object->identifier, 0x400);
+   break;
+  }
+  }
+ }
+}
+
+// @retail 0xa7ab0
+void function_a7ab0(long index)
+{
+ s_object_view *object = ((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+ long identifier = object->field_d4;
+ if (identifier != NONE)
+ {
+  function_108e80(index);
+  object->field_d4 = NONE;
+  object->field_d8 = 0;
+  s_z_state_world *world = (s_z_state_world *)g_4cf77c;
+  if (world->state == 4 || world->state == 5)
+  {
+   s_z_entity_record *entity = &world->database->entities[identifier & 0x3ff];
+   entity->active = false;
+   entity->object_index = NONE;
+  }
+  function_b8540(index);
+ }
+}

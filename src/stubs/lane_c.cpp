@@ -2,6 +2,42 @@
 // not decompiled yet, and the library (Havok) functions the region calls
 #include "unknown_11c920.h"
 #include "unknown_1cec30.h"
+
+class c_library_30c470
+{
+public:
+	void detach(void *callback);
+};
+
+// @stub 0x30c470
+void c_library_30c470::detach(void *callback) { }
+
+class c_278da0_kind;
+class c_library_311690
+{
+public:
+	void update(long value);
+	byte unknown00[0x54];
+	c_278da0_kind *kind;
+};
+
+// @stub 0x311690
+void c_library_311690::update(long value) { }
+
+class c_278b60_filter;
+struct s_278b60_dispatch;
+struct s_278b60_filter;
+class c_library_30c190
+{
+public:
+	c_278b60_filter *filter();
+	byte unknown00[0xcc];
+	s_278b60_dispatch *dispatch;
+	s_278b60_filter *filter_object;
+};
+
+// @stub 0x30c190
+c_278b60_filter *c_library_30c190::filter() { return NULL; }
 #include "slot_owner.h"
 #include "unknown_1c62f0.h"
 #include "unknown_0259a0.h"
@@ -25,8 +61,6 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 /* game functions outside the region called by the ai lifecycle callbacks */
 
 
-// @stub 0x28d930
-void function_28d930(void) { }
 
 // @stub 0x292130
 void function_292130(void) { }
