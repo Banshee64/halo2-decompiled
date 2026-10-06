@@ -109,6 +109,28 @@ s_4e6380 *g_4e6380;
 s_record_pool *g_4e637c;
 s_looping_sound_globals *g_4ed288;
 dword g_4c8798[256];
+
+void decal_delete_group(long decal_index);
+
+// @retail 0x43820
+void __stdcall function_43820(long index)
+{
+	index &= 0xffff;
+	if (g_4c8798[index] != NONE)
+	{
+		decal_delete_group(g_4c8798[index]);
+		g_4c8798[index] = NONE;
+	}
+}
+
+// @retail 0x43850
+long __stdcall function_43850(long index)
+{
+	long handle = g_4c8798[index & 0xffff];
+	byte *entry = (byte *)g_4ea950->data + (handle & 0xffff) * 0x40;
+	word flags = entry[2];
+	return (flags & 1) || (flags & 2);
+}
 byte g_4ea934;
 byte g_4ea936;
 byte g_4e6388;

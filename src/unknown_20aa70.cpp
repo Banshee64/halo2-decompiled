@@ -7,6 +7,50 @@
 #include "globals.h"
 #include "unknown_0259d0.h"
 
+struct s_type_1a7926
+{
+	byte unknown00[8];
+	transform4x3f root_matrix;
+	byte unknown3c[0x48 - 0x3c];
+	short *node_indices;
+	byte unknown4c[4];
+	transform4x3f *field_50;
+};
+
+transform4x3f *function_ba160(long object_index, transform4x3f *matrix);
+
+// @retail 0x20a9a0
+bool function_20a9a0(long object_index, s_type_1a7926 *matrices)
+{
+	byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+	byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+	(void)&definition;
+	bool result = false;
+	long model_index = *(long *)(definition + 0x38);
+	if (model_index != NONE)
+	{
+		byte *model = g_4e3b44[model_index & 0xffff].bytes;
+		long nodes_index = *(long *)(model + 0x24);
+		if (nodes_index != NONE)
+		{
+			byte *nodes = g_4e3b44[nodes_index & 0xffff].bytes;
+			byte *indices = object + *(short *)(object + 0x11a);
+			byte *transforms = object + *(short *)(object + 0x116);
+			*(long *)&matrices->unknown00[0] = object_index;
+			*(long *)&matrices->unknown00[4] = *(long *)(object + 0xb4);
+			function_ba160(object_index, &matrices->root_matrix);
+			*(long *)&matrices->unknown3c[0] = *(long *)(definition + 0x38);
+			*(long *)&matrices->unknown3c[4] = *(long *)(model + 0x24);
+			*(byte **)&matrices->unknown3c[8] = model;
+			matrices->node_indices = (short *)nodes;
+			*(byte **)&matrices->unknown4c[0] = indices;
+			matrices->field_50 = (transform4x3f *)transforms;
+			result = true;
+		}
+	}
+	return result;
+}
+
 byte *g_51e9ec;
 dword g_51e9f0;
 void *g_51e9f4;

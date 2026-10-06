@@ -5,6 +5,47 @@
 #include <string.h>
 #include <math.h>
 #include <xtl.h>
+#include "geometry_cache.h"
+
+struct s_23600_section
+{
+	byte unknown00[0x34];
+	byte *data;
+	s_geometry_block_info block;
+};
+
+struct s_23600_definition
+{
+	byte unknown00[0x28];
+	s_23600_section *sections;
+};
+
+struct s_23600_object_header
+{
+	byte unknown00[8];
+	byte *object;
+};
+
+// @retail 0x23600
+void *function_23600(long tag, long object_index, byte const *indices, long section_index, long node_index)
+{
+	void *result = NULL;
+	(void)&indices;
+	(void)&section_index;
+	(void)&node_index;
+	if (tag != NONE)
+	{
+		s_23600_definition *definition = (s_23600_definition *)g_4e3b44[tag & 0xffff].bytes;
+		s_23600_section *section = &definition->sections[indices[section_index]];
+		if (function_12de70(&section->block, 3))
+		{
+			byte *object = ((s_23600_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+			byte *nodes = *(byte **)(section->data + 0x68);
+			result = object + *(short *)(object + 0x116) + 0x28 + nodes[node_index] * 0x34;
+		}
+	}
+	return result;
+}
 
 byte g_43f220[16] = { 0, 1, 4, 5, 16, 17, 20, 21, 64, 65, 68, 69, 80, 81, 84, 85 };
 
@@ -261,6 +302,119 @@ bool __stdcall function_0254c0(
 	}
 }
 
+real g_509400;
+extern real g_485ae0;
+
+real g_48565c;
+real g_485778, g_48577c, g_485790, g_485794;
+real g_4b9c74[5][14];
+real g_4b9d90, g_4b9d94;
+void function_350e0(real *out, real const *a, real const *b, real x);
+
+// @retail 0x26710
+bool __stdcall function_26710(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+	(void)&mode;
+	(void)&bounds;
+	(void)&t;
+	(void)&out;
+	(void)&unused;
+	if (g_509400 <= 0.0f)
+		g_509400 = g_485ae0;
+	switch (mode)
+	{
+	case 0:
+		function_350e0(out, bounds, t, g_509400);
+		return true;
+	case 1: case 4:
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		out[2] = 0.0f;
+		out[3] = 1.0f;
+		return true;
+	case 2:
+		{
+			real span = g_48577c - g_485778;
+			real scale = 1.0f / (0.0001f > span ? 0.0001f : span);
+			out[0] = g_48565c * scale;
+			out[1] = 0.0f;
+			out[2] = 0.0f - g_485778 * scale;
+			out[3] = 0.0f;
+			return true;
+		}
+	case 3:
+		{
+			real span = g_485794 - g_485790;
+			real scale = 1.0f / (0.0001f > span ? 0.0001f : span);
+			out[0] = g_48565c * scale;
+			out[1] = 0.0f;
+			out[2] = 0.0f - g_485790 * scale;
+			out[3] = 0.0f;
+			return true;
+		}
+	default: return false;
+	}
+}
+
+// @retail 0x26ca0
+bool __stdcall function_26ca0(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+	(void)&mode;
+	(void)&bounds;
+	(void)&t;
+	(void)&out;
+	(void)&unused;
+	real const *matrix = g_4b9c74[mode];
+	if (g_509400 <= 0.0f)
+		g_509400 = g_485ae0;
+	if (mode == 0)
+	{
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		clip_depth_terms(out, 1.0f);
+		out[0] *= g_4b9d90;
+		out[1] *= g_4b9d90;
+		return true;
+	}
+	if (mode > 0 && mode <= 4)
+	{
+		out[0] = (t[0] * 2.0f - 1.0f) * matrix[6] - (t[1] * 2.0f - 1.0f) * matrix[7] * g_4b9d94 + matrix[9];
+		out[1] = (t[0] * 2.0f - 1.0f) * matrix[10] - (t[1] * 2.0f - 1.0f) * matrix[11] * g_4b9d94 + matrix[13];
+		out[2] = 0.0f;
+		out[3] = 1.0f;
+		return true;
+	}
+	return false;
+}
+
+// @retail 0x27960
+bool __stdcall function_27960(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+	(void)&mode;
+	(void)&bounds;
+	(void)&t;
+	(void)&out;
+	(void)&unused;
+	if (g_509400 <= 0.0f)
+		g_509400 = g_485ae0;
+	switch (mode)
+	{
+	case 0:
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		clip_depth_terms(out, g_509400);
+		return true;
+	case 1:
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		out[2] = 0.0f;
+		out[3] = 1.0f;
+		return true;
+	default:
+		return false;
+	}
+}
+
 /* the table entry whose key matches, or NONE */
 __inline long find_table_entry(
 	long key)
@@ -272,6 +426,56 @@ __inline long find_table_entry(
 			return i;
 	}
 	return NONE;
+}
+
+struct s_24490_entry
+{
+	long key;
+	long count;
+};
+
+struct s_24490_group
+{
+	long unknown00;
+	long count;
+	s_24490_entry *entries;
+};
+
+struct s_24490_definition
+{
+	byte unknown00[0x14];
+	long count;
+	s_24490_group *groups;
+	byte unknown1c[0x14];
+	byte *data;
+	s_geometry_block_info block;
+};
+
+// @retail 0x24490
+void *function_24490(long key, s_24490_definition *definition, long entry_key)
+{
+	long index = find_table_entry(key);
+	if (index == NONE)
+		return NULL;
+	long group = 5 - (short)g_4b89b0[index].unknown4;
+	if (group > definition->count - 1)
+		group = definition->count - 1;
+	s_24490_group *selected = &definition->groups[group];
+	for (long i = 0; i < selected->count; ++i)
+	{
+		if (selected->entries[i].key == entry_key)
+		{
+			long count = selected->entries[i].count / 5;
+			if (!function_12de70(&definition->block, 3))
+				return NULL;
+			byte *data = definition->data;
+			long size = data[0] == 0x39 ? count * 10 : count * 20;
+			*(long *)(data + 4) = size;
+			*(long *)(data + 8) = size;
+			return data;
+		}
+	}
+	return NULL;
 }
 
 // @retail 0x1d6b0
@@ -487,3 +691,529 @@ void function_023ca0(
 		first_cell2 += stride;
 	}
 }
+
+struct s_24c70_range
+{
+    real low, high, average;
+    real smoothed_low, smoothed_high, smoothed_average;
+};
+
+PRIVATE __forceinline real histogram_blend(real previous, real value)
+{
+    real result;
+    if (previous > value)
+        result = previous * (1.0f - 0.16f) + value * 0.16f;
+    else
+        result = previous * (1.0f - 0.16f) + value * 0.16f;
+    return result;
+}
+
+// @retail 0x24c70
+void function_24c70(real const *histogram, s_24c70_range *range)
+{
+    real low, high;
+    real sum = 0.0f;
+    for (long i = 0; i < 256; ++i)
+    {
+        sum += histogram[i];
+        if (sum >= 0.0f)
+        {
+            low = (real)i * (1.0f / 255.0f);
+            break;
+        }
+    }
+    sum = 0.0f;
+    for (long j = 255; j >= 0; --j)
+    {
+        sum += histogram[j];
+        if (sum >= 0.01f)
+        {
+            high = (real)j * (1.0f / 255.0f);
+            break;
+        }
+    }
+    sum = 0.0f;
+    for (long k = 0; k < 256; ++k)
+        sum += (real)k * histogram[k];
+    real average = sum * (1.0f / 255.0f);
+    range->low = low;
+    range->high = high;
+    range->average = average;
+    range->smoothed_low = histogram_blend(range->smoothed_low, low);
+    range->smoothed_high = histogram_blend(range->smoothed_high, high);
+    range->smoothed_average = range->smoothed_average * 0.8f + average * 0.2f;
+    range->smoothed_low = range->smoothed_low < 0.0f ? 0.0f : range->smoothed_low > 0.0f ? 0.0f : range->smoothed_low;
+    range->smoothed_high = range->smoothed_high < 0.7f ? 0.7f : range->smoothed_high > 1.0f ? 1.0f : range->smoothed_high;
+    range->smoothed_average = range->smoothed_average < range->smoothed_low ? range->smoothed_low :
+        range->smoothed_average > range->smoothed_high ? range->smoothed_high : range->smoothed_average;
+}
+
+bool g_4b9d9c;
+real g_4857dc, g_4857e0;
+
+// @retail 0x27520
+bool __stdcall function_27520(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+    (void)&mode; (void)&bounds; (void)&t; (void)&out; (void)&unused;
+    if (g_509400 <= 0.0f)
+        g_509400 = g_485ae0;
+    switch (mode)
+    {
+    case 0:
+        function_350e0(out, bounds, t, g_509400);
+        return true;
+    case 1:
+        out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+        out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+        out[2] = 0.0f;
+        out[3] = 1.0f;
+        return true;
+    case 2:
+        if (!g_4b9d9c) goto scaled;
+    case 3:
+        {
+            real span = g_4857e0 - g_4857dc;
+            real scale = 1.0f / (0.0001f > span ? 0.0001f : span);
+            out[0] = g_48565c * scale;
+            out[1] = 0.0f;
+            out[2] = 0.0f - g_4857dc * scale;
+            out[3] = 0.0f;
+            return true;
+        }
+    case 4:
+scaled:
+        out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+        out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+        out[2] = 0.0f;
+        out[3] = 1.0f;
+        out[0] *= g_4b9d90;
+        out[1] *= g_4b9d90;
+        return true;
+    default:
+        return false;
+    }
+}
+
+extern byte g_4b99b0[0x4c];
+
+// @retail 0x298f0
+bool __stdcall function_298f0(long mode, real const *bounds, real const *t, real *out, long unused)
+{
+    (void)&mode; (void)&bounds; (void)&t; (void)&out; (void)&unused;
+    if (g_509400 <= 0.0f)
+        g_509400 = g_485ae0;
+    switch (mode)
+    {
+    case 0:
+        function_350e0(out, bounds, t, g_509400);
+        return true;
+    case 2:
+        if (g_4b99b0[0x41] && g_4b99b0[1])
+        {
+            out[0] = *(real *)(g_4b99b0 + 0x24);
+            out[1] = 0.0f;
+            out[2] = t[0] * 640.0f;
+            out[3] = 0.0f;
+            return true;
+        }
+    case 3:
+        if (g_4b99b0[0x41] && g_4b99b0[1])
+        {
+            out[0] = 0.0f;
+            out[1] = *(real *)(g_4b99b0 + 0x28);
+            out[2] = t[1] * 480.0f;
+            out[3] = 0.0f;
+            return true;
+        }
+    case 1: case 4:
+        {
+            out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+            out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+            out[2] = 0.0f;
+            out[3] = 1.0f;
+            real strength = *(real *)(g_4b99b0 + 0x3c);
+            if (strength != 0.0f)
+            {
+                real fraction = (5 - mode) * 0.25f;
+                real x = *(real *)(g_4b99b0 + 0x1c) * strength * fraction + 1.0f;
+                real y = *(real *)(g_4b99b0 + 0x20) * strength * fraction + 1.0f;
+                real inverse_x = x > 0.0f ? 1.0f / x : 0.0f;
+                real inverse_y = y > 0.0f ? 1.0f / y : 0.0f;
+                out[0] = (bounds[1] - bounds[0]) * (1.0f - inverse_x) * 0.5f + out[0] * inverse_x;
+                out[1] = (bounds[3] - bounds[2]) * (1.0f - inverse_y) * 0.5f + out[1] * inverse_y;
+                return true;
+            }
+            return mode == 1;
+        }
+    default:
+        return false;
+    }
+}
+
+extern D3DPIXELSHADERDEF g_484f68;
+extern long g_4858b8;
+extern byte *g_485a80;
+extern byte g_51f0f0[0x2d8];
+color3f g_4857a8;
+real g_4857b4;
+void function_14bc0(short index, short element, bool use_depth);
+void function_0222d0(D3DRENDERSTATETYPE state, dword value);
+bool function_1ccf0(D3DPIXELSHADERDEF const *program);
+struct s_shader_cache;
+void function_1c590(s_shader_cache *state, long tag, long index);
+void __stdcall function_1c710(void *state);
+dword __cdecl function_131f40(real alpha, color3f const *color);
+
+// @retail 0x26520
+bool __stdcall function_26520(void *context)
+{
+    g_509400 = g_485ae0;
+    if (g_4857b4 > 0.0f)
+    {
+        function_14bc0((short)g_4858b8, 0, true);
+        function_0222d0(D3DRS_COLORWRITEENABLE, 0x1010101);
+        function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+        function_0222d0(D3DRS_SRCBLEND, D3DBLEND_CONSTANTCOLOR);
+        function_0222d0(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+        function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+        function_0222d0(D3DRS_BLENDCOLOR, 0xffffff);
+        function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+        function_0222d0(D3DRS_CULLMODE, 0);
+        function_0222d0(D3DRS_STENCILENABLE, 0);
+        function_0222d0(D3DRS_ZENABLE, 2);
+        function_0222d0(D3DRS_ZWRITEENABLE, 0);
+        function_0222d0(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
+        function_0222d0(D3DRS_ZBIAS, 0);
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSCombinerCount = 0x11001;
+        g_484f68.PSFinalCombinerConstant0 = function_131f40(g_4857b4, &g_4857a8);
+        g_484f68.PSFinalCombinerInputsABCD = 0x1200000;
+        g_484f68.PSFinalCombinerInputsEFG = 0x1100;
+        function_1ccf0(&g_484f68);
+        function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+        function_1c710(g_51f0f0);
+        return true;
+    }
+    return false;
+}
+
+void function_14f60(short stage, short index);
+
+// @retail 0x2b000
+bool __stdcall function_2b000(void *context)
+{
+    g_509400 = g_485ae0;
+    function_14bc0(16, 0, false);
+    function_14f60(0, (short)g_4858b8);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    function_0222d0(D3DRS_ZENABLE, 0);
+    function_0222d0(D3DRS_ZBIAS, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 0x11001;
+    g_484f68.PSFinalCombinerInputsABCD = 8;
+    g_484f68.PSFinalCombinerInputsEFG = 0;
+    D3DDevice_SetPixelShaderProgram(&g_484f68);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+
+// @retail 0x296c0
+bool __stdcall function_296c0(void *context)
+{
+    if (!g_4b99b0[0] && !g_4b99b0[1])
+        return false;
+    g_509400 = g_485ae0;
+    function_14bc0(*(short *)(g_4b99b0 + 0x44), 0, false);
+    function_14f60(0, *(short *)(g_4b99b0 + 0x34));
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_POINT);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_POINT);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    function_0222d0(D3DRS_ZENABLE, 0);
+    function_0222d0(D3DRS_ZBIAS, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 0x11001;
+    g_484f68.PSFinalCombinerInputsABCD = 8;
+    g_484f68.PSFinalCombinerInputsEFG = 0;
+    D3DDevice_SetPixelShaderProgram(&g_484f68);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+
+color3f g_4857bc;
+dword __cdecl pack_color3f(color3f const *color);
+
+// @retail 0x276d0
+bool __stdcall function_276d0(void *context)
+{
+    g_509400 = g_485ae0;
+    function_14bc0((short)g_4858b8, 0, false);
+    function_14f60(0, 3);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_POINT);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_POINT);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x1010101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+    function_0222d0(D3DRS_SRCBLEND, D3DBLEND_CONSTANTCOLOR);
+    function_0222d0(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+    function_0222d0(D3DRS_BLENDCOLOR, 0xffffff);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    function_0222d0(D3DRS_ZENABLE, 0);
+    function_0222d0(D3DRS_ZBIAS, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 0x11001;
+    g_484f68.PSAlphaInputs[0] = 0x8200000;
+    g_484f68.PSAlphaOutputs[0] = 0xc0;
+    g_484f68.PSFinalCombinerConstant0 = pack_color3f(&g_4857bc);
+    g_484f68.PSFinalCombinerInputsABCD = 0x1c010000;
+    g_484f68.PSFinalCombinerInputsEFG = 0x1c00;
+    function_1ccf0(&g_484f68);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+
+// @retail 0x29080
+bool __stdcall function_29080(void *context)
+{
+    if (!g_4b99b0[0] && !g_4b99b0[1])
+        return false;
+    g_509400 = g_485ae0;
+    function_14bc0(*(short *)(g_4b99b0 + 0x44), 0, false);
+    function_14f60(0, g_4b99b0[1] ? *(short *)(g_4b99b0 + 0x38) : 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_POINT);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_POINT);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+
+    if (g_4b99b0[1])
+    {
+        function_14f60(2, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MIPFILTER, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MAXANISOTROPY, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MIPMAPLODBIAS, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MAXMIPLEVEL, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_COLORSIGN, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_ALPHAKILL, 0);
+
+    }
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, g_4b99b0[0]);
+    function_0222d0(D3DRS_SRCBLEND, D3DBLEND_ONE);
+    function_0222d0(D3DRS_DESTBLEND, D3DBLEND_CONSTANTCOLOR);
+    color3f blend = *(color3f *)(g_4b99b0 + 0x10);
+    function_0222d0(D3DRS_BLENDCOLOR, pack_color3f(&blend));
+    function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    function_0222d0(D3DRS_ZENABLE, 0);
+    function_0222d0(D3DRS_ZBIAS, 0);
+    color3f color = *(color3f *)(g_4b99b0 + 4);
+    if (g_4b99b0[1])
+    {
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSTextureModes = 0x2621;
+        g_484f68.PSDotMapping = 0x11;
+        g_484f68.PSCombinerCount = 0x11001;
+        g_484f68.PSFinalCombinerConstant0 = pack_color3f(&color);
+        g_484f68.PSFinalCombinerInputsABCD = 0xa010000;
+    }
+    else
+    {
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSTextureModes = 1;
+        g_484f68.PSCombinerCount = 0x11001;
+        g_484f68.PSFinalCombinerConstant0 = pack_color3f(&color);
+        g_484f68.PSFinalCombinerInputsABCD = 0x8010000;
+    }
+    g_484f68.PSFinalCombinerInputsEFG = 0;
+    function_1ccf0(&g_484f68);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+
+// @retail 0x251b0
+bool __stdcall function_251b0(void *context)
+{
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_ZFUNC, D3DCMP_ALWAYS);
+    function_0222d0(D3DRS_ZWRITEENABLE, 0);
+    function_0222d0(D3DRS_CULLMODE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_POINT);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_POINT);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+    if (!context)
+    {
+        function_14bc0(1, 0, true);
+        function_14f60(0, g_4858b8);
+        function_14f60(1, 15);
+        function_14f60(2, 15);
+        D3DDevice_SetTextureStageState(1, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(1, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(1, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(1, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(1, D3DTSS_MIPFILTER, 0);
+        D3DDevice_SetTextureStageState(1, D3DTSS_MAXANISOTROPY, 0);
+        D3DDevice_SetTextureStageState(1, D3DTSS_MIPMAPLODBIAS, 0);
+        D3DDevice_SetTextureStageState(1, D3DTSS_MAXMIPLEVEL, 0);
+        D3DDevice_SetTextureStageState(1, D3DTSS_COLORSIGN, 0);
+        D3DDevice_SetTextureStageState(1, D3DTSS_ALPHAKILL, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(2, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MIPFILTER, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MAXANISOTROPY, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MIPMAPLODBIAS, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_MAXMIPLEVEL, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_COLORSIGN, 0);
+        D3DDevice_SetTextureStageState(2, D3DTSS_ALPHAKILL, 0);
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSTextureModes = 0x41e1;
+        g_484f68.PSCombinerCount = 0x11002;
+        g_484f68.PSConstant0[0] = 0xff0000;
+        g_484f68.PSConstant1[0] = 0xff00;
+        g_484f68.PSConstant1[1] = 0xff;
+        g_484f68.PSRGBInputs[0] = 0x9010a02;
+        g_484f68.PSRGBInputs[1] = 0xc200a02;
+        g_484f68.PSRGBOutputs[0] = 0xc00;
+        g_484f68.PSRGBOutputs[1] = 0xc00;
+        g_484f68.PSFinalCombinerInputsABCD = 0xc;
+    }
+    else
+    {
+        function_14bc0((word)g_4858b8, 0, true);
+        function_14f60(0, 1);
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSTextureModes = 1;
+        g_484f68.PSCombinerCount = 1;
+        g_484f68.PSFinalCombinerInputsABCD = 8;
+    }
+    g_484f68.PSFinalCombinerInputsEFG = 0x1800;
+    function_1ccf0(&g_484f68);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+
+
+// @retail 0x29370
+bool __stdcall function_29370(void *context)
+{
+    if (!g_4b99b0[0] && !g_4b99b0[1]) return false;
+    g_509400 = g_485ae0;
+    function_14bc0(*(short *)(g_4b99b0 + 0x44), 0, false);
+    for (short stage = 0; stage < 4; ++stage)
+    {
+        function_14f60(stage, *(short *)(g_4b99b0 + 0x38));
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
+    }
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 1);
+    function_0222d0(D3DRS_SRCBLEND, D3DBLEND_ONE);
+    function_0222d0(D3DRS_DESTBLEND, D3DBLEND_CONSTANTCOLOR);
+    color3f blend = *(color3f *)(g_4b99b0 + 0x10);
+    function_0222d0(D3DRS_BLENDCOLOR, pack_color3f(&blend));
+    function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+    function_0222d0(D3DRS_ZWRITEENABLE, 0);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_STENCILENABLE, 0);
+    function_0222d0(D3DRS_ZENABLE, 0);
+    function_0222d0(D3DRS_ZBIAS, 0);
+    D3DPIXELSHADERDEF program;
+    memset(&program, 0, sizeof(program));
+    program.PSRGBOutputs[1] = 0x30d00;
+    program.PSRGBOutputs[2] = 0x30d00;
+    program.PSTextureModes = 0x8421;
+    program.PSCombinerCount = 0x11003;
+    program.PSRGBInputs[0] = 0x08200920;
+    program.PSRGBOutputs[0] = 0x30c00;
+    program.PSRGBInputs[1] = 0x0a200b20;
+    program.PSRGBInputs[2] = 0x0c200d20;
+    program.PSFinalCombinerInputsABCD = 0xd;
+    g_484f68 = program;
+    D3DDevice_SetPixelShaderProgram(&program);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+    function_1c710(g_51f0f0);
+    return true;
+}
+

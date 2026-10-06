@@ -99,7 +99,7 @@ void function_1fc660(s_tracked_point *tracked, s_tracking_state const *state, s_
 		vector3f delta;
 
 		vector3d_from_points3d(&state->unknown38, &state->unknown2c, &delta);
-		if (length_sq3f(&delta) > 0.01f)
+		if (length_sq3f(&delta) > 0.1f * 0.1f)
 			output->flags |= 4;
 	}
 	if (tracked->unknown29)

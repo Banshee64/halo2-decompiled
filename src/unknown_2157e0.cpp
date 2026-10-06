@@ -2,6 +2,7 @@
 #include "unknown_11c920.h"
 #include "loop_allocator.h"
 #include <xtl.h>
+#include <string.h>
 
 // The allocator methods are shared with the memory source at 0x476fbc.
 class c_physical_memory_source : public c_memory_source
@@ -41,6 +42,75 @@ dword g_55c27c;
 
 void function_215880(void *ref);
 bool function_216800(void *a, long b);
+
+bool function_1249f0(long memory_unit, char *drive_letter);
+void function_2172a0(long handle);
+
+// @retail 0x2170e0
+long function_2170e0(long file_index)
+{
+	(void)&file_index;
+	long result = NONE;
+	if (g_55c14f)
+	{
+		s_55c164 *cached = NULL;
+		for (long i = 0; i < g_55c160; i++)
+		{
+			long index = (long)g_55c164[i].field0;
+			if (index != NONE && index == file_index)
+			{
+				cached = &g_55c164[i];
+				break;
+			}
+		}
+		long type = file_index & 15;
+		if ((bool)(((dword)file_index >> 21) & 1))
+		{
+			long generation = *(long *)((byte *)g_51ea14 + 0x4befc);
+			result = ((((file_index >> 8) & 0x1fff) | ((generation & 0x1ff) << 14) | 0x2000) << 8) | (type & 15);
+		}
+		else
+		{
+			void *files = g_51ea14;
+			char drive;
+			if (files && function_1249f0(0, &drive))
+			{
+				s_profile_location_table *table = (s_profile_location_table *)((byte *)files + 0xbef8);
+				s_profile_location_bytes location;
+				location.data[0] = 0;
+				*(word *)(location.data + 0x14) = 0;
+				long next = 0;
+				while (next < table->count)
+				{
+					location = table->entries[next];
+					long current = next++;
+					if (*(long *)(location.data + 0x38) == type &&
+						!strncmp((char const *)cached->unknown04, (char const *)location.data, 20))
+					{
+						long generation = *(long *)((byte *)g_51ea14 + 0x4befc);
+						result = (((generation & 0x1ff) << 14 | (current & 0x1fff)) << 8) | (type & 15);
+						break;
+					}
+				}
+			}
+		}
+		function_2172a0(file_index);
+		if (result != NONE)
+			g_55c164[g_55c160++].field0 = (void *)result;
+	}
+	else
+	{
+		long generation = *(long *)((byte *)g_51ea14 + 0x4befc);
+		if (generation == ((file_index >> 22) & 0x1ff))
+		{
+			if ((bool)(((dword)file_index >> 21) & 1))
+				result = ((((file_index >> 8) & 0x1fff) | ((generation & 0x1ff) << 14) | 0x2000) << 8) | (file_index & 15);
+			else
+				result = file_index;
+		}
+	}
+	return result;
+}
 
 // @retail 0x2157e0
 void __stdcall function_2157e0(long stage)
@@ -165,4 +235,60 @@ bool function_2168b0(s_saved_game_file_location *location, long file_index)
 		}
 	}
 	return result;
+}
+
+
+extern long g_55c150;
+bool g_55c14d;
+struct s_save_list_2164c0;
+void function_2164c0(long memory_unit, s_save_list_2164c0 *list);
+
+// @retail 0x215790
+void function_215790(void)
+{
+    if (g_55c14d && g_51ea14 && (g_55c150 & 1))
+    {
+        function_2164c0(0, (s_save_list_2164c0 *)((byte *)g_51ea14 + 0xbef8));
+        g_55c150 &= ~1;
+    }
+}
+
+#include "globals.h"
+
+extern bool g_55c14c;
+extern long g_55c154;
+extern long g_55c158;
+extern long g_55c15c;
+extern long g_55c280;
+byte g_55c030[0x11c];
+dword g_51e9f8;
+dword g_51e9fc;
+
+bool __stdcall function_216440(char const *path);
+long function_11ca80(long language);
+
+// @retail 0x215690
+void function_215690(void)
+{
+    function_216440("n:\\sgf");
+    // The retail zeroed range is represented by separate existing globals.
+    memset(g_55c030, 0, sizeof(g_55c030));
+    g_55c14c = true;
+    g_55c14d = true;
+    g_55c14e = 0;
+    g_55c14f = 0;
+    g_55c150 = 3;
+    g_55c154 = 0;
+    g_55c158 = NONE;
+    g_55c15c = 123;
+    g_55c160 = 0;
+    memset(g_55c164, 0, 4 * sizeof(g_55c164[0]));
+    g_55c274 = true;
+    g_55c278 = 0;
+    g_55c27c = 0;
+    g_51e9f8 = 0;
+    g_51e9fc = 1;
+    if (g_47ff38 == NONE)
+        g_47ff38 = function_11ca80(XGetLanguage());
+    g_55c280 = g_47ff38;
 }

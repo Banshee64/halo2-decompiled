@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "data_array.h"
 #include "hs.h"
+#include "unknown_1dee50.h"
 
 /* a global's runtime value (g_4f9380, 8 bytes) */
 struct s_hs_global_value
@@ -213,6 +214,250 @@ void function_20a2e0(short global_index)
 		case _hs_type_object_name:
 			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
+		}
+	}
+}
+
+// @retail 0x20a490
+void function_20a490(short global_index)
+{
+	long index = global_index;
+	long slot = index & 0x7fff;
+	short type = (index & 0x8000) ? g_473468[slot]->type : *(short *)(*(byte **)((byte *)g_4e0350 + 0x1c4) + slot * 0x28 + 0x20);
+	long runtime_index = (index & 0x8000) ? slot : slot + 0x41d;
+	s_hs_global_value *value = &((s_hs_global_value *)g_4f9380->data)[runtime_index];
+	if (index & 0x8000)
+	{
+		s_hs_external_global *global = g_473468[slot];
+		switch (type)
+		{
+		case 5:
+			if (global->address)
+				*(byte *)global->address = value->value.b;
+			break;
+		case 6:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 7:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 8:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 9:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 10:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 11:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 12:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 13:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 14:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 15:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 16:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 17:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 18:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 19:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 20:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 21:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 22:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 23:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 24:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 25:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 26:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 27:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 28:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 29:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 30:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 31:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 32:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 33:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 34:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 35:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 36:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 37:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 38:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 39:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 40:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 41:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 42:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 43:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 44:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 45:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 46:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 47:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 48:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 49:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+		case 50:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 51:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 52:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 53:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 54:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 55:
+			if (global->address)
+				*(dword *)global->address = value->value.d;
+			break;
+		case 56:
+			if (global->address)
+				*(word *)global->address = value->value.w;
+			break;
+
+		}
+	}
+	if (type >= 50 && type <= 55)
+	{
+		long object_index = value->value.d;
+		if (object_index != NONE)
+		{
+			byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+			*(dword *)(object + 4) |= 0x10000000;
+		}
+	}
+	else if (type == _hs_type_object_list)
+	{
+		long reference_index;
+		for (long object_index = object_list_get_first_inlined(value->value.d, &reference_index); object_index != NONE; object_index = function_x457076(&reference_index))
+		{
+			byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+			*(dword *)(object + 4) |= 0x10000000;
 		}
 	}
 }

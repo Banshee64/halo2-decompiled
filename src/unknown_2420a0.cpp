@@ -170,7 +170,7 @@ void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
 void function_157670();
 void function_15e4d0();
-color3f *function_7f720(color3f *color, long team_index);
+color3f *function_7f720(color3f *color, short team_index);
 bool function_bacc0(long object_index, long index, point3f const *point);
 bool function_138860();
 bool function_138880();
@@ -202,7 +202,7 @@ public:
 	virtual void v10() {}
 	virtual void v11() {}
 	virtual void v12();
-	virtual void v13(long player_index) {}
+	virtual void v13(long arg_0);
 	virtual void v14() {}
 	virtual void v15(long player_index) {}
 	virtual bool v16(long player_index, long object_index);
@@ -734,8 +734,15 @@ struct s_line_list
 	s_line_b lines_b[0x100];
 };
 
+PRIVATE inline void function_244d51(point3f *arg_0, real arg_1, real arg_2, real arg_3)
+{
+	arg_0->x = arg_1;
+	arg_0->y = arg_2;
+	arg_0->z = arg_3;
+}
+
 // @retail 0x244ca0
-void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, short f, point3f const *position, real height, real radius)
+void function_244ca0(real height, real radius, s_line_list *list, long a, long b, long c, byte d, byte e, short f, point3f const *position)
 {
 	if (list->count_a < 0x100)
 	{
@@ -765,9 +772,7 @@ void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, 
 			line->d = d;
 			line->e = e;
 			line->f = f;
-			line->position.x = position->x;
-			line->position.y = position->y;
-			line->position.z = z;
+			function_244d51(&line->position, position->x, position->y, z);
 			line->r1c = radius;
 		}
 
@@ -781,9 +786,7 @@ void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, 
 			line->d = d;
 			line->e = e;
 			line->f = f;
-			line->position.x = position->x;
-			line->position.y = position->y;
-			line->position.z = z;
+			function_244d51(&line->position, position->x, position->y, z);
 			line->r1c = 0.0f;
 			line->r20 = 0.0f;
 			line->r24 = height;
@@ -1813,7 +1816,7 @@ bool function_2447f0()
 					continue;
 				function_b9dd0(entry->object_index, &position);
 				marker = *marker_position(marker_index);
-				if (distance_sq3f(&position, &marker) <= 0.04f)
+				if (distance_sq3f(&position, &marker) <= 0.2f * 0.2f)
 					continue;
 			}
 
@@ -2087,6 +2090,108 @@ void function_242ba0(long marker_index, long object_index, long player_index)
 			object->lc8 = NONE;
 			object->lc4 = NONE;
 			object->sc2 = NONE;
+		}
+	}
+}
+
+#include "flexible_surface_calls.h"
+
+void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
+	point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
+	real arg_9, point3f const *arg_10, real arg_11);
+struct s_sort_record;
+typedef bool (__stdcall *t_record_fill)(long, void *, long, long, long, void *, s_sort_record *);
+void function_41490(long tag, short group, word kind, real distance, t_record_fill fill,
+	dword value, void (__stdcall *callback)(void *), void *context, point3f const *position);
+
+// @retail 0x244470
+void __stdcall function_244470(long arg_0, long arg_1, long arg_2, long arg_3,
+	long arg_4, long arg_5, void *arg_6)
+{
+	s_marker_entry *local_0 = g_4e0350->marker_entries;
+	long local_1;
+	real local_2;
+	if (arg_5 >= 0)
+	{
+		local_1 = g_51ec80->b[arg_5];
+		local_2 = g_51ec80->bounds[0][arg_5].x;
+	}
+	else
+	{
+		local_1 = g_51ec80->c[-1 - arg_5];
+		local_2 = g_51ec80->bounds[1][-1 - arg_5].x;
+	}
+	point3f local_3 = local_0[local_1].position;
+	point2f local_4[32];
+	for (long local_5 = 0; local_5 < 8; ++local_5)
+	{
+		real local_6 = (real)local_5 * 0.19634954631328583f;
+		real local_7 = (real)sin(local_6) * local_2;
+		real local_8 = (real)cos(local_6) * local_2;
+		local_4[local_5].x = local_3.x + local_7;
+		local_4[local_5].y = local_3.y + local_8;
+		local_4[local_5 + 8].x = local_3.x + local_8;
+		local_4[local_5 + 8].y = local_3.y - local_7;
+		local_4[local_5 + 16].x = local_3.x - local_7;
+		local_4[local_5 + 16].y = local_3.y - local_8;
+		local_4[local_5 + 24].x = local_3.x - local_8;
+		local_4[local_5 + 24].y = local_3.y + local_7;
+	}
+	real local_9 = local_4[1].x - local_4[0].x;
+	real local_10 = local_4[1].y - local_4[0].y;
+	function_19f680(arg_0, arg_2, arg_4, arg_3, arg_6, local_4, 32, &local_3,
+		local_2, (real)sqrt(local_9 * local_9 + local_10 * local_10) * 32.f, g_468710, 0.4f);
+}
+
+// @retail 0x244610
+void __stdcall function_244610(void *arg_0)
+{
+	function_40f60(arg_0, function_d4bc0, function_244470);
+}
+
+// @retail 0x244630
+void function_244630(point3f const *arg_0, long arg_1)
+{
+	byte *local_0 = (byte *)g_4e3b44[g_4e034c->index & 0xffff].data;
+	byte *local_1 = *(byte **)(local_0 + 0xc);
+	byte *local_2 = *(byte **)(local_1 + 0x534);
+	function_41490(*(long *)(local_2 + 0xc4), 0, NONE, 640.f,
+		(t_record_fill)function_d4bc0, (dword)function_244470, function_244610, (void *)arg_1, arg_0);
+}
+
+// @retail 0x2417a0
+void c_game_engine_markers::v13(long arg_0)
+{
+	point3f local_5;
+	if (ctf_options()->engine_type == 9)
+	{
+		s_player_view *local_0 = ctf_player_get(arg_0);
+		if (ctf_options()->team_mode != 2)
+		{
+			if ((byte)local_0->team == 0xff)
+				return;
+			s_team_entry *local_1 = function_15e410(local_0->team);
+			if (!local_1 || local_1->object_index == NONE)
+				return;
+		}
+		for (long local_2 = 0; local_2 < 9; ++local_2)
+		{
+			short local_3 = ((s_ctf_team_view *)g_4e9ae8)->slot_teams[local_2];
+			if (local_3 != NONE && local_3 != local_0->team && function_161e10(local_3))
+			{
+				short local_4 = g_51ec80->b[local_2];
+				if (local_4 != NONE)
+				{
+					local_5 = g_4e0350->marker_entries[local_4].position;
+					function_244630(&local_5, local_2);
+				}
+				local_4 = g_51ec80->c[local_2];
+				if (local_4 != NONE)
+				{
+					local_5 = g_4e0350->marker_entries[local_4].position;
+					function_244630(&local_5, -1 - local_2);
+				}
+			}
 		}
 	}
 }

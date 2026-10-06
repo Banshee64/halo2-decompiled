@@ -5,6 +5,9 @@
 #include "unknown_11c920.h"
 #include "pending_messages.h"
 #include "crc.h"
+#include "physical_memory.h"
+#include <xtl.h>
+#include <d3d8.h>
 
 bool function_0b49a0(long index, real *result);
 
@@ -29,6 +32,10 @@ struct s_pending_definition
 	dword unknown00;
 	dword unknown04;
 	dword version;
+	dword unknown0c;
+	bool (__stdcall *retry)(s_pending_message_header *header);
+	bool (__stdcall *sent)(s_pending_message_header *header);
+	bool (__stdcall *received)(s_pending_message_header *header);
 };
 
 // @retail 0x81230
@@ -137,4 +144,156 @@ bool pending_message_request_send(s_pending_message_header *header, long value10
 		}
 	}
 	return result;
+}
+
+long g_55e700;
+
+// @retail 0x81050
+void function_81050(long result, s_pending_message_header *header)
+{
+	*(short *)&header->unknown0c = header->state;
+	dword old_flags = header->flags;
+	bool completed = false;
+	((short *)&header->unknown0c)[1] = (short)result;
+	header->state = 0;
+	header->pending_index = NONE;
+	if (result == 1)
+	{
+		completed = true;
+		if (*(short *)&header->unknown0c == 2)
+			header->flags &= ~20;
+		else if (*(short *)&header->unknown0c == 1)
+			header->flags = (header->flags & ~28) | 2;
+	}
+	else if (*(short *)&header->unknown0c == 1 && result == 6)
+		header->flags |= 4;
+	else if (result == 7 && !(header->unknown06 & 1))
+	{
+		if (*(short *)&header->unknown0c == 1)
+			pending_message_request_receive(header, header->unknown10, header->values, header->unknown06);
+		else if (*(short *)&header->unknown0c == 2)
+			pending_message_request_send(header, header->unknown10, header->values, header->unknown06);
+	}
+	s_pending_definition *definition = (s_pending_definition *)header->unknown00;
+	if (definition)
+	{
+		old_flags |= header->flags & 4;
+		bool (__stdcall *callback)(s_pending_message_header *) = 0;
+		if (*(short *)&header->unknown0c == 2)
+			callback = definition->sent;
+		else if (*(short *)&header->unknown0c == 1)
+			callback = definition->received;
+		if (callback && !callback(header))
+		{
+			header->flags = old_flags;
+			goto retry;
+		}
+	}
+	if (completed)
+		return;
+retry:
+	if (!(header->unknown06 & 2))
+	{
+		definition = (s_pending_definition *)header->unknown00;
+		if (definition && definition->retry)
+		{
+			bool handled = definition->retry(header);
+			if (handled) header->flags |= 2;
+			else header->flags &= ~2;
+			if (handled) header->flags |= 8;
+			else header->flags &= ~8;
+			if (handled)
+				return;
+		}
+		if (*(short *)&header->unknown0c == 1)
+		{
+			g_55e700++;
+			pending_message_request_receive(header, header->unknown10, header->values, header->unknown06);
+		}
+		else if (*(short *)&header->unknown0c == 2)
+		{
+			g_55e700++;
+			pending_message_request_send(header, header->unknown10, header->values, header->unknown06);
+		}
+		else
+			g_55e700++;
+	}
+}
+
+void __stdcall function_8e0f0(long index, long result);
+void function_12d520(long memory);
+
+// @retail 0x812d0
+void __stdcall function_812d0(void *allocation, s_pending_message_header *header)
+{
+ if (header->kind && header->pending_index != NONE)
+  function_8e0f0(header->pending_index, 13);
+ if (header->data)
+ {
+  function_12d520((long)header->data);
+  header->data = 0;
+  header->size = 0;
+ }
+}
+
+extern s_physical_object *g_4e6464;
+long __stdcall function_12d2f0(long size, long user_data, long update, long release);
+void function_12c600(void);
+double timing_ticks_to_seconds(__int64 ticks);
+
+static inline __int64 pending_read_ticks(void)
+{
+ volatile __int64 value = 0;
+ __asm rdtsc
+}
+
+struct s_pending_message_storage : s_pending_message_header
+{
+ long capacity;
+};
+
+// @retail 0x80e10
+bool function_80e10(s_pending_message_storage *request, void **output, long *size)
+{
+ long capacity = request->capacity;
+ bool result = false;
+ if ((dword)capacity >= 16 && !request->data)
+ {
+  __int64 start = pending_read_ticks();
+  void *allocation = 0;
+  if (capacity > 0 && g_4e6464->page_count > 0)
+  {
+   long attempts = 0;
+   while (!(allocation = (void *)function_12d2f0(capacity, (long)request, 0, (long)function_812d0)))
+   {
+    if (attempts < 90)
+    {
+     attempts++;
+     function_12c600();
+    }
+    else
+    {
+     __int64 elapsed = pending_read_ticks() - start;
+     if (elapsed < 0)
+      elapsed = 0;
+     if (timing_ticks_to_seconds(elapsed) >= 1.0f)
+      break;
+     D3DDevice_KickPushBuffer();
+     D3DDevice_IsBusy();
+     SwitchToThread();
+    }
+   }
+  }
+  request->data = allocation;
+  if (allocation)
+  {
+   request->size = request->capacity;
+   result = true;
+   if (output)
+    *output = allocation;
+   if (size)
+    *size = request->capacity;
+  }
+ }
+ return result;
 }

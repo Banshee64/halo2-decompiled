@@ -17,12 +17,6 @@ void __stdcall function_215e60(long index)
 {
 }
 
-// @stub 0x216120
-bool function_216120(word *string, long type)
-{
-	return false;
-}
-
 // @stub 0x1a03a0
 long __stdcall function_1a03a0(long controller_index, word *name)
 {
@@ -47,7 +41,3 @@ long function_122db0(char const *map_name)
 /* callee of the window manager's main screen (unknown_147f6d.cpp); lane F's
    finished range, open */
 
-// @stub 0x18f5e3
-void function_18f5e3(void)
-{
-}

@@ -7,6 +7,7 @@
 #include "unknown_18f576.h"
 #include "screen_widgets.h"
 #include "unknown_24b5bc.h"
+#include "loop_allocator.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -120,7 +121,9 @@ s_player_slot_view *__stdcall function_18f548(s_player_slot_view *slots)
 // @retail 0x18f8b8
 bool controller_is_connected(short index)
 {
-	return g_4e61cc[index] != 0;
+	// Retail keeps the controller argument on the stack.
+	short const *index_reference = &index;
+	return g_4e61cc[*index_reference] != 0;
 }
 
 // @retail 0x18f8ce
@@ -309,7 +312,9 @@ long player_slot_get_value1fc(long index)
 // @retail 0x18ff47
 void function_18ff47(long player, dword *out)
 {
-	*(XONLINE_USER *)out = player_slots()[player];
+	s_player_slot_view *slot = &player_slots()[player];
+	__assume(slot != NULL);
+	*(XONLINE_USER *)out = *slot;
 }
 
 // @retail 0x18ff64
@@ -400,3 +405,93 @@ void __stdcall function_18fb34(long index, s_player_profile_settings *settings, 
 	function_53810(settings->voice_mask, index);
 	function_54fc0(index, settings->voice_through_tv);
 }
+
+void function_215790();
+long function_2170e0(long file_index);
+void online_mutelist_reset(long controller_index);
+void function_190d4b(long index);
+extern byte g_55c14f;
+extern bool g_551ae4;
+
+// @retail 0x18f5e3
+void function_18f5e3()
+{
+	function_215790();
+	long index = 0;
+	do
+	{
+		s_player_slot_view *slot = &player_slots()[index];
+		if (slot->flags & 0x10)
+		{
+			long *profile_index = &slot->profile_index;
+			if (*profile_index != NONE)
+				*profile_index = function_2170e0(*profile_index);
+		}
+		index = function_190262(index);
+	} while (index != NONE);
+	g_55c14f = 0;
+}
+
+// @retail 0x18f58c
+void function_18f58c()
+{
+	memset(g_54e8e0, 0, 0x3208);
+	long index = 0;
+	do
+	{
+		s_player_slot_view *slot = &player_slots()[index];
+		slot->controller_id = NONE;
+		slot->valuec14 = NONE;
+		slot->valuec18 = NONE;
+		online_mutelist_reset(index);
+		function_190d4b(index);
+		index = function_190262(index);
+	} while (index != NONE);
+	g_551ae4 = false;
+}
+
+// @retail 0x18f3ba
+void *c_unknown_249fa3::get_item_data()
+{
+	return entries;
+}
+
+// @retail 0x18f3c1
+void *c_unknown_249fa3::get_items(long *count)
+{
+	*count = 4;
+	return profiles;
+}
+
+c_class_1473c9 *__stdcall function_18f42d(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_18f474(s_screen_parameters *parameters);
+
+class c_profile_mode_screen : public c_screen_with_menu
+{
+public:
+	virtual void v17();
+	virtual screen_load_proc get_load_proc();
+	c_unknown_249fa3 menu;
+	bool mode;
+};
+
+// @retail 0x18f4f6
+void c_profile_mode_screen::v17()
+{
+	menu.field88 = mode;
+}
+
+// @retail 0x18f503
+screen_load_proc c_profile_mode_screen::get_load_proc()
+{
+	return mode ? function_18f474 : function_18f42d;
+}
+
+// @retail 0x18f533 destructor c_profile_mode_screen
+
+// @retail 0x18f3f0
+c_unknown_249fa3_base::~c_unknown_249fa3_base()
+{
+}
+
+// @retail 0x18f517 deleting c_profile_mode_screen

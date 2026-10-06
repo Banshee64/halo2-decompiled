@@ -3428,7 +3428,7 @@ void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, sh
 	vector3f const *unknown14);
 long function_baf80(long object_index);
 short function_0b67a0(const s_small_index *data);
-void function_1eb020(long tag_index, short *material_index);
+long function_1eb020(long tag_index, long body_index, short *material_index);
 void function_188180(point3f const *point, vector3f const *forward, long tag_index, long object_index, long index,
 	long variant, long unused, long effect_value, s_location const *location, real scale);
 extern short g_54e898;
@@ -3547,7 +3547,7 @@ bool __stdcall function_ec4f0(long unit_index, long type)
 				impulse.i = shove.i * -1.0f;
 				impulse.j = shove.j * -1.0f;
 				impulse.k = shove.k * -1.0f;
-				function_1eb020(effect_tag_index, &material_index);
+				function_1eb020(effect_tag_index, (long)*component->rigid_bodies[rigid_body_index].nodes, &material_index);
 				strength = target_definition[0x1a];
 				if (strength > definition[0x1a])
 					strength = definition[0x1a];

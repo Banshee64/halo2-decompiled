@@ -322,13 +322,13 @@ bool function_2566c0(s_object_marker *markers, long object_index, bool *facing)
 	bool front = false;
 
 	if (function_b8d30(object_index, 0xf0005b4, markers, 1, false) > 0 &&
-		dot3f(g_4687b0, &marker->forward) > 0.f)
+		dot3f(&marker->forward, g_4687b0) > 0.f)
 	{
 		result = true;
 		front = true;
 	}
 	else if (function_b8d30(object_index, 0xe0005b5, markers, 1, false) > 0 &&
-		dot3f(g_4687b0, &marker->forward) > 0.f)
+		dot3f(&marker->forward, g_4687b0) > 0.f)
 	{
 		result = true;
 		front = false;

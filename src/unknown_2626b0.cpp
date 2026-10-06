@@ -222,3 +222,76 @@ long function_262a30(s_reference reference)
 	reference_table_find((hash_table *)g_557c6c, *(void **)&reference, &result);
 	return result;
 }
+
+struct s_squad_iterator
+{
+	short squad_index;
+	short current;
+	short next;
+	short palette_index;
+	word flags;
+	bool flag_a;
+	bool flag_b;
+	bool flag_c;
+	byte unknown0d[3];
+	void *definition;
+};
+
+void function_204ec0(s_squad_iterator *iterator, short squad_index, short flags, short mode);
+short function_205010(s_squad_iterator *iterator);
+
+// @retail 0x262590
+bool function_262590(long actor_index, s_reference reference, bool unknown)
+{
+	bool const *unknown_reference = &unknown;
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = false;
+	if (actor->unknown030 != NONE)
+	{
+		short flags = 4;
+		if (!*unknown_reference)
+			flags = 5;
+		if (actor->unknown3f2)
+			flags |= 2;
+		s_squad_iterator iterator;
+		function_204ec0(&iterator, (short)actor->unknown030, flags, actor->unknown26c != NONE);
+		while (function_205010(&iterator) != NONE)
+		{
+			result = function_262640(iterator.palette_index, iterator.current, reference);
+			if (result)
+				break;
+		}
+	}
+	return result;
+}
+
+bool hash_table_remove(hash_table *table, void *key);
+bool function_13e270(hash_table *table, void *key, void const *data);
+
+PRIVATE inline void reference_table_replace(hash_table *table, void *key, void const *data)
+{
+	hash_node *node = function_13e2d0(table, key);
+	if (node)
+		memcpy(node->data, data, table->data_size);
+}
+
+// @retail 0x2628f0
+void __stdcall function_2628f0(long actor_index, s_reference reference)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	if (!REFERENCE_EQUAL(actor->unknown418, g_470fa0))
+		hash_table_remove((hash_table *)g_557c6c, *(void **)&actor->unknown418);
+	if (!REFERENCE_EQUAL(reference, g_470fa0))
+	{
+		long previous = NONE;
+		if (reference_table_find((hash_table *)g_557c6c, *(void **)&reference, &previous) && previous != NONE)
+		{
+			actor_get(previous)->unknown418 = g_470fa0;
+			reference_table_replace((hash_table *)g_557c6c, *(void **)&reference, &actor_index);
+		}
+		else
+			function_13e270((hash_table *)g_557c6c, *(void **)&reference, &actor_index);
+	}
+	actor->unknown418 = reference;
+}
+

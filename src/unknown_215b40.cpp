@@ -375,3 +375,124 @@ bool __stdcall function_212c20(word const *name, s_game_variant *variant, long *
 	}
 	return result;
 }
+
+
+struct s_variant_preset_212f40 { word const *name; long index; long type; };
+PRIVATE s_variant_preset_212f40 const g_445958[28] =
+{
+    { L"Slayer Duel", 0, 0 },
+    { L"Rumble Slayer", 1, 0 },
+    { L"Team Slayer", 2, 0 },
+    { L"Rumble Rockets", 3, 0 },
+    { L"Team Rockets", 4, 0 },
+    { L"Rumble Shotguns", 5, 0 },
+    { L"Pistols", 6, 0 },
+    { L"Rifle Duel", 7, 0 },
+    { L"Brutes", 8, 0 },
+    { L"Sword Duel", 9, 0 },
+    { L"Snipers", 10, 0 },
+    { L"Elimination", 11, 0 },
+    { L"Multi Flag CTF", 12, 4 },
+    { L"Classic CTF", 13, 4 },
+    { L"Shotgun CTF", 14, 4 },
+    { L"1 Flag CTF", 15, 4 },
+    { L"1 Flag CTF Fast", 16, 4 },
+    { L"Multi Bomb", 17, 5 },
+    { L"Assault", 18, 5 },
+    { L"Rapid Assault", 19, 5 },
+    { L"Major Assault", 20, 5 },
+    { L"Minor Assault", 21, 5 },
+    { L"Crazy King", 22, 3 },
+    { L"Team Crazy King", 23, 3 },
+    { L"Oddball", 24, 1 },
+    { L"Teamball", 25, 1 },
+    { L"Three Plots", 26, 6 },
+    { L"Land Grab", 27, 6 },
+};
+
+// @retail 0x212f40
+void function_212f40(long preset, s_game_variant *variant)
+{
+    s_variant_preset_212f40 const *entry = &g_445958[preset];
+    function_19d220(variant, entry->type);
+    wcsncpy(variant->name, entry->name, 31);
+    variant->name[31] = 0;
+    variant->unknown78 = 16;
+    variant->unknown74 = 16;
+    switch (preset)
+    {
+    case 0: variant->unknown50 = 10; break;
+    case 1: variant->unknown54 = 360; break;
+    case 2: variant->flags48 |= 1; break;
+    case 3:
+    case 4:
+        variant->teams_enabled = preset == 4;
+        variant->unknown54 = 360;
+        variant->unknownd4 = 2;
+        variant->motion_sensor_enabled = false;
+        variant->unknown84 = 0;
+        variant->unknownd6 = 8;
+        variant->unknownd7 = 1;
+        break;
+    case 5:
+        variant->unknowncf = 4; variant->unknownd0 = 4; variant->unknownd1 = 4;
+        variant->unknown54 = 360; variant->unknownd4 = 3; variant->unknownd6 = 9; variant->unknownd7 = 1;
+        variant->unknownd2 = 6; variant->unknownd3 = 6;
+        break;
+    case 6: variant->unknownd4 = 14; variant->unknownd6 = 4; variant->unknownd7 = 1; break;
+    case 7:
+        variant->unknown50 = 10; variant->unknownd4 = 11; variant->unknownd6 = 13; variant->unknownd7 = 4;
+        variant->unknowncf = 4; variant->unknownd0 = 4; variant->unknownd1 = 4;
+        break;
+    case 8: variant->unknownd4 = 5; variant->unknownd6 = 11; variant->unknownd7 = 1; break;
+    case 9:
+        variant->unknownd4 = 4; variant->unknowncf = 4; variant->unknownd0 = 4; variant->unknownd1 = 4;
+        variant->unknown50 = 10; variant->unknownd6 = 17; variant->unknownd7 = 1; variant->unknown88 = 2;
+        variant->unknowncd = 7; variant->unknownce = 7; variant->unknownd2 = 6; variant->unknownd3 = 6;
+        break;
+    case 10:
+        variant->unknownd4 = 12; variant->flags48 &= ~2; variant->unknownd7 = 4;
+        variant->unknowncf = 4; variant->unknownd0 = 4; variant->unknownd1 = 4;
+        variant->unknownd6 = 10; variant->unknowncd = 7; variant->unknownce = 7;
+        variant->unknownd2 = 6; variant->unknownd3 = 6;
+        break;
+    case 11: variant->unknown50 = 0; variant->unknown4c = 5; variant->unknown7c = 1; break;
+    case 12: variant->unknown54 = 720; break;
+    case 13: variant->engine_flags |= 12; break;
+    case 14:
+        variant->engine_flags |= 12; variant->unknownd4 = 3; variant->unknownd6 = 9; variant->unknownd7 = 1;
+        variant->unknowncf = 4; variant->unknownd1 = 4;
+        break;
+    case 15:
+        variant->unknown4c = 2; variant->unknown54 = 180; variant->unknown50 = 1; variant->flag.unknown104 = 1;
+        break;
+    case 16:
+        variant->unknown4c = 2; variant->unknown54 = 120; variant->unknown80 = 5; variant->unknown50 = 1;
+        variant->unknown84 = 5; variant->flag.unknown104 = 1; variant->flag.unknownf4 = 15;
+        break;
+    case 17: variant->unknown54 = 720; break;
+    case 18:
+        variant->unknown4c = 2; variant->unknown50 = 1; variant->unknown54 = 180; variant->flag.unknown104 = 1;
+        break;
+    case 19:
+        variant->unknown4c = 2; variant->unknown80 = 5; variant->unknown54 = 120; variant->unknown50 = 1;
+        variant->unknown84 = 5; variant->flag.unknown104 = 1; variant->flag.unknownf4 = 20;
+        break;
+    case 20: variant->flag.unknown104 = 2; variant->flag.unknown108 = 10; variant->unknown54 = 720; break;
+    case 21: variant->flag.unknown104 = 2; variant->flag.unknown108 = 10; break;
+    case 22: variant->unknowna8 = 0; variant->unknown54 = 360; break;
+    case 23:
+        variant->flags48 |= 1; variant->unknowna8 = 0; variant->unknown80 = 10;
+        variant->engine_flags |= 1; variant->unknown50 = 60;
+        break;
+    case 24: variant->unknown54 = 360; break;
+    case 25: variant->flags48 |= 1; variant->unknowna8 = 0; variant->unknown80 = 10; break;
+    case 26:
+        variant->flags48 |= 1; variant->unknowna8 = 0; variant->unknown84 = 5;
+        variant->territories.unknownf2 = 3; variant->unknown50 = 180;
+        break;
+    case 27:
+        variant->flags48 |= 1; variant->unknown54 = 720; variant->territories.unknownf0 = 5; variant->unknowna8 = 0;
+        break;
+    }
+}

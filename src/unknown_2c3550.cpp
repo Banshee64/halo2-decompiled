@@ -314,9 +314,10 @@ struct s_avoidance_trace
 	short group;
 };
 
-void __stdcall function_26ccb0(s_pathfinding_data const *pathfinding, s_obstacle_list const *obstacles,
+struct s_path_location;
+bool __stdcall function_26ccb0(s_pathfinding_data const *pathfinding, s_obstacle_list const *obstacles,
 	short ignored_obstacle, point2f const *origin, long sector, long target_sector, point2f const *direction,
-	real radius, real distance, bool first, bool stop_at_goal, bool value29, bool value30, s_avoidance_trace *trace);
+	real radius, real distance, bool first, bool stop_at_goal, bool value29, s_path_location const *location, s_avoidance_trace *trace);
 void obstacle_tangent_directions(point2f const *point, s_obstacle_list const *list, short index, real radius,
 	point2f *left, point2f *right, real *tangent_length);
 

@@ -19,6 +19,60 @@ dword g_4b8448;
 dword g_4b8308;
 dword g_5093b4;
 byte g_47fe84;
+dword g_4b8348;
+long g_4c1a14;
+byte g_509416;
+bool g_4aeb48;
+extern long g_4858b8;
+void function_14bc0(short index, short element, bool use_depth);
+
+// @retail 0x35aa0
+void function_35aa0(void)
+{
+    g_4c1a14 = 0;
+    g_509416 = 0;
+    function_14bc0((short)g_4858b8, 0, true);
+    if (g_4aeb48)
+    {
+        __asm wbinvd
+        g_4aeb48 = false;
+    }
+    g_4b8348 = 1;
+    D3DDevice_SetRenderState(D3DRS_STIPPLEENABLE, 1);
+}
+
+dword g_4b82e8, g_4b82f4, g_4b82f8, g_4b8324;
+dword const g_4506b8[12] = {32774,32774,32774,32774,32779,32775,32776,32774,32774,32774,0xffffffff,0xffffffff};
+dword const g_4506e8[12] = {771,0,768,1,1,1,1,771,32770,32769,0xffffffff,0xffffffff};
+dword const g_450718[12] = {770,774,774,1,1,1,1,1,32769,32770,0xffffffff,0xffffffff};
+
+// @retail 0x142f0
+void function_142f0(short mode)
+{
+    dword enabled = mode != 10;
+    g_4b82e8 = enabled;
+    D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, enabled);
+    if (mode != 10)
+    {
+        dword source = g_450718[mode];
+        g_4b82f4 = source;
+        D3DDevice_SetRenderState(D3DRS_SRCBLEND, source);
+        dword destination = g_4506e8[mode];
+        g_4b82f8 = destination;
+        D3DDevice_SetRenderState(D3DRS_DESTBLEND, destination);
+        dword operation = g_4506b8[mode];
+        g_4b8324 = operation;
+        D3DDevice_SetRenderState(D3DRS_BLENDOP, operation);
+    }
+}
+
+// @retail 0x48010
+void function_48010(real const *color)
+{
+    D3DDevice_SetVertexData4f(9, color[1], color[2], color[3], color[0]);
+}
+
+
 dword g_4b8334;
 dword g_4b8330;
 
@@ -133,4 +187,134 @@ void function_1beb0(void)
     g_485b28[6] = 1.0f / height;
     if (g_510c50 && ((byte *)g_510c50)[5])
         g_485b28[6] *= 2.0f;
+}
+
+// @retail 0x47ea0
+void function_47ea0(short stage, byte flags)
+{
+	byte const *flags_reference = &flags;
+	if (*flags_reference & 1)
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, D3DTADDRESS_BORDER);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, D3DTADDRESS_BORDER);
+	}
+	else
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, D3DTADDRESS_WRAP);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, D3DTADDRESS_WRAP);
+	}
+	if (*flags_reference & 2)
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, D3DTEXF_POINT);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, D3DTEXF_POINT);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, D3DTEXF_POINT);
+	}
+	else
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, D3DTEXF_LINEAR);
+	}
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
+}
+
+
+#include <math.h>
+extern IDirect3DBaseTexture8 *g_51f3c8[2][4];
+void function_1cf50(void);
+void function_01ddd0(long index, dword width, dword height);
+long function_48e70(real value);
+dword g_4c1a80;
+real g_485a34, g_485a40;
+byte g_485a47;
+real g_485a0c[8];
+
+// @retail 0x48ee0
+void function_48ee0(byte const *state, byte const *matrix, byte const *tag)
+{
+	real aspect = (real)sqrt(*(real const *)(state + 8));
+	real distance = *(real const *)(state + 0x64);
+	real offset = *(short const *)(tag + 0x8e) == 1 ? *(real const *)(state + 0x28) : 0.0f;
+	real inverse = distance != 0.0f ? 1.0f / distance : -3.4028234663852886e38f;
+	vector3f direction = *(vector3f const *)(matrix + 0x28);
+	g_4c9798[0] = direction.i * inverse;
+	g_4c9798[1] = direction.j * inverse;
+	g_4c9798[2] = direction.k * inverse;
+	g_4c9798[3] = 0.0f - inverse * offset;
+	g_4c9798[4] = 0.0f - direction.i;
+	g_4c9798[5] = 0.0f - direction.j;
+	g_4c9798[6] = 0.0f - direction.k;
+	g_4c9798[7] = 0.0f;
+	long mode = !(g_4c1a80 & 0x400) ? 2 : g_485a40 > 0.0f && *(short const *)(tag + 0x14) == 0 ? 1 : 0;
+	double extent = *(real const *)(state + 4);
+	if (*(real const *)(state + 0xc) > 0.0f)
+		extent += 2.0 * tan((double)*(real const *)(state + 0xc) * 0.5f) * distance;
+	long max_width = (g_4ba014 & 0x10) && !(g_4ba014 & 0x20) ? 128 : 512;
+	long max_height = (g_4ba014 & 0x10) && !(g_4ba014 & 0x20) ? 128 : 512;
+	real maximum = (real)max_width;
+	double desired = (sqrt(extent * extent * *(real const *)(state + 8)) * 0.3333333432674408f + *(real const *)(tag + 0x10) * (double)0.125f) * (maximum - (double)128.0f) * g_485a34 + 128.0f;
+	real size = (real)desired;
+	if (desired < 128.0f) size = 128.0f;
+	else if (size > maximum) size = maximum;
+	long width = (function_48e70(size / aspect) + 63) & ~63;
+	long height = (function_48e70(size * aspect) + 63) & ~63;
+	if (width * height > max_width * max_height)
+	{
+		if (width > height) width = (max_width * max_height / height) & ~63;
+		else height = (max_width * max_height / width) & ~63;
+	}
+	g_485a47 = (byte)mode;
+	g_51f3c8[1][0] = 0;
+	g_51f3c8[1][1] = 0;
+	g_51f3c8[1][2] = 0;
+	g_51f3c8[1][3] = 0;
+	function_1cf50();
+	if ((g_4ba014 & 0x10) && !(g_4ba014 & 0x20))
+	{
+		g_4c9798[8] = maximum;
+		g_4c9798[9] = (real)max_height;
+	}
+	else
+	{
+		function_01ddd0(9, width, height);
+		g_4c9798[8] = (real)width;
+		g_4c9798[9] = (real)height;
+	}
+	g_4c9798[10] = 16777215.0f;
+	g_4c9798[11] = 1.0f;
+	g_4c9798[32] = g_4c9798[33] = 1.0f;
+	g_4c9798[34] = g_4c9798[35] = 0.0f;
+	real border = mode > 0 ? (real)width * 0.75f / maximum : 0.0f;
+	g_4c9798[12] = border + 0.5f;
+	g_4c9798[13] = 0.5f - border;
+	g_4c9798[15] = 0.0f;
+	point3f origin = *(point3f const *)matrix;
+	real x = direction.i * 0.01f + origin.x;
+	real y = direction.j * 0.01f + origin.y;
+	real z = direction.k * 0.01f + origin.z;
+	real i = 0.0f - direction.i;
+	real j = 0.0f - direction.j;
+	real k = 0.0f - direction.k;
+	g_4c9798[19] = (k * z + j * y + i * x) * -100.0f;
+	g_4c9798[16] = i * 100.0f;
+	g_4c9798[17] = j * 100.0f;
+	g_4c9798[18] = k * 100.0f;
+	real lower = *(real const *)(tag + 0x2c);
+	real upper = *(real const *)(tag + 0x30);
+	real scale = upper > lower ? 1.0f / (upper - lower) : 1000.0f;
+	x = direction.i * lower + origin.x;
+	y = direction.j * lower + origin.y;
+	z = direction.k * lower + origin.z;
+	g_4c9798[23] = 0.0f - (direction.k * z + direction.j * y + direction.i * x) * scale;
+	g_4c9798[20] = direction.i * scale;
+	g_4c9798[21] = direction.j * scale;
+	g_4c9798[22] = direction.k * scale;
+	for (long n = 0; n < 8; ++n) g_4c9798[24 + n] = g_485a0c[n];
+	real constants[36];
+	for (n = 0; n < 36; ++n) constants[n] = g_4c9798[n];
+	D3DDevice_SetVertexShaderConstant(-56, constants, 9);
 }

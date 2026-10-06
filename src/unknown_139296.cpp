@@ -123,6 +123,277 @@ struct s_new_hud_globals
 	real rate;
 };
 
+struct s_13a720_status
+{
+	byte unknown00[0x1e];
+	word flags;
+	byte unknown20[8];
+	real value28;
+	real value2c;
+	byte unknown30[0xad - 0x30];
+	bool flagad;
+	bool flagae;
+};
+
+struct s_interface_sound_block;
+bool function_13cb40(void);
+long function_14de70(long local_player_index);
+bool function_15eb20(long player_index);
+void function_22beb5(long local_player_index, dword state, s_interface_sound_block const *block,
+	long *sounds, word *playing);
+
+// @retail 0x13a720
+void function_13a720(long user_index, s_13a720_status const *status)
+{
+	s_new_hud_user *user = &((s_new_hud_globals *)g_510c4c)->users[user_index];
+	dword flags = 0;
+	if (!(status->flags & 4) && status->value28 > 0.0f && !function_13cb40())
+	{
+		if (user->value00 != -1.0f && function_15eb20(function_14de70(user_index)))
+		{
+			flags = (status->flags >> 9) & 1;
+			if (user->value00 > status->value2c)
+				flags |= 2;
+			else
+				flags &= ~2;
+			if (status->value2c < 0.25f && status->value2c > 0.0f)
+				flags |= 4;
+			else
+				flags &= ~4;
+			if (status->value2c == 0.0f)
+				flags |= 8;
+			else
+				flags &= ~8;
+			if (status->flagad)
+				flags |= 0x100;
+			else
+				flags &= ~0x100;
+			if (status->flagae)
+				flags |= 0x200;
+			else
+				flags &= ~0x200;
+		}
+		if (g_4e6948->state == 2 && status->value2c >= 1.0f)
+			flags &= ~2;
+	}
+	function_22beb5(user_index, flags, (s_interface_sound_block *)((byte *)g_510c94 + 0x418),
+		user->unknown50, (word *)&user->unknown68);
+}
+
+struct s_13b164_status
+{
+	byte unknown00[0xc];
+	long index0c;
+	long index10;
+	byte unknown14[0x4c - 0x14];
+	dword flags;
+	byte unknown50[0xab - 0x50];
+	bool flagab;
+	byte unknownac[0xe3 - 0xac];
+	bool flage3;
+};
+
+struct s_13b164_pair
+{
+	long object_index;
+	long seat_index;
+	byte unknown08[0x1c - 8];
+	real value;
+};
+
+struct s_13b164_object
+{
+	long definition_index;
+	byte unknown04[0xaa - 4];
+	byte type;
+	byte unknownab[0x138 - 0xab];
+	short team;
+	byte unknown13a[0x1c8 - 0x13a];
+	s_13b164_pair pair;
+};
+
+struct s_13b164_header
+{
+	byte unknown00[8];
+	s_13b164_object *object;
+};
+
+struct s_object;
+struct s_entry_pair;
+s_object *function_badc0(long object_index, dword type_mask);
+bool function_106320(s_entry_pair *pair);
+bool function_1df560(short team_a, short team_b);
+
+// @retail 0x13b164
+void function_13b164(long object_index, s_13b164_status *status)
+{
+	s_13b164_object *object = ((s_13b164_header *)g_4e0300->data)[object_index & 0xffff].object;
+	s_13b164_pair *pair = &object->pair;
+	status->flags = 0;
+	if (pair->object_index != NONE)
+	{
+		s_13b164_object *other = (s_13b164_object *)function_badc0(pair->object_index, NONE);
+		if (other)
+		{
+			byte *definition = g_4e3b44[other->definition_index & 0xffff].bytes;
+			if (((1 << other->type) & 3) && !function_1df560(object->team, other->team))
+				status->flags |= 1;
+			long model_index = *(long *)(definition + 0x38);
+			if (model_index != NONE && pair->seat_index != NONE && pair->value >= 1.0f)
+			{
+				byte *model = g_4e3b44[model_index & 0xffff].bytes;
+				if (pair->seat_index < *(long *)(model + 0x68))
+				{
+					byte *seat = *(byte **)(model + 0x6c) + pair->seat_index * 0x1c;
+					if (seat[0x14] & 4)
+						status->flags |= 0x10;
+					if (seat[0x14] & 8)
+						status->flags |= 4;
+				}
+			}
+		}
+		if (((status->index0c != NONE && status->flagab) || (status->index10 != NONE && status->flage3)) &&
+			function_106320((s_entry_pair *)pair) && pair->value >= 1.0f)
+			status->flags |= 8;
+	}
+}
+
+struct s_13ad48_item
+{
+	byte unknown00[6];
+	short value06;
+	short value08;
+	short value0a;
+	short value0c;
+	byte unknown0e[2];
+	real value10;
+	real value14;
+	real value18;
+	byte unknown1c[4];
+	bool flag20;
+	byte unknown21[3];
+	bool flag24;
+	bool flag25;
+	bool flag26;
+	byte unknown27;
+	real value28;
+};
+
+// @retail 0x13ad48
+void function_13ad48(long user_index, byte const *selectors, real *values, byte const *status, s_13ad48_item const *item)
+{
+	for (long i = 0; i < 4; i++)
+	{
+		real value = 0.0f;
+		switch (selectors[i])
+		{
+		case 0: value = 0.0f; break;
+		case 1: value = 1.0f; break;
+		case 2: value = g_510c54->game_time * g_510c54->rate; break;
+		case 3: value = function_1392a9(user_index); break;
+		case 16: value = *(real const *)(status + 0x2c); break;
+		case 17: value = *(real const *)(status + 0x28); break;
+		case 18: value = *(real const *)(status + 0x20) >= 1.0f ? 1.0f : 0.0f; break;
+		case 19: value = *(short const *)(status + 0x34) == 0 ? 1.0f : 0.0f; break;
+		case 20: value = *(short const *)(status + 0x38); break;
+		case 21: value = *(short const *)(status + 0x3a); break;
+		case 22: value = *(real const *)(status + 0x2c) < 0.2f ? g_510c54->game_time * g_510c54->rate : 0.0f; break;
+		case 24: value = 1.0f - *(real const *)(status + 0x44); break;
+		case 32: value = 0.0f; break;
+		case 33: value = 0.0f; break;
+		case 48: value = item ? item->value06 : 0.0f; break;
+		case 49: value = item ? item->value14 : 0.0f; break;
+		case 50: value = item ? 100.0f - item->value10 * 100.0f : 0.0f; break;
+		case 51: value = item ? item->value08 : 0.0f; break;
+		case 52: value = item ? item->value18 : 0.0f; break;
+		case 53: value = item && item->flag20 ? 1.0f : 0.0f; break;
+		case 54: value = item && item->value0a ? (real)item->value06 / item->value0a : 0.0f; break;
+		case 55: value = (item ? item->flag20 : false) ? g_510c54->game_time * g_510c54->rate : 0.0f; break;
+		case 56: value = item ? 1.0f - item->value10 : 0.0f; break;
+		case 57: value = item ? item->value28 : 0.0f; break;
+		case 64: value = *(real const *)(status + 0x1cc); break;
+		case 65: value = *(real const *)(status + 0x218); break;
+		case 66: value = *(real *)((byte *)&((s_new_hud_globals *)g_510c4c)->users[user_index] + 0x28); break;
+		case 67: value = *(real const *)(status + 0x220); break;
+		}
+		values[i] = value;
+	}
+}
+
+bool function_22acb4(long player_index);
+
+// @retail 0x13a050
+void function_13a050(byte const *status, long user_index, long type, s_13ad48_item const **item_out,
+	word *first_out, word *second_out, word *third_out, word *fourth_out)
+{
+	s_13ad48_item const *item;
+	switch (type)
+	{
+	case 1: item = (s_13ad48_item const *)(status + 0x88); break;
+	case 2: item = (s_13ad48_item const *)(status + 0xc0); break;
+	case 3: item = (s_13ad48_item const *)(status + 0xf8); break;
+	case 4: item = (s_13ad48_item const *)(status + 0x50); break;
+	default: item = NULL; break;
+	}
+	word first = 1;
+#define SET_CONDITION(bits, mask, condition) if (condition) { bits |= mask; } else { bits &= ~mask; }
+	SET_CONDITION(first, 2, *(short const *)(status + 0x36) == NONE);
+	SET_CONDITION(first, 4, *(short const *)(status + 0x36) == 0);
+	SET_CONDITION(first, 8, *(short const *)(status + 0x36) == 1);
+	SET_CONDITION(first, 0x10, status[0x30]);
+	SET_CONDITION(first, 0x20, status[0x31]);
+	SET_CONDITION(first, 0x40, *(short const *)(status + 0x3c) == NONE);
+	SET_CONDITION(first, 0x80, *(short const *)(status + 0x3c) == 0);
+	SET_CONDITION(first, 0x100, *(short const *)(status + 0x3c) == 1);
+	SET_CONDITION(first, 0x100, *(short const *)(status + 0x3c) == 1);
+	SET_CONDITION(first, 0x200, status[0x32]);
+	SET_CONDITION(first, 0x400, status[0x3e]);
+	SET_CONDITION(first, 0x800, status[0x3f]);
+	SET_CONDITION(first, 0x1000, status[0x40]);
+	SET_CONDITION(first, 0x2000, function_22acb4(user_index));
+	dword flags = *(dword const *)(status + 0x4c);
+	word second = (char)flags & 1;
+	SET_CONDITION(second, 2, flags & 8);
+	SET_CONDITION(second, 4, flags & 0x10);
+	SET_CONDITION(second, 8, flags & 4);
+	SET_CONDITION(second, 0x10, flags & 2);
+	word third = 0;
+	SET_CONDITION(third, 1, type == 1);
+	SET_CONDITION(third, 2, type == 2);
+	SET_CONDITION(third, 4, type == 3);
+	SET_CONDITION(third, 0x40, item ? item->flag20 : false);
+	third &= ~0x80;
+	if (item)
+	{
+		if (item->value0a && !item->value06 && item->value0c && !item->value08)
+			third |= 0x80;
+		if (item->value10 >= 1.0f)
+			third |= 0x80;
+	}
+	SET_CONDITION(third, 0x100, item ? item->flag24 : false);
+	SET_CONDITION(third, 0x200, item ? item->flag25 : false);
+	SET_CONDITION(third, 0x400, item ? item->flag26 : false);
+	bool multiplayer = g_4e6948->state == 2;
+	word fourth = status[0x131] == 0 ? 1 : 0;
+	SET_CONDITION(fourth, 2, status[0x131] == 1);
+	SET_CONDITION(fourth, 4, multiplayer && !status[0x132]);
+	SET_CONDITION(fourth, 8, multiplayer && status[0x132]);
+	SET_CONDITION(fourth, 0x10, status[0x133]);
+	SET_CONDITION(fourth, 0x20, !status[0x133]);
+	SET_CONDITION(fourth, 0x40, status[0x174]);
+	SET_CONDITION(fourth, 0x80, !status[0x174]);
+	SET_CONDITION(fourth, 0x100, status[0x1d0]);
+	SET_CONDITION(fourth, 0x200, !status[0x1d0]);
+	SET_CONDITION(fourth, 0x400, status[0x21c]);
+	SET_CONDITION(fourth, 0x800, status[0x224]);
+#undef SET_CONDITION
+	*item_out = item;
+	*first_out = first;
+	*second_out = second;
+	*third_out = third;
+	*fourth_out = fourth;
+}
+
 void function_22a648(void);
 
 // @retail 0x139152
@@ -333,6 +604,18 @@ real function_200891(s_interface_pulse const *pulse, bool rising)
 	return result;
 }
 
+// @retail 0x2008fc
+real function_2008fc(s_interface_pulse const *pulse, bool enabled)
+{
+	(void)&enabled;
+	real result;
+	if (enabled)
+		result = function_200891(pulse, true);
+	else
+		result = 1.0f;
+	return result;
+}
+
 PRIVATE __forceinline s_new_hud_user *pulse_user(long index)
 {
 	return &((s_new_hud_globals *)g_510c4c)->users[index];
@@ -535,4 +818,88 @@ void function_13925f(long string_handle, word *buffer)
 	{
 		function_1a0180(definition->string_list, string_handle, buffer);
 	}
+}
+
+struct s_weapon_status_magazine
+{
+	bool active;
+	bool idle;
+	short loaded;
+	short loaded_maximum;
+	short unloaded;
+	short total_maximum;
+};
+
+struct s_weapon_status
+{
+	real value;
+	real heat;
+	bool flag8;
+	bool flag9;
+	byte unknown0a[2];
+	real fraction;
+	bool charging;
+	bool target_available;
+	bool target_charging;
+	bool target_ready;
+	real target_fraction;
+	point3f target_position;
+	short magazine_count;
+	s_weapon_status_magazine magazines[2];
+};
+
+
+void function_100520(long weapon_index, s_weapon_status *status);
+
+struct s_hud_weapon_record
+{
+	long object_index;
+	bool valid;
+	byte unknown05;
+	short loaded;
+	short unloaded;
+	short loaded_maximum;
+	short total_maximum;
+	byte unknown0e[2];
+	real heat;
+	real value;
+	real fraction;
+	byte unknown1c[4];
+	bool flag20;
+	bool flag21;
+	bool flag22;
+	bool flag23;
+	bool flag24;
+	bool flag25;
+	bool flag26;
+	byte unknown27;
+	real target_fraction;
+	point3f target_position;
+};
+
+// @retail 0x13afa9
+void function_13afa9(long object_index, s_hud_weapon_record *record, long *definition_out)
+{
+	s_13b164_object *object = ((s_13b164_header *)g_4e0300->data)[object_index & 0xffff].object;
+	s_weapon_status status;
+	function_100520(object_index, &status);
+	record->flag20 = status.flag8;
+	record->loaded = status.magazines[0].loaded;
+	record->loaded_maximum = status.magazines[0].loaded_maximum;
+	record->unloaded = status.magazines[0].unloaded;
+	record->total_maximum = status.magazines[0].total_maximum;
+	record->flag21 = status.magazines[0].active;
+	record->flag22 = status.flag9;
+	record->flag23 = status.charging;
+	record->flag24 = status.target_available;
+	record->flag25 = status.target_charging;
+	record->value = status.value;
+	record->heat = status.heat;
+	record->fraction = status.fraction;
+	record->object_index = object_index;
+	record->flag26 = status.target_ready;
+	record->valid = true;
+	record->target_fraction = status.target_fraction;
+	record->target_position = status.target_position;
+	*definition_out = *(long *)((byte *)g_4e3b44[(*(long *)object) & 0xffff].data + 0x2b4);
 }

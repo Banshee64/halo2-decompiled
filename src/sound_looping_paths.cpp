@@ -335,3 +335,157 @@ void __stdcall function_18ae80(s_portal_path_bsp *bsp_data, long listener, point
 	if (index == NONE && detail != NONE)
 		g_4ed288->indices[listener * 2] = loop_path_start(pool, detail, 1.0f);
 }
+
+#include "local_cameras.h"
+#include "sound_sources.h"
+#include <float.h>
+#include <string.h>
+
+struct s_sound_portal_bsp;
+struct s_sound_listener_rotation;
+struct s_sound_portal_angles
+{
+	real lower;
+	real upper;
+	real horizontal_scale;
+	real vertical_scale;
+};
+void function_18ab70(s_sound_portal_bsp const *bsp, long portal_index, s_sound_listener_rotation const *listener,
+	bool reverse, point3f const *point, real radius, s_sound_portal_angles *angles);
+void __stdcall function_18dc90(s_portal_path_bsp *bsp, long cluster_index, point3f const *point,
+	real maximum_range, long *indices, long *gains, long *portals, long *clusters, long *count);
+
+struct s_sound_environment
+{
+	real transition_time;
+	real fade;
+	long index;
+	s_sound_portal_angles angles;
+};
+void sound_environments_update(s_sound_environment const *requests);
+long function_189fe0(s_sound_request const *request, long tag_index);
+
+struct s_listener_environment_definition
+{
+	byte field_0[0x24];
+	long tag;
+	real radius;
+	real transition_time;
+	byte field_30[0x18];
+};
+struct s_listener_environment_bsp
+{
+	byte field_0[0xe0];
+	s_listener_environment_definition *environments;
+};
+
+PRIVATE inline long sound_first_listener()
+{
+	long result = NONE;
+	for (long i = 0; i < 4; ++i)
+	{
+		if (g_4e8c20->entries[i] != NONE)
+		{
+			result = i;
+			break;
+		}
+	}
+	return result;
+}
+
+PRIVATE __forceinline void sound_environment_play_cue(long tag)
+{
+	s_sound_request request;
+	request.location.unknown02 = 0;
+	request.location.flags = 0;
+	request.location.audible = 0;
+	request.location.requested_audible = 0;
+	request.location.scale = 1.0f;
+	request.location.unknown08 = 0;
+	request.object_index = NONE;
+	request.platform_playback = NONE;
+	request.variant = NULL;
+	request.marker = NULL;
+	request.source = NULL;
+	function_189fe0(&request, tag);
+}
+
+// @retail 0x18bb80
+void __stdcall function_18bb80(real elapsed)
+{
+	long tags[4] = { NONE, NONE, NONE, NONE };
+	s_portal_path_bsp *bsp = (s_portal_path_bsp *)g_4e0348;
+	for (long listener = 0; listener < 4; ++listener)
+	{
+		s_local_camera *camera = local_camera_get(listener);
+		if (camera && g_4e8c20->entries[listener] != NONE)
+		{
+			if (listener == sound_first_listener() && camera->active && camera->index != NONE)
+			{
+				long cluster = camera->index;
+				point3f position = camera->position;
+				function_18ae80(bsp, listener, &position, cluster, NONE, elapsed);
+				long count;
+				long indices[2], portals[2], clusters[2];
+				if (cluster != NONE)
+				{
+					function_18dc90(bsp, cluster, &position, FLT_MAX, indices, NULL, portals, clusters, &count);
+					if (count <= 1)
+					{
+						for (long j = count; j < 2; ++j) clusters[j] = NONE;
+						for (long j = count; j < 2; ++j) portals[j] = NONE;
+						for (long j = count; j < 2; ++j) indices[j] = NONE;
+						count = 2;
+					}
+					if (portals[0] == NONE) portals[0] = portals[1];
+				}
+				s_sound_environment requests[2];
+				long i = 0;
+				do { requests[i].index = NONE; ++i; } while (i < 2);
+				for (i = 0; i < count; ++i)
+				{
+					long index = indices[i];
+					long tag = index != NONE ? ((s_listener_environment_bsp *)bsp)->environments[index].tag : NONE;
+					real transition = 2.0f;
+					if (index != NONE)
+					{
+						s_listener_environment_definition *definition = &((s_listener_environment_bsp *)g_4e0348)->environments[index];
+						if (!(fabs(definition->transition_time) < 0.0001f)) transition = definition->transition_time;
+					}
+					requests[i].transition_time = transition;
+					requests[i].fade = 1.0f;
+					requests[i].index = tag;
+					s_sound_portal_angles angles;
+					if (index != NONE)
+						function_18ab70((s_sound_portal_bsp *)bsp, portals[i], (s_sound_listener_rotation *)camera,
+							cluster == clusters[i], &position, ((s_listener_environment_bsp *)bsp)->environments[index].radius, &angles);
+					else
+					{
+						angles.lower = 0.0f;
+						angles.upper = 6.2831855f;
+						angles.horizontal_scale = tag != NONE ? 1.0f : 0.0f;
+						angles.vertical_scale = 0.0f;
+					}
+					requests[i].angles = angles;
+				}
+				sound_environments_update(requests);
+			}
+			long tag = tags[listener];
+			long *current = &g_4ed288->indices[listener * 2 + 1];
+			if (*current != tag)
+			{
+				if (*current != NONE)
+				{
+					long cue = *(long *)(g_4e3b44[*current & 0xffff].bytes + 0x5c);
+					if (cue != NONE) sound_environment_play_cue(cue);
+				}
+				if (tag != NONE)
+				{
+					long cue = *(long *)(g_4e3b44[tag & 0xffff].bytes + 0x54);
+					if (cue != NONE) sound_environment_play_cue(cue);
+				}
+				*current = tag;
+			}
+		}
+	}
+}

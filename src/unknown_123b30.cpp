@@ -266,7 +266,7 @@ extern long g_5020e4;
 extern bool g_5020f2[2];
 void __stdcall game_state_cache_lock_release(void *arg_0, long arg_1);
 bool game_state_cache_read(short arg_0);
-bool __stdcall function_11c1b0(long arg_0, bool arg_1);
+bool __stdcall function_11c1b0(short arg_0, bool arg_1);
 void function_199520(dword arg_0);
 void function_199540(dword arg_0);
 
@@ -288,7 +288,7 @@ void function_123f60(dword arg_0)
 				*((byte *)game_state_globals.arena->field_130_2 + 4) = true;
 				if (g_4e6948 && g_4e6948->flag1120 &&
 					function_1384a0((s_session_options const *)((byte *)g_4e6948 + 8), (s_session_options const *)local_0.field_130_2) &&
-					function_11c1b0(*(long *)((byte *)&local_0 + 0x1248), true) &&
+					function_11c1b0((short)*(long *)((byte *)&local_0 + 0x1248), true) &&
 					game_state_headers_match(&local_0, game_state_globals.arena))
 				{
 					dword local_2 = ((byte)arg_0 & 1) << 5;

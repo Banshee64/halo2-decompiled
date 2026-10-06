@@ -5,12 +5,28 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "object_queries.h"
+#include <string.h>
+
+struct s_bsp3d;
+extern s_bsp3d *g_4e033c;
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+
+// @retail 0x11bf90
+long function_11bf90(long object_index, point3f *point)
+{
+	short attempts = 0;
+	while (function_14a280(g_4e033c, point, 0) == NONE && attempts++ < 150)
+		point->z += 0.05f;
+	return attempts == 0;
+}
 
 struct s_11c120_cluster
 {
 	byte unknown00[0x70];
 	byte zone;
-	byte unknown71[0xb0 - 0x71];
+	byte unknown71;
+	short entry_index;
+	byte unknown74[0xb0 - 0x74];
 };
 
 struct s_11c120_zone
@@ -27,7 +43,49 @@ struct s_11c120_bsp
 	s_11c120_zone *zones;
 	byte unknown6c[0xa0 - 0x6c];
 	s_11c120_cluster *clusters;
+	byte unknowna4[0xd4 - 0xa4];
+	long entry_count;
+	byte *entries;
 };
+
+// @retail 0x11bf30
+bool function_11bf30(s_location const *location)
+{
+	s_11c120_bsp *bsp = (s_11c120_bsp *)g_4e0348;
+	short index = bsp->clusters[location->cluster_index].entry_index;
+	bool result = false;
+	if (index != NONE && index < bsp->entry_count)
+	{
+		long tag_index = *(long *)(bsp->entries + index * 0x64 + 0x24);
+		if (tag_index != NONE)
+			result = (*g_4e3b44[tag_index & 0xffff].bytes & 1) != 0;
+	}
+	return result;
+}
+
+struct s_named_entry_11c0b0
+{
+	char name[0x20];
+	long value;
+};
+
+struct s_name_table_11c0b0
+{
+	byte unknown00[0x48];
+	long count;
+	s_named_entry_11c0b0 *entries;
+};
+
+// @retail 0x11c0b0
+short function_11c0b0(char const *name, s_name_table_11c0b0 *table)
+{
+	for (short i = 0; i < table->count; i++)
+	{
+		if (!strcmp(table->entries[i].name, name))
+			return i;
+	}
+	return NONE;
+}
 
 #define CLUSTER_BITS(offset) ((dword *)((byte *)g_4e6948 + (offset)))
 

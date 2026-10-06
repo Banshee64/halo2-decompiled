@@ -97,6 +97,20 @@ void function_b58c0(long index, dword mask);
 void function_b7360(long object_index);
 void havok_component_rigid_bodies_activate(s_havok_component *component);
 
+void function_be650(long *list, long object_index);
+
+// @retail 0xb9890
+void function_b9890(long object_index)
+{
+	s_object_header_view *header = OBJECT_HEADER_GET(object_index);
+	s_object_view *object = header->object;
+	s_object_view *parent = OBJECT_GET(object->parent_index);
+	function_be650((long *)((byte *)parent + 0x10), object_index);
+	header->flags &= 0x7f;
+	object->parent_index = NONE;
+	*((char *)object + 0x18) = NONE;
+}
+
 // @retail 0xb8ca0
 long function_b8ca0(long object_index)
 {
@@ -322,4 +336,84 @@ void function_b7290(long object_index)
 				((s_object_list_view *)g_4de2f4)->count++;
 		}
 	}
+}
+
+void __stdcall function_1c38a0(long object_index);
+
+// @retail 0xb7300
+void function_b7300(long object_index)
+{
+	s_object_header_view *header = OBJECT_HEADER_GET(object_index);
+	if (header->flags & 1)
+	{
+		s_object_view *object = header->object;
+		header->flags &= ~5;
+		if ((1 << header->type) & 0x1883)
+			function_1c38a0(object_index);
+		if (TEST_FIELD_BIT(object->flag14))
+			((s_object_list_view *)g_4de2f4)->count--;
+	}
+}
+
+
+real function_30bf0(vector3f *vector);
+vector3f *function_11d090(vector3f const *vector, vector3f *out);
+
+static __forceinline void object_cross_ab(vector3f const *a, vector3f const *b, vector3f *out)
+{
+    real i = a->j * b->k - a->k * b->j;
+    real j = a->k * b->i - a->i * b->k;
+    real k = a->i * b->j - a->j * b->i;
+    out->i = i;
+    out->j = j;
+    out->k = k;
+}
+
+// @retail 0xb91d0
+void function_b91d0(long object_index, vector3f *forward, vector3f *up)
+{
+    vector3f left;
+    object_cross_ab(forward, up, &left);
+    object_cross_ab(&left, forward, up);
+    if (function_30bf0(forward) > 0.0f)
+    {
+        if (!(function_30bf0(up) > 0.0f))
+            function_11d090(forward, up);
+    }
+    else
+    {
+        byte *object = (byte *)OBJECT_GET(object_index);
+        *forward = *(vector3f *)(object + 0x70);
+        *up = *(vector3f *)(object + 0x7c);
+    }
+}
+
+
+static __forceinline void object_rotate_ab(transform4x3f const *matrix, vector3f const *vector, vector3f *out)
+{
+    real x = vector->i;
+    real y = vector->j;
+    real z = vector->k;
+    out->i = matrix->rotation.up.i * z + matrix->rotation.left.i * y + matrix->rotation.forward.i * x;
+    out->j = matrix->rotation.up.j * z + matrix->rotation.left.j * y + matrix->rotation.forward.j * x;
+    out->k = matrix->rotation.up.k * z + matrix->rotation.left.k * y + matrix->rotation.forward.k * x;
+}
+
+// @retail 0xb9fc0
+void function_b9fc0(long object_index, vector3f *forward, vector3f *up)
+{
+    s_object_view *object = OBJECT_GET(object_index);
+    if (object->parent_index == NONE)
+    {
+        if (forward) *forward = *(vector3f *)((byte *)object + 0x70);
+        if (up) *up = *(vector3f *)((byte *)object + 0x7c);
+    }
+    else
+    {
+        s_object_view *parent = OBJECT_GET(object->parent_index);
+        long node = *(signed char *)((byte *)object + 0x18);
+        transform4x3f *matrix = (transform4x3f *)((byte *)parent + *(short *)((byte *)parent + 0x116) + node * 0x34);
+        if (forward) object_rotate_ab(matrix, (vector3f *)((byte *)object + 0x70), forward);
+        if (up) object_rotate_ab(matrix, (vector3f *)((byte *)object + 0x7c), up);
+    }
 }

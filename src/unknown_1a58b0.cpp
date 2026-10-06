@@ -1616,3 +1616,59 @@ long function_1a5c00(s_sort_weight_view const *weights, long object_index, bool 
 	}
 	return count;
 }
+
+struct s_1a56c0
+{
+	byte field_0[0x30];
+	point3f field_30;
+	real field_3c;
+};
+
+PRIVATE inline real local_0(vector3f const *delta)
+{
+	real result = delta->i * delta->i;
+	result += delta->j * delta->j;
+	result += delta->k * delta->k;
+	return result;
+}
+
+// @retail 0x1a56c0
+long __stdcall function_1a56c0(s_sort_weight_view const *weights, long object_index,
+	point3f const *origin, vector3f const *direction, real distance, real spread,
+	real cosine, long excluded_index, short team, long count, s_sort_candidate_view *candidates)
+{
+	do
+	{
+		s_target_link_view *object = (s_target_link_view *)OBJECT_HEADER(object_index)->object;
+		bool has_hostile = false;
+		if (function_1a58b0(object_index))
+		{
+			s_1a56c0 *bounds = (s_1a56c0 *)OBJECT_HEADER(object_index)->object;
+			real radius = bounds->field_3c;
+			vector3f delta;
+			vector3d_from_points3d(origin, &bounds->field_30, &delta);
+			real projection = direction->j * delta.j;
+			projection += direction->k * delta.k;
+			projection += delta.i * direction->i;
+			if (projection >= 0.0f - radius && projection <= radius + distance &&
+				(radius * spread * 2.0f + projection) * projection + radius * radius >=
+				local_0(&delta) * cosine * cosine &&
+				function_1a5910(object_index, excluded_index, team, &has_hostile))
+			{
+				count = function_1a5c00(weights, object_index, has_hostile, origin, direction, count, candidates);
+				if (count >= 64)
+					break;
+				if (object->field_10 != NONE)
+				{
+					count = function_1a56c0(weights, object->field_10, origin, direction,
+						distance, spread, cosine, excluded_index, team, count, candidates);
+					if (count >= 64)
+						break;
+				}
+			}
+		}
+		object_index = object->field_c;
+	}
+	while (object_index != NONE);
+	return count;
+}

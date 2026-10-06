@@ -288,14 +288,36 @@ void function_16f3c0(s_16f3c0 *state)
 	state->unknown40 = 0.0f;
 	state->unknown44 = 0.0f;
 }
+struct s_portal_16de20
+{
+	short first_cluster;
+	short second_cluster;
+	byte unknown04[0x18 - 4];
+	dword flags;
+	byte unknown1c[0x24 - 0x1c];
+};
+
+struct s_cluster_16de20
+{
+	byte unknown00[0x80];
+	dword flags;
+	byte unknown84[8];
+	long portal_count;
+	short *portals;
+	byte unknown94[0xb0 - 0x94];
+};
+
 /* a bit table of rows of count bits each (0x16e150) */
 struct s_16e150_bits
 {
 	byte unknown00[0x54];
 	dword size;
 	dword *bits;
-	byte unknown5c[0x9c - 0x5c];
+	long portal_count;
+	s_portal_16de20 *portals;
+	byte unknown64[0x9c - 0x64];
 	long count;
+	s_cluster_16de20 *clusters;
 };
 
 // @retail 0x16e150
@@ -309,6 +331,74 @@ dword *function_16e150(s_16e150_bits const *table, short index)
 		return &table->bits[index * row_words + table_words];
 	}
 	return &table->bits[((table->count + 31) >> 5) * index];
+}
+
+struct s_word_bit_iterator
+{
+	short count;
+	short index;
+	dword remaining;
+	dword const *words;
+};
+
+bool function_44690(s_word_bit_iterator *iterator, long *out);
+
+// @retail 0x16de20
+void function_16de20(short index, s_16e150_bits const *table, dword *output)
+{
+	long word_count = (table->count + 31) >> 5;
+	long bytes = word_count * sizeof(dword);
+	dword const *base = table->bits + index * word_count;
+	if (table->clusters[index].flags & 2)
+	{
+		dword portal_bits[16];
+		dword expanded[16];
+		dword visited[16];
+		memcpy(output, function_16e150(table, index), bytes);
+		memcpy(expanded, output, bytes);
+		memset(visited, 0, ((table->portal_count + 31) >> 5) * sizeof(dword));
+		for (;;)
+		{
+			s_word_bit_iterator iterator;
+			iterator.count = (short)word_count;
+			iterator.index = 0;
+			iterator.remaining = *output;
+			iterator.words = output;
+			long cluster_index;
+			while (function_44690(&iterator, &cluster_index))
+			{
+				s_cluster_16de20 const *cluster = &table->clusters[cluster_index];
+				for (long i = 0; i < cluster->portal_count; ++i)
+				{
+					long portal_index = cluster->portals[i];
+					dword bit = 1 << (portal_index & 31);
+					dword *visited_word = &visited[portal_index >> 5];
+					if (!(*visited_word & bit))
+					{
+						s_portal_16de20 const *portal = &table->portals[portal_index];
+						if ((portal->flags & 4) && (((dword *)g_4f93a4)[portal_index >> 5] & bit))
+						{
+							memcpy(portal_bits, function_16e150(table, portal->first_cluster), bytes);
+							dword const *other = function_16e150(table, portal->second_cluster);
+							long j;
+							for (j = word_count - 1; j >= 0; --j)
+								portal_bits[j] |= other[j];
+							for (j = word_count - 1; j >= 0; --j)
+								portal_bits[j] &= base[j];
+							for (j = word_count - 1; j >= 0; --j)
+								expanded[j] |= portal_bits[j];
+						}
+						*visited_word |= bit;
+					}
+				}
+			}
+			if (!memcmp(expanded, output, bytes))
+				break;
+			memcpy(output, expanded, bytes);
+		}
+	}
+	else
+		memcpy(output, base, bytes);
 }
 
 /* the cache flags (bit 4 forces every cluster test to pass) */
@@ -1090,6 +1180,86 @@ void function_16e2c0(long tag_index)
 
 /* the observers' time step and its scale */
 real g_4e9bd0;
+
+extern short g_468d3c[6];
+
+struct s_motion_channels_16ff10
+{
+	byte unknown000[8];
+	dword flags;
+	byte unknown00c[0x4c - 0xc];
+	real velocity[3];
+	byte unknown058[0x9c - 0x58];
+	real times[6];
+	byte unknown0b4[2];
+	bool suppress_velocity;
+	byte unknown0b7[0x180 - 0xb7];
+	real first_derivative[13];
+	real second_derivative[13];
+	real fifth[13];
+	real fourth[13];
+	real third[13];
+	real second[13];
+	real first[13];
+	real constant[13];
+	real delta[13];
+	byte unknown354[4];
+};
+
+// @retail 0x16ff10
+void function_16ff10(long user_index)
+{
+	s_motion_channels_16ff10 *state = (s_motion_channels_16ff10 *)g_4e9bd4 + user_index;
+	real *fifth = state->fifth;
+	real *fourth = state->fourth;
+	real *third = state->third;
+	real *second = state->second;
+	real *first = state->first;
+	real *constant = state->constant;
+	real *time = state->times;
+	real *acceleration = state->second_derivative;
+	real *delta = state->delta;
+	real *velocity = state->first_derivative;
+	function_172520((s_observer_command *)((byte *)state + 8));
+	for (short group = 0; group < 6; ++group, ++time)
+	{
+		if ((state->flags & 1) && *time > g_4e9bd0)
+		{
+			real inverse = 1.0f / *time;
+			real inverse2 = inverse * inverse;
+			real inverse3 = inverse2 * inverse;
+			real inverse4 = inverse3 * inverse;
+			real inverse5 = inverse4 * inverse;
+			for (short i = 0; i < g_468d3c[group]; ++i)
+			{
+				fifth[i] = acceleration[i] * inverse3 * 0.5f - (delta[i] * inverse5 * 6.0f + velocity[i] * inverse4 * 3.0f);
+				fourth[i] = delta[i] * inverse4 * 15.0f + velocity[i] * inverse3 * 7.0f - acceleration[i] * inverse2;
+				third[i] = acceleration[i] * inverse * 0.5f - (delta[i] * inverse3 * 10.0f + velocity[i] * inverse2 * 4.0f);
+				second[i] = 0.0f;
+				first[i] = 0.0f;
+				constant[i] = delta[i];
+				if (!group && !state->suppress_velocity)
+				{
+					real value = state->velocity[i];
+					fifth[i] -= value * inverse4 * 3.0f;
+					fourth[i] += value * inverse3 * 8.0f;
+					third[i] -= value * inverse2 * 6.0f;
+					first[i] += value;
+				}
+			}
+		}
+		long count = g_468d3c[group];
+		fifth += count;
+		fourth += count;
+		third += count;
+		second += count;
+		first += count;
+		constant += count;
+		acceleration += count;
+		delta += count;
+		velocity += count;
+	}
+}
 real g_468d28 = 1.0f;
 
 struct s_bsp3d;
@@ -1100,7 +1270,129 @@ struct s_unknown_13bf00;
 extern s_unknown_13bf00 *g_510c50;
 
 void __stdcall function_16f570(long user_index);
+
+void function_141590(transform4x3f const *in, transform4x3f *out);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+extern transform4x3f *g_4687d0;
+
+PRIVATE inline void transform_vector_16f570(transform4x3f const *matrix, vector3f *vector)
+{
+	real x = vector->i;
+	real y = vector->j;
+	real z = vector->k;
+	if (matrix->scale != 1.0f)
+	{
+		x *= matrix->scale;
+		y *= matrix->scale;
+		z *= matrix->scale;
+	}
+	vector->i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+	vector->j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+	vector->k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
+}
+
+PRIVATE inline void transform_point_16f570(transform4x3f const *matrix, point3f *point)
+{
+	real x = point->x;
+	real y = point->y;
+	real z = point->z;
+	if (matrix->scale != 1.0f)
+	{
+		x = matrix->scale * x;
+		y = matrix->scale * y;
+		z = matrix->scale * z;
+	}
+	point->x = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x + matrix->position.x;
+	point->y = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x + matrix->position.y;
+	point->z = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x + matrix->position.z;
+}
+
+// @retail 0x16f570
+void __stdcall function_16f570(long user_index)
+{
+	byte *state = (byte *)&g_4e9bd4[user_index];
+	s_observer_command *command = *(s_observer_command **)(state + 4);
+	real *durations = (real *)((byte *)command + 0x94);
+	real *times = (real *)(state + 0x9c);
+	byte *flags = (byte *)command + 0x8c;
+	function_172520(command);
+	if ((*(s_observer_command **)(state + 4))->flags & 1)
+	{
+		for (long remaining = 6; remaining; --remaining, ++durations, ++times, ++flags)
+		{
+			if (*flags & 1)
+			{
+				if (!(*flags & 2) && *times > *durations)
+					*durations = *times > 2.0f ? 2.0f : *times;
+			}
+			else
+			{
+				command = *(s_observer_command **)(state + 4);
+				if (*times > command->unknown88 && !(command->flags & 8))
+					*durations = *times > 2.0f ? 2.0f : *times;
+				else
+					*durations = command->unknown88;
+			}
+		}
+		bool previous = *(bool *)(state + 0xb6);
+		if (previous || ((*(s_observer_command **)(state + 4))->flags & 0x40))
+		{
+			command = *(s_observer_command **)(state + 4);
+			if ((char)((command->flags >> 6) & 1) != previous ||
+				*(long *)((byte *)command + 0x84) != *(long *)(state + 0x8c))
+			{
+				transform4x3f matrix;
+				if (*(byte volatile *)command & 0x40)
+					function_141590((transform4x3f *)((byte *)command + 0x50), &matrix);
+				else
+					matrix = *g_4687d0;
+				if (previous)
+					function_142a60(&matrix, (transform4x3f *)(state + 0x14c), &matrix);
+				transform_point_16f570(&matrix, (point3f *)(state + 0x10c));
+				transform_vector_16f570(&matrix, (vector3f *)(state + 0x134));
+				transform_vector_16f570(&matrix, (vector3f *)(state + 0x140));
+				transform_vector_16f570(&matrix, (vector3f *)(state + 0x180));
+				transform_vector_16f570(&matrix, (vector3f *)(state + 0x1a8));
+				transform_vector_16f570(&matrix, (vector3f *)(state + 0x1b4));
+				transform_vector_16f570(&matrix, (vector3f *)(state + 0x1dc));
+				transform_vector_16f570(&matrix, (vector3f *)(state + 0x320));
+				transform_vector_16f570(&matrix, (vector3f *)(state + 0x348));
+			}
+			command = *(s_observer_command **)(state + 4);
+			*(bool *)(state + 0xb6) = (bool)((command->flags >> 6) & 1);
+			if (*(bool *)(state + 0xb6))
+				*(transform4x3f *)(state + 0x14c) = *(transform4x3f *)((byte *)command + 0x50);
+		}
+		memcpy(state + 8, *(s_observer_command **)(state + 4), 0xac);
+	}
+}
 void function_16fe90(long user_index);
+
+void function_170bb0(real const *first, real const *second, real *out);
+void function_1701f0(long player_index);
+void function_1703f0(long player_index);
+void function_170630(long player_index);
+
+// @retail 0x16fe90
+void function_16fe90(long user_index)
+{
+	byte *state = (byte *)&g_4e9bd4[user_index];
+	real *time = (real *)(state + 0x9c);
+	if (!((*(s_observer_command **)(state + 4))->flags & 0x20))
+	{
+		function_170bb0((real *)(state + 0xc), (real *)(state + 0x10c), (real *)(state + 0x320));
+		function_16ff10(user_index);
+		function_1701f0(user_index);
+		function_1703f0(user_index);
+		function_170630(user_index);
+		long remaining = 6;
+		do
+		{
+			real value = *time - g_4e9bd0;
+			*time++ = value > 0.0f ? value : 0.0f;
+		} while (--remaining);
+	}
+}
 void __stdcall function_170fd0(long user_index);
 void function_16ebf0(long user_index);
 void function_3f450(long cluster_index);

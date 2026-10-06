@@ -255,3 +255,162 @@ void function_1301c0(s_fog_state *fog)
 		fog->layers[2].color = *fog_black();
 	}
 }
+
+#include "globals.h"
+bool function_16e210(long cluster_index, long value);
+
+struct s_fog_plane_view
+{
+	byte unknown00[0x1c];
+	s_fog_layer layers[2];
+	color3f color4c;
+	real intensity58;
+	color3f combined_color;
+	real combined_intensity;
+	long index6c;
+	color3f color70;
+	color3f color7c;
+	real value88;
+	real value8c;
+	real value90;
+	real value94;
+	byte unknown98[4];
+	long tag_index;
+	s_fog_layer pending;
+	real valueb8;
+	real valuebc;
+	bool flagc0;
+	byte unknownc1[3];
+	real valuec4;
+	byte unknownc8[0x10];
+	real valued8;
+	real valuedc;
+	byte unknowne0[0x14];
+	plane3f plane;
+	byte unknown104[4];
+	real plane_distance;
+	real blend;
+	real offset;
+	byte unknown114[4];
+	real fade;
+};
+struct s_fog_blend_definition
+{
+	color3f color0;
+	color3f colorc;
+	real value18;
+	real value1c;
+	real value20;
+	real value24;
+	real threshold;
+	byte unknown2c[4];
+	long index;
+};
+struct s_fog_blend_tag
+{
+	byte unknown00[0x30];
+	long count;
+	s_fog_blend_definition *definitions;
+};
+__forceinline real fog_pin_unit(real value)
+{
+	value = PIN(value, 0.0f, 1.0f);
+	if (value < 0.0001f)
+		value = 0.0f;
+	else if (value > 0.9999f)
+		value = 1.0f;
+	return value;
+}
+
+// @retail 0x1305d0
+void function_1305d0(point3f const *point, long cluster_index, s_fog_plane_view *fog, bool force)
+{
+	if (fog->pending.intensity > 0.0f)
+	{
+		if (force)
+		{
+			fog->plane_distance = 0.0f - fog->pending.height;
+			fog->blend = 1.0f;
+		}
+		else
+		{
+			fog->plane_distance = point->x * fog->plane.i + fog->plane.j * point->y + fog->plane.k * point->z - fog->plane.d;
+			fog->blend = fog_pin_unit(0.0f - fog->plane_distance / fog->pending.height);
+			fog->offset = 0.0f - (fog->valuec4 / fog->pending.distance) * (0.0f > fog->plane_distance ? 0.0f : fog->plane_distance);
+			if (0.0f > fog->plane_distance && !function_16e210(cluster_index, fog->tag_index))
+			{
+				fog->plane_distance = 0.0f;
+				fog->blend = 0.0f;
+				fog->offset = 0.0f;
+			}
+		}
+		if (fog->tag_index != NONE)
+		{
+			s_fog_blend_tag *tag = (s_fog_blend_tag *)g_4e3b44[fog->tag_index & 0xffff].bytes;
+			if (tag->count > 0)
+			{
+				s_fog_blend_definition *definition = tag->definitions;
+				real threshold = PIN(definition->threshold, 0.0f, 0.9999f);
+				real blend = PIN((fog->blend - threshold) / (1.0f - threshold), 0.0f, 1.0f);
+				if (blend > 0.0f)
+				{
+					fog->color70.red += (definition->color0.red - fog->color70.red) * blend;
+					fog->color70.green += (definition->color0.green - fog->color70.green) * blend;
+					fog->color70.blue += (definition->color0.blue - fog->color70.blue) * blend;
+					fog->color7c.red += (definition->colorc.red - fog->color7c.red) * blend;
+					fog->color7c.green += (definition->colorc.green - fog->color7c.green) * blend;
+					fog->color7c.blue += (definition->colorc.blue - fog->color7c.blue) * blend;
+					fog->value88 += (definition->value18 - fog->value88) * blend;
+					fog->value8c += (definition->value1c - fog->value8c) * blend;
+					fog->value90 += (definition->value20 - fog->value90) * blend;
+					fog->value94 += (definition->value24 - fog->value94) * blend;
+					if (fog->index6c == NONE)
+						fog->index6c = definition->index;
+				}
+			}
+		}
+		fog->offset += fog->valuedc * fog->valued8;
+		if (fog->flagc0)
+		{
+			fog->valuebc = 1024.0f;
+			fog->valueb8 = 1023.0f;
+		}
+		fog->valueb8 = fog->valueb8 > 0.0f ? fog->valueb8 : 0.0f;
+		real end = fog->valueb8 + 0.0001f;
+		fog->valuebc = fog->valuebc > end ? fog->valuebc : end;
+		if (fog->layers[0].intensity > 0.0f || fog->layers[1].intensity > 0.0f)
+			fog->fade = fog_pin_unit((fog->plane_distance - fog->valueb8) / (fog->valuebc - fog->valueb8));
+		else
+			fog->fade = 0.0f;
+	}
+	else
+		fog->fade = 1.0f;
+	real weight = PIN(fog->blend * fog->pending.intensity, 0.0f, 1.0f);
+	if (fog->blend > 0.0f)
+	{
+		real scale = PIN(fog->intensity58, 0.0f, 1.0f);
+		real remainder = 1.0f - weight;
+		scale = PIN(remainder, 0.0f, 1.0f) * scale;
+		real value = fog->pending.color.red * weight + fog->color4c.red * scale;
+		fog->combined_color.red = PIN(value, 0.0f, 1.0f);
+		value = fog->pending.color.green * weight + fog->color4c.green * scale;
+		fog->combined_color.green = PIN(value, 0.0f, 1.0f);
+		value = fog->pending.color.blue * weight + fog->color4c.blue * scale;
+		fog->combined_color.blue = PIN(value, 0.0f, 1.0f);
+		value = 1.0f - fog->intensity58;
+		value = PIN(value, 0.0f, 1.0f);
+		real remaining = PIN(remainder, 0.0f, 1.0f);
+		fog->combined_intensity = fog_pin_unit(1.0f - remaining * value);
+	}
+	else
+	{
+		real scale = PIN(fog->intensity58, 0.0f, 1.0f);
+		real value = fog->color4c.red * scale;
+		fog->combined_color.red = PIN(value, 0.0f, 1.0f);
+		value = fog->color4c.green * scale;
+		fog->combined_color.green = PIN(value, 0.0f, 1.0f);
+		value = fog->color4c.blue * scale;
+		fog->combined_color.blue = PIN(value, 0.0f, 1.0f);
+		fog->combined_intensity = fog_pin_unit(fog->intensity58);
+	}
+}

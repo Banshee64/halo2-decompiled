@@ -352,3 +352,93 @@ bool function_122d60(s_cache_file_location location, long size, void *buffer)
 		result = true;
 	return result;
 }
+
+long map_location_get(char const *map_name);
+bool map_names_equal(char const *map_name, char const *other_map_name);
+bool function_2148b0(long progress);
+extern char g_55bd21[0x103];
+extern char const *g_4687fc;
+extern char const *g_468800;
+extern char const *g_468804;
+extern char const *g_468808;
+
+static __forceinline real cache_map_progress(char const *name)
+{
+	real progress = 0.0f;
+	long location = map_location_get(name);
+	switch (location)
+	{
+	case 3:
+		progress = 1.0f;
+		break;
+	case 2:
+		if (map_names_equal(g_55bd21, name))
+			function_2148b0((long)&progress);
+		break;
+	default:
+		progress = 0.0f;
+	}
+	return progress;
+}
+
+// @retail 0x122dd0
+real __stdcall function_122dd0(byte *map_name, long mode, long type)
+{
+	(void)&map_name;
+	(void)&mode;
+	real map_weight = 100.0f;
+	real progress = 0.0f;
+	long location = map_location_get((char const *)map_name);
+	real map_progress = cache_map_progress((char const *)map_name);
+	real menu_progress = cache_map_progress(g_468804);
+	real shared_progress = cache_map_progress(g_4687fc);
+	real campaign_progress = cache_map_progress(g_468800);
+	if (!strcmp((char const *)map_name, g_468808))
+		map_weight = 90.0f;
+	else if (type == 0)
+		map_weight = 280.0f;
+	else if (type == 1)
+		map_weight = 100.0f;
+	long menu_state = map_location_get(g_468804);
+	long shared_state = map_location_get(g_4687fc);
+	long campaign_state = map_location_get(g_468800);
+	if (menu_state == 4) menu_progress = 1.0f;
+	if (shared_state == 4) shared_progress = 1.0f;
+	if (campaign_state == 4) campaign_progress = 1.0f;
+	if (!strcmp((char const *)map_name, g_468808)) campaign_progress = 1.0f;
+	real weight = 0.0f;
+	switch (type)
+	{
+	case 0:
+		weight = 500.0f;
+		progress = campaign_progress * weight;
+	case 1:
+	case 4:
+		progress = shared_progress * 200.0f + progress;
+		weight += 200.0f;
+	case 3:
+		progress = menu_progress * 80.0f + progress;
+		weight += 80.0f;
+	case 2:
+		weight += map_weight;
+		progress = map_progress * map_weight + progress;
+		if (!(weight >= 0.0f))
+		{
+			progress = 1.0f;
+			goto done;
+		}
+	}
+	switch (mode)
+	{
+	case 0:
+		progress /= weight;
+		if (progress < 0.0f) progress = 0.0f;
+		else if (progress > 1.0f) progress = 1.0f;
+		break;
+	default:
+		progress = weight - progress;
+	}
+done:
+	if (location == 4) progress = 0.0f;
+	return progress;
+}

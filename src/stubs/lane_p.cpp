@@ -2,9 +2,3 @@
 // calls and that are not decompiled yet
 
 #include "unknown_11c920.h"
-
-// @stub 0x209f00
-long __stdcall function_209f00(char const *name)
-{
-	return 0;
-}

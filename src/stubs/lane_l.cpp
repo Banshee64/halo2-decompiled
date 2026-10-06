@@ -24,6 +24,3 @@ bool __stdcall function_217520(long arg_0, void const *arg_1, long arg_2, void c
 {
 	return false;
 }
-
-// @stub 0x11c1b0
-bool __stdcall function_11c1b0(long arg_0, bool arg_1) { return false; }

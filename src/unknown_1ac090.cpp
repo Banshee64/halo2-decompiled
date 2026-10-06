@@ -104,7 +104,7 @@ static inline real random_range(real lower, real upper)
 }
 
 bool function_e68c0(long type, long unit_index);
-void function_26def0(long actor_index);
+void function_26def0(long actor_index, long owner_index = NONE);
 bool function_1f86f0(long index);
 short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next);
 void __stdcall function_1acda0(long actor_index, s_slot *slot);
@@ -135,13 +135,36 @@ bool __stdcall function_1ac090(long actor_index, s_slot *slot)
 
 void function_265bb0(long actor_index);
 
+PRIVATE __forceinline void local_0(real seconds, short *timer)
+{
+	long ticks;
+	__asm
+	{
+		fld seconds
+		fistp ticks
+	}
+	*timer += (short)ticks;
+}
+
+PRIVATE __forceinline void local_1(real seconds, short *timer)
+{
+	long ticks;
+	__asm
+	{
+		fld seconds
+		fistp ticks
+	}
+	*timer = (short)ticks;
+}
+
 // @retail 0x1ac100
 short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	short result = g_46fbe8;
 	s_slot_2c *state = (s_slot_2c *)slot;
-	short mode = UNIT_MODE(actor->unknown018);
+	long unit_index = actor->unknown018;
+	short mode = UNIT_MODE(unit_index);
 	if (mode == 0)
 		result = 0x2b;
 	else if (((real *)actor->unknown2d8)[1] + ((real *)actor->unknown2d8)[0] > g_45dbd8)
@@ -150,21 +173,10 @@ short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next)
 		*seed = 1664525 * *seed + 1013904223;
 		short delay = (short)(2 + (3 * (*seed >> 16) >> 16));
 		real seconds = (real)delay * g_510c54->field_2_3;
-		long ticks;
-		__asm
-		{
-			fld seconds
-			fistp ticks
-		}
-		state->ticks += (short)ticks;
+		local_0(seconds, &state->ticks);
 		state->unknown12 = false;
 		seconds = g_510c54->field_2_3 * 0.5f;
-		__asm
-		{
-			fld seconds
-			fistp ticks
-		}
-		state->unknown22 = (short)ticks;
+		local_1(seconds, &state->unknown22);
 		if (actor->prop_index != NONE)
 			function_265bb0(actor_index);
 		if (function_e68c0(0x24, actor->unknown018))
@@ -179,7 +191,7 @@ short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next)
 	}
 	else if (state->ticks == 0)
 	{
-		function_e68c0(0x27, actor->unknown018);
+		function_e68c0(0x27, unit_index);
 		g_46eeb8[0x2b]->unknown8 = g_46f348;
 		result = g_46fbe4;
 	}

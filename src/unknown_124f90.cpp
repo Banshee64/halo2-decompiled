@@ -13,6 +13,7 @@
 #include "unknown_218ac0.h"
 #include "unknown_221810.h"
 #include "sound_driver.h"
+#include "crc.h"
 #include <xtl.h>
 #include <string.h>
 #include <float.h>
@@ -276,6 +277,7 @@ struct s_sound_system_view
 	long previous_ambience_index;
 	real previous_ambience_fade;
 	short voice_count;
+	short maximum_voice_count;
 };
 
 struct s_sound_channel_flags
@@ -562,6 +564,96 @@ void sound_channel_clear(short channel_index)
 void bit_vector_fill(dword *vector, long count, byte value)
 {
 	memset(vector, value, ((count + 31) >> 5) * sizeof(dword));
+}
+
+extern dword g_510800_pool_base;
+extern long g_510804_pool_size;
+extern dword g_510808_pool_checksum;
+s_record_pool *function_11cc20(long maximum_count, char const *name, long size);
+void sound_cache_initialize(void);
+bool looping_sound_controllers_initialize(void);
+bool function_21a0c0(void);
+bool sound_effects_initialize(void);
+struct s_sound_voice_settings;
+bool sound_voices_initialize(s_sound_voice_settings const *settings);
+struct s_sound_driver_counts
+{
+	short channels[3];
+	byte unknown06[6];
+	short voices;
+};
+bool function_21e4b0(s_sound_driver_counts const *counts);
+
+static __forceinline void *sound_static_allocate(long size)
+{
+	byte *top = (byte *)(g_510800_pool_base + g_510804_pool_size);
+	byte *memory = (byte *)(((dword)top + 3) & ~3);
+	long allocated_size = memory - top + size;
+	g_510804_pool_size += allocated_size;
+	dword checksum = g_510808_pool_checksum;
+	function_163ba0(&checksum, &allocated_size, sizeof(allocated_size));
+	g_510808_pool_checksum = checksum;
+	return memory;
+}
+
+// @retail 0x1253d0
+void function_1253d0(void)
+{
+	static s_sound_driver_counts const counts = { {40, 41, 1}, {36, 0, 36, 0, 1, 0}, 51 };
+	if (g_4e6374 == 0)
+	{
+		s_sound_system_view *system = (s_sound_system_view *)sound_static_allocate(0x20c);
+		memset(system, 0, 0x20c);
+		g_4e6380 = (s_4e6380 *)system;
+		system->hardware_available = true;
+		system->changing_pause = false;
+		sound_cache_initialize();
+		SOUND_SYSTEM->environments[0].index = NONE;
+		SOUND_SYSTEM->environments[0].unknown0c = 0.0f;
+		SOUND_SYSTEM->environments[0].unknown10 = 2.0f * k_pi;
+		SOUND_SYSTEM->environments[1].index = NONE;
+		SOUND_SYSTEM->environments[1].unknown0c = 0.0f;
+		SOUND_SYSTEM->environments[1].unknown10 = 0.0f;
+		g_4e637c = function_11cc20(0x180, "sound sources", 0xbc);
+		g_4e6378 = (s_sound_voice *)sound_static_allocate(0x1200);
+		if (g_4e637c && g_4e6378)
+		{
+			g_4e637c->valid = true;
+			record_pool_release_all(g_4e637c);
+			memset(g_4e6378, 0, 0x1200);
+			if (looping_sound_controllers_initialize() && function_21a0c0() &&
+				sound_effects_initialize() && sound_voices_initialize((s_sound_voice_settings const *)&counts) &&
+				function_21e4b0(&counts))
+			{
+				system = SOUND_SYSTEM;
+				bit_vector_fill((dword *)((byte *)system + 0x60), 0x80, 0);
+				bit_vector_fill(system->channel_bits, 0x40, 0);
+				short voice_index = 0;
+				for (short type = 0; type < 3; type++)
+				{
+					short count = ((short const *)counts.unknown06)[type];
+					SOUND_SYSTEM->voice_count += count;
+					for (short i = 0; i < count; i++)
+					{
+						s_sound_voice *voice = &g_4e6378[voice_index++];
+						voice->sound_index = NONE;
+						voice->definition_type = (byte)type;
+						voice->unknown0a = 0;
+						voice->unknown0b = 0;
+						voice->channel_index = NONE;
+						voice->unknown0e = NONE;
+						voice->driver_voice_index = NONE;
+						voice->permutation = NULL;
+						voice->next_permutation = NULL;
+						voice->stream_reset = false;
+					}
+				}
+				SOUND_SYSTEM->maximum_voice_count = 0x33;
+				SOUND_SYSTEM->initialized = true;
+			}
+		}
+	}
+	g_4e6374++;
 }
 
 struct s_sound_promotion_flags
@@ -1211,6 +1303,39 @@ real sound_get_distance_gain(long definition_index, s_sound const *sound, real d
 	real maximum_distance = sound_get_maximum_distance(sound, definition_index);
 
 	return minimum_distance / MAXIMUM(minimum_distance, distance) * function_12aff0(maximum_distance, minimum_distance, distance, false);
+}
+
+real function_30bf0(vector3f *vector);
+real function_11cf50(vector3f const *a, vector3f const *b);
+
+// @retail 0x12ad30
+real function_12ad30(vector3f const *offset, s_sound const *sound, long definition_index, vector3f const *direction)
+{
+	real distance_gain = sound_get_distance_gain(definition_index, sound, (real)sqrt(length_sq3f(offset)));
+	real cone_gain = 1.0f;
+	if ((TEST_FIELD_BIT(sound->override_inner_cone_angle) || TEST_FIELD_BIT(sound->override_outer_cone_angle) ||
+		!(sound_definition_get(definition_index)->flags & 0x1000)) &&
+		!(fabs(distance_gain) < 0.0001f) &&
+		offset->j * offset->j + offset->k * offset->k + offset->i * offset->i >= 0.001f * 0.001f)
+	{
+		vector3f reverse = *offset;
+		reverse.i = 0.0f - reverse.i;
+		reverse.j = 0.0f - reverse.j;
+		reverse.k = 0.0f - reverse.k;
+		if (function_30bf0(&reverse) > 0.0f)
+		{
+			long gain = sound_get_outer_cone_gain(sound, definition_index);
+			real angle = function_11cf50(&reverse, direction);
+			real outer = sound_get_outer_cone_angle(sound, definition_index);
+			real inner = sound_get_inner_cone_angle(sound, definition_index);
+			real fraction = function_12aff0(inner, outer, angle, true);
+			cone_gain = (function_2195f0(*(real *)&gain) - 1.0f) * fraction + 1.0f;
+		}
+	}
+	real result = cone_gain * distance_gain;
+	if ((bool)((*(word const *)sound >> 9) & 1))
+		result = 1.0f - result;
+	return result;
 }
 
 /* a looping sound's controller (g_51ebd8, unknown_12a1b0.cpp), as a
@@ -2410,248 +2535,24 @@ bool __stdcall function_1295e0(short voice_index)
 	return result;
 }
 
-
-
-
-
-
-
-
-struct s_looping_channel_spatialization;
-struct s_looping_channel_properties;
-struct s_looping_impulse_parameters;
-struct s_sound_playback_effects;
-struct s_effect_inputs
+struct s_sound_driver_voice_parameters
 {
-	real values[4];
-	vector3f direction;
+	byte flags;
+	byte unknown01[3];
+	point3f position;
+	real obstruction;
+	real occlusion;
+	real decibels;
+	real occlusion_rate;
+	real obstruction_rate;
 };
 
-void function_222770(long tag_index, long handle, s_effect_inputs const *inputs, s_sound_playback_effects *effects);
-void function_222930(long tag_index, long handle, s_looping_impulse_parameters *parameters);
-
-struct s_type_12a1b0_four_values
-{
-	real field_0[4];
-};
-
-struct s_type_12a1b0_request
-{
-	dword field_0;
-	long field_4;
-	real field_8;
-	long field_c;
-	short field_10;
-	short field_12;
-	long field_14;
-	long field_18;
-	long field_1c;
-	long field_20;
-	short field_24;
-	short field_26;
-	long field_28;
-	long field_2c;
-	dword field_30;
-	long field_34;
-	s_type_12a1b0_four_values field_38;
-	byte field_48[0x420];
-	byte field_468[0x10];
-};
-
-struct s_type_12a1b0_spatial
-{
-	dword field_0;
-	long field_4;
-	long field_8;
-	long field_c;
-	long field_10;
-	real field_14;
-	real field_18;
-	vector3f field_1c;
-	s_type_12a1b0_four_values field_28;
-};
-
-struct s_type_12a1b0_class
-{
-	byte field_0[0xa];
-	word field_a_0 : 1;
-	word field_a_1 : 1;
-	word field_a_2 : 1;
-	word field_a_3 : 1;
-	word field_a_4 : 5;
-	word field_a_9 : 1;
-	word field_a_10 : 6;
-	byte field_c[0x4c - 0xc];
-	byte field_4c;
-};
-
-// @retail 0x12a1b0
-void function_12a1b0(short voice_index, s_looping_track_sound *track, s_looping_channel_spatialization const *spatialization, s_looping_channel_properties *properties)
-{
-	s_sound_voice *voice = &g_4e6378[voice_index];
-	s_looping_track_sound *const *track_reference = &track;
-	s_sound_playback *sound = (s_sound_playback *)*track_reference;
-	long definition_index = sound->definition_index;
-	s_sound_definition *definition = sound_definition_get(definition_index);
-	s_type_12a1b0_class *local_class = (s_type_12a1b0_class *)sound_class_definition_get(definition->promotion_index);
-	s_type_12a1b0_request *request = (s_type_12a1b0_request *)properties;
-	s_type_12a1b0_spatial const *spatial = (s_type_12a1b0_spatial const *)spatialization;
-	request->field_4 = (signed char)definition->unknown03;
-	request->field_10 = definition->promotion_index;
-	request->field_12 = sound->value_a4;
-	request->field_24 = voice->unknown0e;
-	request->field_14 = *(long *)((byte *)sound_class_definition_get(definition->promotion_index) + 0x10);
-	request->field_18 = spatial->field_8;
-	request->field_28 = spatial->field_4;
-	request->field_1c = spatial->field_c;
-	request->field_20 = spatial->field_10;
-	bool local_flag = (bool)((sound->priority >> 3) & 1);
-	if (TEST_FIELD_BIT(local_class->field_a_3)) request->field_30 |= 2;
-	else request->field_30 &= ~2;
-	if (TEST_FIELD_BIT(local_class->field_a_1)) request->field_30 |= 8;
-	else request->field_30 &= ~8;
-	if (local_class->field_4c == 1) request->field_30 |= 0x10;
-	else request->field_30 &= ~0x10;
-	if (TEST_FIELD_BIT(local_class->field_a_1) || local_flag) local_flag = true;
-	if (local_flag) request->field_30 |= 4;
-	else request->field_30 &= ~4;
-	if (TEST_FIELD_BIT(local_class->field_a_9)) request->field_30 |= 0x40;
-	else request->field_30 &= ~0x40;
-	if (spatial->field_0 & 0x10)
-	{
-		request->field_30 |= 0x20;
-		request->field_38 = spatial->field_28;
-	}
-	if (request->field_12 != NONE) request->field_30 |= 1;
-	s_effect_inputs inputs;
-	inputs.values[0] = 0.0f;
-	inputs.values[1] = (real)((SOUND_SYSTEM->time - sound->start_time) / 1000);
-	inputs.values[2] = sound->location.scale;
-	inputs.values[3] = spatial->field_18;
-	inputs.direction = spatial->field_1c;
-	function_222770(definition_index, sound->platform_playback, &inputs, (s_sound_playback_effects *)request->field_48);
-	function_222930(definition_index, sound->platform_playback, (s_looping_impulse_parameters *)request->field_468);
-	*(dword *)request->field_48 = sound->seed;
-	if (sound->location.flags & 0x100)
-		*(real *)(request->field_48 + 4) = (real)sqrt(1.0f - spatial->field_18) * sound->location.scale;
-	else
-		*(real *)(request->field_48 + 4) = sound->location.scale;
-}
-
-
-struct s_type_129100_entry
-{
-	long field_0;
-	byte field_4[0x20];
-	point3f field_24;
-	vector3f field_30;
-	long field_3c;
-	long field_40;
-	bool field_44;
-	bool field_45;
-	bool field_46;
-	bool field_47;
-};
-
-struct s_type_129100_batch
-{
-	long field_0;
-	s_type_129100_entry field_4[72];
-};
-
-struct s_type_129100_flags
-{
-	byte field_0[0xa];
-	byte field_a_0 : 6;
-	byte field_a_6 : 1;
-	byte field_a_7 : 1;
-};
-
-// @retail 0x129100
-void function_129100(s_type_129100_batch *batch, vector3f **voice_values, vector3f **channel_values)
-{
-	dword local_bits[3] = { 0, 0, 0 };
-	for (long local_index = 0; local_index < SOUND_SYSTEM->voice_count; local_index++)
-	{
-		if (batch->field_0 == 72)
-			break;
-		s_sound_voice *voice = &g_4e6378[(short)local_index];
-		if (voice->sound_index == NONE || voice->stream_reset || !function_1295e0((short)local_index))
-			continue;
-		s_sound_playback *sound = SOUND_PLAYBACK_GET(voice->sound_index);
-		bool local_spatial = sound->location.audible == 1 && !TEST_FIELD_BIT(sound->flag2) &&
-			!TEST_FIELD_BIT(sound->location.flag7) && !TEST_FIELD_BIT(sound->location.flag0);
-		bool local_cluster = sound->location.audible == 0 && !TEST_FIELD_BIT(sound->flag2) &&
-			SOUND_FLAG(sound->location.flags, 12) && sound->location.spatial.location.bsp_index == g_4686c4;
-		if (local_spatial)
-		{
-			short local_buffer = voice->unknown0e;
-			if (local_buffer == NONE || (local_bits[local_buffer >> 5] & (1 << (local_buffer & 31))))
-				continue;
-			local_bits[local_buffer >> 5] |= 1 << (local_buffer & 31);
-			s_type_129100_entry *entry = &batch->field_4[batch->field_0++];
-			s_sound_definition *definition = sound_definition_get(sound->definition_index);
-			entry->field_0 = sound->listener_index;
-			entry->field_24 = sound->location.spatial.position;
-			entry->field_3c = sound->location.spatial.location.cluster_index;
-			entry->field_40 = sound->location.spatial.location.leaf_index;
-			entry->field_44 = false;
-			entry->field_46 = TEST_FIELD_BIT(sound->location.flag7);
-			entry->field_45 = false;
-			entry->field_47 = TEST_FIELD_BIT(((s_type_129100_flags *)function_221810(definition->promotion_index))->field_a_6) || (definition->flags & 0x20);
-			entry->field_30.i = entry->field_30.j = entry->field_30.k = 0.0f;
-			voice_values[voice->unknown0e] = &entry->field_30;
-		}
-		else if (local_cluster && voice->channel_index != NONE)
-		{
-			s_type_129100_entry *entry = &batch->field_4[batch->field_0++];
-			entry->field_0 = sound->listener_index;
-			entry->field_24 = *g_468788;
-			entry->field_3c = sound->location.spatial.location.cluster_index;
-			entry->field_40 = NONE;
-			entry->field_44 = true;
-			entry->field_46 = true;
-			entry->field_45 = false;
-			entry->field_47 = true;
-			entry->field_30.i = entry->field_30.j = entry->field_30.k = 0.0f;
-			channel_values[voice->channel_index] = &entry->field_30;
-		}
-	}
-}
-
-
-
-
-
-struct s_sound_driver_voice_parameters;
-void sound_driver_voice_update(long voice_index, s_sound_driver_voice_parameters const *parameters);
 bool sound_voice_update(s_voice_playing_sound const *sound, bool *orphaned, long voice_index);
-long function_2197f0(real gain);
 point3f *function_142700(transform4x3f const *matrix, point3f const *point, point3f *out);
-
-struct s_type_129790_request
-{
-	dword field_0;
-	point3f field_4;
-	real field_10;
-	real field_14;
-	long field_18;
-	real field_1c;
-	real field_20;
-};
-
-struct s_type_129790_class
-{
-	byte field_0[0x10];
-	long field_10;
-	byte field_14[0x50 - 0x14];
-	real field_50;
-	real field_54;
-	real field_58;
-};
+void sound_driver_voice_update(long voice_index, s_sound_driver_voice_parameters const *parameters);
 
 // @retail 0x129790
-void function_129790(short voice_index, vector3f const *values)
+void function_129790(short voice_index, vector3f const *attenuation)
 {
 	s_sound_voice *voice = &g_4e6378[voice_index];
 	s_sound_playback *sound = SOUND_PLAYBACK_GET(voice->sound_index);
@@ -2663,60 +2564,60 @@ void function_129790(short voice_index, vector3f const *values)
 	case 2:
 		if (sound->priority & 2)
 		{
-			bool local_orphaned = true;
+			bool orphaned = true;
 			if (voice->unknown0e != NONE && (voice->driver_voice_index == NONE ||
-				sound_voice_update((s_voice_playing_sound const *)sound, &local_orphaned, voice->driver_voice_index)))
+				sound_voice_update((s_voice_playing_sound const *)sound, &orphaned, voice->driver_voice_index)))
 			{
 				long listener_index = sound->listener_index;
 				s_sound_listener *listener = &SOUND_SYSTEM->listeners[listener_index];
-				point3f local_position;
+				point3f position;
 				if (sound->location.audible == 1)
 				{
-					sound_source_get_position((s_sound_location_source const *)&sound->location, listener_index, &local_position);
-					function_142700((transform4x3f const *)&listener->velocity_scale, &local_position, &local_position);
+					sound_source_get_position((s_sound_location_source const *)&sound->location, listener_index, &position);
+					function_142700((transform4x3f const *)&listener->velocity_scale, &position, &position);
 				}
 				else
-					local_position = sound->location.spatial.position;
-				if (local_orphaned)
+					position = sound->location.spatial.position;
+				if (orphaned)
 					SOUND_DRIVER_GLOBALS->voices[voice->unknown0e].flags &= ~2;
 				s_sound_definition *definition = sound_definition_get(sound->definition_index);
-				s_type_129790_request request;
-				request.field_4 = local_position;
-				if (values)
+				s_sound_driver_voice_parameters parameters;
+				parameters.position = position;
+				if (attenuation)
 				{
-					short local_class_index = definition->promotion_index;
-					real local_scale = ((s_type_129790_class *)function_221810(local_class_index))->field_50;
-					real local_gain = 1.0f - values->j * local_scale;
-					request.field_14 = PIN(values->i * local_scale, 0.0f, 1.0f);
-					request.field_10 = PIN(values->k * local_scale, 0.0f, 1.0f);
-					long local_decibels = function_2197f0(local_gain);
-					request.field_18 = decibels_add(local_decibels, ((s_type_129790_class *)function_221810(local_class_index))->field_10);
-					request.field_20 = ((s_type_129790_class *)function_221810(local_class_index))->field_54 * SOUND_SYSTEM->elapsed_time;
-					request.field_1c = ((s_type_129790_class *)function_221810(local_class_index))->field_58 * SOUND_SYSTEM->elapsed_time;
+					short index = definition->promotion_index;
+					real scale = *(real *)((byte *)function_221810(index) + 0x50);
+					real gain = 1.0f - attenuation->j * scale;
+					parameters.occlusion = PIN(attenuation->i * scale, 0.0f, 1.0f);
+					parameters.obstruction = PIN(attenuation->k * scale, 0.0f, 1.0f);
+					long decibels = function_2197f0(gain);
+					long base = *(long *)((byte *)function_221810(index) + 0x10);
+					parameters.decibels = *(real *)&decibels + *(real *)&base;
+					parameters.obstruction_rate = *(real *)((byte *)function_221810(index) + 0x54) * SOUND_SYSTEM->elapsed_time;
+					parameters.occlusion_rate = *(real *)((byte *)function_221810(index) + 0x58) * SOUND_SYSTEM->elapsed_time;
 				}
 				else
 				{
-					request.field_14 = 0.0f;
-					request.field_10 = 0.0f;
-					request.field_18 = ((s_type_129790_class *)function_221810(definition->promotion_index))->field_10;
-					request.field_20 = 0.0f;
-					request.field_1c = 0.0f;
+					parameters.occlusion = 0.0f;
+					parameters.obstruction = 0.0f;
+					parameters.decibels = *(real *)((byte *)function_221810(definition->promotion_index) + 0x10);
+					parameters.obstruction_rate = 0.0f;
+					parameters.occlusion_rate = 0.0f;
 				}
-				request.field_0 = (listener->unknown07 != 0) | 2;
-				sound_driver_voice_update(voice->unknown0e, (s_sound_driver_voice_parameters const *)&request);
+				*(dword *)&parameters.flags = (listener->unknown07 != 0) | 2;
+				sound_driver_voice_update(voice->unknown0e, &parameters);
 			}
 		}
 		break;
 	case 0:
-		if (SOUND_FLAG(sound->location.flags, 12))
+		if ((bool)(((dword)sound->location.flags >> 12) & 1))
 		{
-			if (values)
+			if (attenuation)
 			{
-				s_sound_definition *definition = sound_definition_get(sound->definition_index);
-				real local_scale = ((s_type_129790_class *)function_221810(definition->promotion_index))->field_50;
-				sound->location.scale *= 1.0f - PIN(values->k * local_scale, 0.0f, 1.0f);
+				real scale = *(real *)((byte *)function_221810(sound_definition_get(sound->definition_index)->promotion_index) + 0x50);
+				sound->location.scale *= 1.0f - PIN(attenuation->k * scale, 0.0f, 1.0f);
 			}
-			else if (sound->location.spatial.location.bsp_index != g_4686c4)
+			else if (*(short *)((byte *)sound + 0x46) != g_4686c4)
 				sound->location.scale = 0.0f;
 		}
 		break;
@@ -2739,159 +2640,218 @@ void function_129380(vector3f const *const *voice_values, vector3f const *const 
 	}
 }
 
-struct s_animation_state;
-struct s_animation_ref;
-void function_219310(s_animation_state *arg_0, s_animation_ref *arg_1, byte arg_2);
-long function_2193d0(s_animation_state *arg_0, s_animation_ref *arg_1);
-
-// @retail 0x1282d0
-void function_1282d0(void)
-{
-	s_record_pool *local_0 = g_4e637c;
-	long local_1 = data_datum_index(local_0, function_16bc00(local_0, 0));
-	while (local_1 != NONE)
-	{
-		s_sound_playback *local_2 = (s_sound_playback *)local_0->data + (local_1 & 0xffff);
-		if (local_2->start_time <= SOUND_SYSTEM->time)
-		{
-			if ((byte)function_125e60((s_looping_track_sound *)local_2))
-			{
-				long local_3;
-				short local_4 = sound_voice_acquire(local_1, &local_3);
-				if (local_4 != NONE)
-				{
-					s_sound_voice *local_5 = &g_4e6378[local_4];
-					if (local_5->sound_index != local_1)
-					{
-						if (local_5->sound_index != NONE)
-						{
-							function_127320(local_5->sound_index, local_3);
-							sound_voice_free(local_4);
-						}
-						local_5->sound_index = local_1;
-						local_2->start_time = SOUND_SYSTEM->time;
-						local_2->value_ac = local_4;
-					}
-					if (!TEST_FIELD_BIT(local_2->source_updated) && local_2->source && local_2->source->proc1)
-						local_2->source->proc1(local_2->object_index, local_2->definition_index, local_1, (long)&local_2->marker);
-				}
-				else
-					function_127320(local_1, 7);
-			}
-			else if (local_2->value_ac == NONE)
-			{
-				s_sound_definition *local_6 = sound_definition_get(local_2->definition_index);
-				short local_7 = TEST_FIELD_BIT(local_2->flag4) ? 1 : *(short *)((byte *)function_221810(local_6->promotion_index) + 0xe);
-				if (local_7 == 0)
-				{
-					s_animation_state *local_8 = (s_animation_state *)&SOUND_GLOBALS_CHUNKS->pitch_ranges[local_6->pitch_range_base + local_2->pitch_range_index];
-					if (!(bool)((*((byte *)function_221810(local_6->promotion_index) + 0xa) >> 5) & 1) &&
-						(short)function_2193d0(local_8, (s_animation_ref *)local_6) == NONE)
-						function_219310(local_8, (s_animation_ref *)local_6, local_2->permutation_index);
-					function_127320(local_1, 14);
-				}
-			}
-		}
-		long local_9 = local_1 == NONE ? 0 : (local_1 & 0xffff) + 1;
-		local_0 = g_4e637c;
-		local_1 = data_datum_index(local_0, data_next_absolute_index_inlined(local_0, local_9));
-	}
-}
-
-
 // @retail 0x128020
 void function_128020(void)
 {
-	s_record_pool *local_0 = g_4e637c;
-	long local_1 = data_datum_index(local_0, function_16bc00(local_0, 0));
-	while (local_1 != NONE)
+	s_record_pool *sounds = g_4e637c;
+	long sound_index = data_datum_index(sounds, function_16bc00(sounds, 0));
+	while (sound_index != NONE)
 	{
-		s_sound_playback *local_2 = (s_sound_playback *)local_0->data + (local_1 & 0xffff);
-		s_sound_definition *local_3 = sound_definition_get(local_2->definition_index);
-		s_sound_rate_limit *local_4 = sound_rate_limit_get(local_3->rate_limit_index);
-		short local_5 = local_2->value_ac;
-		long local_10 = NONE;
-		if (local_5 != NONE && g_4e6378[local_5].stream_reset)
-			goto local_9;
-		if (SOUND_FLAG(local_2->flags, 9) && TEST_FIELD_BIT(local_2->flag6) &&
-			SOUND_DRIVER_STREAMS->streams[g_4e6378[local_5].channel_index].state == 0)
+		sounds = g_4e637c;
+		s_sound_playback *sound = (s_sound_playback *)sounds->data + (sound_index & 0xffff);
+		s_sound_definition *definition = sound_definition_get(sound->definition_index);
+		s_sound_rate_limit *limit = sound_rate_limit_get(definition->rate_limit_index);
+		short voice_index = sound->value_ac;
+		if (voice_index != NONE && g_4e6378[voice_index].stream_reset)
+			goto skip_to_next;
+		if ((bool)(((dword)sound->flags >> 9) & 1) && TEST_FIELD_BIT(sound->flag6) &&
+			!(*(byte *)((byte *)g_51ebe4 + g_4e6378[voice_index].channel_index * 0x34 + 0xd) & 7))
 		{
-			local_10 = 2;
-			goto local_9;
+			function_127320(sound_index, 2);
+			goto skip_to_next;
 		}
-		if (local_4 && local_2->value_a0 != NONE && local_2->value_a0 < local_4->field_0 &&
-			local_2->start_time == local_4->field_14_2 && local_2->start_time < local_4->end_time)
+		if (limit && sound->value_a0 != NONE && sound->value_a0 < limit->field_0 &&
+			sound->start_time == limit->field_14_2 && sound->start_time < limit->end_time)
 		{
-			local_10 = 15;
-			goto local_9;
+			function_127320(sound_index, 0xf);
+			goto skip_to_next;
 		}
-		if (!sound_playback_update_location(local_1))
+		if (!sound_playback_update_location(sound_index))
 		{
-			local_10 = 3;
-			goto local_9;
+			function_127320(sound_index, 3);
+			goto skip_to_next;
 		}
-		if (local_3->flags & 8)
-			*(byte *)&local_2->location |= 1;
+		if (definition->flags & 8)
+			sound->location.flag0 = true;
 		{
-			real local_6 = sound_get_maximum_distance((s_sound const *)&local_2->location, local_2->definition_index);
-			long local_7 = function_127d00(&local_2->location, local_6, NULL);
-			if (local_7 == NONE)
+			real maximum;
+			if (TEST_FIELD_BIT(sound->location.flag3))
+				maximum = *(real *)((byte *)&sound->location + 0x38);
+			else
 			{
-				if (!TEST_FIELD_BIT(local_2->flag2))
+				s_sound_definition *current = sound_definition_get(sound->definition_index);
+				if (current->flags & 0x800)
+					maximum = *(real *)((byte *)function_221810(current->promotion_index) + 0x1c);
+				else
+					maximum = function_xaa8231(current->class_index)->maximum_distance;
+			}
+			long listener = function_127d00(&sound->location, maximum, NULL);
+			if (listener == NONE)
+			{
+				if (!TEST_FIELD_BIT(sound->flag2))
 				{
-					function_126df0(NONE, local_1, 0, 2.0f);
-					local_2->flag2 = true;
+					if (sound_index != NONE)
+					{
+						s_sound_playback *fading = SOUND_PLAYBACK_GET(sound_index);
+						fading->fade_gain = function_12a810(sound_index);
+						fading->fade_curve = 0;
+						fading->fade_start_time = 2000;
+						fading->fade_end_time = NONE;
+						fading->fading = true;
+					}
+					sound->flag2 = true;
 				}
 			}
 			else
 			{
-				local_2->listener_index = (char)local_7;
-				if (TEST_FIELD_BIT(local_2->flag2))
+				sound->listener_index = (char)listener;
+				if (TEST_FIELD_BIT(sound->flag2))
 				{
-					function_126df0(local_1, NONE, 0, 0.5f);
-					local_2->flag2 = false;
+					function_126df0(sound_index, NONE, 0, 0.5f);
+					sound->flag2 = false;
 				}
 			}
 		}
-local_9:
-		if (local_10 != NONE)
-			function_127320(local_1, local_10);
-		long local_8 = local_1 == NONE ? 0 : (local_1 & 0xffff) + 1;
-		local_0 = g_4e637c;
-		local_1 = data_datum_index(local_0, data_next_absolute_index_inlined(local_0, local_8));
+	skip_to_next:
+		sounds = g_4e637c;
+		sound_index = data_datum_index(sounds, data_find_index(sounds, sound_index == NONE ? 0 : (sound_index & 0xffff) + 1));
 	}
 }
 
-real function_30bf0(vector3f *arg_0);
-real function_11cf50(vector3f const *arg_0, vector3f const *arg_1);
-
-// @retail 0x12ad30
-real function_12ad30(long arg_0, s_sound const *arg_1, vector3f const *arg_2, vector3f const *arg_3)
+struct s_voice_position_entry
 {
-	real local_0 = sound_get_distance_gain(arg_0, arg_1, (real)sqrt(length_sq3f(arg_2)));
-	real local_1 = 1.0f;
-	if ((byte)function_125060(arg_1, arg_0) &&
-		!(fabs(local_0) < 0.0001f) &&
-		arg_2->j * arg_2->j + arg_2->k * arg_2->k + arg_2->i * arg_2->i >= (0.001f * 0.001f))
+	long listener;
+	byte unknown04[0x20];
+	point3f position;
+	vector3f result;
+	long index;
+	long object;
+	bool flag44;
+	bool flag45;
+	bool flag46;
+	bool flag47;
+};
+
+struct s_voice_position_batch
+{
+	long count;
+	s_voice_position_entry entries[0x48];
+};
+
+// @retail 0x129100
+void function_129100(s_voice_position_batch *batch, vector3f **buffers, vector3f **channels)
+{
+	dword seen[3] = { 0, 0, 0 };
+	for (long i = 0; i < SOUND_SYSTEM->voice_count; i++)
 	{
-		vector3f local_2 = *arg_2;
-		local_2.i = 0.0f - local_2.i;
-		local_2.j = 0.0f - local_2.j;
-		local_2.k = 0.0f - local_2.k;
-		if (function_30bf0(&local_2) > 0.0f)
+		if (batch->count == 0x48)
+			break;
+		s_sound_voice *voice = &g_4e6378[(short)i];
+		if (voice->sound_index == NONE || voice->stream_reset || !function_1295e0((short)i))
+			continue;
+		s_sound_playback *sound = SOUND_PLAYBACK_GET(voice->sound_index);
+		s_sound_location_source *source = (s_sound_location_source *)&sound->location;
+		byte *location = (byte *)&sound->location;
+		bool spatial = source->spatialization == 1 && !TEST_FIELD_BIT(sound->flag2) &&
+			!(bool)((location[0] >> 7) & 1) && !(location[0] & 1);
+		bool local = source->spatialization == 0 && !TEST_FIELD_BIT(sound->flag2) &&
+			(bool)(((dword)*(word *)location >> 12) & 1) && *(short *)((byte *)sound + 0x46) == g_4686c4;
+		if (spatial)
 		{
-			long local_3 = sound_get_outer_cone_gain(arg_1, arg_0);
-			real local_4 = function_11cf50(&local_2, arg_3);
-			real local_5 = sound_get_outer_cone_angle(arg_1, arg_0);
-			real local_6 = sound_get_inner_cone_angle(arg_1, arg_0);
-			local_1 = function_12aff0(local_6, local_5, local_4, true);
-			local_1 = (function_2195f0(*(real *)&local_3) - 1.0f) * local_1 + 1.0f;
+			short buffer = voice->unknown0e;
+			if (buffer == NONE || (seen[buffer >> 5] & (1 << (buffer & 31))))
+				continue;
+			seen[buffer >> 5] |= 1 << (buffer & 31);
+			s_voice_position_entry *entry = &batch->entries[batch->count++];
+			s_sound_definition *definition = sound_definition_get(sound->definition_index);
+			entry->listener = sound->listener_index;
+			entry->position = *(point3f *)((byte *)sound + 0x24);
+			entry->index = *(short *)((byte *)sound + 0x44);
+			entry->object = *(long *)((byte *)sound + 0x40);
+			entry->flag44 = false;
+			entry->flag46 = (bool)((location[0] >> 7) & 1);
+			entry->flag45 = false;
+			entry->flag47 = (bool)((*((byte *)function_221810(definition->promotion_index) + 0xa) >> 6) & 1) || (definition->flags & 0x20);
+			entry->result.i = entry->result.j = entry->result.k = 0.0f;
+			buffers[voice->unknown0e] = &entry->result;
+		}
+		else if (local && voice->channel_index != NONE)
+		{
+			s_voice_position_entry *entry = &batch->entries[batch->count++];
+			entry->listener = sound->listener_index;
+			entry->position = *g_468788;
+			entry->index = *(short *)((byte *)sound + 0x44);
+			entry->object = NONE;
+			entry->flag44 = true;
+			entry->flag46 = true;
+			entry->flag45 = false;
+			entry->flag47 = true;
+			entry->result.i = entry->result.j = entry->result.k = 0.0f;
+			channels[voice->channel_index] = &entry->result;
 		}
 	}
-	real local_7 = local_1 * local_0;
-	if ((bool)((*(word const *)arg_1 >> 9) & 1))
-		local_7 = 1.0f - local_7;
-	return local_7;
+}
+
+struct s_animation_state;
+struct s_animation_ref;
+void function_219310(s_animation_state *state, s_animation_ref *ref, byte value);
+long function_2193d0(s_animation_state *state, s_animation_ref *ref);
+
+// @retail 0x1282d0
+void function_1282d0(void)
+{
+	s_record_pool *sounds = g_4e637c;
+	long sound_index = data_datum_index(sounds, function_16bc00(sounds, 0));
+	while (sound_index != NONE)
+	{
+		s_sound_playback *sound = (s_sound_playback *)sounds->data + (sound_index & 0xffff);
+		if (sound->start_time <= SOUND_SYSTEM->time)
+		{
+			if ((byte)function_125e60((s_looping_track_sound *)sound))
+			{
+				long reason;
+				short voice_index = sound_voice_acquire(sound_index, &reason);
+				if (voice_index != NONE)
+				{
+					s_sound_voice *voice = &g_4e6378[voice_index];
+					if (voice->sound_index != sound_index)
+					{
+						if (voice->sound_index != NONE)
+						{
+							function_127320(voice->sound_index, reason);
+							sound_voice_free(voice_index);
+						}
+						voice->sound_index = sound_index;
+						sound->start_time = SOUND_SYSTEM->time;
+						sound->value_ac = voice_index;
+					}
+					if (!TEST_FIELD_BIT(sound->source_updated) && sound->source && sound->source->proc1)
+						sound->source->proc1(sound->object_index, sound->definition_index, sound_index, (long)&sound->marker);
+				}
+				else
+					function_127320(sound_index, 7);
+			}
+			else if (sound->value_ac == NONE)
+			{
+				s_sound_definition *definition = sound_definition_get(sound->definition_index);
+				short mode = TEST_FIELD_BIT(sound->flag4) ? 1 : *(short *)((byte *)function_221810(definition->promotion_index) + 0xe);
+				switch (mode)
+				{
+				case 0:
+					{
+						s_sound_pitch_range *range = &SOUND_GLOBALS_DEFINITIONS->pitch_ranges[definition->pitch_range_base + sound->pitch_range_index];
+						if (!(bool)((*(word *)((byte *)function_221810(definition->promotion_index) + 0xa) >> 5) & 1) &&
+							(short)function_2193d0((s_animation_state *)range, (s_animation_ref *)definition) == NONE)
+							function_219310((s_animation_state *)range, (s_animation_ref *)definition, sound->permutation_index);
+						function_127320(sound_index, 0xe);
+					}
+					break;
+				}
+			}
+		}
+		sounds = g_4e637c;
+		sound_index = data_datum_index(sounds, data_find_index(sounds, sound_index == NONE ? 0 : (sound_index & 0xffff) + 1));
+	}
 }
 
 vector3f *vector3d_decompress(dword arg_0, vector3f *arg_1);
@@ -3003,94 +2963,6 @@ void function_129aa0(short arg_0, long *arg_1, s_looping_channel_spatialization 
 		if (local_1->source->spatialize(local_1->object_index, local_1->definition_index, (s_sound_source_view const *)&local_1->marker, (s_sound_spatialization_view *)&local_17))
 			*local_2 = local_17;
 	}
-}
-
-extern dword g_510800_pool_base;
-extern long g_510804_pool_size;
-extern dword g_510808_pool_checksum;
-void function_163ba0(dword *arg_0, void const *arg_1, long arg_2);
-s_record_pool *function_11cc20(long arg_0, char const *arg_1, long arg_2);
-void sound_cache_initialize(void);
-bool looping_sound_controllers_initialize(void);
-bool function_21a0c0(void);
-bool sound_effects_initialize(void);
-struct s_sound_voice_settings;
-struct s_sound_driver_counts;
-bool sound_voices_initialize(s_sound_voice_settings const *arg_0);
-bool function_21e4b0(s_sound_driver_counts const *arg_0);
-
-short g_44a0c8[7] = { 40, 41, 1, 36, 36, 1, 51 };
-
-// @retail 0x1253d0
-void function_1253d0(void)
-{
-	if (g_4e6374 == 0)
-	{
-		byte *local_0 = (byte *)(g_510800_pool_base + g_510804_pool_size);
-		byte *local_1 = (byte *)(((dword)local_0 + 3) & ~3);
-		long local_2 = (local_1 - local_0) + 0x20c;
-		g_510804_pool_size += local_2;
-		dword local_3 = g_510808_pool_checksum;
-		function_163ba0(&local_3, &local_2, sizeof(local_2));
-		g_510808_pool_checksum = local_3;
-		memset(local_1, 0, 0x20c);
-		g_4e6380 = (s_4e6380 *)local_1;
-		SOUND_SYSTEM->hardware_available = true;
-		SOUND_SYSTEM->changing_pause = false;
-		sound_cache_initialize();
-		SOUND_SYSTEM->environments[0].index = NONE;
-		SOUND_SYSTEM->environments[0].unknown0c = 0.0f;
-		SOUND_SYSTEM->environments[0].unknown10 = 6.28318548f;
-		SOUND_SYSTEM->environments[1].index = NONE;
-		SOUND_SYSTEM->environments[1].unknown0c = 0.0f;
-		SOUND_SYSTEM->environments[1].unknown10 = 0.0f;
-		s_record_pool *local_4 = function_11cc20(384, "sound sources", sizeof(s_sound_playback));
-		local_0 = (byte *)(g_510800_pool_base + g_510804_pool_size);
-		byte *local_5 = (byte *)(((dword)local_0 + 3) & ~3);
-		local_2 = (local_5 - local_0) + 0x1200;
-		g_4e637c = local_4;
-		g_510804_pool_size += local_2;
-		local_3 = g_510808_pool_checksum;
-		function_163ba0(&local_3, &local_2, sizeof(local_2));
-		g_510808_pool_checksum = local_3;
-		g_4e6378 = (s_sound_voice *)local_5;
-		if (local_4 && local_5)
-		{
-			local_4->valid = true;
-			record_pool_release_all(local_4);
-			memset(g_4e6378, 0, 0x1200);
-			if (looping_sound_controllers_initialize() && function_21a0c0() &&
-				sound_effects_initialize() && sound_voices_initialize((s_sound_voice_settings const *)g_44a0c8) &&
-				function_21e4b0((s_sound_driver_counts const *)g_44a0c8))
-			{
-				s_sound_system_view *local_6 = SOUND_SYSTEM;
-				bit_vector_fill((dword *)((byte *)local_6 + 0x60), 128, 0);
-				bit_vector_fill(local_6->channel_bits, 64, 0);
-				short local_7 = 0;
-				for (short local_8 = 0; local_8 < 3; local_8++)
-				{
-					SOUND_SYSTEM->voice_count += g_44a0c8[local_8 + 3];
-					for (short local_9 = 0; local_9 < g_44a0c8[local_8 + 3]; local_9++)
-					{
-						s_sound_voice *local_10 = &g_4e6378[local_7++];
-						local_10->sound_index = NONE;
-						local_10->definition_type = (byte)local_8;
-						local_10->unknown0a = 0;
-						local_10->unknown0b = 0;
-						local_10->channel_index = NONE;
-						local_10->unknown0e = NONE;
-						local_10->driver_voice_index = NONE;
-						local_10->permutation = NULL;
-						local_10->next_permutation = NULL;
-						local_10->stream_reset = false;
-					}
-				}
-				*(short *)((byte *)SOUND_SYSTEM + 0x20a) = 51;
-				SOUND_SYSTEM->initialized = true;
-			}
-		}
-	}
-	g_4e6374++;
 }
 
 void function_21ec00(void);
