@@ -35,9 +35,10 @@ trees exactly (see [Evidence](#evidence)).
   `m[3]`–`m[5]` and `m[6]`–`m[8]` are its three vectors. The image holds
   the identity. No other function refers to it directly.
 - `0x485624` and `0x485630`: two vectors of three reals (written `a` and `b`
-  below), zero in the image. Fifteen functions refer to `0x485624`, among
-  them `0x1e4e0`, `0x1e5e0` and `0x27aa0`; `0x485630` is referred to only by
-  `0x224fd0`, `0x248450`, `0x248df0` and `0x39e50`.
+  below), zero in the image. Fourteen functions refer to `0x485624`, `0x39e50`
+  among them, such as `0x1e4e0` and `0x1e5e0`, and `0x27aa0` reads only its
+  third real (`0x48562c`); `0x485630` is referred to only by `0x224fd0`,
+  `0x248450`, `0x248df0` and `0x39e50`.
 - Constants from `.rdata`: `0x45dbbc` (0.5), `0x44ae90` (0.3) and
   `0x45dbc0` (1.0).
 
@@ -62,14 +63,16 @@ to the double `g_4ba040`.
 
 ### Retail's evaluation
 
-`dt * 0.5f` and `dt * 0.3f` are formed on the x87 stack and passed to
-`fsin` and `fcos` without rounding; each sine and cosine is rounded to a
-real when it is stored. Everything else is SSE. Each statement keeps
-retail's evaluation: `a * b * c` is (a × b) × c, and parentheses mark every
-other grouping. The `t` names hold values that retail computes once and
-reuses, declared in the order retail computes them. `a.i`, `a.j` and `a.k`
-are the three reals at `0x485624`, `b` likewise at `0x485630`, and `m[0]`
-to `m[8]` are the reals at `0x467104`, read before any is written.
+`dt * 0.5f` and `dt * 0.3f` are formed on the x87 stack and passed to `fsin`
+and `fcos` without rounding; each sine and cosine is rounded to a real when it
+is stored. Everything else is SSE. Each statement keeps retail's evaluation:
+`a * b * c` is (a × b) × c, and parentheses mark every other grouping. The `t`
+names hold values that retail computes once and reuses, declared in the order
+retail computes them. `a.i`, `a.j` and `a.k` are the three reals at `0x485624`,
+`b` likewise at `0x485630`, and `m[0]` to `m[8]` are the reals at `0x467104`,
+as they were when the function was entered. Retail stores the first-turn
+results back into that matrix and reloads them before the final stores; the C
+keeps them as `t38` to `t46`, which gives the same trees.
 
 ```c
 real sine_a = (real)sin(dt * 0.5f);
@@ -148,9 +151,10 @@ declared. `g_4ba040`, the caller's time total, is defined in
   through `tools/xbe.py`, at `e02c566`: 338 instructions with no branches
   and no calls, x87 only for the two angles and their sines and cosines.
 - A Python replay executed every instruction symbolically, tracking the
-  registers, the frame and the x87 stack, and took the nine stores to
-  `0x467104`–`0x467124` as expression trees. The C above was printed from
-  those trees and parsed back: all 60 statements give the same trees.
+  registers, the frame and the x87 stack, and took the nine final stores to
+  `0x467104`–`0x467124` (of eighteen) as expression trees. The C above was
+  printed from those trees and parsed back: all 60 statements give the same
+  trees.
 - Numerically, in double precision over 30 random time steps, unit axes
   and matrices, the result equals M Aᵀ Bᵀ to 8e-8. The orders M Bᵀ Aᵀ,
   M A B and M B A do not fit.
