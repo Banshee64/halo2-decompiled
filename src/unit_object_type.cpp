@@ -3934,7 +3934,7 @@ void function_ce6b0(long unit_index, long name, long object_index, real scale)
 	function_b8ee0(unit_index, name, object_index, 0);
 	function_b9a90(object_index);
 	function_10b360(object_index);
-	real speed = (real)random_next(&g_4e7408->unknown0) * (1.0f / 65535.0f) * 0.4f + 0.8f;
+	real speed = (real)random_next(&g_4e7408->unknown0) * (1.0f / 65535.0f) * (1.2f - 0.8f) + 0.8f;
 	object->linear_velocity = *g_4687a4;
 	*(vector3f *)((byte *)object + 0x94) = *g_4687a4;
 	vector3f direction;

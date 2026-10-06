@@ -553,7 +553,7 @@ bool function_c17f0(long light_index, s_light_shape_ab *shape, bool respect_engi
             if (shape->sphere_render.radius > 0.0001f) return true;
         }
         else if (shape->cone_render.far_distance > 0.0001f &&
-            shape->cone_render.far_width * shape->cone_render.far_width + shape->cone_render.far_height * shape->cone_render.far_height > 1.0e-8f)
+            shape->cone_render.far_width * shape->cone_render.far_width + shape->cone_render.far_height * shape->cone_render.far_height > 0.0001f * 0.0001f)
             return true;
     }
     return false;

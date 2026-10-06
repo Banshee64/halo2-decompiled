@@ -386,7 +386,7 @@ long function_1eb8a0(
 					s->settle_minimum = MAX(0.001f, dist);
 				}
 				real align = d->j * nq.j + d->k * nq.k + d->i * nq.i;
-				if (align > len * 0.08715574f && nlen != 0.f)
+				if (align > len * 0.087155744f && nlen != 0.f)
 				{
 					real m = s->settle_distance * 0.25f;
 					if (len > 0.001f)

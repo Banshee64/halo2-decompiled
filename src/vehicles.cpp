@@ -2746,7 +2746,7 @@ void __stdcall function_f3010(long vehicle_index, s_vehicle_physics_state *state
 			if (speed > 0.0f)
 			{
 				real pitch = state->unknown4c * speed * vehicle->unknown370 * -5.2359877f;
-				real lift = state->unknown6c * speed * vehicle->unknown370 * 3.6f;
+				real lift = state->unknown6c * speed * vehicle->unknown370 * 3.6000001f;
 
 				torque.i += pitch * left.i;
 				torque.j += left.j * pitch;
@@ -2766,8 +2766,8 @@ void __stdcall function_f3010(long vehicle_index, s_vehicle_physics_state *state
 				{
 					real fade = PIN(1.0f - vehicle->unknown34c * dt, 0.0f, 1.0f);
 					real push = (1.0f - vehicle->unknown370) * state->unknown6c * fade;
-					real forward_push = push * 1.8f;
-					real up_push = push * 0.9f;
+					real forward_push = push * 1.8000001f;
+					real up_push = push * 0.90000004f;
 
 					force.i = up_push * up->i + (direction.i * forward_push + force.i);
 					force.j = up->j * up_push + (direction.j * forward_push + force.j);
@@ -3128,7 +3128,7 @@ void function_f5ee0(long vehicle_index)
 	else
 	{
 		pushed = vehicle->throttle * vehicle->throttle + vehicle->steering * vehicle->steering +
-			vehicle->unknown1b8 * vehicle->unknown1b8 > 1.0e-6f;
+			vehicle->unknown1b8 * vehicle->unknown1b8 > 0.001f * 0.001f;
 	}
 	if ((!pushed || function_f5d70(vehicle_index)) &&
 		vehicle->unknown38e != (1 << *(long *)(definition + 0x2f0)) - 1 &&

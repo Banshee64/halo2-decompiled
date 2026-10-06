@@ -25,7 +25,7 @@ bool function_1f4460(long actor_index, s_type_c3b527 const *point, long target_i
 
 	function_2628f0(actor_index, g_470fa0);
 	if (actor->unknown4ac == 2 && actor->unknown4c8 == target_index &&
-		function_210a30(point, &actor->unknown4b8) <= 0.01f)
+		function_210a30(point, &actor->unknown4b8) <= 0.1f * 0.1f)
 	{
 		if (actor->unknown040 && !actor->unknown506)
 			return function_1f8a70(actor_index, 0);
