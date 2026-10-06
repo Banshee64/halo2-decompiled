@@ -136,7 +136,7 @@ real function_30bf0(vector3f *vector);
 bool function_26d290(point3f const *origin, point3f const *target, long sector_index, long *output_sector);
 
 // @retail 0x26e180
-bool function_26e180(long record_index, s_record_motion_view const *motion, short mode, point3f *world_point,
+bool function_26e180(long record_index, s_record_motion_view const *motion, short mode, point3f *reported_point,
 	s_type_c3b527 *output, long *output_sector)
 {
 	s_location_record_view *record = (s_location_record_view *)(g_51eca4->data + (record_index & 0xffff) * sizeof(s_location_record_view));
@@ -178,8 +178,8 @@ bool function_26e180(long record_index, s_record_motion_view const *motion, shor
 					output->output_index = index;
 					if (function_26d290(&record->point.point, &output->point, record->location_index, output_sector))
 					{
-						if (world_point)
-							*world_point = point;
+						if (reported_point)
+							*reported_point = point;
 						result = true;
 					}
 				}

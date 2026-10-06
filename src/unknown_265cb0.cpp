@@ -134,19 +134,19 @@ void function_2662f0(long actor_index)
 	}
 	desired = g_44ae3c[actor->unknown328];
 	{
-		short group_level = 1;
-		short event_level = 0;
+		short clump_minimum = 1;
+		short recent_minimum = 0;
 		if (actor->unknown07c != NONE)
 		{
 			s_clump *group = (s_clump *)(g_502420->data + (actor->unknown07c & 0xffff) * 0x50);
-			group_level = g_470fa4[group->state];
+			clump_minimum = g_470fa4[group->state];
 		}
 		if (actor->unknown26c == NONE && desired == 1 && actor->unknown086 == 0)
 			desired = 0;
 		if (actor->unknown358 > 0)
-			event_level = 2;
-		short maximum = group_level > event_level ? group_level : event_level;
-		desired = desired > maximum ? desired : (group_level > event_level ? group_level : event_level);
+			recent_minimum = 2;
+		short maximum = clump_minimum > recent_minimum ? clump_minimum : recent_minimum;
+		desired = desired > maximum ? desired : (clump_minimum > recent_minimum ? clump_minimum : recent_minimum);
 	}
 	if (desired >= 3)
 		goto reset_time;
