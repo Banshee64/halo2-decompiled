@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6280 functions match
+
+```
+matched 6280 of 11318 game functions (657692 of 2784283 bytes, 23.62%)
+```
+
+6 new matches, none lost:
+- **Codex lane J** (4): network stream and session search helpers in the 0x90000–0x9ffff range.
+- **Codex lane L** (2): a font helper in the 0x120000–0x12ffff range, and its caller 0x22d7ce.
+
 ## 2026-10-06: 6274 functions match
 
 ```

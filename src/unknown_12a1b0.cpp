@@ -6,6 +6,8 @@
 #include "local_cameras.h"
 #include "sound_sources.h"
 #include "crc.h"
+#include "unknown_218ac0.h"
+#include "unknown_221810.h"
 #include <string.h>
 #include <math.h>
 
@@ -1530,6 +1532,81 @@ struct s_looping_channel_spatialization
 	real doppler_scale;
 	byte unknown18[0x38 - 0x18];
 };
+
+struct s_effect_inputs
+{
+	real values[4];
+	vector3f direction;
+};
+struct s_sound_playback_effects;
+void function_222770(long tag_index, long handle, s_effect_inputs const *inputs, s_sound_playback_effects *effects);
+void function_222930(long tag_index, long handle, s_looping_impulse_parameters *parameters);
+
+struct s_channel_class_flags
+{
+	byte unknown00[0xa];
+	word bit0 : 1;
+	word bit1 : 1;
+	word bit2 : 1;
+	word bit3 : 1;
+	word unknown_bits : 5;
+	word bit9 : 1;
+	word remaining : 6;
+	byte unknown0c[0x40];
+	char mode;
+};
+
+// @retail 0x12a1b0
+void function_12a1b0(short voice_index, s_looping_track_sound *sound, s_looping_channel_spatialization const *spatialization, s_looping_channel_properties *properties)
+{
+	s_looping_voice_view *voice = &((s_looping_voice_view *)g_4e6378)[voice_index];
+	long definition_index = sound->definition_index;
+	s_sound_definition *definition = sound_definition_get(definition_index);
+	s_channel_class_flags *sound_class = (s_channel_class_flags *)sound_class_definition_get(definition->promotion_index);
+	byte *output = (byte *)properties;
+	byte const *spatial = (byte const *)spatialization;
+	properties->format = (char)definition->unknown03;
+	*(short *)(output + 0x10) = definition->promotion_index;
+	*(short *)(output + 0x12) = sound->unknowna4;
+	*(short *)(output + 0x24) = *(short *)((byte *)voice + 0xe);
+	*(long *)(output + 0x14) = *(long *)((byte *)sound_class_definition_get(definition->promotion_index) + 0x10);
+	*(long *)(output + 0x18) = *(long const *)(spatial + 8);
+	*(long *)(output + 0x28) = *(long const *)(spatial + 4);
+	*(long *)(output + 0x1c) = *(long const *)(spatial + 0xc);
+	*(long *)(output + 0x20) = *(long const *)(spatial + 0x10);
+	bool flag = (bool)((sound->sound_class >> 3) & 1);
+	if (TEST_FIELD_BIT(sound_class->bit3)) properties->effects.flags |= 2;
+	else properties->effects.flags &= ~2;
+	if (TEST_FIELD_BIT(sound_class->bit1)) properties->effects.flags |= 8;
+	else properties->effects.flags &= ~8;
+	if (sound_class->mode == 1) properties->effects.flags |= 0x10;
+	else properties->effects.flags &= ~0x10;
+	if (TEST_FIELD_BIT(sound_class->bit1) || flag) flag = true;
+	if (flag) properties->effects.flags |= 4;
+	else properties->effects.flags &= ~4;
+	if (TEST_FIELD_BIT(sound_class->bit9)) properties->effects.flags |= 0x40;
+	else properties->effects.flags &= ~0x40;
+	if (*spatial & 0x10)
+	{
+		properties->effects.flags |= 0x20;
+		memcpy(output + 0x38, spatial + 0x28, 0x10);
+	}
+	if (*(short *)(output + 0x12) != NONE)
+		properties->effects.flags |= 1;
+	s_effect_inputs inputs;
+	inputs.values[0] = 0.0f;
+	inputs.values[1] = (real)((((s_looping_sound_system *)g_4e6380)->time - sound->time) / 1000);
+	inputs.values[2] = *(real *)((byte *)sound + 0x1c);
+	inputs.values[3] = *(real const *)(spatial + 0x18);
+	inputs.direction = *(vector3f const *)(spatial + 0x1c);
+	function_222770(definition_index, *(long *)sound->unknown08, &inputs, (s_sound_playback_effects *)&properties->effects.playback);
+	function_222930(definition_index, *(long *)sound->unknown08, &properties->effects.impulse);
+	*(dword *)(output + 0x48) = sound->field_8_4;
+	if (*((byte *)sound + 0x19) & 1)
+		*(real *)(output + 0x4c) = (real)(sqrt(1.0f - *(real const *)(spatial + 0x18)) * *(real *)((byte *)sound + 0x1c));
+	else
+		*(real *)(output + 0x4c) = *(real *)((byte *)sound + 0x1c);
+}
 
 struct s_looping_driver_channel
 {

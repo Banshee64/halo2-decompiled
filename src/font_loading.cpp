@@ -259,6 +259,123 @@ long font_table_parse(char const *text, s_type_acf665 const *directory, s_type_a
 	return count;
 }
 
+long function_136770(file_reference_data *directory, dword flags, long maximum_count, file_reference_data *files);
+bool function_1367d0(s_type_acf665 *file);
+bool function_136860(s_type_acf665 *file);
+
+static inline void font_copy_wait(bool volatile *done)
+{
+	if (!*done)
+		while (!*done)
+			SwitchToThread();
+}
+
+// @retail 0x121b00
+bool function_121b00(void)
+{
+	s_type_acf665 source;
+	s_type_acf665 destination;
+	s_type_acf665 table;
+	s_type_acf665 output;
+	struct
+	{
+		s_type_acf665 old_files[11];
+		s_type_acf665 source_files[11];
+		s_type_acf665 destination_files[11];
+	} files;
+	char name[256];
+	char path[256];
+	char table_name[256];
+	char text[0x800];
+	FILETIME time;
+	bool volatile done;
+	s_file_handle input;
+	s_file_handle target;
+	dword bytes_written;
+	bool result;
+	fonts_get_source_directory(&source);
+	function_x454397(&destination);
+	function_137320(destination.path, g_4687f0);
+	memcpy(&table, &source, 0x108);
+	font_table_get_name(table_name, sizeof(table_name));
+	function_x73bce5(&table, table_name);
+	result = font_table_get_time(&time);
+	if (result)
+	{
+		{
+			FILETIME saved_time;
+			long language = global_preferences_globals.current.unknown1c;
+			memcpy(&saved_time, global_preferences_globals.current.unknown24, sizeof(saved_time));
+			if (CompareFileTime(&saved_time, &time) == 0)
+			{
+				if (g_4687f8 == NONE) font_table_get_name(name, sizeof(name));
+				if (language == g_4687f8) return result;
+			}
+		}
+		if (global_preferences_globals.current.unknown1c != NONE)
+		{
+			global_preferences_globals.current.unknown1c = NONE;
+			global_preferences_globals.dirty = true;
+			global_preferences_flush();
+		}
+		global_preferences_flush();
+		result = file_read_string(&table, text, sizeof(text));
+		if (result)
+		{
+			long count = font_table_parse(text, &source, files.source_files, 11);
+			font_table_parse(text, &destination, files.destination_files, 11);
+			if (function_1368f0(&destination))
+			{
+				long old_count = function_136770((file_reference_data *)&destination, 0, 11, (file_reference_data *)files.old_files);
+				for (long i = 0; i < old_count; i++) function_136860(&files.old_files[i]);
+			}
+			else function_1367d0(&destination);
+			path[0] = 0;
+			font_table_get_name(name, sizeof(name));
+			csstrncpy(path, g_4687f0, sizeof(path));
+			function_122810(path, name);
+			function_x454397(&output);
+			function_x73bce5(&output, path);
+			async_create_file_blocking((file_reference_data *)&output, 2, 2, 4, 7, &input);
+			function_1a1050(input, text, strlen(text) + 1, 0, 0, 7, 6, &bytes_written, &done);
+			font_copy_wait(&done);
+			async_flush_file_blocking(input, 7);
+			function_1a1550(input, 7, 6, &done);
+			font_copy_wait(&done);
+			for (long i = 0; i < count; i++)
+			{
+				async_create_file_blocking((file_reference_data *)&files.source_files[i], 1, 0, 4, 7, &input);
+				result = input.handle != INVALID_HANDLE_VALUE;
+				if (!result) goto failed;
+				async_create_file_blocking((file_reference_data *)&files.destination_files[i], 2, 2, 4, 7, &target);
+				result = target.handle != INVALID_HANDLE_VALUE;
+				if (!result) goto failed;
+				result = async_copy_file(input, target, 7);
+				if (!result) goto failed;
+				async_flush_file_blocking(target, 7);
+				function_1a1550(input, 7, 6, &done);
+				font_copy_wait(&done);
+				function_1a1550(target, 7, 6, &done);
+				font_copy_wait(&done);
+			}
+			if (g_4687f8 == NONE) font_table_get_name(name, sizeof(name));
+			global_preferences_globals.current.unknown1c = g_4687f8;
+			memcpy(global_preferences_globals.current.unknown24, &time, sizeof(time));
+			global_preferences_globals.dirty = true;
+			return result;
+		}
+	}
+failed:
+	if (global_preferences_globals.current.unknown1c != NONE)
+	{
+		global_preferences_globals.current.unknown1c = NONE;
+		global_preferences_globals.dirty = true;
+		global_preferences_flush();
+	}
+	global_preferences_flush();
+	return result;
+}
+
 // @retail 0x1222d0
 long __stdcall function_1222d0(s_async_task *task)
 {

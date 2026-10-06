@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "unknown_08b110.h"
 #include "unknown_096ed0.h"
+#include <string.h>
 
 // @flags /O2 /Ob1 /Gr
 
@@ -66,6 +67,55 @@ bool function_986d0(c_handle_table_450cd0 *self, long index, s_bitstream *stream
 	else
 		function_194710(stream, true);
 	return result;
+}
+
+/* kind 3: creation of an entity and the entities linked to it */
+// @retail 0x98750
+bool function_98750(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits)
+{
+	c_handle_table_450cd0 *const *self_reference = &self;
+	volatile bool result = true;
+	long handles[4];
+	long count = 0;
+	long handle = (*self_reference)->entries[index].handle;
+	s_handle_peers *peers = self->table;
+	while (handle != NONE)
+	{
+		handles[count] = handle;
+		handle = peers->peers[handle & 0x3ff].unknown04;
+		count++;
+	}
+	long released[4];
+	memset(released, 0, sizeof(released));
+	stream_push_position(stream);
+	function_195720(stream, 3, 3);
+	stream_write_checked(stream, count - 2, 2);
+	long i;
+	for (i = 0; i < count;)
+	{
+		handle = handles[i];
+		function_b5650(handle, stream);
+		if (result && self->table->owner->v0(handle, self->entries[handle & 0x3ff].unknown04, a3, stream, reserved_bits, &released[i]))
+			result = true;
+		else
+			result = false;
+		i++;
+		if (!result)
+			break;
+	}
+	if (result && stream_has_room(stream, reserved_bits))
+	{
+		stream->checkpoint_count--;
+		for (i = 0; i < count; i++)
+		{
+			function_98ac0(self, handles[i]);
+			if (released[i])
+				function_98bf0(handles[i], self, released[i]);
+		}
+		return true;
+	}
+	function_194710(stream, true);
+	return false;
 }
 
 /* kind 4: the deletion of an entity and the entities linked to it */
@@ -167,7 +217,7 @@ void c_handle_table_450cd0::v3(long a1, long a2, long a3, long a4, long a5, long
 			function_986d0(this, a1, (s_bitstream *)a5, a6);
 			break;
 		case 3:
-			function_98750(this, a1, a5, a3, a6);
+			function_98750(this, (s_bitstream *)a5, a1, a3, a6);
 			break;
 		case 4:
 			function_988f0(this, a1, (s_bitstream *)a5, a6);

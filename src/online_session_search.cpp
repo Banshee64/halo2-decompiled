@@ -6,6 +6,9 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "online_tasks.h"
+#include "online_attributes.h"
+#include "unknown_0662e0.h"
+#include "network_qos.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -139,6 +142,160 @@ bool function_07a9b0(void);
 typedef bool (__stdcall *t_search_compare)(void const *, void const *, void const *);
 void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_search_compare compare, void const *context);
 
+struct s_long7
+{
+	long v[7];
+};
+
+struct s_match_result_data
+{
+	XNKEY key;
+	XNKID id;
+	XNADDR address;
+	DWORD public_filled;
+	DWORD public_open;
+	DWORD private_filled;
+	DWORD private_open;
+	s_long7 properties;
+};
+
+void function_0b4a40(s_long7 *out, const __int64 *in);
+long online_match_search(s_range_input const *input);
+
+// @retail 0x90160
+bool function_90160(long task_index, s_match_result_data *result)
+{
+	s_type_9df9da *task = online_task_try_and_get(task_index);
+	bool success = false;
+	if (task && online_logon_connected() && (task->flags & 4))
+	{
+		PXONLINE_MATCH_SEARCHRESULT *results;
+		DWORD count;
+		if (SUCCEEDED(XOnlineMatchSearchGetResults((XONLINETASK_HANDLE)task->handle, &results, &count)) && count > 0)
+		{
+			memset(result, 0, sizeof(*result));
+			result->address = results[0]->HostAddress;
+			result->key = results[0]->KeyExchangeKey;
+			result->id = results[0]->SessionID;
+			result->public_filled = results[0]->dwPublicFilled;
+			result->public_open = results[0]->dwPublicOpen;
+			result->private_filled = results[0]->dwPrivateFilled;
+			result->private_open = results[0]->dwPrivateOpen;
+			success = true;
+			if (results[0]->dwNumAttributes == 7)
+			{
+				__int64 properties[7];
+				if (SUCCEEDED(XOnlineMatchSearchParse(results[0], results[0]->dwNumAttributes, g_44050c, properties)))
+					function_0b4a40(&result->properties, properties);
+			}
+		}
+	}
+	return success;
+}
+
+// @retail 0x90b30
+void function_90b30(s_session_search *search)
+{
+	long current = search->unknown1c;
+	if (current != NONE)
+	{
+		long minimum = SEARCH_LONG(search, 0x68) - current;
+		if (minimum < SEARCH_LONG(search, 0x60))
+			minimum = SEARCH_LONG(search, 0x60);
+		SEARCH_LONG(search, 0x30) = minimum;
+		long maximum = SEARCH_LONG(search, 0x50) + current;
+		if (maximum > SEARCH_LONG(search, 0x64))
+			maximum = SEARCH_LONG(search, 0x64);
+		SEARCH_FLAG(search, 0x2c) = true;
+		SEARCH_FLAG(search, 0x24) = true;
+		SEARCH_LONG(search, 0x28) = maximum;
+	}
+	else
+	{
+		SEARCH_FLAG(search, 0x2c) = false;
+		SEARCH_FLAG(search, 0x24) = false;
+	}
+	if (current != NONE && search->unknown20 > 0)
+		search->minimum_score = (long)((real)g_network_configuration.value1e8 + ((real)current / (real)search->unknown20) * ((real)g_network_configuration.value1ec - (real)g_network_configuration.value1e8));
+	else
+		search->minimum_score = g_network_configuration.value1ec;
+	s_range_input input;
+	memset(&input, 0, sizeof(input));
+	input.x = SEARCH_LONG(search, 0x10);
+	input.y = SEARCH_LONG(search, 0x4c);
+	input.has_min = SEARCH_FLAG(search, 0x2c);
+	input.min = SEARCH_LONG(search, 0x30);
+	input.has_max = SEARCH_FLAG(search, 0x24);
+	input.max = SEARCH_LONG(search, 0x28);
+	input.count = SEARCH_LONG(search, 0x38);
+	memset(search->results, 0, search->unknown88);
+	memset(search->unknown90, 0, search->unknown88);
+	input.has_count = true;
+	search->task_index = online_match_search(&input);
+	if (search->task_index == NONE)
+		search->state = 4;
+	else
+		search->start_time = g_510548 ? g_51054c : GetTickCount();
+}
+
+struct s_qos_target
+{
+	XNKID kid;
+	XNKEY key;
+	XNADDR xna;
+};
+
+long qos_lookup(long kind, long count, long bits_per_second, s_qos_target *targets);
+
+// @retail 0x90420
+void __stdcall function_90420(s_session_search *search, long kind)
+{
+	s_qos_target targets[MAXIMUM_SEARCH_RESULTS];
+	if (search->qos_handles[kind] == NONE)
+	{
+		long count = 0;
+		for (long i = 0; i < MAXIMUM_SEARCH_RESULTS; i++)
+		{
+			s_search_result *entry = &search->results[i];
+			if (entry->valid && entry->unknown01)
+			{
+				bool needed = false;
+				if (!*((bool *)entry + 0x74 + kind))
+					needed = true;
+				if (kind == 0)
+				{
+					if (entry->unknown74)
+					{
+						dword last_time = SEARCH_LONG(entry, 0x1f4);
+						dword now = g_510548 ? g_51054c : GetTickCount();
+						if ((long)(now - last_time) > g_network_configuration.value35c)
+							needed = true;
+					}
+					needed = needed && entry->unknown75;
+				}
+				if (needed)
+				{
+					s_match_result_data *result = (s_match_result_data *)entry->search_result;
+					targets[count].kid = result->id;
+					targets[count].key = result->key;
+					targets[count].xna = result->address;
+					entry->unknown78 = kind;
+					entry->unknown7c = count++;
+					entry->unknown80 = 0;
+				}
+			}
+		}
+		if (count > 0)
+		{
+			search->qos_handles[kind] = qos_lookup(kind, count, g_network_configuration.value358, targets);
+			if (search->qos_handles[kind])
+				search->qos_counts[kind] = count;
+			else
+				search->state = 5;
+		}
+	}
+}
+
 // @retail 0x90020
 long online_match_session_delete(s_search_session const *session, bool *unavailable)
 {
@@ -261,6 +418,81 @@ void session_search_mark_seen(s_session_search *search, s_search_result *result)
 		{
 			search->seen[search->seen_count] = *id;
 			search->seen_count++;
+		}
+	}
+}
+
+struct s_session_message_values;
+bool function_7e080(byte const *data, long size, s_session_message_values *values);
+long function_75870(void);
+bool qos_is_complete(long handle);
+long qos_target_status(long handle, long index);
+
+// @retail 0x905a0
+void __stdcall function_905a0(s_session_search *search, long kind)
+{
+	if (search->qos_handles[kind] != NONE)
+	{
+		bool complete = qos_is_complete(search->qos_handles[kind]);
+		for (long i = 0; i < MAXIMUM_SEARCH_RESULTS; i++)
+		{
+			s_search_result *entry = &search->results[i];
+			if (entry->valid && entry->unknown01 && entry->unknown7c != NONE && entry->unknown78 == kind)
+			{
+				long state = qos_target_status(search->qos_handles[kind], entry->unknown7c);
+				if (state != entry->unknown80)
+				{
+					entry->unknown80 = state;
+					switch (state)
+					{
+					case 0: break;
+					case 1: break;
+					case 2: break;
+					case 3: session_search_mark_seen(search, entry); break;
+					case 4: session_search_mark_seen(search, entry); break;
+					case 5:
+						{
+							s_qos_result *result = (s_qos_result *)((byte *)entry + 0x84);
+							if (!qos_target_result(search->qos_handles[kind], result, entry->unknown7c))
+								session_search_mark_seen(search, entry);
+							else if (!result->data_size)
+								session_search_mark_seen(search, entry);
+							else
+							{
+								dword values[0x53];
+								if (function_7e080(result->data, result->data_size, (s_session_message_values *)values))
+								{
+									memcpy((byte *)entry + 0xa8, values, sizeof(values));
+									SEARCH_FLAG(entry, 0xa4) = true;
+									SEARCH_LONG(entry, 0x1f4) = function_75870();
+									*((bool *)entry + 0x74 + kind) = true;
+									entry->unknown7c = NONE;
+								}
+								else
+									session_search_mark_seen(search, entry);
+								result->data_size = 0;
+								result->data = 0;
+							}
+						}
+						break;
+					default: __assume(0);
+					}
+				}
+			}
+		}
+		if (complete)
+		{
+			for (long i = 0; i < MAXIMUM_SEARCH_RESULTS; i++)
+			{
+				s_search_result *entry = &search->results[i];
+				if (entry->valid && entry->unknown01 && entry->unknown7c != NONE && entry->unknown78 == kind)
+					entry->unknown7c = NONE;
+			}
+			if (search->qos_handles[kind] != NONE)
+			{
+				qos_release(search->qos_handles[kind]);
+				search->qos_handles[kind] = NONE;
+			}
 		}
 	}
 }

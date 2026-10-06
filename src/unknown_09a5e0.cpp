@@ -1713,6 +1713,7 @@ static inline void event_write_direction(s_bitstream *stream, vector3f const *di
 }
 
 void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+void simulation_read_position(s_bitstream *stream, real *position, long bits);
 
 struct s_surface_damage_event_data
 {
@@ -1748,6 +1749,56 @@ void c_unit_grenade_release_event_definition::v9(long a, void const *data, s_bit
 	stream_write_checked(stream, event->type, 1);
 	simulation_write_position(&event->position.i, 16, stream, false);
 	function_194bc0(stream, &event->velocity);
+}
+
+// @retail 0x9f410
+bool c_unit_grenade_release_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_grenade_release_event_data *event = (s_unit_grenade_release_event_data *)data;
+	event->type = (short)function_1959c0(stream, 1);
+	simulation_read_position(stream, &event->position.i, 16);
+	dword direction = function_1959c0(stream, 17);
+	function_24f6b0(direction, &event->velocity);
+	if (event->type >= 0 && event->type < 2)
+		return true;
+	return false;
+}
+
+static inline long event_scenario_object_name(long index)
+{
+	s_event_scenario_view *scenario = (s_event_scenario_view *)g_4e0350;
+	long result = NONE;
+	if (scenario && scenario->object_name_count > 0)
+	{
+		if ((index < 0 ? 0 : (index > scenario->object_name_count - 1 ? scenario->object_name_count - 1 : index)) == index)
+			result = scenario->object_names[index];
+	}
+	return result;
+}
+
+// @retail 0x9cbc0
+bool c_breakable_surface_damage_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_surface_damage_event_data *event = (s_surface_damage_event_data *)data;
+	event->index0 = function_1959c0(stream, 10) - 1;
+	event->index4 = function_1959c0(stream, 8) - 1;
+	event->index8 = function_1959c0(stream, 17) - 1;
+	function_195820(stream, event->payload, 64);
+	event->no_direction = function_1957d0(stream);
+	if (!event->no_direction)
+	{
+		dword direction = function_1959c0(stream, 17);
+		function_24f6b0(direction, &event->direction);
+	}
+	else
+		event->direction = *g_4687b0;
+	simulation_read_position(stream, &event->position.i, 13);
+	long object_name = NONE;
+	long index = function_1959c0(stream, 9) - 1;
+	if (index != NONE)
+		object_name = event_scenario_object_name(index);
+	event->object_name = object_name;
+	return true;
 }
 
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))

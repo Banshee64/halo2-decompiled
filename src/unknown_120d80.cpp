@@ -7,6 +7,8 @@
 #include "unknown_11c920.h"
 #include "async.h"
 #include "unknown_120d80.h"
+#include "globals.h"
+#include "unknown_19d220.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -26,6 +28,80 @@ s_global_preferences_globals global_preferences_globals;
 long function_xf5684f(void const *a, void const *b, long size);
 
 void function_121120(void);
+
+bool __stdcall function_212c20(word const *name, s_game_variant *variant, long *file_index);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+
+struct s_preferences_name_entry
+{
+	byte unknown00[0x1c];
+	long string_index;
+};
+struct s_preferences_name_table
+{
+	long count;
+	s_preferences_name_entry *entries;
+};
+
+// @retail 0x120e70
+long __stdcall function_120e70(byte *buffer)
+{
+	long file_index = NONE;
+	if (!function_212c20((word const *)global_preferences_globals.current.names[4], (s_game_variant *)buffer, &file_index))
+	{
+		union
+		{
+			s_game_variant value;
+			unsigned __int64 alignment[0x130 / 8];
+		} defaults;
+		word name[0x100];
+		memset(&defaults.value, 0, sizeof(defaults.value));
+		name[0] = 0;
+		if (g_4e034c && g_4e034c->index != NONE)
+		{
+			s_preferences_name_table *table = (s_preferences_name_table *)g_4e3b44[g_4e034c->index & 0xffff].bytes;
+			if (table->entries->string_index != NONE)
+				function_1a0180(table->entries->string_index, 0xe000780, name);
+		}
+		s_game_variant &result = defaults.value;
+		wcsncpy(result.name, name, 0x1f);
+		result.name[0x1f] = 0;
+		result.field_xcb8724 = 2;
+		result.unknown03 = -1;
+		result.flags48 &= ~1;
+		result.flags48 = (result.flags48 & 0xffff8f9b) | 0xf9a;
+		result.unknown4c = 0;
+		result.unknown50 = 0x19;
+		result.unknown54 = 0x1e0;
+		result.unknown58 = 0;
+		result.unknown74 = 0x10;
+		result.unknown78 = 0x10;
+		result.unknown7c = 0;
+		result.unknown80 = 5;
+		result.unknown84 = 5;
+		result.unknown88 = 0;
+		result.unknowna4 = 0;
+		result.unknowna8 = 2;
+		result.unknownac = 10;
+		result.unknownb0 = 0;
+		result.unknowncc = 0;
+		result.unknowncd = 0;
+		result.unknownce = 0;
+		result.unknowncf = 0;
+		result.unknownd0 = 0;
+		result.unknownd1 = 0;
+		result.unknownd2 = 0;
+		result.unknownd3 = 0;
+		result.unknownd4 = 0;
+		result.unknownd5 = 0;
+		result.unknownd6 = 0;
+		result.unknownd7 = 0;
+		result.engine_flags = (result.engine_flags & ~5) | 2;
+		*(s_game_variant *)buffer = result;
+		return NONE;
+	}
+	return file_index;
+}
 
 // @retail 0x120d80
 void global_preferences_flush(void)
