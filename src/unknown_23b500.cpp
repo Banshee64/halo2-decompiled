@@ -147,31 +147,36 @@ real function_23b060(s_spawn_influence_list *list, point3f const *point)
 
 	if (game_engine_get())
 	{
-		for (long i = 0; i < list->count; i++)
+		long remaining = list->count;
+		if (remaining > 0)
 		{
-			s_spawn_influence *influence = &list->influences[i];
-			real weight = 0.0f;
-			real dy = point->y - influence->point.y;
-			real dx = point->x - influence->point.x;
-			real outer_radius = influence->value10;
-			real full_weight = influence->value1c;
-			real inner_radius = influence->value0c;
-			real dz = point->z - influence->point.z;
-			real distance_squared = dx * dx + dy * dy;
-
-			if (outer_radius * outer_radius > distance_squared &&
-				influence->value14 >= dz && dz >= -influence->value18)
+			real const *values = &list->influences[0].value10;
+			do
 			{
-				if (inner_radius * inner_radius > distance_squared || inner_radius >= outer_radius)
+				real weight = 0.0f;
+				real dy = point->y - values[-3];
+				real dx = point->x - values[-4];
+				real full_weight = values[3];
+				real outer_radius = values[0];
+				real inner_radius = values[-1];
+				real dz = point->z - values[-2];
+				real distance_squared = dx * dx + dy * dy;
+
+				if (outer_radius * outer_radius > distance_squared &&
+					values[1] >= dz && dz >= -values[2])
 				{
-					weight = full_weight;
+					if (inner_radius * inner_radius > distance_squared || inner_radius >= outer_radius)
+					{
+						weight = full_weight;
+					}
+					else
+					{
+						weight = (real)((1.0f - (sqrt(distance_squared) - inner_radius) / (outer_radius - inner_radius)) * full_weight);
+					}
 				}
-				else
-				{
-					weight = (real)((1.0f - (sqrt(distance_squared) - inner_radius) / (outer_radius - inner_radius)) * full_weight);
-				}
-			}
-			total += weight;
+				total += weight;
+				values += 8;
+			} while (--remaining);
 		}
 	}
 	return total;
@@ -330,7 +335,8 @@ public:
 	SPAWN_FILTER_SLOT(21) SPAWN_FILTER_SLOT(22) SPAWN_FILTER_SLOT(23)
 	SPAWN_FILTER_SLOT(24) SPAWN_FILTER_SLOT(25) SPAWN_FILTER_SLOT(26)
 	SPAWN_FILTER_SLOT(27) SPAWN_FILTER_SLOT(28) SPAWN_FILTER_SLOT(29)
-	SPAWN_FILTER_SLOT(30) SPAWN_FILTER_SLOT(31) SPAWN_FILTER_SLOT(32)
+	SPAWN_FILTER_SLOT(30) SPAWN_FILTER_SLOT(31)
+    virtual void collect(long player_index, s_spawn_influence_list *list) = 0;
 #undef SPAWN_FILTER_SLOT
 	virtual bool accepts(long player_index, s_spawn_zone_23b170 const *zone) = 0;
 };
@@ -436,6 +442,8 @@ struct s_spawn_engine_globals_view
 // @retail 0x23b8e0
 void function_23b8e0(long player_index, s_spawn_influence_list *list)
 {
+    /* Retail passes this parameter on the stack. */
+    long const *player_reference = &player_index;
 	s_spawn_player_view *player = &((s_spawn_player_view *)g_4e8c24->data)[player_index & 0xffff];
 	s_spawn_player_iterator iterator;
 
@@ -582,4 +590,50 @@ void function_23b500(long player_index, s_spawn_influence_list *list)
 			}
 		}
 	}
+}
+
+// @retail 0x23bc40
+void function_23bc40(long player_index, s_spawn_influence_list *list)
+{
+    list->count = 0;
+    if (game_engine_get())
+    {
+        function_23b170(player_index, list);
+        function_23b500(player_index, list);
+        function_23b8e0(player_index, list);
+        ((c_spawn_filter_23b170 *)game_engine_get())->collect(player_index, list);
+    }
+}
+
+bool function_1c5210(transform4x3f const *matrix, long excluded_component, void *shape, long filter);
+
+// @retail 0x23bb70
+bool function_23bb70(long tag_index, point3f const *position)
+{
+    bool result = true;
+    if (tag_index != NONE)
+    {
+        byte *definition = g_4e3b44[tag_index & 0xffff].bytes;
+        transform4x3f matrix;
+        matrix.scale = 1.f;
+        matrix.forward.i = 1.f;
+        matrix.forward.j = 0.f;
+        matrix.forward.k = 0.f;
+        matrix.left.i = 0.f;
+        matrix.left.k = 0.f;
+        matrix.left.j = 1.f;
+        matrix.up.i = 0.f;
+        matrix.up.j = 0.f;
+        matrix.up.k = 1.f;
+        matrix.position = *position;
+        matrix.position.z += 0.0701f;
+        void *shape;
+        if (*(long *)(definition + 0x28c))
+            shape = *(byte **)(definition + 0x290) + 0x20;
+        else
+            shape = *(byte **)(definition + 0x298) + 0x30;
+        if (function_1c5210(&matrix, NONE, shape, 9))
+            result = false;
+    }
+    return result;
 }

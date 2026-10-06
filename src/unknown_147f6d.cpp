@@ -699,7 +699,13 @@ long saved_film_size_in_blocks()
 // @retail 0x148d0d
 long minimal_storage_size_in_blocks()
 {
-	return saved_game_file_type_size_in_blocks(1) + saved_game_file_type_size_in_blocks(0) + saved_film_size_in_blocks() + 1;
+	long profile = saved_game_file_type_size_in_blocks(1);
+	long variant = saved_game_file_type_size_in_blocks(0);
+	long film = saved_film_size_in_blocks();
+	long total = profile;
+	total += variant;
+	total += film;
+	return total + 1;
 }
 
 void function_236299(long sound);
@@ -1027,8 +1033,10 @@ bool function_148c3e(long controller, long type)
 	g_55c154 = 0;
 	if (function_215f40(0, (byte *)name))
 	{
-		unicode_string_copy(g_54e5d0.settings.name, name, 0x20);
-		function_238c21(controller, type, g_54e5d0.settings.name, 0x20);
+		long maximum_count = 0x20;
+		long const *maximum_reference = &maximum_count;
+		unicode_string_copy(g_54e5d0.settings.name, name, *maximum_reference);
+		function_238c21(controller, type, g_54e5d0.settings.name, maximum_count);
 		result = true;
 	}
 	else
@@ -1400,4 +1408,66 @@ void __stdcall function_1483c3(long reason)
 	}
 done:
 	g_54e7cd = false;
+}
+
+extern bool g_54d5a0;
+extern char g_54d5a8;
+extern real g_54d5ac, g_54d5b0, g_54d5b4;
+extern bool g_54e7cc;
+extern dword g_54e7fc;
+void function_18f58c();
+
+// @retail 0x1476c7
+void function_1476c7()
+{
+    *(long *)g_54d598.unknown00 = NONE;
+    g_54d598.active = false;
+    g_54d598.unknown05[0] = false;
+    g_54d598.unknown05[1] = false;
+    g_54d598.unknown05[2] = false;
+    g_54d5a0 = false;
+    g_54d598.m0c = 0;
+    g_54d5a8 = (char)0xff;
+    g_54d5ac = 0.f;
+    g_54d5b0 = 0.f;
+    g_54d5b4 = 0.f;
+    g_54d598.default_window.clear();
+    for (long i = 0; i < 5; i++)
+    {
+        ((c_window_channel *)&g_54d598.windows_5[i])->clear();
+        g_54d598.windows_5[i].m4 = i;
+        ((c_window_channel *)&g_54d598.windows_3[i])->clear();
+        g_54d598.windows_3[i].m4 = i;
+        ((c_window_channel *)&g_54d598.windows_1[i])->clear();
+        g_54d598.windows_1[i].m4 = i;
+        if (i == 4)
+        {
+            g_54d598.window_0.c_window_channel::clear();
+            g_54d598.window_0.m4 = i;
+            g_54d598.window_4.c_window_channel::clear();
+            g_54d598.window_4.m4 = i;
+            g_54d598.window_2.c_window_channel::clear();
+            g_54d598.window_2.m4 = i;
+        }
+    }
+    function_18f58c();
+    memset(&g_54d598.settings, 0, sizeof(g_54d598.settings));
+    g_54d598.team_task = NONE;
+    g_54d598.task750 = NONE;
+    memset(&g_54d598.m754, 0, sizeof(g_54d598.m754));
+    memset(&g_54d598.mdf6, 0, sizeof(g_54d598.mdf6));
+    memset(g_54d598.unknowne88, 0, sizeof(g_54d598.unknowne88));
+    g_54d598.m1220 = false;
+    g_54e7cc = false;
+    g_54e7fc = 0;
+    memset(&g_4ee4c4, 0, sizeof(g_4ee4c4));
+    g_54d5a0 = false;
+    g_54e49c = NONE;
+    g_54e5d0.player = NONE;
+    g_54e5d0.profile_index = NONE;
+    g_54d598.m1224 = NONE;
+    g_54d598.m1228 = NONE;
+    g_54d598.m122c = NONE;
+    g_54d598.m1230 = NONE;
+    memset(g_54d598.unknown1234 + 2, 0, 0x10);
 }

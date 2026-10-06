@@ -344,32 +344,34 @@ void __stdcall parse_hopper_description(long string_handle, word *buffer)
 }
 
 // @retail 0x22d62b
-void __stdcall parse_motion_sensor_enabled(long string_handle, word *buffer)
+void __stdcall parse_motion_sensor_enabled(long string_handle, word *volatile buffer)
 {
 	s_game_variant *variant = (s_game_variant *)network_session_interface_get_data_4db0();
+	word *output = buffer;
 
 	if (variant && TEST_FIELD_BIT(variant->motion_sensor_enabled))
 	{
-		function_23620d(0x2000181, buffer);
+		function_23620d(0x2000181, output);
 	}
 	else
 	{
-		function_23620d(0x3000182, buffer);
+		function_23620d(0x3000182, output);
 	}
 }
 
 // @retail 0x22d655
-void __stdcall parse_teams_enabled(long string_handle, word *buffer)
+void __stdcall parse_teams_enabled(long string_handle, word *volatile buffer)
 {
 	s_game_variant *variant = (s_game_variant *)network_session_interface_get_data_4db0();
+	word *output = buffer;
 
 	if (variant && TEST_FIELD_BIT(variant->teams_enabled))
 	{
-		function_23620d(0x7000183, buffer);
+		function_23620d(0x7000183, output);
 	}
 	else
 	{
-		function_23620d(0x8000184, buffer);
+		function_23620d(0x8000184, output);
 	}
 }
 
@@ -595,30 +597,35 @@ print_real:
 // @retail 0x22d93b
 void __stdcall parse_active_multiplayer_protocol(long string_handle, word *buffer)
 {
+	long name_id;
 	switch (function_19989d())
 	{
 	case 0:
-		g_55cae8 = 0x100005be;
+		name_id = 0x100005be;
 		break;
 	case 1:
-		g_55cae8 = 0x120005c0;
+		name_id = 0x120005c0;
 		break;
 	case 2:
-		g_55cae8 = 0x100005c1;
+		name_id = 0x100005c1;
 		break;
 	case 3:
-		g_55cae8 = 0x120005c3;
+		name_id = 0x120005c3;
 		break;
 	case 4:
-		g_55cae8 = 0x90005c4;
+		name_id = 0x90005c4;
 		break;
 	case 5:
-		g_55cae8 = 0xb0005c6;
+		name_id = 0xb0005c6;
 		break;
 	case 6:
-		g_55cae8 = 0xe0005c8;
+		name_id = 0xe0005c8;
 		break;
+	default:
+		goto unchanged;
 	}
+	g_55cae8 = name_id;
+unchanged:
 	function_23620d(g_55cae8, buffer);
 }
 // @retail 0x22d99e
@@ -672,9 +679,12 @@ void __stdcall parse_hud_betraying_player(long string_handle, word *buffer)
 }
 
 // @retail 0x22da65
-void __stdcall parse_hud_scoreboard(long string_handle, word *buffer)
+void __stdcall parse_hud_scoreboard(volatile long string_handle, word *volatile buffer)
 {
-	function_13934d((s_name_buffer *)buffer, string_handle);
+    /* Read the buffer before the token. */
+    s_name_buffer *output = (s_name_buffer *)buffer;
+    long token = string_handle;
+    function_13934d(output, token);
 }
 
 // @retail 0x22da75
@@ -1122,25 +1132,24 @@ struct s_clan_view
 };
 #pragma pack(pop)
 
-/* whether the window manager targets a player */
-static inline bool target_player_valid(s_target_player *target)
-{
-	function_14887e((s_screen_settings_54dc6c *)target);
-	switch (target->type)
-	{
-	case 1:
-	case 2:
-		return target->xuid != 0;
-	}
-	return false;
-}
-
 // @retail 0x22dfa9
 void __stdcall parse_target_player_clan_name(long string_handle, word *buffer)
 {
 	s_target_player target;
 
-	if (target_player_valid(&target))
+	function_14887e((s_screen_settings_54dc6c *)&target);
+	switch (target.type)
+	{
+	case 1:
+		if (target.xuid) goto selected;
+		return;
+	case 2:
+		if (target.xuid) goto selected;
+		return;
+	default:
+		return;
+	}
+selected:
 	{
 		s_player_identity_view identity;
 		s_clan_view clan;
@@ -1156,23 +1165,34 @@ void __stdcall parse_target_player_clan_name(long string_handle, word *buffer)
 // @retail 0x22e001
 void __stdcall parse_target_player_game_title_name(long string_handle, word *buffer)
 {
-	s_target_player target;
-
-	if (target_player_valid(&target))
+	DWORD title_id;
+	bool online;
+	bool joinable;
+	bool playing;
+	dword state;
 	{
-		bool online;
-		bool joinable;
-		bool playing;
-		DWORD title_id;
-		dword state;
-		word local_f9a479[0x40];
-
-		friends_lists_get_user((XUID const *)&target.xuid, &online, &joinable, &state, &title_id, &playing, 0);
-		if (title_id)
+		s_target_player target;
+		function_14887e((s_screen_settings_54dc6c *)&target);
+		switch (target.type)
 		{
-			title_name_get((wchar_t *)local_f9a479, NUMBEROF(local_f9a479), title_id);
-			parse_copy(buffer, local_f9a479);
+		case 1:
+			if (target.xuid) goto selected;
+			return;
+		case 2:
+			if (target.xuid) goto selected;
+			return;
+		default:
+			return;
 		}
+selected:
+		friends_lists_get_user((XUID const *)&target.xuid, &online, &joinable,
+			&state, &title_id, &playing, 0);
+	}
+	if (title_id)
+	{
+		word title[0x40];
+		title_name_get((wchar_t *)title, NUMBEROF(title), title_id);
+		parse_copy(buffer, title);
 	}
 }
 
@@ -1235,13 +1255,13 @@ void __stdcall parse_live_ui_driver_clan_level(long string_handle, word *buffer)
 // @retail 0x22e148
 void __stdcall parse_hour(long string_handle, word *buffer)
 {
-	word hour = g_54e7ce.wHour;
+	short hour = g_54e7ce.wHour;
 
-	if (string_handle == 0xe43e && hour > 12)
+	if (string_handle == 0xe43e && (word)hour > 12)
 	{
 		hour -= 12;
 	}
-	function_1630e0(buffer, (const word *)L"%d", hour);
+	function_1630e0(buffer, (const word *)L"%d", (word)hour);
 }
 
 // @retail 0x22e179

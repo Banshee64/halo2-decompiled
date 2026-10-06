@@ -277,6 +277,9 @@ double __stdcall function_2b480(real value)
 	return floor(value);
 }
 
+/* Preserve the retail call boundary used by 0x2c2a70. */
+__declspec(noinline) real normalize2d(point2f *v);
+
 // @retail 0x2b400
 real normalize2d(point2f *v)
 {

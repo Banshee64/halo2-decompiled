@@ -66,6 +66,7 @@ void __stdcall function_148893(s_name_request *request, long flag);
 /* a player of the statistics (0x114 bytes) */
 struct s_postgame_player
 {
+	s_postgame_player();
 	word name[0x20];
 	word team_name[0x10];
 	long value60;
@@ -98,6 +99,14 @@ struct s_player_ref
 };
 
 /* the players of the statistics, and how many there are */
+// @retail 0x232d54
+s_postgame_player::s_postgame_player()
+{
+	name[0] = 0;
+	team_name[0] = 0;
+	texte0[0] = 0;
+}
+
 s_postgame_player g_55caf0[16];
 long g_51ec08;
 /* the count of the first tab's rows */
@@ -120,7 +129,6 @@ public:
 	virtual void fill_row(c_class_1a2c81 *item, long row) {}
 	virtual void handle_item(s_controller_reference **controller, long *item);
 
-	void show_voice_icon(long row, c_class_1a2c81 *item);
 	void show_row(long row, c_class_1a2c81 *item);
 
 	c_class_14750b items[0x10];
@@ -535,12 +543,21 @@ void c_postgame_statistics_screen_459890::v18(void *parameters)
 /* a player of the first tab (0x84 bytes) */
 struct s_postgame_team
 {
+	s_postgame_team();
 	word name[0x20];
 	word score[0x10];
 	short unknown60;
 	short color_index;
 	word place[0x10];
 };
+
+// @retail 0x232d67
+s_postgame_team::s_postgame_team()
+{
+	name[0] = 0;
+	score[0] = 0;
+	place[0] = 0;
+}
 
 s_postgame_team g_55dc30[16];
 
@@ -737,8 +754,10 @@ void c_postgame_statistics_list::show_row(long row, c_class_1a2c81 *item)
 
 /* the player's voice icon on the item */
 // @retail 0x233fd5
-void c_postgame_statistics_list::show_voice_icon(long row, c_class_1a2c81 *item)
+void function_233fd5(c_postgame_statistics_list *list, long row, c_class_1a2c81 *item)
 {
+	/* Retail passes the unused list pointer before the item on the stack. */
+	c_postgame_statistics_list **list_reference = &list;
 	c_class_1a2c81 *bitmap = item->find_child(8, 0, false);
 
 	if (bitmap)
@@ -906,33 +925,36 @@ void c_postgame_statistics_list_459750::fill_row(c_class_1a2c81 *item, long row)
 	c_class_1a2c81 *place = item->find_child(6, 1, false);
 	c_class_1a2c81 *score = item->find_child(6, 2, false);
 	c_class_1a2c81 *bitmap = item->find_child(8, 0, false);
-	color3f bitmap_color;
-	color3f color;
-	hsv3f hsv;
+	struct
+	{
+		color3f bitmap_color;
+		color3f color;
+		hsv3f hsv;
+	} colors;
 
-	bitmap_color = *function_7f720(&color, g_55dc30[row].color_index);
-	function_1318d0(&bitmap_color, &hsv);
-	hsv.saturation = 0.20833333f;
-	hsv.value = 0.79166669f;
-	function_131a00(&hsv, &color);
+	colors.bitmap_color = *function_7f720(&colors.color, g_55dc30[row].color_index);
+	function_1318d0(&colors.bitmap_color, &colors.hsv);
+	colors.hsv.saturation = 0.20833333f;
+	colors.hsv.value = 0.79166669f;
+	function_131a00(&colors.hsv, &colors.color);
 	if (name)
 	{
 		name->function_22f52e()->set_text(g_55dc30[row].name);
-		name->color = color;
+		name->color = colors.color;
 	}
 	if (place)
 	{
 		place->function_22f52e()->set_text(g_55dc30[row].place);
-		place->color = color;
+		place->color = colors.color;
 	}
 	if (score)
 	{
 		score->function_22f52e()->set_text(g_55dc30[row].score);
-		score->color = color;
+		score->color = colors.color;
 	}
 	if (bitmap)
 	{
-		bitmap->color = bitmap_color;
+		bitmap->color = colors.bitmap_color;
 		bitmap->value6e = true;
 	}
 }
@@ -1298,7 +1320,7 @@ void c_postgame_statistics_list::v20(c_class_1a2c81 *item, long unused)
 					}
 					else
 					{
-						show_voice_icon(row, item);
+						function_233fd5(this, row, item);
 					}
 				}
 			}

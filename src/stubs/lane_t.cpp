@@ -20,12 +20,6 @@ void function_3f660(transform4x3f const *matrix)
 {
 }
 
-/* lane Q's region */
-// @stub 0x1554b0
-void function_1554b0(long unknown)
-{
-}
-
 // @stub 0x16ebf0
 void function_16ebf0(long user_index)
 {
@@ -60,14 +54,6 @@ void function_12b6f0(real progress)
 /* lane O's region */
 // @stub 0x246c60
 void function_246c60(void *block, long unknown)
-{
-}
-
-/* the UI lane's region; retail passes the object in ecx */
-/* the UI lane's region; retail passes the command in eax and the object in ecx */
-struct s_observer_command;
-// @stub 0x23c0e0
-void function_23c0e0(long object_index, s_observer_command *command)
 {
 }
 

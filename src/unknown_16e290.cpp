@@ -1124,6 +1124,8 @@ struct s_16f190_observer
 
 void function_172520(s_observer_command *command);
 
+__declspec(noinline) void function_16f190(long user_index, s_observer_command *command);
+
 // @retail 0x16f190
 void function_16f190(long user_index, s_observer_command *command)
 {

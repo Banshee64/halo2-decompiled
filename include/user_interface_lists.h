@@ -703,6 +703,8 @@ public:
 class c_level_select_screen : public c_screen_with_menu
 {
 public:
+	virtual void v2();
+	virtual void v18(void *parameters);
 	c_level_select_screen(long a, long b, word user_flags, bool alternate);
 
 	/* shows the focused level's picture and description */

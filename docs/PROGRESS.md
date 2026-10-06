@@ -2,6 +2,34 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6567 functions match
+
+```
+matched 6567 of 11318 game functions (708667 of 2784283 bytes, 25.45%)
+```
+
+6567 new matches, none lost:
+- Codex lane Q round 6: 0x150820, 0x151c10 and 0x151c90.
+
+## 2026-10-06: 6564 functions match
+
+```
+matched 6564 of 11318 game functions (707829 of 2784283 bytes, 25.42%)
+```
+
+6564 new matches, none lost:
+- Codex UI-core lane rounds 5 and 6: 27 matches in the UI core (0x22d0e3 to 0x23c0e0, plus 0x1489b5 and 0x148c3e).
+
+## 2026-10-06: 6537 functions match
+
+```
+matched 6537 of 11318 game functions (704840 of 2784283 bytes, 25.31%)
+```
+
+6537 new matches, none lost:
+- Codex UI-screens lane round 6: 0x2b635f, 0x2b9670, 0x2be650, 0x2c5224 and 0x2c52af.
+- Codex lane D round 25: 0x53610 and 0x56b70.
+
 ## 2026-10-06: 6530 functions match
 
 ```

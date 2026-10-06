@@ -339,29 +339,31 @@ long c_keyboard_key_widget::v17()
 	case 0x29:
 		if ((bool)(keyboard->key_flags & 1))
 		{
-			return 1;
+			goto active;
 		}
-		break;
+		return c_class_19b8b1::v17();
 	case 0x2a:
 		if ((bool)(((dword)(char)keyboard->key_flags >> 1) & 1))
 		{
-			return 1;
+			goto active;
 		}
-		break;
+		return c_class_19b8b1::v17();
 	case 0x2b:
 		if ((bool)(((dword)(char)keyboard->key_flags >> 2) & 1))
 		{
-			return 1;
+			goto active;
 		}
-		break;
+		return c_class_19b8b1::v17();
 	case 0x2c:
 		if ((bool)(((dword)(char)keyboard->key_flags >> 3) & 1))
 		{
-			return 1;
+			goto active;
 		}
-		break;
+		return c_class_19b8b1::v17();
 	}
 	return c_class_19b8b1::v17();
+active:
+	return 1;
 }
 
 // @retail 0x23784f

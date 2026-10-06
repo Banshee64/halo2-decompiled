@@ -137,8 +137,7 @@ done:
 }
 
 
-// @retail 0x1518f0
-bool function_1518f0(s_target_candidate *candidate, dword type_mask)
+static __forceinline bool player_candidate_has_type(s_target_candidate *candidate, dword type_mask)
 {
 	bool result = false;
 	long object_index = candidate->object_index;
@@ -150,6 +149,14 @@ bool function_1518f0(s_target_candidate *candidate, dword type_mask)
 		result = (type_mask & (1 << header->type)) != 0;
 	}
 	return result;
+}
+
+__declspec(noinline) bool function_1518f0(s_target_candidate *candidate, dword type_mask);
+
+// @retail 0x1518f0
+bool function_1518f0(s_target_candidate *candidate, dword type_mask)
+{
+	return player_candidate_has_type(candidate, type_mask);
 }
 
 // @retail 0x1520f0
@@ -916,4 +923,440 @@ void function_1509e0(long player_index, long weapon_index, bool *modes)
 			}
 		}
 	}
+}
+
+#include "unit_requests.h"
+
+void function_a90e0(long first, long second);
+void function_a9030(long index, short slot);
+void function_a8f80(long index, short slot);
+bool __stdcall function_cd4e0(long unit_index, short hand, bool flag);
+struct s_16e150_bits;
+void function_16de20(short index, s_16e150_bits const *table, dword *output);
+
+// @retail 0x151c10
+bool function_151c10(long player_index, s_target_candidate *candidate)
+{
+	s_tail_player *player = tail_player_get(player_index);
+	bool result = false;
+	if (candidate->priority == 8 && function_1518f0(candidate, 2))
+	{
+		if (g_4e6948->mode == 4)
+			function_a90e0(player->unit_index, candidate->object_index);
+		else
+		{
+			s_unit_request request;
+			request.type = 0x21;
+			*(long *)request.arguments = player->unit_index;
+			function_e6900(candidate->object_index, &request);
+		}
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x151b80
+bool function_151b80(long player_index, bool primary)
+{
+	long unit_index = tail_player_get(player_index)->unit_index;
+	bool result = false;
+	if (unit_index != NONE)
+	{
+		long hand = !primary;
+		s_player_pickup_unit *unit = (s_player_pickup_unit *)tail_object_get(unit_index);
+		short slot = unit->held_slots[hand];
+		if (slot != NONE && unit->weapons[slot] != NONE)
+		{
+			if (g_4e6948->mode == 4)
+			{
+				function_a9030(unit_index, hand);
+				result = true;
+			}
+			else
+				result = function_e68c0(primary ? 9 : 0x13, unit_index);
+		}
+	}
+	return result;
+}
+
+// @retail 0x150820
+void function_150820(dword *bits, bool local_only)
+{
+    s_match_globals *table = g_4e0348;
+    s_record_pool_iterator iterator;
+    iterator.data = g_4e8c24;
+    iterator.index = NONE;
+    s_tail_player *player;
+    while ((player = (s_tail_player *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        if (local_only && player->local_index == NONE) continue;
+        short cluster = *(short *)player->unknown2a;
+        if (cluster != NONE)
+        {
+            dword cluster_bits[16];
+            function_16de20(cluster, (s_16e150_bits const *)table, cluster_bits);
+            for (long word_index = ((table->list_count + 31) >> 5) - 1; word_index >= 0; --word_index)
+                bits[word_index] |= cluster_bits[word_index];
+        }
+    }
+}
+
+// @retail 0x151aa0
+bool function_151aa0(long player_index, bool primary)
+{
+	s_tail_player *player = tail_player_get(player_index);
+	bool result = false;
+	if (player->unit_index != NONE)
+	{
+		long hand = !primary;
+		s_player_pickup_unit *unit = (s_player_pickup_unit *)tail_object_get(player->unit_index);
+		short slot = unit->held_slots[hand];
+		if (slot != NONE)
+		{
+			long weapon_index = unit->weapons[slot];
+			bool modes[4];
+			if (weapon_index != NONE && function_cd7b0(player->unit_index, weapon_index, modes) && modes[hand])
+			{
+				if (g_4e6948->mode == 4)
+				{
+					function_a8f80(player->unit_index, hand);
+					result = true;
+				}
+				else if (function_cd4e0(player->unit_index, hand, false))
+					result = true;
+			}
+		}
+	}
+	return result;
+}
+
+void function_a8f10(long index, long target, short value);
+bool function_138880(void);
+
+// @retail 0x151940
+bool function_151940(long player_index, s_target_candidate *candidate, bool primary)
+{
+	s_tail_player *player = tail_player_get(player_index);
+	bool result = false;
+	if ((candidate->priority == 1 || candidate->priority == 7) && player_candidate_has_type(candidate, 4))
+	{
+		long weapon_index = candidate->object_index;
+		s_player_pickup_object *weapon = (s_player_pickup_object *)tail_object_get(weapon_index);
+		bool modes[4];
+		if (*(long *)((byte *)weapon + 0x154) == NONE && function_cd7b0(player->unit_index, weapon_index, modes))
+		{
+			short mode;
+			if (primary)
+			{
+				if (modes[0]) mode = 3;
+				else if (modes[2]) mode = 4;
+				else goto done;
+			}
+			else
+			{
+				if (modes[1]) mode = 5;
+				else if (modes[3]) mode = 6;
+				else goto done;
+			}
+			if (function_138880())
+			{
+				function_a8f10(player->unit_index, weapon_index, mode);
+				result = true;
+			}
+			else
+			{
+				s_unit_request request;
+				memset(&request, 0, sizeof(request));
+				request.type = 0x14;
+				*(long *)request.arguments = weapon_index;
+				*(short *)(request.arguments + 4) = mode;
+				if (function_e6900(player->unit_index, &request)) result = true;
+			}
+		}
+	}
+ done:
+	return result;
+}
+
+void function_a9180(long first, long second);
+void function_a9340(long first, long second, short seat);
+bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *blocker_index, bool *grouped);
+void function_107840(long device_index, long unit_index);
+bool function_1c9500(long unit_index, long actor_index, bool notify);
+void function_1e8f60(long player_index);
+
+// @retail 0x151c90
+bool function_151c90(long player_index, s_target_candidate *candidate)
+{
+	s_tail_player *player = tail_player_get(player_index);
+	bool result = false;
+	switch (candidate->priority)
+	{
+	case 3:
+		if (function_1518f0(candidate, 0x380))
+		{
+			if (g_4e6948->mode == 4)
+				function_a9180(player->unit_index, candidate->object_index);
+			else
+				function_107840(candidate->object_index, player->unit_index);
+			function_1e8f60(player_index);
+			result = true;
+		}
+		break;
+	case 4:
+	case 5:
+	case 6:
+		if (function_1518f0(candidate, 3))
+		{
+			short seat = *(short *)&candidate->flags;
+			if (seat >= 0)
+			{
+				long target = candidate->object_index;
+				long definition = *(long *)tail_object_get(target);
+				byte *tag = g_4e3b44[definition & 0xffff].bytes;
+				if (seat < *(long *)(tag + 0x1c8))
+				{
+					long blocker = NONE;
+					bool grouped;
+					if (function_c92c0(player->unit_index, target, seat, &blocker, &grouped))
+					{
+						if (function_138880())
+							function_a9340(player->unit_index, candidate->object_index, seat);
+						else
+						{
+							s_unit_request request;
+							request.type = 0x1c;
+							request.type1c.object_index = candidate->object_index;
+							request.type1c.seat_index = seat;
+							request.type1c.unknowna = false;
+							request.type1c.unknownb = false;
+							function_e6900(player->unit_index, &request);
+						}
+						result = true;
+					}
+					else if (blocker != NONE)
+					{
+						byte *unit = (byte *)tail_object_get(blocker);
+						if (!function_138880() && *(long *)(unit + 0x12c) != NONE)
+							function_1c9500(player->unit_index, *(long *)(unit + 0x12c), true);
+						result = true;
+					}
+				}
+			}
+		}
+		break;
+	case 2:
+		if (g_4e6948->mode != 4)
+		{
+			s_unit_request request;
+			request.type = 0x15;
+			*(long *)request.arguments = player_index;
+			result = function_e6900(candidate->object_index, &request);
+		}
+		break;
+	}
+	return result;
+}
+
+struct s_player_rebind_option
+{
+    bool active;
+    byte unknown01;
+    short local_index;
+    long controller_index;
+    byte unknown08[6];
+    byte identifier[12];
+    byte unknown1a[0xe4 - 0x1a];
+};
+struct s_16658d_group;
+extern s_16658d_group *g_4e9bc8;
+void __stdcall function_167e86(long user_index, long hand);
+void __stdcall player_set_local_user(long player_index, long user_index);
+void __stdcall function_14f270(long player_index, long controller_index);
+
+// @retail 0x152f80
+void __stdcall function_152f80(void *address, void *option_data)
+{
+    byte const *machine_address = (byte const *)address;
+    s_player_rebind_option const *options = (s_player_rebind_option const *)option_data;
+    long controllers[16] = { NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE };
+    long users[16] = { NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE };
+    long assigned[16] = { NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE };
+    dword options_used = 0;
+    dword users_used = 0;
+    dword controllers_used = 0;
+    s_record_pool_iterator iterator;
+    s_tail_player *player;
+    iterator.data = g_4e8c24;
+    for (long pass = 0; pass < 4; pass++)
+    {
+        iterator.index = NONE;
+        while ((player = (s_tail_player *)data_iterator_next_inlined(&iterator)) != 0)
+        {
+            long index = (short)iterator.datum_index;
+            if (assigned[index] != NONE) continue;
+            for (long option = 0; option < 16; option++)
+            {
+                s_player_rebind_option const *entry = &options[option];
+                if (!entry->active || (options_used & (1 << option))) continue;
+                switch (pass)
+                {
+                case 0:
+                    if (player->local_index == NONE || memcmp(entry->identifier, player->unknown04, 12)) continue;
+                    break;
+                case 1:
+                    if (player->local_index == NONE || entry->controller_index != player->controller_index) continue;
+                    break;
+                case 2:
+                    if (player->local_index != NONE) continue;
+                    break;
+                case 3:
+                    break;
+                default:
+                    __assume(0);
+                }
+                users[index] = entry->local_index;
+                assigned[index] = option;
+                controllers[index] = entry->controller_index;
+                options_used |= 1 << option;
+                users_used |= 1 << entry->local_index;
+                controllers_used |= 1 << entry->controller_index;
+                break;
+            }
+        }
+    }
+    iterator.index = NONE;
+    while ((player = (s_tail_player *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        long index = (short)iterator.datum_index;
+        if (assigned[index] != NONE || player->local_index == NONE) continue;
+        long controller = NONE;
+        long user = NONE;
+        for (long pass = 0; pass < 3; pass++)
+        {
+            if (controller != NONE) break;
+            for (long candidate = 0; candidate != NONE; candidate = candidate >= 0 && candidate < 3 ? candidate + 1 : NONE)
+            {
+                if (!(controllers_used & (1 << candidate)) &&
+                    (pass > 0 || candidate == player->controller_index) &&
+                    (pass > 1 || g_4e61cc[(short)candidate]))
+                {
+                    controller = candidate;
+                    break;
+                }
+            }
+        }
+        for (long pass = 0; pass < 2; pass++)
+        {
+            if (user != NONE) break;
+            for (long candidate = 0; candidate < 4; candidate++)
+            {
+                if (!(users_used & (1 << candidate)) && (pass > 0 || candidate == player->local_index))
+                {
+                    user = candidate;
+                    break;
+                }
+            }
+        }
+        controllers[index] = controller;
+        users[index] = user;
+        users_used |= 1 << user;
+        controllers_used |= 1 << controller;
+    }
+    byte *globals = (byte *)g_4e8c20;
+    if (*(long *)(globals + 0x98) != NONE)
+    {
+        iterator.index = NONE;
+        while ((player = (s_tail_player *)data_iterator_next_inlined(&iterator)) != 0)
+            if (player->local_index != NONE) memcpy(player->machine_address, machine_address, 6);
+        memcpy(globals + 0x91, machine_address, 6);
+        memcpy(globals + 0x30 + *(long *)(globals + 0x98) * 6, machine_address, 6);
+    }
+    else
+    {
+        globals[0x90] = 1;
+        memcpy(globals + 0x91, machine_address, 6);
+        *(long *)(globals + 0x98) = 0;
+        *(dword *)(globals + 0x2c) |= 1;
+        memcpy(globals + 0x30, machine_address, 6);
+    }
+    iterator.data = g_4e8c24;
+    iterator.index = NONE;
+    while ((player = (s_tail_player *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        long index = (short)iterator.datum_index;
+        if (player->local_index != NONE && (player->local_index != users[index] || player->controller_index != controllers[index]))
+        {
+            s_tail_player *local = tail_player_get(iterator.datum_index);
+            if (local->local_index != NONE)
+            {
+                player_control_set_unit(local->local_index, NONE);
+                long user = local->local_index;
+                byte *state = (byte *)g_4e9bc8 + user * 0x20cc;
+                if (*(long *)(state + 4) != NONE)
+                {
+                    for (long hand = 0; hand < 2; hand++)
+                    {
+                        dword *flags = (dword *)(state + 0xc + hand * 0x1010);
+                        if (*flags & 1) *flags &= ~1;
+                    }
+                    *(dword *)state &= ~1;
+                    *(long *)(state + 4) = NONE;
+                    *(long *)(state + 8) = NONE;
+                    for (long hand = 0; hand < 2; hand++) function_167e86(user, hand);
+                }
+                s_player_census_counts *census = (s_player_census_counts *)g_4e8c20;
+                census->users[local->local_index] = NONE;
+                census->user_count--;
+                local->local_index = NONE;
+            }
+            s_tail_player *local_controller = tail_player_get(iterator.datum_index);
+            if (local_controller->controller_index != NONE)
+            {
+                s_player_census_counts *census = (s_player_census_counts *)g_4e8c20;
+                census->controllers[local_controller->controller_index] = NONE;
+                census->controller_count--;
+                local_controller->controller_index = NONE;
+            }
+            player->machine_user = NONE;
+            player->machine_controller = NONE;
+        }
+    }
+    iterator.data = g_4e8c24;
+    iterator.index = NONE;
+    while ((player = (s_tail_player *)data_iterator_next_inlined(&iterator)) != 0)
+    {
+        long index = (short)iterator.datum_index;
+        if (users[index] == NONE) continue;
+        memcpy(player->machine_address, machine_address, 6);
+        player->machine_index = (short)*(long *)((byte *)g_4e8c20 + 0x98);
+        if (player->local_index == NONE)
+        {
+            player->machine_user = (short)users[index];
+            player->machine_controller = controllers[index];
+            player_set_local_user(iterator.datum_index, player->machine_user);
+            s_tail_player *local = tail_player_get(iterator.datum_index);
+            long controller = player->machine_controller;
+            if (local->controller_index != controller)
+            {
+                if (controller == NONE)
+                {
+                    s_player_census_counts *census = (s_player_census_counts *)g_4e8c20;
+                    census->controllers[local->controller_index] = NONE;
+                    census->controller_count--;
+                    local->controller_index = NONE;
+                }
+                else
+                {
+                    function_14f270(iterator.datum_index, NONE);
+                    local->controller_index = controller;
+                    s_player_census_counts *census = (s_player_census_counts *)g_4e8c20;
+                    census->controllers[controller] = iterator.datum_index;
+                    census->controller_count++;
+                }
+            }
+        }
+        s_player_slot *slot = &g_54e8e0[player->controller_index];
+        if (TEST_FIELD_BIT(slot->flag4)) *(long *)slot->unknown004 = player->local_index;
+    }
 }
