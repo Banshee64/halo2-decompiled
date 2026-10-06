@@ -26,7 +26,7 @@ struct s_network_message_gateway
 	virtual bool read_packet(const s_type_99af70 *address, s_bitstream *stream);
 	byte unknown04[4];
 	c_class_93590 *link;
-	c_type_659ceb *message_types;
+	c_type_659ceb *field_c_7;
 	c_class_938e0 *handler;
 	bool outgoing_packet_pending;
 	byte unknown15[3];
@@ -95,7 +95,7 @@ bool s_network_message_gateway::read_packet(const s_type_99af70 *address, s_bits
 		{
 			long type = NONE;
 			long size = 0;
-			c_type_659ceb *collection = message_types;
+			c_type_659ceb *collection = field_c_7;
 			bool decoded = false;
 			if (network_message_read_header(stream, &type, collection, &size))
 			{
