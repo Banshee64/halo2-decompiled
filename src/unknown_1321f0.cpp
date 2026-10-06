@@ -4,6 +4,7 @@
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
 #include "globals.h"
+#include "object_queries.h"
 #include <math.h>
 #include <string.h>
 #include <xtl.h>
@@ -116,6 +117,8 @@ public:
 		shorts_d = NULL;
 	}
 	void swap(short index0, short index1);
+	bool add(long a, short b, long c, short d);
+	short find(long a);
 
 	long maximum_count;
 	short count;
@@ -135,7 +138,7 @@ struct s_bit_vector_pool_sizes
 struct s_bit_vector_pool
 {
 	void *context;
-	byte unknown004[8];
+	s_location location;
 	c_entry_list *lists[4];
 	long indices[0x80];
 	dword flags[0x10];
@@ -144,16 +147,157 @@ struct s_bit_vector_pool
 	word entry_count;
 	dword entries[0x200][4];
 	dword flags2a60;
-	byte unknown2a64[0x2a88 - 0x2a64];
+	short frustum_count;
+	byte unknown2a66[2];
+	point3f center;
+	real radius;
+	long mode;
+	long query_type;
+	byte unknown2a80[4];
+	real plane_offset;
 	plane3f plane;
-	byte unknown2a98[0x2acc - 0x2a98];
+	long counters[13];
 	byte *records;
-	byte unknown2ad0[4];
+	void *filter;
 	s_bit_vector_pool_sizes sizes;
 };
 
 /* the records are 0x9c bytes each */
 #define k_bit_vector_pool_record_size 0x9c
+
+struct s_frustum_set_view;
+bool function_165010(s_frustum_set_view const *set, long section_index, point3f const *center, real radius, bool *contained);
+long function_461c0(point3f const *a, point3f const *b, real radius);
+bool function_c3110(long index);
+bool function_c3140(long index);
+extern s_record_pool *g_4e030c;
+extern long g_4e0308;
+
+struct s_132a30_light
+{
+	byte unknown00[0xc];
+	long stamp;
+	byte unknown10[8];
+	point3f center;
+	real radius;
+	byte unknown28[0x110 - 0x28];
+};
+
+// @retail 0x132a30
+void function_132a30(s_bit_vector_pool *data, long index, long section_index, bool visible)
+{
+	if (function_c3140(index))
+	{
+		s_132a30_light *light = &((s_132a30_light *)g_4e030c->data)[index & 0xffff];
+		if (light->stamp != g_4e0308)
+		{
+			if (!visible)
+			{
+				point3f center = light->center;
+				real radius = light->radius;
+				visible = false;
+				char intersects = true;
+				if (data->query_type == 0)
+					intersects = function_165010((s_frustum_set_view *)data->context, section_index, &center, radius, &visible);
+				else if (data->query_type == 1)
+					intersects = (char)function_461c0(&data->center, &center, data->radius + radius);
+				if (!(char)intersects && (char)data->flags2a60 >= 0)
+					return;
+			}
+			if (data->lists[1]->add(index, 0, 0, NONE))
+				function_c3110(index);
+		}
+	}
+}
+
+// @retail 0x132e60
+bool function_132e60(s_bit_vector_pool *data, point3f const *center, real radius,
+	c_entry_list *list, long index, short section, bool visible, bool *contained, bool *first, bool *second)
+{
+	bool result = true;
+	*first = true;
+	*second = true;
+	*contained = false;
+	if (data->query_type == 0)
+	{
+		if (!visible)
+			result = function_165010((s_frustum_set_view *)data->context, section, center, radius, contained);
+		if (result && !*contained && data->mode == 0 && radius <= 2.5f)
+			*contained = true;
+	}
+	else if (data->query_type == 1)
+	{
+		vector3f delta;
+		vector3d_from_points3d(&data->center, center, &delta);
+		real sum = radius + data->radius;
+		if (!(sum * sum >= delta.k * delta.k + delta.i * delta.i + delta.j * delta.j))
+			return false;
+		double x = (double)data->center.x - center->x;
+		double y = (double)data->center.y - center->y;
+		double z = (double)data->center.z - center->z;
+		*contained = sqrt(z * z + y * y + x * x) + radius <= data->radius;
+	}
+	if (result && list && (data->flags2a60 & 1))
+	{
+		bool found = list->find(index) != NONE;
+		*second = found;
+		*first = found;
+	}
+	return result;
+}
+
+struct s_132b80_frustum
+{
+	byte unknown00[0x74];
+	plane3f plane;
+	byte unknown84[0x1bc - 0x84];
+};
+
+void function_11bed0(s_location *location, point3f const *point);
+
+// @retail 0x132b80
+long function_132b80(s_bit_vector_pool *data, long mode, s_132b80_frustum const *frusta,
+	short cluster, void *filter, point3f const *center, real radius, bool use_plane,
+	real plane_offset, long count, dword flags)
+{
+	data->location.cluster_index = cluster;
+	data->location.bsp_index = g_4686c4;
+	data->location.leaf_index = NONE;
+	data->mode = mode;
+	data->flags2a60 = flags;
+	data->frustum_count = (short)count;
+	data->center = *center;
+	data->radius = radius;
+	data->plane_offset = plane_offset;
+	if (use_plane)
+	{
+		data->flags2a60 |= 0x200;
+		data->plane = frusta->plane;
+		data->plane.d += plane_offset;
+	}
+	else
+		data->flags2a60 &= ~0x200;
+	void *destination = (byte *)data->context + 4;
+	if (frusta != destination)
+		memcpy(destination, frusta, count * sizeof(s_132b80_frustum));
+	*(short *)data->context = (short)count;
+	if (cluster == NONE)
+		function_11bed0(&data->location, center);
+	data->filter = filter;
+	if (filter)
+	{
+		data->flags2a60 |= 1;
+		for (long i = 0; i < 13; i++)
+			data->counters[i] = 0;
+	}
+	if (data->mode == 0 && (char)data->flags2a60 < 0)
+		data->query_type = 2;
+	else if (count && (radius >= 3.0f || (data->flags2a60 & 0x100)))
+		data->query_type = 0;
+	else
+		data->query_type = 1;
+	return data->query_type;
+}
 
 /* takes enough dwords from the pool for a bit vector of this many bits */
 // @retail 0x1332b0

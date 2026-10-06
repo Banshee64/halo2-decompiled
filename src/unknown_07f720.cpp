@@ -26,7 +26,7 @@ struct s_multiplayer_globals
 };
 
 // @retail 0x7f720
-color3f *function_7f720(color3f *color, long team)
+color3f *function_7f720(color3f *color, short team)
 {
 	short team_index = (short)team;
 	long tag_index = g_4e034c->index;
@@ -52,19 +52,26 @@ void function_7f790(short team_index, bool use_default, s_player_appearance cons
 	color3f color;
 
 	colors[0] = *function_1a06a0(appearance->colors[0], &color);
-	colors[1] = *function_1a06a0(appearance->colors[1], &color);
-	colors[2] = *function_1a06a0(appearance->colors[2], &color);
-	colors[3] = *function_1a06a0(appearance->colors[3], &color);
+	color3f color1 = *function_1a06a0(appearance->colors[1], &color);
+	colors[1] = color1;
+	color3f color2 = *function_1a06a0(appearance->colors[2], &color);
+	colors[2] = color2;
+	color3f color3 = *function_1a06a0(appearance->colors[3], &color);
+	colors[3] = color3;
 
 	if (use_default)
 	{
 		colors[0] = *(color3f const *)g_468710;
 		colors[1] = *(color3f const *)g_468710;
 	}
-	else if (team_index != NONE)
+	else
 	{
-		colors[0] = *function_7f720(&color, team_index);
-		colors[1] = *function_1a06a0(appearance->colors[0], &color);
+		long team = *(volatile long *)&team_index;
+		if ((short)team != NONE)
+		{
+			colors[0] = *function_7f720(&color, team);
+			colors[1] = *function_1a06a0(appearance->colors[0], &color);
+		}
 	}
 }
 

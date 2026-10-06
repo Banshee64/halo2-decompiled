@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6274 functions match
+
+```
+matched 6274 of 11318 game functions (655763 of 2784283 bytes, 23.55%)
+```
+
+10 new matches, none lost:
+- **Codex lane P** (8): team colours, palette, string and HUD helpers in the 0x130000–0x13ffff range, plus 0x7f720 and 0x7f790; a corrected prototype also makes UI functions 0x2c0400 and 0x24ce9d match.
+
+## 2026-10-06: 6264 functions match
+
+```
+matched 6264 of 11318 game functions (653773 of 2784283 bytes, 23.48%)
+```
+
+3 new matches, none lost:
+- **Codex lane S**, round 6 (3): weapon, device and item helpers in the 0x100000–0x10ffff range.
+
+## 2026-10-06: 6261 functions match
+
+```
+matched 6261 of 11318 game functions (652805 of 2784283 bytes, 23.45%)
+```
+
+6 new matches, none lost:
+- **Codex lane AC**, round 3 (6): interface constructors and callbacks in the 0x2729b0–0x29ffff range.
+
 ## 2026-10-06: 6255 functions match
 
 ```
