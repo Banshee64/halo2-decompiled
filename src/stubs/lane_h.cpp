@@ -76,12 +76,6 @@ void function_1391ed(void)
 {
 }
 
-// @stub 0x24d8d3
-void __stdcall function_24d8d3(long player_index)
-{
-}
-
-
 typedef void *(__stdcall *block_allocate)(void *, long, long);
 typedef void (__stdcall *block_free)(void *, void *);
 

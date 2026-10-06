@@ -821,9 +821,9 @@ void *c_shape_global_owner::make_shape(dword key, void *storage)
  c_shape_global_owner *volatile owner = this;
  if (function_1ef3e0(key))
  {
-  long surface = (key >> 16) & 0x1fff;
-  long kind = key >> 29;
   long index = key & 0xffff;
+  long kind = key >> 29;
+  long surface = (key >> 16) & 0x1fff;
   if (kind == 1)
    return new (storage) c_vertex_shape((s_shape_source *)g_4e0340, kind, NONE, index, key, NULL);
   else if (kind == 2)

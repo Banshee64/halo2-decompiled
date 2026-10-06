@@ -2624,6 +2624,22 @@ void function_129790(short voice_index, vector3f const *attenuation)
 	}
 }
 
+// @retail 0x129380
+void function_129380(vector3f const *const *voice_values, vector3f const *const *channel_values)
+{
+	for (long local_index = 0; local_index < SOUND_SYSTEM->voice_count; local_index++)
+	{
+		s_sound_voice *voice = &g_4e6378[(short)local_index];
+		if (voice->sound_index != NONE && !voice->stream_reset)
+		{
+			if (voice->unknown0e != NONE)
+				function_129790((short)local_index, voice_values[voice->unknown0e]);
+			else if (voice->channel_index != NONE)
+				function_129790((short)local_index, channel_values[voice->channel_index]);
+		}
+	}
+}
+
 // @retail 0x128020
 void function_128020(void)
 {

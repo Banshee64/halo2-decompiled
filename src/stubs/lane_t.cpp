@@ -26,17 +26,6 @@ void function_1554b0(long unknown)
 {
 }
 
-/* in the region: observer.cpp (not decompiled yet) */
-// @stub 0x16f570
-void __stdcall function_16f570(long user_index)
-{
-}
-
-// @stub 0x16fe90
-void function_16fe90(long user_index)
-{
-}
-
 // @stub 0x16ebf0
 void function_16ebf0(long user_index)
 {
