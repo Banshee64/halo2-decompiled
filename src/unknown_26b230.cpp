@@ -576,7 +576,20 @@ struct s_prop_copy_view
 	short salt;
 	short type;
 	short state;
-	byte unknown06[0x28 - 6];
+	short unknown06;
+	long object_index;
+	short field0c;
+	short unknown0e;
+	long field10;
+	long field14;
+	long field18;
+	long actor_index;
+	short team;
+	bool field22;
+	bool field23;
+	bool field24;
+	bool field25;
+	short unknown26;
 	long field28;
 	long field2c;
 	byte field30;
@@ -595,6 +608,81 @@ struct s_prop_copy_view
 	long field54;
 	s_type_5cfb45 observed;
 };
+
+void prop_state_initialize(s_type_5cfb45 *state);
+
+// @retail 0x26a310
+void function_26a310(s_prop_copy_view *prop, short type, long object_index, s_clump *clump, short value)
+{
+	prop->type = type;
+	prop->object_index = object_index;
+	prop->field14 = NONE;
+	prop->field0c = value;
+	prop->state = g_470f10[type].unknown4 == 0;
+	prop->field10 = NONE;
+	prop->field18 = NONE;
+	s_slot_object_view *object = object_get(object_index);
+	object->unknownb2 |= 2;
+	long type_mask = 1 << object->type;
+	if (type_mask & 3)
+	{
+		prop->actor_index = object->actor_index;
+		prop->team = object->team;
+		prop->field23 = function_1df560(clump->team, prop->team);
+		prop->field24 = !prop->field23;
+		prop->field25 = object->player_index != NONE;
+		prop->field22 = false;
+	}
+	else if (type_mask & 0x1000)
+	{
+		switch (*(long *)((byte *)object + 0x134))
+		{
+		case 0:
+		{
+			byte *extra = (byte *)object + *(short *)((byte *)object + 0x13a);
+			prop->actor_index = *(long *)(extra + 4);
+			prop->team = *(short *)((byte *)object + 0x12e);
+			prop->field23 = function_1df560(clump->team, prop->team);
+			prop->field24 = !prop->field23;
+			prop->field25 = false;
+			prop->field22 = *(long *)(extra + 8) != NONE;
+			break;
+		}
+		case 1:
+			prop->actor_index = NONE;
+			prop->team = NONE;
+			prop->field23 = false;
+			prop->field24 = false;
+			prop->field25 = false;
+			prop->field22 = false;
+			break;
+		}
+	}
+	else
+	{
+		prop->actor_index = NONE;
+		prop->team = NONE;
+		prop->field23 = false;
+		prop->field24 = false;
+		prop->field25 = false;
+		prop->field22 = false;
+	}
+	prop_state_initialize(&prop->observed);
+	*(short *)&prop->field54 = NONE;
+	*((short *)&prop->field54 + 1) = NONE;
+	prop->field38 = NONE;
+	*(real *)&prop->field2c = 0.0f;
+	*(real *)&prop->field28 = 0.0f;
+	prop->field36 = false;
+	prop->field53 = false;
+	prop->field52 = false;
+	*(bool *)&prop->unknown3c = false;
+	prop->field30 = false;
+	prop->field32 = false;
+	prop->field33 = false;
+	prop->field34 = false;
+	prop->field35 = false;
+}
 
 // @retail 0x26a7d0
 void function_26a7d0(s_prop_copy_view *destination, s_prop_copy_view const *source)
