@@ -56,11 +56,20 @@ void s_1d8e40::function_1d8ec0(hkVector4 const &arg_0, hkVector4 const &arg_1)
 	m_motion->applyPointImpulse(arg_0, arg_1);
 }
 
+struct s_1d1870
+{
+ char field_0;
+ s_1d1870() {}
+ s_1d1870(bool arg_0) : field_0(arg_0) {}
+};
+
 class c_314710 : public c_a
 {
 public:
 	byte field_8[0x58];
 	c_314710(hkEntity *arg_0);
+	s_1d1870 function_3144b0(void *arg_0);
+	s_1d1870 function_314580(void *arg_0);
 };
 
 class c_1d19d0 : public c_314710
@@ -69,6 +78,8 @@ public:
 	long field_60;
 	long field_64;
 	c_1d19d0(hkEntity *arg_0, long arg_1);
+	virtual s_1d1870 function_1d1870(void *arg_0);
+	virtual s_1d1870 function_1d18c0(void *arg_0);
 	static void operator delete(void *arg_0)
 	{
 		g_480118->allocate((long)arg_0, ((c_1d19d0 *)arg_0)->flags, 0x26);
@@ -83,4 +94,49 @@ c_1d19d0::c_1d19d0(hkEntity *arg_0, long arg_1)
 {
 	(void)&arg_1;
 	field_64 = havok_entity_property_get(arg_0, 0x2002);
+}
+
+struct s_1d1910
+{
+ short field_0;
+ byte field_2;
+ byte field_3;
+ long field_4;
+ byte *field_8;
+};
+
+bool function_efb60(long arg_0);
+bool function_e5240(long arg_0);
+
+// @retail 0x1d1910
+bool function_1d1910(c_1d19d0 *arg_0)
+{
+ long local_0 = arg_0->field_60;
+ s_1d1910 *local_1 = &((s_1d1910 *)g_4e0300->data)[local_0 & 0xffff];
+ byte *local_2 = local_1->field_8;
+ s_havok_component *local_3 = havok_component_get(*(long *)(local_2 + 0xb4));
+ bool local_4 = *((byte *)local_3->rigid_bodies.data + arg_0->field_64 * 0x60 + 0x44) == 1;
+ volatile bool local_5 = false;
+ switch (local_1->field_3)
+ {
+ case 0:
+  if (local_2[0x34b] == 1) return local_5;
+  return local_4 || function_e5240(local_0);
+ case 1:
+  return local_4 || function_efb60(local_0);
+ default:
+  return local_4;
+ }
+}
+
+// @retail 0x1d1870
+s_1d1870 c_1d19d0::function_1d1870(void *arg_0)
+{
+ return function_1d1910(this) ? s_1d1870(false) : function_3144b0(arg_0);
+}
+
+// @retail 0x1d18c0
+s_1d1870 c_1d19d0::function_1d18c0(void *arg_0)
+{
+ return function_1d1910(this) ? s_1d1870(false) : function_314580(arg_0);
 }
