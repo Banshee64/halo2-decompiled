@@ -51,7 +51,7 @@ bool network_session_handle_host_handoff(c_class_58d20 *session, const s_network
 bool network_session_handle_player_properties(c_class_58d20 *session, long remote_index, const s_network_message_player_properties *message);
 
 /* the link's send (src/stubs/session.cpp) */
-void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
+bool __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
 
 /* src/unknown_0820f0.cpp */
 void network_connection_close(s_network_connection *connection, long reason);
