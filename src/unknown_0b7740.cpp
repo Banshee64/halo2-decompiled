@@ -435,30 +435,6 @@ void *__stdcall function_b7a40(s_scenario_identifier_ab const *identifier, long 
 	return result;
 }
 
-void function_1c4b00(long object_index, void *linear, void *angular, long force);
-void function_b9b90(long object_index, bool disable);
-void function_b7360(long object_index);
-void function_bba20(long object_index);
-
-static inline real velocity_length_squared_ab(vector3f const *v)
-{
-    return v->i * v->i + v->j * v->j + v->k * v->k;
-}
-
-// @retail 0xb77d0
-void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity)
-{
-    function_b7740(object_index, linear_velocity, angular_velocity, false);
-    function_1c4b00(object_index, (void *)linear_velocity, (void *)angular_velocity, 1);
-    if ((linear_velocity && velocity_length_squared_ab(linear_velocity) > 0.0001f) ||
-        (angular_velocity && velocity_length_squared_ab(angular_velocity) > 0.0001f))
-    {
-        function_b9b90(object_index, false);
-        function_b7360(object_index);
-        function_bba20(object_index);
-    }
-}
-
 static inline void identity_transform_ab(transform4x3f *matrix)
 {
     matrix->scale = 1.0f;

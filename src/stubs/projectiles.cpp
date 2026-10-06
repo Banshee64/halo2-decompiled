@@ -7,6 +7,8 @@ void function_b9a90(long object_index) { }
 // @stub 0xb75a0
 struct s_location;
 void function_b75a0(long object_index, point3f const *point, union vector3f const *forward, union vector3f const *up, s_location const *location, bool unknown) { }
+// @stub 0xb77d0
+void __stdcall function_b77d0(long object_index, union vector3f const *linear_velocity, union vector3f const *angular_velocity) { }
 /* attaches an object to a parent's node */
 // @stub 0xb93b0
 void __stdcall function_b93b0(long parent_index, long object_index, long node_index) { }
