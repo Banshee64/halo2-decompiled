@@ -24,3 +24,24 @@ void function_1fa30(word const *text, short_rectangle2d *bounds) { }
 bool function_15f120(long player_index, word *text, long maximum_count, long a) { return false; }
 // @stub 0x13e9c0
 void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale) { }
+
+class c_class_2b0b5e;
+// @stub 0x2b10a3
+void function_2b10a3(dword const *arg_0, c_class_2b0b5e *arg_1, long arg_2) { }
+
+#include "flexible_surface_calls.h"
+// @stub 0x19f680
+void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
+	point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
+	real arg_9, point3f const *arg_10, real arg_11) { }
+// @stub 0x41490
+void function_41490(long arg_0, long arg_1, long arg_2, real arg_3,
+	surface_render_test arg_4, surface_render_draw arg_5,
+	void (__stdcall *arg_6)(void *), long arg_7, point3f const *arg_8) { }
+
+struct s_bsp3d;
+// @stub 0x1ddda0
+short function_1ddda0(s_bsp3d const *arg_0, long arg_1, point3f *arg_2) { return 0; }
+
+// @stub 0x63ec0
+long function_63ec0() { return 0; }
