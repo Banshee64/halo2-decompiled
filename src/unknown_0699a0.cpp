@@ -284,3 +284,148 @@ void function_8b4d0(s_event_distribution *distribution, long type, long entity_c
 		}
 	}
 }
+
+
+struct s_object_relevance_result
+{
+ real first;
+ real second;
+ long object_index;
+ long identifier;
+};
+struct s_weapon_activity_result
+{
+ byte unknown00[0x18];
+ bool active[2][2];
+ bool update_relevance;
+ byte unknown1d[3];
+ s_object_relevance_result relevance;
+ bool consumed[2];
+};
+void function_824d0(const byte *input, s_weapon_activity_result *output, long object_index);
+void function_823d0(s_weapon_activity_result *output, const byte *input, long object_index);
+
+// @retail 0x69b50
+void function_69b50(const byte *input, c_class_6a600 *world, dword mask)
+{
+ for (long i = 0; i < 16; i++, input += 0x7c)
+ {
+  s_simulation_world_actor *actor = &world->actors[i];
+  if (actor->actor_index != NONE && (mask & (1 << i)))
+  {
+   __declspec(align(8)) s_weapon_activity_result action;
+   function_824d0(input, &action, actor->unknown04);
+   long index = actor->actor_index + 16;
+   s_view_iterator iterator = { 0x10, 0 };
+   c_simulation_view *view;
+   while (world_next_view(world, &iterator, &view))
+   {
+    byte *destination = (byte *)view->data + 0x5098;
+    if (destination)
+    {
+     memcpy(destination + 0x18 + index * 0x34, &action, 0x34);
+     *(dword *)(destination + 0x10) |= 1 << index;
+    }
+   }
+  }
+ }
+}
+
+// @retail 0x69a00
+void function_69a00(const byte *input, c_class_6a600 *world, dword mask)
+{
+ for (long i = 0; i < 16; i++, input += 0x5c)
+ {
+  s_simulation_world_player *player = &world->players[i];
+  if (player->player_index != NONE && (mask & (1 << i)))
+  {
+   byte *datum = g_4e8c24->data + (player->unknown04 & 0xffff) * 0x21c;
+   s_weapon_activity_result action;
+   function_823d0(&action, input, *(long *)(datum + 0x2c));
+   if (*(long *)(datum + 0x2c) != NONE)
+   {
+    long index = player->player_index;
+    s_machine_address address = *(s_machine_address *)player->unknown18;
+    s_view_iterator iterator = { 0x10, 0 };
+    c_simulation_view *view;
+    while (world_next_view(world, &iterator, &view))
+    {
+     s_machine_address other = view->address;
+     if (memcmp(&other, &address, sizeof(address)))
+     {
+      byte *destination = (byte *)view->data + 0x5098;
+      if (destination)
+      {
+       memcpy(destination + 0x18 + index * 0x34, &action, 0x34);
+       *(dword *)(destination + 0x10) |= 1 << index;
+      }
+     }
+    }
+   }
+  }
+ }
+}
+
+struct s_player_object_motion
+{
+ long object_index;
+ point3f position;
+ vector3f forward;
+ vector3f up;
+ vector3f linear;
+ vector3f angular;
+};
+bool function_828b0(long player_index, s_player_object_motion *result);
+void function_1947a0(s_bitstream *stream);
+
+// @retail 0x847d0
+void function_847d0(s_simulation_controller *controller, s_player_action *input)
+{
+ if (controller->field_08 != 1 && controller->field_08 != 2)
+ {
+  byte buffer[0x5c];
+  s_bitstream stream;
+  stream.data = buffer;
+  stream.size_in_bytes = sizeof(buffer);
+  stream.unknown08 = 1;
+  stream.mode = 1;
+  memset(buffer, 0, sizeof(buffer));
+  stream.bit_position = 0;
+  stream.checkpoint_count = 0;
+  stream.error = false;
+  stream.unknown2c = 0;
+  stream.unknown30 = 0;
+  function_86f90(&stream, input);
+  long size = (stream.bit_position + 7) / 8;
+  stream.size_in_bytes = size;
+  long remainder = size % stream.unknown08;
+  if (remainder) stream.size_in_bytes += stream.unknown08 - remainder;
+  stream.mode = 2;
+  function_1947a0(&stream);
+  function_874c0(&stream, &controller->action);
+  controller->field_28 = g_510c54->game_time;
+ }
+ else
+ {
+  c_simulation_view *view = 0;
+  c_vtable_450c94 *destination = 0;
+  s_view_iterator iterator = { 0xa, 0 };
+  world_next_view(controller->world, &iterator, &view);
+  if (view) destination = (c_vtable_450c94 *)((byte *)view->data + 0x5098);
+  controller->field_28 = g_510c54->game_time;
+  controller->action = *input;
+  s_weapon_activity_result action;
+  function_823d0(&action, (const byte *)&controller->action,
+   *(long *)(g_4e8c24->data + (controller->field_04 & 0xffff) * 0x21c + 0x2c));
+  s_player_object_motion motion;
+  bool valid = function_828b0(controller->field_04, &motion);
+  if (destination)
+  {
+   long index = controller->field_00;
+   memcpy(&destination->data18[index], &action, sizeof(action));
+   destination->active_mask |= 1 << index;
+   if (controller->field_08 == 1 && valid)
+    destination->set_data720(index, (const s_dword40 *)&motion);
+  }
+ }
+}

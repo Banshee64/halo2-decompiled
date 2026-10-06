@@ -1393,3 +1393,77 @@ void __stdcall function_68550(c_simulation_view *view)
  }
  function_85880(view);
 }
+
+#include "bitstream.h"
+#include "network_message_types.h"
+void function_87d00(s_bitstream *stream, void *message);
+bool function_87e90(s_bitstream *stream, void *message);
+void function_847d0(s_simulation_controller *controller, s_player_action *input);
+
+// @retail 0x685f0
+bool function_685f0(void *block, long *size, byte *destination, long capacity)
+{
+ bool result = true;
+ s_bitstream stream;
+ stream.data = destination;
+ stream.size_in_bytes = capacity;
+ memset(destination, 0, capacity);
+ stream.bit_position = 0;
+ stream.checkpoint_count = 0;
+ stream.error = false;
+ stream.unknown2c = 0;
+ stream.unknown30 = 0;
+ stream.unknown08 = 1;
+ stream.mode = 1;
+ function_87d00(&stream, block);
+ *size = (stream.bit_position + 7) / 8;
+ return result;
+}
+
+// @retail 0x68670
+bool function_68670(byte *source, long size, void *block)
+{
+ s_bitstream stream;
+ stream.data = source;
+ stream.size_in_bytes = size;
+ bool result = false;
+ memset(block, 0, 0x4048);
+ stream.unknown08 = 1;
+ stream.mode = 3;
+ stream.bit_position = 0;
+ stream.checkpoint_count = 0;
+ stream.error = false;
+ if (function_1959c0(&stream, 32) == 0x64656267)
+  stream.error = true;
+ else
+ {
+  stream.bit_position = 0;
+  stream.error = false;
+ }
+ if (function_87e90(&stream, block)) result = true;
+ return result;
+}
+
+// @retail 0x69040
+void function_69040(c_class_6a600 *world, s_player_action *actions, dword mask)
+{
+ if (world->state != 3)
+ {
+  for (long i = 0; i < 4; i++, actions++)
+  {
+   if (mask & (1 << i))
+   {
+    s_simulation_controller *controller = (s_simulation_controller *)function_6a3b0(world,
+     (s_key_450d14 *)&world->local_address, i);
+    if (controller) function_847d0(controller, actions);
+   }
+  }
+ }
+ else
+ {
+  c_simulation_view *view = 0;
+  s_view_iterator iterator = { 0xa, 0 };
+  world_next_view(world, &iterator, &view);
+  view->send_player_update(mask, (const s_simulation_player_state *)actions);
+ }
+}

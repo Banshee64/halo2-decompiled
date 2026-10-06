@@ -286,3 +286,59 @@ void function_86f90(s_bitstream *stream, s_player_action *action)
  if (input->player != NONE)
   stream_write_checked(stream, input->player & 0xffff, 4);
 }
+
+
+struct s_simulation_machine_list
+{
+ dword mask;
+ byte addresses[16][6];
+};
+void simulation_write_machines(const s_simulation_machine_list *machines, s_bitstream *stream);
+bool simulation_read_machines(s_bitstream *stream, s_simulation_machine_list *machines);
+
+// @retail 0x87d00
+void function_87d00(s_bitstream *stream, void *message)
+{
+ byte *block = (byte *)message;
+ stream_write_checked(stream, *(dword *)block, 32);
+ stream_write_checked(stream, *(dword *)(block + 8), 16);
+ for (long i = 0; i < 16; i++)
+  if (*(dword *)(block + 8) & (1 << i))
+   function_86f90(stream, (s_player_action *)(block + 0xc + i * 0x5c));
+ stream_write_bit(stream, *(bool *)(block + 0xdd0));
+ if (*(bool *)(block + 0xdd0))
+  simulation_write_machines((s_simulation_machine_list *)(block + 0xdd4), stream);
+ stream_write_checked(stream, *(dword *)(block + 0xe38), 5);
+ for (long j = 0; j < *(long *)(block + 0xe38); j++)
+  function_87930(stream, (s_simulation_player_update *)(block + 0xe3c + j * 0xc8));
+ stream_write_bit(stream, *(bool *)(block + 0x403c));
+ stream_write_checked(stream, *(dword *)(block + 0x4040), 32);
+ stream_write_checked(stream, *(dword *)(block + 0x4044), 32);
+}
+
+// @retail 0x87e90
+bool function_87e90(s_bitstream *stream, void *message)
+{
+ byte *block = (byte *)message;
+ bool result = true;
+ *(dword *)block = function_1959c0(stream, 32);
+ *(dword *)(block + 8) = function_1959c0(stream, 16);
+ for (long i = 0; i < 16; i++)
+  if (*(dword *)(block + 8) & (1 << i))
+   if (result && function_874c0(stream, (s_player_action *)(block + 0xc + i * 0x5c))) result = true; else result = false;
+ *(bool *)(block + 0xdd0) = stream_read_bit(stream);
+ if (*(bool *)(block + 0xdd0))
+  if (result && simulation_read_machines(stream, (s_simulation_machine_list *)(block + 0xdd4))) result = true; else result = false;
+ *(long *)(block + 0xe38) = function_1959c0(stream, 5);
+ if (*(long *)(block + 0xe38) >= 0 && *(long *)(block + 0xe38) <= 64)
+ {
+  for (long j = 0; j < *(long *)(block + 0xe38); j++)
+   if (result && function_87ac0(stream, (s_simulation_player_update *)(block + 0xe3c + j * 0xc8))) result = true; else result = false;
+ }
+ else
+  result = false;
+ *(bool *)(block + 0x403c) = stream_read_bit(stream);
+ *(dword *)(block + 0x4040) = function_1959c0(stream, 32);
+ *(dword *)(block + 0x4044) = function_1959c0(stream, 32);
+ return result && !stream_overflowed(stream) && *(long *)(block + 0x4040) >= 0 && *(long *)block >= 0;
+}

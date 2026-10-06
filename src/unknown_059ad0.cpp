@@ -3868,9 +3868,10 @@ void session_property_value_set_kind4(s_session_property_value *value);
 // @retail 0x5d5a0
 bool __stdcall function_5d5a0(c_class_58d20 *session, const byte *update, byte *output)
 {
+ bool result = false;
  memcpy(output, &session->update_count, 0x14b0);
  if (*(const long *)(update + 0xc) != NONE && *(const long *)(update + 0xc) != session->update_count)
-  return false;
+  goto done;
  *(long *)output = *(const long *)(update + 8);
  volatile bool valid = true;
  if (update[0x10])
@@ -3980,7 +3981,9 @@ bool __stdcall function_5d5a0(c_class_58d20 *session, const byte *update, byte *
   else valid = false;
  }
  if (update[0x14cc]) *(long *)(output + 0x14a8) = *(const long *)(update + 0x14d0);
- return valid;
+ result = valid;
+done:
+ return result;
 }
 
 // @retail 0x609e0
@@ -4278,5 +4281,147 @@ acknowledge:
   peer->flag3 = true;
   if (session->state == 7) network_session_clear_peer(session, sender);
   return true;
+ }
+}
+
+
+// @retail 0x5d9e0
+bool __stdcall function_05d9e0(c_class_58d20 *session, const void *message_)
+{
+ const byte *message = (const byte *)message_;
+ byte parameters[0x14b0];
+ bool result = function_5d5a0(session, message, parameters);
+ if (result)
+ {
+  memcpy(&session->update_count, parameters, sizeof(parameters));
+  if (message[0x10] && message[0x11])
+  {
+   long reply[4];
+   memset(reply, 0, sizeof(reply));
+   reply[0] = session->unknown1c;
+   reply[1] = session->unknown20;
+   reply[2] = session->type;
+   reply[3] = session->value497c;
+   network_session_send_to_member(session, session->member_index, 0, 0x24, sizeof(reply), reply);
+  }
+ }
+ else
+  network_session_host_lost(session);
+ return result;
+}
+
+
+void __stdcall function_60400(c_class_58d20 *session, const byte *current, const byte *previous, byte *update);
+
+// @retail 0x62640
+void function_62640(c_class_58d20 *session)
+{
+ dword delta_mask = 0;
+ dword full_mask = 0;
+ byte delta[0x489c];
+ byte full[0x489c];
+ for (long i = 0; i < session->member_count; i++)
+ {
+  s_network_session_member_state *state = &session->member_states[i];
+  if (state->flag1 && !state->flag3 && session->observer->channels[state->unknown04].state == 7 &&
+   state->unknown08 != session->value4c)
+  {
+   if (network_observer_channel_ready(session->observer, state->unknown04, 0x19))
+    network_observer_mark_message(session->observer, state->unknown04, 0x19);
+   else if (session->state != 8)
+   {
+    if (state->unknown08 != NONE && state->unknown08 == session->value24e0)
+     delta_mask |= 1 << i;
+    else
+     full_mask |= 1 << i;
+   }
+  }
+ }
+ if (full_mask)
+  function_60400(session, (const byte *)&session->value4c, 0, full);
+ if (delta_mask)
+  function_60400(session, (const byte *)&session->value4c, (const byte *)&session->value24e0, delta);
+ for (long j = 0; j < session->member_count; j++)
+ {
+  byte *message;
+  if (delta_mask & (1 << j))
+   message = delta;
+  else if (full_mask & (1 << j))
+   message = full;
+  else
+   continue;
+  session->member_states[j].unknown08 = session->value4c;
+  network_session_send_to_member(session, j, 0, 0x19, 0x489c, message);
+ }
+ memcpy(&session->value24e0, &session->value4c, 0x2494);
+}
+
+// @retail 0x627e0
+void function_627e0(c_class_58d20 *session)
+{
+ dword delta_mask = 0;
+ dword full_mask = 0;
+ byte delta[0x14d8];
+ byte full[0x14d8];
+ for (long i = 0; i < session->member_count; i++)
+ {
+  s_network_session_member_state *state = &session->member_states[i];
+  if (state->flag1 && !state->flag3 && session->observer->channels[state->unknown04].state == 7 &&
+   state->unknown0c != session->update_count)
+  {
+   if (network_observer_channel_ready(session->observer, state->unknown04, 0x21))
+    network_observer_mark_message(session->observer, state->unknown04, 0x21);
+   else if (session->state != 8)
+   {
+    if (state->unknown0c != NONE && state->unknown0c == *(long *)((byte *)session + 0x5e28))
+     delta_mask |= 1 << i;
+    else
+     full_mask |= 1 << i;
+   }
+  }
+ }
+ if (full_mask)
+  function_609e0(session, (const byte *)&session->update_count, 0, full);
+ if (delta_mask)
+  function_609e0(session, (const byte *)&session->update_count, (const byte *)session + 0x5e28, delta);
+ for (long j = 0; j < session->member_count; j++)
+ {
+  byte *message;
+  if (delta_mask & (1 << j))
+   message = delta;
+  else if (full_mask & (1 << j))
+   message = full;
+  else
+   continue;
+  session->member_states[j].unknown0c = session->update_count;
+  network_session_send_to_member(session, j, 0, 0x21, 0x14d8, message);
+ }
+ memcpy((byte *)session + 0x5e28, &session->update_count, 0x14b0);
+}
+
+// @retail 0x61e00
+void function_61e00(c_class_58d20 *session)
+{
+ network_session_send_host_reestablish(session);
+ byte *transition = (byte *)&session->value7420;
+ if ((*(dword *)(transition + 0x10) | *(dword *)(transition + 0x14)) == (1u << session->member_count) - 1 ||
+  network_session_time_now() - *(long *)(transition + 8) >= g_network_configuration.value1480)
+ {
+  bool leave = *(bool *)transition;
+  bool migrate = *(bool *)(transition + 1);
+  dword remove = (((1u << session->member_count) - 1) & ~*(dword *)(transition + 0x10)) | *(dword *)(transition + 0x14);
+  network_session_enter_state_5(session);
+  if (remove)
+  {
+   for (long i = session->member_count - 1; i >= 0; i--)
+    if (i != session->current_member && (remove & (1 << i)))
+     network_session_disband_member(session, i);
+  }
+  function_62640(session);
+  function_627e0(session);
+  if (leave)
+   session->leave(false);
+  else if (migrate)
+   network_session_host_leave(session, NONE, false);
  }
 }

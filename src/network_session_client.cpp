@@ -854,3 +854,318 @@ bool __stdcall function_6fe90(c_session_state_joining *state, bool all_players, 
  *(long *)((byte *)state + 0x104) = 16;
  return false;
 }
+
+// @retail 0x6fcc0
+void function_06fcc0(c_session_state_joining *self)
+{
+ s_session_state_joining_view *state = (s_session_state_joining_view *)self;
+ if (state->unknowne9)
+ {
+  state->unknown104 = 1;
+  return;
+ }
+ if (!state->unknown68)
+ {
+  state->unknown104 = 1;
+  return;
+ }
+ if (!state->unknownf9)
+ {
+  if (function_6fe90(self, false, true))
+   state->unknownf9 = true;
+ }
+ if (state->unknownf9)
+  session_state_joining_check_target(self);
+}
+
+// @retail 0x6f940
+void function_6f940(c_session_state_joining *self)
+{
+ s_session_state_joining_view *state = (s_session_state_joining_view *)self;
+ c_class_58d20 *session = state->owner->session_a;
+ state->unknowne8 = true;
+ long value = session->state;
+ if (value == 5 || value == 6 || value == 7 || value == 8)
+ {
+  if (session_state_is_live(session) && session->flag5dd8)
+  {
+   memcpy(&state->part, session->data5ddc, 0x44);
+   state->unknown68 = true;
+   if (function_6fe90(self, true, true))
+    network_session_set_mode(session, 16);
+  }
+  else
+   state->unknown104 = 16;
+ }
+ else
+ {
+  volatile long unused = value;
+ }
+}
+
+
+bool network_session_players_match(c_class_58d20 *session, c_class_58d20 *other);
+
+// @retail 0x6fa60
+void function_6fa60(c_session_state_joining *self)
+{
+ s_session_state_joining_view *state = (s_session_state_joining_view *)self;
+ c_class_58d20 *current = state->owner->session_a;
+ c_class_58d20 *joining = state->owner->session_c;
+ state->unknowne8 = true;
+ if (current->type == 17)
+ {
+  long value = current->state;
+  if (value == 5 || value == 6 || value == 7 || value == 8)
+  {
+   if (session_state_is_live(joining))
+   {
+    if (network_session_players_match(current, joining))
+    {
+     network_session_set_mode(current, 18);
+     state->unknown100 = g_510548 ? g_51054c : GetTickCount();
+    }
+    else if (function_75890(state->unknownfc) > g_network_configuration.value1b8)
+     state->unknown104 = 16;
+   }
+   else
+    state->unknown104 = 16;
+  }
+  else
+  {
+   volatile long unused = value;
+   if (!joining->state && session_state_is_live(current) &&
+    network_session_get_data5ddc(current, &state->part))
+   {
+    long local = current->current_member;
+    state->entry_count = 0;
+    for (long i = 0; i < 16; i++)
+    {
+     if ((current->player_mask & (1 << i)) && current->players[i].member_index == local)
+     {
+      memcpy(state->entries + state->entry_count * 12, &current->players[i], 12);
+      state->entry_count++;
+     }
+    }
+    state->unknown68 = true;
+    function_6fe90(self, false, false);
+   }
+  }
+ }
+}
+
+// Enabling this queue processor currently changes shared call conventions.
+#if 0
+long network_session_find_player(c_class_58d20 *session, const dword *identity);
+struct s_surface_description;
+struct s_matchmaking_ratings;
+s_surface_description *function_192e60(long index);
+long function_193250(s_surface_description *variant);
+bool function_7e210(c_class_58d20 *session, s_matchmaking_ratings *ratings);
+long session_summary_find_machine_user(s_session_summary *summary, const XUID *user);
+bool session_summary_add_machine(s_session_summary *summary, s_session_id *id, const XUID *machine_user,
+ const long *values288, long player_count, XUID *players, const long *values248);
+bool __stdcall function_5c720(c_class_58d20 *session, const s_session_member_identity *identity,
+ long player_count, const dword *identities, const long *values, bool reserve,
+ long timeout, const s_session_id *id, long *reason);
+
+// Disabled implementation for 0x6d4c0.
+void function_6d4c0(c_session_client *client)
+{
+ c_class_58d20 *session = client->session;
+ s_session_summary *summary = 0;
+ if (session_state_is_live(session) && session->flag49fd)
+  summary = (s_session_summary *)session->data4a00;
+ long state = session->state;
+ if (!(state == 5 || state == 6 || state == 7 || state == 8))
+ {
+  volatile long unused = state;
+  function_06dc60(client, 3);
+  return;
+ }
+ if (function_058d90(session) || session->state == 7 || session->state == 6 || session->state == 8 || !summary)
+ {
+  function_06dc60(client, 3);
+  return;
+ }
+ s_session_request *request = client->requests;
+ while (request)
+ {
+  s_session_request *next = request->next;
+  byte *data = (byte *)request;
+  if (!*(bool *)(data + 0x164))
+  {
+   long count = *(long *)(data + 0x18);
+   long reason = 0;
+   if (count <= 0)
+    reason = 12;
+   else
+   {
+    for (long i = 0; i < count; i++)
+    {
+     if (function_063190(summary, (long)(data + 0x1c + i * 12)) == NONE)
+     {
+      reason = 11;
+      break;
+     }
+    }
+    if (!reason)
+     reason = network_session_evaluate_join_request(client->session, (s_session_join_request *)(data + 0x18));
+   }
+   function_630f0(client->session, (s_session_join_request *)(data + 0x18), (long)request->key04, reason);
+   session_client_remove_request(client, request);
+  }
+  request = next;
+ }
+ if (client->mode == 1)
+  function_06dc60(client, 3);
+ if (client->mode == 2)
+ {
+  s_session_summary current = *summary;
+  for (long machine = 0; machine < current.machine_count; machine++)
+  {
+   if (memcmp(&client->session->members[client->session->current_member].id, &current.machine_ids[machine], sizeof(s_session_id)))
+   {
+    long now = g_510548 ? g_51054c : GetTickCount();
+    if (now - current.machine_times[machine] >= g_network_configuration.value360)
+    {
+     for (long player = 0; player < current.player_count; player++)
+     {
+      if (current.player_machines[player] == machine &&
+       network_session_find_player(client->session, (const dword *)&current.player_users[player]) == NONE)
+      {
+       function_06d380(client, &current.machine_ids[machine]);
+       break;
+      }
+     }
+    }
+   }
+  }
+ }
+ if (client->mode != 2) return;
+ session = client->session;
+ s_surface_description *variant = function_192e60(session_state_is_live(session) ? session->value49c8 : NONE);
+ while (client->request_count > 0)
+ {
+  session = client->session;
+  long reserved = 0;
+  for (long r = 0; r < 16; r++)
+  {
+   byte *reservation = (byte *)session + 0x7668 + r * 0x24;
+   if (reservation[0] && !reservation[1]) reserved++;
+  }
+  if (session->value4994 - session->player_count - reserved <= 0) break;
+  summary = 0;
+  if (session_state_is_live(session) && session->flag49fd)
+   summary = (s_session_summary *)session->data4a00;
+  __declspec(align(8)) byte ratings[0x364];
+  bool valid = function_7e210(session, (s_matchmaking_ratings *)ratings);
+  request = client->requests;
+  while (request)
+  {
+   s_session_request *next = request->next;
+   byte *data = (byte *)request;
+   long reason = 0;
+   if (!valid || !summary) reason = 3;
+   else if (*(long *)(data + 0x16c) != 2) reason = 10;
+   else if (*(long *)(data + 0x18) > function_193250(variant)) reason = 3;
+   else if (!(*(dword *)(ratings + 0x35c) & (1 << (*(long *)(data + 0x18) - 1)))) reason = 4;
+   else if (*(long *)variant == 5 && !memcmp(data + 0x18c, g_440070, 12)) reason = 14;
+   else if (*(long *)variant == 5 && session_summary_find_machine_user(summary, (XUID *)(data + 0x18c)) != NONE) reason = 15;
+   else reason = network_session_evaluate_join_request(client->session, (s_session_join_request *)(data + 0x18));
+   if (reason)
+   {
+    function_630f0(client->session, (s_session_join_request *)(data + 0x18), (long)request->key04, reason);
+    session_client_remove_request(client, request);
+   }
+   else
+   {
+    *(long *)(data + 0x1c4) = 0;
+    long score = *(long *)(data + 0x178) * g_network_configuration.value368;
+    if (score < 0) score = 0;
+    else if (score > g_network_configuration.value364) score = g_network_configuration.value364;
+    *(long *)(data + 0x1c4) = score;
+    if (*(dword *)(ratings + 0x360) & (1 << (*(long *)(data + 0x18) - 1)))
+     *(long *)(data + 0x1c4) += g_network_configuration.value36c;
+    *(long *)(data + 0x1c4) -= abs(*(long *)(data + 0x180) - *(long *)ratings) * g_network_configuration.value370;
+   }
+   request = next;
+  }
+  s_session_request *best = 0;
+  for (request = client->requests; request; request = request->next)
+   if (!best || *(long *)request->unknown1c4 > *(long *)best->unknown1c4) best = request;
+  if (!best) break;
+  s_session_summary current = *summary;
+  byte *data = (byte *)best;
+  if (session_summary_add_machine(&current, (s_session_id *)(data + 0x15c), (XUID *)(data + 0x18c),
+   (long *)(data + 0x11c), *(long *)(data + 0x18), (XUID *)(data + 0x1c), (long *)(data + 0xdc)))
+  {
+   network_session_host_set_summary(client->session, &current);
+   session = client->session;
+   long reason = 0;
+   if (!function_5c720(session, (s_session_member_identity *)(data + 0x1a0), *(long *)(data + 0x18),
+    (dword *)(data + 0x1c), (long *)(data + 0xdc), *(bool *)(data + 0x164), *(long *)(data + 0x168),
+    (s_session_id *)(data + 0x15c), &reason))
+   {
+    long reply[3];
+    memset(reply, 0, sizeof(reply));
+    reply[0] = session->unknown1c; reply[1] = session->unknown20; reply[2] = reason;
+    function_07b140(session->unknown04, (long)best->key04, 10, sizeof(reply), reply);
+   }
+  }
+  else
+  {
+   session = client->session;
+   long reply[3];
+   memset(reply, 0, sizeof(reply));
+   reply[0] = session->unknown1c; reply[1] = session->unknown20; reply[2] = 3;
+   function_07b140(session->unknown04, (long)best->key04, 10, sizeof(reply), reply);
+  }
+  session_client_remove_request(client, best);
+ }
+}
+
+#endif
+
+// @retail 0x6f700
+void function_06f700(c_session_state_joining *self)
+{
+ s_session_state_joining_view *state = (s_session_state_joining_view *)self;
+ bool cancelled = state->unknowne9;
+ c_class_58d20 *session = state->owner->session_a;
+ if (cancelled)
+ {
+  bool local = false;
+  if (session_state_is_live(session)) local = session->current_member == session->value50;
+  if (local)
+  {
+   if (session->type == 1)
+    state->unknown104 = 1;
+   else
+    session_state_joining_set_mode(self);
+  }
+  else
+   state->unknown104 = 16;
+ }
+ else
+ {
+  switch (session->type)
+  {
+  case 15: function_6f940(self); return;
+  case 16: session_state_joining_request_host_mode(self); return;
+  case 17: function_6fa60(self); return;
+  case 18: session_state_joining_check_ready(self); return;
+  }
+  bool local = false;
+  if (session_state_is_live(session)) local = session->current_member == session->value50;
+  if (local)
+  {
+   if (!state->unknowne8)
+    session_state_joining_send_target(self);
+   else
+    state->unknown104 = 16;
+  }
+  else
+   state->unknown104 = session->type == 1 ? 1 : 16;
+ }
+}

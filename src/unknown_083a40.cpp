@@ -615,3 +615,51 @@ void __stdcall function_83610(s_simulation_world_owner *watcher, long *count, s_
   watcher->unknownc30 = *count > initial_count;
  }
 }
+
+
+void function_14c630(dword valid_mask, const s_machine_address *addresses);
+void players_set_local_machine(const s_machine_address *address);
+
+// @retail 0x83370
+void __stdcall function_83370(void *watcher_, dword flags)
+{
+ s_simulation_world_owner *watcher = (s_simulation_world_owner *)watcher_;
+ if (!(flags & 4))
+ {
+  s_watcher_machines *source = (s_watcher_machines *)g_4e8c20;
+  dword mask = source->count;
+  s_machine_address addresses[16];
+  s_machine_address local = watcher->world->local_address;
+  long index = NONE;
+  memcpy(addresses, source->machines, sizeof(addresses));
+  for (long i = 0; i < 16; i++)
+   if ((mask & (1 << i)) && !memcmp(&addresses[i], &local, sizeof(local)))
+    index = i;
+  if (index == NONE)
+   players_set_local_machine(0);
+  else
+   players_set_local_machine(&addresses[index]);
+  watcher->unknown84 = true;
+  simulation_watcher_rebuild_players(watcher);
+ }
+ else
+ {
+  byte *source = (byte *)g_4e8c20;
+  bool valid = *(bool *)(source + 0x90);
+  s_machine_address local;
+  if (valid)
+   local = *(s_machine_address *)(source + 0x91);
+  watcher->unknown1c = 1;
+  watcher->unknown20 = 0;
+  memset(watcher->unknown24, 0, sizeof(watcher->unknown24));
+  if (valid)
+   ((s_machine_address *)watcher->unknown24)[watcher->unknown20] = local;
+  watcher->world->local_address = ((s_machine_address *)watcher->unknown24)[watcher->unknown20];
+  watcher->world->unknown0c = 1;
+  *(long *)(watcher->world->unknown13 + 1) = watcher->unknown20;
+  function_14c630(watcher->unknown1c, (s_machine_address *)watcher->unknown24);
+  players_set_local_machine(&((s_machine_address *)watcher->unknown24)[watcher->unknown20]);
+  watcher->unknown84 = false;
+  simulation_watcher_rebuild_players(watcher);
+ }
+}
