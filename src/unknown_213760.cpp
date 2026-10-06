@@ -1201,3 +1201,49 @@ void function_213970(void)
         }
     }
 }
+
+
+long function_11cae0(void);
+long function_12d400(long type, long size, long user_data, long update, long release);
+bool __stdcall function_199740(byte *buffer, long size, byte *destination, long *decompressed_size);
+bool function_23e400(long index);
+void function_2238f4(long page, dword context, dword parameter1, dword parameter2);
+
+// Retail retains the helper calls in this initializer.
+#pragma auto_inline(off)
+#pragma inline_depth(0)
+// @retail 0x2133a1
+void function_2133a1(void)
+{
+    if (g_51ea00)
+    {
+        static long selected = function_11cae0();
+        if (g_51ea04 && g_47004c != selected)
+            function_21357d(g_51ea04, 0);
+        g_47004c = selected;
+        s_image_21350e image;
+        if (!g_51ea04 && (byte)function_21350e(selected, &image))
+        {
+            do
+            {
+                g_51ea04 = function_12d400(2, image.format, 0, 0, (long)function_21357d);
+            }
+            while (!g_51ea04);
+            long size;
+            if (!function_199740((byte *)image.data, image.size, (byte *)g_51ea04, &size))
+                function_21357d(g_51ea04, 0);
+        }
+        bool changed = false;
+        long indices[2] = { 0, 12 };
+        for (unsigned long i = 0; i < 2; ++i)
+        {
+            if (function_23e400(indices[i]))
+                changed = true;
+        }
+        if (changed)
+            function_2238f4(0, 0, 0, 0);
+    }
+}
+
+#pragma inline_depth()
+#pragma auto_inline(on)
