@@ -1190,10 +1190,11 @@ long c_game_engine_markers::v25(long ticks, bool a, bool b)
 {
 	if ((real)ticks * g_510c54->rate <= 5.0f)
 	{
-		s_slot_table *g = g_51ec80;
+		s_slot_table *g;
 
 		if (a)
 		{
+			g = g_51ec80;
 			if (b && (ctf_options()->flags22c.flags & 2))
 			{
 				if (g->b1fc)
@@ -1207,7 +1208,10 @@ long c_game_engine_markers::v25(long ticks, bool a, bool b)
 			}
 		}
 
-		return ticks > g->l200 ? ticks : g->l200;
+		else
+			g = g_51ec80;
+		if (ticks <= g->l200)
+			ticks = g->l200;
 	}
 
 	return ticks;
