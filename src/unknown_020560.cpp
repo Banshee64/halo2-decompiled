@@ -1011,3 +1011,42 @@ void __stdcall function_20bb0(long player, dword mask, long const *indices, long
         }
     }
 }
+
+
+extern long g_4b9ed4;
+long __stdcall function_3bf20(s_slot *slot, byte *data);
+
+// @retail 0x3c270
+bool __stdcall function_3c270(dword value)
+{
+    s_slot_key key;
+    memset(&key, 0, sizeof(key));
+    long player = g_4b9ed4;
+    key.a = 0;
+    key.b = player;
+    key.c = 5;
+    key.d = 0;
+    key.e = 0;
+    long index = function_0209b0(&key, &value, 4);
+    if (index == NONE) return false;
+    bool valid = false;
+    bool available;
+    real amount;
+    if (g_51f408 && g_51f40c.slots[index].valid)
+    {
+        long frame = ((long)g_485aa0 + 1) % 3;
+        amount = g_51f40c.slots[index].f * g_5234c8;
+        amount = PIN(amount, 0.0f, 1.0f);
+        valid = true;
+        available = (g_51f40c.bitsets[frame][index >> 5] & (1 << (index & 31))) == 0;
+    }
+    else
+    {
+        amount = 0.0f;
+        available = false;
+    }
+    function_20bb0(player, 0x20, &index, 1, true, function_3bf20);
+    if (valid && !available && !(amount > 0.0f)) return false;
+    return true;
+}
+

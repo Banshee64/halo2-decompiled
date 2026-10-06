@@ -1413,3 +1413,470 @@ real function_2f2d0(vector3f const *direction, point3f const *position, long mod
         result = (real)(atan2(y, x) * scale * 0.31830987334251404f);
     return result;
 }
+
+
+extern real g_48568c[46];
+extern word g_485648, g_48564a, g_48564c, g_48564e;
+extern real g_48565c;
+
+// @retail 0x48b00
+bool function_48b00(point3f const *point, real radius, real *screen, real *extent)
+{
+    bool result = false;
+    if (radius > 0.0f)
+    {
+        short width = (short)(g_48564e - g_48564a);
+        short height = (short)(g_48564c - g_485648);
+        real x = point->x, y = point->y, z = point->z;
+        if (g_48568c[0] != 1.0f)
+        {
+            x *= g_48568c[0];
+            y *= g_48568c[0];
+            z *= g_48568c[0];
+        }
+        real vx = g_48568c[7] * z + g_48568c[4] * y + g_48568c[1] * x + g_48568c[10];
+        real vy = g_48568c[8] * z + g_48568c[5] * y + g_48568c[2] * x + g_48568c[11];
+        real vz = g_48568c[9] * z + g_48568c[6] * y + g_48568c[3] * x + g_48568c[12];
+        real py = g_48568c[39] * vz + g_48568c[35] * vy + g_48568c[31] * vx + g_48568c[43];
+        real pz = g_48568c[40] * vz + g_48568c[36] * vy + g_48568c[32] * vx + g_48568c[44];
+        real pw = g_48568c[41] * vz + g_48568c[37] * vy + g_48568c[33] * vx + g_48568c[45];
+        real rx = g_48568c[30] * radius;
+        real ry = g_48568c[35] * radius;
+        if (pz > 0.0f)
+        {
+            real px = g_48568c[38] * vz + g_48568c[34] * vy + g_48568c[30] * vx + g_48568c[42];
+            real inverse = 1.0f / pw;
+            screen[0] = ((px * inverse + 1.0f) * width + (short)g_48564a * 2.0f - 1.0f) * 0.5f;
+            screen[1] = ((1.0f - py * inverse) * height + (short)g_485648 * 2.0f - 1.0f) * 0.5f;
+            real depth = pz * inverse;
+            screen[2] = (1.0f < depth ? 1.0f : depth) * 16777215.0f;
+            screen[3] = pw / g_48565c * 16777215.0f;
+            extent[0] = width * inverse * rx * 0.5f;
+            extent[1] = height * inverse * ry * 0.5f;
+            result = true;
+        }
+    }
+    return result;
+}
+
+
+
+extern byte g_4670bc;
+extern byte g_485b48[0x1fc0];
+struct s_render_reset_state;
+void function_16b10(s_render_reset_state *state);
+vector3f *function_11d000(vector3f const *v, vector3f *out);
+real g_4b9f58;
+
+// @retail 0x3eec0
+void function_3eec0()
+{
+    if (g_4b9ee9 && g_4b9eec != NONE && g_4c5038)
+    {
+        s_cluster_tag_table *table = (s_cluster_tag_table *)g_4e0350;
+        long index = NONE;
+        if ((short)g_4b9eec >= 0 && (short)g_4b9eec < table->count)
+            index = table->entries[(short)g_4b9eec].tag;
+        byte *definition = NULL;
+        if (index != NONE) definition = g_4e3b44[index & 0xffff].bytes;
+        for (long i = 0; i < *(long *)(definition + 0x78) && i < 64; ++i)
+        {
+            byte *entry = *(byte **)(definition + 0x7c) + i * 0x34;
+            long tag = *(long *)(entry + 0x18);
+            if (tag == NONE) continue;
+            real heading = *(real *)(entry + 0xc), elevation = *(real *)(entry + 0x10);
+            vector3f local;
+            local.i = (real)(cos(heading) * cos(elevation));
+            local.j = (real)(sin(heading) * cos(elevation));
+            local.k = (real)sin(elevation);
+            real angle = *(real *)(definition + 0x80);
+            vector3f forward;
+            forward.i = (real)(cos(angle) * cos(0.0));
+            forward.j = (real)(sin(angle) * cos(0.0));
+            forward.k = (real)sin(0.0);
+            vector3f up = *g_4687b0;
+            vector3f left;
+            left.i = up.j * forward.k - up.k * forward.j;
+            left.j = up.k * forward.i - up.i * forward.k;
+            left.k = up.i * forward.j - up.j * forward.i;
+            vector3f direction;
+            direction.i = local.j * left.i + local.k * up.i + local.i * forward.i;
+            direction.j = local.i * forward.j + local.j * left.j + local.k * up.j;
+            direction.k = local.i * forward.k + local.j * left.k + local.k * up.k;
+            if (1.0f > g_4b9f58)
+            {
+                g_4670bc = true;
+                function_16b10((s_render_reset_state *)g_485b48);
+                point3f position;
+                position.x = direction.i * 1023.875f + g_4b9da0.x;
+                position.y = direction.j * 1023.875f + g_4b9da0.y;
+                position.z = direction.k * 1023.875f + g_4b9da0.z;
+                vector3f basis[3];
+                basis[0].i = 0.0f - direction.i;
+                basis[0].j = 0.0f - direction.j;
+                basis[0].k = 0.0f - direction.k;
+                function_11d000(&basis[0], &basis[2]);
+                function_30bf0(&basis[2]);
+                function_2dba0(tag, basis, false, 3, 0, i, &position,
+                    (color3f const *)((byte const *)g_4686cc + 4), 1.0f - g_4b9f58, 1.0f, 1.0f);
+            }
+        }
+    }
+}
+
+
+
+extern void *g_509438;
+real g_525924;
+struct s_octree_output
+{
+    long node;
+    point3f center;
+};
+s_octree_output g_4c5700[256];
+
+// @retail 0x3f970
+void function_3f970(byte const *tree, short index, plane3f const *planes, real const *bounds, point3f const *center, real radius)
+{
+    if (index == NONE) return;
+    short const *children = (short const *)(*(byte *const *)(tree + 0x24) + index * 24);
+    if (bounds[0] > center->x + radius || center->x - radius > bounds[1] ||
+        bounds[2] > center->y + radius || center->y - radius > bounds[3] ||
+        bounds[4] > center->z + radius || center->z - radius > bounds[5]) return;
+    real delta = radius - g_525924;
+    if (0.0001f > delta && delta > -0.0001f)
+    {
+        if (function_3fd20(planes, center, radius)) return;
+        long count = (long)g_509438;
+        if (count < 256)
+        {
+            g_4c5700[count].node = index;
+            g_4c5700[count].center = *center;
+            g_509438 = (void *)(count + 1);
+        }
+        return;
+    }
+    radius *= 0.5f;
+    point3f child;
+    child.x = center->x - radius;
+    child.y = center->y - radius;
+    child.z = center->z - radius;
+    function_3f970(tree, children[0], planes, bounds, &child, radius);
+    child.x = center->x - radius;
+    child.y = center->y - radius;
+    child.z = center->z + radius;
+    function_3f970(tree, children[1], planes, bounds, &child, radius);
+    child.x = center->x - radius;
+    child.y = center->y + radius;
+    child.z = center->z - radius;
+    function_3f970(tree, children[2], planes, bounds, &child, radius);
+    child.x = center->x - radius;
+    child.y = center->y + radius;
+    child.z = center->z + radius;
+    function_3f970(tree, children[3], planes, bounds, &child, radius);
+    child.x = center->x + radius;
+    child.y = center->y - radius;
+    child.z = center->z - radius;
+    function_3f970(tree, children[4], planes, bounds, &child, radius);
+    child.x = center->x + radius;
+    child.y = center->y - radius;
+    child.z = center->z + radius;
+    function_3f970(tree, children[5], planes, bounds, &child, radius);
+    child.x = center->x + radius;
+    child.y = center->y + radius;
+    child.z = center->z - radius;
+    function_3f970(tree, children[6], planes, bounds, &child, radius);
+    child.x = center->x + radius;
+    child.y = center->y + radius;
+    child.z = center->z + radius;
+    function_3f970(tree, children[7], planes, bounds, &child, radius);
+}
+
+
+
+PRIVATE __forceinline double random_unit_fraction(s_random_globals *random)
+{
+    return (double)random_next(&random->seed) * (1.0f / 65535.0f);
+}
+
+// @retail 0x39a80
+bool function_39a80(byte *state)
+{
+    *(real *)(state + 0x80) = 0.0f;
+    state[0x86] = false;
+    if (*(long *)(state + 0x64) > 0)
+    {
+        byte *group = *(byte **)(state + 0x68);
+        s_random_globals *random = g_4e7408;
+        for (long i = 0; i < *(long *)group; ++i)
+        {
+            byte *entry = *(byte **)(group + 4) + i * 0x14;
+            real *motion = (real *)(*(byte **)(group + 0xc) + i * 0x20);
+            *(long *)(entry + 0x10) = NONE;
+            if ((0.0001f > *(real *)(state + 0x1c) && 0.0001f > *(real *)(state + 0x20)) ||
+                *(real *)(state + 0x1c) > *(real *)(state + 0x20))
+            {
+                *(real *)(state + 0x1c) = 0.1f;
+                *(real *)(state + 0x20) = 0.8f;
+            }
+            motion[6] = (real)((*(real *)(state + 0x20) - (double)*(real *)(state + 0x1c)) *
+                random_unit_fraction(random) + *(real *)(state + 0x1c));
+            motion[0] = (real)(random_unit_fraction(random) * *(real *)(state + 0x30));
+            motion[1] = (real)(random_unit_fraction(random) * *(real *)(state + 0x34));
+            motion[2] = (real)(random_unit_fraction(random) * *(real *)(state + 0x38));
+            real magnitude = (real)sqrt((double)motion[0] * motion[0] + (double)motion[1] * motion[1] + (double)motion[2] * motion[2]);
+            if (!(fabs(magnitude) < 0.0001f))
+            {
+                real inverse = 1.0f / magnitude;
+                motion[0] *= inverse;
+                motion[1] *= inverse;
+                motion[2] *= inverse;
+            }
+            *(real *)(entry + 0xc) = (real)(random_unit_fraction(random) *
+                (*(real *)(state + 0x28) - (double)*(real *)(state + 0x24)) + *(real *)(state + 0x24));
+            motion[7] = 0.0f;
+            if (0.0001f > *(real *)(state + 8)) *(real *)(state + 8) = 1.0f;
+            if (0.0001f > *(real *)(state + 0xc)) *(real *)(state + 0xc) = 1.0f;
+            if (0.0001f > *(real *)(state + 0x10)) *(real *)(state + 0x10) = 1.0f;
+            double sample = random_unit_fraction(random);
+            *(real *)entry = (real)((sample + sample - 1.0f) * *(real *)(state + 0x10));
+            sample = random_unit_fraction(random);
+            *(real *)(entry + 4) = (real)((sample + sample - 1.0f) * *(real *)(state + 8));
+            sample = random_unit_fraction(random);
+            *(real *)(entry + 8) = (real)((sample + sample - 1.0f) * *(real *)(state + 0xc));
+            sample = random_unit_fraction(random);
+            motion[3] = (real)(sample + sample - 1.0f);
+            sample = random_unit_fraction(random);
+            motion[4] = (real)(sample + sample - 1.0f);
+            sample = random_unit_fraction(random);
+            motion[5] = (real)(sample + sample - 1.0f);
+        }
+        state[0x86] = true;
+    }
+    *(real *)(state + 0x88) = 1.0f;
+    return true;
+}
+
+
+
+// @retail 0x3e5a0
+void function_3e5a0(vector3f *current, vector3f const *target, real step)
+{
+    real current_size = (real)sqrt((double)current->i * current->i + (double)current->j * current->j + (double)current->k * current->k);
+    real a = current_size < 0.0001f ? 0.0001f : current_size > 10.0f ? 10.0f : current_size;
+    real target_size = (real)sqrt((double)target->i * target->i + (double)target->j * target->j + (double)target->k * target->k);
+    real b = target_size < 0.0001f ? 0.0001f : target_size > 10.0f ? 10.0f : target_size;
+    vector3f first, second;
+    real inverse = 1.0f / a;
+    first.i = current->i * inverse;
+    first.j = current->j * inverse;
+    first.k = current->k * inverse;
+    inverse = 1.0f / b;
+    second.i = target->i * inverse;
+    second.j = target->j * inverse;
+    second.k = target->k * inverse;
+    real dot = second.k * first.k + second.j * first.j + second.i * first.i;
+    if (fabs(dot) < 0.9999f && a > 0.0001f && b > 0.0001f)
+    {
+        real angle = (real)(acos(dot) * step);
+        vector3f axis;
+        axis.i = second.k * first.j - second.j * first.k;
+        axis.j = first.k * second.i - second.k * first.i;
+        axis.k = second.j * first.i - first.j * second.i;
+        function_30bf0(&axis);
+        real sine = (real)sin(angle), cosine = (real)cos(angle);
+        real projection = (axis.k * first.k + axis.j * first.j + axis.i * first.i) * (1.0f - cosine);
+        vector3f rotated;
+        rotated.i = projection * axis.i + cosine * first.i - (axis.k * first.j - axis.j * first.k) * sine;
+        rotated.j = projection * axis.j + cosine * first.j - (first.k * axis.i - axis.k * first.i) * sine;
+        rotated.k = projection * axis.k + cosine * first.k - (axis.j * first.i - first.j * axis.i) * sine;
+        real delta = b - a;
+        real size = a + (delta < -step ? -step : delta > step ? step : delta);
+        current->i = size * rotated.i;
+        current->j = size * rotated.j;
+        current->k = size * rotated.k;
+    }
+    else
+    {
+        real delta = target->i - current->i;
+        current->i += delta < -step ? -step : delta > step ? step : delta;
+        delta = target->j - current->j;
+        current->j += delta < -step ? -step : delta > step ? step : delta;
+        delta = target->k - current->k;
+        current->k += delta < -step ? -step : delta > step ? step : delta;
+    }
+}
+
+
+
+extern dword g_4ba034;
+struct s_cached_input
+{
+    dword data[5];
+};
+struct s_cached_input_entry
+{
+    s_cached_input input;
+    real elapsed;
+    dword initial;
+    dword last_seen;
+    dword created;
+};
+struct s_cached_input_list
+{
+    s_cached_input_entry entries[32];
+    long count;
+};
+
+// @retail 0x4a7c0
+void function_4a7c0(s_cached_input_list *state, s_cached_input const *inputs, long count)
+{
+    dword used = 0;
+    for (long i = 0; i < state->count; ++i)
+    {
+        for (long j = 0; j < count; ++j)
+        {
+            if (state->entries[i].input.data[1] == inputs[j].data[1])
+            {
+                state->entries[i].input = inputs[j];
+                state->entries[i].last_seen = g_4ba034;
+                used |= 1 << j;
+                break;
+            }
+        }
+    }
+    for (long k = 0; k < state->count; ++k)
+    {
+        if (state->count > 0 && state->entries[k].last_seen != g_4ba034)
+        {
+            state->entries[k] = state->entries[state->count - 1];
+            --state->count;
+            --k;
+        }
+    }
+    for (long n = 0; n < count; ++n)
+    {
+        if (state->count < 32 && !(used & (1 << n)))
+        {
+            state->entries[state->count].input = inputs[n];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << n;
+        }
+    }
+}
+
+
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+static void swap_cached_input(s_cached_input_entry *a, s_cached_input_entry *b)
+{
+	s_cached_input_entry temporary = *a;
+	*a = *b;
+	*b = temporary;
+}
+
+static void clamp_cached_input(s_cached_input_entry *entry)
+{
+	real &value = *(real *)&entry->initial;
+	real maximum = *(real *)&entry->input.data[3];
+	if (value < 0.0f) value = 0.0f;
+	else if (value > maximum) value = maximum;
+}
+
+// @retail 0x4ac30
+long __stdcall function_4ac30(s_cached_input_list *state, s_cached_input *output, long limit, real step)
+{
+	if (state->count > 0 && (!g_510c50 || !((byte *)g_510c50)[5]))
+	{
+		long requested = limit;
+		if (limit > state->count) limit = state->count;
+		long first = 0;
+		long last = state->count - 1;
+		bool found = false;
+		long i;
+		for (i = 0; i <= last; ++i)
+		{
+			byte *flags = (byte *)&state->entries[i].input.data[0];
+			if (i < last && flags[0] && flags[1])
+			{
+				swap_cached_input(&state->entries[i], &state->entries[0]);
+				++first;
+				found = true;
+			}
+		}
+		if (!found)
+		{
+			for (i = first; i <= last; ++i)
+			{
+				if (*(byte *)&state->entries[i].input.data[0])
+				{
+					swap_cached_input(&state->entries[i], &state->entries[first]);
+					++first;
+					break;
+				}
+			}
+		}
+		if (state->count > requested)
+		{
+			for (i = first; i <= last; ++i)
+			{
+				s_cached_input_entry *entry = &state->entries[i];
+				if (((byte *)&entry->input.data[0])[2] && entry->created == g_4ba034)
+				{
+					entry->initial = 0;
+					swap_cached_input(entry, &state->entries[last--]);
+					--i;
+				}
+			}
+		}
+		function_4b160(first, (s_4b160_entry *)state->entries, 1, last);
+		for (i = first; i <= last; ++i)
+		{
+			s_cached_input_entry *entry = &state->entries[i];
+			if (i > 0 && entry->input.data[2] != -1 && entry->input.data[2] == state->entries[i - 1].input.data[2] && !((byte *)&entry->input.data[0])[3])
+			{
+				entry->initial = 0;
+				entry->elapsed = 0.0f - step;
+				swap_cached_input(entry, &state->entries[last--]);
+			}
+		}
+		function_4b160(first, (s_4b160_entry *)state->entries, 2, last);
+		if (state->count > 0 && requested < state->count)
+		{
+			for (i = state->count - 1; i >= limit; --i)
+			{
+				s_cached_input_entry *entry = &state->entries[i];
+				if (!((byte *)&entry->input.data[0])[3] && *(real *)&entry->initial > 0.0f)
+				{
+					entry->elapsed -= step;
+					*(real *)&entry->initial += entry->elapsed;
+					clamp_cached_input(entry);
+				}
+				else entry->elapsed = 0.0f;
+			}
+		}
+		for (i = 0; i < limit; ++i)
+		{
+			s_cached_input_entry *entry = &state->entries[i];
+			if (*(real *)&entry->input.data[3] > *(real *)&entry->initial)
+			{
+				entry->elapsed += step;
+				*(real *)&entry->initial += entry->elapsed;
+				clamp_cached_input(entry);
+			}
+			else entry->elapsed = 0.0f;
+		}
+	}
+	for (long i = 0; i < state->count; ++i)
+	{
+		output[i] = state->entries[i].input;
+		output[i].data[3] = state->entries[i].initial;
+	}
+	return state->count;
+}
