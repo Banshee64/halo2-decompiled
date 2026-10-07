@@ -199,21 +199,19 @@ long function_2b0a68(s_widget_view_2b0a *widget)
 // @retail 0x2b0b19
 s_type_7ba8e9 *function_2b0b19(s_widget_view_2b0a *widget)
 {
-	s_type_7ba8e9 *bitmap = widget->bitmap;
-
-	if (bitmap)
-	{
-		return bitmap;
-	}
-	else
-	{
-		s_bitmap_tag_2b0a *tag = (s_bitmap_tag_2b0a *)g_4e3b44[*(long *)((byte *)widget->definition + 0x1c) & 0xffff].bytes;
-		short index = widget->value88;
-
-		if (index >= 0 && index < tag->count)
-			return &tag->bitmaps[index];
-		return tag->bitmaps;
-	}
+    s_type_7ba8e9 *result = 0;
+    if (widget->bitmap)
+        result = widget->bitmap;
+    else
+    {
+        s_bitmap_tag_2b0a *tag = (s_bitmap_tag_2b0a *)g_4e3b44[*(long *)((byte *)widget->definition + 0x1c) & 0xffff].bytes;
+        short index = widget->value88;
+        if (index >= 0 && index < tag->count)
+            result = &tag->bitmaps[index];
+        else
+            result = tag->bitmaps;
+    }
+    return result;
 }
 
 /* sets the widget's bitmap and sizes the widget to it */
@@ -229,10 +227,13 @@ void function_2b0a7b(s_widget_view_2b0a *widget, s_type_7ba8e9 *bitmap)
 	shown = function_2b0b19(widget);
 	if (shown)
 	{
-		bounds.top = widget->definition->y;
-		bounds.left = widget->definition->x;
-		bounds.bottom = widget->definition->y - shown->height;
-		bounds.right = widget->definition->x + shown->width;
+		short x = widget->definition->x;
+		short y = widget->definition->y;
+		short right = x + shown->width;
+		bounds.top = y;
+		bounds.left = x;
+		bounds.right = right;
+		bounds.bottom = y - shown->height;
 	}
 	widget->widget_bounds = bounds;
 }
@@ -5316,8 +5317,7 @@ void c_potential_squad_leader_player_list::handle_item(s_controller_reference **
         {
             if (!value288)
             {
-                get_screen()->start_animation(3);
-                return;
+                goto animate;
             }
             if (!function_19a179(NONE))
                 goto finish;
@@ -5335,6 +5335,7 @@ finish:
         function_14887e((s_screen_settings_54dc6c *)&selection);
         function_2395dc((XONLINE_FRIEND *)((byte *)&selection + 4), (*controller)->controller_index, 4);
     }
+animate:
     get_screen()->start_animation(3);
 }
 
@@ -5557,4 +5558,145 @@ void c_widget_45adf0::v3()
     long tag = *(long *)((byte *)definition + 0x18);
     if (tag != NONE)
         function_16e5e0((s_predicted_resource_block const *)(g_4e3b44[tag & 0xffff].bytes + 0x2c), 0);
+}
+
+/* The screen waiting for a map to finish loading. */
+class c_load_progress_screen : public c_class_1473c9
+{
+public:
+    virtual void v3();
+    long state;
+    bool dialog_shown;
+};
+
+bool window_manager_channel_has_pause_screen(long channel);
+word function_1901fc();
+bool __stdcall function_2c55c4(long unused);
+bool __stdcall function_163890(char const *map_name, long mode);
+long map_location_progress_get(char const *map_name);
+struct s_entry_a;
+s_entry_a *function_148d61();
+bool function_14a217();
+void function_23643f();
+void __stdcall function_2c52e7(char const *map_name);
+extern real g_509334;
+
+// @retail 0x2c542b
+void c_load_progress_screen::v3()
+{
+    c_class_1a2c81::v3();
+    if (!ANIMATION_FLAG(animation, 1))
+    {
+        if (window_manager_channel_has_pause_screen(0) ||
+            window_manager_channel_has_pause_screen(1) ||
+            window_manager_channel_has_pause_screen(3))
+        {
+            if (!dialog_shown)
+            {
+                function_14800c(v20(), v21());
+                dialog_shown = true;
+            }
+        }
+        else if (state == 0)
+        {
+            byte *entry = (byte *)function_148d61();
+            char *map_name = 0;
+            long progress = 3;
+            if (entry)
+            {
+                map_name = (char *)(entry + 8);
+                if (map_name)
+                    progress = map_location_progress_get(map_name);
+            }
+            switch (progress)
+            {
+            case 2:
+                if (function_14a217() && fabs(g_509334 - 1.0f) < 0.0001f)
+                {
+                    function_23643f();
+                    start_animation(3);
+                }
+                break;
+            case 3:
+                if (!dialog_shown)
+                {
+                    function_14800c(v20(), v21());
+                    dialog_ok_show(1, 0x22, 4, function_1901fc(), function_2c55c4, 0);
+                    dialog_shown = true;
+                }
+                break;
+            default:
+                function_163890(map_name, 1);
+                break;
+            }
+            if (map_name)
+                function_2c52e7(map_name);
+            short width = bounds.right - bounds.left;
+            c_class_1a2c81 *bitmap = find_child(8, 1, false);
+            if (bitmap)
+            {
+                s_widget_bounds rectangle;
+                bitmap->get_bounds(&rectangle);
+                short bitmap_width = rectangle.right - rectangle.left;
+                rectangle.left = (short)(width * g_509334) - width / 2;
+                rectangle.right = rectangle.left + bitmap_width;
+                bitmap->bounds = rectangle;
+            }
+        }
+    }
+}
+
+#include "unknown_07f720.h"
+
+struct s_510c4c;
+extern s_510c4c *g_510c4c;
+
+struct s_preview_state_2b11
+{
+    byte unknown00[0x1b4];
+    long player_index;
+    byte unknown1b8[0x1d0 - 0x1b8];
+    short sequence;
+};
+struct s_widget_quad_2b11
+{
+    real points[8];
+};
+
+real g_4e696c;
+void function_1bbd0();
+void function_1392f8(s_player_appearance const *appearance);
+s_float_rect *function_22ea81(c_class_1a2c81 *widget, s_float_rect *rect, short_rectangle2d const *frame);
+void function_22a664(s_widget_quad_2b11 const *quad, s_float_rect const *coordinates,
+    long tag_index, long sequence, long resource_index);
+
+// @retail 0x2b11c9
+void c_widget_45adf0::v4(long frame)
+{
+    if (definition && (!(*(dword *)definition & 2) || *(short *)unknown86 != NONE))
+    {
+        real scale = animation.scale;
+        s_float_rect coordinates;
+        coordinates.x0 = coordinates.y0 = 0.0f;
+        coordinates.x1 = coordinates.y1 = 1.0f;
+        s_float_rect rectangle;
+        function_22ea81(this, &rectangle, (short_rectangle2d const *)frame);
+        function_1bbd0();
+        s_preview_state_2b11 *state = (s_preview_state_2b11 *)g_510c4c;
+        state->player_index = NONE;
+        function_1392f8((s_player_appearance const *)value74);
+        state->sequence = *(short *)unknown86;
+        s_widget_quad_2b11 quad;
+        quad.points[0] = rectangle.x0;
+        quad.points[1] = rectangle.y0;
+        quad.points[2] = rectangle.x1;
+        quad.points[3] = rectangle.y0;
+        quad.points[4] = rectangle.x1;
+        quad.points[5] = rectangle.y1;
+        quad.points[6] = rectangle.x0;
+        quad.points[7] = rectangle.y1;
+        g_4e696c = scale;
+        function_22a664(&quad, &coordinates, definition->tag_index,
+            *(short *)((byte *)definition + 0xa), *(long *)((byte *)definition + 0x18));
+    }
 }
