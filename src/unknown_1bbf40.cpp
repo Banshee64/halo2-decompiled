@@ -296,9 +296,10 @@ short __stdcall function_1bca60(long actor_index)
 // @retail 0x1bcc10
 void __stdcall function_1bcc10(long actor_index, s_slot *slot)
 {
+	bool moving = actor_get(actor_index)->unknown504 == 2;
 	s_actor_view *actor = actor_get(actor_index);
 
-	if (actor->unknown504 == 2)
+	if (moving)
 		function_262800(actor_index, actor->unknown418, false);
 }
 

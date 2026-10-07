@@ -12,6 +12,165 @@
 #include "unknown_11cc90.h"
 #include <string.h>
 #include <math.h>
+#include <float.h>
+#include "unknown_26c380.h"
+
+struct s_slot_entry_list;
+struct s_collision_bsp_test_vector_result
+{
+    real t;
+    plane3f const *plane;
+    long surface_reference[3];
+    byte surface_flags[2];
+    short surface_index;
+    long leaf_count;
+    long leaves[0x100];
+};
+extern s_slot_entry_list *g_4e0340;
+extern vector3f *g_4687bc;
+bool function_1de630(dword flags, s_slot_entry_list *bsp, s_collision_bsp_test_vector_result *result,
+    real fraction, long count, byte const *mask, point3f const *origin, vector3f const *direction);
+
+// @retail 0x1f5110
+bool function_1f5110(long actor_index, point2f const *direction, real distance,
+    real vertical_distance, bool *vertical_out, s_path_trace_result *trace)
+{
+    bool result = false;
+    bool vertical = false;
+    s_actor_moving *actor = actor_moving_get(actor_index);
+    if (!actor->unknown229)
+    {
+        byte *structure = (byte *)g_4e0348;
+        s_pathfinding_data *pathfinding = NULL;
+        if (*(long *)(structure + 0xc4) > 0)
+            pathfinding = *(s_pathfinding_data **)(structure + 0xc8);
+        function_26c180(actor_index);
+        vector3f horizontal = { direction->x, direction->y, 0.0f };
+        if (pathfinding)
+        {
+            vector3f local;
+            function_210770(actor->location.cluster_index, &horizontal, &local);
+            long sector = actor->unknown28c;
+            if (!function_26c590(pathfinding, (point3f *)&actor->location, sector,
+                NONE, &local, distance, NULL, trace) && ((s_sector_trace_result *)trace)->sector_index != NONE)
+            {
+                result = true;
+                goto done;
+            }
+        }
+        if (vertical_distance > 0.0f)
+        {
+            point3f origin;
+            origin.x = 0.5f * (actor->position.x + *(real *)((byte *)actor + 0x22c));
+            origin.y = 0.5f * (actor->position.y + *(real *)((byte *)actor + 0x230));
+            origin.z = 0.5f * (actor->position.z + *(real *)((byte *)actor + 0x234));
+            horizontal.i = direction->x * distance;
+            horizontal.j = direction->y * distance;
+            horizontal.k = 0.0f;
+            s_collision_bsp_test_vector_result hit;
+            s_slot_entry_list *bsp = g_4e0340;
+            if (!function_1de630(0x1808c2d, bsp, &hit, FLT_MAX, 0, NULL, &origin, &horizontal))
+            {
+                result = true;
+                vertical = true;
+                if (vertical_distance < FLT_MAX)
+                {
+                    point3f end = { horizontal.i + origin.x, horizontal.j + origin.y, horizontal.k + origin.z };
+                    vector3f down = { g_4687bc->i * vertical_distance, g_4687bc->j * vertical_distance, g_4687bc->k * vertical_distance };
+                    if (!function_1de630(0x1808c2d, bsp, &hit, FLT_MAX, 0, NULL, &end, &down))
+                        result = false;
+                }
+            }
+        }
+    }
+done:
+    if (vertical_out)
+        *vertical_out = vertical;
+    return result;
+}
+
+// @retail 0x1f5390
+bool function_1f5390(point2f const *heading, long actor_index, real distance,
+    short *mode, real vertical_distance, bool *vertical_out, s_path_trace_result *trace)
+{
+    short attempts = 1;
+    short selected = *mode;
+    point2f direction;
+    switch (selected)
+    {
+    case 0:
+        direction.x = 0.0f - heading->y;
+        direction.y = heading->x;
+        break;
+    case 1:
+        direction.x = heading->y;
+        direction.y = 0.0f - heading->x;
+        break;
+    case 2:
+        direction.x = heading->x;
+        direction.y = heading->y;
+        break;
+    case 3:
+        direction.x = 0.0f - heading->x;
+        direction.y = 0.0f - heading->y;
+        break;
+    case 4:
+        {
+            s_actor_moving *actor = actor_moving_get(actor_index);
+            attempts = 2;
+            if (*(byte *)((byte *)actor + 0x5d0))
+            {
+                real side = *(real *)((byte *)actor + 0x5f0) * heading->x +
+                    *(real *)((byte *)actor + 0x5ec) * (0.0f - heading->y);
+                if (side > 0.5f)
+                {
+                    selected = 0;
+                    direction.x = 0.0f - heading->y;
+                    direction.y = heading->x;
+                }
+                else if (side < -0.5f)
+                {
+                    selected = 1;
+                    direction.x = heading->y;
+                    direction.y = 0.0f - heading->x;
+                }
+                else
+                    attempts = 0;
+            }
+            else
+            {
+                dword *seed = &g_4e7408->unknown0;
+                *seed = *seed * 0x19660d + 0x3c6ef35f;
+                if (*seed & 0x80000000)
+                {
+                    selected = 0;
+                    direction.x = 0.0f - heading->y;
+                    direction.y = heading->x;
+                }
+                else
+                {
+                    selected = 1;
+                    direction.x = heading->y;
+                    direction.y = 0.0f - heading->x;
+                }
+            }
+        }
+        break;
+    }
+    for (short attempt = 0; attempt < attempts; attempt++)
+    {
+        if (function_1f5110(actor_index, &direction, distance, vertical_distance, vertical_out, trace))
+        {
+            *mode = selected;
+            return true;
+        }
+        direction.x = 0.0f - direction.x;
+        direction.y = 0.0f - direction.y;
+        selected ^= 1;
+    }
+    *mode = NONE;
+    return false;
+}
 
 long function_1e4a50(long index);
 real function_26f290(short type);

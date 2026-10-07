@@ -7,10 +7,159 @@
 #include "unknown_20fe20.h"
 #include "unknown_1f4460.h"
 #include "unknown_0259d0.h"
+#include "unknown_2626b0.h"
 
 void function_1f86a0(long index);
 bool __stdcall function_1f8a70(long actor_index, long unknown);
 void __stdcall function_2628f0(long actor_index, s_reference reference);
+
+struct s_1f4a20_source
+{
+    byte field_0[0x5c];
+    short type;
+    byte field_5e[2];
+    point3f point;
+    vector3f direction;
+};
+struct s_1f4a20_entry
+{
+    byte field_0[0x54];
+    point2f direction;
+    byte field_5c[4];
+    point3f point;
+    byte field_6c[4];
+};
+struct s_1f4a20_record
+{
+    short salt;
+    short type;
+    byte field_4[8];
+    s_type_c3b527 point;
+    byte field_1c[0x34 - 0x1c];
+    long sector;
+    byte field_38[0x484 - 0x38];
+};
+bool __stdcall function_29da40(long actor_index, s_type_c3b527 const *origin, long sector,
+    short type, bool alternate, point3f const *point, vector3f const *direction,
+    s_type_c3b527 *out, long *sector_out);
+bool function_270240(long object_index, long mode, long set, point3f const *point,
+    vector3f const *direction, transform4x3f *out);
+bool function_26d290(point3f const *origin, point3f const *target, long sector, long *sector_out);
+point3f *function_b9dd0(long object_index, point3f *point);
+real function_30bf0(vector3f *vector);
+
+// @retail 0x1f4a20
+bool function_1f4a20(long actor_index, s_reference reference, s_1f4a20_entry const *entries,
+    bool alternate, s_type_c3b527 *point_out, vector3f *direction_out,
+    signed char *type_out, bool *available_out, s_1f4a20_source const *source)
+{
+    bool result = false;
+    s_actor_view *actor = actor_get(actor_index);
+    function_26c180(actor_index);
+    s_262b40_result *target = function_262b40(reference);
+    s_type_c3b527 origin;
+    s_type_c3b527 destination;
+    vector3f direction;
+    long sector;
+    signed char type;
+    if (reference.unknown2 >= 0)
+    {
+        if (!source->type)
+            goto done;
+        if (!function_29da40(actor_index, (s_type_c3b527 *)target, *(long *)((byte *)target + 0x14),
+            source->type, alternate, &source->point, &source->direction, &destination, &sector))
+            goto done;
+        origin.point = source->point;
+        origin.output_index = ((s_type_c3b527 *)target)->output_index;
+        type = (signed char)source->type;
+        if (!function_2105b0(origin.output_index, &source->direction, &direction))
+            goto done;
+    }
+    else
+    {
+        if (!entries)
+            goto done;
+        s_1f4a20_record *record = (s_1f4a20_record *)(g_51eca4->data + (reference.unknown2 & 0x7fff) * sizeof(s_1f4a20_record));
+        if (record->type != 1)
+            goto done;
+        s_1f4a20_entry const *entry = entries + reference.unknown0;
+        point3f const *point = &entry->point;
+        function_210690(record->point.output_index, point, &origin.point);
+        origin.output_index = record->point.output_index;
+        if (source->type != 1 && source->type != 2 && source->type != 3)
+            goto done;
+        direction.i = -1.0f * entry->direction.x;
+        direction.j = -1.0f * entry->direction.y;
+        direction.k = 0.0f;
+        type = (signed char)source->type;
+        if (!(function_30bf0(&direction) > 0.0f))
+            goto done;
+        long mode = NONE;
+        switch (type)
+        {
+        case 1: mode = alternate ? 0x10000229 : 0x110001b4; break;
+        case 2: mode = alternate ? 0x1100022a : 0x120001b5; break;
+        case 3: mode = alternate ? 0x0b0006c4 : 0x0c0006c3; break;
+        }
+        point3f adjusted;
+        if (actor_index != NONE)
+        {
+            transform4x3f matrix;
+            if (!function_270240(actor_get(actor_index)->unknown018, mode, 0x5000049, point, &direction, &matrix))
+                goto done;
+            adjusted = matrix.position;
+        }
+        else
+            adjusted = *point;
+        function_210690(record->point.output_index, &adjusted, &destination.point);
+        destination.output_index = record->point.output_index;
+        if (!function_26d290(&record->point.point, &destination.point, record->sector, &sector))
+            goto done;
+    }
+    *available_out = true;
+    if (actor->unknown27c.point.output_index == ((s_type_c3b527 *)target)->output_index)
+    {
+        s_slot_object_view *unit = object_get(actor->unknown018);
+        short animation = *(short *)((byte *)unit + *(short *)((byte *)unit + 0x346) + 0x36);
+        if (animation == 6 || animation == 7)
+        {
+            point3f world;
+            point3f position;
+            function_210850(&origin, &world);
+            function_b9dd0(actor->unknown018, &position);
+            unit = object_get(actor->unknown018);
+            vector3f forward = *(vector3f *)((byte *)unit + 0x70);
+            long parent_index = *(long *)((byte *)unit + 0x14);
+            if (parent_index != NONE)
+            {
+                signed char node = *(signed char *)((byte *)unit + 0x18);
+                s_slot_object_view *parent = object_get(parent_index);
+                transform4x3f const *matrix = (transform4x3f const *)((byte *)parent + *(short *)((byte *)parent + 0x116)) + node;
+                real x = forward.i, y = forward.j, z = forward.k;
+                forward.i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+                forward.j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+                forward.k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
+            }
+            real x = world.x - position.x;
+            real y = world.y - position.y;
+            real z = world.z - position.z;
+            if (0.1f * 0.1f > z * z + y * y + x * x &&
+                forward.j * direction.j + forward.i * direction.i + forward.k * direction.k > 0.99f)
+                destination = actor->unknown27c.point;
+        }
+    }
+    if (function_1f4460(actor_index, &destination, sector, NONE, false))
+    {
+        actor->unknown4e8 = true;
+        result = true;
+        *point_out = origin;
+        *direction_out = direction;
+        *type_out = type;
+        function_2628f0(actor_index, reference);
+    }
+done:
+    return result;
+}
 
 // @retail 0x1f4460
 bool function_1f4460(long actor_index, s_type_c3b527 const *point, long target_index, long unknown, bool unknown2)
