@@ -232,3 +232,41 @@ bool function_1a0560(wchar_t const *name, s_player_profile_settings *settings, l
 	}
 	return result;
 }
+
+long function_215c00(long arg_0, wchar_t const *arg_1);
+void __stdcall function_215e60(long arg_0);
+
+PRIVATE inline long function_1a03a1(long arg_0)
+{
+	g_4e7408->seed = g_4e7408->seed * 1664525 + 1013904223;
+	return (long)(g_4e7408->seed >> 16) % arg_0;
+}
+
+// @retail 0x1a03a0
+long __stdcall function_1a03a0(long arg_0, word *arg_1)
+{
+	s_player_profile local_0;
+	long local_1 = function_215c00(0, (wchar_t const *)arg_1);
+	if (local_1 != NONE)
+	{
+		function_1a07b0(&local_0, 0);
+		*(dword *)((byte *)&local_0 + 4) = 0;
+		local_0.unknown118 = (byte)function_1a03a1(16);
+		local_0.unknown119 = (byte)function_1a03a1(16);
+		local_0.unknown11a = (byte)function_1a03a1(16);
+		local_0.unknown11b = (byte)function_1a03a1(16);
+		local_0.unknown11d = (byte)function_1a03a1(64);
+		local_0.unknown11e = (byte)function_1a03a1(32);
+		wide_string_copy(local_0.name, (wchar_t const *)arg_1, 31);
+		*(long *)((byte *)&local_0 + 0xec) = NONE;
+		*(long *)((byte *)&local_0 + 0xf0) = NONE;
+		*(long *)((byte *)&local_0 + 0xf4) = NONE;
+		*(long *)((byte *)&local_0 + 0xf8) = NONE;
+		if (!function_216240(local_1, &local_0, sizeof(local_0), local_0.name))
+		{
+			function_215e60(local_1);
+			return NONE;
+		}
+	}
+	return local_1;
+}

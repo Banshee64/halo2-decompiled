@@ -57,8 +57,6 @@ void function_e5750(long unit_index) { }
 // @stub 0x1e54d0
 void function_1e54d0(void *state, long a) { }
 
-// @stub 0x201520
-void function_201520(short value, word type, long a, long b, long c) { }
 
 
 // @stub 0xe5690

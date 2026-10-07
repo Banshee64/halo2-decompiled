@@ -160,7 +160,7 @@ public:
 class c_session_state_matchmaking : public c_session_state
 {
 public:
-	virtual bool update() { return false; }
+	virtual bool update();
 	virtual void enter(long a, long b, long c);
 	virtual void leave(long a);
 	virtual const char *function_58dd0();

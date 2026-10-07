@@ -23,8 +23,6 @@ struct s_type_1e6529;
 /* the closest point of an object to an origin, and the surface normal there */
 // @stub 0x183910
 bool function_183910(long component_index, point3f const *origin, point3f *point, vector3f *normal) { return false; }
-// @stub 0x184250
-void __stdcall function_184250(s_type_1e6529 const *data) { }
 struct s_damage_report;
 // @stub 0x119280
 void function_119280(long object_index, unsigned long flags) { }

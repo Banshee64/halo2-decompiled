@@ -429,3 +429,48 @@ void function_847d0(s_simulation_controller *controller, s_player_action *input)
   }
  }
 }
+
+
+c_simulation_view *function_6acb0(c_class_6a600 *world);
+c_simulation_view *function_6ad40(c_class_6a600 *world, const s_machine_address *address);
+void function_825e0(const s_weapon_activity_result *input, s_player_action *action);
+bool function_14d0a0(const s_player_action *action);
+real g_4ced44;
+
+// @retail 0x84990
+bool __stdcall function_84990(s_simulation_controller *controller, s_player_action *output)
+{
+ bool result = false;
+ if (controller->field_08 >= 4 && controller->field_08 <= 5)
+ {
+  c_class_6a600 *world = controller->world;
+  c_simulation_view *view;
+  if (controller_world_is_authority(world))
+   view = function_6ad40(world, &controller->machine);
+  else
+   view = function_6acb0(world);
+  if (view)
+  {
+   c_vtable_450c94 *source = (c_vtable_450c94 *)((byte *)view->data + 0x5098);
+   if (source)
+   {
+    s_weapon_activity_result activity;
+    if (source->take_data18(controller->field_00, (s_dword34 *)&activity))
+    {
+     s_player_action action;
+     function_825e0(&activity, &action);
+     controller->action = action;
+     controller->field_28 = g_510c54->game_time;
+    }
+   }
+  }
+ }
+ if (controller->field_08 != 2 && controller->field_28 != NONE &&
+  (g_510c54->game_time - controller->field_28) * g_510c54->rate < g_4ced44 &&
+  function_14d0a0(&controller->action))
+ {
+  *output = controller->action;
+  result = true;
+ }
+ return result;
+}

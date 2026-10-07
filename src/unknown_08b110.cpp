@@ -470,3 +470,54 @@ void function_82b30(const s_object_relevance_result *source, s_object_relevance_
   }
  }
 }
+
+
+#include "unknown_067e10.h"
+#include <string.h>
+
+struct s_view_iterator
+{
+ dword mask;
+ long index;
+};
+bool world_next_view(c_class_6a600 *world, s_view_iterator *iterator, c_simulation_view **view);
+struct s_weapon_activity_result;
+struct s_unit_state_c6ef0;
+void function_82740(const s_weapon_activity_result *input, s_unit_state_c6ef0 *state);
+extern real g_4ced44;
+
+// @retail 0x8b660
+bool __stdcall function_8b660(s_simulation_world_actor *actor, long *object_index, s_unit_state_c6ef0 *output)
+{
+ bool result = false;
+ s_simulation_world_actor *const *actor_reference = &actor;
+ c_simulation_view *view = 0;
+ s_view_iterator iterator = { 0xa, 0 };
+ world_next_view((c_class_6a600 *)(*actor_reference)->unknown08, &iterator, &view);
+ if (view)
+ {
+  c_vtable_450c94 *source = (c_vtable_450c94 *)((byte *)view->data + 0x5098);
+  if (source)
+  {
+   long index = actor->actor_index + 16;
+   dword bit = 1 << index;
+   if (source->mask14 & bit)
+   {
+    s_dword34 activity = source->data18[index];
+    source->mask14 &= ~bit;
+    dword state[0x1f];
+    function_82740((const s_weapon_activity_result *)&activity, (s_unit_state_c6ef0 *)state);
+    memcpy(actor->state, state, sizeof(state));
+    actor->time = g_510c54->game_time;
+   }
+  }
+ }
+ if (actor->time != NONE &&
+  (g_510c54->game_time - actor->time) * g_510c54->rate < g_4ced44)
+ {
+  *object_index = actor->unknown04;
+  memcpy(output, actor->state, sizeof(actor->state));
+  result = true;
+ }
+ return result;
+}

@@ -88,3 +88,41 @@ void function_8dfc0(void)
   g_51054c = GetTickCount();
  }
 }
+
+
+void transport_update(void);
+void function_7f070(void);
+void function_b2ea0(void);
+void function_b3200(void);
+void network_session_interface_update(void);
+void function_6b4a0(void);
+void function_53610(void);
+void function_074aa0(void);
+void function_755d0(void);
+void function_80390(void);
+void function_8e240(void);
+void function_b3de0(void);
+
+// @retail 0x8df50
+void function_8df50(void)
+{
+ transport_update();
+ if (g_4d8ba0)
+ {
+  g_510548 = true;
+  g_51054c = GetTickCount();
+  function_7f070();
+  function_b2ea0();
+  function_b3200();
+  network_session_interface_update();
+  function_6b4a0();
+  function_53610();
+  function_074aa0();
+  function_755d0();
+  function_80390();
+  function_8e240();
+  function_b3de0();
+  g_510548 = false;
+  g_51054c = GetTickCount();
+ }
+}

@@ -166,7 +166,8 @@ s_globals_element *function_188640(long key)
 // @retail 0x188690
 s_globals_element *function_188690(short index)
 {
-	return globals_element_get((s_globals_element_block_view *)g_4e034c, index);
+	short const *local_0 = &index;
+	return globals_element_get((s_globals_element_block_view *)g_4e034c, *local_0);
 }
 /* the entries of a seat's animations, by element of the globals block */
 struct s_seat_animation_entry
@@ -271,8 +272,8 @@ long function_188090(long tag_index, long index, long type)
 
 static inline s_seat_animation_entry *seat_animation_entry_find(long tag_index, long index, long type, short element_index)
 {
-	s_seat_animation_entry *result = NULL;
 	long animation_index = function_188090(tag_index, index, type);
+	s_seat_animation_entry *result = NULL;
 
 	if (animation_index != NONE)
 	{
