@@ -3,8 +3,7 @@
 
 // @stub 0x30be40
 void s_47f048_object::function_30be40(long value) { }
-// @stub 0x67f60
-void function_67f60(void) { }
+
 // @stub 0x67ee0
 void function_67ee0(void) { }
 // @stub 0x3e2ff0

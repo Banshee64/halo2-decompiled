@@ -448,3 +448,25 @@ long c_vtable_450c94::v5(dword a1, s_bitstream *stream, long max_blocks, s_block
  *count = used;
  return result;
 }
+
+long function_a58d0(long index);
+
+// @retail 0x82b30
+void function_82b30(const s_object_relevance_result *source, s_object_relevance_source *result)
+{
+ if (source->first > 0.0f || source->second > 0.0f)
+ {
+  long index = source->object_index;
+  if (index != NONE)
+  {
+   long object = function_a58d0(index);
+   if (object != NONE)
+   {
+    result->object_index = object;
+    result->identifier = source->identifier;
+    result->first = source->first;
+    result->second = source->second;
+   }
+  }
+ }
+}
