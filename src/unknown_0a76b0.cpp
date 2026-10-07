@@ -227,7 +227,7 @@ void function_e6a20(long unit_index, long name, bool active, bool keep)
 		case 0x11000074:
 		case 0x11000076:
 		case 0x140005b3:
-			if ((bool)UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index)), 0x1a))
+			if (TEST_FIELD_BIT(UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index)), 0x1a)))
 			{
 				function_cf040(unit_index, 0);
 				if (!(keep & 1))
@@ -309,13 +309,13 @@ void function_e6b00(long unit_index, long name, long *state_name, long *action_n
 				next_state = 0x6000086;
 				next_action = 0x800001e;
 			}
-			else if ((actions->active[1] >> 8) & 1)
+			else if (TEST_FIELD_BIT((actions->active[1] >> 8) & 1))
 			{
 				function_e6960(unit_index, 0x28);
 				next_state = 0x6000542;
 				next_action = 0x400000c;
 			}
-			else if ((actions->active[1] >> 14) & 1)
+			else if (TEST_FIELD_BIT((actions->active[1] >> 14) & 1))
 			{
 				function_e6960(unit_index, 0x2e);
 				next_state = 0x6000086;
@@ -482,7 +482,7 @@ bool function_e7110(long unit_index, long secondary, long magazine_index)
 
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 
-	if ((bool)((unit->flags_134 >> 25) & 1) || (bool)UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(unit), 0x16))
+	if (TEST_FIELD_BIT((unit->flags_134 >> 25) & 1) || TEST_FIELD_BIT(UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(unit), 0x16)))
 		return false;
 	if (unit_action_active(unit_index, action_type) &&
 		function_cbd50(unit_index, unit->weapon_slots[secondary]) != NONE)
@@ -984,7 +984,7 @@ bool __stdcall function_e7fb0(long unit_index, s_unit_request *request)
 
 	if (unit->object_type != 0 || function_101440(weapon_index))
 		return result;
-	if ((function_110ab0(unit_index) || ((UNIT_ACTION_UNIT_GET(unit_index)->flags_134 >> 25) & 1)) &&
+	if ((function_110ab0(unit_index) || (TEST_FIELD_BIT((UNIT_ACTION_UNIT_GET(unit_index)->flags_134 >> 25) & 1))) &&
 		!throw_request->immediate)
 	{
 		return result;
@@ -997,9 +997,9 @@ bool __stdcall function_e7fb0(long unit_index, s_unit_request *request)
 		byte *seat = unit_action_seat_get(unit);
 		dword seat_flags = *(dword *)seat;
 
-		if (!((seat_flags >> 5) & 1))
+		if (!(TEST_FIELD_BIT((seat_flags >> 5) & 1)))
 			animate = false;
-		if ((seat_flags >> 11) & 1)
+		if (TEST_FIELD_BIT((seat_flags >> 11) & 1))
 		{
 			long marker_name = *(long *)(seat + 0x10);
 			s_object_marker marker;
@@ -1320,7 +1320,7 @@ bool __stdcall unit_action_weapon_switch(long unit_index, s_unit_request *reques
 	{
 		if (unit->weapon_slots[hand] == (&unit->current_weapon_index)[hand])
 			return false;
-		if (function_110ab0(unit_index) || ((UNIT_ACTION_UNIT_GET(unit_index)->flags_134 >> 25) & 1) ||
+		if (function_110ab0(unit_index) || (TEST_FIELD_BIT((UNIT_ACTION_UNIT_GET(unit_index)->flags_134 >> 25) & 1)) ||
 			unit_action_active(unit_index, 0x16))
 		{
 			return false;
@@ -1608,7 +1608,7 @@ bool __stdcall function_e92e0(long object_index, long name)
 		s_unit_action_header *header = UNIT_ACTION_HEADER_GET(child_index);
 		s_unit_action_unit *child = header->unit;
 
-		if (((child->object_flags >> 26) & 1) && ((1 << header->type) & 3) && function_e92e0(child_index, name))
+		if ((TEST_FIELD_BIT((child->object_flags >> 26) & 1)) && ((1 << header->type) & 3) && function_e92e0(child_index, name))
 			result = true;
 		child_index = *(long *)((byte *)child + 0xc);
 	}
@@ -1809,7 +1809,7 @@ bool __stdcall unit_action_melee(long unit_index, s_unit_request *request)
 
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 
-	if ((unit->flags_134 >> 25) & 1)
+	if (TEST_FIELD_BIT((unit->flags_134 >> 25) & 1))
 		return result;
 
 	byte *definition = g_4e3b44[unit->definition_index & 0xffff].bytes;
@@ -1849,7 +1849,7 @@ bool __stdcall unit_action_melee(long unit_index, s_unit_request *request)
 
 	if (!function_e9780(unit_index, name, true, melee->face ? &melee->facing : NULL, NULL))
 		return false;
-	if ((*(dword *)(definition + 0xbc) >> 8) & 1)
+	if (TEST_FIELD_BIT((*(dword *)(definition + 0xbc) >> 8) & 1))
 		function_10f430(unit_index, 0x7000101, 0x7000101, 0x7000101, 0xc000043, 0.0f, 0, 2);
 	actions->active[0] |= 0x4000000;
 	return true;
@@ -2143,13 +2143,13 @@ bool __stdcall unit_action_melee_attack(long unit_index, s_unit_request *request
 		byte *s_type_67e06b = g_4e3b44[weapon->definition_index & 0xffff].bytes;
 		byte state = *((byte *)weapon + 0x20c);
 
-		if (((*(dword *)(s_type_67e06b + 0x12c) >> 9) & 1) || state == 1 || state == 2)
+		if ((TEST_FIELD_BIT((*(dword *)(s_type_67e06b + 0x12c) >> 9) & 1)) || state == 1 || state == 2)
 			can_melee = false;
 	}
 
 	s_unit_action_unit *current = UNIT_ACTION_UNIT_GET(unit_index);
 
-	if (((current->flags_134 >> 25) & 1) || UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(current), 0x16))
+	if ((TEST_FIELD_BIT((current->flags_134 >> 25) & 1)) || UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(current), 0x16))
 		can_melee = false;
 	if (UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(current), 0x1b) &&
 		(actions->melee_end_ticks == NONE || actions->melee_counter < actions->melee_end_ticks))
@@ -2406,7 +2406,7 @@ void __stdcall function_ea6b0(long unit_index, long type)
 		byte *seat = unit_action_seat_get(unit);
 
 		function_b9c60(unit_index, (bool)(*seat & 1));
-		if (((*(dword *)seat >> 19) & 1) && *(long *)(seat + 0xac) != NONE)
+		if ((TEST_FIELD_BIT((*(dword *)seat >> 19) & 1)) && *(long *)(seat + 0xac) != NONE)
 		{
 			unsigned char *states;
 			long state_count;
@@ -2766,7 +2766,7 @@ bool __stdcall unit_action_vehicle_board(long unit_index, s_unit_request *reques
 	byte *local_a2a045 = g_4e3b44[vehicle->definition_index & 0xffff].bytes;
 	byte *seat = *(byte **)(local_a2a045 + 0x1cc) + unit->seat_index * 0xb0;
 
-	if (UNIT_ACTION_ACTIVE(actions, 0x1f) || !((*(dword *)seat >> 11) & 1))
+	if (UNIT_ACTION_ACTIVE(actions, 0x1f) || !(TEST_FIELD_BIT((*(dword *)seat >> 11) & 1)))
 		return false;
 
 	short board_seat_index = *(short *)(seat + 0x3e);
@@ -2782,8 +2782,8 @@ bool __stdcall unit_action_vehicle_board(long unit_index, s_unit_request *reques
 	actions->active[0] |= 0x80000000;
 	*((byte *)unit + 0x258) = 0;
 	function_a8b90(unit_index);
-	if (((*(dword *)seat >> 13) & 1) &&
-		((*(dword *)(*(byte **)(local_a2a045 + 0x1cc) + *(short *)(seat + 0x3e) * 0xb0) >> 2) & 1))
+	if ((TEST_FIELD_BIT((*(dword *)seat >> 13) & 1)) &&
+		(TEST_FIELD_BIT((*(dword *)(*(byte **)(local_a2a045 + 0x1cc) + *(short *)(seat + 0x3e) * 0xb0) >> 2) & 1)))
 	{
 		function_d12b0(vehicle_index, *(short *)(seat + 0x3e), 0, 0);
 		if (unit->unknown13c != NONE)
@@ -2816,7 +2816,7 @@ void __stdcall function_eb270(long unit_index, long type)
 
 	if (*(short *)(seat + 0x3e) == NONE)
 		return;
-	if ((*(dword *)seat >> 13) & 1)
+	if (TEST_FIELD_BIT((*(dword *)seat >> 13) & 1))
 	{
 		function_d0f30(unit_index, 0, 1);
 		function_ea8e0(unit_index, true);
