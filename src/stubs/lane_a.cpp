@@ -15,10 +15,7 @@ void function_159ac0(void)
 {
 }
 
-// @stub 0x13bff0
-void function_13bff0(void)
-{
-}
+
 
 
 // @stub 0xbbfc0

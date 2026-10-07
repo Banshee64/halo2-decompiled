@@ -57,3 +57,24 @@ void function_13ca80(void)
 		camera_values[i] = 0;
 	g_509415 = false;
 }
+
+void function_f8190(void);
+
+// @retail 0x13bff0
+void function_13bff0(void)
+{
+	s_object_reset_flags *local_1 = (s_object_reset_flags *)g_4de2f4;
+	s_ai_globals *local_2 = g_4f55d0;
+	local_1->flag81 = true;
+	local_1->flag80 = true;
+	g_4e8c20->unknown00[6] = true;
+	s_interface_reset_flags *local_3 = (s_interface_reset_flags *)g_510c50;
+	local_2->unknown20 = false;
+	local_3->flag4 = true;
+	local_3->flag5 = true;
+	function_f8190();
+	*g_50934c = true;
+	g_4e6948->flag11f8 = true;
+	g_4ed288->flag240 = true;
+	g_509415 = false;
+}
