@@ -12,8 +12,7 @@ void __stdcall function_b87b0(long object_index) { }
 /* makes an object from a scenario object */
 // @stub 0xbf0f0
 void function_bf0f0(s_type_4f0dcc const *datum, long type, long index, s_scenario_block *palette, bool a, bool b) { }
-// @stub 0xbf380
-void function_bf380() { }
+
 
 // @stub 0xc2d00
 void __stdcall function_c2d00(long light_index) { }
