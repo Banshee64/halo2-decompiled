@@ -266,12 +266,13 @@ extern s_slot_entry_list *g_4e0340;
 bool function_ddf60(long arg_159e6d)
 {
 	s_biped *biped = BIPED_GET(arg_159e6d);
+	bool result = false;
 
 	if (biped->unknown35c == NONE && biped->unknown354 != NONE && biped->unknown360 == NONE)
 	{
-		return *(*(byte **)((byte *)g_4e0340 + 0x2c) + biped->unknown354 * 8 + 4) & 1;
+		result = *(*(byte **)((byte *)g_4e0340 + 0x2c) + biped->unknown354 * 8 + 4) & 1;
 	}
-	return false;
+	return result;
 }
 
 /* whether the biped is still: dead ones are not, ragdolls are when their
@@ -1425,7 +1426,7 @@ word *function_def30(long arg_159e6d)
 {
 	s_biped *biped = BIPED_GET(arg_159e6d);
 
-	*(byte *)&biped->flags_348 |= 0x80;
+	biped->flags_348 |= 0x80;
 	return &biped->flags_348;
 }
 
@@ -1958,12 +1959,13 @@ real function_1ec640(void *ragdoll);
 real function_e1670(long arg_159e6d)
 {
 	s_biped *biped = BIPED_GET(arg_159e6d);
+	real result = 0.0f;
 
 	if (biped->unknown34b == 1 && biped->physics_mode == 3)
 	{
-		return function_1ec640((byte *)biped + 0x3ec) * -0.125f;
+		result = function_1ec640((byte *)biped + 0x3ec) * -0.125f;
 	}
-	return 0.0f;
+	return result;
 }
 
 real function_1d1230(long rigid_body_index, s_havok_component *component);
@@ -2945,7 +2947,7 @@ void function_e3f00(long arg_159e6d)
 // @retail 0xe4020
 bool function_e4020(long arg_159e6d)
 {
-	return BIPED_GET(arg_159e6d)->unknown39d != 0;
+	return BIPED_GET(arg_159e6d)->unknown39d > 0;
 }
 
 /* forgets the biped's melee (+0x34c) */

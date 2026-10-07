@@ -1601,9 +1601,10 @@ bool __stdcall function_e9190(long unit_index, s_unit_request *request)
 // @retail 0xe92e0
 bool __stdcall function_e92e0(long object_index, long name)
 {
+	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(object_index);
 	bool result = function_113e90(object_index, name, 0.0f, NULL, 0);
 
-	for (long child_index = *(long *)((byte *)UNIT_ACTION_UNIT_GET(object_index) + 0x10); child_index != NONE; )
+	for (long child_index = *(long *)((byte *)unit + 0x10); child_index != NONE; )
 	{
 		s_unit_action_header *header = UNIT_ACTION_HEADER_GET(child_index);
 		s_unit_action_unit *child = header->unit;
@@ -2451,24 +2452,24 @@ struct s_unit_request_vehicle_entry
 // @retail 0xea830
 bool __stdcall unit_action_vehicle_entry(long unit_index, s_unit_request *request)
 {
-	s_unit_request_vehicle_entry *entry = (s_unit_request_vehicle_entry *)request;
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	s_unit_actions *actions = UNIT_ACTIONS_GET(unit);
+	s_unit_request_vehicle_entry *entry = (s_unit_request_vehicle_entry *)request;
 	bool reset = false;
 
-	if (!function_ea1f0(unit_index, entry->vehicle_index, entry->seat_index, entry->keep_animation, entry->type,
+	if (function_ea1f0(unit_index, entry->vehicle_index, entry->seat_index, entry->keep_animation, entry->type,
 		&reset, entry->force))
 	{
-		return false;
-	}
-	if (reset)
-	{
-		function_ea6b0(unit_index, entry->type);
+		if (reset)
+		{
+			function_ea6b0(unit_index, entry->type);
+			return true;
+		}
+		actions->active[0] |= 0x10000000;
+		function_d1360(unit->parent_object_index, unit->seat_index, 0, 1);
 		return true;
 	}
-	actions->active[0] |= 0x10000000;
-	function_d1360(unit->parent_object_index, unit->seat_index, 0, 1);
-	return true;
+	return false;
 }
 
 long function_10eef0(long object_index, bool alternate, bool no_request);
@@ -3270,8 +3271,9 @@ bool __stdcall function_ec050(long unit_index, s_unit_request *request)
 	if (UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index))->unknown36 != 0)
 	{
 		if (function_10f430(unit_index, 0x7000101, 0x7000101, 0x7000101, 0x400004a, 0.1f, 0, 0))
-			return true;
-		function_ec0d0(unit_index, 0x6000086, 0x400000c);
+			result = true;
+		else
+			function_ec0d0(unit_index, 0x6000086, 0x400000c);
 	}
 	return result;
 }
@@ -3666,6 +3668,7 @@ void __stdcall function_ecc70(long unit_index, long type)
 // @retail 0xeccc0
 bool __stdcall function_eccc0(long unit_index, s_unit_request *request)
 {
+	bool result = false;
 	long state_name;
 
 	switch (*(short *)((byte *)request + 4))
@@ -3683,10 +3686,10 @@ bool __stdcall function_eccc0(long unit_index, s_unit_request *request)
 		state_name = 0x12000547;
 		break;
 	default:
-		return false;
+		return result;
 	}
 
-	byte state = *((byte *)UNIT_ACTION_UNIT_GET(unit_index) + 0x3dc);
+	long state = *((byte *)UNIT_ACTION_UNIT_GET(unit_index) + 0x3dc);
 	long action_name = state == 5 || state == 4 ? 0x400000c : 0x5000049;
 
 	return function_ee090(unit_index, state_name, 5, action_name, (point3f const *)((byte *)request + 8),
@@ -3705,7 +3708,7 @@ bool __stdcall function_ecd50(long unit_index, s_unit_request *request)
 
 		actions->active[1] |= 0x4000;
 		actions->unknown20 = *(vector3f *)((byte *)request + 4);
-		return true;
+		result = true;
 	}
 	return result;
 }
@@ -4074,7 +4077,7 @@ bool __stdcall function_eda30(long unit_index, s_unit_request *request)
 	bool result = false;
 
 	if (function_10f430(unit_index, 0x6000086, 0x7000101, 0x7000101, 0xc0006b3, 0.2f, 0, 0))
-		return true;
+		result = true;
 	return result;
 }
 
@@ -4228,10 +4231,15 @@ bool __stdcall function_edf10(long unit_index, long type)
 	{
 		done = true;
 	}
-	else if (function_10f720(unit_index, true) == 1)
+	else
 	{
-		function_eda70(unit_index);
-		done = true;
+		switch (function_10f720(unit_index, true))
+		{
+		case 1:
+			function_eda70(unit_index);
+			done = true;
+			break;
+		}
 	}
 	return !done;
 }
