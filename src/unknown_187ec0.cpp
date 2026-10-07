@@ -160,7 +160,9 @@ s_globals_element *function_188640(long key)
 {
 	s_globals_element_block_view *globals = (s_globals_element_block_view *)g_4e034c;
 
-	return globals_element_get(globals, function_1885f0(globals, key).m_index);
+	long const *local_0 = &key;
+	c_block_index local_1 = function_1885f0(globals, *local_0);
+	return globals_element_get(globals, local_1.m_index);
 }
 
 // @retail 0x188690
