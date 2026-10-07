@@ -580,3 +580,158 @@ long function_132b80(s_bit_vector_pool *arg_1, long arg_2, void const *arg_3, lo
 	}
 	return arg_1->field_2a7c;
 }
+
+extern long g_4e7c1c;
+long g_4e7c20[0x400];
+bool function_16e210(long cluster_index, long value);
+
+struct s_132780
+{
+	long field_0;
+	long field_4[6];
+	long field_1c[6];
+	byte *field_34;
+};
+
+class c_1648d0
+{
+public:
+	bool function_1648d0(void const *arg_1, void const *arg_2, void *arg_3, bool arg_4) const;
+};
+
+// @retail 0x132780
+bool function_132780(s_sort_context const *arg_1, s_sort_context const *arg_2, long arg_3, long arg_4, long arg_5, long arg_6, long arg_7, s_132780 *arg_8)
+{
+	(void)&arg_1;
+	(void)&arg_2;
+	(void)&arg_3;
+	(void)&arg_4;
+	(void)&arg_5;
+	s_sort_entry const *local_1 = &arg_1->entries[arg_1->order[arg_6]];
+	s_sort_entry const *local_2 = &arg_2->entries[arg_2->order[arg_3]];
+	bool local_3 = false;
+	for (long local_4 = 0; local_4 < ((short const *)local_2)[arg_7 + 1]; local_4++)
+	{
+		byte const *local_5 = (byte const *)arg_2 + 0x1974 + (((short const *)local_2)[arg_7 + 7] + local_4) * 0x108;
+		for (long local_6 = 0; local_6 < ((short const *)local_1)[arg_4 + 1]; local_6++)
+		{
+			byte const *local_7 = (byte const *)arg_1 + 0x1974 + (((short const *)local_1)[7] + local_6) * 0x108;
+			if (arg_8->field_0 >= arg_5)
+				return false;
+			byte *local_8 = arg_8->field_34 + arg_8->field_0 * 0x9c;
+			if (((c_1648d0 const *)local_7)->function_1648d0((byte const *)arg_2 + 4 + *(long const *)local_5 * 0x1bc, local_5, local_8, false))
+			{
+				long local_9 = arg_8->field_0++;
+				*(long *)(local_8 + 0x94) = ((short const *)local_2)[arg_7 + 7] + local_4;
+				*(long *)(local_8 + 0x98) = arg_7;
+				if (arg_8->field_1c[arg_7] == NONE)
+					arg_8->field_1c[arg_7] = local_9;
+				arg_8->field_4[arg_7]++;
+				local_3 = true;
+			}
+		}
+	}
+	return local_3;
+}
+
+PRIVATE __forceinline bool function_134391(c_entry_list *arg_1, long arg_2, word arg_3, short arg_4)
+{
+	if ((word)arg_1->count < arg_1->maximum_count - 1)
+	{
+		arg_1->longs_a[(word)arg_1->count] = arg_2;
+		arg_1->shorts_b[(word)arg_1->count] = arg_3;
+		arg_1->longs_c[(word)arg_1->count] = 0;
+		arg_1->shorts_d[(word)arg_1->count] = arg_4;
+		arg_1->count++;
+		return true;
+	}
+	return false;
+}
+
+// @retail 0x134390
+void function_134390(s_bit_vector_pool *arg_1)
+{
+	(void)&arg_1;
+	if (arg_1->flags2a60 & 0x20)
+		return;
+	for (short local_1 = 0; local_1 < ((s_sort_context *)arg_1->context)->count; local_1++)
+	{
+		s_sort_entry *local_2 = &((s_sort_context *)arg_1->context)->entries[(short)local_1];
+		byte *local_3 = *(byte **)((byte *)g_4e0348 + 0xa0) + local_2->value * 0xb0;
+		arg_1->flags[local_2->value >> 5] |= 1 << (local_2->value & 31);
+		((byte *)arg_1->indices)[local_2->value] = (byte)local_1;
+		if (*(word *)(local_3 + 0x24) > 0)
+		{
+			byte *local_4 = *(byte **)((byte *)g_4e0348 + 0xa0) + local_2->value * 0xb0;
+			point3f local_5;
+			local_5.x = (*(real *)(local_4 + 0x54) + *(real *)(local_4 + 0x58)) * 0.5f;
+			local_5.y = (*(real *)(local_4 + 0x5c) + *(real *)(local_4 + 0x60)) * 0.5f;
+			local_5.z = (*(real *)(local_4 + 0x64) + *(real *)(local_4 + 0x68)) * 0.5f;
+			real local_6 = *(real *)(local_4 + 0x58) - local_5.x;
+			real local_7 = *(real *)(local_4 + 0x60) - local_5.y;
+			real local_8 = *(real *)(local_4 + 0x68) - local_5.z;
+			real local_9 = (real)sqrt(local_8 * local_8 + local_7 * local_7 + local_6 * local_6);
+			bool local_10, local_11;
+			function_132fd0(arg_1, &local_5, &local_10, &local_11, local_9);
+			if (arg_1->field_2ad0 && (arg_1->flags2a60 & 1))
+			{
+				c_entry_list *local_12 = *(c_entry_list **)((byte *)arg_1->field_2ad0 + 0xc);
+				short local_13 = NONE;
+				for (long local_14 = 0; local_14 < (word)local_12->count; local_14++)
+					if (local_12->longs_a[local_14] == local_2->value)
+					{
+						local_13 = (short)local_14;
+						break;
+					}
+				if (local_13 == NONE)
+					continue;
+			}
+			dword local_15 = function_132b10(local_11, true, true, function_16e210(local_2->value, g_4b9f8c), false, false, local_10);
+			function_134391(arg_1->lists[0], local_2->value, (word)local_15, NONE);
+		}
+		for (long local_16 = 0; local_16 < *(long *)(local_3 + 0x98); local_16++)
+		{
+			short local_17 = (*(short **)(local_3 + 0x9c))[local_16];
+			long local_18 = (word)local_17;
+			byte *local_19 = *(byte **)((byte *)g_4e0348 + 0x144) + local_18 * 0x58;
+			byte *local_20 = *(byte **)((byte *)g_4e0348 + 0x13c) + *(short *)(local_19 + 0x34) * 0xc8;
+			if (g_4e7c20[local_17] != g_4e7c1c)
+			{
+				c_entry_list *local_21 = arg_1->field_2ad0;
+				if (local_21)
+					local_21 = *(c_entry_list **)((byte *)local_21 + 0x18);
+				if (*(word *)(local_20 + 0x24) > 0)
+				{
+					bool local_22, local_23, local_24;
+					point3f const *local_25 = (point3f const *)(local_19 + 0x3c);
+					if (function_132e60(arg_1, *(real *)(local_19 + 0x48), local_21, local_18, (short)local_1, false, &local_22, &local_23, &local_24, local_25) || (char)arg_1->flags2a60 < 0)
+					{
+						short local_26 = NONE;
+						bool local_27, local_28;
+						function_132fd0(arg_1, local_25, &local_27, &local_28, *(real *)(local_19 + 0x48));
+						dword local_29 = function_132b10(local_28, local_23, local_24, function_16e210(local_2->value, g_4b9f8c), false, local_22, local_27);
+						if (!(local_29 & 0x800))
+							local_26 = (short)function_134300(arg_1, (short)local_1);
+						if (function_134391(arg_1->lists[3], local_18, (word)local_29, local_26))
+							g_4e7c20[local_17] = g_4e7c1c;
+					}
+				}
+			}
+			else
+			{
+				c_entry_list *local_30 = arg_1->lists[3];
+				long local_31 = NONE;
+				bool local_32 = false;
+				for (long local_33 = 0; local_33 < local_30->count && !local_32; local_33++)
+				{
+					local_32 = local_30->longs_a[(short)local_33] == local_18;
+					local_31 = local_33;
+				}
+				if (!(local_30->shorts_b[(short)local_31] & 0x800))
+					arg_1->entries[local_30->shorts_d[(short)local_31]][(short)local_1 >> 5] |= 1 << ((short)local_1 & 31);
+				if (function_16e210(local_2->value, g_4b9f8c))
+					arg_1->lists[3]->shorts_b[(short)local_31] |= 0x400;
+			}
+		}
+	}
+}

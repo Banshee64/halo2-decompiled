@@ -4,6 +4,7 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include "globals.h"
 
 #define PIN(n,floor,ceiling) ((n)<(floor) ? (floor) : ((n)>(ceiling)?(ceiling):(n)))
 
@@ -253,5 +254,102 @@ void function_1301c0(s_fog_state *fog)
 	if (fog->layers[2].intensity == 0.0f)
 	{
 		fog->layers[2].color = *fog_black();
+	}
+}
+
+bool function_16e210(long cluster_index, long value);
+
+PRIVATE __forceinline real function_1305d1(real arg_1)
+{
+	arg_1 = 0.0f > arg_1 ? 0.0f : (arg_1 > 1.0f ? 1.0f : arg_1);
+	if (0.0001f > arg_1)
+		arg_1 = 0.0f;
+	else if (arg_1 > 0.9999f)
+		arg_1 = 1.0f;
+	return arg_1;
+}
+
+// @retail 0x1305d0
+void function_1305d0(s_fog_state *arg_1, long arg_2, point3f const *arg_3, bool arg_4)
+{
+	(void)&arg_2;
+	if (arg_1->pending.intensity > 0.0f)
+	{
+		if (arg_4)
+		{
+			*(real *)((byte *)arg_1 + 0x108) = 0.0f - arg_1->pending.height;
+			arg_1->value10c = 1.0f;
+		}
+		else
+		{
+			*(real *)((byte *)arg_1 + 0x108) = plane_distance_to_point((plane3f *)((byte *)arg_1 + 0xf4), arg_3);
+			arg_1->value10c = function_1305d1(0.0f - *(real *)((byte *)arg_1 + 0x108) / arg_1->pending.height);
+			real local_1 = 0.0f > *(real *)((byte *)arg_1 + 0x108) ? 0.0f : *(real *)((byte *)arg_1 + 0x108);
+			arg_1->value110 = 0.0f - (*(real *)((byte *)arg_1 + 0xc4) / arg_1->pending.distance) * local_1;
+			if (0.0f > *(real *)((byte *)arg_1 + 0x108) && !function_16e210(arg_2, *(long *)((byte *)arg_1 + 0x9c)))
+			{
+				*(real *)((byte *)arg_1 + 0x108) = 0.0f;
+				arg_1->value10c = 0.0f;
+				arg_1->value110 = 0.0f;
+			}
+		}
+		long local_2 = *(long *)((byte *)arg_1 + 0x9c);
+		if (local_2 != NONE)
+		{
+			byte *local_3 = g_4e3b44[local_2 & 0xffff].bytes;
+			if (*(long *)(local_3 + 0x30) > 0)
+			{
+				real *local_4 = *(real **)(local_3 + 0x34);
+				real local_5 = 0.0f > local_4[10] ? 0.0f : (local_4[10] > 0.9999f ? 0.9999f : local_4[10]);
+				real local_6 = PIN((arg_1->value10c - local_5) / (1.0f - local_5), 0.0f, 1.0f);
+				if (local_6 > 0.0f)
+				{
+					arg_1->color70.red += (local_4[0] - arg_1->color70.red) * local_6;
+					arg_1->color70.green += (local_4[1] - arg_1->color70.green) * local_6;
+					arg_1->color70.blue += (local_4[2] - arg_1->color70.blue) * local_6;
+					arg_1->color7c.red += (local_4[3] - arg_1->color7c.red) * local_6;
+					arg_1->color7c.green += (local_4[4] - arg_1->color7c.green) * local_6;
+					arg_1->color7c.blue += (local_4[5] - arg_1->color7c.blue) * local_6;
+					arg_1->value88 += (local_4[6] - arg_1->value88) * local_6;
+					arg_1->value8c += (local_4[7] - arg_1->value8c) * local_6;
+					arg_1->value90 += (local_4[8] - arg_1->value90) * local_6;
+					arg_1->value94 += (local_4[9] - arg_1->value94) * local_6;
+					if (arg_1->index6c == NONE)
+						arg_1->index6c = *(long *)(local_4 + 12);
+				}
+			}
+		}
+		arg_1->value110 += *(real *)((byte *)arg_1 + 0xdc) * *(real *)((byte *)arg_1 + 0xd8);
+		if (arg_1->flagc0)
+		{
+			arg_1->valuebc = 1024.0f;
+			arg_1->valueb8 = 1023.0f;
+		}
+		arg_1->valueb8 = arg_1->valueb8 > 0.0f ? arg_1->valueb8 : 0.0f;
+		arg_1->valuebc = arg_1->valuebc > arg_1->valueb8 + 0.0001f ? arg_1->valuebc : arg_1->valueb8 + 0.0001f;
+		if (arg_1->layers[0].intensity > 0.0f || arg_1->layers[1].intensity > 0.0f)
+			arg_1->value118 = function_1305d1((*(real *)((byte *)arg_1 + 0x108) - arg_1->valueb8) / (arg_1->valuebc - arg_1->valueb8));
+		else
+			arg_1->value118 = 0.0f;
+	}
+	else
+		arg_1->value118 = 1.0f;
+
+	real local_7 = PIN(arg_1->value10c * arg_1->pending.intensity, 0.0f, 1.0f);
+	if (arg_1->value10c > 0.0f)
+	{
+		real local_8 = (0.0f > arg_1->layers[2].intensity ? 0.0f : (arg_1->layers[2].intensity > 1.0f ? 1.0f : arg_1->layers[2].intensity)) * PIN(1.0f - local_7, 0.0f, 1.0f);
+		*(real *)((byte *)arg_1 + 0x5c) = PIN(arg_1->pending.color.red * local_7 + arg_1->layers[2].color.red * local_8, 0.0f, 1.0f);
+		*(real *)((byte *)arg_1 + 0x60) = PIN(arg_1->pending.color.green * local_7 + arg_1->layers[2].color.green * local_8, 0.0f, 1.0f);
+		*(real *)((byte *)arg_1 + 0x64) = PIN(arg_1->pending.color.blue * local_7 + arg_1->layers[2].color.blue * local_8, 0.0f, 1.0f);
+		*(real *)((byte *)arg_1 + 0x68) = function_1305d1(1.0f - PIN(1.0f - arg_1->layers[2].intensity, 0.0f, 1.0f) * PIN(1.0f - local_7, 0.0f, 1.0f));
+	}
+	else
+	{
+		real local_9 = (0.0f > arg_1->layers[2].intensity ? 0.0f : (arg_1->layers[2].intensity > 1.0f ? 1.0f : arg_1->layers[2].intensity));
+		*(real *)((byte *)arg_1 + 0x5c) = PIN(arg_1->layers[2].color.red * local_9, 0.0f, 1.0f);
+		*(real *)((byte *)arg_1 + 0x60) = PIN(arg_1->layers[2].color.green * local_9, 0.0f, 1.0f);
+		*(real *)((byte *)arg_1 + 0x64) = PIN(arg_1->layers[2].color.blue * local_9, 0.0f, 1.0f);
+		*(real *)((byte *)arg_1 + 0x68) = function_1305d1(arg_1->layers[2].intensity);
 	}
 }
