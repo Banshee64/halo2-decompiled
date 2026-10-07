@@ -501,10 +501,15 @@ void c_session_state_matchmaking::enter(long a, long b, long c)
 	{
 		live = true;
 	}
+	else
+	{
+		volatile long local_0 = state;
+	}
 	flag10 = live;
 	memset(unknown14, 0, sizeof(unknown14));
 }
 
+#pragma inline_depth(0)
 // @retail 0x70ad0
 void c_session_state_matchmaking::leave(long a)
 {
@@ -530,7 +535,12 @@ void c_session_state_matchmaking::leave(long a)
 	{
 		network_session_host_set_value49f8(s, mode);
 	}
+	else
+	{
+		volatile long local_0 = state;
+	}
 }
+#pragma inline_depth(255)
 
 /* ---- post-match ---- */
 
