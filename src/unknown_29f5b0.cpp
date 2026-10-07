@@ -2716,7 +2716,8 @@ struct s_bitmap_data;
 struct D3DTexture;
 
 D3DTexture *texture_cache_bitmap_get_texture(s_bitmap_data *bitmap, dword flags, real bias);
-void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias);
+struct D3DTexture;
+D3DTexture *function_12ce00(s_bitmap_data *bitmap, dword flags, real bias);
 
 /* a bitmap of a bitmap tag (0x74 bytes; unknown_12c0d0.cpp's
    s_bitmap_data) */

@@ -1050,7 +1050,7 @@ bool function_12cb80(s_bitmap_data *arg_0)
 }
 
 #include <xmmintrin.h>
-void function_12ce00(s_bitmap_data *arg_0, dword arg_1, real arg_2);
+D3DTexture *function_12ce00(s_bitmap_data *arg_0, dword arg_1, real arg_2);
 
 // @retail 0x12c450
 void function_12c450(void)

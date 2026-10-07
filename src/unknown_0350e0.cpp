@@ -2260,6 +2260,46 @@ struct s_attached_render_entry
     byte unknown0e[10];
 };
 
+void __stdcall function_d4cf0(long object_index, short value);
+void __stdcall function_41980(short type, long object_index);
+
+// @retail 0x41c20
+void __stdcall function_41c20(short type, long object_index, short value)
+{
+    do
+    {
+        byte *object = ((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+        function_d4cf0(object_index, value);
+        function_41980(type, object_index);
+        long next = *(long *)(object + 0x10);
+        if (next != NONE)
+            function_41c20(type, next, value);
+        object_index = *(long *)(object + 0xc);
+    } while (object_index != NONE);
+}
+
+struct s_41c80_objects
+{
+    long unknown00;
+    short count;
+    short unknown06;
+    short const *values;
+    long const *indices;
+};
+
+struct s_41c80_state
+{
+    byte unknown00[0x14];
+    s_41c80_objects *objects;
+};
+
+// @retail 0x41c80
+void function_41c80(short type, s_41c80_state const *state)
+{
+    for (short i = 0; i < state->objects->count; ++i)
+        function_41c20(type, state->objects->indices[i], state->objects->values[i]);
+}
+
 // @retail 0x41980
 void __stdcall function_41980(short type, long object_index)
 {
