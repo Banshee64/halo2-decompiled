@@ -244,10 +244,119 @@ long __stdcall function_bf360(long level, void *buffer, long size, bool *again, 
 	return 0;
 }
 
-/* Slots of the retail garbage-collection table at 0x440570. */
-long (__stdcall *g_44057c)(long, void *, long, bool *, void *, long) = function_bf360;
-void (__stdcall *g_440588)(long, s_object_gc_buffer_ab *, long) = function_bf240;
-long (__stdcall *g_44059c)(long, void *, long, bool *, void *, long) = function_bf360;
+struct s_ai_importance_list;
+void __stdcall ai_importance_list_build(long level, s_ai_importance_list *buffer, long size);
+long __stdcall function_bf2c0(long level, void *buffer, long size, bool *again, void *unused, long maximum);
+long __stdcall function_1c8560(long level, void *buffer, long size, bool *again, void *unused, long maximum);
+long __stdcall function_1c88c0(long level, void *buffer, long size, bool *again, void *unused, long maximum);
+
+bool function_bba80(long object_index);
+void function_bb950(long object_index, bool add, long delta);
+void __stdcall function_b83b0(long object_index, bool flag);
+void __stdcall function_b8460(long object_index, bool flag);
+
+// @retail 0xbf2c0
+long __stdcall function_bf2c0(long level, void *buffer, long size, bool *again, void *unused, long maximum)
+{
+    long result = 0;
+    s_object_gc_buffer_ab *entries = (s_object_gc_buffer_ab *)buffer;
+    if ((long)entries->count > 0)
+    {
+        long object_index = entries->indices[--entries->count];
+        s_object_header_0bbf40 *header = &((s_object_header_0bbf40 *)g_4e0300->data)[object_index & 0xffff];
+        bool remove = true;
+        if (g_510c54->game_time < *(long *)((byte *)header->object + 0x20))
+            remove = false;
+        if (level == 2 && !(((byte *)header)[2] & 1))
+            remove = false;
+        if ((level == 0 || !function_bba80(object_index)) && remove)
+        {
+            function_bb950(object_index, false, NONE);
+            function_b83b0(object_index, true);
+            function_b8460(object_index, true);
+            result = 1;
+        }
+    }
+    *again = (long)entries->count > 0;
+    return result;
+}
+
+typedef void (__stdcall *object_gc_gather_ab)(long, void *, long);
+typedef long (__stdcall *object_gc_action_ab)(long, void *, long, bool *, void *, long);
+struct s_object_gc_entry_ab
+{
+    dword levels;
+    bool critical_only;
+    object_gc_gather_ab gather;
+    object_gc_action_ab action;
+};
+
+s_object_gc_entry_ab g_440570[6] =
+{
+    {8, false, 0, function_bf360},
+    {15, false, (object_gc_gather_ab)function_bf240, function_bf2c0},
+    {8, false, 0, function_bf360},
+    {8, true, 0, function_1c8560},
+    {8, true, (object_gc_gather_ab)ai_importance_list_build, function_1c88c0},
+    {0, false, 0, 0}
+};
+
+// @retail 0xbf380
+void function_bf380()
+{
+    byte scratch[0x2800];
+    byte unused[0x200];
+    long level = NONE;
+    byte *globals = (byte *)g_4de2f4;
+    if (globals[1])
+    level = !globals[2];
+    else
+    {
+        s_loop_allocator *loop = (s_loop_allocator *)g_4de2ec;
+        long used = loop->last ? (byte *)loop->last + loop->last->size - loop->base : 0;
+        if (loop->size - used <= 0xcccc || 0x800 - g_4e0300->actual_count <= 0x66)
+        level = 3;
+        else if (((s_object_gc_globals_ab *)g_4de2f4)->count >= 0x32)
+        level = 2;
+    }
+    if (level != NONE)
+    {
+        bool critical = false;
+        bool gathered = false;
+        s_object_gc_entry_ab *entry = g_440570;
+        for (;;)
+        {
+            byte *state = (byte *)g_4de2f4;
+            if (!entry->action)
+            {
+                state[1] = 0;
+                state[2] = 0;
+                return;
+            }
+            if (!function_bf1c0(level, &critical))
+            break;
+            if ((entry->levels & (1 << level)) && (!entry->critical_only || critical))
+            {
+                if (!gathered)
+                {
+                    if (entry->gather)
+                    entry->gather(level, scratch, sizeof(scratch));
+                    gathered = true;
+                }
+                bool again = false;
+                entry->action(level, scratch, sizeof(scratch), &again, unused, sizeof(unused));
+                if (again)
+                continue;
+            }
+            entry++;
+            gathered = false;
+        }
+    }
+    ((byte *)g_4de2f4)[1] = 0;
+    ((byte *)g_4de2f4)[2] = 0;
+}
+
+
 
 struct s_model_reference_ab
 {

@@ -27,7 +27,7 @@ struct s_object_transform_header
 	s_object_transform_view *object;
 };
 
-void function_1420f0(transform4x3f *out, point3f const *position,
+__declspec(noinline) void function_1420f0(transform4x3f *out, point3f const *position,
 	vector3f const *forward, vector3f const *up);
 int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b,
 	transform4x3f *result);
