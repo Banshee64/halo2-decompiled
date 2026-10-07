@@ -330,8 +330,9 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 	if (packet->type)
 	{
 		stream_write_checked(stream, packet->flag0, 1);
+		i = 0;
 		const word *character = packet->name;
-		for (i = 0; i < 32; i++)
+		for (; i < 32; i++)
 		{
 			word c = *character;
 			function_195720(stream, c, 16);

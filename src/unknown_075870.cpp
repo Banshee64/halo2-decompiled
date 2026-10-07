@@ -330,7 +330,11 @@ void network_observer_check_channel_activity(s_network_observer *observer, long 
 				if (observer_time_get() - last < observer->configuration->timeout74)
 				{
 					long since_activity = function_75890(channel->time94);
-					long since_timer = function_75890(connection->state > 2 ? connection->timers[3].time : 0);
+					long local_0 = *(volatile long *)&connection->state;
+					long local_1 = 0;
+					if (local_0 > 2)
+						local_1 = connection->timers[3].time;
+					long since_timer = function_75890(local_1);
 					if (since_activity >= observer->configuration->timeout80 && since_timer >= observer->configuration->timeout84)
 						network_connection_close(connection, 0x10);
 					return;
@@ -355,8 +359,8 @@ long network_connection_send_capacity(s_network_connection *connection);
 // @retail 0x77580
 bool network_observer_channel_stalled(s_network_observer *observer, long channel_index, long reason)
 {
-	s_network_observer_channel *channel = &observer->channels[channel_index];
 	bool blocked = true;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->connection_index != NONE)
 	{
 		s_network_connection *connection = function_x7665e0(channel->connection_index);
@@ -371,17 +375,18 @@ bool network_observer_channel_stalled(s_network_observer *observer, long channel
 	if (!channel->time98)
 		channel->time98 = observer_time_get();
 	bool expired = observer_time_since(channel->time98) > g_network_configuration.value152c;
-	if (!blocked)
+	if (blocked)
 	{
-		channel->time9c = 0;
-		if (expired)
+		if (!channel->time9c)
+			channel->time9c = observer_time_get();
+		long local_0 = observer_time_since(channel->time9c);
+		if (expired || local_0 > g_network_configuration.value1528)
 			return true;
 	}
 	else
 	{
-		if (!channel->time9c)
-			channel->time9c = observer_time_get();
-		if (expired || observer_time_since(channel->time9c) > g_network_configuration.value1528)
+		channel->time9c = 0;
+		if (expired)
 			return true;
 	}
 	if (!function_7af40(&channel->address))
@@ -1100,13 +1105,14 @@ void network_observer_reset_bandwidth(s_network_observer *observer)
 	observer->value4f38 = NONE;
 	observer->flag4f3c = true;
 	observer->time4f2c = observer_time_get();
-	long channel_index = 0;
+	volatile s_network_observer_channel *local_0 = &observer->channels[0];
+	long local_1 = MAXIMUM_OBSERVER_CHANNELS;
 	do
 	{
-		if (observer->channels[channel_index].state)
-			observer_channel_clear_flag48c(&observer->channels[channel_index]);
-		channel_index++;
-	} while (channel_index < MAXIMUM_OBSERVER_CHANNELS);
+		if (local_0->state && local_0->flag48c)
+			local_0->flag48c = false;
+		local_0++;
+	} while (--local_1);
 }
 
 /* a probe target (as unknown_07b4c0.cpp's) */
