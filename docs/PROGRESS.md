@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6820 functions match
+
+```
+matched 6820 of 11318 game functions (749301 of 2784283 bytes, 26.91%)
+```
+
+6820 new matches, none lost:
+- Merge batch r16: Codex lanes X round 6 (+6) and UI-core rounds 9 and 10 (+8), the second machine's #164 (lane C round 30, +6) and #165 (lane U round 3, +8), and side effects 0x2730c0 and 0x2a4e80.
+
 ## 2026-10-07: 6790 functions match
 
 ```
