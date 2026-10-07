@@ -390,7 +390,8 @@ dword function_13bc00(s_tag_data const *function, real input)
 	{
 		if (header->type == _function_constant && (!(header->flags & 1) || (header->flags & 0xf0) <= 0x10))
 		{
-			return header->colors[0];
+			result = header->colors[0];
+			goto local_1;
 		}
 
 		input = 0.0f > input ? 0.0f : (input > 1.0f ? 1.0f : input);
@@ -407,12 +408,15 @@ dword function_13bc00(s_tag_data const *function, real input)
 				fistp value
 			}
 			byte intensity = (byte)value;
-			return 0xff000000 | (intensity << 16) | (intensity << 8) | intensity;
+			result = 0xff000000 | (intensity << 16) | (intensity << 8) | intensity;
+			goto local_1;
 		}
 		case _function_output_color_constant:
-			return header->colors[0];
+			result = header->colors[0];
+			goto local_1;
 		case _function_output_color_2:
-			return pixel32_interpolate(header->colors[0], header->colors[3], input);
+			result = pixel32_interpolate(header->colors[0], header->colors[3], input);
+			goto local_1;
 		case _function_output_color_3:
 		{
 			input *= 2.0;
@@ -434,7 +438,8 @@ dword function_13bc00(s_tag_data const *function, real input)
 				a = header->colors[1];
 				b = header->colors[3];
 			}
-			return pixel32_interpolate(a, b, input);
+			result = pixel32_interpolate(a, b, input);
+			goto local_1;
 		}
 		case _function_output_color_4:
 		{
@@ -446,11 +451,13 @@ dword function_13bc00(s_tag_data const *function, real input)
 				input = 1.0f;
 				index = 2;
 			}
-			return pixel32_interpolate(header->colors[index], header->colors[index + 1], input);
+			result = pixel32_interpolate(header->colors[index], header->colors[index + 1], input);
+			goto local_1;
 		}
 		}
 	}
 
+local_1:
 	return result;
 }
 
