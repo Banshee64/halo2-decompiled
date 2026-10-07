@@ -698,6 +698,121 @@ real function_022c30(const point3f *a, const point3f *c, const point3f *b)
 }
 
 
+struct s_light_sample
+{
+    point3f position;
+    real red[9], green[9], blue[9];
+    byte unknown78[0x2c];
+    vector3f direction;
+    byte unknownb0[0x2c];
+};
+
+struct s_light_sample_source
+{
+    long unknown00;
+    s_light_sample *entries;
+};
+
+bool g_5093f4;
+real g_4b8940[9], g_4b8964[9], g_4b8988[9];
+bool spherical_harmonics_evaluate_directional_light(vector3f const *direction, dword order, real red, real green, real blue,
+    real *red_result, real *green_result, real *blue_result);
+
+PRIVATE __forceinline void copy_light_sample(s_light_sample const *sample, byte order, real *red, real *green, real *blue, vector3f *direction)
+{
+    long bytes = order * order * sizeof(real);
+    memcpy(red, sample->red, bytes);
+    memcpy(green, sample->green, bytes);
+    memcpy(blue, sample->blue, bytes);
+    *direction = sample->direction;
+}
+
+// @retail 0x22cf0
+void __stdcall function_22cf0(s_light_sample_source const *source, real *red, real *green, real *blue, byte order,
+    vector3f *direction, point3f const *position)
+{
+    long count = *(long *)((byte *)g_4e0344->bsp + 0x38);
+    if (count > 0)
+    {
+        if (g_5093f4)
+        {
+            memcpy(red, g_4b8940, sizeof(g_4b8940));
+            memcpy(green, g_4b8964, sizeof(g_4b8964));
+            memcpy(blue, g_4b8988, sizeof(g_4b8988));
+            return;
+        }
+        if (count == 1)
+        {
+            copy_light_sample(source->entries, order, red, green, blue, direction);
+            return;
+        }
+        long nearest = 0;
+        real closest_distance = 1048576.0f;
+        for (long i = 0; i < count; ++i)
+        {
+            real x = position->x - source->entries[i].position.x;
+            real y = position->y - source->entries[i].position.y;
+            real z = position->z - source->entries[i].position.z;
+            real distance = z * z + x * x + y * y;
+            if (distance < closest_distance)
+            {
+                closest_distance = distance;
+                nearest = i;
+            }
+        }
+        s_light_sample const *first = source->entries + nearest;
+        vector3f delta;
+        delta.i = position->x - first->position.x;
+        delta.j = position->y - first->position.y;
+        delta.k = position->z - first->position.z;
+        long opposite = NONE;
+        real other_distance = 1048576.0f;
+        for (long j = 0; j < count; ++j)
+        {
+            if (j != nearest)
+            {
+                real x = position->x - source->entries[j].position.x;
+                real y = position->y - source->entries[j].position.y;
+                real z = position->z - source->entries[j].position.z;
+                real projection = delta.k * z + delta.j * y + delta.i * x;
+                if (projection <= 0.0f)
+                {
+                    real distance = z * z + y * y + x * x;
+                    if (distance < other_distance)
+                    {
+                        other_distance = distance;
+                        opposite = j;
+                    }
+                }
+            }
+        }
+        real fraction = opposite != NONE
+            ? function_022c30(&first->position, position, &source->entries[opposite].position) : 0.0f;
+        if (fraction <= 0.0f || opposite == NONE)
+            copy_light_sample(first, order, red, green, blue, direction);
+        else
+        {
+            s_light_sample const *second = source->entries + opposite;
+            if (fraction >= 1.0f)
+                copy_light_sample(second, order, red, green, blue, direction);
+            else
+            {
+                function_022750(second->red, order, first->red, red, fraction);
+                function_022750(second->green, order, first->green, green, fraction);
+                function_022750(second->blue, order, first->blue, blue, fraction);
+                direction->i = (second->direction.i - first->direction.i) * fraction + first->direction.i;
+                direction->j = (second->direction.j - first->direction.j) * fraction + first->direction.j;
+                direction->k = (second->direction.k - first->direction.k) * fraction + first->direction.k;
+            }
+        }
+    }
+    else
+    {
+        vector3f fallback = { 0.0f, 0.0f, -1.0f };
+        spherical_harmonics_evaluate_directional_light(&fallback, order, 0.0f, 1.0f, 0.0f, red, green, blue);
+    }
+}
+
 real g_4b8494;
 long g_467130;
 long g_4858b4;
@@ -1049,4 +1164,3 @@ bool __stdcall function_3c270(dword value)
     if (valid && !available && !(amount > 0.0f)) return false;
     return true;
 }
-

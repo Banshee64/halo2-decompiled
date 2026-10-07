@@ -165,6 +165,7 @@ class c_handle_table_450cd0
 {
 public:
 	c_handle_table_450cd0() : unknown08(0) {}
+	~c_handle_table_450cd0();
 	virtual bool v0() { return false; }
 	virtual long v1(long a1, long max_count, void *entries);
 	virtual void v2() {}
