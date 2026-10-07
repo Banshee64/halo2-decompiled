@@ -173,8 +173,9 @@ void function_28cdb0()
 // @retail 0x28cf40
 void function_28cf40()
 {
+	long local_0 = g_5044b8;
 	s_animation_data *data = g_sampling_settings.field_30;
-	dword index = *(dword *)((byte *)data + data->translation_indices + g_5044b8 * 4);
+	dword index = *(dword *)((byte *)data + data->translation_indices + local_0 * 4);
 	long start = index >> 12;
 	long count = index & 0xfff;
 	byte *frames = (byte *)data + data->translation_frames + start;
@@ -203,16 +204,22 @@ void function_28cf40()
 		dword frame = *frames;
 		if (g_sampling_settings.frame_index != frame)
 		{
+			real local_1 = (real)(long)g_sampling_settings.frame_index - (real)(long)frame;
 			real denominator = (real)(long)(frames[1] - frame);
 			real reciprocal;
 			RECIPROCAL(reciprocal, denominator);
-			real t = reciprocal * ((real)(long)g_sampling_settings.frame_index - (real)(long)frame);
+			real t = reciprocal * local_1;
 			s_translation_key b = key[1];
 			translation->x += (b.x - translation->x) * t;
 			translation->y += (b.y - translation->y) * t;
 			translation->z += (b.z - translation->z) * t;
 		}
 	}
+}
+
+PRIVATE __forceinline void function_28d091(real arg_0, real arg_1, real arg_2, real arg_3, real *arg_4)
+{
+    *arg_4 = (arg_1 - arg_0) * (arg_2 * arg_3) + arg_0;
 }
 
 // @retail 0x28d090
@@ -246,14 +253,15 @@ void function_28d090()
 	if (low + 1 < count)
 	{
 		dword frame = *frames;
-		if (g_sampling_settings.frame_index != frame)
+		long local_3 = g_sampling_settings.frame_index;
+		if (local_3 != frame)
 		{
+			real local_0 = (real)local_3 - (real)(long)frame;
 			real denominator = (real)(long)(frames[1] - frame);
 			real reciprocal;
 			RECIPROCAL(reciprocal, denominator);
-			real t = reciprocal * ((real)(long)g_sampling_settings.frame_index - (real)(long)frame);
 			s_scale_key next = key[1];
-			result->scale.value += (next.value - result->scale.value) * t;
+			function_28d091(result->scale.value, next.value, reciprocal, local_0, &result->scale.value);
 		}
 	}
 }
@@ -330,10 +338,11 @@ void function_28d320()
 		dword cur = frames[low];
 		dword following = frames[low + 1];
 		real frame = (real)(long)g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
+		frame -= (real)(long)cur;
 		real denominator = (real)(long)(following - cur);
 		real reciprocal;
 		RECIPROCAL(reciprocal, denominator);
-		real t = reciprocal * (frame - (real)(long)cur);
+		real t = reciprocal * frame;
 		s_translation_key b = key[1];
 		translation->x += (b.x - translation->x) * t;
 		translation->y += (b.y - translation->y) * t;
@@ -364,21 +373,21 @@ void function_28d470()
 			high = middle;
 		}
 	}
-	s_animation_output *result = g_5044c0;
 	_mm_prefetch((char const *)(keys + low), _MM_HINT_T0);
 	s_scale_key *key = keys + low;
+	s_animation_output *result = g_5044c0;
 	result->scale = *key;
 	if (low + 1 < count)
 	{
 		dword cur = frames[low];
 		dword following = frames[low + 1];
 		real frame = (real)(long)g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
+		real local_0 = frame - (real)(long)cur;
 		real denominator = (real)(long)(following - cur);
 		real reciprocal;
 		RECIPROCAL(reciprocal, denominator);
-		real t = reciprocal * (frame - (real)(long)cur);
 		s_scale_key next = key[1];
-		result->scale.value += (next.value - result->scale.value) * t;
+		function_28d091(result->scale.value, next.value, reciprocal, local_0, &result->scale.value);
 	}
 }
 
@@ -499,15 +508,15 @@ void function_28d840()
 	if (low + 1 < count)
 	{
 		dword frame = frames[low];
-		if (g_sampling_settings.frame_index != frame)
+		long local_3 = g_sampling_settings.frame_index;
+		if (local_3 != frame)
 		{
-			real t = (real)(long)g_sampling_settings.frame_index - (real)(long)frame;
+			real local_0 = (real)local_3 - (real)(long)frame;
 			real denominator = (real)(long)(frames[low + 1] - frame);
 			real reciprocal;
 			RECIPROCAL(reciprocal, denominator);
-			t = reciprocal * t;
 			s_scale_key next = key[1];
-			result->scale.value += (next.value - result->scale.value) * t;
+			function_28d091(result->scale.value, next.value, reciprocal, local_0, &result->scale.value);
 		}
 	}
 }

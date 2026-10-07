@@ -247,14 +247,19 @@ short __stdcall function_1ade70(long actor_index, s_slot *slot, bool active)
 	short result;
 
 	if (ACTOR_VIEW_344(actor_get(actor_index))->unknown344 == NONE)
-		return g_46fbe4;
+	{
+		result = g_46fbe4;
+		goto local_0;
+	}
 	if (state->timer <= 0)
 	{
 		g_46eeb8[0x3b]->unknown8 = g_46f348;
 		result = 0x46;
-		return result;
+		goto local_0;
 	}
-	return g_46fbe8;
+	result = g_46fbe8;
+local_0:
+	return result;
 }
 
 // @retail 0x1aded0

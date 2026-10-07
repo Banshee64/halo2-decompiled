@@ -22,6 +22,7 @@
 class __single_inheritance c_class_1473c9;
 struct s_screen_parameters;
 struct s_screen_layout;
+struct short_rectangle2d;
 
 /* a player profile's settings (0x1e0 bytes); the settings screens edit a
    copy at 0x54e5d8 */
@@ -567,10 +568,13 @@ public:
 	/* for one controller's user (any user when NONE) */
 	c_text_widget_45a5e0(long controller_index);
 
+	virtual void v4(long screen_rect_address);
 	virtual long v6();
 
 	/* shows the string with this id from the screen's string list */
 	void function_253b1a(long string_handle);
+	void function_253a73(short_rectangle2d const *screen, long character_index, short_rectangle2d *bounds);
+	void function_253ab4(short_rectangle2d const *screen, short_rectangle2d *bounds);
 
 	long value70;
 };
@@ -608,6 +612,7 @@ public:
 
 	/* colours the text: focused or as the definition says */
 	virtual void v3();
+	virtual void v4(long screen_rect_address);
 	virtual long v6();
 	/* a press of A or start runs the handlers; the directions move the
 	   focus unless the definition's flags stop them */

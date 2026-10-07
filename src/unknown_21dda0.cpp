@@ -206,9 +206,9 @@ bool sound_voice_matches(s_voice_playing_sound const *sound, s_sound_voice const
 // @retail 0x21dff0
 bool sound_voice_update(s_voice_playing_sound const *sound, bool *orphaned, long voice_index)
 {
+	bool result = false;
 	s_sound_voice *voice = sound_voice_get(voice_index);
 	dword time = ((s_sound_system_voice_view *)g_4e6380)->time;
-	bool result = false;
 
 	*orphaned = voice->time == NONE;
 	if (voice->time != time)

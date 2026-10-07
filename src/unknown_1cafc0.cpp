@@ -1121,14 +1121,14 @@ bool function_1cb5f0(long node_count, s_animation_state *state, real seconds, s_
 	{
 		s_animation_bits *counter = &state->unknown64;
 
-		if (counter->unknown1 == 0 || (counter->unknown3 & 2) || !(seconds < function_1d9430((s_1d9240 const *)counter)))
+		if (counter->unknown1 == 0 || (counter->unknown3 & 2) || seconds >= function_1d9430((s_1d9240 const *)counter))
 		{
 			counter->unknown1 = 0;
 			counter->unknown0 = 0;
 			counter->unknown3 = 0;
 			memcpy(orientations, targets, node_count * 0x20);
 			result = true;
-			function_1d9240((s_1d9240 *)counter, result, seconds);
+			function_1d9240((s_1d9240 *)counter, true, seconds);
 		}
 	}
 	return result;
@@ -1247,6 +1247,9 @@ bool s_animation_state::blend_counters_update()
 void s_animation_state::sample(long unused1, real weight, dword const *node_mask, real_quaternion_transform *transforms,
 	long unused5, long unused6, long node_count)
 {
+	long const *local_0 = &unused1;
+	long const *local_1 = &unused5;
+	long const *local_2 = &unused6;
 	if (g_46fbf5 && channel_valid(&channels[2]))
 	{
 		channels[2].sample(weight, node_mask, node_count, transforms);
@@ -1421,7 +1424,8 @@ bool s_animation_state::overlay_exists()
 			animation_id = graph->overlay_get(unknown70, unknown74, unknown78, 0xb000046, NULL, NULL, NULL);
 		}
 	}
-	return animation_id.index != NONE;
+	byte local_0 = animation_id.index != NONE;
+	return local_0;
 }
 
 // @retail 0x1cc1a0

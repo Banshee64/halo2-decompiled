@@ -35,8 +35,10 @@ bool function_98620(c_handle_table_450cd0 *self, s_bitstream *stream, long index
 	stream_push_position(stream);
 	function_195720(stream, 1, 3);
 	function_b5650(handle, stream);
-	if (self->table->owner->v0(handle, self->entries[index].unknown04, a3, stream, reserved_bits, &released) &&
-		stream_has_room(stream, reserved_bits))
+	c_handle_owner *local_0 = self->table->owner;
+	dword local_1 = self->entries[index].unknown04;
+	if (local_0->v0(handle, local_1, a3, stream, reserved_bits, &released) &&
+		(stream->size_in_bytes << 3) - stream->bit_position >= reserved_bits)
 	{
 		stream->checkpoint_count--;
 		function_98ac0(self, handle);
@@ -154,13 +156,17 @@ bool function_988f0(c_handle_table_450cd0 *self, long index, s_bitstream *stream
 // @retail 0x989f0
 bool function_989f0(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits)
 {
+	long local_3 = stream->bit_position;
 	long handle = self->entries[index].handle;
 	long released = 0;
-	stream_push_position(stream);
+	stream->checkpoints[stream->checkpoint_count] = local_3;
+	stream->checkpoint_count++;
 	function_195720(stream, 5, 3);
 	function_b5650(handle, stream);
-	if (self->table->owner->v5(handle, self->entries[index].unknown04, a3, stream, reserved_bits, &released) &&
-		stream_has_room(stream, reserved_bits))
+	c_handle_owner *local_0 = self->table->owner;
+	dword local_1 = *(volatile dword *)&self->entries[index].unknown04;
+	if (local_0->v5(handle, local_1, a3, stream, reserved_bits, &released) &&
+		(stream->size_in_bytes << 3) - stream->bit_position >= reserved_bits)
 	{
 		stream->checkpoint_count--;
 		function_98bf0(handle, self, released);

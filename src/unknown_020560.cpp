@@ -12,8 +12,60 @@
 #include "visibility_slot.h"
 #include "unknown_123b30.h"
 #include "crc.h"
+#include "data_array.h"
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+extern bool g_4ba019;
+bool function_143c0(long tag, short index, short stage, real priority);
+
+PRIVATE __forceinline long texture_floor(real value)
+{
+    long result = (long)value;
+    if (value < 0.0f && value != (real)result)
+        result--;
+    return result;
+}
+
+// @retail 0x1b0a0
+void __stdcall function_1b0a0(byte *state)
+{
+    (void)&state;
+    dword remaining = *(dword *)(state + 0x1420);
+    while (remaining)
+    {
+        long index;
+        __asm
+        {
+            bsf ecx, remaining
+            mov index, ecx
+        }
+        byte *entry = state + 0x1320 + index * 0x40;
+        long tag = *(long *)entry;
+        if (tag != NONE)
+        {
+            long bitmap = 0;
+            real time = *(real *)(entry + 0x18);
+            if (fabs(time) >= 0.0001f)
+            {
+                long count = *(long *)(g_4e3b44[tag & 0xffff].bytes + 0x44);
+                bitmap = texture_floor((real)fmod(time, count));
+            }
+            real bias = 0.0f;
+            if (!(entry[4] & 1) && !g_4ba019)
+                bias = PIN(*(real *)(entry + 0x14) + *(real *)(state + 0x2c) - 0.5f, 0.0f, 4.0f);
+            real level = (real)texture_floor(bias);
+            level = PIN(level, 0.0f, 2.0f);
+            level = (real)(long)level;
+            if (*(real *)(entry + 0x10) > level)
+            {
+                function_143c0(tag, (short)bitmap, (short)index, bias);
+                *(real *)(entry + 0x10) = level;
+            }
+        }
+        remaining &= ~(1 << index);
+    }
+}
 
 struct s_slot_key
 {
@@ -852,7 +904,7 @@ void function_445d0(void)
 long g_4b6298;
 bool g_4b6294;
 
-void function_1ef70(void);
+__declspec(noinline) void function_1ef70(void);
 
 // @retail 0x1ee60
 void function_1ee60(long primitive)
@@ -1175,4 +1227,243 @@ void function_226a0(void)
     function_015b70();
     function_1e1c0();
     function_36ab0();
+}
+
+extern long g_4858b8;
+void function_14f60(short stage, short index);
+bool function_1ccf0(D3DPIXELSHADERDEF const *program);
+void __stdcall function_34a90(long target, short blend, dword color_write,
+    bool use_depth, bool depth_write, real depth, real distortion, real scale,
+    long count, bool full_surface, bool viewport_textures);
+
+// @retail 0x22070
+void __stdcall function_22070(real strength, real exponent)
+{
+    if (strength > 0.0f)
+    {
+        strength = (real)PIN(pow((double)(strength > 1.0f ? 1.0f : strength),
+            (double)(exponent > 0.0f ? exponent : 0.0f)), 0.0, 1.0);
+        if (strength > 0.0f)
+        {
+            function_14f60(0, 18);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_POINT);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_POINT);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+            memset(&g_484f68, 0, sizeof(g_484f68));
+            g_484f68.PSTextureModes = 1;
+            g_484f68.PSCombinerCount = 0x11001;
+            real alpha_scale = 255.0f;
+            long alpha = 0;
+            __asm
+            {
+                fld strength
+                fld alpha_scale
+                fmulp st(1), st(0)
+                fistp alpha
+            }
+            g_484f68.PSFinalCombinerConstant0 = (dword)alpha << 24;
+            g_484f68.PSFinalCombinerInputsABCD = 0x8110000;
+            g_484f68.PSFinalCombinerInputsEFG = 0x1100;
+            function_1ccf0(&g_484f68);
+            function_34a90(g_4858b8, 7, 0x1010101, false, false,
+                1.0f, 0.0f, 1.0f, 1, false, false);
+        }
+    }
+}
+
+typedef bool (__stdcall *t_211a0_vertex)(long, real const *, real const *, real *, long);
+void function_34d90(long target, real const *weights, short blend, dword color_write,
+    bool use_depth, bool depth_write, real depth, real low, real high,
+    bool full_surface, t_211a0_vertex vertex);
+void __stdcall function_351a0(long texture, long target);
+
+PRIVATE __forceinline void configure_filter_textures(long source)
+{
+    for (long stage = 0; stage < 4; ++stage)
+    {
+        function_14f60(stage, (short)source);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+        D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+    }
+}
+
+// @retail 0x21360
+long function_21360(long source, real radius, real low, real high, long target,
+    long alternate, long passes, long unused, bool configure, bool full_surface, real scale)
+{
+    (void)&unused;
+    radius *= 0.01666f;
+    if (alternate == NONE)
+        alternate = source;
+    if (configure)
+        function_020f30(0.0f, scale);
+    for (long pass = 0; pass < passes; ++pass)
+    {
+        real weights[4];
+        weights[0] = radius;
+        weights[1] = radius * 0.33f;
+        weights[2] = radius * -0.33f;
+        weights[3] = 0.0f - radius;
+        configure_filter_textures(source);
+        function_34d90(target, weights, 10, 0x1010101, false, false,
+            1.0f, low, high, full_surface, NULL);
+        source = target;
+        target = alternate;
+        alternate = source;
+        radius *= 2.0f;
+    }
+    if (alternate != NONE && alternate != source)
+    {
+        function_351a0(source, alternate);
+        source = alternate;
+    }
+    return source;
+}
+
+// @retail 0x211a0
+long function_211a0(long source, real passes, real distortion, real falloff,
+    long target, long alternate, long unused, long configure, long full_surface,
+    real scale, real offset)
+{
+    (void)&unused;
+    real pass = 0.0f;
+    if (alternate == NONE)
+        alternate = source;
+    if ((byte)configure)
+        function_020f30(offset, scale);
+    if (passes > 0.0f)
+    {
+        real growth = (1.0f - falloff) + falloff * 2.0f;
+        do
+        {
+            real fraction = passes - pass;
+            if (fraction < 0.0f) fraction = 0.0f;
+            else if (fraction > 1.0f) fraction = 1.0f;
+            if (fraction > 0.0f)
+            {
+                configure_filter_textures(source);
+                function_34a90(target, 10, 0x1010101, false, false,
+                    1.0f, fraction * distortion, 1.0f, 4, (bool)(byte)full_surface, false);
+                source = target;
+                target = alternate;
+                alternate = source;
+            }
+            distortion *= growth;
+            pass += 1.0f;
+        } while (pass < passes);
+    }
+    if (alternate != NONE && alternate != source)
+    {
+        function_351a0(source, alternate);
+        source = alternate;
+    }
+    return source;
+}
+
+// @retail 0x222a0
+void function_222a0(void)
+{
+    function_211a0(10, 2.0f, 2.0f, 0.5f, 11, NONE, 10, 1, 1, 0.0f, 0.0f);
+}
+
+void function_15780(long stage, long mode);
+dword __cdecl function_131fc0(real alpha);
+
+PRIVATE __forceinline void configure_filter_copy(void)
+{
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 0x11001;
+    g_484f68.PSFinalCombinerInputsABCD = 8;
+    g_484f68.PSFinalCombinerInputsEFG = 0x1800;
+    function_1ccf0(&g_484f68);
+}
+
+// @retail 0x21a80
+void __stdcall function_21a80(real first, real second, real depth)
+{
+    if (first > 0.0f || second > 0.0f)
+    {
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSFinalCombinerInputsEFG = 0x2000;
+        g_484f68.PSCombinerCount = 0x11001;
+        D3DDevice_SetPixelShaderProgram(&g_484f68);
+        function_34a90(18, 10, 0x1000000, true, false, 0.0f - depth,
+            0.0f, 1.0f, 0, false, false);
+        if (first > 0.0f)
+        {
+            function_14f60(0, 18);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+            configure_filter_copy();
+            function_34a90(5, 10, 0x1010101, false, false, 1.0f, 0.0f, 1.0f, 1, false, false);
+            long filtered = function_211a0(5, first, 1.0f, 0.0f, 6, NONE, NONE, 1, 0, 0.0f, 0.0f);
+            first = (real)PIN(pow((double)(first > 1.0f ? 1.0f : first), 0.33000001311302185), 0.0, 1.0);
+            function_14f60(0, (short)filtered);
+            function_15780(0, 4);
+            if (first < 1.0f)
+            {
+                function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+                function_0222d0(D3DRS_SRCBLEND, D3DBLEND_CONSTANTALPHA);
+                function_0222d0(D3DRS_DESTBLEND, D3DBLEND_INVCONSTANTALPHA);
+                function_0222d0(D3DRS_BLENDCOLOR, function_131fc0(first));
+                function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+            }
+            else function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+            configure_filter_copy();
+            function_34a90(18, NONE, 0x1010101, false, false, 1.0f, 0.0f, 1.0f, 1, false, false);
+        }
+        if (second > 0.0f)
+        {
+            function_14f60(0, (short)g_4858b8);
+            function_15780(0, 4);
+            configure_filter_copy();
+            function_34a90(5, 10, 0x1010101, false, false, 1.0f, 0.0f, 1.0f, 1, false, false);
+            long filtered = function_211a0(5, second, 1.0f, 0.0f, 6, NONE, NONE, 1, 0, 0.0f, 0.0f);
+            first = (real)PIN(pow((double)(second > 1.0f ? 1.0f : second), 0.33000001311302185), 0.0, 1.0);
+            function_14f60(0, (short)filtered);
+            function_15780(0, 4);
+            if (first < 1.0f)
+            {
+                function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+                function_0222d0(D3DRS_SRCBLEND, D3DBLEND_CONSTANTALPHA);
+                function_0222d0(D3DRS_DESTBLEND, D3DBLEND_INVCONSTANTALPHA);
+                function_0222d0(D3DRS_BLENDCOLOR, function_131fc0(first));
+                function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+            }
+            else function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+            configure_filter_copy();
+            function_34a90(g_4858b8, NONE, 0x1010101, false, false, 1.0f, 0.0f, 1.0f, 1, false, false);
+        }
+        function_14f60(0, 18);
+        function_15780(0, 3);
+        configure_filter_copy();
+        function_34a90(0, 7, 0x1010101, false, false, 1.0f, 0.0f, 1.0f, 1, false, false);
+    }
 }

@@ -22,10 +22,10 @@ transform4x3f *function_ba160(long object_index, transform4x3f *matrix);
 // @retail 0x20a9a0
 bool function_20a9a0(long object_index, s_type_1a7926 *matrices)
 {
+	bool result = false;
 	byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
 	byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
 	(void)&definition;
-	bool result = false;
 	long model_index = *(long *)(definition + 0x38);
 	if (model_index != NONE)
 	{

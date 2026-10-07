@@ -2,6 +2,42 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6901 functions match
+
+```
+matched 6901 of 11318 game functions (762446 of 2784283 bytes, 27.38%)
+```
+
+6901 new matches, none lost:
+- Merge batch r21: UI-core rounds 11 to 13 (+9: the main menu and window-manager initialisers, two text-widget helpers and lobby/settings screen code).
+
+## 2026-10-07: 6892 functions match
+
+```
+matched 6892 of 11318 game functions (760427 of 2784283 bytes, 27.31%)
+```
+
+6892 new matches, none lost:
+- Merge batch r20: the second machine's #169 to #179 (lanes AC, P, U, L, K, J, M and F; +51) and lane W rounds 16 and 17 (+6).
+
+## 2026-10-07: 6835 functions match
+
+```
+matched 6835 of 11318 game functions (752377 of 2784283 bytes, 27.02%)
+```
+
+6835 new matches, none lost:
+- Merge batch r18: lane W round 15 (+5) and the second machine's #168 (lane U round 4, +3).
+
+## 2026-10-07: 6827 functions match
+
+```
+matched 6827 of 11318 game functions (750623 of 2784283 bytes, 26.96%)
+```
+
+6827 new matches, none lost:
+- Merge batch r17: the second machine's #166 (lane AC round 13, +4) and #167 (lane C round 31, +2, including 0xf06e0 in vehicles.cpp as a side effect), and the blocker hunt's one fix (0x1ee50).
+
 ## 2026-10-07: 6820 functions match
 
 ```

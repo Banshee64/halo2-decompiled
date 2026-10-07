@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Gr /arch:SSE
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "havok_reference.h"
@@ -547,10 +547,8 @@ bool function_2792c0(s_2792c0_context *context)
 		__m128 squares = _mm_mul_ps(normal.value, normal.value);
 		__m128 sum = _mm_add_ss(_mm_shuffle_ps(squares, squares, 0xaa), _mm_add_ss(_mm_shuffle_ps(squares, squares, 0x55), squares));
 		__m128 inverse = _mm_rsqrt_ss(sum);
-		static const real three = 3.0f;
-		static const real half = 0.5f;
-		__m128 correction = _mm_sub_ss(_mm_load_ss(&three), _mm_mul_ss(_mm_mul_ss(sum, inverse), inverse));
-		__m128 scale = _mm_mul_ss(_mm_mul_ss(_mm_load_ss(&half), inverse), correction);
+		__m128 correction = _mm_sub_ss(_mm_set_ss(3.0f), _mm_mul_ss(_mm_mul_ss(sum, inverse), inverse));
+		__m128 scale = _mm_mul_ss(_mm_mul_ss(_mm_set_ss(0.5f), inverse), correction);
 		normal.value = _mm_mul_ps(_mm_shuffle_ps(scale, scale, 0), normal.value);
 		__m128 product = _mm_mul_ps(normal.value, context->plane[1]);
 		__m128 dot = _mm_add_ss(_mm_shuffle_ps(product, product, 0xaa), _mm_add_ss(_mm_shuffle_ps(product, product, 0x55), product));

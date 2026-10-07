@@ -281,7 +281,7 @@ dword const *node_masks_combine(dword const *mask, dword const *other)
 void function_279d80(s_graph_tag *graph, c_type_709360 animation_id, long node_count, real frame, real weight,
 	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms, bool interpolate)
 {
-	s_animation *animation = function_1daea0(graph, animation_id);
+	s_animation *volatile animation = function_1daea0(graph, animation_id);
 	s_animation_data data;
 	long size;
 	byte *address;
