@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6655 functions match
+
+```
+matched 6655 of 11318 game functions (723443 of 2784283 bytes, 25.98%)
+```
+
+6655 new matches, none lost:
+- @BrassMonkey71's first contributions: 0xe5240 (#119), 0xd4db0 (#122) and 0xe5670 (#115).
+
+## 2026-10-06: 6652 functions match
+
+```
+matched 6652 of 11318 game functions (723327 of 2784283 bytes, 25.98%)
+```
+
+6652 new matches, none lost:
+- Merge batch r8: the second machine's lane C rounds 22-26 (+19), lane AC rounds 6-9 (+12, plus 0x262a90), lane P round 3 (+2) and the side-effect match 0xc6740 (PRs #109, #111, #112, #114, #117, #118, #120, #121, #123, #124).
+
 ## 2026-10-06: 6617 functions match
 
 ```

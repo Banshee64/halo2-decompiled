@@ -7,8 +7,6 @@ struct s_scenario_block;
 
 // @stub 0xb8600
 void __stdcall function_b8600(long object_index, long unknown) { }
-// @stub 0x1c38a0
-void __stdcall function_1c38a0(long object_index) { }
 // @stub 0xb87b0
 void __stdcall function_b87b0(long object_index) { }
 /* makes an object from a scenario object */
