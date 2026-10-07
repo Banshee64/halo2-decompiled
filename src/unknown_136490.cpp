@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_136490.CPP: bitmap sizes */
 
 #include "unknown_11c920.h"
@@ -300,7 +300,7 @@ dword __cdecl pack_color4f(color4f const *color);
 dword __cdecl pack_color3f(color3f const *color);
 real function_135880(word value);
 
-static inline real bitmap_display_component(real value)
+static __forceinline real bitmap_display_component(real value)
 {
 	value *= 100.0f;
 	return value < 0.0f ? 0.0f : value > 1.0f ? 1.0f : value;
@@ -311,24 +311,6 @@ dword function_135ca0(void const *pixels, short format, long index)
 {
 	switch (format)
 	{
-	case 0:
-		return ((byte const *)pixels)[index] << 24;
-	case 1:
-		{
-			dword value = ((byte const *)pixels)[index];
-			return (((value | 0xffffff00) << 8 | value) << 8) | value;
-		}
-	case 2:
-		{
-			dword value = ((byte const *)pixels)[index];
-			return (((value << 8 | value) << 8 | value) << 8) | value;
-		}
-	case 3:
-		{
-			dword value = ((word const *)pixels)[index];
-			dword intensity = value & 0xff;
-			return (((value << 8) | intensity) << 8) | intensity;
-		}
 	case 6:
 		{
 			dword value = ((word const *)pixels)[index];
@@ -358,6 +340,24 @@ dword function_135ca0(void const *pixels, short format, long index)
 	case 10:
 	case 11:
 		return ((dword const *)pixels)[index];
+	case 0:
+		return ((byte const *)pixels)[index] << 24;
+	case 1:
+		{
+			dword value = ((byte const *)pixels)[index];
+			return (((value | 0xffffff00) << 8 | value) << 8) | value;
+		}
+	case 2:
+		{
+			dword value = ((byte const *)pixels)[index];
+			return (((value << 8 | value) << 8 | value) << 8) | value;
+		}
+	case 3:
+		{
+			dword value = ((word const *)pixels)[index];
+			dword intensity = value & 0xff;
+			return (((value << 8) | intensity) << 8) | intensity;
+		}
 	case 17:
 		return g_468848[((byte const *)pixels)[index]];
 	case 18:

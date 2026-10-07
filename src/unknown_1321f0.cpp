@@ -1011,3 +1011,34 @@ bool function_132780(s_sort_context const *arg_1, s_sort_context const *arg_2, l
 	}
 	return local_3;
 }
+
+// @retail 0x132900
+void function_132900(s_bit_vector_pool *arg_1, s_sort_context const *arg_2, s_sort_context const *arg_3)
+{
+	(void)&arg_1;
+	(void)&arg_3;
+	long local_1 = 0;
+	long local_2 = 0;
+	while (local_1 < arg_2->count && local_2 < arg_3->count)
+	{
+		s_sort_entry const *local_3 = &arg_2->entries[arg_2->order[local_1]];
+		s_sort_entry const *local_4 = &arg_3->entries[arg_3->order[local_2]];
+		if (local_4->value > local_3->value)
+			local_1++;
+		else if (local_4->value < local_3->value)
+			local_2++;
+		else
+		{
+			if (*(short const *)local_4->unknown02 > 0)
+			{
+				for (long local_5 = 0; local_5 < *(short const *)arg_2; local_5++)
+				{
+					if (((short const *)local_3->unknown02)[local_5] > 0)
+						function_132780(arg_3, arg_2, local_1, 0, *(short *)((byte *)arg_1 + 0x2ade), local_2, local_5, (s_132780 *)((byte *)arg_1 + 0x2a98));
+				}
+			}
+			local_1++;
+			local_2++;
+		}
+	}
+}

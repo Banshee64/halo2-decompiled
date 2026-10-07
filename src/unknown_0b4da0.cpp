@@ -185,6 +185,8 @@ short function_b4fa0(s_transport_endpoint *endpoint, void *buffer, short length)
 	return result;
 }
 
+__declspec(noinline) short function_b5000(s_transport_endpoint *endpoint, void const *buffer, short length);
+
 // @retail 0xb5000
 short function_b5000(s_transport_endpoint *endpoint, void const *buffer, short length)
 {

@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6679 functions match
+
+```
+matched 6679 of 11318 game functions (728159 of 2784283 bytes, 26.15%)
+```
+
+6679 new matches, none lost:
+- Merge batch r9: Codex lanes AB round 8 (+5, including 0x241900 and 0x26df40) and R round 7 (+2), the second machine's #126 (+1) and #127 (+4), @BrassMonkey71's #125 (0xe58e0) and @coldspear's #128 (docs).
+
+## 2026-10-06: 6666 functions match
+
+```
+matched 6666 of 11318 game functions (725899 of 2784283 bytes, 26.07%)
+```
+
+6666 new matches, none lost:
+- Codex lane W round 13: 0x2c340 and 0x3bf00, plus 0x11d790, 0x22a4b0 and 0x2901e0 once 0x30bf0 kept retail's call boundary.
+
 ## 2026-10-06: 6661 functions match
 
 ```

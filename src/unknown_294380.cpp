@@ -1,0 +1,306 @@
+#include "unknown_11c920.h"
+#include "globals.h"
+#include "slot_handler.h"
+#include "object_default_placement.h"
+#include <math.h>
+// @flags /O2 /arch:SSE /Gr
+
+struct s_scenario_flock;
+struct s_294050;
+struct s_294051;
+struct s_295600_state
+{
+    short duration;
+    short elapsed;
+    vector3f current;
+    vector3f previous;
+};
+struct s_orientation_request_118f90
+{
+    long name0;
+    long name4;
+    bool enabled;
+    byte unknown09[2];
+    bool force;
+    byte unknown0c[0xc];
+    vector3f forward;
+    vector3f up;
+};
+void function_118f90(s_orientation_request_118f90 *arg_0);
+void function_118fe0(long arg_0, bool arg_1);
+void function_b9fc0(long arg_0, vector3f *arg_1, vector3f *arg_2);
+point3f *function_b9dd0(long arg_0, point3f *arg_1);
+real function_30bf0(vector3f *arg_0);
+vector3f *function_11d090(vector3f const *arg_0, vector3f *arg_1);
+void function_293d30(s_scenario_flock const *arg_0, point3f *arg_1,
+    real *arg_2, vector3f *arg_3, bool arg_4, bool *arg_5);
+void function_294050(s_294050 const *arg_0, s_294051 const *arg_1,
+    point3f const *arg_2, vector3f *arg_3, real *arg_4, real *arg_5);
+void function_295600(s_295600_state *arg_0, bool arg_1, real arg_2,
+    real arg_3, real arg_4, vector3f *arg_5);
+extern s_record_pool *g_51ecb4;
+
+struct s_294380
+{
+    short field_0;
+    short field_2;
+    long field_4;
+    byte field_8[0x20];
+};
+struct s_294381
+{
+    point3f field_0;
+    real field_c;
+};
+struct s_294382
+{
+    byte field_0[0x14];
+    long field_14;
+    s_294381 *field_18;
+    byte field_1c[0x18];
+    real field_34, field_38, field_3c, field_40, field_44, field_48;
+    real field_4c, field_50, field_54, field_58, field_5c, field_60;
+    real field_64, field_68, field_6c, field_70, field_74, field_78, field_7c;
+    long field_80;
+};
+struct s_294383
+{
+    byte field_0[0x354];
+    s_294382 *field_354;
+};
+struct s_294384
+{
+    long field_0;
+    short field_4;
+    byte field_6[2];
+    long field_8;
+    bool field_c;
+    bool field_d;
+    byte field_e[0xa];
+    s_295600_state field_18;
+};
+
+PRIVATE __forceinline s_294384 *function_2943dd(s_slot_object_view *arg_0)
+{
+    return *(long *)((byte *)arg_0 + 0x134) == 1
+        ? (s_294384 *)((byte *)arg_0 + *(short *)((byte *)arg_0 + 0x13a)) : NULL;
+}
+PRIVATE __forceinline void function_2945bd(point3f const *arg_0,
+    point3f const *arg_1, vector3f *arg_2)
+{
+    arg_2->i = arg_1->x - arg_0->x;
+    arg_2->j = arg_1->y - arg_0->y;
+    arg_2->k = arg_1->z - arg_0->z;
+}
+PRIVATE __forceinline void function_294669(vector3f *arg_0, real arg_1,
+    vector3f const *arg_2)
+{
+    arg_0->i += arg_1 * arg_2->i;
+    arg_0->j += arg_2->j * arg_1;
+    arg_0->k += arg_2->k * arg_1;
+}
+PRIVATE __forceinline real function_294988(vector3f const *arg_0,
+    vector3f const *arg_1)
+{
+    return arg_0->k * arg_1->k + arg_0->j * arg_1->j + arg_0->i * arg_1->i;
+}
+PRIVATE __forceinline void function_2949aa(s_294384 *arg_0, vector3f const *arg_1)
+{
+    if (function_294988(&arg_0->field_18.current, arg_1) < 0.0f)
+        arg_0->field_18.current = *(vector3f *)g_468788;
+    if (function_294988(&arg_0->field_18.previous, arg_1) < 0.0f)
+        arg_0->field_18.previous = *(vector3f *)g_468788;
+}
+PRIVATE __forceinline void function_294b56(vector3f *arg_0, vector3f *arg_1,
+    real *arg_2, real *arg_3)
+{
+    if (*arg_2 + *arg_3 > 3.0f) *arg_3 = 3.0f - *arg_2;
+    function_30bf0(arg_1);
+    function_294669(arg_0, *arg_3, arg_1);
+    *arg_2 += *arg_3;
+}
+
+// @retail 0x294380
+void function_294380(long arg_0, long arg_1)
+{
+    s_294380 *local_0 = &((s_294380 *)g_51ecb4->data)[arg_0 & 0xffff];
+    s_294382 *local_1 = &((s_294383 *)g_4e0350)->field_354[local_0->field_2];
+    s_slot_object_view *local_2 = object_get(arg_1);
+    s_294384 *local_3 = function_2943dd(local_2);
+    if (local_2->parent_index != NONE || !local_3) return;
+    point3f local_4;
+    real local_5 = 0.0f;
+    function_b9dd0(arg_1, &local_4);
+    vector3f local_6 = *g_4687a4;
+    bool local_7 = !TEST_FIELD_BIT((*(dword *)(g_4e3b44[local_2->tag_index & 0xffff].bytes + 0xd4) >> 4) & 1);
+    real local_8 = local_1->field_34 * 0.5f;
+    point3f local_9 = *g_468788;
+    real local_10 = 3.402823466e38f;
+    point3f local_11;
+    real local_12 = local_1->field_54;
+    vector3f local_13 = *g_4687a4;
+    vector3f local_14 = *g_4687a4;
+    short local_15 = 0;
+    real local_16 = 0.0f;
+    real local_17 = 0.0f;
+    real local_18 = 0.0f;
+    vector3f local_19;
+    local_19.i = local_2->forward.i * local_1->field_3c;
+    local_19.j = local_2->forward.j * local_1->field_3c;
+    local_19.k = local_2->forward.k * local_1->field_3c;
+    local_6.i = local_6.j = local_6.k = 0.0f;
+    if (local_1->field_34 > 0.0f)
+    {
+        long local_20 = local_0->field_4;
+        while (local_20 != NONE)
+        {
+            long local_21 = local_20;
+            s_slot_object_view *local_22 = object_get(local_21);
+            s_294384 *local_23 = function_2943dd(local_22);
+            local_20 = local_23 ? local_23->field_8 : NONE;
+            if (local_22 == local_2) continue;
+            point3f local_24;
+            function_b9dd0(local_21, &local_24);
+            vector3f local_25;
+            function_2945bd(&local_4, &local_24, &local_25);
+            real local_26 = function_30bf0(&local_25);
+            if (function_294988(&local_25, &local_2->forward) > (real)cos(local_1->field_50))
+            {
+                if (local_1->field_34 > local_26 && local_26 > 0.0f)
+                {
+                    real local_27 = 1.0f / (local_26 * local_26);
+                    real local_28 = local_1->field_40 * local_27;
+                    function_294669(&local_13, local_28, &local_22->forward);
+                    local_16 += local_28;
+                    if (local_1->field_38 * local_1->field_38 > local_26 * local_26)
+                    {
+                        real local_29 = (local_27 - 1.0f / (local_1->field_38 * local_1->field_38)) * local_1->field_44;
+                        function_294669(&local_14, -local_29, &local_25);
+                        local_17 += local_29;
+                    }
+                    local_9.x += local_24.x;
+                    local_9.y += local_24.y;
+                    local_9.z += local_24.z;
+                    local_15++;
+                }
+                else if (local_10 > local_26)
+                {
+                    local_10 = local_26;
+                    local_11 = local_24;
+                }
+            }
+        }
+    }
+    vector3f local_30;
+    real local_31;
+    function_295600(&local_3->field_18, local_7, local_1->field_74,
+        local_1->field_78, local_1->field_7c, &local_30);
+    if (local_7)
+    {
+        local_31 = function_30bf0(&local_30);
+        if (local_31 > 0.0f)
+        {
+            if (local_31 > 3.0f) local_31 = 3.0f;
+            function_30bf0(&local_30);
+            function_294669(&local_19, local_31, &local_30);
+            local_5 = local_31;
+        }
+    }
+    else
+    {
+        local_19.i += local_30.i;
+        local_19.j += local_30.j;
+        local_19.k += local_30.k;
+    }
+    bool local_32 = false;
+    function_293d30((s_scenario_flock *)local_1, &local_4, &local_31, &local_30, local_7, &local_32);
+    function_294669(&local_19, local_31, &local_30);
+    local_5 += local_31;
+    if (local_32) function_b75a0(arg_1, &local_4, NULL, NULL, NULL, false);
+    if (local_31 > 0.0f) function_2949aa(local_3, &local_30);
+    else if (!local_7) local_19.k -= local_2->forward.k * local_1->field_48;
+    local_31 = 0.0f;
+    function_294050((s_294050 *)local_0, (s_294051 *)local_1,
+        &local_4, &local_30, &local_31, &local_18);
+    if (local_31 > 0.0f)
+    {
+        function_294669(&local_19, local_31, &local_30);
+        local_5 += local_31;
+        function_2949aa(local_3, &local_30);
+    }
+    if (local_15 > 0)
+    {
+        if (local_5 < 3.0f)
+        {
+            function_294b56(&local_19, &local_14, &local_5, &local_17);
+            if (local_5 < 3.0f)
+            {
+                function_294b56(&local_19, &local_13, &local_5, &local_16);
+                if (local_5 < 3.0f)
+                {
+                    real local_33 = 3.0f - local_5;
+                    local_16 = local_1->field_5c * local_33;
+                    real local_34 = 1.0f / local_15;
+                    local_30.i = local_9.x * local_34 - local_4.x;
+                    local_30.j = local_9.y * local_34 - local_4.y;
+                    local_30.k = local_9.z * local_34 - local_4.z;
+                    real local_35 = function_30bf0(&local_30);
+                    if (local_35 > local_1->field_60)
+                    {
+                        if (local_1->field_64 > local_35)
+                            local_16 *= (local_35 - local_1->field_60) / (local_1->field_64 - local_1->field_60);
+                        function_294b56(&local_19, &local_30, &local_5, &local_16);
+                    }
+                    if (local_35 > local_1->field_34) local_12 = local_1->field_58;
+                    else if (local_35 > local_8)
+                        local_12 += (local_1->field_58 - local_12) * (local_35 - local_8) / (local_1->field_34 - local_8);
+                }
+            }
+        }
+    }
+    else if (3.402823466e38f > local_10)
+    {
+        function_2945bd(&local_4, &local_11, &local_30);
+        function_30bf0(&local_30);
+        function_294669(&local_19, local_1->field_5c, &local_30);
+        local_12 = local_1->field_58;
+    }
+    else local_12 = local_1->field_54;
+    if (local_3->field_4 >= 0 && local_3->field_4 < local_1->field_14)
+    {
+        s_294381 *local_36 = &local_1->field_18[local_3->field_4];
+        function_2945bd(&local_4, &local_36->field_0, &local_30);
+        real local_37 = function_30bf0(&local_30);
+        if (local_37 > 0.0f)
+        {
+            real local_38 = local_36->field_c > 0.0f ? local_36->field_c : 1.0f;
+            if (local_38 > local_37) local_3->field_c = true;
+            else
+            {
+                local_31 = local_1->field_4c;
+                if (local_5 < 3.0f) function_294b56(&local_19, &local_30, &local_5, &local_31);
+            }
+        }
+    }
+    if (!(local_12 > local_18)) local_12 = local_18;
+    local_6.i = local_12;
+    if (local_7) { local_6.k = 0.0f; local_19.k = 0.0f; }
+    if (local_3->field_d ? local_5 < local_1->field_68 * 0.7f : local_5 < local_1->field_68)
+    {
+        local_6 = *g_4687a4;
+        object_get_forward(arg_1, &local_19);
+        local_3->field_d = false;
+    }
+    else
+    {
+        if (function_30bf0(&local_19) == 0.0f) function_b9fc0(arg_1, &local_19, NULL);
+        local_3->field_d = true;
+    }
+    s_orientation_request_118f90 local_39;
+    function_118f90(&local_39);
+    local_39.forward = local_19;
+    *(vector3f *)local_39.unknown0c = local_6;
+    function_11d090(&local_19, &local_39.up);
+    function_118fe0(arg_1, true);
+    *(s_orientation_request_118f90 *)((byte *)object_get(arg_1) + 0x13c) = local_39;
+}

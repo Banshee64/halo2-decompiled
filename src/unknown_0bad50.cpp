@@ -311,6 +311,8 @@ long function_baf40(long object_index)
 	return object_index;
 }
 
+__declspec(noinline) long function_baf80(long object_index);
+
 // @retail 0xbaf80
 long function_baf80(long object_index)
 {
