@@ -3595,7 +3595,7 @@ void function_e45e0(long arg_159e6d)
 		vector3f velocity;
 
 		function_ba1d0(arg_159e6d, &velocity, NULL);
-		if (velocity.k * velocity.k + velocity.j * velocity.j + velocity.i * velocity.i > 1.0f)
+		if (velocity.i * velocity.i + velocity.j * velocity.j + velocity.k * velocity.k > 1.0f)
 		{
 			function_e4d90(arg_159e6d, 2, 1.0f, 2);
 		}
@@ -4237,3 +4237,42 @@ long function_e5980(long arg_159e6d_3)
 
 	return TEST_FIELD_BIT(definition->flag4) ? 2 : 1;
 }
+
+/* the biped object type's definition: its callbacks are reached only through
+   it, so their addresses escape and they keep the standard convention. The
+   callbacks other files define are left NULL here. */
+struct s_biped_type_definition_view
+{
+	char const *name;
+	long group_tag;
+	short datum_size;
+	short unknown0a;
+	short unknown0c;
+	short unknown0e;
+	void *functions[29];
+	void *types[3];
+	byte unknown90[0xc8 - 0x90];
+};
+
+extern s_biped_type_definition_view g_467a78;
+
+s_biped_type_definition_view g_467a78 =
+{
+	"biped",
+	'bipd',
+	0x464,
+	0x60,
+	0x68,
+	0x54,
+	{
+		NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, (void *)function_dc540,
+		(void *)biped_place, NULL, NULL, NULL,
+		(void *)function_dd360, (void *)function_dd990, NULL, NULL,
+		NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL,
+		NULL, NULL, (void *)function_de4c0, NULL,
+		NULL
+	},
+	{ NULL, NULL, &g_467a78 }
+};

@@ -203,6 +203,7 @@ void function_e69c0(long unit_index, long type)
 // @retail 0xe6a20
 void function_e6a20(long unit_index, long name, bool active, bool keep)
 {
+	bool const *active_reference = &active;
 	if (active & 1)
 	{
 		switch (name)
@@ -226,7 +227,7 @@ void function_e6a20(long unit_index, long name, bool active, bool keep)
 		case 0x11000074:
 		case 0x11000076:
 		case 0x140005b3:
-			if (UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index)), 0x1a))
+			if ((bool)UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index)), 0x1a))
 			{
 				function_cf040(unit_index, 0);
 				if (!(keep & 1))
@@ -420,8 +421,7 @@ void function_e6f90(long unit_index)
 
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 
-	actions->active[0] = 0;
-	actions->active[1] = 0;
+	memset(actions->active, 0, sizeof(actions->active));
 	actions->unknown36 = 0;
 }
 
@@ -458,7 +458,7 @@ PRIVATE void function_e70b0(long unit_index, short *value)
 /* readies the weapon in a unit's hand (the second hand when it's dual
    wielding): the ready animation, unless it's already ready */
 // @retail 0xe7110
-bool function_e7110(long unit_index, bool secondary, long magazine_index)
+bool function_e7110(long unit_index, long secondary, long magazine_index)
 {
 	long action_type;
 	long mode;
@@ -482,7 +482,7 @@ bool function_e7110(long unit_index, bool secondary, long magazine_index)
 
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 
-	if (((unit->flags_134 >> 25) & 1) || UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(unit), 0x16))
+	if ((bool)((unit->flags_134 >> 25) & 1) || (bool)UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(unit), 0x16))
 		return false;
 	if (unit_action_active(unit_index, action_type) &&
 		function_cbd50(unit_index, unit->weapon_slots[secondary]) != NONE)
@@ -509,6 +509,7 @@ bool __stdcall function_e7280(long unit_index, s_unit_request *request)
 {
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 	bool result = false;
+	long secondary = request->type > 1;
 	long magazine_index;
 
 	switch (request->type)
@@ -524,7 +525,7 @@ bool __stdcall function_e7280(long unit_index, s_unit_request *request)
 	default:
 		__assume(0);
 	}
-	if (function_e7110(unit_index, request->type > 1, magazine_index))
+	if (function_e7110(unit_index, secondary, magazine_index))
 	{
 		actions->active[request->type >> 5] |= 1 << (request->type & 0x1f);
 		result = true;
@@ -1084,9 +1085,10 @@ void function_10cd50(long weapon_index);
 bool __stdcall unit_action_throw_grenade_update(long unit_index, long type)
 {
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
+	bool result = true;
 	char count = ++actions->grenade_throw_count;
 
-	switch (actions->grenade_state)
+	switch ((char)actions->grenade_state)
 	{
 	case 1:
 		if (count >= 2)
@@ -1100,11 +1102,11 @@ bool __stdcall unit_action_throw_grenade_update(long unit_index, long type)
 		if (!function_114040(unit_index, 0xd000021) && !function_114040(unit_index, 0x1000006c))
 		{
 			actions->grenade_state = 0;
-			return false;
+			result = false;
 		}
 		break;
 	}
-	return true;
+	return result;
 }
 
 /* a grenade throw interrupted: the grenade is dropped */
@@ -2674,7 +2676,7 @@ bool __stdcall unit_action_vehicle_exit_update(long unit_index, long type)
 	long state_name;
 	long action_name;
 
-	function_10f630(unit_index, &state_name, &action_name);
+	function_10f630(unit_index, &action_name, &state_name);
 	if (state_name != 0x400004a)
 		function_eaad0(unit_index);
 	if (((1 << UNIT_ACTION_HEADER_GET(unit_index)->type) & 1) && 0.2f > (real)*((char *)unit + 0x258) * g_510c54->rate)
@@ -3283,6 +3285,9 @@ void __stdcall function_b8890(long unit_index);
 // @retail 0xec0d0
 void __stdcall function_ec0d0(long unit_index, long state_name, long action_name)
 {
+	long const *unit_reference = &unit_index;
+	long const *state_reference = &state_name;
+	long const *action_reference = &action_name;
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	s_unit_actions *actions = UNIT_ACTIONS_GET(unit);
 
@@ -3625,25 +3630,27 @@ bool __stdcall function_ecb80(long unit_index, s_unit_request *request)
 	bool result = function_ee090(unit_index, 0x6000542, 4, 0x400069d, (point3f const *)((byte *)request + 4),
 		(vector3f const *)((byte *)request + 0x10));
 
-	if (UNIT_ACTION_HEADER_GET(unit_index)->type != 0)
-		return result;
+	if (UNIT_ACTION_HEADER_GET(unit_index)->type == 0)
+	{
+		long state_name;
+		long action_name;
 
-	long state_name;
-	long action_name;
+		function_10f630(unit_index, &action_name, &state_name);
+		if (!result || state_name != 0x400069d)
+		{
+			if (function_10f430(unit_index, 0x6000086, 0x7000101, 0x7000101, 0x400000c, 8.0f, 0, 0))
+			{
+				s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 
-	function_10f630(unit_index, &state_name, &action_name);
-	if (result && state_name == 0x400069d)
-		return result;
-	if (!function_10f430(unit_index, 0x6000086, 0x7000101, 0x7000101, 0x400000c, 8.0f, 0, 0))
-		return false;
-
-	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
-
-	actions->active[0] = 0;
-	actions->active[1] = 0;
-	actions->unknown36 = 0;
-	function_1e54d0((byte *)UNIT_ACTION_UNIT_GET(unit_index) + 0x3dc, 1);
-	return true;
+				memset(actions->active, 0, sizeof(actions->active));
+				actions->unknown36 = 0;
+				function_1e54d0((byte *)UNIT_ACTION_UNIT_GET(unit_index) + 0x3dc, 1);
+				return true;
+			}
+			return false;
+		}
+	}
+	return result;
 }
 
 // @retail 0xecc70
@@ -3751,15 +3758,15 @@ bool __stdcall function_ecf30(long unit_index, s_unit_request *request)
 {
 	bool result = false;
 
-	if (function_110ab0(unit_index))
-		return result;
-	if (UNIT_ACTION_UNIT_GET(unit_index)->object_type == 0 && function_e4050(unit_index))
-		return result;
-	if (!function_10f430(unit_index, 0x7000101, 0x7000101, 0x7000101, 0xa00003e, 0.1f, 0, 0))
-		return result;
-	if (*((bool *)request + 4))
-		function_edfa0(unit_index, (point2f const *)((byte *)request + 8));
-	return true;
+	if (!function_110ab0(unit_index) &&
+		(UNIT_ACTION_UNIT_GET(unit_index)->object_type != 0 || !function_e4050(unit_index)) &&
+		function_10f430(unit_index, 0x7000101, 0x7000101, 0x7000101, 0xa00003e, 0.1f, 0, 0))
+	{
+		if (*((bool *)request + 4))
+			function_edfa0(unit_index, (point2f const *)((byte *)request + 8));
+		result = true;
+	}
+	return result;
 }
 
 bool __stdcall function_e4770(long unit_index);
@@ -3891,12 +3898,13 @@ bool __stdcall function_ed560(long unit_index, long type)
 	long state_name;
 	long action_name;
 
-	function_10f630(unit_index, &state_name, &action_name);
+	function_10f630(unit_index, &action_name, &state_name);
 	if ((state_name == 0xc0005b7 || state_name == 0xb0005b8) && actions->hoist_ticks > 0)
 	{
 		if (--actions->hoist_ticks > 0)
-			return true;
-		function_10f430(unit_index, 0x6000086, 0x7000101, 0x7000101, 0xf00003a, 0.1f, 0, 0);
+			result = true;
+		else
+			function_10f430(unit_index, 0x6000086, 0x7000101, 0x7000101, 0xf00003a, 0.1f, 0, 0);
 	}
 	return result;
 }
@@ -3932,7 +3940,7 @@ bool __stdcall function_ed680(long unit_index, s_unit_request *request)
 	actions->surprise_value = *(short *)((byte *)request + 4);
 	actions->surprise_type = *(word *)((byte *)request + 6);
 	actions->surprise_ticks = NONE;
-	function_10f630(unit_index, &state_name, &action_name);
+	function_10f630(unit_index, &action_name, &state_name);
 	if (state_name == 0x700005d)
 		result = function_e92e0(unit_index, 0x700005c);
 	else
@@ -3955,7 +3963,7 @@ bool __stdcall function_ed710(long unit_index, long type)
 	long state_name;
 	long action_name;
 
-	function_10f630(unit_index, &state_name, &action_name);
+	function_10f630(unit_index, &action_name, &state_name);
 	if (state_name == 0x700005c)
 	{
 		if (!(*((byte *)state + 0x6c) & 1) && TEST_FIELD_BIT(state->channels[0].flag0) &&
@@ -4193,18 +4201,20 @@ bool __stdcall function_ede60(long unit_index, s_unit_request *request)
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 	bool result = false;
 
-	if (!function_10f430(unit_index, 0x6000086, 0x7000101, 0x7000101, 0x60006ac, 0.2f, 0, 0))
-		return result;
-	actions->active[1] |= 0x200000;
-	actions->weapon_planted = false;
-	if (*((bool *)request + 4))
+	if (function_10f430(unit_index, 0x6000086, 0x7000101, 0x7000101, 0x60006ac, 0.2f, 0, 0))
 	{
-		point2f facing = *(point2f *)((byte *)request + 8);
+		actions->active[1] |= 0x200000;
+		actions->weapon_planted = false;
+		if (*((bool *)request + 4))
+		{
+			point2f facing = *(point2f *)((byte *)request + 8);
 
-		if (normalize2d(&facing) > 0.0f)
-			function_edfa0(unit_index, &facing);
+			if (normalize2d(&facing) > 0.0f)
+				function_edfa0(unit_index, &facing);
+		}
+		result = true;
 	}
-	return true;
+	return result;
 }
 
 /* planting: the weapon planted at the animation's plant frame */
@@ -4215,7 +4225,7 @@ bool __stdcall function_edf10(long unit_index, long type)
 	long state_name;
 	long action_name;
 
-	function_10f630(unit_index, &state_name, &action_name);
+	function_10f630(unit_index, &action_name, &state_name);
 	if (state_name != 0x60006ac)
 	{
 		done = true;
