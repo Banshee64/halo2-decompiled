@@ -254,8 +254,8 @@ short __stdcall function_1b4f90(long actor_index, s_slot *slot)
 // @retail 0x1b50e0
 short __stdcall function_1b50e0(long actor_index, s_slot *slot)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = g_46fbe4;
+	s_actor_view *actor = actor_get(actor_index);
 	s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
 
 	if (actor->prop_index != NONE && character && actor->unknown3d8 >= character->unknown0c)

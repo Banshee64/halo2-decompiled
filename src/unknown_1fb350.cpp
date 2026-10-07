@@ -84,8 +84,8 @@ s_recorded_animation *recorded_animation_find(long object_index, long *datum_ind
 long recorded_animation_get_frames(long object_index)
 {
 	real frames;
-	long result = 0;
 	s_recorded_animation *animation = recorded_animation_find(object_index, 0);
+	long result = 0;
 
 	if (animation && animation->object_index == object_index)
 	{

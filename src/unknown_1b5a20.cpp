@@ -204,16 +204,21 @@ bool function_1b6010(long index)
 // @retail 0x1b6070
 bool function_1b6070(long index, short unknown0, short unknown2)
 {
+	bool result = false;
+	short const *unknown0_reference = &unknown0;
+	short const *unknown2_reference = &unknown2;
 	s_50241c_element *element = element_50241c_get(index);
 	s_reference reference;
-	bool result = false;
 
-	reference.unknown0 = unknown0;
-	reference.unknown2 = unknown2;
+	reference.unknown0 = *unknown0_reference;
+	reference.unknown2 = *unknown2_reference;
 	for (short i = 0; i < element->history_count; i++)
 	{
 		if (*(long *)&reference == *(long *)&element->history[i])
-			return true;
+		{
+			result = true;
+			break;
+		}
 	}
 	return result;
 }
@@ -229,7 +234,7 @@ bool function_1b60d0(long index, short unknown0, short unknown2)
 
 		element->current.unknown0 = unknown0;
 		element->current.unknown2 = unknown2;
-		return true;
+		result = true;
 	}
 	return result;
 }
