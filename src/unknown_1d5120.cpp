@@ -21,8 +21,8 @@ bool function_1d5120(s_havok_component *arg_0, long arg_1, long arg_2, long arg_
   local_1.set(havok_component_rigid_body_get(arg_1, arg_0)->m_motion->m_transform);
   local_3.transform.set(local_1);
   local_3.shape = (void *)arg_3;
-  local_3.filter = ((arg_0->object_index + 1) << 16) | arg_2;
   ((real *)&local_1.m_translation.m_quad)[2] += (real)arg_6 * arg_4;
+  local_3.filter = ((arg_0->object_index + 1) << 16) | arg_2;
   local_2 = new c_contact_query_transform_volume(&local_3);
  }
  ((c_contact_query_world *)g_51e9a4)->add(local_2);
@@ -37,6 +37,7 @@ bool function_1d5120(s_havok_component *arg_0, long arg_1, long arg_2, long arg_
   ((c_contact_query_dispatch *)local_2)->query(&local_6);
   if (!local_6.found)
   {
+   *arg_5 = arg_6 - local_5;
    hkTransform local_7;
    local_7.m_rotation.m_col0.set(local_1.m_rotation.m_col0(0), local_1.m_rotation.m_col0(1), local_1.m_rotation.m_col0(2));
    local_7.m_rotation.m_col1.set(local_1.m_rotation.m_col1(0), local_1.m_rotation.m_col1(1), local_1.m_rotation.m_col1(2));
@@ -44,7 +45,6 @@ bool function_1d5120(s_havok_component *arg_0, long arg_1, long arg_2, long arg_
    hkVector4 local_8;
    local_8.set(local_1.m_translation(0), local_1.m_translation(1), local_1.m_translation(2));
    local_7.m_translation = local_8;
-   *arg_5 = arg_6 - local_5;
    havok_component_rigid_body_transform_set(arg_1, arg_0, &local_7);
    local_0 = true;
    break;

@@ -50,7 +50,6 @@ bool function_1d48f0(point3f *arg_11, s_havok_component *arg_0, long arg_1, long
 {
  (void)&arg_0; (void)&arg_1; (void)&arg_2; (void)&arg_3; (void)&arg_4; (void)&arg_5;
  (void)&arg_6; (void)&arg_7; (void)&arg_8; (void)&arg_9; (void)&arg_10;
- bool local_0 = false;
  c_contact_query_bounds_volume *local_1 = NULL;
  long local_2 = NONE;
  _control87(0x9001f, 0x8001f);
@@ -73,7 +72,8 @@ bool function_1d48f0(point3f *arg_11, s_havok_component *arg_0, long arg_1, long
   ((c_contact_query_world *)g_51e9a4)->add(local_1);
   if (arg_10 != NONE) local_2 = havok_object_get(arg_10)->havok_component_index;
  }
- long local_6 = *(bool const volatile *)&arg_8 ? 27 : 18;
+ long local_6 = *(byte const volatile *)&arg_8 ? 27 : 18;
+ bool local_0 = false;
  hkTransform local_7;
  c_contact_query_transform_volume *local_8;
  {
@@ -96,7 +96,8 @@ bool function_1d48f0(point3f *arg_11, s_havok_component *arg_0, long arg_1, long
   if (arg_6 > 0.0f)
   {
    vector3f local_15 = ((vector3f const *)g_455978)[local_13];
-   real local_16 = (real)sqrt((double)local_15.i * local_15.i + (double)local_15.j * local_15.j);
+   real local_16 = (real)sqrt((double)*(real const volatile *)&local_15.i * local_15.i +
+    (double)*(real const volatile *)&local_15.j * local_15.j);
    if (fabs(local_16) < 0.0001f) continue;
    real local_17 = 1.0f / local_16;
    local_15.i *= local_17;
