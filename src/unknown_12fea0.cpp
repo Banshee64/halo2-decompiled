@@ -103,7 +103,7 @@ bool function_12fea0(s_fog_state *state, long cluster_index, point3f const *poin
 		}
 		else
 		{
-			if (cluster->field_70 == NONE || cluster->field_70 < 0)
+			if (cluster->field_70 == NONE || ((byte)cluster->field_70 & 0x80))
 				goto done;
 			byte *local_entry = function_1318a0(cluster->field_70 & 0x7f);
 			if (!local_entry)
@@ -146,12 +146,13 @@ bool function_12fea0(s_fog_state *state, long cluster_index, point3f const *poin
 		}
 	}
 done:
-	if (fog->field_dc > 0.0f)
+	real local_3 = fog->field_dc;
+	if (local_3 > 0.0f)
 	{
-		fog->field_a0.red += (fog->field_c8.red - fog->field_a0.red) * fog->field_dc;
-		fog->field_a0.green += (fog->field_c8.green - fog->field_a0.green) * fog->field_dc;
-		fog->field_a0.blue += (fog->field_c8.blue - fog->field_a0.blue) * fog->field_dc;
-		fog->field_ac += (fog->field_d4 - fog->field_ac) * fog->field_dc;
+		fog->field_a0.red += (fog->field_c8.red - fog->field_a0.red) * local_3;
+		fog->field_a0.green += (fog->field_c8.green - fog->field_a0.green) * local_3;
+		fog->field_a0.blue += (fog->field_c8.blue - fog->field_a0.blue) * local_3;
+		fog->field_ac += (fog->field_d4 - fog->field_ac) * local_3;
 		fog->field_104 = true;
 	}
 	return result;
