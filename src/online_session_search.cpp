@@ -597,9 +597,10 @@ bool __stdcall session_search_result_allowed(s_session_search *search, s_search_
 	}
 	if (SEARCH_FLAG(entry, 0xa4))
 	{
-		long lower = SEARCH_LONG(entry, 0xb0);
-		long upper = SEARCH_LONG(entry, 0xb4);
-		if (!session_search_version_allowed(SEARCH_LONG(entry, 0xac), lower, upper))
+		long local_0 = SEARCH_LONG(entry, 0xac);
+		long upper = *(volatile long *)((byte *)entry + 0xb4);
+		long lower = *(volatile long *)((byte *)entry + 0xb0);
+		if (!session_search_version_allowed(local_0, lower, upper))
 			return false;
 	}
 	if (g_transport_globals.initialized && g_transport_globals.started)
