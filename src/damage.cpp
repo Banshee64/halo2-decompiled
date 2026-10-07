@@ -3114,11 +3114,10 @@ void function_d8a40(string_handle region_name, long object_index, real damage)
 		if (info && region_name && region_name != NONE)
 		{
 			long region_index;
-			s_damage_info_region *region;
 
-			for (region_index = 0, region = info->regions; region_index < info->region_count; region_index++, region++)
+			for (region_index = 0; region_index < info->region_count; region_index++)
 			{
-				if (region->name == region_name)
+				if (info->regions[region_index].name == region_name)
 					break;
 			}
 			if (region_index != info->region_count)
