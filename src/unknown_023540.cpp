@@ -748,6 +748,34 @@ void function_24c70(real const *histogram, s_24c70_range *range)
         range->smoothed_average > range->smoothed_high ? range->smoothed_high : range->smoothed_average;
 }
 
+namespace D3D { namespace PixelJar {
+    void __stdcall FindSurfaceWithinTexture(D3DPixelContainer *container, D3DCUBEMAP_FACES face, unsigned int level,
+        byte **bits, dword *pitch, dword *width, dword *height, dword *slice);
+} }
+
+void *function_01dcc0(long index);
+struct s_histogram_state
+{
+    s_24c70_range range;
+    real *histogram;
+};
+
+// @retail 0x24970
+void __cdecl function_24970(s_histogram_state *state)
+{
+    (void)&state;
+    real *histogram = state->histogram;
+    XSaveFloatingPointStateForDpc();
+    byte *bits;
+    dword pitch, width, height, slice;
+    D3D::PixelJar::FindSurfaceWithinTexture((D3DPixelContainer *)function_01dcc0(14), (D3DCUBEMAP_FACES)0, 0,
+        &bits, &pitch, &width, &height, &slice);
+    function_024a70(histogram, (dword const *)bits, (word)(pitch >> 2));
+    function_024b80(histogram);
+    function_24c70(histogram, &state->range);
+    XRestoreFloatingPointStateForDpc();
+}
+
 bool g_4b9d9c;
 real g_4857dc, g_4857e0;
 
@@ -1216,4 +1244,3 @@ bool __stdcall function_29370(void *context)
     function_1c710(g_51f0f0);
     return true;
 }
-

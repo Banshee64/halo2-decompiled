@@ -8,6 +8,91 @@
 #include "globals.h"
 #include "geometry_cache.h"
 
+void function_3c650(byte const *state);
+void function_3d000(real const *state);
+
+// @retail 0x3bf00
+bool function_3bf00(byte const *state)
+{
+	function_3c650(state);
+	function_3d000((real const *)state);
+	return true;
+}
+
+#include <string.h>
+struct s_frustum_1648d0;
+struct s_camera_163db0;
+bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+real function_30bf0(vector3f *vector);
+
+struct s_planar_camera
+{
+	bool disabled;
+	byte unknown01[3];
+	transform4x3f inverse;
+	transform4x3f matrix;
+	bool has_plane;
+	byte unknown6d[3];
+	real offset;
+	plane3f plane;
+	byte unknown84[4];
+	real depth;
+	bool valid;
+	byte unknown8d[3];
+	byte frustum[0x108];
+	long count;
+	point2f corners[4];
+};
+
+struct s_planar_camera_source
+{
+	point3f origin;
+	vector3f normal;
+	vector3f horizontal;
+	byte unknown24[0x40 - 0x24];
+	real offset;
+	real depth;
+};
+
+PRIVATE inline void matrix_cross(vector3f const *a, vector3f const *b, vector3f *out);
+
+// @retail 0x441b0
+void function_441b0(s_planar_camera_source const *source, s_planar_camera *state, byte const *view)
+{
+	memset(state, 0, sizeof(*state));
+	state->disabled = false;
+	state->matrix.left = source->horizontal;
+	function_30bf0(&state->matrix.left);
+	state->matrix.up.i = 0.0f - source->normal.i;
+	state->matrix.up.j = 0.0f - source->normal.j;
+	state->matrix.up.k = 0.0f - source->normal.k;
+	function_30bf0(&state->matrix.up);
+	matrix_cross(&state->matrix.left, &state->matrix.up, &state->matrix.forward);
+	function_30bf0(&state->matrix.forward);
+	state->matrix.position = source->origin;
+	state->matrix.scale = 1.0f;
+	function_141590(&state->matrix, &state->inverse);
+	state->has_plane = true;
+	state->offset = source->offset;
+	state->plane.n = source->normal;
+	state->plane.d = source->normal.k * source->origin.z + source->normal.j * source->origin.y + source->normal.i * source->origin.x + source->offset;
+	*(bool *)state->unknown84 = true;
+	state->depth = source->depth;
+	box2f const *rectangle = (box2f const *)(view + 0x68);
+	state->corners[0].x = rectangle->x0;
+	state->corners[0].y = rectangle->y0;
+	state->corners[1].x = rectangle->x1;
+	state->corners[1].y = rectangle->y0;
+	state->corners[2].x = rectangle->x1;
+	state->corners[2].y = rectangle->y1;
+	state->corners[3].x = rectangle->x0;
+	state->corners[3].y = rectangle->y1;
+	state->count = 4;
+	state->valid = true;
+	function_163db0((s_frustum_1648d0 *)state->frustum, rectangle, (s_camera_163db0 *)state, 0);
+}
+
 struct s_3c9a0_matrix
 {
 	real scale;
