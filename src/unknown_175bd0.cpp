@@ -2245,13 +2245,13 @@ void function_179fb0(s_effect_datum *effect)
 }
 
 // @retail 0x177c50
-real function_177c50(dword *seed, real lower, real upper, long bit, dword a_scales, dword b_scales, s_effect_datum *effect)
+real function_177c50(dword *seed, real lower, real upper, dword a_scales, dword b_scales, s_effect_datum *effect, long bit)
 {
 	real base = lower;
 
-	if (a_scales & (1 << bit))
+	if (a_scales & (1 << (byte)bit))
 		base = effect->scale_a * lower;
-	if (b_scales & (1 << bit))
+	if (b_scales & (1 << (byte)bit))
 		base = effect->scale_b * base;
 
 	real range = upper - lower;
@@ -2266,7 +2266,7 @@ real function_177c50(dword *seed, real lower, real upper, long bit, dword a_scal
 // @retail 0x177d10
 void function_177d10(s_effect_datum *effect, dword *seed, vector3f const *forward, vector3f *direction, vector3f *velocity, real lower, real upper, real cone_angle, dword a_scales, dword b_scales)
 {
-	real speed = function_177c50(seed, lower, upper, 0, a_scales, b_scales, effect);
+	real speed = function_177c50(seed, lower, upper, a_scales, b_scales, effect, 0);
 	real angle = cone_angle;
 
 	if (a_scales & 4)
@@ -2280,7 +2280,7 @@ void function_177d10(s_effect_datum *effect, dword *seed, vector3f const *forwar
 		real s = (real)sin(angle);
 		real c = (real)cos(angle);
 		vector3f axis = g_4417f0[random_index(seed, 0x402)];
-		real dot = direction->i * axis.i + direction->j * axis.j + direction->k * axis.k;
+		real dot = direction->i * axis.i + direction->k * axis.k + direction->j * axis.j;
 		real t = dot * (1.0f - c);
 		real x = direction->i;
 		real y = direction->j;
@@ -2298,7 +2298,7 @@ void function_177d10(s_effect_datum *effect, dword *seed, vector3f const *forwar
 // @retail 0x177f60
 void function_177f60(s_effect_datum *effect, dword a_scales, dword b_scales, dword *seed, vector3f *vector, real lower, real upper)
 {
-	real magnitude = function_177c50(seed, lower, upper, 3, a_scales, b_scales, effect);
+	real magnitude = function_177c50(seed, lower, upper, a_scales, b_scales, effect, 3);
 
 	if (magnitude != 0.0f)
 	{
