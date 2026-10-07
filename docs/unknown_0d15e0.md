@@ -67,7 +67,7 @@ base map colour and color_b the lightmap colour. For a render model they are a
 blended vector, the texture colour and a vertex or table colour. From the sky,
 they are the light direction, `0xff555555` and the light colour. Lane R copies
 the query's color_b to the effect's color_a (`+0x104`) and its color_a to the
-effect's color_b (`+0x108`), as `src/unknown_175bd0.cpp:3029` does
+effect's color_b (`+0x108`), as `src/unknown_175bd0.cpp:3091` does
 (`0x17b6f1`).
 
 **The status** these functions return: 0 sampled; 1 not available (no lightmap
@@ -111,7 +111,7 @@ give. Otherwise the object field (`+8`) chooses the path.
 1. The part is `section +4` + part_index × 0x48. When `function_13d9f0` says
    its type is 4 or 5, it returns 0, first writing the vector (0, 0, −1) and
    both colours `0xff404040` when the bool is set. Lane R starts its query with
-   the same values (`src/unknown_175bd0.cpp:3009`).
+   the same values (`src/unknown_175bd0.cpp:3071`).
 2. The lightmap entry comes from the lightmap group's instance table (`+0x4c`)
    or cluster table (`+0x2c`): a bitmap index (short `+0`) and a palette index
    (byte `+2`). An instance whose word `+0x56` is set has per-vertex colours
@@ -161,7 +161,7 @@ and step 5 always uses part 0's material. This is retail's behaviour.
 
 `0xd1850` fills a query for the object in `edi`, at its centre (`+0x30`). Its
 two callers, `0x3db00` and `0x3dfe0`, keep the result in object lighting
-records that lane R's `0x17b5d0` also reads (`src/unknown_175bd0.cpp:2998`).
+records that lane R's `0x17b5d0` also reads (`src/unknown_175bd0.cpp:3060`).
 
 1. Without the lightmap (the same checks as `0xd2a50`) it returns true and
    writes nothing.
@@ -257,11 +257,12 @@ Two entries have `@stub` definitions in `src/stubs/lane_r.cpp`, repeated at
 | `0xd2bb0` | `long function_d2bb0(void *source, s_effect_color_query *query)` | `src/stubs/lane_r.cpp` | The count agrees: the collision result in `eax` and the query on the stack (`ret 4`). `source` is an `s_structure_collision_result`. Retail returns 0 when it found a colour |
 | `0xd2a50` | `long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, point3f const *point)` | `src/stubs/lane_r.cpp` | The count agrees: the point in `ebx` and five stack arguments (`ret 0x14`). `a` is the flags (bit 0 five rays, bit 2 use `d`, bit 1 passed on to the samplers), `b` the object the rays ignore, `c` a bool, and `d` a `vector3f const *` direction rather than a long |
 
-Lane R's caller reads `function_d2bb0`'s result the wrong way round.
-`src/unknown_175bd0.cpp:3014` goes to the fallback when it returns 0, but
-retail's `0x17b5d0` jumps to the found block on 0 (`test eax, eax` and
-`je 0x17b6f1` at `0x17b6b4`), the convention of every function here. Its test
-of `function_d2a50` at line 3024 is the right way round.
+Lane R's caller read `function_d2bb0`'s result the wrong way round when this
+was written. Lane R rounds 5 and 6 (`ec81fbe`) fixed it:
+`src/unknown_175bd0.cpp:3076` now goes to the fallback when it returns
+non-zero, as retail's `0x17b5d0` does (`test eax, eax` and `je 0x17b6f1` at
+`0x17b6b4`). Its test of `function_d2a50` (line 3086) was already the right way
+round.
 
 ## Evidence
 
@@ -280,6 +281,6 @@ of `function_d2a50` at line 3024 is the right way round.
   and `0x445420` (100.0); the rays at `0x4406e4` and `0x4406f0`.
 - No document covered the range before this one. Names are those of
   `src/structures.cpp`, `src/unknown_0d0690.cpp` and `src/unknown_175bd0.cpp`,
-  and source line numbers are at `5c3f7a9`.
+  and source line numbers are at `0f22da1`.
 - No emulator, runtime testing, SDK or outside dataset was used. Names are the
   repository's own, or describe behaviour.

@@ -5,20 +5,12 @@
 
 long const g_444ae0 = 0;
 
-// @stub 0x29fe10
-void __stdcall function_29fe10(long index)
-{
-}
-
 // @stub 0x159ac0
 void function_159ac0(void)
 {
 }
 
-// @stub 0x13bff0
-void function_13bff0(void)
-{
-}
+
 
 
 // @stub 0xbbfc0
@@ -43,12 +35,6 @@ void __stdcall function_1e1a00(long index, long value)
 }
 
 
-
-// @stub 0x274470
-short __stdcall function_274470(long ai_index)
-{
-	return 0;
-}
 
 // @stub 0x189cd0
 void __stdcall function_189cd0(long sound_index, long object_index, real scale, long a, long b, long name, long flags)
@@ -88,12 +74,6 @@ void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 }
 
 struct s_ai_trigger_condition;
-
-// @stub 0x2912c0
-bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_group_index, bool *result)
-{
-	return false;
-}
 
 // @stub 0x202e90
 void __stdcall function_202e90(long squad_index, long index, long flag)
