@@ -624,7 +624,7 @@ void function_23bc40(long player_index, s_spawn_influence_list *list)
     }
 }
 
-bool function_1c5210(transform4x3f const *matrix, long excluded_component, void *shape, long filter);
+bool function_1c5210(transform4x3f const *matrix, void *shape, long excluded_component, long filter);
 
 // @retail 0x23bb70
 bool function_23bb70(long tag_index, point3f const *position)
@@ -651,7 +651,7 @@ bool function_23bb70(long tag_index, point3f const *position)
             shape = *(byte **)(definition + 0x290) + 0x20;
         else
             shape = *(byte **)(definition + 0x298) + 0x30;
-        if (function_1c5210(&matrix, NONE, shape, 9))
+        if (function_1c5210(&matrix, shape, NONE, 9))
             result = false;
     }
     return result;
