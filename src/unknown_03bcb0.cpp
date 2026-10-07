@@ -1036,6 +1036,102 @@ extern byte g_485a75, g_485a76;
 real g_4b9f78, g_4b9f7c;
 byte g_4b9f88;
 
+struct s_render_part_context
+{
+    long material;
+    point3f position;
+    real radius;
+    byte active;
+    byte unknown15[3];
+    real values[4];
+    real priority;
+};
+extern real g_4670e4;
+long function_40de0(long index, bool first, bool second);
+
+// @retail 0x41040
+void function_41040(short index, long part_index, long group, byte weight,
+    s_render_part_context const *context, long material_override, bool force,
+    dword and_mask, dword or_mask)
+{
+    (void)&group; (void)&weight; (void)&context; (void)&material_override;
+    (void)&force; (void)&and_mask; (void)&or_mask;
+    s_44940_entry const *entry = &g_4ba138[index];
+    byte const *geometry;
+    if (entry->tag != NONE)
+    {
+        byte const *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+        byte const *section = *(byte **)(definition + 0x28) + ((entry->flags >> 9) & 0x1ff) * 0x5c;
+        geometry = *(byte **)(section + 0x34);
+    }
+    else
+    {
+        byte const *structure = (byte *)g_4e0348;
+        byte const *section;
+        if (!(entry->unknown00 & 0x1000))
+            section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+        else
+        {
+            byte const *instance = *(byte **)(structure + 0x144) + ((entry->flags >> 18) & 0x7ff) * 0x58;
+            section = *(byte **)(structure + 0x13c) + *(short const *)(instance + 0x34) * 0xc8;
+        }
+        geometry = *(byte **)(section + 0x50);
+    }
+    byte const *part = *(byte **)(geometry + 4) + part_index * 0x48;
+    dword handle = (((dword)weight << 16) | (word)index) << 8 | part_index;
+    real priority = weight * context->priority * g_4670e4 * 4.0f;
+    word kind = *(word const *)part;
+    if (kind == 0 || kind == 5 || context->material == NONE) return;
+    long material = material_override == NONE ? context->material : material_override;
+    byte const *definition = g_4e3b44[material & 0xffff].bytes;
+    long pass;
+    function_1bf50(material, *(word const *)(definition + 0x3c), priority, &pass);
+    byte const *groups = record_format_groups(material);
+    dword flags = *(dword const *)(*(byte **)(groups + 4) + pass * 10 + 2);
+    if (material_override != NONE)
+    {
+        groups = record_format_groups(context->material);
+        dword source_flags = *(dword const *)(*(byte **)(groups + 4) + pass * 10 + 2);
+        groups = record_format_groups(material_override);
+        if ((source_flags & 0x8080) && !(source_flags & 0xa) &&
+            (*(dword const *)(*(byte **)(groups + 4) + 2) & 0x200000)) return;
+    }
+    if ((flags & 0xffff7fff) || force)
+    {
+        bool first = (entry->unknown00 & 2) != 0;
+        bool second = (entry->unknown00 & 4) != 0 && group != 3;
+        if (first && second && group != 0)
+            function_40e30(2, material, priority, *(word const *)(definition + 0x3c), kind,
+                and_mask, or_mask, (t_record_fill)function_4cbf0, (dword)function_4d0b0, (void *)handle);
+        function_40e30((short)function_40de0(group, first, second), material, priority,
+            *(word const *)(definition + 0x3c), kind, and_mask, or_mask,
+            (t_record_fill)function_4cbf0, (dword)function_4d0b0, (void *)handle);
+    }
+    if ((flags & 0x8000) && !force && group == 0)
+    {
+        s_41490_record *record = (s_41490_record *)function_1e2d0();
+        if (record)
+        {
+            vector3f delta;
+            delta.i = context->position.x - g_485618.position.x;
+            delta.j = context->position.y - g_485618.position.y;
+            delta.k = context->position.z - g_485618.position.z;
+            record->tag = material;
+            record->context = (void *)handle;
+            record->type = function_40e10((bool)(definition[0x16] & 1), (bool)((definition[0x16] >> 1) & 1));
+            record->flags = 0;
+            record->callback = function_41020;
+            real depth = delta.k * g_485618.forward.k;
+            depth += delta.j * g_485618.forward.j;
+            depth += delta.i * g_485618.forward.i;
+            record->depth = (0.0f - depth) - context->radius;
+            record->position = context->position;
+            record->active = context->active;
+            if (context->active) memcpy((byte *)record + 0x10, context->values, sizeof(context->values));
+        }
+    }
+}
+
 // @retail 0x4cbf0
 bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
     long entry_index, long handle, void *record)

@@ -987,6 +987,12 @@ void function_70c00(c_session_state_matchmaking *state)
 	state->flaga78 = true;
 }
 
+PRIVATE __forceinline void function_70c90(c_session_state_matchmaking *arg_0, long arg_1)
+{
+	*(long *)((byte *)arg_0 + 0xa70) = arg_1;
+	*(long *)((byte *)arg_0 + 0xa74) = 0;
+}
+
 // @retail 0x70c90
 void function_70c90(c_session_state_matchmaking *state)
 {
@@ -998,8 +1004,7 @@ void function_70c90(c_session_state_matchmaking *state)
 	((s_session_state_matchmaking_view *)state)->unknowna80 = attempts + 1;
 	state->flaga64 = true;
 	*(long *)((byte *)state + 0xa6c) = 0;
-	*(long *)((byte *)state + 0xa70) = session_time_get();
-	*(long *)((byte *)state + 0xa74) = 0;
+	function_70c90(state, session_time_get());
 }
 
 // @retail 0x72140
@@ -1024,6 +1029,13 @@ long __stdcall function_73b10(long a, long b);
 void function_73bc0(const s_session_id *session_id, const s_session_id *round_key,
 	long first, long second, bool free_for_all);
 
+#pragma inline_depth(0)
+PRIVATE __forceinline __int64 function_72170(c_class_58d20 *arg_0)
+{
+	return arg_0->get_values_4da0();
+}
+#pragma inline_depth(255)
+
 // @retail 0x72170
 void function_72170(c_session_state_matchmaking *state)
 {
@@ -1042,7 +1054,7 @@ void function_72170(c_session_state_matchmaking *state)
 				bool free_for_all = (variant[0x48] & 1) != 0;
 				const s_session_id *id = session->state && session->flag24 ?
 					(const s_session_id *)&session->unknown1c : NULL;
-				__int64 values = session->get_values_4da0();
+				__int64 values = function_72170(session);
 				function_73bc0(id, &key, (long)values, (long)(values >> 32), free_for_all);
 			}
 		}

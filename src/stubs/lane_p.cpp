@@ -22,10 +22,6 @@ public:
 	void function_1fa50(short_rectangle2d const *arg_1, void const *arg_2, void const *arg_3, long arg_4, real arg_5, long arg_6, void const *arg_7) const;
 };
 
-// @stub 0x1fa50
-void c_1fa50::function_1fa50(short_rectangle2d const *arg_1, void const *arg_2, void const *arg_3, long arg_4, real arg_5, long arg_6, void const *arg_7) const
-{
-}
 
 // @stub 0xf8190
 void function_f8190(void)

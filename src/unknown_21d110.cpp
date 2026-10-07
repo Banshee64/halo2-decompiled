@@ -275,7 +275,7 @@ void sound_effect_attach(long effect_index, s_sound_play_state *state)
 }
 
 // @retail 0x21dcf0
-void sound_effect_delete(long effect_index)
+__forceinline void sound_effect_delete(long effect_index)
 {
 	s_record_pool *effects = function_x39bdd5();
 	s_sound_effect *effect = &((s_sound_effect *)effects->data)[effect_index & 0xffff];
@@ -362,8 +362,8 @@ void sound_effect_stop(long effect_index)
 // @retail 0x21d5a0
 bool function_21d5a0(long effect_index)
 {
-	s_sound_effect *effect = sound_effect_get(effect_index);
 	bool result = false;
+	s_sound_effect *effect = sound_effect_get(effect_index);
 
 	switch (effect->type)
 	{
@@ -394,21 +394,20 @@ bool function_21d5a0(long effect_index)
 // @retail 0x21d390
 void sound_effects_update(void)
 {
-	s_record_pool_iterator iterator;
-	s_sound_effect *effect;
+	struct { s_sound_effect *field_0; s_record_pool_iterator field_4; } local_0;
 
-	iterator.data = function_x39bdd5();
-	iterator.index = NONE;
-	iterator.datum_index = NONE;
-	while ((effect = (s_sound_effect *)data_iterator_next_inlined(&iterator)) != NULL)
+	local_0.field_4.data = function_x39bdd5();
+	local_0.field_4.index = NONE;
+	local_0.field_4.datum_index = NONE;
+	while ((local_0.field_0 = (s_sound_effect *)data_iterator_next_inlined(&local_0.field_4)) != NULL)
 	{
-		if (TEST_BIT(effect->flags, name_756383))
+		if (TEST_BIT(local_0.field_0->flags, name_756383))
 		{
-			sound_effect_delete(iterator.datum_index);
+			sound_effect_delete(local_0.field_4.datum_index);
 		}
-		else if (function_21d5a0(iterator.datum_index))
+		else if (function_21d5a0(local_0.field_4.datum_index))
 		{
-			function_21d630(iterator.datum_index, 1);
+			function_21d630(local_0.field_4.datum_index, 1);
 		}
 	}
 }
@@ -429,14 +428,14 @@ bool sound_effects_initialize(void)
 // @retail 0x21d4d0
 void function_21d4d0(void)
 {
-	s_record_pool_iterator iterator;
+	struct { byte *field_0; s_record_pool_iterator field_4; } local_0;
 
-	iterator.data = function_x39bdd5();
-	iterator.index = NONE;
-	iterator.datum_index = NONE;
-	while (data_iterator_next_inlined(&iterator))
+	local_0.field_4.data = function_x39bdd5();
+	local_0.field_4.index = NONE;
+	local_0.field_4.datum_index = NONE;
+	while ((local_0.field_0 = data_iterator_next_inlined(&local_0.field_4)) != NULL)
 	{
-		sound_effect_delete(iterator.datum_index);
+		sound_effect_delete(local_0.field_4.datum_index);
 	}
 }
 

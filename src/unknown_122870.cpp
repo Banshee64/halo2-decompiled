@@ -290,32 +290,31 @@ void *function_122c10(long group_tag, long tag_index)
 // @retail 0x122c70
 long function_122c70(s_tag_iterator *iterator)
 {
+
+	long local_0 = NONE;
 	if (iterator->next_index < cache_file_globals.tags->instance_count)
 	{
 		do
 		{
-		s_cache_tag_instance *instance = &CACHE_TAG_INSTANCES[iterator->next_index++];
-
-		if (instance && instance->group_tag != NONE && instance->datum_index != NONE)
-		{
-			if (iterator->group_tag != NONE)
+			long local_1 = *(long volatile *)&iterator->next_index;
+			s_cache_tag_instance *instance = &CACHE_TAG_INSTANCES[local_1];
+			iterator->next_index = local_1 + 1;
+			if (instance && instance->group_tag != NONE && instance->datum_index != NONE)
 			{
-				s_cache_tag_group *group = cache_tag_group_get(instance->group_tag);
-
-				if (iterator->group_tag != group->group_tag &&
-					iterator->group_tag != group->parent_group_tags[0] &&
-					iterator->group_tag != group->parent_group_tags[1])
+				if (iterator->group_tag != NONE)
 				{
-					continue;
+					s_cache_tag_group *group = cache_tag_group_get(instance->group_tag);
+					if (iterator->group_tag != group->group_tag && iterator->group_tag != group->parent_group_tags[0] && iterator->group_tag != group->parent_group_tags[1])
+						continue;
 				}
+				iterator->datum_index = instance->datum_index;
+				local_0 = instance->datum_index;
+				goto local_2;
 			}
-			iterator->datum_index = instance->datum_index;
-			return instance->datum_index;
-		}
-		}
-		while (iterator->next_index < cache_file_globals.tags->instance_count);
+		} while (iterator->next_index < cache_file_globals.tags->instance_count);
 	}
-	return NONE;
+local_2:
+	return local_0;
 }
 
 // @retail 0x122cf0
@@ -342,12 +341,11 @@ s_cache_tag_group *cache_tag_group_get(long group_tag)
 // @retail 0x122d60
 bool function_122d60(s_cache_file_location location, long size, void *buffer)
 {
-	bool result = false;
-	bool volatile done;
-	dword bytes_read;
 
-	function_213760(location.offset, size, buffer, &bytes_read, (bool *)&done, 2, 6);
-	function_120d50(&done, false);
+	bool result = false;
+	dword bytes_read;
+	function_213760(location.offset, size, buffer, &bytes_read, (bool *)&location.offset, 2, 6);
+	function_120d50((bool volatile *)&location.offset, false);
 	if (bytes_read == size)
 		result = true;
 	return result;

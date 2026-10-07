@@ -301,6 +301,7 @@ long function_18a5a0(long tag_index, long object_index, real value)
 	return datum_index;
 }
 
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x18a600
 long function_18a600(long tag_index, real value)
 {
@@ -316,15 +317,20 @@ long function_18a600(long tag_index, real value)
 
 			sound->type = 4;
 			sound->value2 = 3;
+			_ReadWriteBarrier();
 			sound->flags = 0;
-			sound->flags |= 0x100;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit8 = true;
 			sound->value8 = value;
 			sound->tag_index = tag_index;
 			sound->value6 = NONE;
-			sound->flags |= 1;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit0 = true;
 			if (definition->duration > 0.0f)
 			{
-				sound->value10 = g_510c54->game_time + float_to_int_nearest((real)g_510c54->field_2_3 * definition->duration);
+				s_game_time_globals *local_0 = g_510c54;
+				long local_1 = *(long const volatile *)&local_0->game_time;
+				sound->value10 = local_1 + float_to_int_nearest((real)g_510c54->field_2_3 * definition->duration);
 			}
 			else
 			{
@@ -334,6 +340,7 @@ long function_18a600(long tag_index, real value)
 	}
 	return datum_index;
 }
+#pragma function(_ReadWriteBarrier)
 
 #pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x18a6c0

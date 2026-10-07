@@ -214,15 +214,19 @@ void __stdcall function_1aa6e0(long actor_index, s_slot *slot)
 
 	actor->unknown41c = 4;
 	actor->unknown420 = 2;
-	if (actor_function_50c(actor_index))
+	s_actor_view *local_0 = actor_get(actor_index);
+	if (local_0->unknown50c)
 	{
-		actor->unknown3e0 = 0;
-		actor->unknown44d = true;
+		if (local_0->unknown504 == 1)
+		{
+			actor->unknown3e0 = 0;
+			actor->unknown44d = true;
+		}
+		else
+			actor->unknown3e0 = 0;
 	}
 	else
-	{
 		actor->unknown3e0 = 0;
-	}
 }
 
 // @retail 0x1aa990

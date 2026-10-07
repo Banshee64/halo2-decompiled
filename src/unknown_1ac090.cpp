@@ -322,8 +322,8 @@ bool __stdcall function_1ac430(long actor_index, s_slot *slot)
 // @retail 0x1ac570
 short __stdcall function_1ac570(long actor_index, s_slot *slot, s_slot *next)
 {
-	s_slot_2c *state = (s_slot_2c *)slot;
 	short result = g_46fbe8;
+	s_slot_2c *state = (s_slot_2c *)slot;
 
 	if (state->unknown12)
 	{
@@ -339,8 +339,8 @@ short __stdcall function_1ac570(long actor_index, s_slot *slot, s_slot *next)
 		}
 		else
 		{
-			state->unknown39 = false;
-			return g_46fbe4;
+			*(volatile bool *)&state->unknown39 = false;
+			result = g_46fbe4;
 		}
 	}
 	return result;
@@ -972,4 +972,64 @@ bool function_1ac9e0(long arg_0, s_reference arg_1, s_1f4a20_entry const *arg_2,
 		}
 	}
 	return local_5;
+}
+
+
+union s_1acb51
+{
+	short field_0[32];
+	s_261d20_entry field_00;
+};
+
+// @retail 0x1acb50
+bool __stdcall function_1acb50(long arg_0, s_slot *arg_1)
+{
+	bool local_16 = false;
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_type_5cfb45 *local_1 = function_25d690((s_prop_datum *)prop_node_get(local_0->prop_index));
+	bool local_2 = false;
+	*(bool *)((byte *)arg_1 + 4) = false;
+	((s_1ac9e1 *)arg_1)->field_19 = false;
+	long local_3 = local_0->unknown018;
+	short local_4 = UNIT_MODE(local_3);
+	if (local_4 != 7)
+	{
+		if (local_4 == 6)
+			function_e68c0(0x27, local_3);
+		s_reference local_5 = g_470fa0;
+		if (*(long *)&local_0->unknown418 != *(long *)&local_5)
+			function_262800(arg_0, local_0->unknown418, false);
+	}
+	s_object_marker local_6[32];
+	s_1acb51 local_7;
+	if (!ACTOR_VIEW_3C(local_0)->unknown03c)
+		local_2 = function_1ac610(arg_0, (point3f const *)((byte *)local_1 + 4), local_6, local_7.field_0);
+	s_2605d0_request local_8;
+	memset(&local_8, 0, sizeof(local_8));
+	*(volatile bool *)((byte *)&local_8 + 0x46) = true;
+	*(volatile bool *)&local_8.unknown015 = true;
+	*(volatile bool *)((byte *)&local_8 + 0x59) = true;
+	*(volatile real *)((byte *)&local_8 + 0x48) = 10.0f;
+	*(volatile short *)&local_8.type = 2;
+	*(volatile real *)((byte *)&local_8 + 0x4c) = 3.0f;
+	s_object_marker *local_9 = local_2 ? local_6 : NULL;
+	*(s_object_marker *volatile *)((byte *)&local_8 + 0x64) = local_9;
+	byte *local_10 = ai_scratch_buffer_get();
+
+	long local_12;
+	bool local_13;
+	s_reference local_14 = function_2605d0(arg_0, &local_8, (long)&local_7.field_00,
+		(long)&local_12, local_10, &local_13);
+	s_reference local_15 = g_470fa0;
+	if (*(long *)&local_14 == *(long *)&local_15)
+	{
+		local_16 = false;
+		actor_get(arg_0)->unknown040 = local_16;
+		ai_scratch_buffer_release(local_10);
+		return local_16;
+	}
+	local_16 = function_1ac9e0(arg_0, local_14, (s_1f4a20_entry const *)&local_7.field_00,
+		local_10, local_13, local_12, (s_1f4a20_source const *)local_9, (s_1ac9e1 *)arg_1);
+	ai_scratch_buffer_release(local_10);
+	return local_16;
 }

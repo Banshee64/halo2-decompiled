@@ -72,13 +72,18 @@ struct s_type_12fea0_definition
 	color3f field_24;
 };
 
+#pragma inline_depth(0)
 // @retail 0x12fea0
 bool function_12fea0(s_fog_state *state, long cluster_index, point3f const *point, vector3f const *normal)
 {
 	s_type_12fea0_view *fog = (s_type_12fea0_view *)state;
 	s_type_12fea0_cluster *cluster = &((s_type_12fea0_bsp *)g_4e0348)->field_a0[cluster_index];
 	fog->field_f4.n = *normal;
-	fog->field_f4.d = fog->field_f4.k * point->z + fog->field_f4.j * point->y + point->x * fog->field_f4.i;
+	plane3f *local_0 = &fog->field_f4;
+	real local_1 = local_0->k * point->z;
+	local_1 += local_0->j * point->y;
+	local_1 += point->x * local_0->i;
+	local_0->d = local_1;
 	bool result = false;
 	{
 		long definition_index;
@@ -98,7 +103,7 @@ bool function_12fea0(s_fog_state *state, long cluster_index, point3f const *poin
 		}
 		else
 		{
-			if (cluster->field_70 == NONE || cluster->field_70 < 0)
+			if (cluster->field_70 == NONE || ((byte)cluster->field_70 & 0x80))
 				goto done;
 			byte *local_entry = function_1318a0(cluster->field_70 & 0x7f);
 			if (!local_entry)
@@ -111,8 +116,15 @@ bool function_12fea0(s_fog_state *state, long cluster_index, point3f const *poin
 			s_type_12fea0_definition *definition = (s_type_12fea0_definition *)g_4e3b44[definition_index & 0xffff].bytes;
 			bool local_inside = result;
 			fog->field_c0 = true;
-			if (fog->field_104 && fog->field_f4.k * point->z + fog->field_f4.j * point->y + point->x * fog->field_f4.i - fog->field_f4.d < 0.0f)
-				local_inside = true;
+			if (fog->field_104)
+			{
+				real local_2 = local_0->k * point->z;
+				local_2 += local_0->j * point->y;
+				local_2 += point->x * local_0->i;
+				local_2 -= local_0->d;
+				if (local_2 < 0.0f)
+					local_inside = true;
+			}
 			if ((definition->field_0 & 0x10) || ((definition->field_0 & 0x20) && !local_inside))
 				goto done;
 			fog->field_9c = definition_index;
@@ -134,13 +146,15 @@ bool function_12fea0(s_fog_state *state, long cluster_index, point3f const *poin
 		}
 	}
 done:
-	if (fog->field_dc > 0.0f)
+	real local_3 = fog->field_dc;
+	if (local_3 > 0.0f)
 	{
-		fog->field_a0.red += (fog->field_c8.red - fog->field_a0.red) * fog->field_dc;
-		fog->field_a0.green += (fog->field_c8.green - fog->field_a0.green) * fog->field_dc;
-		fog->field_a0.blue += (fog->field_c8.blue - fog->field_a0.blue) * fog->field_dc;
-		fog->field_ac += (fog->field_d4 - fog->field_ac) * fog->field_dc;
+		fog->field_a0.red += (fog->field_c8.red - fog->field_a0.red) * local_3;
+		fog->field_a0.green += (fog->field_c8.green - fog->field_a0.green) * local_3;
+		fog->field_a0.blue += (fog->field_c8.blue - fog->field_a0.blue) * local_3;
+		fog->field_ac += (fog->field_d4 - fog->field_ac) * local_3;
 		fog->field_104 = true;
 	}
 	return result;
 }
+#pragma inline_depth(255)

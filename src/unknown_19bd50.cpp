@@ -6,6 +6,8 @@
 #include "globals.h"
 #include "data_array.h"
 #include "crc.h"
+#include "files.h"
+#include <string.h>
 
 // @retail 0x19bcd0
 void level_handle_tables_initialize(void)
@@ -39,6 +41,8 @@ struct s_map_file_header
 	dword checksum;
 };
 
+__declspec(noinline) bool map_file_checksum_valid(s_map_file_header *header);
+
 // @retail 0x19bdc0
 bool map_file_checksum_valid(s_map_file_header *header)
 {
@@ -55,4 +59,135 @@ bool map_file_checksum_valid(s_map_file_header *header)
 	header->checksum = checksum;
 
 	return valid;
+}
+
+struct s_map_package
+{
+	s_map_file_header header;
+	long kind;
+	char path[0x100];
+	long map_id;
+	long unknown110;
+	byte names[9][0x40];
+	byte descriptions[9][0x100];
+	long valuec54;
+	byte flags;
+	byte unknownc59[3];
+	dword metadatac5c[4];
+	byte images[207][0x370];
+};
+
+struct s_loaded_map_view
+{
+	long map_id;
+	long tag_index;
+	long bitmap_tag_index;
+	byte names[9][0x40];
+	byte descriptions[9][0x100];
+	char path[0x100];
+	long valuec4c;
+	byte flags;
+	byte unknownc51[3];
+	dword metadatac54[4];
+};
+
+struct s_content_item
+{
+	char directory[0x104];
+	word display_name[0x80];
+};
+
+struct s_entry_c;
+struct s_bitmap_data;
+struct s_bitmap_view;
+struct D3DTexture;
+struct s_level_path { char string[0x104]; };
+s_entry_c *function_19c5f0(long map_id);
+D3DTexture *function_1cfb0(s_bitmap_view *bitmap);
+void *function_1d5e0(s_bitmap_view *bitmap, bool wait, long *pitch);
+bool function_12cb80(s_bitmap_data *bitmap);
+char *level_path_print(s_level_path *path, char const *format, ...);
+s_type_acf665 *function_136710(s_type_acf665 *file, bool replace, const char *name);
+bool function_1368f0(s_type_acf665 *file);
+
+// @retail 0x19be00
+bool __stdcall function_19be00(s_content_item *item, s_map_package *package)
+{
+	bool result = false;
+	s_map_package *const *package_reference = &package;
+	if ((*package_reference)->kind == 1)
+	{
+		result = map_file_checksum_valid(&package->header);
+		if (result)
+		{
+			s_loaded_map_view *entry = (s_loaded_map_view *)function_19c5f0(package->map_id);
+			if (!entry)
+				entry = (s_loaded_map_view *)function_19c5f0(NONE);
+			if (!entry)
+				return false;
+			long tag_index = entry->tag_index;
+			long bitmap_tag_index = entry->bitmap_tag_index;
+			memset(entry, 0, sizeof(*entry));
+			memcpy(entry->descriptions, package->descriptions, sizeof(entry->descriptions));
+			entry->flags = package->flags;
+			entry->map_id = package->map_id;
+			memcpy(entry->metadatac54, package->metadatac5c, sizeof(entry->metadatac54));
+			memcpy(entry->names, package->names, sizeof(entry->names));
+			memcpy(entry->path, package->path, sizeof(entry->path));
+			entry->valuec4c = package->valuec54;
+			entry->bitmap_tag_index = bitmap_tag_index;
+			entry->tag_index = tag_index;
+			s_bitmap_data *bitmap = *(s_bitmap_data **)(g_4e3b44[bitmap_tag_index & 0xffff].bytes + 0x48);
+			function_1cfb0((s_bitmap_view *)bitmap);
+			function_12cb80(bitmap);
+			long stride;
+			byte *pixels = (byte *)function_1d5e0((s_bitmap_view *)bitmap, false, &stride);
+			if (pixels)
+			{
+				for (long row = 0; row < 207; row++)
+				{
+					memcpy(pixels, package->images[row], sizeof(package->images[row]));
+					pixels += stride;
+				}
+				function_1cfb0((s_bitmap_view *)bitmap);
+			}
+			s_level_path path;
+			path.string[0] = 0;
+			char const *name = strrchr(package->path, '\\');
+			if (name)
+				name++;
+			else
+				name = package->path;
+			level_path_print(&path, "%s\\%s", item->directory, name);
+			strncpy(entry->path, path.string, sizeof(entry->path));
+			entry->path[sizeof(entry->path) - 1] = 0;
+		}
+	}
+	return result;
+}
+
+// @retail 0x19bfd0
+bool __stdcall function_19bfd0(s_content_item *item)
+{
+	s_type_acf665 file;
+	s_map_package package;
+	bool result = false;
+	package.flags = 0;
+	function_136710(&file, true, item->directory);
+	if (file.flags & 1)
+		function_1373c0(file.path);
+	function_137320(file.path, "patch.lvl");
+	*(byte *)&file.flags |= 1;
+	if (function_1368f0(&file))
+	{
+		dword error;
+		if (function_136970(&file, 1, &error))
+		{
+			result = function_136ca0(&file, &package, 0x2d3fc, false);
+			function_136bb0(&file);
+			if (result)
+				return function_19be00(item, &package);
+		}
+	}
+	return result;
 }
