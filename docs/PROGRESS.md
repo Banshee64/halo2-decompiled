@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6963 functions match
+
+```
+matched 6963 of 11318 game functions (774630 of 2784283 bytes, 27.82%)
+```
+
+6963 new matches, none lost:
+- Merge batch r27: UI-core rounds 14 and 15 (+11), including the score-display group in a new src/unknown_23f260.cpp.
+
 ## 2026-10-07: 6952 functions match
 
 ```
