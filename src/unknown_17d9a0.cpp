@@ -6,6 +6,7 @@
 #include <float.h>
 #include "globals.h"
 #include <string.h>
+#include <math.h>
 
 extern long g_4e7414;
 extern bool g_4e7411;
@@ -163,7 +164,9 @@ struct s_decal_mesh_vertex
 
 struct s_decal_mesh_view
 {
-	byte unknown00[0x28];
+	byte unknown00[0xc];
+	plane3f const *planes;
+	byte unknown10[0x18];
 	long face_count;
 	s_decal_mesh_face const *faces;
 	long edge_count;
@@ -175,9 +178,10 @@ struct s_decal_mesh_view
 // @retail 0x17d900
 real function_17d900(s_decal_mesh_view const *mesh, long face_index, plane3f const *plane)
 {
-	long edge_index = mesh->faces[face_index].first_edge;
+	s_decal_mesh_face const *face = &mesh->faces[face_index];
 	real minimum = FLT_MAX;
-	long first_edge = edge_index;
+	long edge_index = face->first_edge;
+	s_decal_mesh_face const *first_face = face;
 
 	do
 	{
@@ -188,8 +192,195 @@ real function_17d900(s_decal_mesh_view const *mesh, long face_index, plane3f con
 		if (!(distance > minimum))
 			minimum = distance;
 		edge_index = edge->next_edges[reverse];
-	} while (edge_index != first_edge);
+	} while (edge_index != first_face->first_edge);
 	return minimum;
+}
+
+struct s_decal_vertex_17dd80
+{
+	point3f position;
+	point2f texture;
+};
+
+struct s_decal_output_17dd80
+{
+	s_decal_vertex_17dd80 vertices[1024];
+	short vertex_count;
+	short polygon_sizes[1024];
+	short polygon_count;
+};
+
+struct s_decal_limits_17dd80
+{
+	real maximum_angle;
+	real adjacent_angle;
+	real radius_scale;
+	long flags;
+};
+
+PRIVATE s_decal_limits_17dd80 const g_444a38[4] =
+{
+	{ 40.0f, 110.0f, 1.5f, 1 },
+	{ 40.0f, 110.0f, 1.5f, 1 },
+	{ 40.0f, 110.0f, 1.5f, 1 },
+	{ 10.0f, 10.0f, 1.5f, 0 }
+};
+point2f g_55ec10[2][12];
+
+struct s_bsp3d;
+struct vector2f { real i, j; };
+struct plane2f { vector2f n; real d; };
+plane3f *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, plane3f *plane);
+real function_11cf50(vector3f const *a, vector3f const *b);
+bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
+void function_120790(real *out, real const *plane, real const *point, short axis, byte side);
+short function_23a6f0(point2f *output, short count, point2f const *points,
+	plane2f const *plane, short capacity, dword *point_mask, bool *clipped, real epsilon);
+
+PRIVATE __forceinline void decal_add_adjacent_17dd80(s_decal_mesh_view const *mesh, s_decal_mesh_edge const *edge,
+	bool reverse, s_decal_quad_17d9a0 const *quad, real radius, short mode, long *adjacent, short *count)
+{
+	if (*count < 1024)
+	{
+		point3f const *start = &mesh->vertices[edge->vertices[!reverse]].position;
+		point3f const *end = &mesh->vertices[edge->vertices[reverse]].position;
+		vector3f direction;
+		direction.i = end->x - start->x;
+		direction.j = end->y - start->y;
+		direction.k = end->z - start->z;
+		if (function_11e5e0(&quad->matrix.position, start, &direction, g_444a38[mode].radius_scale * radius))
+		{
+			long face = edge->faces[!reverse];
+			short i = 0;
+			while (face != NONE && i < *count)
+			{
+				if (adjacent[i] == face)
+					face = NONE;
+				++i;
+			}
+			if (face != NONE)
+				adjacent[(*count)++] = face;
+		}
+	}
+}
+
+// @retail 0x17dd80
+void __stdcall function_17dd80(s_decal_mesh_view const *mesh, s_decal_quad_17d9a0 const *quad,
+	s_decal_output_17dd80 *output, long face_index, bool gather, real radius, short mode,
+	long *adjacent, short *adjacent_count, long *secondary, short *secondary_count)
+{
+	if (face_index == NONE)
+		return;
+	s_decal_mesh_face const *face = &mesh->faces[face_index];
+	short count, other_count;
+	if (gather)
+	{
+		count = *adjacent_count;
+		other_count = *secondary_count;
+	}
+	plane3f plane;
+	bsp3d_get_plane((s_bsp3d const *)mesh, face->plane_index, &plane);
+	real angle = function_11cf50(&quad->plane.n, &plane.n);
+	if (g_444a38[mode].maximum_angle * 0.017453292f >= angle &&
+		radius * 0.05f > function_17d900(mesh, face_index, &quad->plane))
+	{
+		long edge_index = face->first_edge;
+		short iteration = 0;
+		point2f const *points = quad->corners;
+		short point_count = 4;
+		dword point_mask = 0;
+		point2f previous;
+		point2f *clipped_points;
+		do
+		{
+			s_decal_mesh_edge const *edge = &mesh->edges[edge_index];
+			bool reverse = edge->faces[1] == face_index;
+			point3f const *vertex = &mesh->vertices[edge->vertices[!reverse]].position;
+			clipped_points = g_55ec10[iteration & 1];
+			short const *axes = g_440b94[quad->axis * 2 + quad->positive];
+			if (iteration == 0)
+			{
+				point3f const *first = &mesh->vertices[edge->vertices[reverse]].position;
+				previous.x = ((real const *)first)[axes[0]];
+				previous.y = ((real const *)first)[axes[1]];
+			}
+			point2f current;
+			current.x = ((real const *)vertex)[axes[0]];
+			current.y = ((real const *)vertex)[axes[1]];
+			plane2f clip;
+			clip.n.i = previous.y - current.y;
+			clip.n.j = current.x - previous.x;
+			real length = (real)sqrt(clip.n.i * clip.n.i + clip.n.j * clip.n.j);
+			if (!(fabs(length) < 0.0001f))
+			{
+				real inverse = 1.0f / length;
+				clip.n.i *= inverse;
+				clip.n.j *= inverse;
+			}
+			else
+				length = 0.0f;
+			if (length != 0.0f)
+			{
+				clip.d = clip.n.j * current.y + clip.n.i * current.x;
+				bool clipped;
+				point_count = function_23a6f0(clipped_points, point_count, points, &clip, 12, &point_mask, &clipped, 0.0f);
+				if (gather && clipped)
+					decal_add_adjacent_17dd80(mesh, edge, reverse, quad, radius, mode, adjacent, &count);
+			}
+			else
+			{
+				clip.d = 0.0f;
+				point_count = 0;
+			}
+			++iteration;
+			previous = current;
+			edge_index = edge->next_edges[reverse];
+			points = clipped_points;
+		} while (edge_index != face->first_edge && point_count > 0);
+		if (point_count >= 3 && point_count <= 1024 - output->vertex_count && !(face->unknown04[0] & 0x2b))
+		{
+			output->polygon_sizes[output->polygon_count++] = point_count;
+			for (short i = 0; i < point_count; ++i)
+			{
+				real x = clipped_points[i].x - quad->corners[0].x;
+				real y = clipped_points[i].y - quad->corners[0].y;
+				real v = 0.0f - (quad->edges[0].j * x - quad->edges[0].i * y) * quad->inverse_determinant;
+				real u = (x * quad->edges[1].j - quad->edges[1].i * y) * quad->inverse_determinant;
+				output->vertices[output->vertex_count].texture.x = u;
+				output->vertices[output->vertex_count].texture.y = v;
+				function_120790((real *)&output->vertices[output->vertex_count].position,
+					(real const *)&plane, (real const *)&clipped_points[i], quad->axis, quad->positive);
+				if (!(point_mask & (1 << i)))
+				{
+					point3f *position = &output->vertices[output->vertex_count].position;
+					position->x += plane.n.i * 0.00390625f;
+					position->y += plane.n.j * 0.00390625f;
+					position->z += plane.n.k * 0.00390625f;
+				}
+				++output->vertex_count;
+			}
+		}
+	}
+	else
+	{
+		if (!gather)
+			return;
+		long edge_index = face->first_edge;
+		do
+		{
+			s_decal_mesh_edge const *edge = &mesh->edges[edge_index];
+			bool reverse = edge->faces[1] == face_index;
+			decal_add_adjacent_17dd80(mesh, edge, reverse, quad, radius, mode, adjacent, &count);
+			edge_index = edge->next_edges[reverse];
+		} while (edge_index != face->first_edge);
+		if (g_444a38[mode].adjacent_angle * 0.017453292f >= angle && other_count < 1024)
+			secondary[other_count++] = face_index;
+	}
+	if (gather)
+	{
+		*adjacent_count = count;
+		*secondary_count = other_count;
+	}
 }
 
 /* the state a decal is placed with (0x5c bytes) */
@@ -243,4 +434,212 @@ void decal_placement_copy(s_decal_placement const *in, s_decal_placement *out)
 	out->unknown58 = in->unknown58;
 	out->unknown59 = in->unknown59;
 	out->unknown5a = in->unknown5a;
+}
+
+struct s_decal_projection_17fd20
+{
+	s_decal_quad_17d9a0 quad;
+	real orientation_bounds[6];
+	real radius;
+	transform4x3f matrix;
+	box2f bounds;
+};
+
+PRIVATE __forceinline void decal_face_plane_17fd20(s_decal_mesh_view const *mesh, long face_index, plane3f *plane)
+{
+	short index = mesh->faces[face_index].plane_index;
+	plane3f const *source = &mesh->planes[index & 0x7fff];
+	if (index < 0)
+	{
+		plane->n.i = 0.0f - source->n.i;
+		plane->n.j = 0.0f - source->n.j;
+		plane->n.k = 0.0f - source->n.k;
+		plane->d = 0.0f - source->d;
+	}
+	else
+		*plane = *source;
+}
+
+PRIVATE __forceinline real decal_normal_angle_17fd20(vector3f const *a, vector3f const *b)
+{
+	if (!memcmp(a, b, sizeof(*a)))
+		return 0.0f;
+	real cosine = a->i * b->i + a->k * b->k + a->j * b->j;
+	cosine = cosine < -1.0f ? -1.0f : cosine > 1.0f ? 1.0f : cosine;
+	return (real)acos(cosine < -1.0f ? -1.0f : cosine > 1.0f ? 1.0f : cosine);
+}
+
+PRIVATE __forceinline void decal_rotate_vector_17fd20(vector3f const *forward, vector3f const *left,
+	vector3f const *up, vector3f const *in, vector3f *out)
+{
+	out->i = up->i * in->k + left->i * in->j + forward->i * in->i;
+	out->j = up->j * in->k + left->j * in->j + forward->j * in->i;
+	out->k = up->k * in->k + left->k * in->j + forward->k * in->i;
+}
+
+// @retail 0x17fd20
+void function_17fd20(s_decal_placement const *placement, s_decal_mesh_view const *mesh,
+	long tag_index, s_decal_output_17dd80 *output, s_decal_projection_17fd20 *projection)
+{
+	s_decal_mesh_view const *const *mesh_reference = &mesh;
+	long const *tag_reference = &tag_index;
+	s_decal_output_17dd80 *const *output_reference = &output;
+	s_decal_projection_17fd20 *const *projection_reference = &projection;
+	mesh = *mesh_reference;
+	tag_index = *tag_reference;
+	output = *output_reference;
+	projection = *projection_reference;
+	byte const *definition = g_4e3b44[tag_index & 0xffff].bytes;
+	output->polygon_count = 0;
+	output->vertex_count = 0;
+	long faces[1024];
+	long secondary[1024];
+	short face_count = 1;
+	short secondary_count = 0;
+	faces[0] = placement->unknown50;
+	for (short i = 0; i < face_count; ++i)
+	{
+		function_17dd80(mesh, &projection->quad, output, faces[i], true, projection->radius,
+			*(short const *)(definition + 2), faces, &face_count, secondary, &secondary_count);
+	}
+	short mode = *(short const *)(definition + 2);
+	if ((byte)g_444a38[mode].flags && secondary_count > 0)
+	{
+		short remaining = secondary_count;
+		do
+		{
+			short group_count = 0;
+			for (short i = 0; i < secondary_count && !group_count; ++i)
+			{
+				long first_face = secondary[i];
+				if (first_face == NONE)
+					continue;
+				plane3f first_plane;
+				decal_face_plane_17fd20(mesh, first_face, &first_plane);
+				faces[group_count++] = first_face;
+				secondary[i] = NONE;
+				for (short j = i + 1; j < secondary_count; ++j)
+				{
+					long face = secondary[j];
+					if (face != NONE)
+					{
+						plane3f plane;
+						decal_face_plane_17fd20(mesh, face, &plane);
+						if (g_444a38[mode].maximum_angle * 0.017453292f >= decal_normal_angle_17fd20(&first_plane.n, &plane.n) &&
+							projection->radius * 0.05f > function_17d900(mesh, face, &first_plane) &&
+							projection->radius * 0.05f > function_17d900(mesh, first_face, &plane))
+						{
+							faces[group_count++] = face;
+							secondary[j] = NONE;
+						}
+					}
+				}
+				long selected_face = NONE;
+				real selected_minimum, selected_maximum;
+				point3f start, end;
+				plane3f selected_plane;
+				for (short j = 0; j < group_count; ++j)
+				{
+					long face = faces[j];
+					long edge_index = mesh->faces[face].first_edge;
+					long first_edge = edge_index;
+					do
+					{
+						s_decal_mesh_edge const *edge = &mesh->edges[edge_index];
+						bool reverse = edge->faces[1] == face;
+						point3f const *a = &mesh->vertices[edge->vertices[!reverse]].position;
+						point3f const *b = &mesh->vertices[edge->vertices[reverse]].position;
+						real da = (real)fabs(plane_distance_to_point(&projection->quad.plane, a));
+						real db = (real)fabs(plane_distance_to_point(&projection->quad.plane, b));
+						real minimum, maximum;
+						if (da > db)
+						{
+							minimum = db;
+							maximum = da;
+						}
+						else
+						{
+							minimum = da;
+							maximum = db;
+						}
+						if (selected_face == NONE || (selected_minimum >= minimum && selected_maximum >= maximum))
+						{
+							decal_face_plane_17fd20(mesh, face, &selected_plane);
+							start = *a;
+							end = *b;
+							selected_minimum = minimum;
+							selected_maximum = maximum;
+							selected_face = face;
+						}
+						edge_index = edge->next_edges[reverse];
+					} while (edge_index != first_edge);
+				}
+				vector3f axis;
+				axis.i = end.x - start.x;
+				axis.j = end.y - start.y;
+				axis.k = end.z - start.z;
+				real length = (real)sqrt(axis.i * axis.i + axis.k * axis.k + axis.j * axis.j);
+				if (!(fabs(length) < 0.0001f))
+				{
+					real inverse = 1.0f / length;
+					axis.i *= inverse;
+					axis.j *= inverse;
+					axis.k *= inverse;
+				}
+				else
+					length = 0.0f;
+				s_decal_quad_17d9a0 quad;
+				if (length > 0.0f)
+				{
+					vector3f cross;
+					cross.i = selected_plane.n.j * projection->quad.plane.n.k - selected_plane.n.k * projection->quad.plane.n.j;
+					cross.j = selected_plane.n.k * projection->quad.plane.n.i - selected_plane.n.i * projection->quad.plane.n.k;
+					cross.k = selected_plane.n.i * projection->quad.plane.n.j - selected_plane.n.j * projection->quad.plane.n.i;
+					real sign = cross.i * axis.i + cross.k * axis.k + cross.j * axis.j < 0.0f ? 1.0f : -1.0f;
+					real angle = decal_normal_angle_17fd20(&selected_plane.n, &projection->quad.plane.n) * sign;
+					real sine = (real)sin(angle);
+					real cosine = (real)cos(angle);
+					real one_minus_cosine = 1.0f - cosine;
+					vector3f forward, left, up;
+					forward.i = axis.i * axis.i + (1.0f - axis.i * axis.i) * cosine;
+					forward.j = one_minus_cosine * axis.j * axis.i + axis.k * sine;
+					forward.k = one_minus_cosine * axis.k * axis.i - axis.j * sine;
+					left.i = one_minus_cosine * axis.j * axis.i - axis.k * sine;
+					left.j = axis.j * axis.j + (1.0f - axis.j * axis.j) * cosine;
+					left.k = one_minus_cosine * axis.k * axis.j + axis.i * sine;
+					up.i = one_minus_cosine * axis.k * axis.i + axis.j * sine;
+					up.j = one_minus_cosine * axis.k * axis.j - axis.i * sine;
+					up.k = axis.k * axis.k + (1.0f - axis.k * axis.k) * cosine;
+					transform4x3f matrix;
+					vector3f offset, position;
+					offset.i = projection->matrix.position.x - start.x;
+					offset.j = projection->matrix.position.y - start.y;
+					offset.k = projection->matrix.position.z - start.z;
+					decal_rotate_vector_17fd20(&forward, &left, &up, &offset, &position);
+					decal_rotate_vector_17fd20(&forward, &left, &up, &projection->matrix.forward, &matrix.forward);
+					decal_rotate_vector_17fd20(&forward, &left, &up, &projection->matrix.left, &matrix.left);
+					decal_rotate_vector_17fd20(&forward, &left, &up, &projection->matrix.up, &matrix.up);
+					matrix.position.x = position.i + start.x;
+					matrix.position.y = position.j + start.y;
+					matrix.position.z = position.k + start.z;
+					matrix.scale = 1.0f;
+					function_17d9a0(&matrix, (real const *)&projection->bounds, &quad);
+					for (long k = 0; k < 3; ++k)
+					{
+						real value = ((real const *)&matrix.up)[k];
+						projection->orientation_bounds[k * 2] = value > projection->orientation_bounds[k * 2] ? projection->orientation_bounds[k * 2] : value;
+						projection->orientation_bounds[k * 2 + 1] = value > projection->orientation_bounds[k * 2 + 1] ? value : projection->orientation_bounds[k * 2 + 1];
+					}
+				}
+				else
+					quad = projection->quad;
+				for (short j = 0; j < group_count; ++j)
+				{
+					function_17dd80(mesh, &quad, output, faces[j], false, projection->radius,
+						mode, 0, 0, 0, 0);
+				}
+				remaining -= group_count;
+			}
+		} while (remaining > 0);
+	}
 }

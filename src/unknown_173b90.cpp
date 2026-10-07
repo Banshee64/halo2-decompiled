@@ -251,29 +251,55 @@ void __stdcall function_174180(long particle_system_index)
 	record_pool_release(g_510c74, particle_system_index);
 }
 
+PRIVATE __forceinline long data_scan_174990(s_record_pool *data, long index)
+{
+	if (index >= 0)
+	{
+		long count = data->high_water_index;
+		if (index < count)
+		{
+			dword const *bits = data->bitmap;
+			do
+			{
+				if (bits[index >> 5] & (1 << (index & 31)))
+					return index;
+				++index;
+			} while (index < count);
+		}
+	}
+	return NONE;
+}
+
 // @retail 0x174990
 void __stdcall function_174990(real dt)
 {
-	s_record_pool *data = g_510c74;
-	long index = NONE;
+	struct
+	{
+		s_particle_system_datum *current;
+		s_record_pool_iterator cursor;
+	} iterator;
+	iterator.cursor.data = g_510c74;
+	iterator.cursor.index = NONE;
 
 	for (;;)
 	{
-		index = data_find_index(data, index + 1);
+		long index = data_scan_174990(iterator.cursor.data, iterator.cursor.index + 1);
 		if (index == NONE)
 			break;
 
-		s_particle_system_datum *particle_system = (s_particle_system_datum *)(data->data + data->size * index);
-		long particle_system_index = (particle_system->salt << 16) | index;
+		iterator.current = (s_particle_system_datum *)(iterator.cursor.data->data + iterator.cursor.data->size * index);
+		s_particle_system_datum *particle_system = iterator.current;
+		iterator.cursor.datum_index = (particle_system->salt << 16) | index;
+		iterator.cursor.index = index;
 
 		if (particle_system->unknown4c == NONE && !function_174a30(particle_system, dt))
 		{
 			if (particle_system->effect_index != NONE)
 			{
-				function_17af80(particle_system->effect_index, particle_system_index);
+				function_17af80(particle_system->effect_index, iterator.cursor.datum_index);
 				particle_system->effect_index = NONE;
 			}
-			function_174180(particle_system_index);
+			function_174180(iterator.cursor.datum_index);
 		}
 	}
 }
@@ -376,10 +402,9 @@ void function_1753f0(s_particle_system_datum *particle_system)
 // @retail 0x173ba0
 void __stdcall function_173ba0(dword mask, void *a, void *b, void const *c, real *values)
 {
+	long index = 0;
 	while (mask)
 	{
-		long index;
-
 		__asm
 		{
 			bsf ecx, mask
@@ -529,6 +554,54 @@ void function_173c10(dword mask, s_particle_value_cache *cache)
 	cache->mask |= mask;
 }
 
+struct s_248cc0;
+struct s_247fd0;
+void function_248cc0(s_248cc0 *location, s_247fd0 *values, s_particle_system_datum *system,
+	point3f const *position, vector3f const *velocity);
+
+PRIVATE inline real particle_clamp_175430(real const &value, real minimum, real maximum)
+{
+	return value < minimum ? minimum : value > maximum ? maximum : value;
+}
+
+// @retail 0x175430
+void __stdcall function_175430(s_particle_system_datum *system, point3f const *position, vector3f const *velocity)
+{
+	if (particle_clamp_175430(position->x, -100000.0f, 100000.0f) != position->x ||
+		particle_clamp_175430(position->y, -100000.0f, 100000.0f) != position->y ||
+		particle_clamp_175430(position->z, -100000.0f, 100000.0f) != position->z ||
+		particle_clamp_175430(velocity->i, -100.0f, 100.0f) != velocity->i ||
+		particle_clamp_175430(velocity->j, -100.0f, 100.0f) != velocity->j ||
+		particle_clamp_175430(velocity->k, -100.0f, 100.0f) != velocity->k)
+		return;
+	s_record_pool *locations = g_51ec8c;
+	if (system->location_index == NONE)
+	{
+		long index = function_248620();
+		if (index == NONE)
+			return;
+		s_particle_location_datum *location = DATUM(locations, s_particle_location_datum, index);
+		function_248d90(location, &system->location_index, &system->unknown34);
+		location->position = *position;
+	}
+	if (system->location_index != NONE)
+	{
+		s_particle_location_datum *location = DATUM(locations, s_particle_location_datum, system->location_index);
+		s_particle_value_cache cache;
+		cache.field_48 = system;
+		cache.field_4c = 0;
+		cache.field_50 = 0;
+		cache.mask = 0;
+		if (location != cache.field_4c)
+		{
+			cache.field_4c = location;
+			cache.mask = 0;
+		}
+		function_173c10(0x1ffff, &cache);
+		function_248cc0((s_248cc0 *)location, (s_247fd0 *)&cache, system, position, velocity);
+	}
+}
+
 // @retail 0x173fd0
 long function_173fd0(s_effect_particle_system_definition *definition, long effect_index, long tag_index, short definition_index, long event_index)
 {
@@ -580,15 +653,20 @@ long function_173fd0(s_effect_particle_system_definition *definition, long effec
 // @retail 0x1751d0
 s_effect_particle_system_definition *s_particle_system_datum::function_1751d0()
 {
-	switch (TAG_GROUP(tag_index))
+	long index = tag_index;
+	switch (TAG_GROUP(index))
 	{
 	case 'effe':
-		return &TAG_GET(s_effect_definition, tag_index)->events[event_index].particle_systems[definition_index];
+		return &TAG_GET(s_effect_definition, index)->events[event_index].particle_systems[definition_index];
 	case 'bsdt':
-		return (s_effect_particle_system_definition *)(*(byte **)(g_4e3b44[tag_index & 0xffff].bytes + 0x18) + definition_index * sizeof(s_effect_particle_system_definition));
-	case 'MTRP':
+		return (s_effect_particle_system_definition *)(*(byte **)(g_4e3b44[index & 0xffff].bytes + 0x18) + definition_index * sizeof(s_effect_particle_system_definition));
+	case 'PRTM':
 	case 'prt3':
-		return function_137bd0(parent->function_1751d0()->tag_index)->function_1751d0(definition_index);
+		{
+		c_type_4e7709 *definition = function_137bd0(parent->function_1751d0()->tag_index);
+		long element = definition_index;
+		return definition->function_1751d0((word)element);
+	}
 	}
 	return 0;
 }

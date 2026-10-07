@@ -137,6 +137,8 @@ PRIVATE inline void placement_basis_170c00(vector3f const *forward, vector3f con
 	matrix->position.x = matrix->position.y = matrix->position.z = 0.0f;
 }
 
+__declspec(noinline) vector3f *function_170c00(vector3f const *first_forward, vector3f const *first_up, vector3f const *second_forward, vector3f const *second_up, vector3f *out);
+
 // @retail 0x170c00
 vector3f *function_170c00(vector3f const *first_forward, vector3f const *first_up, vector3f const *second_forward, vector3f const *second_up, vector3f *out)
 {
@@ -400,17 +402,29 @@ struct s_short_list_table
 {
 	dword used[16];
 	short first[512];
-	short next[512];
+	short next[256];
 };
+
+PRIVATE __forceinline bool short_list_used_173b00(dword const *used, long index)
+{
+	return (used[index >> 5] & (1 << (index & 31))) != 0;
+}
+
+PRIVATE __forceinline void short_list_mark_used_173b00(dword *used, long index)
+{
+	used[index >> 5] |= 1 << (index & 31);
+}
+
+__declspec(noinline) void function_173b00(s_short_list_table *table, short list_index, short value);
 
 // @retail 0x173b00
 void function_173b00(s_short_list_table *table, short list_index, short value)
 {
-	if (!(table->used[list_index >> 5] & (1 << (list_index & 0x1f))))
+	if (!short_list_used_173b00(table->used, list_index))
 	{
 		table->next[value] = NONE;
 		table->first[list_index] = value;
-		table->used[list_index >> 5] |= 1 << (list_index & 0x1f);
+		short_list_mark_used_173b00(table->used, list_index);
 	}
 	else
 	{
@@ -499,6 +513,30 @@ struct s_rect4
 	real x0, x1, y0, y1;
 };
 
+struct s_polygon_clip_173380
+{
+	s_rect4 bounds;
+	short count;
+	short unknown12;
+	point2f *points;
+};
+
+short function_23a2b0(short count, point2f const *points, short clip_count,
+	point2f const *clip, short capacity, point2f *output, real epsilon);
+
+// @retail 0x173380
+long function_173380(s_polygon_clip_173380 const *polygon, s_polygon_clip_173380 const *clip, s_polygon_clip_173380 *output)
+{
+	output->count = function_23a2b0(polygon->count, polygon->points, clip->count,
+		clip->points, 64, output->points, 0.0001f);
+	if (output->count == NONE)
+	{
+		output->count = clip->count;
+		memcpy(output->points, clip->points, clip->count * sizeof(point2f));
+	}
+	return output->count >= 3;
+}
+
 struct s_pool_entry
 {
 	long key;
@@ -520,7 +558,7 @@ struct s_pool
 	long count;
 	s_pool_entry entries[256];
 	long data_used;
-	real data[1];
+	real data[10240];
 };
 
 struct s_pool_source
@@ -579,7 +617,7 @@ struct s_pool_lists
 {
 	dword valid[16];
 	short heads[512];
-	short next[512];
+	short next[256];
 };
 
 static inline short list_head(s_pool_lists const *lists, short list)
@@ -596,6 +634,159 @@ static inline short list_next(s_pool_lists const *lists, short list, short index
 	while (current != NONE && current != index)
 		current = lists->next[current];
 	return lists->next[index];
+}
+
+struct s_view_cluster_1733e0
+{
+	short index;
+	short counts[6];
+	short heads[6];
+};
+
+struct s_view_volume_1733e0
+{
+	long identifier;
+	long cluster_index;
+	long plane_index;
+	byte unknown0c[0x20 - 0xc];
+	real distance;
+	byte unknown24[0x108 - 0x24];
+};
+
+struct s_view_collection_1733e0
+{
+	short active;
+	byte unknown02[2];
+	byte camera[0x1bc];
+	byte unknown1c0[0xa6c - 0x1c0];
+	short cluster_count;
+	s_view_cluster_1733e0 clusters[128];
+	byte unknown176e[2];
+	long order[128];
+	short volume_count;
+	byte unknown1972[2];
+	s_view_volume_1733e0 volumes[512];
+};
+
+struct s_frustum_1648d0;
+struct s_camera_163db0;
+struct s_16e150_bits;
+bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+void function_16de20(short index, s_16e150_bits const *table, dword *output);
+bool __stdcall function_134950(long a, long b, void const *context);
+void sort_4byte(long *elements, unsigned long count, void *unused, bool (__stdcall *compare)(long, long, void const *), void const *context);
+
+// @retail 0x1733e0
+void function_1733e0(s_view_collection_1733e0 *collection, long cluster_index, byte const *camera)
+{
+	memcpy(collection->camera, camera, sizeof(collection->camera));
+	collection->active = 1;
+	collection->cluster_count = 0;
+	collection->volume_count = 0;
+	if (cluster_index != NONE)
+	{
+		dword visible[16];
+		function_16de20(cluster_index, (s_16e150_bits const *)g_4e0348, visible);
+		for (long i = 0; i < g_4e0348->list_count; ++i)
+		{
+			if ((visible[i >> 5] & (1 << (i & 31))) && collection->cluster_count < 128)
+			{
+				long index = collection->cluster_count;
+				s_view_cluster_1733e0 *cluster = &collection->clusters[index];
+				collection->order[index] = index;
+				cluster->index = (short)i;
+				cluster->counts[0] = 0;
+				cluster->heads[0] = NONE;
+				++collection->cluster_count;
+				short volume_index = collection->volume_count;
+				if (volume_index < 512)
+				{
+					s_view_volume_1733e0 *volume = &collection->volumes[volume_index];
+					collection->volume_count = volume_index + 1;
+					function_163db0((s_frustum_1648d0 *)volume, (box2f const *)(camera + 0xa0), (s_camera_163db0 const *)camera, 0);
+					++cluster->counts[0];
+					if (cluster->heads[0] == NONE)
+						cluster->heads[0] = volume_index;
+				}
+			}
+		}
+		sort_4byte(collection->order, collection->cluster_count, &camera, function_134950, collection);
+	}
+}
+
+// @retail 0x172ee0
+bool function_172ee0(long *cluster_map, s_pool_lists const *lists, s_pool *pool, byte const *cameras,
+	long group, s_view_collection_1733e0 *collection, long entry_index, long cluster_index)
+{
+	long cluster_slot = cluster_map[cluster_index];
+	s_view_cluster_1733e0 *cluster;
+	if (cluster_slot == NONE)
+	{
+		short count = collection->cluster_count;
+		if (count >= 128)
+			return false;
+		cluster_slot = count;
+		collection->cluster_count = count + 1;
+		collection->order[cluster_slot] = cluster_slot;
+		cluster_map[cluster_index] = cluster_slot;
+		cluster = &collection->clusters[cluster_slot];
+		cluster->index = (short)cluster_index;
+		memset(cluster->counts, 0, sizeof(cluster->counts));
+		memset(cluster->heads, 0xff, sizeof(cluster->heads));
+	}
+	else
+		cluster = &collection->clusters[cluster_slot];
+	do
+	{
+		short volume_index = collection->volume_count;
+		if (volume_index >= 512)
+			return false;
+		s_pool_entry *entry = &pool->entries[entry_index];
+		if (entry->unknown28 == NONE)
+		{
+			s_view_volume_1733e0 *volume = &collection->volumes[volume_index];
+			collection->volume_count = volume_index + 1;
+			if (function_163db0((s_frustum_1648d0 *)volume, (box2f const *)&entry->rect,
+				(s_camera_163db0 const *)(cameras + entry->key * 0x1bc), entry->key))
+			{
+				volume->cluster_index = cluster_slot;
+				volume->distance = entry->unknown24;
+				entry->unknown0a = volume_index;
+				short portal_index = entry->unknown06;
+				volume->plane_index = portal_index != NONE
+					? *(long *)(*(byte **)((byte *)g_4e0348 + 0x60) + portal_index * 0x24 + 4) : NONE;
+				if (cluster->heads[group] == NONE)
+					cluster->heads[group] = volume_index;
+				++cluster->counts[group];
+			}
+		}
+		entry_index = list_next(lists, (short)cluster_index, (short)entry_index);
+	} while (entry_index != NONE);
+	return true;
+}
+
+PRIVATE __forceinline long list_head_index_1730a0(s_pool_lists const *lists, short index)
+{
+	if (short_list_used_173b00(lists->valid, index))
+		return lists->heads[index];
+	return NONE;
+}
+
+// @retail 0x1730a0
+void function_1730a0(s_pool *pool, s_pool_lists const *lists, long *cluster_map,
+	byte const *cameras, long group, s_view_collection_1733e0 *collection)
+{
+	long count = pool->count;
+	s_pool_entry *entry = pool->entries;
+	for (long index = 0; index < count; ++index, ++entry)
+	{
+		long cluster_index = entry->value08;
+		if (index == (short)list_head_index_1730a0(lists, (short)cluster_index))
+		{
+			if (!function_172ee0(cluster_map, lists, pool, cameras, group, collection, index, cluster_index))
+				break;
+		}
+	}
 }
 
 static inline real real_minimum(real a, real b)
@@ -967,4 +1158,154 @@ s_projected_polygon_173520 *function_173520(long polygon_index, s_polygon_cache_
 		cache->visited[word_index] |= bit;
 	}
 	return result;
+}
+
+
+struct s_cluster_portals_172840
+{
+	byte unknown00[0x8c];
+	long portal_count;
+	short const *portals;
+	byte unknown94[0xb0 - 0x94];
+};
+
+void function_11f5f0(box2f *bounds, point2f const *points, long count);
+
+// @retail 0x172840
+bool __stdcall function_172840(long key, s_pool *pool, s_short_list_table *lists,
+	s_ring_buffer *queue, s_polygon_cache_173520 *cache)
+{
+	bool result = true;
+	bool pool_full = false;
+	bool queue_full = false;
+	bool projection_full = false;
+	while (queue->unknown00 != queue->index)
+	{
+		long head = queue->unknown00++;
+		if (queue->unknown00 == 256)
+			queue->unknown00 = 0;
+		long index = queue->values[head];
+		s_pool_entry *entry = &pool->entries[(short)index];
+		word cluster_index = entry->value08;
+		s_cluster_portals_172840 const *cluster =
+			&(*(s_cluster_portals_172840 **)((byte *)g_4e0348 + 0xa0))[(short)cluster_index];
+		for (long portal = 0; portal < cluster->portal_count; ++portal)
+		{
+			long portal_index = cluster->portals[portal];
+			s_projected_polygon_173520 *polygon = function_173520(portal_index, cache);
+			if (!polygon)
+			{
+				projection_full = true;
+				continue;
+			}
+			dword bit = 1 << (portal_index & 31);
+			long word_index = portal_index >> 5;
+			if (((dword *)entry->unknown2c)[word_index] & bit)
+				continue;
+			if (!(((dword *)g_4f93a4)[word_index] & bit))
+				continue;
+			if ((polygon->state == 1 && (polygon->field_0 & 2)) ||
+				(polygon->state == 2 && (polygon->field_0 & 0x10)))
+				continue;
+			if (!((polygon->state == 1 && polygon->field_6 == (short)cluster_index) ||
+				(polygon->state == 2 && polygon->field_8 == (short)cluster_index) ||
+				(polygon->state == 3 && function_173350(pool, (short)index, (short)portal_index) == NONE)))
+				continue;
+			if (!(polygon->bounds.x1 >= entry->rect.x0 && entry->rect.x1 >= polygon->bounds.x0 &&
+				polygon->bounds.y1 >= entry->rect.y0 && entry->rect.y1 >= polygon->bounds.y0))
+				continue;
+			long new_index = pool->count;
+			if (new_index == 256 || 5120 - pool->data_used < 64)
+			{
+				pool_full = true;
+				continue;
+			}
+			++pool->count;
+			s_pool_entry *next = &pool->entries[(short)new_index];
+			next->data = (real *)((point2f *)pool->data + pool->data_used);
+			pool->data_used += 64;
+			if ((byte)function_173380((s_polygon_clip_173380 *)&polygon->bounds,
+				(s_polygon_clip_173380 *)&entry->rect, (s_polygon_clip_173380 *)&next->rect))
+			{
+				short other_cluster = polygon->field_6;
+				if (other_cluster == (short)cluster_index)
+					other_cluster = polygon->field_8;
+				next->key = key;
+				next->next = (short)index;
+				next->value08 = other_cluster;
+				next->unknown06 = (short)portal_index;
+				next->unknown28 = NONE;
+				next->unknown0a = NONE;
+				next->rect = *(s_rect4 *)g_4687dc;
+				next->unknown24 = polygon->distance;
+				memcpy(next->unknown2c, entry->unknown2c, sizeof(next->unknown2c));
+				((dword *)next->unknown2c)[word_index] |= bit;
+				pool->data_used = ((point2f *)next->data - (point2f *)pool->data) + next->count;
+				function_11f5f0((box2f *)&next->rect, (point2f *)next->data, next->count);
+				function_173b00(lists, other_cluster, (short)new_index);
+				if ((queue->index + 1) % 256 != queue->unknown00)
+					function_173b60(queue, (short)new_index);
+				else
+					queue_full = true;
+			}
+			else
+			{
+				pool->data_used = (point2f *)next->data - (point2f *)pool->data;
+				--pool->count;
+			}
+		}
+	}
+	if (pool_full)
+		result = false;
+	if (projection_full)
+		result = false;
+	if (queue_full)
+		return false;
+	return result;
+}
+
+// @retail 0x173130
+void __stdcall function_173130(long camera_count, byte *cameras, long cluster_index,
+	s_view_collection_1733e0 *collection)
+{
+	s_pool pool;
+	s_polygon_cache_173520 cache;
+	long cluster_map[512];
+	s_short_list_table lists;
+	s_ring_buffer queue;
+	collection->active = (short)camera_count;
+	if (cameras != collection->camera)
+		memcpy(collection->camera, cameras, camera_count * 0x1bc);
+	collection->cluster_count = 0;
+	collection->volume_count = 0;
+	if (cluster_index != NONE)
+	{
+		memset(cluster_map, 0xff, sizeof(cluster_map));
+		byte *geometry = (byte *)g_4e0348;
+		byte *camera = cameras;
+		for (long group = 0; group < camera_count; ++group, camera += 0x1bc)
+		{
+			cache.geometry = (s_polygon_cache_173520::s_geometry *)geometry;
+			cache.planes = *(s_polygon_context_173910::s_planes **)(geometry + 0x18);
+			cache.view = camera;
+			memset(cache.visited, 0, ((*(long *)(geometry + 0x5c) + 31) >> 5) * sizeof(dword));
+			memset(lists.used, 0, ((*(long *)(geometry + 0x9c) + 31) >> 5) * sizeof(dword));
+			pool.count = 0;
+			pool.data_used = 0;
+			cache.point_count = 0;
+			cache.field_c_8.i = 0.0f;
+			cache.field_c_8.j = 0.0f;
+			cache.field_c_8.k = -1.0f;
+			cache.field_c_8.d = 0.0f;
+			queue.unknown00 = 0;
+			short index = function_172bb0(&pool, (s_pool_source *)camera, (short)cluster_index, group);
+			function_173b00(&lists, (short)cluster_index, index);
+			queue.index = 1;
+			queue.values[0] = index;
+			function_172840(group, &pool, &lists, &queue, &cache);
+			function_172c70((s_pool_lists *)&lists, &pool);
+			function_1730a0(&pool, (s_pool_lists *)&lists, cluster_map, cameras, group, collection);
+		}
+	}
+	sort_4byte(collection->order, collection->cluster_count, &camera_count, function_134950, collection);
 }
