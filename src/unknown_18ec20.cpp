@@ -8,6 +8,15 @@
 #include "online_tasks.h"
 #include "unknown_058ee0.h"
 #include <string.h>
+#include "data_array.h"
+
+struct s_physical_object;
+void physical_memory_flush(s_physical_object *arg_0);
+extern s_physical_object *g_4e3b54;
+extern s_record_pool *g_4e3b48;
+extern s_record_pool *g_4e3b4c;
+extern bool g_510c20;
+extern bool g_510c21;
 
 long g_4ed294;
 
@@ -84,6 +93,7 @@ static inline void main_game_string_table_unload()
 }
 
 /* unloads the map's caches and tags and pops its physical memory stage */
+#pragma inline_depth(0)
 // @retail 0x18ed00
 void function_18ed00(bool unload)
 {
@@ -93,7 +103,19 @@ void function_18ed00(bool unload)
 		texture_cache_dispose_from_old_map();
 		geometry_cache_dispose_from_old_map();
 
-		main_game_string_table_unload();
+		long local_0 = g_47ff38;
+		if (local_0 == NONE)
+		{
+			g_47ff38 = function_11ca80(XGetLanguage());
+			local_0 = g_47ff38;
+		}
+		s_main_game_string_table *local_1 = &((s_main_game_string_tables *)g_4e034c)->tables[local_0];
+		if (local_1->loaded)
+		{
+			local_1->references = NULL;
+			local_1->data = NULL;
+			local_1->loaded = false;
+		}
 		function_1233f0();
 		cache_files_dispose_map();
 		g_4686c0 = NONE;
@@ -108,6 +130,7 @@ void function_18ed00(bool unload)
 	g_global_f9ae07.field_0--;
 	g_4ed294 = 0;
 }
+#pragma inline_depth(255)
 
 char g_4ed298[0x104];
 
@@ -119,17 +142,40 @@ static inline char *function_x91aa57(char *destination, char const *source, dwor
 }
 
 /* unloads the map's caches and forgets the map's name */
+#pragma inline_depth(0)
 // @retail 0x18edb0
 void function_18edb0(void)
 {
 	function_2186f0();
 	texture_cache_dispose_from_old_map();
 	geometry_cache_dispose_from_old_map();
-	main_game_string_table_unload();
-	function_1233f0();
+	long local_0 = g_47ff38;
+	if (local_0 == NONE)
+	{
+		g_47ff38 = function_11ca80(XGetLanguage());
+		local_0 = g_47ff38;
+	}
+	s_main_game_string_table *local_1 = &((s_main_game_string_tables *)g_4e034c)->tables[local_0];
+	if (local_1->loaded)
+	{
+		local_1->references = NULL;
+		local_1->data = NULL;
+		local_1->loaded = false;
+	}
+	if (g_510c20 && g_510c21)
+	{
+		physical_memory_flush(g_4e3b54);
+		if (g_4e3b48)
+			g_4e3b48->valid = false;
+		if (g_4e3b4c)
+			g_4e3b4c->valid = false;
+		g_510c21 = false;
+	}
 	g_4ed294 = 3;
-	function_x91aa57(g_4ed298, "", sizeof(g_4ed298));
+	strncpy(g_4ed298, "", sizeof(g_4ed298));
+	g_4ed298[sizeof(g_4ed298) - 1] = 0;
 }
+#pragma inline_depth(255)
 
 struct s_saved_game_header
 {
