@@ -36,18 +36,23 @@ bool function_29d6c0(vector3f *arg_0, s_reference arg_1)
 	return function_2105b0(local_0->field_c, &local_1, arg_0);
 }
 
+PRIVATE __forceinline s_pathfinding_edge const *function_29d741(s_pathfinding_data const *arg_0, long arg_1)
+{
+	return &arg_0->edges[arg_1];
+}
+
 // @retail 0x29d740
 bool function_29d740(vector3f *arg_0, s_pathfinding_data const *arg_1, long arg_2)
 {
-	s_pathfinding_edge const *local_0 = &arg_1->edges[arg_2];
-	point3f const *local_1 = &arg_1->vertices[local_0->vertices[0]];
+	bool local_5 = false;
+	s_pathfinding_edge const *local_0 = function_29d741(arg_1, arg_2);
 	point3f const *local_2 = &arg_1->vertices[local_0->vertices[1]];
+	point3f const *local_1 = &arg_1->vertices[local_0->vertices[0]];
 	real local_3 = local_2->x - local_1->x;
 	real local_4 = local_2->y - local_1->y;
 	arg_0->i = local_4;
 	arg_0->j = 0.0f - local_3;
 	arg_0->k = 0.0f;
-	bool local_5 = false;
 	if (function_30bf0(arg_0) > 0.0f)
 		local_5 = true;
 	return local_5;
