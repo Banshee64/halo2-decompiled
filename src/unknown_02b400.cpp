@@ -484,3 +484,81 @@ void function_2fd90(s_2f800_view const *view, box2f const *clip, byte *out)
     matrix[11] = -1.0f;
     matrix[14] = c;
 }
+
+struct s_view_setup;
+struct s_view_collection_1733e0;
+struct s_predicted_resource_block;
+struct s_planar_camera_source;
+struct s_planar_camera
+{
+    bool disabled;
+    byte unknown01[3];
+    transform4x3f inverse;
+    transform4x3f matrix;
+    bool has_plane;
+    byte unknown6d[3];
+    real offset;
+    plane3f plane;
+    byte unknown84[4];
+    real depth;
+    bool valid;
+    byte unknown8d[3];
+    byte frustum[0x108];
+    long count;
+    point2f corners[4];
+};
+void function_441b0(s_planar_camera_source const *source, s_planar_camera *state, byte const *view);
+void function_1726d0(s_view_setup *view, point3f const *position, vector3f const *forward, vector3f const *up);
+void __stdcall function_173130(long camera_count, byte *cameras, long cluster_index, s_view_collection_1733e0 *collection);
+bool function_16e5e0(s_predicted_resource_block const *block, short mode);
+void function_146de0(void);
+void function_146b80(void);
+extern byte *g_510c44;
+extern bool g_510c48;
+
+// @retail 0x3f660
+void function_3f660(transform4x3f const *matrix)
+{
+    bool restore = g_47989c != NULL;
+    if (restore)
+        function_146de0();
+    byte *collection = g_510c44;
+    g_510c48 = true;
+    byte setup[0x54];
+    function_1726d0((s_view_setup *)setup, (point3f const *)((byte const *)matrix + 4),
+        (vector3f const *)((byte const *)matrix + 0x1c), (vector3f const *)((byte const *)matrix + 0x28));
+    s_2f970_view view;
+    function_2f800((s_2f800_source const *)setup, NULL, NULL, (s_2f800_view *)&view);
+    view.top = view.left = 0;
+    view.bottom = 480;
+    view.right = 640;
+    view.outer_top = view.top;
+    view.outer_left = view.left;
+    view.outer_bottom = view.bottom;
+    view.outer_right = view.right;
+    view.outer_left = (short)(view.outer_left + 48.0f);
+    view.outer_top = (short)(view.outer_top + 48.0f);
+    view.outer_right = (short)(view.outer_right - 48.0f);
+    view.outer_bottom = (short)(view.outer_bottom - 48.0f);
+    view.crop = false;
+    view.center_x = view.center_y = 0.0f;
+    view.offset = false;
+    view.offset_x = view.offset_y = 0.0f;
+    box2f clip;
+    function_2f970(&view, (real *)&clip);
+    byte projection[0xc0];
+    function_2fd90((s_2f800_view *)&view, &clip, projection);
+    s_planar_camera camera;
+    function_441b0((s_planar_camera_source const *)&view, &camera, projection);
+    function_173130(1, (byte *)&camera, *(short *)(setup + 0x10), (s_view_collection_1733e0 *)collection);
+    byte *structure = (byte *)g_4e0348;
+    for (long i = 0; i < *(short *)(collection + 0xa6c); ++i)
+    {
+        short cluster = *(short *)(collection + 0xa6e + i * 0x1a);
+        byte *entry = *(byte **)(structure + 0xa0) + cluster * 0xb0;
+        function_16e5e0((s_predicted_resource_block *)(entry + 0x84), 0);
+    }
+    g_510c48 = false;
+    if (restore)
+        function_146b80();
+}

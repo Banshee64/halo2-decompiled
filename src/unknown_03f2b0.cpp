@@ -1105,3 +1105,478 @@ void function_4ff50(byte const *definition, byte const *state, bool facing, real
         }
     }
 }
+
+
+struct s_137801;
+long function_137650(long model_index, long lod, byte const *permutations);
+void function_137800(long object_index, long model_index, transform4x3f const *nodes,
+    byte const *permutations, long lod, bool alternate, s_137801 *result);
+
+struct s_matrix_workspace
+{
+    long size;
+    byte data[0x27000];
+};
+s_matrix_workspace g_487b18;
+
+// @retail 0x3e380
+long function_3e380(long model_index, byte lod, transform4x3f const *nodes,
+    byte const *permutations, long *node_count, long extra_bytes)
+{
+    long count = function_137650(model_index, lod, permutations);
+    *node_count = count;
+    long bytes = 0;
+    if (count > 0)
+        bytes = count * 48 + 0x44;
+    bytes += extra_bytes;
+    long remainder = bytes % 4;
+    if (remainder)
+        bytes = bytes - remainder + 4;
+    long result = NONE;
+    long size = g_487b18.size + bytes;
+    if (size <= 0x27000)
+    {
+        result = g_487b18.size & 0x0fffffff;
+        g_487b18.size = size;
+        if (result != NONE)
+        {
+            s_137801 *out = NULL;
+            if (result >= 0)
+                out = (s_137801 *)(g_487b18.data + (result & 0x0fffffff));
+            function_137800(NONE, model_index, nodes, permutations, lod, false, out);
+        }
+    }
+    return result;
+}
+
+#include "unknown_030290.h"
+
+struct s_bit_vector_pool;
+dword *function_1332b0(long bit_count, s_bit_vector_pool *data);
+long function_016ae0(real value);
+void function_30290(point3f const *point, s_view const *view, s_camera const *camera, real radius, box2f *bounds);
+extern point3f g_4b9da0;
+extern s_camera g_4b9e14;
+extern short g_4b9dd0, g_4b9dd2, g_4b9dd4, g_4b9dd6;
+byte g_509410, g_509411;
+
+struct s_42760_entry
+{
+    real depth;
+    point3f position;
+    byte unknown10[0x10];
+    long type;
+};
+extern s_42760_entry g_4c152c[32];
+extern long g_4c19ac;
+
+// @retail 0x2cbf0
+short function_2cbf0(long geometry, byte category, long instance, dword flags,
+    long tag, dword key, long material, byte *object, short mask, byte mode,
+    void *context, long object_index, real intensity, long group, long group_type,
+    bool outside, bool whole, bool first_component, real first_opacity,
+    real second_opacity, real depth, byte level, point3f const *position, real radius)
+{
+    long index = g_4c0b78.current++;
+    if (index >= 850 || geometry == NONE)
+    {
+        --g_4c0b78.current;
+        return NONE;
+    }
+    s_44940_entry *entry = &g_4ba138[(short)index];
+    entry->tag = tag;
+    entry->unknown08 = key;
+    entry->unknown00 = (entry->unknown00 & 0xe0000000) | (flags & 0x1fffff) | ((dword)category << 21);
+    entry->flags = (entry->flags & 0xe0000000) |
+        (((((instance & 0x7ff) << 9) | (geometry & 0x1ff)) << 5) | (group & 0x1f)) << 4 |
+        (material & 0xf);
+    *(byte **)entry->unknown10 = object;
+    *(void **)(entry->unknown10 + 12) = context;
+    entry->unknown10[10] = mode;
+    entry->unknown10[11] = (entry->unknown10[11] & 0xf0) | (level & 15);
+    long group_index = (entry->flags >> 4) & 31;
+    if (group_index != 31)
+    {
+        if ((dword)g_4c19ac <= (dword)(group_index + 1))
+            g_4c19ac = group_index + 1;
+        g_4c152c[group_index].type = group_type;
+    }
+    group_index = (entry->flags >> 4) & 31;
+    if (group_index != 31 && object_index != NONE)
+    {
+        s_42760_entry *group_entry = &g_4c152c[group_index];
+        group_entry->depth = depth;
+        group_entry->position = *position;
+        group_entry->type = group_type;
+        box2f *bounds = (box2f *)group_entry->unknown10;
+        if (outside || g_509410)
+        {
+            bounds->x0 = bounds->y0 = -3.4028234663852886e+38f;
+            bounds->x1 = bounds->y1 = 3.4028234663852886e+38f;
+        }
+        else if (whole || g_509411)
+        {
+            bounds->x0 = bounds->y0 = 3.4028234663852886e+38f;
+            bounds->x1 = bounds->y1 = -3.4028234663852886e+38f;
+        }
+        else
+        {
+            s_view view;
+            view.position = g_4b9da0;
+            view.bounds.top = g_4b9dd0;
+            view.bounds.left = g_4b9dd2;
+            view.bounds.bottom = g_4b9dd4;
+            view.bounds.right = g_4b9dd6;
+            s_camera camera = g_4b9e14;
+            function_30290(position, &view, &camera, radius, bounds);
+        }
+    }
+    *(short *)(entry->unknown10 + 8) = mask;
+    g_4c0b78.unknown0c[850 + index] = 0xff;
+    if (object_index != NONE && g_4c0b78.count < 192)
+    {
+        g_4c0b78.unknown0c[850 + index] = (byte)g_4c0b78.count;
+        ((long *)(g_4c0b78.unknown0c + 1700))[g_4c0b78.count] = object_index;
+        ++g_4c0b78.count;
+    }
+    real scaled = intensity * 0.25f;
+    long value;
+    if (function_016ae0(scaled) < 0) value = 0;
+    else if (function_016ae0(scaled) > 255) value = 255;
+    else value = function_016ae0(scaled);
+    g_4c0b78.unknown0c[index] = (byte)value;
+    if (object && object_index != NONE)
+    {
+        real opacity = (first_component ? first_opacity : second_opacity) * 256.0f;
+        long amount = (long)opacity;
+        if (amount < 0) amount = 0;
+        else if (amount > 255) amount = 255;
+        object[first_component ? 0x76 : 0x77] = (byte)amount;
+    }
+    byte *section = (byte *)function_44940((short)index, (bool)((flags >> 12) & 1));
+    entry->flags = (entry->flags & 0x1fffffff) | ((dword)*(word *)(section + 0x14) << 29);
+    long object_tag = object ? *(long *)object : NONE;
+    long kind = function_2d000(object_tag, entry->tag, (entry->flags >> 18) & 0x7ff);
+    entry->unknown00 = (entry->unknown00 & 0x1fffffff) | ((dword)kind << 29);
+    bool is_instance = (bool)((entry->unknown00 >> 12) & 1);
+    if (!function_449e0((short)index, entry->tag == NONE, is_instance))
+    {
+        --g_4c0b78.current;
+        return NONE;
+    }
+    s_2cb30_state *state = g_4c0b78.state;
+    if (!state->active)
+        ++g_4c0b78.previous;
+    if (entry->unknown00 & 0x40)
+    {
+        section = (byte *)function_44940((short)index, is_instance);
+        *(void **)(entry->unknown10 + 4) = NULL;
+        word bits = *(word *)(section + 0x24);
+        if (bits > 0)
+            *(void **)(entry->unknown10 + 4) = function_1332b0(bits, (s_bit_vector_pool *)state);
+        if (!*(void **)(entry->unknown10 + 4))
+            entry->unknown00 = (entry->unknown00 & ~0x40) | 1;
+    }
+    return (short)index;
+}
+
+
+struct s_frustum_set_view;
+bool function_165010(s_frustum_set_view const *set, long section_index, point3f const *center, real radius, bool *contained);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+struct s_visibility_plane_query
+{
+    long count;
+    plane3f *planes;
+};
+struct s_visibility_query_list
+{
+    dword *indices;
+    long count;
+    long capacity;
+};
+void __cdecl function_2dd930(void *data, s_visibility_plane_query const *query,
+    s_visibility_query_list *second, s_visibility_query_list *first);
+template<long N> struct s_visibility_query_storage
+{
+    s_visibility_query_list list;
+    dword indices[N];
+};
+struct s_visibility_query_workspace
+{
+    s_visibility_query_storage<1024> first, second;
+    s_visibility_query_storage<2048> third;
+    union
+    {
+        s_visibility_query_storage<2048> fourth;
+        transform4x3f transforms[255];
+    };
+};
+
+PRIVATE __forceinline void release_visibility_list(s_visibility_query_list *list)
+{
+    if (list->capacity >= 0)
+        g_480118->allocate((long)list->indices, (list->capacity & 0x7fffffff) * 4, 0x12);
+}
+
+// @retail 0x44e90
+void __stdcall function_44e90(short entry_index, short section_index)
+{
+    (void)&entry_index; (void)&section_index;
+    s_visibility_query_workspace workspace;
+    s_44940_entry *entry = &g_4ba138[entry_index];
+    byte *geometry = visible_entry_geometry(entry);
+    byte *views = *(byte **)g_4c0b78.state->unknown00;
+    byte *view_ranges = views + section_index * 0x1a + 0xa6e;
+    if (*(long *)(geometry + 0x30) > 0)
+    {
+        bool parts = !g_4c0b78.state->active && (entry->unknown00 & 0x1000) &&
+            *(long *)(geometry + 0x30) > 2 * *(long *)(geometry + 8);
+        byte *query_data = *(byte **)(geometry + 0x2c);
+        if (parts)
+            query_data += (*(long *)(query_data + 0x20) + 15) & ~15;
+        workspace.first.list.indices = workspace.first.indices;
+        workspace.first.list.count = 0;
+        workspace.first.list.capacity = (long)0x80000400;
+        workspace.second.list.indices = workspace.second.indices;
+        workspace.second.list.count = 0;
+        workspace.second.list.capacity = (long)0x80000400;
+        workspace.third.list.indices = workspace.third.indices;
+        workspace.third.list.count = 0;
+        workspace.third.list.capacity = (long)0x80000800;
+        workspace.fourth.list.indices = workspace.fourth.indices;
+        workspace.fourth.list.count = 0;
+        workspace.fourth.list.capacity = (long)0x80000800;
+        __declspec(align(16)) plane3f planes[6];
+        s_visibility_plane_query query = { 6, planes };
+        for (long view = 0; view < *(short *)views; ++view)
+        {
+            for (long i = 0; i < ((short *)view_ranges)[view + 1]; ++i)
+            {
+                long frustum_index = *(short *)(view_ranges + 0xe + view * 2) + i;
+                plane3f const *source = (plane3f *)(views + 0x1974 + frustum_index * 0x108 + 0x78);
+                transform4x3f const *transform = *(transform4x3f **)(entry->unknown10 + 0xc);
+                for (long j = 0; j < 6; ++j)
+                {
+                    plane3f p = source[j];
+                    if (transform)
+                    {
+                        if (transform->scale != 0.0f)
+                        {
+                            p.d -= transform->position.y * p.j + transform->position.z * p.k + transform->position.x * p.i;
+                            if (transform->scale != 1.0f)
+                                p.d /= transform->scale;
+                        }
+                        vector3f n = p.n;
+                        if (transform->scale != 1.0f)
+                        {
+                            real inverse = 1.0f / transform->scale;
+                            n.i *= inverse; n.j *= inverse; n.k *= inverse;
+                        }
+                        p.i = transform->forward.k * n.k + transform->forward.j * n.j + transform->forward.i * n.i;
+                        p.j = transform->left.k * n.k + transform->left.j * n.j + transform->left.i * n.i;
+                        p.k = transform->up.k * n.k + transform->up.j * n.j + transform->up.i * n.i;
+                    }
+                    p.d = -p.d;
+                    planes[j] = p;
+                }
+                function_2dd930(query_data, &query, &workspace.first.list, &workspace.second.list);
+            }
+            if (parts)
+                function_45a80(entry_index, true, (s_geometry_visibility_list *)&workspace.second.list,
+                    (s_geometry_visibility_list *)&workspace.first.list);
+            else
+                function_458d0(entry_index, true, (s_geometry_visibility_list *)&workspace.second.list,
+                    (s_geometry_visibility_list *)&workspace.first.list);
+        }
+        release_visibility_list(&workspace.fourth.list);
+        release_visibility_list(&workspace.third.list);
+        release_visibility_list(&workspace.first.list);
+        release_visibility_list(&workspace.second.list);
+    }
+    else
+    {
+        byte *tag = g_4e3b44[entry->tag & 0xffff].bytes;
+        long object_index = **(long **)entry->unknown10;
+        byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+        long node_count = *(short *)(object + 0x114) / sizeof(transform4x3f);
+        transform4x3f const *nodes = (transform4x3f *)(object + *(short *)(object + 0x116));
+        for (long i = 0; i < node_count; ++i)
+            function_142a60(&nodes[i], (transform4x3f *)(*(byte **)(tag + 0x4c) + i * 0x60 + 0x28), &workspace.transforms[i]);
+        dword *visible = *(dword **)(entry->unknown10 + 4);
+        for (long part = 0; part < *(long *)(geometry + 8); ++part)
+        {
+            dword bit = 1 << (part & 31);
+            if (!(visible[part >> 5] & bit))
+            {
+                word bound_index = *(word *)(*(byte **)(geometry + 0xc) + part * 8 + 4);
+                byte *bound = *(byte **)(geometry + 0x14) + bound_index * 20;
+                transform4x3f const *transform = &workspace.transforms[bound[0x10]];
+                point3f local = *(point3f *)bound;
+                if (transform->scale != 1.0f)
+                {
+                    local.x *= transform->scale;
+                    local.y *= transform->scale;
+                    local.z *= transform->scale;
+                }
+                point3f center;
+                center.x = transform->up.i * local.z + transform->left.i * local.y + transform->forward.i * local.x + transform->position.x;
+                center.y = transform->up.j * local.z + transform->left.j * local.y + transform->forward.j * local.x + transform->position.y;
+                center.z = transform->up.k * local.z + transform->left.k * local.y + transform->forward.k * local.x + transform->position.z;
+                bool contained = false;
+                if (function_165010((s_frustum_set_view *)views, section_index, &center, *(real *)(bound + 0xc), &contained))
+                {
+                    entry->unknown00 |= 1;
+                    visible[part >> 5] |= bit;
+                }
+            }
+        }
+    }
+}
+
+
+transform4x3f *function_b8c00(long object_index, long *node_count);
+point3f *function_142700(transform4x3f const *matrix, point3f const *point, point3f *out);
+struct s_visibility_sphere_query
+{
+    point3f center;
+    real radius;
+};
+void __cdecl function_2ddbd0(void *data, s_visibility_sphere_query const *query,
+    s_visibility_query_list *second, s_visibility_query_list *first);
+
+// @retail 0x45560
+void function_45560(short entry_index, point3f const *center, real radius)
+{
+    (void)&center; (void)&radius;
+    s_44940_entry *entry = &g_4ba138[entry_index];
+    byte *geometry = visible_entry_geometry(entry);
+    point3f query_center = *center;
+    if (geometry)
+    {
+        if (*(long *)(geometry + 0x30) > 0)
+        {
+            s_visibility_query_storage<512> first, second;
+            first.list.indices = first.indices;
+            first.list.count = 0;
+            first.list.capacity = (long)0x80000200;
+            second.list.indices = second.indices;
+            second.list.count = 0;
+            second.list.capacity = (long)0x80000200;
+            __declspec(align(16)) s_visibility_sphere_query query;
+            query.center = *center;
+            query.radius = radius;
+            function_2ddbd0(*(void **)(geometry + 0x2c), &query, &first.list, &second.list);
+            function_458d0(entry_index, true, (s_geometry_visibility_list *)&second.list,
+                (s_geometry_visibility_list *)&first.list);
+            release_visibility_list(&first.list);
+            release_visibility_list(&second.list);
+        }
+        else
+        {
+            dword *visible = *(dword **)(entry->unknown10 + 4);
+            long cached_node = NONE;
+            transform4x3f transform;
+            for (long i = 0; i < *(long *)(geometry + 8); ++i)
+            {
+                dword bit = 1 << (i & 31);
+                if (!(visible[i >> 5] & bit))
+                {
+                    word bound_index = *(word *)(*(byte **)(geometry + 0xc) + i * 8 + 4);
+                    if (bound_index == 0xffff)
+                    {
+                        entry->unknown00 |= 1;
+                        visible[i >> 5] |= bit;
+                    }
+                    else
+                    {
+                        byte *bound = *(byte **)(geometry + 0x14) + bound_index * 20;
+                        point3f position = *(point3f *)bound;
+                        if (entry->tag != NONE)
+                        {
+                            long object_index = **(long **)entry->unknown10;
+                            if (object_index != NONE)
+                            {
+                                long node = bound[0x10];
+                                if (node != NONE && node != cached_node)
+                                {
+                                    long count = 0;
+                                    transform4x3f *nodes = function_b8c00(object_index, &count);
+                                    if (count)
+                                    {
+                                        byte *tag = g_4e3b44[entry->tag & 0xffff].bytes;
+                                        function_142a60(&nodes[node], (transform4x3f *)(*(byte **)(tag + 0x4c) + node * 0x60 + 0x28), &transform);
+                                        function_142700(&transform, center, &query_center);
+                                        cached_node = node;
+                                    }
+                                }
+                            }
+                        }
+                        real dx = query_center.x - position.x;
+                        real dy = query_center.y - position.y;
+                        real dz = query_center.z - position.z;
+                        real combined_radius = *(real *)(bound + 0xc) + radius;
+                        if (combined_radius * combined_radius >= dz * dz + dy * dy + dx * dx)
+                        {
+                            entry->unknown00 |= 1;
+                            visible[i >> 5] |= bit;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// @retail 0x44720
+void function_44720(void)
+{
+    s_2cb30_state *state = g_4c0b78.state;
+    word end = (word)(state->active ? g_4c0b78.current : g_4c0b78.previous);
+    word index = (word)(state->active ? g_4c0b78.previous : 0);
+    while (index < end)
+    {
+        s_44940_entry *entry = &g_4ba138[(short)index];
+        if (!(entry->unknown00 & 1) && (entry->unknown00 & 0x40))
+        {
+            if (*(long *)((byte *)state + 0x2a7c) == 1)
+            {
+                point3f center = *(point3f *)((byte *)state + 0x2a68);
+                transform4x3f const *transform = *(transform4x3f **)(entry->unknown10 + 0xc);
+                if (transform)
+                {
+                    if (transform->scale == 0.0f)
+                        center.x = center.y = center.z = 0.0f;
+                    else
+                    {
+                        point3f local;
+                        local.x = center.x - transform->position.x;
+                        local.y = center.y - transform->position.y;
+                        local.z = center.z - transform->position.z;
+                        if (transform->scale != 1.0f)
+                        {
+                            real inverse = 1.0f / transform->scale;
+                            local.x *= inverse; local.y *= inverse; local.z *= inverse;
+                        }
+                        center.x = transform->forward.k * local.z + transform->forward.j * local.y + transform->forward.i * local.x;
+                        center.y = transform->left.k * local.z + transform->left.j * local.y + transform->left.i * local.x;
+                        center.z = transform->up.k * local.z + transform->up.j * local.y + transform->up.i * local.x;
+                    }
+                }
+                function_45560((short)index, &center, *(real *)((byte *)state + 0x2a74));
+            }
+            else if (entry->unknown00 & 8)
+            {
+                long section = *(short *)(entry->unknown10 + 8);
+                dword const *words = (dword const *)((byte *)g_4c0b78.state + (section + 0xa6) * 16);
+                s_word_bit_iterator iterator = { 4, 0, words[0], words };
+                long visible;
+                while (function_44690(&iterator, &visible))
+                    function_44e90((short)index, (short)visible);
+            }
+            else
+                function_44e90((short)index, *(short *)(entry->unknown10 + 8));
+        }
+        ++index;
+    }
+}

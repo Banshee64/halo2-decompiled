@@ -14,11 +14,6 @@ struct s_bitmap_data;
 /* unowned: the weapon's procedural node adjustments */
 struct s_16760c_render_model;
 
-/* takes the camera matrix in eax in retail */
-// @stub 0x3f660
-void function_3f660(transform4x3f const *matrix)
-{
-}
 
 // @stub 0x16ebf0
 void function_16ebf0(long user_index)
