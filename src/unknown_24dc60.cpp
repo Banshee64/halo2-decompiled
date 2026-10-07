@@ -24,6 +24,15 @@ struct s_24dc61
 
 bool function_19f240(long *arg_0);
 
+PRIVATE __forceinline bool function_24dc61(short arg_0, short arg_1)
+{
+	bool local_0 = false;
+	c_engine_peer *local_1 = g_55e4d0[g_4e9ae8->engine_index];
+	if (local_1)
+		local_0 = local_1->p27(arg_0, arg_1);
+	return local_0;
+}
+
 class c_24dc60
 {
 public:
@@ -49,10 +58,7 @@ void c_24dc60::function_24dc60(long arg_0)
 				{
 					if (local_2.field_8 != local_0)
 					{
-						short local_3 = local_2.field_0->field_c0;
-						short local_5 = local_1->field_c0;
-						c_engine_peer *local_6 = g_55e4d0[g_4e9ae8->engine_index];
-						if (!local_6 || !local_6->p27(local_3, local_5))
+						if (!function_24dc61(local_2.field_0->field_c0, local_1->field_c0))
 						{
 							s_marker_list local_4;
 							if (function_162550(local_2.field_8, &local_4))

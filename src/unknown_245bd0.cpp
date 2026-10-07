@@ -626,7 +626,7 @@ struct s_object_2470e0
 };
 
 // @retail 0x2470e0
-vector3f *function_2470e0(s_object_2470e0 *object)
+inline vector3f *function_2470e0(s_object_2470e0 *object)
 {
 	return &object->vector9c;
 }

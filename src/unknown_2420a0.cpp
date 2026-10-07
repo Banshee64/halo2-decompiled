@@ -1195,9 +1195,9 @@ long c_game_engine_markers::v25(long ticks, bool a, bool b)
 	{
 		s_slot_table *g;
 
-		switch (a)
+		switch (!a)
 		{
-		case true:
+		case false:
 		{
 			g = g_51ec80;
 			if (b && (ctf_options()->flags22c.flags & 2))

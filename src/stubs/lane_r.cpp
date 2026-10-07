@@ -16,8 +16,6 @@ struct s_effect_object_placement;
 struct s_effect_owner;
 struct s_effect_source;
 
-// @stub 0x248970
-void function_248970(s_particle_location_datum *particle_location, bool field_b4, real unknown, s_particle_system_datum *particle_system, real *values, transform4x3f const *matrix) { }
 
 // @stub 0x3ddd0
 long __stdcall function_3ddd0(long object_index) { return NONE; }
