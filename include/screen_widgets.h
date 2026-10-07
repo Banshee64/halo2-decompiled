@@ -408,6 +408,7 @@ void delegate_register(s_list_head *list, c_list_item_delegate *delegate);
 
 /* a widget's text (vtable 0x4576d0): slot 1 sets the string, slot 2 returns
    it */
+struct short_rectangle2d;
 class c_class_22cc8e
 {
 public:
@@ -420,6 +421,8 @@ public:
 	void update_length();
 	/* sets the text and how it shows (unknown_22e27b.cpp) */
 	void setup(word *text, long value04, color3f const *color, short value14, long value18, long value1c, long value24);
+	void draw(short_rectangle2d const *bounds, short_rectangle2d const *clip,
+		real depth, real alpha, short_rectangle2d const *frame);
 
 	long value04;
 	color3f color;
@@ -805,6 +808,7 @@ class c_class_2b01eb : public c_class_1a2c81
 {
 public:
 	c_class_2b01eb(s_bitmap_block *definition);
+	virtual void v4(long frame);
 
 	s_bitmap_block *definition;
 	long start_time;
