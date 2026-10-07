@@ -18,13 +18,16 @@ PRIVATE void csstrncpy(char *destination, char const *source, long size)
 	destination[size - 1] = 0;
 }
 
+static __forceinline void function_123c21(byte *arg_0)
+{
+	XPhysicalProtect(arg_0, 0x3be000, PAGE_READWRITE);
+	XPhysicalProtect(arg_0 + 0x3be000, 0x40000, PAGE_READWRITE | PAGE_WRITECOMBINE);
+}
+
 // @retail 0x123c20
 void arena_initialize_for_new_map(void)
 {
-	byte *base_address = game_state_globals.base_address;
-
-	XPhysicalProtect(base_address, 0x3be000, PAGE_READWRITE);
-	XPhysicalProtect(base_address + 0x3be000, 0x40000, PAGE_READWRITE | PAGE_WRITECOMBINE);
+	function_123c21(game_state_globals.base_address);
 
 	game_state_globals.flag1 = true;
 	game_state_globals.flag2 = false;

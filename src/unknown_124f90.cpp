@@ -211,9 +211,10 @@ long sound_definition_random_gain(s_sound_definition const *definition)
 // @retail 0x1252f0
 real sound_definition_random_pitch(s_sound_definition const *definition, dword *seed)
 {
+	real local_0;
 	s_sound_class *sound_class = function_xaa8231(definition->class_index);
-
-	return function_259d0(seed, __FILE__, __LINE__, (real)sound_class->pitch_lower, (real)sound_class->pitch_upper);
+	local_0 = function_259d0(seed, __FILE__, __LINE__, (real)sound_class->pitch_lower, (real)sound_class->pitch_upper);
+	return local_0;
 }
 
 /* ---- the sound system's globals ---- */
@@ -719,8 +720,8 @@ void function_126960(s_sound_playback *sound)
 // @retail 0x129fe0
 bool sound_voice_promotion_enabled(short voice_index)
 {
-	long sound_index = g_4e6378[voice_index].sound_index;
 	bool result = true;
+	long sound_index = g_4e6378[voice_index].sound_index;
 
 	if (sound_index != NONE)
 	{
@@ -1351,21 +1352,21 @@ struct s_sound_controller_view
 void looping_sound_controller_release(long index);
 
 /* deletes a playing sound, letting go of its looping sound's controller */
+#pragma inline_depth(0)
 // @retail 0x127390
 void sound_playback_delete(long sound_index)
 {
 	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
-
 	if (sound->effect_index != NONE)
 	{
 		s_sound_controller_view *controller = (s_sound_controller_view *)((s_record_pool *)g_51ebd8)->data + (sound->effect_index & 0xffff);
-
 		if (sound->unknown03 == NONE && controller->unknown04 != NONE)
 			controller->playing_count = (controller->playing_count - 1) & 0x7f;
 		looping_sound_controller_release(sound->effect_index);
 	}
 	record_pool_release(g_4e637c, sound_index);
 }
+#pragma inline_depth(255)
 
 /* stops a playing sound: frees its voice, lets go of its chunk, tells its
    source why it stopped and deletes it */
@@ -2408,6 +2409,7 @@ void function_21f5a0(void);
 void function_21d4d0(void);
 
 /* pauses or resumes the voices and impulse buffers together */
+#pragma inline_depth(0)
 // @retail 0x125a90
 void function_125a90(long value)
 {
@@ -2435,6 +2437,7 @@ void function_125a90(long value)
 		SOUND_SYSTEM->changing_pause = false;
 	}
 }
+#pragma inline_depth(255)
 
 /* clears the effects and stops sounds in the initial playback state */
 // @retail 0x126400

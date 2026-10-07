@@ -1583,9 +1583,15 @@ bool c_breakable_surface_group_entity_definition::v20(s_entity_slot *entity, dwo
 				if (pair->a != NONE || pair->b != pair->a)
 				{
 					if (!function_184000(pair->b, pair->a))
-						*mask |= 1 << i;
+					{
+						dword local_0 = *mask;
+						*mask = local_0 | (1 << i);
+					}
 					else
-						*mask &= ~(1 << i);
+					{
+						dword local_0 = *mask;
+						*mask = local_0 & ~(1 << i);
+					}
 				}
 			}
 		}

@@ -76,7 +76,8 @@ struct s_bitmap_group_view
 	s_bitmap_view *bitmaps;
 };
 
-void function_12360(s_bitmap_view *bitmap, real priority);
+struct D3DTexture;
+D3DTexture *function_12360(s_bitmap_view *bitmap, real priority);
 long function_11cae0(void);
 byte __stdcall function_219070(long set_index);
 /* unknown_189010.cpp */

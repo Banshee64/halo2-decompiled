@@ -3,6 +3,8 @@
 #include "globals.h"
 #include <xmmintrin.h>
 #include <string.h>
+#include <math.h>
+#include "effects.h"
 
 struct input_mapping_entry
 {
@@ -29,6 +31,129 @@ struct input_bit_vectors
 };
 
 input_bit_vectors g_485058;
+
+struct s_render_state_source;
+struct s_01b050_shader_state;
+struct s_18d70_state;
+struct s_shader_constant_state;
+void function_16f60(byte *state, word const *range);
+void function_17000(byte *state, word const *range);
+void __stdcall function_18900(s_render_state_source const *state, word const *range);
+void function_189a0(byte const *state, word const *range);
+void function_1ba00(byte *state);
+void function_18a90(byte *state, word const *descriptor);
+void function_18d70(s_18d70_state *state);
+void function_18e80(s_shader_constant_state *state);
+void __stdcall function_1b0a0(byte *state);
+void function_1cf50(void);
+void function_1b050(s_01b050_shader_state *state);
+void function_17170(byte *state, word const *range);
+void function_174d0(byte *state, long group, long stage, long pass, long entry);
+void function_17420(byte *state, long stage, long group, long pass, long variant);
+void function_1ae70(byte *state);
+void __stdcall function_19be0(byte *state, word const *range);
+void function_19ca0(byte *state, word const *range);
+void __stdcall function_1a170(byte *state, word const *range);
+void __stdcall function_1ab50(byte *state, word const *range);
+void __stdcall function_18ee0(byte *state);
+
+PRIVATE inline byte const *material_parameters(long tag)
+{
+    dword group = ((dword *)g_4e3b44)[(short)tag * 4];
+    if (group == 0x5052544d || group == 0x70727433)
+        return (byte const *)function_137bd0(tag)->function_x947334();
+    return *(byte **)(g_4e3b44[tag & 0xffff].bytes + 0x24);
+}
+
+// @retail 0x16b90
+void __stdcall function_16b90(byte *state, long tag, long first, long second,
+    long third, long fourth, real scale)
+{
+    byte const *parameters = material_parameters(tag);
+    byte *definition = g_4e3b44[*(long const *)parameters & 0xffff].bytes;
+    byte *tables = *(byte **)(definition + 0x5c);
+    byte *entry = *(byte **)(tables + 4) + first * 10;
+    word packed = *(word *)entry;
+    word next = ((word *)*(byte **)(tables + 0xc))[(packed & 0x1ff) + second];
+    byte *pass = *(byte **)(tables + 0x14) + ((next & 0x1ff) + third) * 10;
+    byte *pass_definition = g_4e3b44[*(long *)(pass + 4) & 0xffff].bytes;
+    byte *records = *(byte **)(pass_definition + 0x20);
+    byte *record = *(byte **)(records + 4) + fourth * 0x132;
+    bool changed = record != *(byte **)(state + 0x24) || records != *(byte **)(state + 0x20);
+    long previous = *(long *)state;
+    bool different_tag = tag != previous;
+    *(long *)(state + 4) = previous;
+    *(long *)state = tag;
+    real inverse = scale > 0.0f ? 1.0f / scale : 100000.0f;
+    *(real *)(state + 0x28) = inverse;
+    *(real *)(state + 0x2c) = (real)(log((double)inverse) * 0.6931471824645996f);
+    *(dword *)(state + 0x58) = 0;
+    state[0x1514] = false;
+    *(dword *)(state + 0x1518) = 0;
+    *(dword *)(state + 0x151c) = 0;
+    if (changed || different_tag)
+    {
+        parameters = material_parameters(tag);
+        *(byte const **)(state + 0xc) = parameters;
+        definition = g_4e3b44[*(long const *)parameters & 0xffff].bytes;
+        tables = *(byte **)(definition + 0x5c);
+        *(byte **)(state + 0x10) = tables;
+        entry = *(byte **)(tables + 4) + first * 10;
+        *(byte **)(state + 0x14) = entry;
+        packed = *(word *)entry;
+        next = ((word *)*(byte **)(tables + 0xc))[(packed & 0x1ff) + second];
+        pass = *(byte **)(tables + 0x14) + ((next & 0x1ff) + third) * 10;
+        *(byte **)(state + 0x18) = pass;
+        byte *range = *(byte **)(tables + 0x1c) + ((*(word *)(pass + 8) & 0x1ff) + fourth) * 6;
+        *(byte **)(state + 0x1c) = range;
+        *(dword *)(state + 0x30) |= g_485058.v6c[0];
+        *(dword *)(state + 0x34) |= g_485058.v6c[1];
+        *(dword *)(state + 0x38) |= g_485058.v9c[0];
+        *(dword *)(state + 0x3c) |= g_485058.v9c[1];
+        *(dword *)(state + 0x40) |= g_485058.v5c;
+        function_16f60(state, (word const *)range);
+        function_17000(state, (word const *)(range + 4));
+        if (changed)
+        {
+            byte *old = *(byte **)(state + 0x24);
+            if (old && *(byte **)(state + 0x20))
+                function_18900((s_render_state_source *)state, (word const *)(old + 0x11c));
+            *(byte **)(state + 0x24) = record;
+            *(byte **)(state + 0x20) = records;
+            *(dword *)(state + 0x44) = *(dword *)(record + 0x10c);
+            *(dword *)(state + 0x48) = *(dword *)(record + 0x110);
+            *(dword *)(state + 0x4c) = *(dword *)(record + 0x104);
+            *(dword *)(state + 0x50) = *(dword *)(record + 0x108);
+            *(dword *)(state + 0x54) = *(dword *)(record + 0x114);
+            function_18900((s_render_state_source *)state, (word const *)(record + 2));
+            function_189a0(state, (word const *)(record + 4));
+        }
+    }
+    function_1ae70(state);
+    if (changed || (*(dword *)(state + 0x58) & *(dword *)(state + 0x54)))
+    {
+        record = *(byte **)(state + 0x24);
+        state[0x1514] = true;
+        if (!(record[0xf7] & 0xfe)) memcpy(state + 0x1424, record + 6, 0xf0);
+        else function_1ba00(state);
+    }
+    if (changed || different_tag || (*(dword *)(state + 0x58) & *(dword *)(state + 0x54)))
+        function_17170(state, (word const *)(*(byte **)(state + 0x1c) + 2));
+    function_174d0(state, first, second, third, fourth);
+    record = *(byte **)(state + 0x24);
+    function_18a90(state, (word const *)record);
+    function_19be0(state, (word const *)(record + 0x124));
+    function_19ca0(state, (word const *)(record + 0x122));
+    function_1a170(state, (word const *)(record + 0x11e));
+    function_1ab50(state, (word const *)(record + 0x120));
+    function_17420(state, first, second, third, fourth);
+    function_18d70((s_18d70_state *)state);
+    function_18e80((s_shader_constant_state *)state);
+    function_1b0a0(state);
+    function_1cf50();
+    if (state[0x1514]) function_1b050((s_01b050_shader_state *)state);
+    else function_18ee0(state);
+}
 
 // @retail 0x167a0
 void function_0167a0()

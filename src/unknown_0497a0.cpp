@@ -515,3 +515,74 @@ bool __stdcall function_42cf0(s_ribbon_vertex *vertices, long unknown, s_ribbon_
         vertices[input->vertex_count - 1].color = vertices[input->vertex_count - 2].color = vertices[input->vertex_count - 1].color & 0xffffff;
     return true;
 }
+
+long function_137590(long group_index, short frame_index, short sequence_index);
+struct D3DTexture;
+struct s_bitmap_view;
+D3DTexture *function_12360(s_bitmap_view *bitmap, real priority);
+void function_52d40(long bitmap_index, byte *shader, long count, bool mode);
+bool function_1e5e0(point3f const *position, long size, long a, long b, long c,
+    long d, long e, long f, long g, void const *data);
+
+struct s_43740_input
+{
+    s_ribbon_input vertices;
+    long tag;
+    long bitmap;
+};
+
+// @retail 0x43720
+void __stdcall function_43720(s_43740_input *input)
+{
+    function_52d40(input->bitmap, input->vertices.shader, input->tag, false);
+}
+
+// @retail 0x43740
+void function_43740(s_ribbon_source *source, s_ribbon_definition *definition, short slot)
+{
+    (void)&slot;
+    byte *bytes = (byte *)definition;
+    long tag = *(long *)(bytes + 0x34);
+    if (tag != NONE)
+    {
+        long bitmap = function_137590(tag, *(short *)((byte *)source + 0x18), *(short *)((byte *)source + 0x1a));
+        byte *group = g_4e3b44[tag & 0xffff].bytes;
+        s_bitmap_view *image = (s_bitmap_view *)(*(byte **)(group + 0x48) + bitmap * 0x74);
+        if (function_12360(image, 0.0f))
+        {
+            s_43740_input input;
+            input.vertices.source = source;
+            input.vertices.definition = definition;
+            input.vertices.slot = slot;
+            input.vertices.shader = bytes + 0x3c;
+            input.vertices.normal = *(short *)(bytes + 0x68) != 0;
+            input.vertices.vertex_count = (short)(source->point_count[slot] * 2);
+            input.tag = tag;
+            input.bitmap = bitmap;
+            point3f const *position = (point3f *)(g_4ea940->data + (source->point_index[slot] & 0xffff) * 0x38 + 0x1c);
+            function_1e5e0(position, 0x20, (long)function_43720, (long)function_42cf0,
+                0, 4, 0x28, 0x18, input.vertices.vertex_count, &input);
+        }
+    }
+}
+
+extern s_record_pool *g_4ea944;
+
+// @retail 0x42b20
+void __stdcall function_42b20(dword mask)
+{
+    long index = data_datum_index(g_4ea944, function_16bc00(g_4ea944, 0));
+    while (index != NONE)
+    {
+        s_ribbon_source *source = (s_ribbon_source *)(g_4ea944->data + (index & 0xffff) * 0x48);
+        long tag = *(long *)((byte *)source + 4);
+        s_ribbon_definition *definition = (s_ribbon_definition *)g_4e3b44[tag & 0xffff].bytes;
+        for (short slot = 0; slot < 4; slot++)
+        {
+            if ((mask & (1 << (byte)definition->mode)) && source->point_count[slot] >= 2)
+                function_43740(source, definition, slot);
+        }
+        index = data_datum_index(g_4ea944,
+            data_find_index(g_4ea944, index == NONE ? 0 : (index & 0xffff) + 1));
+    }
+}

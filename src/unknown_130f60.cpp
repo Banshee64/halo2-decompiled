@@ -57,7 +57,8 @@ long function_130f60(s_palette_owner const *owner, long *palette_index)
 		{
 			s_scenario_palette_entry *entry = &scenario->palette[owner->palette_index];
 			*palette_index = owner->palette_index;
-			return entry->tag_index;
+			result = entry->tag_index;
+			goto local_1;
 		}
 	}
 	else
@@ -68,7 +69,8 @@ long function_130f60(s_palette_owner const *owner, long *palette_index)
 			if (entry->tag_index != NONE && !(((s_palette_tag_view *)g_4e3b44[entry->tag_index & 0xffff].bytes)->flags & 0x10))
 			{
 				*palette_index = owner->default_palette_index;
-				return entry->tag_index;
+				result = entry->tag_index;
+			goto local_1;
 			}
 		}
 	}
@@ -88,6 +90,7 @@ long function_130f60(s_palette_owner const *owner, long *palette_index)
 		}
 	}
 
+local_1:
 	return result;
 }
 

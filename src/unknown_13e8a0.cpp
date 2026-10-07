@@ -81,7 +81,11 @@ void function_13eb60(color4f const *color);
 void function_13ec70(color4f const *color)
 {
 	color4f c = *color;
-	if ((c.red > k_maximum_text_brightness) & (c.green > k_maximum_text_brightness) & (c.blue > k_maximum_text_brightness))
+	bool local_1 = true;
+	local_1 &= c.red > k_maximum_text_brightness;
+	local_1 &= c.green > k_maximum_text_brightness;
+	local_1 &= c.blue > k_maximum_text_brightness;
+	if (local_1)
 	{
 		real minimum = c.green > c.blue ? c.blue : c.green;
 		minimum = c.red > minimum ? (c.green > c.blue ? c.blue : c.green) : c.red;
