@@ -414,9 +414,12 @@ void s_animation_state::translation_apply(real_orientation_1ce110 *orientation, 
 			real fraction = channel->get_frame_ratio() * scale;
 
 			point3f *translation = &orientation->translation;
-			real x = translation->x + unknown84.i * fraction;
-			real y = translation->y + unknown84.j * fraction;
-			real z = translation->z + unknown84.k * fraction;
+			real local_0 = *(volatile real const *)&unknown84.i;
+			real local_1 = *(volatile real const *)&unknown84.j;
+			real local_2 = *(volatile real const *)&unknown84.k;
+			real x = translation->x + local_0 * fraction;
+			real y = translation->y + local_1 * fraction;
+			real z = translation->z + local_2 * fraction;
 
 			translation->x = x;
 			translation->y = y;
@@ -993,6 +996,13 @@ bool s_animation_state::initialize(long graph_tag_index, long model_tag_index, b
 extern real_quaternion_transform *g_4687d8;
 
 
+#pragma inline_depth(0)
+PRIVATE __forceinline s_graph_inheritance *function_1cbec1(s_animation_state *arg_0, c_type_709360 arg_1)
+{
+    return arg_0->inheritance_get(arg_1);
+}
+#pragma inline_depth(255)
+
 // @retail 0x1cbec0
 void s_animation_state::animation_transform_get(c_type_709360 animation_id, real seconds,
 	real_quaternion_transform *transform)
@@ -1003,16 +1013,16 @@ void s_animation_state::animation_transform_get(c_type_709360 animation_id, real
 	{
 		return;
 	}
-	function_279d80(graph_get(), animation_id, 1, frame, 1.0f, inheritance_get(animation_id), NULL, transform, true);
+	function_279d80(graph_get(), animation_id, 1, frame, 1.0f, function_1cbec1(this, animation_id), NULL, transform, true);
 }
 
 // @retail 0x1cbf50
 void s_animation_state::animation_matrix_get(c_type_709360 animation_id, real seconds, long unused,
 	transform4x3f *matrix)
 {
-	__declspec(align(16)) real_quaternion_transform transform = *g_4687d8;
 	// Taking the address keeps the unused model argument in its retail stack slot.
 	long const *unused_reference = &unused;
+	__declspec(align(16)) real_quaternion_transform transform = *g_4687d8;
 
 	animation_transform_get(animation_id, seconds, &transform);
 	function_141e10(&matrix->rotation, &transform.rotation);
@@ -1027,6 +1037,7 @@ void s_animation_state::animation_matrix_get(c_type_709360 animation_id, real se
 void s_animation_state::animation_velocity_get(c_type_709360 animation_id, real seconds, real rate, long unused,
 	vector3f *velocity)
 {
+	long const *local_0 = &unused;
 	__declspec(align(16)) real_quaternion_transform previous;
 	__declspec(align(16)) real_quaternion_transform current;
 	real scale;

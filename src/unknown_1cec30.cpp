@@ -86,13 +86,12 @@ void function_1d4360(s_havok_component *component, transform4x3f *volatile resul
 	if (index != NONE)
 	{
 		havok_component_rigid_body_matrix_get(index, component, &matrix);
-		function_1d43d0(component, &matrix, result);
 	}
 	else
 	{
 		function_ba160(component->object_index, &matrix);
-		function_1d43d0(component, &matrix, result);
 	}
+	function_1d43d0(component, &matrix, result);
 }
 
 // @retail 0x1d43d0
@@ -381,6 +380,16 @@ void havok_component_unknown10_expire(s_havok_component *component)
 	component->unknown10 = game_time - ticks + 1;
 }
 
+PRIVATE __forceinline void function_1cf0b1(long arg_0)
+{
+    s_havok_object *local_0 = havok_object_get(arg_0);
+    if (!TEST_FIELD_BIT(local_0->havok_flag))
+    {
+        local_0->havok_flag = 1;
+        (*g_51e9a0)++;
+    }
+}
+
 // @retail 0x1cf0b0
 long havok_component_new(long object_index)
 {
@@ -391,7 +400,7 @@ long havok_component_new(long object_index)
 	{
 		component->initialize(object_index);
 	}
-	havok_object_count(object_index);
+	function_1cf0b1(object_index);
 	return component_index;
 }
 /* the object, its header and definition as 0x1cf8b0 reads them */
@@ -756,15 +765,21 @@ void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_hav
 // @retail 0x1d0e50
 void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_havok_component *component, vector3f const *velocity)
 {
-	if (!TEST_FIELD_BIT(component->flag1) && !havok_component_rigid_body_get(rigid_body_index, component)->m_fixed)
+	s_havok_component *const *local_0 = &component;
+	component = *local_0;
+	if (!TEST_FIELD_BIT(component->flag1))
 	{
-		hkVector4 havok_velocity;
-		hkRigidBody *rigid_body;
+		hkRigidBody *const *local_1 = &component->rigid_bodies.data[rigid_body_index].rigid_body;
+		if (!*(volatile byte const *)&(*local_1)->m_fixed)
+		{
+			hkVector4 havok_velocity;
+			hkRigidBody *rigid_body;
 
-		havok_from_vector3d(&havok_velocity, velocity);
-		rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
-		havok_rigid_body_activate(rigid_body);
-		rigid_body->m_motion->setAngularVelocity(havok_velocity);
+			havok_from_vector3d(&havok_velocity, velocity);
+			rigid_body = *local_1;
+			havok_rigid_body_activate(rigid_body);
+			rigid_body->m_motion->setAngularVelocity(havok_velocity);
+		}
 	}
 }
 

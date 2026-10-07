@@ -36,9 +36,9 @@ void function_1c8940(s_ai_capsule_view *capsule, long object_index, long value)
 	real height;
 	real radius;
 	function_df5f0(object_index, &capsule->center, &height, &radius);
-	capsule->active = height == 0.0f ? 1 : 0;
-	capsule->value10 = 0.0f;
-	capsule->value14 = 0.0f;
+	*(volatile byte *)&capsule->active = height == 0.0f ? 1 : 0;
+	*(volatile real *)&capsule->value10 = 0.0f;
+	*(volatile real *)&capsule->value14 = 0.0f;
 	capsule->height = height;
 	capsule->radius = radius + 0.15f;
 	capsule->value1c = value;
@@ -1030,14 +1030,18 @@ bool function_1ca670(void)
 
 void function_200240(long object_index, long target_index);
 
+#pragma optimize("y", off)
 // @retail 0x1ca9f0
 void __stdcall function_1ca9f0(long object_index, long target_index)
 {
 	(void)&object_index;
 	(void)&target_index;
-	if (g_4f55d0->active)
+	s_ai_globals *local_0 = g_4f55d0;
+	long local_1 = *(volatile byte const *)&local_0->active;
+	if (local_1)
 		function_200240(object_index, target_index);
 }
+#pragma optimize("y", on)
 
 
 void hash_table_initialize(hash_table *table);
