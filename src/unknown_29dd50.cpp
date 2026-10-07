@@ -98,7 +98,10 @@ bool __stdcall function_29de90(long arg_0, point3f const *arg_1, long arg_2, s_2
         for (short local_3 = 0; local_3 < arg_3->field_b4; ++local_3)
             if (arg_3->field_0[local_3].field_0 == arg_0 &&
                 function_29de20(arg_3, local_3, arg_1, arg_2) == 1)
-                return true;
+            {
+                local_0 = true;
+                break;
+            }
     }
     return local_0;
 }

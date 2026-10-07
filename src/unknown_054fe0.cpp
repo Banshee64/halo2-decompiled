@@ -1465,6 +1465,95 @@ void __stdcall function_65530(long user_index)
    (const s_cached_player_source *)user->properties, true, false);
 }
 
+bool function_138800(void);
+long map_location_progress_get(char const *map_name);
+real __stdcall function_122dd0(byte *map_name, long mode, long type);
+bool __stdcall function_163890(char const *map_name, long mode);
+
+// @retail 0x65340
+void function_065340(void)
+{
+	long status = 0;
+	real progress = 0.0f;
+	long variant_index = NONE;
+	c_class_58d20 *session = 0;
+	bool found = false;
+	long state = g_527330.initialized ? g_527330.state : 0;
+	switch (state)
+	{
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+		if (g_527330.initialized)
+		{
+			c_class_58d20 *current = (c_class_58d20 *)g_527330.session_a;
+			if (current->state)
+			{
+				session = current;
+				found = true;
+			}
+		}
+		break;
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+		if (g_527330.initialized)
+		{
+			c_class_58d20 *current = (c_class_58d20 *)g_527330.session_b;
+			if (current->state)
+			{
+				session = current;
+				found = true;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	if (found && session && SESSION_STATE_IS_LIVE(session->state))
+	{
+		long first_id;
+		long second_id;
+		byte *name;
+		if (session->get_values_4d08(&first_id, &second_id, &name) &&
+			second_id != NONE && name[0])
+		{
+			if (function_138800() && g_4e6948->position_a == first_id &&
+				g_4e6948->position_b == second_id &&
+				!strncmp((char const *)name, g_4e6948->name, 0x104))
+			{
+				status = 4;
+				progress = 1.0f;
+			}
+			else
+			{
+				long location = map_location_progress_get((char const *)name);
+				progress = function_122dd0(name, 0, first_id == NONE);
+				switch (location)
+				{
+				case 1: status = 2; break;
+				case 2: status = 3; break;
+				case 3: status = 1; break;
+				default:
+					function_163890((char const *)name, 1);
+					break;
+				}
+			}
+		}
+		if (SESSION_STATE_IS_LIVE(session->state))
+			variant_index = session->value49c8;
+	}
+	g_4cd868.unknown90 = status;
+	g_4cd868.unknown94 = (long)(progress * 100.0f);
+	g_4cd868.unknown98 = variant_index;
+	s_session_interface_user *user = g_4cd868.users;
+	for (long i = 0; i < 4; i++, user++)
+		if (user->valid)
+			function_65530(i);
+}
+
 struct s_message_identities;
 struct s_message_identity;
 bool function_7ed20(const s_message_identities *message, s_message_identity *common, bool *missing, bool *different);

@@ -47,9 +47,10 @@ short function_23a430(short count, point2f const *points, plane2f const *plane,
 		memcpy(copy, points, count * sizeof(point2f));
 		points = copy;
 	}
+	long original_count = count;
 	long positive = 0;
 	long negative = 0;
-	for (long i = 0; i < count; i++)
+	for (long i = 0; i < original_count; i++)
 	{
 		real distance = points[i].y * plane->n.j + points[i].x * plane->n.i - plane->d;
 		if (distance > epsilon)
@@ -68,13 +69,13 @@ short function_23a430(short count, point2f const *points, plane2f const *plane,
 	long result = 0;
 	if (!negative)
 	{
-		memcpy(output, points, count * sizeof(point2f));
-		return count;
+		memcpy(output, points, original_count * sizeof(point2f));
+		return (short)original_count;
 	}
 	if (!positive)
 		return 0;
-	long previous = count - 1;
-	for (long current = 0; current < count; previous = current++)
+	long previous = original_count - 1;
+	for (long current = 0; current < original_count; previous = current++)
 	{
 		if (sides[current] == 0)
 		{
@@ -215,7 +216,8 @@ long function_239d50(long count, point2f const *points, point2f *hull)
 // @retail 0x239e50
 short function_239e50(short count, point2f const *points, short *indices)
 {
-	short hull_count = 0;
+	long hull_count = 0;
+	short **indices_reference = &indices;
 
 	if (function_239b80(count, points) == 2)
 	{
@@ -237,10 +239,10 @@ short function_239e50(short count, point2f const *points, short *indices)
 			}
 		}
 
-		while (hull_count < count)
+		while ((short)hull_count < count)
 		{
 			real best_distance = -FLT_MAX;
-			indices[hull_count++] = current;
+			(*indices_reference)[(short)hull_count++] = current;
 			short next = NONE;
 			real best_angle = FLT_MAX;
 			real best_delta = FLT_MAX;
@@ -258,7 +260,7 @@ short function_239e50(short count, point2f const *points, short *indices)
 						delta += g_55e470;
 					if (delta < best_delta - k_real_epsilon ||
 						!(delta > best_delta + k_real_epsilon) &&
-						(j == indices[0] || next != indices[0] && distance > best_distance))
+						(j == (*indices_reference)[0] || next != (*indices_reference)[0] && distance > best_distance))
 					{
 						best_distance = distance;
 						best_angle = angle;
@@ -273,22 +275,22 @@ short function_239e50(short count, point2f const *points, short *indices)
 			if (next == NONE)
 				return hull_count;
 			if (!left_start)
-				left_start = !points2d_equal(&points[next], &points[indices[0]]);
-			if (next == indices[0])
+				left_start = !points2d_equal(&points[next], &points[(*indices_reference)[0]]);
+			if (next == (*indices_reference)[0])
 				return hull_count;
-			if (left_start && points2d_equal(&points[next], &points[indices[0]]))
+			if (left_start && points2d_equal(&points[next], &points[(*indices_reference)[0]]))
 				return hull_count;
 		}
 
-		for (short i = 0; i < hull_count; i++)
+		for (short i = 0; i < (short)hull_count; i++)
 		{
 			short j;
 			for (j = 0; j < i; j++)
 			{
-				if (indices[j] == indices[i])
+				if ((*indices_reference)[j] == (*indices_reference)[i])
 				{
 					hull_count = i - j;
-					memcpy(indices, &indices[j], sizeof(short) * hull_count);
+					memcpy(*indices_reference, &(*indices_reference)[j], sizeof(short) * (short)hull_count);
 					break;
 				}
 			}
@@ -375,7 +377,7 @@ short function_23a6f0(point2f *output, short count, point2f const *points,
 		points = copy;
 	}
 	point2f const *previous = &points[count - 1];
-	bool previous_inside = previous->y * plane->n.j + previous->x * plane->n.i - plane->d >= 0.f;
+	volatile bool previous_inside = previous->y * plane->n.j + previous->x * plane->n.i - plane->d >= 0.f;
 	for (short i = 0; i < count; i++)
 	{
 		point2f const *current = &points[i];

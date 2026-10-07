@@ -1044,3 +1044,77 @@ void function_1e6bd0(long player_index)
   }
  }
 }
+
+struct s_player_profile;
+struct s_player_profile_settings;
+void __stdcall function_18fcc4(long index, s_player_profile *settings, long profile_index);
+void __stdcall function_18fd20(long index, s_player_profile_settings *settings, long profile_index);
+
+struct __declspec(align(8)) s_request_settings
+{
+	byte values[0x1e0];
+};
+
+struct s_request_profile_slot
+{
+	dword flags;
+	byte field_4[0x18 - 4];
+	s_request_settings settings;
+	long profile_index;
+	byte field_1fc[0xc70 - 0x1fc];
+};
+
+// @retail 0x1e75d0
+void __stdcall function_1e75d0(dword flush)
+{
+	(void)&flush;
+	s_request_settings settings;
+	for (long index = next_request_player(NONE); index != NONE; index = next_request_player(index))
+	{
+		long player_index = index == NONE ? NONE : g_4e8c20->entries[index];
+		if (player_index != NONE)
+		{
+			s_player_request_view *player = (s_player_request_view *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
+			long slot_index = *(long *)((byte *)player + 0x24);
+			if (slot_index != NONE)
+			{
+				s_request_profile_slot *slot = (s_request_profile_slot *)g_54e8e0 + slot_index;
+				long profile_index;
+				if (slot && (slot->flags & 0x10))
+				{
+					settings = slot->settings;
+					profile_index = slot->profile_index;
+				}
+				else
+				{
+					memset(&settings, 0, sizeof(settings));
+					profile_index = NONE;
+				}
+				if (profile_index != NONE)
+				{
+					s_local_player_state_view *state = &((s_local_player_state_view *)g_51e9c0)[index];
+					if (state->version == profile_index)
+					{
+						bool changed = false;
+						if (memcmp(settings.values + 0x128, state->request_flags, sizeof(state->request_flags)))
+						{
+							memcpy(settings.values + 0x128, state->request_flags, sizeof(state->request_flags));
+							*((byte *)state + 0x19d) = 1;
+							changed = true;
+						}
+						if (!flush)
+						{
+							if (changed)
+								function_18fcc4(*(long *)((byte *)player + 0x24), (s_player_profile *)&settings, profile_index);
+						}
+						else if (*((byte *)state + 0x19d))
+						{
+							function_18fd20(*(long *)((byte *)player + 0x24), (s_player_profile_settings *)&settings, profile_index);
+							*((byte *)g_51e9c0 + index * 0x1b0 + 0x19d) = 0;
+						}
+					}
+				}
+			}
+		}
+	}
+}

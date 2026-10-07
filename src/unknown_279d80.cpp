@@ -250,6 +250,7 @@ void function_2798a0(s_animation_data *data, real frame, real weight, s_graph_ta
 	}
 }
 
+#pragma inline_depth(0)
 // @retail 0x279d40
 dword const *node_masks_combine(dword const *mask, dword const *other)
 {
@@ -274,12 +275,13 @@ dword const *node_masks_combine(dword const *mask, dword const *other)
 	}
 	return result;
 }
+#pragma inline_depth(255)
 
 // @retail 0x279d80
 void function_279d80(s_graph_tag *graph, c_type_709360 animation_id, long node_count, real frame, real weight,
 	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms, bool interpolate)
 {
-	s_animation *animation = function_1daea0(graph, animation_id);
+	s_animation *volatile animation = function_1daea0(graph, animation_id);
 	s_animation_data data;
 	long size;
 	byte *address;
@@ -508,7 +510,7 @@ bool __stdcall function_27a100(s_graph_tag *graph, s_animation *animation, s_gra
 }
 
 // @retail 0x27a380
-void node_mask_and(dword *mask, dword const *other)
+inline void node_mask_and(dword *mask, dword const *other)
 {
 	long i;
 

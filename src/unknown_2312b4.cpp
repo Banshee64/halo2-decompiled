@@ -488,18 +488,29 @@ void c_online_y_menu_screen::v18(void *parameters)
 		controller_index = 0;
 	}
 	value55ac = false;
-	friends_list_reset(true);
+	long one = 1;
+	friends_list_reset(one != 0);
 	function_1a303b(controller_index);
-	friends.value814 = controller_index;
-	friends.list.value88 = controller_index;
-	widget_set_user_flags(&friends.list, 1 << controller_index);
-	players.value814 = controller_index;
-	players.list.value88 = controller_index;
-	widget_set_user_flags(&players.list, 1 << controller_index);
-	recent_players.value814 = controller_index;
-	recent_players.list.value88 = controller_index;
-	widget_set_user_flags(&recent_players.list, 1 << controller_index);
-	parameters = (void *)function_1480ff(screen_id);
+	{
+		long controller = *(volatile long *)&controller_index;
+		friends.value814 = controller;
+		friends.list.value88 = controller;
+		*(word volatile *)&friends.list.user_flags = (word)(one << friends.list.value88);
+	}
+	{
+		long controller = *(volatile long *)&controller_index;
+		players.value814 = controller;
+		players.list.value88 = controller;
+		*(word volatile *)&players.list.user_flags = (word)(one << players.list.value88);
+	}
+	{
+		long controller = *(volatile long *)&controller_index;
+		recent_players.value814 = controller;
+		recent_players.list.value88 = controller;
+		*(word volatile *)&recent_players.list.user_flags = (word)(one << recent_players.list.value88);
+	}
+	/* Preserve the write before the layout reuses this parameter slot. */
+	*(void *volatile *)&parameters = (void *)function_1480ff(screen_id);
 	{
 		s_screen_layout layout =
 		{

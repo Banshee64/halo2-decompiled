@@ -852,7 +852,7 @@ void function_445d0(void)
 long g_4b6298;
 bool g_4b6294;
 
-void function_1ef70(void);
+__declspec(noinline) void function_1ef70(void);
 
 // @retail 0x1ee60
 void function_1ee60(long primitive)

@@ -566,7 +566,14 @@ void function_273900(long ai_index, bool flag)
 		s_ai_squad_iterator iterator;
 		ai_squad_iterator_new_inline(&iterator, ai_index);
 		while (ai_squad_iterator_next(&iterator))
-			squad_set_flag1(iterator.squad_index, flag);
+		{
+			if (g_4f55d0->active)
+			{
+				s_squad_datum *local_0 = squad_get(iterator.squad_index);
+				if (flag) local_0->flag1 = true;
+				else local_0->flag1 = false;
+			}
+		}
 	}
 }
 
@@ -1172,7 +1179,7 @@ void function_1c9a00(void);
 // @retail 0x275b60
 void function_275b60(long ai_index, short team)
 {
-	if (ai_index_get_type(ai_index) <= _ai_index_type_squad_group && ai_index != NONE && team != NONE)
+	if (((dword)ai_index & 0xc0000000) <= 0x40000000 && ai_index != NONE && team != NONE)
 	{
 		s_ai_squad_iterator iterator;
 		s_squad_datum *squad;
@@ -1820,15 +1827,18 @@ bool function_275fc0(long vehicle_index, bool flag)
 		short count = 0;
 		function_c8a40(vehicle_index, seats, &count, 0x40);
 		long object_index = NONE;
-		s_object_seat *seat = seats;
-		for (short i = count; i > 0; i--, seat++)
+		if (count > 0)
 		{
-			if (object_index != seat->object_index)
+			s_object_seat *seat = seats;
+			for (short i = count; i > 0; i--, seat++)
 			{
-				s_object_header_view *header = object_header_get(seat->object_index);
-				if (header->type == 1)
-					((s_ai_script_seat_unit *)header->object)->value3b0 = flag ? NONE : 0;
-				object_index = seat->object_index;
+				if (object_index != seat->object_index)
+				{
+					s_object_header_view *header = object_header_get(seat->object_index);
+					if (header->type == 1)
+						((s_ai_script_seat_unit *)header->object)->value3b0 = flag ? NONE : 0;
+					object_index = seat->object_index;
+				}
 			}
 		}
 		result = true;
@@ -1863,17 +1873,24 @@ real function_2760a0(long actor_index, long script_index, long name, long sound_
 	function_189cd0(sound_index, actor_datum_get(actor_index)->unit_index, pitch, g_444ae0, g_444ae0, name, (long)&duration);
 
 	real seconds = duration * scale;
-	long ticks = ai_seconds_to_ticks_round(seconds);
+	real local_0 = (real)g_510c54->field_2_3 * seconds;
+	__asm
+	{
+		fld local_0
+		fistp duration
+	}
 
 	if (script_index != NONE)
 	{
 		s_command_script *script = command_script_get(script_index);
+		real local_1 = (real)*(long *)&duration;
 		script->type = 0;
-		script->value8 = (real)ticks;
+		script->value8 = local_1;
 	}
 	else
 	{
 		s_actor_datum *actor = actor_datum_get(actor_index);
+		long ticks = *(volatile long *)&duration;
 		if (actor->value620 < (short)ticks)
 			actor->value620 = (short)ticks;
 	}
@@ -2550,11 +2567,11 @@ void function_2769d0(long point_reference)
 			if (point_set_index >= 0 && point_set_index < scenario->scripting_data->point_set_count)
 			{
 				s_scenario_point_set *point_set = &scenario->scripting_data->point_sets[point_set_index];
-				real best_distance = 3.4028235e38f;
+				volatile real best_distance = 3.4028235e38f;
 				short best_index = NONE;
 				for (short point_index = 0; point_index < point_set->point_count; point_index++)
 				{
-					s_type_c3b527 *point = &point_set->points[point_index].position;
+					s_type_c3b527 *point = (s_type_c3b527 *)((byte *)point_set->points + point_index * 0x3c + 0x20);
 					vector3f vector;
 					if (point->output_index == NONE)
 					{
@@ -2613,7 +2630,8 @@ void function_277380(void)
 {
 	if (g_502410 != NONE)
 	{
-		long unit_index = actor_datum_get(g_50240c)->unit_index;
+		s_actor_datum *local_0 = actor_datum_get(g_50240c);
+		long unit_index = *(volatile long *)&local_0->unit_index;
 		if (function_11b930(unit_index))
 			function_11b710(unit_index, 0x7000101);
 	}

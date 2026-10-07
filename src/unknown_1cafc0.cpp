@@ -338,7 +338,7 @@ s_graph_inheritance *s_animation_state::inheritance_get(c_type_709360 animation_
 
 	if (animation_id.index != NONE && animation_id.graph_index != NONE)
 	{
-		result = function_1daff0(graph_tag_get(graph_tag_index), animation_id);
+		result = function_1daff0(graph_tag_get(*(volatile long const *)&graph_tag_index), animation_id);
 	}
 	return result;
 }
@@ -443,7 +443,22 @@ void s_animation_state::resources_request(long mode, long weapon_class, long wea
 // @retail 0x1cdf50
 void s_animation_state::channels_finish()
 {
-	channels[2].clear();
+	c_animation_channel *local_0 = &channels[2];
+	*(volatile long *)&local_0->graph_tag_index = NONE;
+	*(volatile short *)&local_0->animation_id.graph_index = NONE;
+	*(volatile short *)&local_0->animation_id.index = NONE;
+	long local_2 = 0;
+	*(volatile real *)&local_0->frame_position = 0.0f;
+	local_0->unknown10 = 0;
+	local_0->unknown11 = 0;
+	local_0->flags = (word)local_2;
+	local_0->rate = 1.0f;
+	local_0->unknown14 = (short)local_2;
+	local_0->unknown16 = (short)local_2;
+	local_0->unknown08 = NONE;
+	local_0->unknown0c = NONE;
+	local_0->unknown0d = NONE;
+	local_0->unknown0e = NONE;
 	if (channel_valid(&channels[0]))
 	{
 		channels[0].set_frame_last();
@@ -463,9 +478,10 @@ void s_animation_state::channels_finish()
 	{
 		channels[0].unknown11 |= 1;
 	}
-	if (channel_valid(&channels[1]) && (channels[1].flags & 1))
+	c_animation_channel *local_1 = &channels[1];
+	if (channel_valid(local_1) && (local_1->flags & 1))
 	{
-		channels[1].unknown11 |= 1;
+		local_1->unknown11 |= 1;
 	}
 }
 
@@ -1105,14 +1121,14 @@ bool function_1cb5f0(long node_count, s_animation_state *state, real seconds, s_
 	{
 		s_animation_bits *counter = &state->unknown64;
 
-		if (counter->unknown1 == 0 || (counter->unknown3 & 2) || !(seconds < function_1d9430((s_1d9240 const *)counter)))
+		if (counter->unknown1 == 0 || (counter->unknown3 & 2) || seconds >= function_1d9430((s_1d9240 const *)counter))
 		{
 			counter->unknown1 = 0;
 			counter->unknown0 = 0;
 			counter->unknown3 = 0;
 			memcpy(orientations, targets, node_count * 0x20);
 			result = true;
-			function_1d9240((s_1d9240 *)counter, result, seconds);
+			function_1d9240((s_1d9240 *)counter, true, seconds);
 		}
 	}
 	return result;
@@ -1231,6 +1247,9 @@ bool s_animation_state::blend_counters_update()
 void s_animation_state::sample(long unused1, real weight, dword const *node_mask, real_quaternion_transform *transforms,
 	long unused5, long unused6, long node_count)
 {
+	long const *local_0 = &unused1;
+	long const *local_1 = &unused5;
+	long const *local_2 = &unused6;
 	if (g_46fbf5 && channel_valid(&channels[2]))
 	{
 		channels[2].sample(weight, node_mask, node_count, transforms);
@@ -1405,7 +1424,8 @@ bool s_animation_state::overlay_exists()
 			animation_id = graph->overlay_get(unknown70, unknown74, unknown78, 0xb000046, NULL, NULL, NULL);
 		}
 	}
-	return animation_id.index != NONE;
+	byte local_0 = animation_id.index != NONE;
+	return local_0;
 }
 
 // @retail 0x1cc1a0
@@ -1414,15 +1434,12 @@ c_type_709360 s_animation_state::overlay_kind_get(long kind)
 	s_graph_tag *graph = graph_get();
 	c_type_709360 animation_id;
 
-	switch (kind)
-	{
-	case 0:
-		return graph->overlay_get(unknown70, unknown74, unknown78, 0xe000044, NULL, NULL, NULL);
-	case 1:
-		return graph->overlay_get(unknown70, unknown74, unknown78, 0xe000045, NULL, NULL, NULL);
-	case 2:
-		return graph->overlay_get(unknown70, unknown74, unknown78, 0xb000046, NULL, NULL, NULL);
-	}
+	if (kind == 1)
+		animation_id = graph->overlay_get(unknown70, unknown74, unknown78, 0xe000045, NULL, NULL, NULL);
+	else if (kind == 0)
+		animation_id = graph->overlay_get(unknown70, unknown74, unknown78, 0xe000044, NULL, NULL, NULL);
+	else if (kind == 2)
+		animation_id = graph->overlay_get(unknown70, unknown74, unknown78, 0xb000046, NULL, NULL, NULL);
 	return animation_id;
 }
 
@@ -1532,7 +1549,7 @@ c_type_709360 s_animation_state::overlay_find(long set, long weapon_class, long 
 
 		if (overlay_play(&channel, 0, set, weapon_class, weapon_type))
 		{
-			return channel.animation_id;
+			none = channel.animation_id;
 		}
 	}
 	return none;

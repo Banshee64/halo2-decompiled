@@ -340,7 +340,7 @@ struct c_count_interface
 	virtual void v3() {}
 	virtual void v4() {}
 	virtual void v5() {}
-	virtual void v6() {}
+	virtual void get_bounds(const __m128 *matrix, real expansion, __m128 *output);
 	virtual void v7() {}
 	virtual void v8() {}
 	virtual void v9() {}
@@ -348,9 +348,19 @@ struct c_count_interface
 	virtual long test_count();
 	virtual long next_index(dword index);
 	virtual c_vertex_shape *make_shape(long index, void *storage);
-	c_vertex_shape *make_transformed_shape(long index, long user_data, void *storage,
+	__declspec(noinline) c_vertex_shape *make_transformed_shape(long index, long user_data, void *storage,
 		const transform4x3f *matrix);
 };
+
+void __cdecl function_1ce210(const __m128 *matrix, const __m128 *extent,
+	const __m128 *center, real expansion, __m128 *output);
+
+// @retail 0x1ef040
+void c_count_interface::get_bounds(const __m128 *matrix, real expansion, __m128 *output)
+{
+	function_1ce210(matrix, (const __m128 *)(field_10 + 0x10),
+		(const __m128 *)field_10, expansion, output);
+}
 
 // @retail 0x1ee470
 long c_count_interface::get_count()
@@ -502,7 +512,7 @@ c_shape_global_owner::~c_shape_global_owner()
 	g_51e9d0 = 0;
 }
 
-void function_1eece0(s_surface_key_array *array, void *owner);
+void function_1eece0(s_surface_key_array *array, void *volatile owner);
 bool function_1ef3e0(dword key);
 
 struct c_instance_surface_query
@@ -774,8 +784,8 @@ void *c_shape_global_owner::make_shape(dword key, void *storage)
  if (function_1ef3e0(key))
  {
   long index = key & 0xffff;
-  long kind = key >> 29;
   long surface = (key >> 16) & 0x1fff;
+  long kind = key >> 29;
   if (kind == 1)
    return new (storage) c_vertex_shape((s_shape_source *)g_4e0340, kind, NONE, index, key, NULL);
   else if (kind == 2)
