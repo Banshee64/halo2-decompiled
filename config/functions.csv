@@ -3019,7 +3019,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 000d4ae0,218,game,speed,a16 pad,,,0016ba40,src/unknown_0d4830.cpp,todo
 000d4bc0,292,game,speed,a16 pad,,,00015d70 00137bd0,,todo
 000d4cf0,182,game,speed,a16 pad,,,00041490,,todo
-000d4db0,38,game,speed,a16 pad,,,,,todo
+000d4db0,38,game,speed,a16 pad,,,,src/unknown_0d4830.cpp,matched
 000d4de0,57,game,speed,a16 pad,,,00163ba0,src/unknown_0d4de0.cpp,matched
 000d4e20,11,game,speed,a16 pad,,,,src/unknown_0d4de0.cpp,matched
 000d4e30,43,game,speed,a16 pad,,,000d5640 001e95d0 001e9650,src/unknown_0b7300.cpp,matched
