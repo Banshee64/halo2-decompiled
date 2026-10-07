@@ -1778,6 +1778,7 @@ long function_75890(long time);
 
 bool network_session_host_become_leader(c_class_58d20 *session);
 
+#pragma inline_depth(0)
 // @retail 0x72700
 bool c_session_state_start_match::update()
 {
@@ -1819,8 +1820,8 @@ bool c_session_state_start_match::update()
             else
             {
                 c_class_58d20 *primary = o->session_a;
-                network_session_leave(b, false);
-                network_session_leave(primary, false);
+                b->leave(false);
+                primary->leave(false);
             }
         }
         else if (b->type == 5)
@@ -1843,6 +1844,7 @@ bool c_session_state_start_match::update()
     }
     return result;
 }
+#pragma inline_depth(255)
 
 long function_66050(c_class_58d20 *session, long variant_index);
 
