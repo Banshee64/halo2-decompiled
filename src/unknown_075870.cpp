@@ -684,25 +684,31 @@ bool function_76520(long channel_index, bool target, long *bandwidth)
 // @retail 0x77940
 bool network_observer_channel_has_host(s_network_observer *observer, long channel_index)
 {
-	s_network_observer_channel *channel = &observer->channels[channel_index];
 	bool result = false;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->connection_index != NONE)
 	{
 		s_network_connection *connection = function_x7665e0(channel->connection_index);
 		if (connection->state >= 4)
 		{
-			long time = connection->state > 2 ? connection->timers[1].time : 0;
+			long time = 0;
+			if (connection->state > 2)
+				time = connection->timers[1].time;
 			if (observer_time_get() - time >= observer->configuration->timeout70)
 			{
 				for (long owner = 0; owner < MAXIMUM_OBSERVER_OWNERS; owner++)
 				{
 					if ((channel->owner_mask & (1 << owner)) && observer->owners[owner].active->channel_is_host_or_local(channel_index))
-						return true;
+					{
+						result = true;
+						goto local_0;
+					}
 				}
 			}
-			return false;
+			goto local_0;
 		}
 	}
+local_0:
 	return result;
 }
 
@@ -715,7 +721,7 @@ void network_samples_reset(s_network_samples *samples);
 static inline void observer_statistics_reset(s_network_statistics *statistics);
 
 // @retail 0x76ff0
-void network_observer_update_connection(s_network_observer *observer, long channel_index)
+void network_observer_update_connection(s_network_observer *volatile observer, long channel_index)
 {
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->state)
@@ -1163,7 +1169,8 @@ void network_observer_channel_probe(s_network_observer *observer, long channel_i
 	if (handle != NONE && qos_is_complete(handle))
 	{
 		s_qos_result *result = &channel->field_x31a738;
-		if (qos_target_result(handle, result, 0))
+		s_qos_result *const *local_0 = &result;
+		if (qos_target_result(handle, *local_0, 0))
 		{
 			channel->flags |= 0x10;
 			channel->field_x31a738.data = NULL;
@@ -1311,9 +1318,11 @@ void function_79850(s_network_observer *observer, long index)
 	real rate = network_observer_rate_for_size(observer, budget, channel->has_callback, channel->callback_inactive);
 	long delay = channel->baseline_delay;
 	long intervals = real_truncate(delay * rate * 0.001f) + 1;
-	long candidate = (intervals + 1) * (delay * budget / (intervals * 8000));
-	long limited_burst = *(long *)((byte *)observer->configuration + 0xe0);
-	if (candidate > limited_burst) limited_burst = candidate;
+	long local_0 = intervals + 1;
+	long local_1 = delay * budget / (intervals * 8000);
+	long limited_burst = local_0 * local_1;
+	long local_2 = *(volatile long *)((byte *)observer->configuration + 0xe0);
+	limited_burst = local_2 > limited_burst ? local_2 : limited_burst;
 	if (burst > limited_burst) burst = limited_burst;
 	function_79600(observer, index, budget, burst, rate);
 	channel->loss_penalty += *(long *)((byte *)observer->configuration + 0x184);
@@ -1564,6 +1573,7 @@ long function_795b0(s_network_observer *observer, long index)
 // @retail 0x79de0
 bool function_79de0(s_network_observer *observer, long index, bool *exhausted_out)
 {
+	long budget_limit = 0;
 	s_observer_bandwidth_channel *channel = (s_observer_bandwidth_channel *)&observer->channels[index];
 	bool exhausted = false;
 	bool changed = false;
@@ -1571,7 +1581,7 @@ bool function_79de0(s_network_observer *observer, long index, bool *exhausted_ou
 	long step = *(long *)((byte *)observer->configuration + 0x18c);
 	if (increase <= step) step = increase;
 	long cap = *(long *)((byte *)observer->configuration + 0x150);
-	long budget_limit = channel->budget + step;
+	budget_limit = channel->budget + step;
 	if (budget_limit > cap) budget_limit = cap;
 	bool can_raise_budget = budget_limit > channel->budget;
 	real amount = 0.0f;
@@ -1630,8 +1640,8 @@ bool function_79de0(s_network_observer *observer, long index, bool *exhausted_ou
 				function_795b0(observer, index);
 				long received = function_79560(observer, index);
 				channel->probe_pending = true;
-				channel->saved_burst = channel->burst;
 				channel->saved_budget = channel->budget;
+				channel->saved_burst = channel->burst;
 				channel->saved_rate = channel->rate;
 				channel->probe_delay = channel->smoothed_delay;
 				channel->probe_received_rate = received;
@@ -1834,7 +1844,8 @@ void function_79660(s_network_observer *observer, long index, long bytes, long d
 	long const *index_reference = &index;
 	long const *stream_delay_reference = &stream_delay;
 	s_observer_bandwidth_channel *channel = (s_observer_bandwidth_channel *)&(*observer_reference)->channels[*index_reference];
-	channel->received_bytes = bytes + channel->received_bytes;
+	long local_0 = *(volatile long *)&channel->received_bytes;
+	channel->received_bytes = bytes + local_0;
 	channel->stream_delay = *stream_delay_reference;
 	long interval = 0;
 	long last = channel->sample_time;

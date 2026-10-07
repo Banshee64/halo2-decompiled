@@ -371,7 +371,7 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 
 		switch (packet->type)
 		{
-		case 5:
+		case 9:
 			stream_write_checked(stream, packet->u.w[12], 16);
 			stream_write_checked(stream, packet->u.w[13], 16);
 		case 1:
@@ -381,7 +381,7 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 			STREAM_WRITE_RANGE(stream, packet->u.d[3], 1);
 			STREAM_WRITE_RANGE(stream, packet->u.d[4], 3);
 			STREAM_WRITE_RANGE(stream, packet->u.d[5], 2);
-			break;
+			return;
 		case 2:
 			stream_write_checked(stream, packet->u.d[0], 3);
 			break;

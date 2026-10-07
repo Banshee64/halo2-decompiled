@@ -340,6 +340,7 @@ s_cache_load *function_123550(long priority, s_cache_resource *resource)
 // @retail 0x1235b0
 void function_1235b0(s_cache_load *load, long name, long priority)
 {
+	long const *const local_1 = &name;
 	s_cache_resource *resource = load->resource;
 	s_physical_block *block;
 	void *buffer;
@@ -360,8 +361,10 @@ void function_1235b0(s_cache_load *load, long name, long priority)
 		long tag;
 	} volatile read;
 	read.priority = g_468810[priority].maximum_requests;
-	read.tag = resource->unknown00;
-	load->handle = function_213760(resource->unknown08, size, buffer, NULL, &load->done, 6, read.priority);
+	dword local_0 = resource->unknown08;
+	name = resource->unknown00;
+	read.tag = *local_1;
+	load->handle = function_213760(local_0, size, buffer, NULL, &load->done, 6, read.priority);
 	if (priority == 0)
 	{
 		function_1237a0(load);

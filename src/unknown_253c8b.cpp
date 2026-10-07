@@ -114,7 +114,7 @@ void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block con
 
 /* shows a text with these bounds, colour and font in the widget */
 // @retail 0x2538a6
-void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, s_widget_bounds const *bounds, color4f const *color, short flags)
+void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, short flags, color4f const *color, s_widget_bounds const *bounds)
 {
 	s_text_block definition;
 

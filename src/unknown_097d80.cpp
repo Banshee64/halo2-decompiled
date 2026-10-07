@@ -120,11 +120,12 @@ void c_aggregate::v7(void *a)
 // @retail 0x97f30
 void c_aggregate::v8(long a, long b)
 {
+	long local_0 = *(volatile long *)&a;
 	for (long i = 0; i < 3; i++)
 	{
 		c_child *child = children[i];
 		if (child != 0)
-			child->v8(a, b);
+			child->v8(local_0, b);
 	}
 }
 

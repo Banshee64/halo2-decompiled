@@ -142,12 +142,13 @@ void c_animation_channel_node_position_get(c_animation_channel const *channel, p
 	c_animation_channel_data_get(channel, &data);
 	animated_data = data.data + data.sizes->static_data_size;
 	frame_index = real_truncate(frame);
+	long local_0 = *(volatile short const *)&node_index;
 	g_sampling_settings.frame_index = frame_index;
 	g_sampling_settings.next_frame_index = frame_index;
 	g_sampling_settings.field_30 = (s_animation_data *)animated_data;
 	g_sampling_settings.frame_fraction = 0.0f;
 	g_5044c0 = (s_animation_output *)&transform;
-	g_5044b8 = node_index;
+	g_5044b8 = local_0;
 	g_47fb18[*animated_data].samplers[0].translation();
 	*position = transform.position;
 }

@@ -780,6 +780,44 @@ void function_133390(s_bit_vector_pool const *arg_1)
 	}
 }
 
+// @retail 0x133520
+void __stdcall function_133520(s_bit_vector_pool *arg_1)
+{
+	s_visibility_bsp *local_1 = (s_visibility_bsp *)g_4e0348;
+	for (long local_2 = 0; local_2 < (*(c_entry_list *volatile const *)&arg_1->lists[3])->count; local_2++)
+	{
+		c_entry_list *local_3 = arg_1->lists[3];
+		long local_4 = (short)local_3->longs_a[(short)local_2];
+		s_visible_instance *local_5 = &local_1->instances[(short)local_4];
+		dword local_6 = function_1332f0(arg_1, local_3->shorts_b[(short)local_2]);
+		point3f const *local_12 = &local_5->center;
+		real local_7 = local_12->y * g_4b9e2c + local_12->z * g_4b9e38 + local_12->x * g_4b9e20 + g_4b9e44;
+		if (!(local_7 >= 0.0f))
+			local_7 = 0.0f - local_7;
+		if (!(local_7 > 0.1f))
+			local_7 = 0.1f;
+		short local_8 = (*(c_entry_list *volatile const *)&arg_1->lists[3])->shorts_d[(short)local_2];
+		real local_9 = (local_5->radius / local_7) * g_4b9ed0 * 2.0f;
+		if (local_5->radius < 0.13f)
+			local_9 *= 1.75f;
+		real local_10 = (local_9 - 25.0f) * (1.0f / 7.0f);
+		local_10 = 0.0f > local_10 ? 0.0f : (local_10 > 1.0f ? 1.0f : local_10);
+		byte local_11 = (byte)(long)(local_10 * 255.0f);
+		if (!(arg_1->lists[3]->shorts_b[(short)local_2] & 0x800))
+			local_6 |= 0x40;
+		else
+			local_6 |= 1;
+		if (local_11 > 0)
+		{
+			function_2cbf0(0, 0, local_4, local_6 | 0x1008, NONE, 0xffffffff,
+				0, NULL, local_8, local_11, local_5, NONE, local_9, NONE, NONE,
+				false, false, false, 0.0f, 0.0f, 0.0f, 0, local_12, local_5->radius);
+		}
+		else
+			arg_1->lists[3]->shorts_b[(short)local_2] |= 1;
+	}
+}
+
 __forceinline bool visibility_append(c_entry_list *list, long index, short flags, short entry)
 {
 	if ((word)list->count < list->maximum_count - 1)
@@ -1061,9 +1099,10 @@ void function_132900(s_bit_vector_pool *arg_1, s_sort_context const *arg_2, s_so
 	{
 		s_sort_entry const *local_3 = &arg_2->entries[arg_2->order[local_1]];
 		s_sort_entry const *local_4 = &arg_3->entries[arg_3->order[local_2]];
-		if (local_4->value > local_3->value)
+		short local_6 = *(volatile short const *)&local_3->value;
+		if (local_4->value > local_6)
 			local_1++;
-		else if (local_4->value < local_3->value)
+		else if (local_4->value < local_6)
 			local_2++;
 		else
 		{

@@ -628,7 +628,8 @@ void function_222150(long cluster_index, point3f const *point, real const *value
 
 	if (environment_index != NONE)
 	{
-		s_sound_environment_disk_view *local_0 = environment_index + ((volatile s_sound_environment_bsp_view *)bsp)->environments;
+		s_sound_environment_disk_view *const volatile *local_2 = &bsp->environments;
+		s_sound_environment_disk_view *local_0 = environment_index + *local_2;
 		real value = ((volatile real const *)values)[index];
 		real local_1 = function_14b240((s_14b240_owner const *)bsp, (s_bsp3d_disk const *)local_0, listener);
 		result[1] = value;

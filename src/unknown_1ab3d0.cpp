@@ -199,10 +199,11 @@ short __stdcall function_1ab690(long actor_index, s_slot *slot, bool active)
 			return result;
 		return g_46fbe4;
 	}
-	state->timer--;
-	if (state->timer > 0)
-		return result;
-	return g_46fbe4;
+	short local_0 = state->timer - 1;
+	*(volatile short *)&state->timer = local_0;
+	if (local_0 <= 0)
+		return g_46fbe4;
+	return result;
 }
 
 // @retail 0x1ab880
@@ -358,8 +359,9 @@ bool function_1aba50(long prop_index, long actor_index, real *out)
 // @retail 0x1abbc0
 short __stdcall function_1abbc0(long actor_index)
 {
+	long result = 0;
+	real value;
 	s_actor_view *actor = actor_get(actor_index);
-	short result = 0;
 	s_tag_element_52 *element = (s_tag_element_52 *)function_1e5450(actor_index, ai_object_get(actor->unknown26c)->definition_index);
 
 	if (element)
@@ -369,7 +371,6 @@ short __stdcall function_1abbc0(long actor_index)
 		if (prop_index != NONE && !function_25d9b0(prop_index))
 		{
 			s_prop_node_view *prop = prop_node_get(prop_index);
-			real value;
 
 			if ((actor->unknown229 || !((s_prop_state_53 *)prop_node_state(prop))->unknown64) &&
 				(element->unknown84 == g_45dbd8 || element->unknown84 > prop->unknown28) &&

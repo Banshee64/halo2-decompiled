@@ -59,7 +59,7 @@ PRIVATE inline s_unknown_225700 *unknown_225700_get(long player_index)
 	{
 		s_unknown_225700_player *player = unknown_225700_player_get(player_index);
 
-		if (player->gamepad_index != NONE)
+		if (((volatile s_unknown_225700_player *)player)->gamepad_index != NONE)
 			result = &g_502124;
 	}
 	return result;
@@ -72,24 +72,27 @@ void function_225700(void)
 	g_502124.unknown8 = NONE;
 }
 
+#pragma inline_depth(0)
 // @retail 0x225730
 void function_225730(void)
 {
 	dword time = GetTickCount();
-	long index;
+	long index = NONE;
 	s_unknown_225700_player *player;
-
-	for (index = 0; index < 4 && g_4e8c20->entries[index] == NONE; index++)
+	for (long local_0 = 0; local_0 < 4; local_0++)
 	{
+		if (g_4e8c20->entries[local_0] != NONE)
+		{
+			index = local_0;
+			break;
+		}
 	}
-	if (index >= 4)
-		index = NONE;
 
 	while (index != NONE)
 	{
 		long player_index = index != NONE ? g_4e8c20->entries[index] : NONE;
 
-		player = unknown_225700_player_get(player_index);
+		player = (s_unknown_225700_player *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
 		if (player_index != NONE && player->gamepad_index != NONE)
 		{
 			bool changed = true;
@@ -124,18 +127,20 @@ void function_225730(void)
 		{
 			long next = index != NONE ? index + 1 : 0;
 
-			index = NONE;
+			long local_1 = NONE;
 			for (; next < 4; next++)
 			{
 				if (g_4e8c20->entries[next] != NONE)
 				{
-					index = next;
+					local_1 = next;
 					break;
 				}
 			}
+			index = local_1;
 		}
 	}
 }
+#pragma inline_depth(255)
 
 // @retail 0x225880
 void function_225880(
