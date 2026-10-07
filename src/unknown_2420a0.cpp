@@ -1449,9 +1449,9 @@ void function_2422d0(long slot)
 		point3f point;
 		point3f const *local_0 = marker_position(marker_index);
 		long local_1 = ((long const volatile *)local_0)[1];
-		((long *)&point)[0] = ((long const *)local_0)[0];
+		*(long volatile *)&point.x = ((long const *)local_0)[0];
 		((long *)&point)[1] = local_1;
-		((long *)&point)[2] = ((long const *)local_0)[2];
+		((long *)&point)[2] = ((long const volatile *)local_0)[2];
 		long object_index = function_242210(&point);
 
 		if (object_index != NONE)
@@ -1534,7 +1534,12 @@ long function_242510(long object_index)
 
 							if (marker_index != NONE)
 							{
-								point3f point = *marker_position(marker_index);
+								point3f point;
+								point3f const *local_0 = marker_position(marker_index);
+								*(long volatile *)&point.x = ((long const *)local_0)[0];
+								long local_1 = ((long const *)local_0)[1];
+								((long *)&point)[2] = ((long const *)local_0)[2];
+								((long *)&point)[1] = local_1;
 
 								if (distance_sq3f(&position, &point) < 0.09f)
 								{

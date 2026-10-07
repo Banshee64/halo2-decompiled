@@ -187,9 +187,9 @@ long function_248620()
 		particle_location->next_index = NONE;
 		particle_location->position = *g_468788;
 		*(point3f *)&particle_location->vector = *g_468788;
-		particle_location->unknown2c = 0.5f;
-		particle_location->unknown1c = 1.0f;
-		particle_location->unknown30 = g_4ba034;
+		*(real volatile *)&particle_location->unknown2c = 0.5f;
+		*(real volatile *)&particle_location->unknown1c = 1.0f;
+		*(dword volatile *)&particle_location->unknown30 = g_4ba034;
 		particle_location->random = (byte)random_index(&g_4e7408->seed, 0xff);
 	}
 
