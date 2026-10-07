@@ -76,6 +76,109 @@ void function_291740(short arg_0, long arg_1)
 bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_group_index, bool *result);
 bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad_index);
 
+struct s_291800
+{
+	byte field_0[8];
+	long field_8;
+	long *field_c;
+};
+
+struct s_291801
+{
+	long field_0[20];
+	long field_50[20];
+};
+
+struct s_291802
+{
+	long field_0;
+	short field_4;
+	short field_6;
+	long field_8;
+};
+
+struct s_291803
+{
+	byte field_0[0x2c];
+	long field_2c;
+	s_291802 *field_30;
+};
+
+real function_20e190(long arg_0);
+
+// @retail 0x291800
+real function_291800(long arg_0, s_291800 const *arg_1, s_291801 const *arg_2,
+	short arg_3, long *arg_4, short *arg_5)
+{
+	real local_0 = 0.0f;
+	s_actor_view *local_2;
+	bool local_3;
+	*arg_4 = 0;
+	*arg_5 = NONE;
+	for (short local_1 = 0; local_1 < arg_3; local_1++)
+	{
+		if (arg_2->field_0[local_1] == arg_0)
+			goto local_16;
+	}
+	local_2 = actor_get(arg_0);
+	if (local_2->unknown018 == NONE)
+		goto local_16;
+	if (arg_1->field_8 > 0)
+	{
+		byte *local_4 = (byte *)object_get(local_2->unknown018);
+		long *local_5 = (long *)(local_4 + *(short *)(local_4 + 0x342));
+		if (local_5[0] == NONE)
+			goto local_16;
+		for (short local_6 = 0; local_6 < arg_3; local_6++)
+		{
+			if (arg_2->field_50[local_6] == local_5[1])
+				goto local_8;
+		}
+		for (short local_7 = 0; local_7 < arg_1->field_8; local_7++)
+		{
+			if (arg_1->field_c[local_7] == local_5[1])
+			{
+				*arg_4 = local_5[1];
+				goto local_14;
+			}
+		}
+local_8:
+		{
+			s_291803 *local_9 = (s_291803 *)g_4e3b44[(*(long *)((byte *)local_2 + 0x54)) & 0xffff].bytes;
+			if (local_9->field_2c <= 0)
+				goto local_16;
+			for (short local_10 = 0; local_10 < arg_1->field_8; local_10++)
+			{
+				for (short local_11 = 0; local_11 < arg_3; local_11++)
+				{
+					if (arg_2->field_50[local_11] == arg_1->field_c[local_10])
+					goto local_13;
+				}
+				for (short local_12 = 0; local_12 < local_9->field_2c; local_12++)
+				{
+					if (local_9->field_30[local_12].field_8 == arg_1->field_c[local_10])
+					{
+						*arg_4 = local_9->field_30[local_12].field_8;
+						*arg_5 = local_9->field_30[local_12].field_4;
+						local_3 = false;
+						goto local_15;
+					}
+				}
+local_13:;
+			}
+			goto local_16;
+		}
+	}
+local_14:
+	local_3 = true;
+local_15:
+	local_0 = function_20e190(local_2->unknown018);
+	if (local_3)
+		local_0 += 1.0f;
+local_16:
+	return local_0;
+}
+
 struct s_290d90_entry
 {
 	long inverted : 1;
