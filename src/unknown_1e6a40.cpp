@@ -46,3 +46,11 @@ void function_1e6a80(void)
 	data->unknown6c0 = 0;
 	data->unknown6c4 = 0;
 }
+
+void __stdcall function_1e75d0(dword flush);
+
+// @retail 0x1e6ae0
+void function_1e6ae0(void)
+{
+	function_1e75d0(1);
+}

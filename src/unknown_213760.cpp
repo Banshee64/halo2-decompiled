@@ -6,6 +6,7 @@
 #include "unknown_11c920.h"
 #include <xtl.h>
 #include "unknown_122870.h"
+#include <string.h>
 
 /* the open cache files (0x804 bytes each) and the current one */
 struct s_cache_file
@@ -63,7 +64,20 @@ static inline HANDLE cache_file_handle(long type)
 // @retail 0x213760
 long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority)
 {
-	HANDLE file = cache_file_handle(cache_location_file_type(location));
+	HANDLE file = g_557c90[g_55aca8].handle;
+	long local_0 = cache_location_file_type(location);
+	switch (local_0)
+	{
+	case 0:
+		file = g_557c90[2].handle;
+		break;
+	case 1:
+		file = g_557c90[0].handle;
+		break;
+	case 2:
+		file = g_557c90[1].handle;
+		break;
+	}
 
 	s_file_handle handle;
 
@@ -135,20 +149,25 @@ void function_12d520(long address);
 long g_51ea04;
 long g_47004c = NONE;
 
+#pragma optimize("s", on)
+#pragma optimize("y", off)
 // @retail 0x21357d
 void __stdcall function_21357d(long address, long unused)
 {
     (void)&address;
     (void)&unused;
-    if (address == g_51ea04)
+    long local_0 = g_51ea04;
+    if (address == local_0)
     {
-        s_buffer_pair values = { 0, 0 };
+        s_buffer_pair values;
+        memset(&values, 0, sizeof(values));
         function_13d50(&values, 0, 0x55);
-        function_12d520(address);
+        function_12d520(local_0);
         g_51ea04 = 0;
         g_47004c = NONE;
     }
 }
+#pragma optimize("", on)
 
 byte const g_445aa8[1341] = {
     0x00, 0x00, 0x87, 0x18, 0x78, 0xda, 0xed, 0x5b, 0x8b, 0xb6, 0xdb, 0x20, 0x0c, 0x43, 0xfe, 0xff,
@@ -1032,6 +1051,7 @@ struct s_image_21350e
     byte const *data;
 };
 
+#pragma optimize("s", on)
 // @retail 0x21350e
 long function_21350e(long index, s_image_21350e *image)
 {
@@ -1050,10 +1070,13 @@ long function_21350e(long index, s_image_21350e *image)
     }
     return 0;
 }
+#pragma optimize("", on)
 
 
 bool g_51ea00;
 
+#pragma optimize("s", on)
+#pragma optimize("y", off)
 // @retail 0x213484
 void function_213484(void)
 {
@@ -1072,11 +1095,13 @@ void function_213484(void)
         }
         else
         {
-            s_buffer_pair values = { 0, 0 };
+            s_buffer_pair values;
+            memset(&values, 0, sizeof(values));
             function_13d50(&values, 0, 0x55);
         }
     }
 }
+#pragma optimize("", on)
 
 
 #include <string.h>
@@ -1212,6 +1237,8 @@ void function_2238f4(long page, dword context, dword parameter1, dword parameter
 // Retail retains the helper calls in this initializer.
 #pragma auto_inline(off)
 #pragma inline_depth(0)
+#pragma optimize("s", on)
+#pragma optimize("y", off)
 // @retail 0x2133a1
 void function_2133a1(void)
 {
@@ -1245,5 +1272,6 @@ void function_2133a1(void)
     }
 }
 
+#pragma optimize("", on)
 #pragma inline_depth()
 #pragma auto_inline(on)

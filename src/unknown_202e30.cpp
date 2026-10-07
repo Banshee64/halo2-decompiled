@@ -6,6 +6,7 @@
 
 void function_291740(short arg_0, long arg_1);
 
+#pragma inline_depth(0)
 // @retail 0x202e30
 void function_202e30(short arg_0, long arg_1, byte arg_2)
 {
@@ -20,3 +21,4 @@ void function_202e30(short arg_0, long arg_1, byte arg_2)
     if (arg_0 != NONE)
         function_291740(arg_0, arg_1 | 0x40000000);
 }
+#pragma inline_depth(255)

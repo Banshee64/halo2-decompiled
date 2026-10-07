@@ -16,16 +16,13 @@
 
 
 
-// @stub 0x147cdb
-void c_render_window::function_147cdb(dword color)
-{
-}
 
 /* lane G's own, not written yet */
 
-// @stub 0x235756
-void function_235756(real fade)
+// @stub 0x211a0
+long function_211a0(long value, real alpha, real first, real second, long mode, long index, long flags, long option, long unused, real scale, real offset)
 {
+	return 0;
 }
 
 

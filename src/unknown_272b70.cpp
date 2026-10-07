@@ -1179,7 +1179,7 @@ void function_1c9a00(void);
 // @retail 0x275b60
 void function_275b60(long ai_index, short team)
 {
-	if (ai_index_get_type(ai_index) <= _ai_index_type_squad_group && ai_index != NONE && team != NONE)
+	if (((dword)ai_index & 0xc0000000) <= 0x40000000 && ai_index != NONE && team != NONE)
 	{
 		s_ai_squad_iterator iterator;
 		s_squad_datum *squad;
@@ -2567,11 +2567,11 @@ void function_2769d0(long point_reference)
 			if (point_set_index >= 0 && point_set_index < scenario->scripting_data->point_set_count)
 			{
 				s_scenario_point_set *point_set = &scenario->scripting_data->point_sets[point_set_index];
-				real best_distance = 3.4028235e38f;
+				volatile real best_distance = 3.4028235e38f;
 				short best_index = NONE;
 				for (short point_index = 0; point_index < point_set->point_count; point_index++)
 				{
-					s_type_c3b527 *point = &point_set->points[point_index].position;
+					s_type_c3b527 *point = (s_type_c3b527 *)((byte *)point_set->points + point_index * 0x3c + 0x20);
 					vector3f vector;
 					if (point->output_index == NONE)
 					{

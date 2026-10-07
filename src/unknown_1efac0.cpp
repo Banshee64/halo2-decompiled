@@ -2,13 +2,19 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1efac0.h"
+#include "unknown_1c3b70.h"
 
 // @flags /O2 /Gr
 
-/* ---- c_d: a 12-byte object with a virtual destructor ---- */
-struct c_d : c_a
+struct c_shape_user_base : c_shape_counted_base
 {
 	dword unknown08;
+	c_shape_user_base() : unknown08(0) {}
+};
+
+/* ---- c_d: a 12-byte object with a virtual destructor ---- */
+struct c_d : c_shape_user_base
+{
 
 	virtual ~c_d();
 	virtual void *v3() { return 0; }
@@ -429,18 +435,23 @@ struct s_surface_key_array
 };
 
 // @retail 0x1eece0
-void function_1eece0(s_surface_key_array *array, void *owner)
+void function_1eece0(s_surface_key_array *array, void *volatile owner)
 {
-	for (long index = 0; index < array->count; index++)
-	{
-		if (!function_1ef3e0(array->keys[index]))
-		{
-			array->count--;
-			for (long i = index; i < array->count; i++)
-				array->keys[i] = array->keys[i + 1];
-			index--;
-		}
-	}
+ long index = 0;
+ if (array->count > 0)
+ {
+  owner = (byte *)owner + 0x14;
+  do
+  {
+   if (!function_1ef3e0(array->keys[index]))
+   {
+    array->count--;
+    for (long i = index; i < array->count; i++)
+     array->keys[i] = array->keys[i + 1];
+    index--;
+   }
+  } while (++index < array->count);
+ }
 }
 
 struct s_bsp3d;
@@ -716,11 +727,110 @@ dword function_1ef6d0(dword key)
 
 c_a *surface_empty_shape(void *storage)
 {
- c_d *shape = new (storage) c_d;
- if (shape)
+ return new (storage) c_d;
+}
+
+struct s_1de6d2;
+struct s_1de6d3
+{
+ real field_0;
+ plane3f const *field_4;
+ long field_8;
+ long field_c;
+ long field_10;
+ byte field_14;
+ byte field_15;
+ short field_16;
+ long field_18;
+ long field_1c[256];
+};
+
+struct s_1de6d0
+{
+ dword field_0;
+ s_1de6d2 const *field_4;
+ short field_8;
+ dword const *field_c;
+ point3f const *field_10;
+ vector3f const *field_14;
+ s_1de6d3 *field_18;
+ long field_1c;
+ byte field_20;
+ long field_24;
+};
+
+struct s_lookup_ray_result
+{
+ dword position;
+ short node;
+ short item;
+ s_1de6d3 hit;
+};
+
+void function_141590(const transform4x3f *matrix, transform4x3f *inverse);
+bool __stdcall function_1de6d0(s_1de6d0 *query, long root, real start, real end);
+
+// @retail 0x1eff40
+bool function_1eff40(s_lookup *lookup, long flags, const point3f *point,
+ const vector3f *direction, s_lookup_ray_result *result)
+{
+ (void)&lookup; (void)&flags; (void)&point; (void)&direction; (void)&result;
+ s_lookup_ray_result *const *result_reference = &result;
+ bool found = false;
+ s_iterator iterator;
+ (*result_reference)->hit.field_0 = 1.0f;
+ function_1efbd0((dword)lookup->tag_b, (s_mix_output *)&iterator,
+  (s_mix_source *)lookup->tag_a, (signed char *)lookup->pointer_a);
+ while (iterator.advance())
  {
-  shape->unknown06 = 1;
-  shape->unknown08 = 0;
+  dword position = iterator.position;
+  long node = iterator.first;
+  transform4x3f inverse;
+  function_141590((const transform4x3f *)lookup->pointer_b + node, &inverse);
+  point3f local_point;
+  real x = point->x, y = point->y, z = point->z;
+  if (inverse.scale != 1.0f)
+  {
+   x = inverse.scale * x;
+   y = inverse.scale * y;
+   z = inverse.scale * z;
+  }
+  local_point.x = inverse.up.i * z + inverse.left.i * y + inverse.forward.i * x + inverse.position.x;
+  local_point.y = inverse.up.j * z + inverse.left.j * y + inverse.forward.j * x + inverse.position.y;
+  local_point.z = inverse.up.k * z + inverse.left.k * y + inverse.forward.k * x + inverse.position.z;
+  vector3f local_direction;
+  x = direction->i; y = direction->j; z = direction->k;
+  if (inverse.scale != 1.0f)
+  {
+   x *= inverse.scale;
+   y *= inverse.scale;
+   z *= inverse.scale;
+  }
+  local_direction.i = inverse.up.i * z + inverse.left.i * y + inverse.forward.i * x;
+  local_direction.j = inverse.up.j * z + inverse.left.j * y + inverse.forward.j * x;
+  local_direction.k = inverse.up.k * z + inverse.left.k * y + inverse.forward.k * x;
+  s_1de6d0 query;
+  query.field_0 = flags;
+  query.field_4 = (s_1de6d2 const *)iterator.current;
+  query.field_8 = 0;
+  query.field_c = NULL;
+  query.field_10 = &local_point;
+  query.field_14 = &local_direction;
+  query.field_18 = &(*result_reference)->hit;
+  query.field_1c = NONE;
+  query.field_20 = 0;
+  query.field_24 = NONE;
+  real fraction = (*result_reference)->hit.field_0;
+  (*result_reference)->hit.field_0 = fraction < 0.0f ? 0.0f : fraction;
+  (*result_reference)->hit.field_18 = 0;
+  real bounded = fraction < 0.0f ? 0.0f : fraction > 1.0f ? 1.0f : fraction;
+  if (function_1de6d0(&query, 0, 0.0f, bounded))
+  {
+   (*result_reference)->position = position;
+   (*result_reference)->node = (short)node;
+   (*result_reference)->item = iterator.group;
+   found = true;
+  }
  }
- return shape;
+ return found;
 }
