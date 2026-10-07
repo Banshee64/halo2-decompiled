@@ -64,11 +64,6 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 
 
 
-// @stub 0x292e00
-void function_292e00(void) { }
-
-// @stub 0x292f60
-void function_292f60(void) { }
 /* the animation graph lookups (0x1d9000..0x1de000) */
 
 
