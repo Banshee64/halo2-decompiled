@@ -33,11 +33,28 @@ struct s_scale_owner
 	real get_inverse_scale() const;
 };
 
-// @retail 0x181ee0
-void function_181ee0(s_scale_owner const *a, s_scale_owner const *b, real *scale_a, real *scale_b)
+struct s_181ee0
 {
-	real inverse_a = a->get_inverse_scale();
-	real inverse_b = b->get_inverse_scale();
+	byte field_0[0x2c];
+	real field_2c;
+};
+
+PRIVATE __forceinline real function_181ee1(s_scale_owner const *arg_0)
+{
+	real local_0 = ((s_181ee0 const *)arg_0->definition)->field_2c;
+	real local_1;
+	if (local_0 == 0.0f)
+		local_1 = 0.0f;
+	else
+		local_1 = 1.0f / local_0;
+	return local_1;
+}
+
+// @retail 0x181ee0
+void __cdecl function_181ee0(s_scale_owner const *a, s_scale_owner const *b, real *scale_a, real *scale_b)
+{
+	real inverse_a = function_181ee1(a);
+	real inverse_b = function_181ee1(b);
 
 	*scale_a = 1.0f;
 	*scale_b = 1.0f;
@@ -66,12 +83,12 @@ struct s_havok_transform
 	__m128 translation;
 };
 
-static inline void havok_vector4_set(__m128 *vector, real x, real y, real z, real w)
+static __forceinline void havok_vector4_set(__m128 *vector, real x, real y, real z, real w)
 {
-	vector->m128_f32[0] = x;
-	vector->m128_f32[1] = y;
-	vector->m128_f32[2] = z;
-	vector->m128_f32[3] = w;
+	*(real volatile *)&vector->m128_f32[0] = x;
+	*(real volatile *)&vector->m128_f32[1] = y;
+	*(real volatile *)&vector->m128_f32[2] = z;
+	*(real volatile *)&vector->m128_f32[3] = w;
 }
 
 // @retail 0x181f80

@@ -89,7 +89,7 @@ real __stdcall function_182d90(c_extent_shape *shape, real radius,
 				__m128 buffer[16];
 				c_extent_shape *child = shape->child(key, buffer);
 				// The collection keeps its incoming radius; children update the bounds.
-				function_182d90(child, result, &local, minimum, maximum);
+				volatile real local_0 = function_182d90(child, result, &local, minimum, maximum);
 				key = shape->next_key(key);
 			}
 		}
