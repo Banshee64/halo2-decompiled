@@ -1176,3 +1176,53 @@ void function_226a0(void)
     function_1e1c0();
     function_36ab0();
 }
+
+extern long g_4858b8;
+void function_14f60(short stage, short index);
+bool function_1ccf0(D3DPIXELSHADERDEF const *program);
+void __stdcall function_34a90(long target, short blend, dword color_write,
+    bool use_depth, bool depth_write, real depth, real distortion, real scale,
+    long count, bool full_surface, bool viewport_textures);
+
+// @retail 0x22070
+void __stdcall function_22070(real strength, real exponent)
+{
+    if (strength > 0.0f)
+    {
+        strength = (real)PIN(pow((double)(strength > 1.0f ? 1.0f : strength),
+            (double)(exponent > 0.0f ? exponent : 0.0f)), 0.0, 1.0);
+        if (strength > 0.0f)
+        {
+            function_14f60(0, 18);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_POINT);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_POINT);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+            memset(&g_484f68, 0, sizeof(g_484f68));
+            g_484f68.PSTextureModes = 1;
+            g_484f68.PSCombinerCount = 0x11001;
+            real alpha_scale = 255.0f;
+            long alpha = 0;
+            __asm
+            {
+                fld strength
+                fld alpha_scale
+                fmulp st(1), st(0)
+                fistp alpha
+            }
+            g_484f68.PSFinalCombinerConstant0 = (dword)alpha << 24;
+            g_484f68.PSFinalCombinerInputsABCD = 0x8110000;
+            g_484f68.PSFinalCombinerInputsEFG = 0x1100;
+            function_1ccf0(&g_484f68);
+            function_34a90(g_4858b8, 7, 0x1010101, false, false,
+                1.0f, 0.0f, 1.0f, 1, false, false);
+        }
+    }
+}
