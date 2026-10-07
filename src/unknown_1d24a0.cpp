@@ -145,17 +145,22 @@ void __stdcall function_1d24a0(s_havok_component *arg_0, float arg_1)
    if (local_27 & 1) function_def30(local_14->object_index);
    else if (local_27 & 0x1000) function_119250(local_14->object_index);
    local_15 = local_10->field_1;
-   point3f local_28 = *(point3f *)((byte *)local_14->rigid_bodies.data[local_15].rigid_body->m_motion + 0x70);
+   point3f const *local_76 = (point3f const *)((byte *)local_14->rigid_bodies.data[local_15].rigid_body->m_motion + 0x70);
+   point3f local_28;
+   local_28.x = local_76->x;
+   local_28.y = local_76->y;
+   local_28.z = local_76->z;
    vector3f local_29;
    vector3f local_30;
    havok_component_rigid_body_angular_velocity_get(local_15, local_14, &local_29);
    havok_component_rigid_body_linear_velocity_get(local_15, local_14, &local_30);
    if (local_12->field_20 != 0.0f && local_12->field_24 != 0.0f)
    {
-    vector3f local_31;
-    local_31.i = local_24.matrix.position.x - local_28.x;
-    local_31.j = local_24.matrix.position.y - local_28.y;
-    local_31.k = local_24.matrix.position.z - local_28.z;
+    vector3f local_75;
+    local_75.i = local_24.matrix.position.x - local_28.x;
+    local_75.j = local_24.matrix.position.y - local_28.y;
+    local_75.k = local_24.matrix.position.z - local_28.z;
+    vector3f local_31 = local_75;
     real local_32 = function_30bf0(&local_31);
     if (local_32 == 0.0f) local_31 = *g_4687b0;
     real local_33 = function_1d24a1(&local_30, &local_31);
