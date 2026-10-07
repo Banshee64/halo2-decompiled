@@ -156,8 +156,17 @@ short function_1d90b0(long render_model_index, long marker_name, byte const *reg
 	long const *node_remapping, long node_count, transform4x3f const *field_50, bool mirrored, s_first_person_marker *markers,
 	long count)
 {
-	return function_1d8f50(function_1d8f00(render_model_index, marker_name), render_model_index, region_permutations,
-		node_remapping, field_50, mirrored, (s_object_marker *)markers, count);
+	byte const *const *local_0 = &region_permutations;
+	long const *const *local_1 = &node_remapping;
+	transform4x3f const *const *local_2 = &field_50;
+	bool const *local_3 = &mirrored;
+	s_first_person_marker *const *local_4 = &markers;
+	long const *local_5 = &count;
+	long const *local_6 = &model_index;
+	long const *local_7 = &node_count;
+	long local_8 = function_1d8f00(render_model_index, marker_name);
+	return function_1d8f50(local_8, render_model_index, *local_0,
+		*local_1, *local_2, *local_3, (s_object_marker *)*local_4, *local_5);
 }
 
 /* moves the node and its parent and grandparent so the marker on the node

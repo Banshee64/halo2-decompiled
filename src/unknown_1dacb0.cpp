@@ -819,6 +819,7 @@ inline s_graph_mode_entry *graph_weapon_class_get(s_graph_tag *graph, long mode,
 // @retail 0x1dcf20
 bool function_1dcf20(s_graph_tag *graph, s_graph_pair_iterator *iterator)
 {
+	bool local_1 = false;
 	long index = iterator->index + 1;
 
 	for (;;)
@@ -827,7 +828,8 @@ bool function_1dcf20(s_graph_tag *graph, s_graph_pair_iterator *iterator)
 
 		while (iterator->step < 2 && !entry)
 		{
-			switch (iterator->step)
+			short local_0 = *(volatile short const *)&iterator->step;
+			switch (local_0)
 			{
 			case 0:
 				entry = (s_graph_mode_entry *)function_1dd560((s_sorted_array *)&graph->mode_count, iterator->mode, 0x14);
@@ -838,30 +840,36 @@ bool function_1dcf20(s_graph_tag *graph, s_graph_pair_iterator *iterator)
 			}
 			if (!entry)
 			{
-				iterator->step++;
+				iterator->step = local_0 + 1;
 				index = 0;
 			}
 		}
 		if (!entry)
 		{
-			return false;
+			break;
 		}
-		if (index < entry->pair_count)
+		if (index >= entry->pair_count)
+		{
+			iterator->step++;
+			continue;
+		}
 		{
 			s_graph_pair *pair = &entry->pairs[index];
 
 			iterator->a = pair->a;
 			iterator->b = pair->b;
 			iterator->index = (short)index;
-			return true;
+			local_1 = true;
+			break;
 		}
-		iterator->step++;
 	}
+	return local_1;
 }
 
 // @retail 0x1dcfa0
 bool function_1dcfa0(s_graph_tag *graph, s_graph_pair_iterator *iterator)
 {
+	bool local_1 = false;
 	long index = iterator->index + 1;
 
 	for (;;)
@@ -870,7 +878,8 @@ bool function_1dcfa0(s_graph_tag *graph, s_graph_pair_iterator *iterator)
 
 		while (iterator->step < 4 && !entry)
 		{
-			switch (iterator->step)
+			short local_0 = *(volatile short const *)&iterator->step;
+			switch (local_0)
 			{
 			case 0:
 				entry = graph_weapon_class_get(graph, iterator->mode, iterator->weapon_class);
@@ -887,13 +896,13 @@ bool function_1dcfa0(s_graph_tag *graph, s_graph_pair_iterator *iterator)
 			}
 			if (!entry)
 			{
-				iterator->step++;
+				iterator->step = local_0 + 1;
 				index = 0;
 			}
 		}
 		if (!entry)
 		{
-			return false;
+			break;
 		}
 		if (index < entry->pair_count)
 		{
@@ -902,10 +911,12 @@ bool function_1dcfa0(s_graph_tag *graph, s_graph_pair_iterator *iterator)
 			iterator->a = pair->a;
 			iterator->b = pair->b;
 			iterator->index = (short)index;
-			return true;
+			local_1 = true;
+			break;
 		}
 		iterator->step++;
 	}
+	return local_1;
 }
 
 // @retail 0x1dd290

@@ -98,18 +98,20 @@ bool function_1d9320(s_1d9240 *p)
 // @retail 0x1d9430
 real function_1d9430(s_1d9240 const *p)
 {
+	long local_0 = 0;
 	real result = 0.0f;
 
 	if (p->count)
 	{
 		if (p->flag & 1)
 		{
-			result = (real)(p->count - p->value) * g_510c54->rate;
+			local_0 = p->count - p->value;
 		}
 		else
 		{
-			result = (real)p->value * g_510c54->rate;
+			local_0 = p->value;
 		}
+		result = (real)local_0 * g_510c54->rate;
 	}
 	return result;
 }
