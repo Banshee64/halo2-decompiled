@@ -104,8 +104,6 @@ hkBool hkWorld::removeEntity(hkEntity *entity) { return hkBool(); }
 // @stub 0x278f00
 void function_278f00(void) { }
 
-// @stub 0x1d1540
-void function_1d1540(s_havok_component *component) { }
 
 
 // @stub 0x1d56f0
@@ -512,3 +510,28 @@ struct s_2da8c0
 };
 // @stub 0x2da8c0
 void s_2da8c0::function_2da8c0(hkRotation const *arg_0, hkRotation const *arg_1) {}
+
+// @stub 0x1e18f0
+void __fastcall function_1e18f0(long arg_0, long arg_1, long arg_2, long arg_3) {}
+
+struct s_1d1540 { void function_30be00(void *arg_0); };
+struct s_1d1541 { void function_30d2b0(void *arg_0); };
+struct s_314320 { s_314320(); };
+struct s_314450
+{
+ void function_314450(s_314320 *arg_0);
+ void function_314480(s_314320 const *arg_0);
+};
+// @stub 0x30be00
+void s_1d1540::function_30be00(void *arg_0) {}
+// @stub 0x30d2b0
+void s_1d1541::function_30d2b0(void *arg_0) {}
+// @stub 0x314320
+s_314320::s_314320() {}
+// @stub 0x314450
+void s_314450::function_314450(s_314320 *arg_0) {}
+// @stub 0x314480
+void s_314450::function_314480(s_314320 const *arg_0) {}
+
+// @stub 0x1e2570
+void __stdcall function_1e2570(long arg_0, word arg_1, long arg_2, real arg_3, long arg_4) {}
