@@ -216,8 +216,9 @@ void function_8e240(void)
   for (long i = 0; i < 16; i++)
    if (indices[i] != NONE && g_4d8c28[indices[i]].task_index != NONE)
     active++;
+  long slot = 0;
   bool failed = false;
-  for (long slot = 0; slot < 16 && active < maximum && !failed; slot++)
+  for (; slot < 16 && active < maximum && !failed; slot++)
   {
    long index = indices[slot];
    if (index != NONE)
@@ -236,14 +237,22 @@ void function_8e240(void)
      switch (queue)
      {
      case 0:
+      {
+      // Reload the request's definition before testing its transfer kind.
+      s_pending_transfer_definition *current_definition =
+       (s_pending_transfer_definition *)*(volatile dword *)&header->unknown00;
       if (header->kind == 3)
-       status = function_b4670(kind, controller, owner, filename, ((s_pending_transfer_definition *)header->unknown00)->directory, &task);
+       status = function_b4670(kind, controller, owner, filename, current_definition->directory, &task);
       else
        status = function_b42b0(kind, controller, owner, filename, (byte *)message->data, message->size, &task);
+      }
       break;
      case 1:
+      {
+      s_pending_transfer_definition *current_definition =
+       (s_pending_transfer_definition *)*(volatile dword *)&header->unknown00;
       if (header->kind == 3)
-       status = function_b4810(kind, controller, owner, filename, ((s_pending_transfer_definition *)header->unknown00)->directory, &task);
+       status = function_b4810(kind, controller, owner, filename, current_definition->directory, &task);
       else
       {
        if (header->kind == 4 && !function_80e10((s_pending_message_storage *)header, &message->data, &message->size))
@@ -252,6 +261,7 @@ void function_8e240(void)
         continue;
        }
        status = function_b4450(kind, controller, owner, filename, (byte *)message->data, message->size, &task);
+      }
       }
       break;
      }

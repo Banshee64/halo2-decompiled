@@ -5,12 +5,6 @@
 class c_class_58d20;
 struct s_session_member;
 
-// @stub 0x65340
-void function_065340(void)
-{
-}
-
-
 struct s_voice_routing;
 struct s_voice_route;
 
@@ -104,5 +98,13 @@ struct s_bitstream;
 // @stub 0x88980
 void __stdcall function_88980(bool reliable, s_network_connection *connection, s_bitstream *stream,
  bool pad, long extra_size, const void *extra, long *packet_size, long *stream_size, long *sent_extra_size)
+{
+}
+
+struct s_simulation_definition_registry;
+
+// @stub 0x82240
+void __stdcall function_82240(s_simulation_definition_registry *registry,
+	long *entity_count, long *event_count)
 {
 }
