@@ -21,7 +21,7 @@ void function_2007b3(long a, long b, long c) { }
 
 
 // @stub 0xfff40
-void __stdcall function_fff40(long a, long b) { }
+void __stdcall function_fff40(long weapon_index, bool silent, bool immediate) { }
 
 
 

@@ -181,21 +181,25 @@ bool __stdcall function_dc540(long arg_159e6d, long a, long b)
 // @retail 0xdd300
 char function_dd300(long name)
 {
+	char result = 2;
+
 	switch (name)
 	{
 	case 0xa00000f:
 	case 0x900000e:
 	case 0x400000c:
-		return 0;
+		result = 0;
+		break;
 	case 0x800001e:
 	case 0x9000015:
 	case 0x9000016:
 	case 0xa000014:
 	case 0xa000017:
 	case 0xd000042:
-		return 1;
+		result = 1;
+		break;
 	}
-	return 2;
+	return result;
 }
 
 /* the change in the biped's crouch this tick: toward crouching while the

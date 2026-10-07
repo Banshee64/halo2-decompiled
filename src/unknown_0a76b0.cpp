@@ -1182,7 +1182,7 @@ bool function_e8510(long unit_index, bool immediate, bool silent, bool primary)
 bool function_10fd40(long unit_index, long action_name, long state_name, bool flag);
 bool function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
 void __stdcall function_d0870(long weapon_index, long unit_index, bool secondary);
-void __stdcall function_fff40(long a, long b);
+void __stdcall function_fff40(long weapon_index, bool silent, bool immediate);
 
 /* a unit's weapon animations: its vehicle seat's weapon's, or the
    default */
@@ -1219,14 +1219,14 @@ void __stdcall function_e8720(long unit_index, long unknown, bool immediate, boo
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	long hand = !primary;
 	long other_weapon_index = NONE;
-	char other_slot = UNIT_ACTION_UNIT_GET(unit_index)->weapon_slots[primary != false];
-	bool has_other;
+	short other_slot = UNIT_ACTION_UNIT_GET(unit_index)->weapon_slots[primary != false];
+	long has_other;
 	bool is_vehicle;
 
 	if (other_slot != NONE)
 		other_weapon_index = UNIT_ACTION_UNIT_GET(unit_index)->weapon_object_indices[other_slot];
 	has_other = other_weapon_index != NONE;
-	is_vehicle = ((1 << unit->object_type) >> 1) & 1;
+	is_vehicle = ((dword)(1 << unit->object_type) >> 1) & 1;
 
 	long slot = unit->weapon_slots[hand];
 
@@ -1266,7 +1266,7 @@ void __stdcall function_e8720(long unit_index, long unknown, bool immediate, boo
 
 				bool animate = function_ee8a0(unit_index, primary != false);
 
-				function_fff40((long)silent, (long)immediate);
+				function_fff40(weapon_index, silent, immediate);
 				if (!silent)
 				{
 					long type = primary ? 0x14 : 0x15;
@@ -3093,15 +3093,14 @@ bool __stdcall function_ebaa0(long unit_index, s_unit_request *request)
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 	bool result = false;
 
-	if (UNIT_ACTION_ACTIVE(actions, request->type))
-		return result;
-	if (!function_ee090(unit_index, 0x50000cb, 1, 0x60000cd, (point3f const *)((byte *)request + 0x14),
+	if (!(actions->active[request->type >> 5] & (1 << (request->type & 0x1f))) &&
+		function_ee090(unit_index, 0x50000cb, 1, 0x60000cd, (point3f const *)((byte *)request + 0x14),
 		(vector3f const *)((byte *)request + 8)))
 	{
-		return result;
+		actions->active[request->type >> 5] |= 1 << (request->type & 0x1f);
+		result = true;
 	}
-	actions->active[request->type >> 5] |= 1 << (request->type & 0x1f);
-	return true;
+	return result;
 }
 
 /* a unit's facing in its seat (or its own when it has no parent) */
@@ -3349,8 +3348,10 @@ bool __stdcall function_ec2d0(long unit_index, s_unit_request *request)
 
 	if (function_ec050(unit_index, request))
 	{
-		UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index))->active[1] |= 0x100;
-		return true;
+		dword *active = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index))->active;
+
+		active[1] |= 0x100;
+		result = true;
 	}
 	return result;
 }
