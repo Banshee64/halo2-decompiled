@@ -151,6 +151,7 @@ public:
 	virtual void v28(long);
 	virtual void v32(long);
 	virtual void v34();
+	virtual void v36(long);
 	virtual bool v38(long, long);
 	virtual void v40();
 	virtual void v43(long);
@@ -1624,6 +1625,75 @@ void territory_marker_color(long player_index, long territory, s_color_bits *col
 	}
 }
 
+// @retail 0x2bf960
+void c_game_engine_a::v36(long local_player)
+{
+	long player_index = NONE;
+	if (local_player != NONE)
+		player_index = g_4e8c20->entries[local_player];
+	s_state_2bf *state = g_51eccc;
+	for (long i = 0; i < (short)state->w114; ++i)
+	{
+		if ((short)state->w60[i] != NONE)
+		{
+			s_color_bits color;
+			territory_marker_color(player_index, i, &color);
+			s_marker_list list;
+			list.b0 = 0;
+			list.b1 = 0;
+			list.l4 = 1;
+			list.position = g_4e0350->marker_entries[(short)state->w60[i]].position;
+			list.r14 = 0.4f;
+			list.r18 = 0.1f;
+			list.r1c = 0.0f;
+			list.l20 = NONE;
+			if (!datum_get_inlined(g_4e8c24, state->l70[i]))
+				list.r14 = 0.0f;
+			list.color24 = color;
+			list.color30 = color;
+			list.r3c = 1.0f;
+			list.r40 = 1.0f;
+			list.count = 1;
+			list.items[0].kind = 7;
+			list.items[0].a = color;
+			list.items[0].b = color;
+			list.items[0].r = 1.0f;
+			list.items[0].index = NONE;
+			function_24e59f(&list);
+			state = g_51eccc;
+		}
+	}
+	if (player_index != NONE)
+	{
+		s_player_2be *player = player_get_2be(player_index);
+		if (*(long *)((byte *)player + 0x2c) != NONE)
+		{
+			s_player_iterator_2bf iterator;
+			iterator.data = g_4e8c24;
+			iterator.absolute_index = NONE;
+			iterator.index = NONE;
+			while (function_19f240((long *)&iterator))
+			{
+				long other = iterator.index;
+				if (other != player_index)
+				{
+					short other_team = ((s_player_2be *)iterator.player)->team;
+					c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
+					bool friendly = false;
+					if (engine)
+						friendly = engine->p27(other_team, player->team);
+					if (!friendly)
+					{
+						s_marker_list list;
+						if (function_162550(other, &list))
+							function_24e59f(&list);
+					}
+				}
+			}
+		}
+	}
+}
+
 static inline byte *territory_player_from_slot(s_record_pool *data, long index)
 {
 	byte *result = 0;
@@ -1824,9 +1894,9 @@ void function_2beee0()
     }
 }
 
-void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
-    point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
-    real arg_9, point3f const *arg_10, real arg_11);
+void function_19f680(long tag, long group, long pass, long variant, void *context,
+    point2f const *vertices, long count, point3f const *center, real radius,
+    real perimeter, point3f const *color, real height);
 
 // @retail 0x2be5d0
 void __stdcall function_2be5d0(long arg_0, long arg_1, long arg_2, long arg_3,

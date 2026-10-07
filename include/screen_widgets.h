@@ -810,6 +810,7 @@ class c_class_2b01eb : public c_class_1a2c81
 {
 public:
 	c_class_2b01eb(s_bitmap_block *definition);
+	virtual void v4(long frame);
 
 	s_bitmap_block *definition;
 	long start_time;
