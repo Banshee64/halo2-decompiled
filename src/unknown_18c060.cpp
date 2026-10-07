@@ -82,7 +82,7 @@ void __stdcall function_18c060(real arg_0)
 	{
 		long local_9 = local_2.index + 1;
 		long local_10 = NONE;
-		s_record_pool *local_11 = local_2.data;
+		s_record_pool *local_11 = *(s_record_pool *volatile *)&local_2.data;
 		if (local_9 >= 0 && local_9 < local_11->high_water_index)
 		{
 			long local_12 = local_11->high_water_index;
