@@ -1069,7 +1069,7 @@ short __stdcall function_c8ef0(long unit_index, long a, long *object_index, shor
 short function_c5340()
 {
 	real scale = 1.0f;
-	short difficulty;
+	long difficulty;
 
 	if (g_4e6948->state == 1)
 	{
@@ -1079,7 +1079,7 @@ short function_c5340()
 	{
 		difficulty = 1;
 	}
-	switch (difficulty)
+	switch ((short)difficulty)
 	{
 	case 2:
 		scale = 0.75f;
@@ -1510,7 +1510,7 @@ short function_c8960(long unit_index, short value)
 void function_d12b0(long unit_index, long seat_index, bool a, bool b)
 {
 	if (unit_index != NONE && seat_index != NONE &&
-		(*(dword *)&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(unit_index)))[seat_index].flags >> 15) & 1)
+		TEST_FIELD_BIT((*(dword *)&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(unit_index)))[seat_index].flags >> 15) & 1))
 	{
 		s_unit_request request;
 
@@ -1527,7 +1527,7 @@ void function_d12b0(long unit_index, long seat_index, bool a, bool b)
 void __stdcall function_d1360(long unit_index, long seat_index, bool a, bool b)
 {
 	if (unit_index != NONE && seat_index != NONE &&
-		(*(dword *)&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(unit_index)))[seat_index].flags >> 15) & 1)
+		TEST_FIELD_BIT((*(dword *)&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(unit_index)))[seat_index].flags >> 15) & 1))
 	{
 		s_unit_request request;
 
