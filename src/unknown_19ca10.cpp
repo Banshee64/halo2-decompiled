@@ -202,10 +202,10 @@ bool function_19cb90(s_marker_pair *pair, long player_index)
 		byte *object = (byte *)((s_marker_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 		if ((1 << object[0xaa]) & 3)
 		{
-			long other_player = *(long *)(object + 0x13c);
-			if (other_player != NONE)
+			long hit_player_index = *(long *)(object + 0x13c);
+			if (hit_player_index != NONE)
 			{
-				byte *other = g_4e8c24->data + (other_player & 0xffff) * sizeof(s_marker_player);
+				byte *other = g_4e8c24->data + (hit_player_index & 0xffff) * sizeof(s_marker_player);
 				other[2] |= 4;
 				function_a7840(*(short *)(object + 0x13c), 8);
 			}
