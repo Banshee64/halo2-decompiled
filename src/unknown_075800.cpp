@@ -273,9 +273,8 @@ void __stdcall function_093fa0(c_class_938e0 *arg_0, void const *arg_1)
 					local_4.field_0 = 2;
 					memcpy(local_4.field_c, local_3, sizeof(local_4.field_c));
 					s_type_99af70 local_5;
-					local_4.field_2 = 4;
-					local_5.ipv4_address = NONE;
 					local_5.address_length = 4;
+					local_5.ipv4_address = NONE;
 					local_5.port = 1001;
 					function_07b140(local_6, (long)&local_5, 3, sizeof(local_4), &local_4);
 				}
