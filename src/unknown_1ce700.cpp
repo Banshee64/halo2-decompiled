@@ -120,16 +120,16 @@ void s_1ce4f0::function_1ce4f0(hkRigidBody *arg_1, hkRigidBody *arg_2,
  __m128 local_1 = *arg_5;
  field_30 = *arg_6;
  function_1ce701(&local_1);
- function_1ce701(&field_30);
  long local_5 = 0, local_6 = 1, local_7 = 2;
  real local_2 = (real)fabs(((real *)&local_1)[0]);
  real local_3 = (real)fabs(((real *)&local_1)[1]);
  real local_4 = (real)fabs(((real *)&local_1)[2]);
+ function_1ce701(&field_30);
 
  if (local_2 > local_3)
  {
-  local_5 = 1;
   local_6 = 0;
+  local_5 = 1;
   local_2 = local_3;
  }
  if (local_2 > local_4)
@@ -186,8 +186,8 @@ void s_1ce970::function_1ce970(hkRigidBody *arg_1, hkRigidBody *arg_2,
  function_1ce701(&field_50);
  __m128 local_2 = function_1ce2f1(field_40, field_50);
  hkRotation local_3, local_4;
- local_3.m_col0 = *(hkVector4 *)&field_30;
- local_3.m_col1 = *(hkVector4 *)&local_1;
+ local_3.m_col0.m_quad = _mm_load_ps((real const *)&field_30);
+ local_3.m_col1.m_quad = local_1;
  local_3.m_col2.m_quad = function_1ce2f1(field_30, local_1);
  local_4.m_col0.set(((real *)&field_40)[0], ((real *)&field_50)[0], ((real *)&local_2)[0]);
  local_4.m_col1.set(((real *)&field_40)[1], ((real *)&field_50)[1], ((real *)&local_2)[1]);

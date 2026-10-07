@@ -506,10 +506,6 @@ s_311340::s_311340() {}
 // @stub 0x311ba0
 c_311ba0::c_311ba0(const s_311340 *arg_0) {}
 
-// @stub 0x1d6d00
-void __stdcall function_1d6d00(s_havok_component *arg_0, void *arg_1, byte *arg_2,
- long arg_3, long arg_4, long arg_5, bool arg_6) {}
-
 struct s_2da8c0
 {
  void function_2da8c0(hkRotation const *arg_0, hkRotation const *arg_1);
