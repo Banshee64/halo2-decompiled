@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6912 functions match
+
+```
+matched 6912 of 11318 game functions (763805 of 2784283 bytes, 27.43%)
+```
+
+6912 new matches, none lost:
+- Merge batch r24: lane H rounds 1 and 2 (+8), the first Codex rounds in 0x190000-0x19ffff.
+
 ## 2026-10-07: 6904 functions match
 
 ```
