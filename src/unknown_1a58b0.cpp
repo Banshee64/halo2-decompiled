@@ -308,8 +308,8 @@ int __cdecl function_1a66f0(s_sort_element const *a, s_sort_element const *b)
 // @retail 0x1a6d30
 bool __fastcall function_1a6d30(long player_index)
 {
-	long unit_index = ((s_player_view *)g_4e8c24->data)[player_index & 0xffff].unit_index;
 	bool result = true;
+	long unit_index = ((s_player_view *)g_4e8c24->data)[player_index & 0xffff].unit_index;
 
 	if (unit_index != NONE)
 	{
