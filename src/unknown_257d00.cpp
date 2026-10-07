@@ -548,10 +548,16 @@ bool function_258230(long cs_index, short mode, long actor_index, long new_actor
 	return true;
 }
 
+PRIVATE __forceinline s_joint_cs_datum *function_258341(long arg_0)
+{
+	return (s_joint_cs_datum *)(g_502404->data + (arg_0 & 0xffff) * sizeof(s_joint_cs_datum));
+}
+
 // @retail 0x258340
 bool function_258340(short participant_index, long joint_index)
 {
-	s_joint_cs_datum *joint = joint_cs_get(joint_index);
+	long const *local_1 = &joint_index;
+	s_joint_cs_datum *joint = function_258341(*local_1);
 
 	if (participant_index < joint->participant_count)
 	{
@@ -604,8 +610,9 @@ void function_2583e0(long joint_index)
 // @retail 0x258480
 void function_258480(long joint_index, long actor_index)
 {
-	s_joint_cs_datum *joint = joint_cs_get(joint_index);
-	bool remaining = false;
+	long const *local_0 = &joint_index;
+	s_joint_cs_datum *joint = joint_cs_get(*local_0);
+	volatile bool remaining = false;
 
 	for (short i = 0; i < joint->participant_count; i++)
 	{
@@ -615,13 +622,13 @@ void function_258480(long joint_index, long actor_index)
 		{
 			s_cs_datum *cs = cs_get(participant->cs_index);
 
-			if (participant->actor_index == actor_index)
+			if (joint->participants[i].actor_index == actor_index)
 			{
 				cs->joint_index = NONE;
-				participant->actor_index = NONE;
-				participant->cs_index = NONE;
+				joint->participants[i].actor_index = NONE;
+				joint->participants[i].cs_index = NONE;
 			}
-			else if (participant->actor_index != NONE)
+			else if (joint->participants[i].actor_index != NONE)
 			{
 				remaining = true;
 				cs->unknown7e = true;
@@ -1826,7 +1833,8 @@ void function_25aba0(long actor_index)
 // @retail 0x258b60
 short function_258b60(long actor_index, cs_iterate_proc proc, long cs_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
+	long const *local_0 = &actor_index;
+	s_actor_view *actor = actor_get(*local_0);
 
 	if (actor->unknown007)
 	{

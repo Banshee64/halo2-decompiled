@@ -833,7 +833,7 @@ struct s_277a01
 	long field_20;
 };
 bool function_181e90(real arg_0, real arg_1);
-void function_181ee0(s_scale_owner const *arg_0, s_scale_owner const *arg_1, real *arg_2, real *arg_3);
+void __cdecl function_181ee0(s_scale_owner const *arg_0, s_scale_owner const *arg_1, real *arg_2, real *arg_3);
 void __cdecl function_315340(void *arg_0, hkEntity *arg_1, hkEntity *arg_2, real arg_3, real arg_4);
 long __stdcall function_277b80(void *arg_0, bool arg_1, real arg_2,
 	c_1cf520 *arg_3, short arg_4, s_277ec0 *arg_5, s_277ec0 *arg_6,

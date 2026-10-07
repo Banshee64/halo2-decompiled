@@ -467,6 +467,7 @@ struct s_light_animation_ab
     byte *pair;
 };
 
+#pragma inline_depth(0)
 // @retail 0xc0b00
 void function_c0b00(s_light_animation_ab const *animation, long seed, real range, real *intensity, vector3f *colour, real *pair)
 {
@@ -504,6 +505,8 @@ void function_c0b00(s_light_animation_ab const *animation, long seed, real range
         pair[1] = function_13bb90((s_tag_data *)(animation->pair + 8), time, range);
     }
 }
+#pragma inline_depth()
+
 
 // @retail 0xc15a0
 void function_c15a0()

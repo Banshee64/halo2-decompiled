@@ -477,6 +477,7 @@ bool function_10aac0(long object_index, long name, real *value, long *index);
 real function_13bb90(s_tag_data const *function, real input, real range);
 bool __stdcall function_bab40(long object_index, long name, real *value);
 
+#pragma inline_depth(0)
 // @retail 0xba8c0
 bool function_ba8c0(s_object_function_ab const *function, long object_index, real *out)
 {
@@ -541,6 +542,8 @@ bool function_ba8c0(s_object_function_ab const *function, long object_index, rea
         *out = 0.0f;
     return enabled;
 }
+#pragma inline_depth()
+
 
 // @retail 0xbab40
 bool __stdcall function_bab40(long object_index, long name, real *value)

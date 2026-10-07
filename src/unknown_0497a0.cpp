@@ -252,3 +252,266 @@ real function_42c50(point3f const *position, vector3f const *normal, short mode,
 	}
 	return result;
 }
+
+
+extern s_record_pool *g_4ea940;
+bool function_bad50(long object_index, long index, point3f *out);
+
+struct s_ribbon_source
+{
+    byte unknown00[8];
+    long object_index;
+    short marker_index;
+    byte unknown0e[6];
+    real scale;
+    byte unknown18[4];
+    real u, v;
+    byte unknown24[12];
+    short point_count[4];
+    long point_index[4];
+};
+struct s_ribbon_state
+{
+    byte unknown00[0x18];
+    real width;
+    color4f lower, upper;
+    dword flags;
+};
+struct s_ribbon_definition
+{
+    word flags00, flags02;
+    byte unknown04[0x14];
+    short mode;
+    byte unknown1a[2];
+    real u_step, v_width;
+    byte unknown24[0xc4];
+    long state_count;
+    s_ribbon_state *states;
+};
+struct s_ribbon_point
+{
+    short salt;
+    byte flags;
+    char state;
+    real transition, unknown08, scale;
+    byte unknown10[0xc];
+    point3f position;
+    vector3f velocity;
+    long next;
+};
+struct s_ribbon_input
+{
+    s_ribbon_source *source;
+    s_ribbon_definition *definition;
+    short slot, unknown0a;
+    byte *shader;
+    bool normal;
+    byte unknown11[3];
+    long vertex_count;
+};
+struct s_ribbon_vertex
+{
+    point3f position;
+    real u, v;
+    dword color;
+};
+
+PRIVATE __forceinline dword ribbon_pixel(color4f const *color)
+{
+    long b, g, r, a;
+    real scale = 255.0f;
+    dword pixel = 0;
+    __asm
+    {
+        mov edx, color
+        fld dword ptr [edx]
+        fld dword ptr [edx + 4]
+        fld dword ptr [edx + 8]
+        fld dword ptr [edx + 12]
+        fld scale
+        fmul st(4), st(0)
+        fmul st(3), st(0)
+        fmul st(2), st(0)
+        fmulp st(1), st(0)
+        fistp b
+        fistp g
+        fistp r
+        fistp a
+        mov edx, b
+        mov ebx, g
+        mov ecx, r
+        mov eax, a
+        shl ebx, 8
+        shl ecx, 0x10
+        shl eax, 0x18
+        or edx, ebx
+        or edx, ecx
+        or edx, eax
+        mov pixel, edx
+    }
+    return pixel;
+}
+
+// @retail 0x42cf0
+bool __stdcall function_42cf0(s_ribbon_vertex *vertices, long unknown, s_ribbon_input *input)
+{
+    // Retail keeps all three callback arguments on the stack.
+    (void)&unknown;
+    s_ribbon_source *source = input->source;
+    s_ribbon_definition *definition = input->definition;
+    real u = source->u;
+    real u_step = definition->u_step;
+    if (definition->flags02 & 0x40)
+        u_step *= source->scale;
+    u_step = -u_step;
+    real v = source->v;
+    real v_width = definition->v_width;
+    if (definition->flags02 & 0x80)
+        v_width *= source->scale;
+    v_width += v;
+    long index = source->point_index[input->slot];
+    s_ribbon_point *previous = NULL;
+    while (index != NONE)
+    {
+        s_ribbon_point *point = (s_ribbon_point *)(g_4ea940->data + (index & 0xffff) * 0x38);
+        long state_index = point->state < 0 ? 0 : ((long)point->state > definition->state_count - 1 ? definition->state_count - 1 : (long)point->state);
+        color4f color;
+        real width;
+        if (state_index != point->state)
+        {
+            width = 0.0f;
+            color.alpha = color.red = color.green = color.blue = 0.0f;
+        }
+        else
+        {
+            s_ribbon_state *state = &definition->states[state_index];
+            real scale = (state->flags & 0x20) ? point->scale : 1.0f;
+            width = state->width;
+            if (state->flags & 0x10)
+                width *= point->scale;
+            real *lower = (real *)&state->lower;
+            real *upper = (real *)&state->upper;
+            real *out = (real *)&color;
+            for (long i = 0; i < 4; ++i)
+                out[i] = (upper[i] - lower[i]) * scale + lower[i];
+            if (point->flags & 2)
+            {
+                s_ribbon_state *next = &definition->states[point->state + 1];
+                real next_width = next->width;
+                if (next->flags & 0x10)
+                    next_width *= point->scale;
+                width += (next_width - width) * point->transition;
+                lower = (real *)&next->lower;
+                upper = (real *)&next->upper;
+                for (long j = 0; j < 4; ++j)
+                    out[j] += ((upper[j] - lower[j]) * scale + lower[j] - out[j]) * point->transition;
+            }
+        }
+        if (source->object_index != NONE && !(definition->flags00 & 0x80))
+        {
+            point3f tint = *g_468710;
+            byte *object = *(byte **)(g_4e0300->data + (source->object_index & 0xffff) * 12 + 8);
+            byte *object_tag = g_4e3b44[(*(long *)object) & 0xffff].bytes;
+            byte *markers = *(byte **)(object_tag + 0x98);
+            function_bad50(source->object_index, *(short *)(markers + source->marker_index * 24 + 12), &tint);
+            color.red *= tint.x;
+            color.green *= tint.y;
+            color.blue *= tint.z;
+        }
+        real half_width = width * 0.5f;
+        vertices[0].u = vertices[1].u = u;
+        vertices[0].v = v;
+        vertices[1].v = v_width;
+        point3f first = point->position, second = point->position;
+        vector3f normal;
+        switch (definition->mode)
+        {
+        case 0:
+            first.z += half_width;
+            second.z -= half_width;
+            if (input->normal)
+            {
+                s_ribbon_point *neighbor = previous ? previous : (s_ribbon_point *)(g_4ea940->data + (point->next & 0xffff) * 0x38);
+                real dx = previous ? point->position.x - neighbor->position.x : neighbor->position.x - point->position.x;
+                real dy = previous ? neighbor->position.y - point->position.y : point->position.y - neighbor->position.y;
+                normal.i = dy; normal.j = dx; normal.k = 0.0f;
+                real length = (real)sqrt(dx * dx + dy * dy);
+                if (!(fabs(length) < 0.0001f))
+                {
+                    real inverse = 1.0f / length;
+                    normal.i *= inverse; normal.j *= inverse; normal.k *= inverse;
+                }
+            }
+            break;
+        case 1:
+        case 2:
+            {
+                s_ribbon_point *neighbor = previous ? previous : (s_ribbon_point *)(g_4ea940->data + (point->next & 0xffff) * 0x38);
+                real dx = previous ? point->position.x - neighbor->position.x : neighbor->position.x - point->position.x;
+                real dy = previous ? neighbor->position.y - point->position.y : point->position.y - neighbor->position.y;
+                real length = (real)sqrt(dx * dx + dy * dy);
+                if (!(fabs(length) < 0.0001f))
+                {
+                    real inverse = 1.0f / length;
+                    dx *= inverse; dy *= inverse;
+                }
+                first.x += dy * half_width; second.x -= dy * half_width;
+                first.y += dx * half_width; second.y -= dx * half_width;
+                if (input->normal) normal = *g_4687b0;
+            }
+            break;
+        case 4:
+            {
+                s_ribbon_point *neighbor = previous ? previous : (s_ribbon_point *)(g_4ea940->data + (point->next & 0xffff) * 0x38);
+                point3f origin = previous ? neighbor->position : point->position;
+                vector3f view, direction, side;
+                view.i = g_4b9da0.x - origin.x; view.j = g_4b9da0.y - origin.y; view.k = g_4b9da0.z - origin.z;
+                direction.i = previous ? point->position.x - neighbor->position.x : neighbor->position.x - point->position.x;
+                direction.j = previous ? point->position.y - neighbor->position.y : neighbor->position.y - point->position.y;
+                direction.k = previous ? point->position.z - neighbor->position.z : neighbor->position.z - point->position.z;
+                side.i = direction.k * view.j - direction.j * view.k;
+                side.j = direction.i * view.k - direction.k * view.i;
+                side.k = direction.j * view.i - direction.i * view.j;
+                real length = (real)sqrt(side.k * side.k + side.j * side.j + side.i * side.i);
+                if (!(fabs(length) < 0.0001f))
+                {
+                    real inverse = 1.0f / length;
+                    side.i *= inverse; side.j *= inverse; side.k *= inverse;
+                }
+                first.x += side.i * half_width; second.x -= side.i * half_width;
+                first.y += side.j * half_width; second.y -= side.j * half_width;
+                first.z += side.k * half_width; second.z -= side.k * half_width;
+                if (input->normal)
+                {
+                    normal.i = side.k * direction.j - side.j * direction.k;
+                    normal.j = side.i * direction.k - side.k * direction.i;
+                    normal.k = side.j * direction.i - side.i * direction.j;
+                    length = (real)sqrt(normal.k * normal.k + normal.j * normal.j + normal.i * normal.i);
+                    if (!(fabs(length) < 0.0001f))
+                    {
+                        real inverse = 1.0f / length;
+                        normal.i *= inverse; normal.j *= inverse; normal.k *= inverse;
+                    }
+                }
+            }
+            break;
+        default:
+            return false;
+        }
+        vertices[0].position = first;
+        vertices[1].position = second;
+        color.alpha *= function_42c50(&point->position, &normal, *(short *)(input->shader + 0x2c), (byte *)definition);
+        color.alpha = PIN(color.alpha, 0.0f, 1.0f);
+        vertices[0].color = vertices[1].color = ribbon_pixel(&color);
+        vertices += 2;
+        u += u_step;
+        previous = point;
+        index = point->next;
+    }
+    vertices -= input->vertex_count;
+    if (!(definition->flags00 & 1) && source->point_count[input->slot] > 2)
+        vertices[0].color = vertices[1].color = vertices[0].color & 0xffffff;
+    if (!(definition->flags00 & 2))
+        vertices[input->vertex_count - 1].color = vertices[input->vertex_count - 2].color = vertices[input->vertex_count - 1].color & 0xffffff;
+    return true;
+}

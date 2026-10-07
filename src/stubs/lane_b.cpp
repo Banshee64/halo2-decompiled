@@ -88,8 +88,6 @@ void __stdcall function_1b47b0(long actor_index, s_slot *slot) { }
 
 
 
-// @stub 0x1b69e0
-void __stdcall function_1b69e0(long actor_index, long prop_index) { }
 
 
 
