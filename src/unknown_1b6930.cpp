@@ -4,6 +4,8 @@
 #include "unknown_1fb7e0.h"
 #include "unknown_26b230.h"
 #include "unknown_0d0690.h"
+#include "unknown_2605d0.h"
+#include "unknown_2626b0.h"
 
 /* slot type 0x26, the slot tests 0x35, 0x34, 0x32, 0x33, 0x55, 0x30, 0x57
    and 0x56, and slot group 0x2a */
@@ -92,7 +94,80 @@ bool __stdcall function_1b6930(long actor_index, s_slot *slot)
 	return true;
 }
 
-void __stdcall function_1b69e0(long actor_index, long prop_index);
+struct s_1b69e0_choice
+{
+    s_type_c3b527 point;
+    short field_10;
+    short field_12;
+    long field_14;
+};
+
+bool function_1b60d0(long index, short type, short level);
+void function_25d420(long prop_index, short type, long actor_index);
+short __stdcall function_272af0(s_match_globals *structure, point3f const *point);
+
+// @retail 0x1b69e0
+bool __stdcall function_1b69e0(long actor_index, long prop_index)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    s_prop_node_view *node = prop_node_get(prop_index);
+    s_prop_view_fields *view = prop_node_view(node);
+    bool result = false;
+    if (view)
+    {
+        s_2605d0_request request;
+        memset(&request, 0, sizeof(request));
+        request.type = 5;
+        *((bool *)&request + 4) = true;
+        *(long *)((byte *)&request + 8) = actor->prop_index;
+        *(long *)((byte *)&request + 0xc) = *(long *)((byte *)view + 0xc);
+        *((bool *)&request + 0x10) = false;
+        vector3f *direction = (vector3f *)((byte *)view + 0x94);
+        if (direction->i * direction->i + direction->j * direction->j + direction->k * direction->k > 0.0f)
+        {
+            *((bool *)&request + 0x668) = true;
+            *(vector3f *)((byte *)&request + 0x66c) = *direction;
+            *((bool *)&request + 0x54) = true;
+            *((bool *)&request + 0x55) = true;
+            if (view->unknown70 == 1)
+            {
+                s_type_c3b527 *point = &view->unknown78;
+                function_210850(point, (point3f *)((byte *)&request + 0x24));
+                short cluster = *(short *)((byte *)view + 0x84) == NONE ?
+                    *(short *)((byte *)view + 0x72) : function_272af0(g_4e0348, (point3f *)((byte *)&request + 0x24));
+                *((bool *)&request + 0x20) = true;
+                *(s_type_c3b527 *)((byte *)&request + 0x30) = *point;
+                *(long *)((byte *)&request + 0x40) = *(long *)((byte *)view + 0x74);
+                *(short *)((byte *)&request + 0x44) = cluster;
+            }
+        }
+        *(real *)((byte *)&request + 0x1c) = 20.0f;
+        byte *scratch = ai_scratch_buffer_get();
+        bool unknown;
+        long level;
+        s_261d20_entry entry;
+        s_reference reference = function_2605d0(actor_index, &request, (long)&entry, (long)&level, scratch, &unknown);
+        if (!REFERENCE_EQUAL(reference, g_470fa0) && reference.unknown2 >= 0)
+        {
+            s_1b69e0_choice *choice = *(s_1b69e0_choice **)&entry;
+            view->unknown70 = 1;
+            view->unknown78 = choice->point;
+            *(short *)((byte *)view + 0x72) = choice->field_12;
+            *(long *)((byte *)view + 0x74) = choice->field_14;
+            s_262b40_result *target = function_262b40(reference);
+            short type = target ? target->unknown10 : NONE;
+            function_1b60d0(node->unknown08, type, reference.unknown2);
+            result = true;
+        }
+        else
+        {
+            function_25d420(prop_index, 2, actor_index);
+            view->unknown4c = true;
+        }
+        ai_scratch_buffer_release(scratch);
+    }
+    return result;
+}
 
 // @retail 0x1b6c90
 short __stdcall function_1b6c90(long actor_index, s_slot *slot, bool active)

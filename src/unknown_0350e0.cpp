@@ -2200,3 +2200,237 @@ bool __stdcall function_37260(byte *state, real step, byte const *parameters)
     return true;
 }
 
+
+struct s_motion_material_entry
+{
+    byte unknown00[0x24];
+    long state_index;
+    byte unknown28[0x60];
+};
+
+struct s_motion_material_map
+{
+    byte unknown00[0x84];
+    long count;
+    s_motion_material_entry *entries;
+};
+
+real g_50941c;
+
+// @retail 0x36ab0
+void function_36ab0(void)
+{
+    s_motion_material_map *map = (s_motion_material_map *)g_4e0348;
+    long i = 0;
+    if (map->count > 0)
+    {
+        do
+        {
+            s_motion_material_entry *entry = (s_motion_material_entry *)((byte *)map->entries + i * 0x88);
+            long index = entry->state_index;
+            if (index != NONE)
+                function_39880((s_motion_state_groups *)g_4e3b44[index & 0xffff].bytes);
+            ++i;
+        } while (i < map->count);
+    }
+    g_4670fc = 1.0f;
+    g_467100 = 1.0f;
+    g_509420 = 0;
+    g_509424 = 0;
+    g_509428 = 0.0f;
+    g_50941c = 0.0f;
+}
+
+#include "object_markers.h"
+
+real function_be6d0(long object_index, long attachment_index);
+bool function_bad50(long object_index, long index, point3f *out);
+void function_42850(long a, long b, point3f const *position, vector3f const *first,
+    vector3f const *second, real scale, real width, vector3f const *third);
+void function_429a0(byte type, long a, long b, long c, point3f const *position,
+    point3f const *endpoint, vector3f const *first, vector3f const *second, real opacity);
+byte g_55e6c7;
+
+struct s_attached_render_entry
+{
+    dword type;
+    long tag;
+    long marker;
+    short color_index;
+    byte unknown0e[10];
+};
+
+// @retail 0x41980
+void __stdcall function_41980(short type, long object_index)
+{
+    s_object_marker markers[65];
+    if (type == 0)
+    {
+        byte *object = (byte *)((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+        byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+        long added = 0;
+        for (long i = 0; i < *(long *)(definition + 0x94); ++i)
+        {
+            s_attached_render_entry *entry = ((s_attached_render_entry *)*(byte **)(definition + 0x98)) + i;
+            if ((entry->type == 0x6c656e73 || entry->type == 0x4d475332 || entry->type == 0x7464746c) && entry->tag != NONE)
+            {
+                long count = function_b8d30(object_index, entry->marker, markers, 65, false);
+                real amount = function_be6d0(object_index, i);
+                color3f color = *(color3f const *)g_468710;
+                if (entry->color_index)
+                    function_bad50(object_index, entry->color_index, (point3f *)&color);
+                for (long j = 0; j < count; ++j)
+                {
+                    transform4x3f *matrix = &markers[j].matrix;
+                    if (entry->type == 0x6c656e73)
+                    {
+                        if (added < 64)
+                        {
+                            byte *tag = g_4e3b44[entry->tag & 0xffff].bytes;
+                            real scale = (tag[0x28] & 0x40) ? matrix->scale : 1.0f;
+                            function_2dba0(entry->tag, &matrix->forward, function_3e9c0(object_index),
+                                0, object_index & 0xffff, added, &matrix->position, &color, 1.0f, amount, scale);
+                            ++added;
+                        }
+                        else if (!g_55e6c7)
+                            g_55e6c7 = true;
+                    }
+                    else if (entry->type == 0x4d475332)
+                    {
+                        byte *tag = g_4e3b44[entry->tag & 0xffff].bytes;
+                        real scale = 1.0f;
+                        if (*(long *)(tag + 8) > 0 && (**(byte **)(tag + 12) & 0x20))
+                            scale = matrix->scale;
+                        function_42850(object_index, entry->tag, &matrix->position, (vector3f *)&color,
+                            &matrix->forward, scale, amount, &matrix->up);
+                    }
+                    else if (entry->type == 0x7464746c)
+                        function_429a0(0, object_index, entry->tag, NONE, &matrix->position,
+                            NULL, &matrix->forward, &matrix->up, 1.0f);
+                }
+            }
+        }
+    }
+}
+
+void function_30c60(dword handle, point3f *position, long *out);
+real g_4b9dcc;
+
+PRIVATE inline real object_view_distance(point3f const *position)
+{
+    double x = (double)position->x - g_4b9da0.x;
+    double y = (double)position->y - g_4b9da0.y;
+    double z = (double)position->z - g_4b9da0.z;
+    return (real)(sqrt(z * z + y * y + x * x) * g_4b9dcc);
+}
+
+// @retail 0x3d7f0
+bool __stdcall function_3d7f0(long object_index, real *out_alpha, bool *out_special)
+{
+    s_scalar_object_header *header = &((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff];
+    byte *object = header->object;
+    byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+    long kind = *(signed char *)(object + 0xaa);
+    real alpha = 0.0f;
+    bool result = false;
+    if (!(object[6] & 1))
+    {
+        byte opacity, second;
+        switch (*(short *)(definition + 0x18))
+        {
+        case 0:
+            if (kind == 0 || kind == 1)
+            {
+                point3f position;
+                long region;
+                function_30c60(object_index, &position, &region);
+                function_4baf0(object_index, object_view_distance(&position), &opacity, &second);
+                alpha = opacity * 0.003921568859368563f;
+            }
+            break;
+        case 2:
+        {
+            point3f position = *(point3f *)(object + 0x30);
+            function_4baf0(object_index, object_view_distance(&position), &opacity, &second);
+            alpha = opacity * 0.003921568859368563f;
+            break;
+        }
+        }
+        if (alpha > 0.0f)
+        {
+            result = true;
+            if (kind == 0)
+            {
+                if ((bool)(((dword)object[0x10a] >> 2) & 1))
+                {
+                    real elapsed = (g_510c54->game_time - *(long *)(object + 0xbc)) * g_510c54->rate - 2.0f;
+                    alpha = 1.0f - elapsed;
+                    if (alpha < 0.0f) alpha = 0.0f;
+                    else if (alpha > 1.0f) alpha = 1.0f;
+                    result = alpha > 0.0f;
+                }
+                real fade = *(real *)(((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff].object + 0x2b0);
+                real clamped = fade < 0.0f ? 0.0f : fade > 1.0f ? 1.0f : fade;
+                if (clamped == fade)
+                    alpha *= 1.0f - fade;
+            }
+        }
+    }
+    if (!result && *(long *)(object + 0x14) != NONE)
+        result = function_3d7f0(function_baf80(object_index), &alpha, out_special);
+    header = &((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff];
+    if ((1 << ((byte *)header)[3]) & 3)
+    {
+        object = header->object;
+        real fade = *(real *)(object + 0x2b0);
+        if (fade < 0.0f) fade = 0.0f;
+        else if (fade > 1.0f) fade = 1.0f;
+        alpha *= 1.0f - fade;
+        if (alpha <= 0.0f)
+            result = false;
+    }
+    *out_alpha = alpha;
+    *out_special = kind == 12;
+    return result;
+}
+
+s_cached_input_list g_5246f8[4];
+
+// @retail 0x33400
+long function_33400(byte const *list, s_cached_input *output, long mode)
+{
+    long selected = 0;
+    long view = g_4b9ed4 < 0 ? 0 : g_4b9ed4 > 3 ? 3 : g_4b9ed4;
+    long count = *(short const *)(list + 4);
+    for (long i = 0; i < count; ++i)
+    {
+        long object_index = (*(long const **)(list + 0xc))[(short)i];
+        word flags = (*(word const **)(list + 8))[(short)i];
+        if (mode == 0 || (mode == 1 && (flags & 0x4000)) || (mode == 2 && (flags & 0x8000)))
+        {
+            real alpha;
+            bool special;
+            if (function_3d7f0(object_index, &alpha, &special) && selected < 32)
+            {
+                byte *object = ((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+                point3f position = *(point3f *)(object + 0x30);
+                real radius = *(real *)(object + 0x3c);
+                s_cached_input *entry = &output[selected];
+                entry->data[1] = object_index;
+                entry->data[2] = object_index;
+                *(real *)&entry->data[3] = alpha;
+                real depth = g_4b9e38 * position.z + g_4b9e20 * position.x + g_4b9e2c * position.y + g_4b9e44;
+                if (depth < 0.0f) depth = 0.0f - depth;
+                if (!(depth > 0.1f)) depth = 0.1f;
+                *(real *)&entry->data[4] = (g_4b9ed0 / depth) * radius * 2.0f;
+                ((byte *)entry)[0] = function_3e9c0(object_index);
+                ((byte *)entry)[2] = 0;
+                ((byte *)entry)[1] = 0;
+                ++selected;
+            }
+        }
+    }
+    s_cached_input_list *state = &g_5246f8[view];
+    function_4a7c0(state, output, selected);
+    return function_4ac30(state, output, 4, 0.005f);
+}

@@ -3535,3 +3535,76 @@ void __stdcall function_480a0(point3f const *point, real width, real height, rea
         D3DDevice_End();
     }
 }
+
+byte g_4b6291;
+
+void __stdcall function_41cc0(void *payload);
+
+// @retail 0x420a0
+void function_420a0(void)
+{
+    dword used[2] = { 0, 0 };
+    long count = g_4c19ac;
+    for (long i = 0; i < count; ++i)
+    {
+        s_42760_entry *entry = &g_4c152c[i];
+        if (entry->type != 1 || (used[i >> 5] & (1 << (i & 31))))
+            continue;
+        if (g_4b6280.count >= 1024)
+        {
+            if (g_4b6291)
+                g_4b6291 = false;
+            continue;
+        }
+        s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[g_4b6280.count++];
+        record->type = 0;
+        record->active = false;
+        record->type = 3;
+        record->flags = 0;
+        record->callback = function_41cc0;
+        used[i >> 5] |= 1 << (i & 31);
+        byte indices[32];
+        indices[0] = (byte)i;
+        long selected = 1;
+        point3f minimum = entry->position;
+        point3f maximum = entry->position;
+        real depth = entry->depth;
+        for (long j = 0; j < count; ++j)
+        {
+            if (used[j >> 5] & (1 << (j & 31)))
+                continue;
+            s_42760_entry *candidate = &g_4c152c[j];
+            box2f bounds = *(box2f *)candidate->unknown10;
+            bool intersects = false;
+            for (long k = 0; k < selected; ++k)
+            {
+                box2f previous = *(box2f *)g_4c152c[(signed char)indices[k]].unknown10;
+                if (bounds.x1 > previous.x0 && bounds.y1 > previous.y0 &&
+                    previous.x1 > bounds.x0 && previous.y1 > bounds.y0)
+                {
+                    intersects = true;
+                    break;
+                }
+            }
+            if (!intersects)
+            {
+                used[j >> 5] |= 1 << (j & 31);
+                indices[selected++] = (byte)j;
+                point3f position = candidate->position;
+                if (!(position.x > minimum.x)) minimum.x = position.x;
+                if (!(position.y > minimum.y)) minimum.y = position.y;
+                if (!(position.z > minimum.z)) minimum.z = position.z;
+                if (position.x > maximum.x) maximum.x = position.x;
+                if (position.y > maximum.y) maximum.y = position.y;
+                if (position.z > maximum.z) maximum.z = position.z;
+                if (depth > candidate->depth) depth = candidate->depth;
+            }
+        }
+        record->payload[0] = (byte)selected;
+        memcpy(record->payload + 1, indices, selected);
+        record->depth = 0.0f - depth;
+        record->position.x = (minimum.x + maximum.x) * 0.5f;
+        record->position.y = (minimum.y + maximum.y) * 0.5f;
+        record->position.z = (minimum.z + maximum.z) * 0.5f;
+    }
+}

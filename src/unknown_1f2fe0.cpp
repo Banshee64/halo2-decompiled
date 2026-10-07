@@ -81,9 +81,10 @@ bool function_1f3100(long actor_index)
 // @retail 0x1f3190
 void function_1f3190(long actor_index)
 {
+	bool active = actor_moving_get(actor_index)->unknown040;
 	s_actor_moving *actor = actor_moving_get(actor_index);
 
-	if (actor->unknown040 && !actor->unknown506)
+	if (active && !actor->unknown506)
 	{
 		if (function_1f8660(actor_index) || actor->unknown504 == 3)
 			function_1f8a70(actor_index, 0);
