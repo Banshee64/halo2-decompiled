@@ -163,6 +163,10 @@ bool c_helper_a::v7()
 				if (game->l18 != 0)
 					result = true;
 			}
+			else
+			{
+				volatile long local_0 = mode;
+			}
 		}
 	}
 	return result;
@@ -246,6 +250,7 @@ void function_72df0(c_helper_a *helper)
 struct s_online_match_session;
 long online_match_session_create(const s_online_match_session *session);
 
+#pragma inline_depth(0)
 // @retail 0x72e40
 void function_72e40(c_helper_a *helper)
 {
@@ -273,6 +278,7 @@ void function_72e40(c_helper_a *helper)
 		}
 	}
 }
+#pragma inline_depth(255)
 
 // @retail 0x73310
 void c_helper_a::v1()
@@ -1114,12 +1120,18 @@ void c_helper_update::v2()
 	function_737b0(this);
 }
 
+#pragma inline_depth(0)
 // @retail 0x73040
 void c_helper_a::v2()
 {
 	bool connected = false;
-	if (g_467214 != NONE && online_task_get_logon_status(g_467214) == 1)
-		connected = true;
+	if (g_467214 != NONE)
+	{
+		switch (online_task_get_logon_status(g_467214))
+		{
+		case 1: connected = true; break;
+		}
+	}
 	b9 = connected;
 	bool active = v7();
 	if (!ba && lc == NONE && active)
@@ -1146,6 +1158,7 @@ void c_helper_a::v2()
 	}
 	function_731d0(this);
 }
+#pragma inline_depth(255)
 
 #include "language.h"
 #include <time.h>
@@ -1156,6 +1169,7 @@ void function_7e100(long current, const s_member_quality_collection *collection,
 	long *selected, long *first, long *second, long *level);
 long function_1931a0(long count, s_surface_description *variant);
 
+#pragma inline_depth(0)
 // @retail 0x73530
 void function_73530(c_helper_a *helper, void *description)
 {
@@ -1172,39 +1186,45 @@ void function_73530(c_helper_a *helper, void *description)
 	*(long *)(output + 0xc) = 0x2651;
 	*(word *)output = 2;
 	*(long *)(output + 4) = 4;
-	long language = get_current_language();
+	long language = g_47ff38;
+	if (language == NONE)
+	{
+		language = function_11ca80(XGetLanguage());
+		g_47ff38 = language;
+	}
 	if (session->state > 2 && session->state <= 8)
 		language = *(long *)((byte *)session + 0x4988);
 	*(long *)(output + 0x10) = language;
+	XNKEY *key = (XNKEY *)(output + 0x1c);
+	s_session_id *id = (s_session_id *)(output + 0x14);
 	if (session->state && session->flag24)
 	{
-		s_session_id *id = (s_session_id *)(output + 0x14);
-		XNKEY *key = (XNKEY *)(output + 0x1c);
 		if (id) *id = *(s_session_id *)((byte *)session + 0x1c);
 		if (key) *key = *(XNKEY *)((byte *)session + 0x25);
 	}
 	memcpy(output + 0x2c, (byte *)session + 0x58 + member * 0x10c, sizeof(XNADDR));
 	*(long *)(output + 0x70) = variant_index;
 	long started = session->time78b4;
-	*(long *)(output + 0x74) = time(NULL) - started;
+	*(volatile long *)(output + 0x74) = time(NULL) - started;
 	long ratings[0x364 / 4];
 	if (function_7e210(session, (s_matchmaking_ratings *)ratings))
 	{
 		function_7e100(member, (const s_member_quality_collection *)&session->value4c,
 			NULL, (long *)(output + 0x50), (long *)(output + 0x54), NULL);
 		*(long *)(output + 0x58) = ratings[3];
-		long maximum = 16;
+		long available = 16;
+		long local_0 = ratings[2];
 		if (session->state > 2 && session->state <= 8)
-			maximum = *(long *)((byte *)session + 0x4994);
-		long available = maximum - ratings[3];
+			available = *(long *)((byte *)session + 0x4994);
+		available -= ratings[3];
 		*(long *)(output + 0x78) = ratings[0];
 		*(long *)(output + 0x68) = ratings[0x35c / 4];
 		*(long *)(output + 0x60) = available;
 		*(long *)(output + 0x7c) = ratings[1];
-		*(long *)(output + 0x80) = ratings[2];
+		*(long *)(output + 0x80) = local_0;
 		*(long *)(output + 0x6c) = ratings[0x360 / 4];
-		if (ratings[2] != NONE)
-			*(long *)(output + 0x84) = ratings[2] > function_1931a0(ratings[1], variant) ? ratings[2] : function_1931a0(ratings[1], variant);
+		if (local_0 != NONE)
+			*(long *)(output + 0x84) = local_0 > function_1931a0(ratings[1], variant) ? local_0 : function_1931a0(ratings[1], variant);
 		else
 			*(long *)(output + 0x84) = NONE;
 		*(long *)(output + 0x64) = available;
@@ -1213,10 +1233,11 @@ void function_73530(c_helper_a *helper, void *description)
 		{
 			long count = ratings[0x1d4 / 4];
 			*(long *)(output + 0x88) = count;
-			if (count > 0) memcpy(output + 0x8c, &ratings[0x298 / 4], count * 12);
+			if (count > 0) memcpy(output + 0x8c, &ratings[0x298 / 4], ((unsigned long)count * 12) & ~3UL);
 		}
 	}
 }
+#pragma inline_depth(255)
 
 #include "bitstream.h"
 struct s_session_description_payload;

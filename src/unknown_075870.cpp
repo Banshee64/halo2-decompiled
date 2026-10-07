@@ -291,7 +291,8 @@ bool network_observer_get_bandwidth(s_network_observer *observer, long *value4e0
 // @retail 0x769a0
 bool network_observer_channel_timed_out(s_network_observer *observer, long channel_index)
 {
-	s_network_observer_channel *channel = &observer->channels[channel_index];
+	s_network_observer *const *local_0 = &observer;
+	s_network_observer_channel *channel = &(*local_0)->channels[channel_index];
 	bool result = false;
 	if (channel->connection_index != NONE)
 	{
@@ -300,7 +301,9 @@ bool network_observer_channel_timed_out(s_network_observer *observer, long chann
 		{
 			long last = connection->timers[1].time;
 			long since = observer_time_get() - last;
-			long time = connection->state > 2 ? connection->timers[4].time : 0;
+			long time = 0;
+			if (connection->state > 2)
+				time = connection->timers[4].time;
 			long now = observer_time_get();
 			if (since < observer->configuration->timeout78 && now - time >= observer->configuration->timeout7c)
 				result = false;
@@ -327,7 +330,11 @@ void network_observer_check_channel_activity(s_network_observer *observer, long 
 				if (observer_time_get() - last < observer->configuration->timeout74)
 				{
 					long since_activity = function_75890(channel->time94);
-					long since_timer = function_75890(connection->state > 2 ? connection->timers[3].time : 0);
+					long local_0 = *(volatile long *)&connection->state;
+					long local_1 = 0;
+					if (local_0 > 2)
+						local_1 = connection->timers[3].time;
+					long since_timer = function_75890(local_1);
 					if (since_activity >= observer->configuration->timeout80 && since_timer >= observer->configuration->timeout84)
 						network_connection_close(connection, 0x10);
 					return;
@@ -352,8 +359,9 @@ long network_connection_send_capacity(s_network_connection *connection);
 // @retail 0x77580
 bool network_observer_channel_stalled(s_network_observer *observer, long channel_index, long reason)
 {
-	s_network_observer_channel *channel = &observer->channels[channel_index];
+	bool local_1 = false;
 	bool blocked = true;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->connection_index != NONE)
 	{
 		s_network_connection *connection = function_x7665e0(channel->connection_index);
@@ -368,22 +376,33 @@ bool network_observer_channel_stalled(s_network_observer *observer, long channel
 	if (!channel->time98)
 		channel->time98 = observer_time_get();
 	bool expired = observer_time_since(channel->time98) > g_network_configuration.value152c;
-	if (!blocked)
-	{
-		channel->time9c = 0;
-		if (expired)
-			return true;
-	}
-	else
+	if (blocked)
 	{
 		if (!channel->time9c)
 			channel->time9c = observer_time_get();
-		if (expired || observer_time_since(channel->time9c) > g_network_configuration.value1528)
-			return true;
+		long local_0 = observer_time_since(channel->time9c);
+		if (expired || local_0 > g_network_configuration.value1528)
+			{
+				local_1 = true;
+				goto local_2;
+			}
+	}
+	else
+	{
+		channel->time9c = 0;
+		if (expired)
+			{
+				local_1 = true;
+				goto local_2;
+			}
 	}
 	if (!function_7af40(&channel->address))
-		return true;
-	return false;
+		{
+			local_1 = true;
+			goto local_2;
+		}
+local_2:
+	return local_1;
 }
 /* the security code's connect status of an address (unknown_07a9a0.cpp) */
 long function_07acf0(const s_type_99af70 *address);
@@ -948,21 +967,26 @@ real network_observer_rate_for_size(s_network_observer *observer, long size, boo
 }
 
 /* whether a rate is below the configured rate or the frame rate */
+PRIVATE __forceinline bool function_78190(real arg_0, real arg_1, s_network_observer *arg_2, bool arg_3, bool arg_4, bool arg_5)
+{
+	bool local_0 = false;
+	if (arg_3 && arg_1 + 0.0001f < arg_2->configuration->real110 * arg_0)
+		local_0 = true;
+	if (arg_4)
+	{
+		if (arg_5)
+			arg_0 *= 0.5f;
+		if (arg_1 + 0.0001f < arg_0)
+			local_0 = true;
+	}
+	return local_0;
+}
+
 // @retail 0x78190
 bool network_observer_rate_below(s_network_observer *observer, real rate, bool check_configured, bool check_frame_rate, bool half)
 {
 	real frame_rate = network_frame_rate();
-	bool result = false;
-	if (check_configured && rate + 0.0001f < observer->configuration->real110 * frame_rate)
-		result = true;
-	if (check_frame_rate)
-	{
-		if (half)
-			frame_rate *= 0.5f;
-		if (rate + 0.0001f < frame_rate)
-			result = true;
-	}
-	return result;
+	return function_78190(frame_rate, rate, observer, check_configured, check_frame_rate, half);
 }
 
 /* the smallest of the configuration's rates (per frame) above a minimum, or
@@ -1092,13 +1116,14 @@ void network_observer_reset_bandwidth(s_network_observer *observer)
 	observer->value4f38 = NONE;
 	observer->flag4f3c = true;
 	observer->time4f2c = observer_time_get();
-	long channel_index = 0;
+	volatile s_network_observer_channel *local_0 = &observer->channels[0];
+	long local_1 = MAXIMUM_OBSERVER_CHANNELS;
 	do
 	{
-		if (observer->channels[channel_index].state)
-			observer_channel_clear_flag48c(&observer->channels[channel_index]);
-		channel_index++;
-	} while (channel_index < MAXIMUM_OBSERVER_CHANNELS);
+		if (local_0->state && local_0->flag48c)
+			local_0->flag48c = false;
+		local_0++;
+	} while (--local_1);
 }
 
 /* a probe target (as unknown_07b4c0.cpp's) */
@@ -1700,33 +1725,39 @@ void function_7a110(s_network_observer *observer, long index)
 	}
 }
 
+struct s_7a330
+{
+	byte field_0[0xa8];
+	s_observer_bandwidth_channel field_a8;
+};
+
 // @retail 0x7a330
 void function_7a330(s_network_observer *observer, long index)
 {
 	long const *index_reference = &index;
-	s_observer_bandwidth_channel *channel = (s_observer_bandwidth_channel *)&observer->channels[*index_reference];
-	if (channel->probe_state == 0)
+	s_7a330 *local_0 = (s_7a330 *)((byte *)observer + *index_reference * sizeof(s_network_observer_channel));
+	if (local_0->field_a8.probe_state == 0)
 	{
 		long elapsed = 0;
-		long last = channel->probe_reset_time;
+		long last = local_0->field_a8.probe_reset_time;
 		if (last != NONE) elapsed = observer_time_get() - last;
-		if (channel->probe_reset_time == NONE || elapsed >= *(long *)((byte *)observer->configuration + 0x1f0))
+		if (local_0->field_a8.probe_reset_time == NONE || elapsed >= *(long *)((byte *)observer->configuration + 0x1f0))
 		{
-			if (channel->constrained_cycles >= *(long *)((byte *)observer->configuration + 0x1ec))
+			if (local_0->field_a8.constrained_cycles >= *(long *)((byte *)observer->configuration + 0x1ec))
 			{
-				channel->probe_state = 1;
+				local_0->field_a8.probe_state = 1;
 				observer->flag4f3c = true;
 			}
 		}
 	}
-	else if (channel->unconstrained_cycles > 0)
+	else if (local_0->field_a8.unconstrained_cycles > 0)
 		function_79d90(observer, index);
-	else if (channel->probe_state == 2)
+	else if (local_0->field_a8.probe_state == 2)
 	{
 		switch (function_7a1c0(observer, index))
 		{
 		case 0:
-			channel->probe_state = 3;
+			local_0->field_a8.probe_state = 3;
 			break;
 		case 1:
 			function_7a110(observer, index);
@@ -1739,12 +1770,12 @@ void function_7a330(s_network_observer *observer, long index)
 	else
 	{
 		long tolerance;
-		if (channel->has_callback) tolerance = *(long *)((byte *)observer->configuration + 0x1d8);
+		if (local_0->field_a8.has_callback) tolerance = *(long *)((byte *)observer->configuration + 0x1d8);
 		else tolerance = *(long *)((byte *)observer->configuration + 0x1d4);
 		bool exhausted = false;
-		if (!channel->backoff && channel->loss_penalty <= 0)
+		if (!local_0->field_a8.backoff && local_0->field_a8.loss_penalty <= 0)
 		{
-			if (channel->smoothed_delay - channel->smoothed_interval > channel->baseline_delay + tolerance)
+			if (local_0->field_a8.smoothed_delay - local_0->field_a8.smoothed_interval > local_0->field_a8.baseline_delay + tolerance)
 				function_7a160(observer, index);
 			else if (!function_79de0(observer, index, &exhausted) && exhausted)
 				function_79d90(observer, index);

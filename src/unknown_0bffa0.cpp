@@ -38,6 +38,8 @@ extern void *g_4e0310;
 extern void *g_4e0314;
 extern void *g_4e0318;
 
+__declspec(noinline) void function_c0040();
+
 // @retail 0xc0040
 void function_c0040()
 {

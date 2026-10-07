@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_13E8A0.CPP: the text drawing state: font, colours, shadow,
    justification and tab stops */
 

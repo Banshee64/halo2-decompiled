@@ -858,6 +858,7 @@ class c_widget_45adf0 : public c_class_1a2c81
 public:
 	c_widget_45adf0(s_widget_block_24 *definition);
 	virtual void v3();
+	virtual void v4(long frame);
 
 	s_widget_block_24 *definition;
 	dword value74[4];

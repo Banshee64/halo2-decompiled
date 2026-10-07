@@ -799,3 +799,126 @@ bool function_290f60(s_ai_trigger_condition *arg_0, bool *arg_1, long arg_2)
 		local_1 = !local_1;
 	return local_1;
 }
+
+struct s_2912c0
+{
+	byte field_0[0x18];
+	long field_18;
+	byte field_1c[7];
+	bool field_23;
+	short field_24;
+	byte field_26[2];
+	bool field_28;
+	byte field_29[3];
+	short field_2c;
+	byte field_2e[2];
+	real field_30;
+	short field_34;
+	byte field_36[2];
+};
+
+// @retail 0x2912c0
+bool __stdcall function_2912c0(s_ai_trigger_condition *arg_0, long arg_1, bool *arg_2)
+{
+	bool local_0 = false;
+	s_ai_trigger_condition *const *local_8 = &arg_0;
+	long const *local_9 = &arg_1;
+	bool *const *local_10 = &arg_2;
+	s_290f60 *local_1 = (s_290f60 *)*local_8;
+	if (local_1->field_2 != NONE)
+		return function_290f60(*local_8, *local_10, NONE);
+	long local_2 = local_1->field_4 != NONE ? local_1->field_4 : *local_9;
+	s_2912c0 *local_3 = (s_2912c0 *)squad_group_get(local_2);
+	switch (local_1->field_0)
+	{
+	case 0: case 1: case 2: case 3: case 4: case 6:
+	case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18:
+		if (!local_3 || !local_3->field_23)
+			goto local_11;
+		break;
+	}
+	s_squad_group_iterator local_4;
+	switch (local_1->field_0)
+	{
+	case 0: local_0 = local_3->field_24 >= local_1->field_6; break;
+	case 1: local_0 = local_3->field_24 <= local_1->field_6; break;
+	case 2: local_0 = local_3->field_30 >= local_1->field_8; break;
+	case 3: local_0 = local_3->field_30 <= local_1->field_8; break;
+	case 4: local_0 = local_3->field_28; break;
+	case 5: local_0 = g_510c54->game_time > local_3->field_18 + local_1->field_6; break;
+	case 6: break;
+	case 7:
+		if (local_1->field_30 != NONE)
+		{
+			g_50242c = (local_2 & 0xffff) | 0x40000000;
+			long local_5 = function_209490(((s_291746 *)g_4e0350)->field_1bc[local_1->field_30].field_24);
+			local_0 = *(bool *)&local_5;
+		}
+		break;
+	case 8:
+		if (local_1->field_30 != NONE)
+		{
+			g_50242c = (local_2 & 0xffff) | 0x40000000;
+			long local_6 = function_209490(((s_291746 *)g_4e0350)->field_1bc[local_1->field_30].field_24);
+			local_0 = !*(bool *)&local_6;
+		}
+		break;
+	case 9:
+		if (local_1->field_c != NONE) local_0 = function_291670(local_1->field_c, false);
+		else **local_10 = true;
+		break;
+	case 10:
+		if (local_1->field_c != NONE) local_0 = function_291670(local_1->field_c, true);
+		else **local_10 = true;
+		break;
+	case 11: if (local_3) local_0 = local_3->field_34 >= local_1->field_6; break;
+	case 12: if (local_3) local_0 = local_3->field_34 <= local_1->field_6; break;
+	case 13:
+		if (local_2 != NONE)
+		{
+			function_204db0(&local_4, local_2);
+			local_0 = true;
+			while (function_204e10(&local_4))
+			{
+				local_0 &= function_203240(local_4.squad_index);
+				if (!local_0) break;
+			}
+		}
+		break;
+	case 14:
+		if (local_2 != NONE)
+		{
+			function_204db0(&local_4, local_2);
+			local_0 = true;
+			while (function_204e10(&local_4))
+			{
+				local_0 &= function_2032b0(local_4.squad_index);
+				if (!local_0) break;
+			}
+		}
+		break;
+	case 15:
+		if (local_2 != NONE)
+		{
+			function_204db0(&local_4, local_2);
+			local_0 = false;
+			s_squad_datum *local_7;
+			while ((local_7 = function_204e10(&local_4)) != NULL)
+				if (*((byte *)local_7 + 2) & 8) { local_0 = true; break; }
+		}
+		break;
+	case 16: if (local_3) local_0 = local_3->field_2c >= local_1->field_6; break;
+	case 17: if (local_3) local_0 = local_3->field_2c <= local_1->field_6; break;
+	case 18:
+		if (local_3) local_0 = function_2765e0((local_2 & 0xffff) | 0x40000000, local_1->field_8);
+		break;
+	case 19:
+		local_0 = g_4f55d0->unknown36c == NONE || g_510c54->game_time - g_4f55d0->unknown36c > function_1469f0(local_1->field_8);
+		break;
+	case 20: local_0 = function_226190(); break;
+	default: local_0 = false; break;
+	}
+	if (local_1->field_34 & 1) local_0 = !local_0;
+local_11:
+	return local_0;
+}

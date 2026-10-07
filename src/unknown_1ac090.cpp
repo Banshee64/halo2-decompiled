@@ -7,6 +7,8 @@
 #include "ai_actor.h"
 #include "unknown_1fb7e0.h"
 #include "unit_requests.h"
+#include "unknown_2605d0.h"
+#include "unknown_2626b0.h"
 
 /* the state of the slots of types 0x2c and 0x2b */
 struct s_slot_2c
@@ -109,7 +111,7 @@ bool function_1f86f0(long index);
 short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next);
 void __stdcall function_1acda0(long actor_index, s_slot *slot);
 void __stdcall function_1ad130(long actor_index, s_slot *slot);
-void __stdcall function_1ad6a0(long actor_index, s_slot *slot);
+bool __stdcall function_1ad6a0(long arg_0, s_slot *arg_1);
 void __stdcall function_1ada70(long actor_index, s_slot *slot);
 
 /* ---- slot type 0x2c ---- */
@@ -656,5 +658,95 @@ s_slot_handler_2 g_47dc88 =
 		function_1ad550, function_1ad5b0, function_1ad590, 0, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
-	function_1ad6a0, 0, function_1ada70
+	(t_slot_proc)function_1ad6a0, 0, function_1ada70
 };
+
+
+void function_b9fc0(long arg_0, vector3f *arg_1, vector3f *arg_2);
+bool function_f47d0(long arg_0, long arg_1);
+bool function_1f8660(long arg_0);
+
+// @retail 0x1ad6a0
+bool __stdcall function_1ad6a0(long arg_0, s_slot *arg_1)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	bool local_1 = true;
+	s_slot_54 *local_2 = (s_slot_54 *)arg_1;
+	if (local_0->unknown040)
+	{
+		if (local_2->unknown0c && function_1f8660(arg_0))
+			return local_1;
+		s_tag_element_54 *local_3 = (s_tag_element_54 *)function_1e5450(arg_0,
+			ai_object_get(local_0->unknown26c)->definition_index);
+		if (!local_3)
+			return false;
+		byte *local_4 = ai_scratch_buffer_get();
+		s_2605d0_request local_5;
+		memset(&local_5, 0, sizeof(local_5));
+		*(real *)((byte *)&local_5 + 0x60) = 15.0f;
+		local_5.type = 7;
+		local_5.unknown015 = true;
+		local_5.unknown05b = true;
+		real local_6 = local_3->unknown98 > 0.0f ? local_3->unknown98 : 20.0f;
+		local_5.unknown008 = local_6 * 0.5f;
+		local_5.unknown00c = local_6;
+		local_5.unknown010 = local_6 + 10.0f;
+		s_261d20_entry *local_7;
+		long local_8;
+		bool local_9;
+		s_reference local_10 = function_2605d0(arg_0, &local_5, (long)&local_7,
+			(long)&local_8, local_4, &local_9);
+		local_10 = function_2626b0(arg_0, local_10, local_8, local_4, local_9, true);
+		s_reference local_11 = g_470fa0;
+		if (*(long *)&local_10 == *(long *)&local_11)
+		{
+			actor_get(arg_0)->unknown040 = false;
+			ai_scratch_buffer_release(local_4);
+			return false;
+		}
+		if (!local_2->unknown0c && local_0->unknown270 == 4 && local_0->prop_index != NONE)
+		{
+			s_prop_node_view *local_12 = prop_node_get(local_0->prop_index);
+			s_prop_state_view *local_13 = prop_node_state(local_12);
+			if (local_12->unknown24 >= 1 && local_12->unknown24 <= 2 && *(bool *)((byte *)local_13 + 0x64))
+			{
+				long local_14 = local_0->unknown26c;
+				vector3f local_15;
+				vector3f local_16;
+				function_b9fc0(local_14, &local_15, &local_16);
+				vector3f local_17;
+				local_17.i = local_13->position.x - local_0->position.x;
+				local_17.j = local_13->position.y - local_0->position.y;
+				local_17.k = local_13->position.z - local_0->position.z;
+				function_30bf0(&local_17);
+				real local_18 = local_15.k * local_17.k;
+				local_18 += local_15.j * local_17.j;
+				local_18 += local_15.i * local_17.i;
+				if (local_18 > 0.9f)
+				{
+					local_17.i = local_7->point.x - local_0->position.x;
+					local_17.j = local_7->point.y - local_0->position.y;
+					local_17.k = local_7->point.z - local_0->position.z;
+					real local_19 = function_30bf0(&local_17);
+					local_18 = local_15.k * local_17.k;
+					local_18 += local_15.j * local_17.j;
+					local_18 += local_15.i * local_17.i;
+					if (local_18 > 0.707106769f)
+					{
+						real local_20 = (local_16.i * local_15.j - local_16.j * local_15.i) * local_17.k;
+						local_20 += (local_16.k * local_15.i - local_16.i * local_15.k) * local_17.j;
+						local_20 += (local_16.j * local_15.k - local_16.k * local_15.j) * local_17.i;
+						local_20 *= local_19;
+						if (local_20 > 1.0f)
+							function_f47d0(local_14, 1);
+						else if (-1.0f > local_20)
+							function_f47d0(local_14, 2);
+					}
+				}
+			}
+		}
+		local_2->unknown0c = true;
+		ai_scratch_buffer_release(local_4);
+	}
+	return local_1;
+}

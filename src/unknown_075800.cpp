@@ -176,6 +176,7 @@ public:
 // @retail 0x75800
 c_class_58d20 *network_session_manager_find_session(s_network_session_list *manager, const s_session_id *session_id)
 {
+	c_class_58d20 *local_0 = NULL;
 	for (dword i = 0; i < sizeof(manager->sessions) / sizeof(manager->sessions[0]); i++)
 	{
 		c_class_58d20 *session = manager->sessions[i];
@@ -183,10 +184,13 @@ c_class_58d20 *network_session_manager_find_session(s_network_session_list *mana
 		{
 			s_session_id id = *(s_session_id *)&session->unknown1c;
 			if (memcmp(&id, session_id, sizeof(s_session_id)) == 0)
-				return manager->sessions[i];
+			{
+				local_0 = manager->sessions[i];
+				break;
+			}
 		}
 	}
-	return 0;
+	return local_0;
 }
 
 /* the reply to a connect request */

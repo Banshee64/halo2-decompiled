@@ -1,5 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include "unknown_11c920.h"
 #include "globals.h"
@@ -1671,4 +1672,148 @@ long __stdcall function_1a56c0(s_sort_weight_view const *weights, long object_in
 	}
 	while (object_index != NONE);
 	return count;
+}
+
+extern bool g_4de2f8;
+extern long g_4de2fc;
+extern long g_4de300[0x800];
+
+short function_14a6d0(short arg_0, real arg_1, point3f const *arg_2, vector3f const *arg_3,
+	real arg_4, real arg_5, short arg_6, short *arg_7, short *arg_8);
+short function_bb430(long arg_0, short arg_1, short const *arg_2, short arg_3, long *arg_4);
+
+// @retail 0x1a54a0
+long __stdcall function_1a54a0(s_sort_weight_view const *arg_0, short arg_1,
+	point3f const *arg_2, vector3f const *arg_3, long arg_4, short arg_5, s_sort_candidate_view *arg_6)
+{
+	long local_0 = 0;
+	short local_1[0x200];
+	long local_2[0x800];
+	real local_3 = arg_0->angle > (arg_0->secondary_angle > arg_0->scaled_angle ? arg_0->secondary_angle : arg_0->scaled_angle) ? arg_0->angle : (arg_0->secondary_angle > arg_0->scaled_angle ? arg_0->secondary_angle : arg_0->scaled_angle);
+	real local_4 = arg_0->distance > (arg_0->secondary_distance > arg_0->scaled_distance ? arg_0->secondary_distance : arg_0->scaled_distance) ? arg_0->distance : (arg_0->secondary_distance > arg_0->scaled_distance ? arg_0->secondary_distance : arg_0->scaled_distance);
+	if (local_3 > 0.0f && local_4 > 0.0f)
+	{
+		real local_5 = sin(local_4);
+		real local_6 = cos(local_4);
+		short local_7 = function_14a6d0(arg_1, local_6, arg_2, arg_3, local_3, local_5, 0x200, local_1, NULL);
+		long local_8 = function_bb430(1, local_7, local_1, 0x800, local_2);
+		s_record_pool *local_9 = g_4e8c24;
+		g_4de2f8 = true;
+		long local_10 = NONE;
+		for (;;)
+		{
+			local_10 = function_16bc00(local_9, local_10 + 1);
+			if (local_10 == NONE)
+				break;
+			s_player_view *local_11 = (s_player_view *)(local_9->data + local_10 * local_9->size);
+			if (!local_11)
+				break;
+			long local_12 = local_11->unit_index;
+			if (local_12 != NONE)
+			{
+				long local_13;
+				do
+				{
+					local_13 = local_12;
+					local_12 = ((s_target_link_view *)OBJECT_HEADER(local_12)->object)->field_14;
+				}
+				while (local_12 != NONE);
+				if (g_4de300[local_13 & 0xffff] != g_4de2fc)
+				{
+					g_4de300[local_13 & 0xffff] = g_4de2fc;
+					local_2[local_8++] = local_13;
+				}
+			}
+		}
+		g_4de2f8 = false;
+		for (long local_14 = 0; local_14 < local_8; local_14++)
+		{
+			local_0 = function_1a56c0(arg_0, local_2[local_14], arg_2, arg_3,
+				local_3, local_5, local_6, arg_4, arg_5, local_0, arg_6);
+			if (local_0 >= 0x40)
+				break;
+		}
+	}
+	return local_0;
+}
+
+struct s_collision_result_1697c0;
+bool __stdcall function_1697c0(long arg_0, point3f const *arg_1, vector3f const *arg_2,
+	long arg_3, long arg_4, s_collision_result_1697c0 *arg_5);
+
+struct s_1a67f0
+{
+	byte field_0[0x24];
+	short field_24;
+	byte field_26[0x5c - 0x26];
+};
+
+PRIVATE inline long function_1a67f1(long arg_0)
+{
+	long local_0 = NONE;
+	while (arg_0 != NONE)
+	{
+		local_0 = arg_0;
+		arg_0 = ((s_target_link_view *)OBJECT_HEADER(arg_0)->object)->field_14;
+	}
+	return local_0;
+}
+
+// @retail 0x1a67f0
+byte function_1a67f0(point3f const *arg_0, point3f const *arg_1, long arg_2, long arg_3)
+{
+	s_1a67f0 local_0;
+	local_0.field_24 = NONE;
+	long local_1 = function_1a67f1(arg_2);
+	long local_2 = function_1a67f1(arg_3);
+	vector3f local_3;
+	vector3d_from_points3d(arg_0, arg_1, &local_3);
+	return !function_1697c0(0x16808c2d, arg_0, &local_3, local_2, local_1, (s_collision_result_1697c0 *)&local_0);
+}
+
+struct s_bsp3d;
+extern s_bsp3d *g_4e033c;
+long function_14a280(s_bsp3d *arg_0, point3f *arg_1, long arg_2);
+
+struct s_1a5371
+{
+	short field_0;
+	byte field_2[6];
+};
+
+struct s_1a5370
+{
+	byte field_0[0x30];
+	s_1a5371 *field_30;
+};
+
+// @retail 0x1a5370
+bool __stdcall function_1a5370(s_sort_weight_view const *arg_0, point3f const *arg_1,
+	vector3f const *arg_2, long arg_3, short arg_4, s_sort_candidate_view *arg_5)
+{
+	bool local_0 = false;
+	s_sort_candidate_view local_1[0x40];
+	long local_2 = function_14a280(g_4e033c, (point3f *)arg_1, 0);
+	if (local_2 != NONE)
+	{
+		short local_3 = ((s_1a5370 *)g_4e0348)->field_30[local_2].field_0;
+		if (local_3 != NONE)
+		{
+			long local_4 = function_1a54a0(arg_0, local_3, arg_1, arg_2, arg_3, arg_4, local_1);
+			if (local_4 > 0)
+			{
+				g_51e99c = (s_sort_globals *)arg_0;
+				qsort(local_1, local_4, sizeof(s_sort_candidate_view), (int (__cdecl *)(void const *, void const *))function_1a66f0);
+				for (long local_5 = 0; local_5 < local_4; local_5++)
+				{
+					if (function_1a67f0(arg_1, &local_1[local_5].point, local_1[local_5].object_index, arg_3))
+					{
+						*arg_5 = local_1[local_5];
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return local_0;
 }

@@ -246,16 +246,16 @@ functions need.
   vector, `0x3e4e0` for each colour), or kept as it was when a distance test
   fails and `0xbadc0` returns 0 (`0x3e237`). Then `0xd4080` fills the record at
   `+0x54` from the query at `+0x1c` (`0x3e309`), and byte `+3` is set. Lane R's
-  `0x17b5d0` reads the colours of `+0x1c` (`src/unknown_175bd0.cpp:2998`).
+  `0x17b5d0` reads the colours of `+0x1c` (`src/unknown_175bd0.cpp:3060`).
 - `0x180d80` (2683 bytes, lane F, machine 2) makes a decal (`function_17cfa0`,
-  `src/unknown_17d2a0.cpp:344`). It passes `0xd47d0` a local colour and its
+  `src/unknown_17d2a0.cpp:380`). It passes `0xd47d0` a local colour and its
   third argument, the collision result, whose word `+0x20` must not be NONE
   (`0x180dc2`). See
   [`0xd47d0`](#0xd47d0-the-lightmap-colour-under-a-collision-result).
 
 ## Existing declarations
 
-At `b04f998` nothing declares, stubs or calls `0xd37f0`, `0xd4080` or `0xd47d0`
+At `0f22da1` nothing declares, stubs or calls `0xd37f0`, `0xd4080` or `0xd47d0`
 in the source. The reals at `0x467484` and `0x467494`, the record at
 `0x55ee60`, and the scenario and globals offsets `+0x33c` and `+0x184` are not
 declared either.
@@ -292,6 +292,6 @@ declared either.
   at `0x467494`, and the pointers `0x4687b0` to (0, 0, 1) and `0x4686d4` to (1,
   0, 0, 0).
 - No document covered the range before this one. Source line numbers are at
-  `b04f998`.
+  `0f22da1`.
 - No SDK or outside dataset was used. Names are the repository's own, or
   describe behaviour.
