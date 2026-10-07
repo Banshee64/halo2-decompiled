@@ -250,15 +250,16 @@ bool __stdcall function_dd8e0(long arg_159e6d, real *height_change)
 {
 	byte *definition = BIPED_DEFINITION_GET(BIPED_GET(arg_159e6d));
 	real change = function_dd7d0(arg_159e6d);
+	bool result = false;
 
-	if (!((*(dword *)(definition + 0x264) >> 1) & 1) &&
+	if (!TEST_FIELD_BIT((*(dword *)(definition + 0x264) >> 1) & 1) &&
 		(function_e4050(arg_159e6d) || function_e0dc0(arg_159e6d)) && change != 0.0f)
 	{
 		*height_change = (*(real *)(definition + 0x268) - *(real *)(definition + 0x26c)) *
 			g_510c54->field_2_3 * change;
-		return true;
+		result = true;
 	}
-	return false;
+	return result;
 }
 
 struct s_slot_entry_list;
