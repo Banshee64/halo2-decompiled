@@ -349,10 +349,10 @@ struct s_object_256790_view
 	byte unknown01a[0xaa - 0x1a];
 	byte type;
 	byte unknownab[0x10a - 0xab];
-	byte bit0 : 1;
-	byte bit1 : 1;
-	byte bit2 : 1;
-	byte unknown10a : 5;
+	word bit0 : 1;
+	word bit1 : 1;
+	word bit2 : 1;
+	word unknown10a : 13;
 };
 
 PRIVATE __forceinline s_prop_datum *function_256791(long arg_0)
