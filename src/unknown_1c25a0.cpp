@@ -247,7 +247,9 @@ void function_1c2600(void)
 
 	function_146de0();
 	block = (byte *)g_479888;
-	if (!VirtualFree(block - ((long *)block)[-1], 0, MEM_RELEASE))
+	long local_0 = ((long *)block)[-1];
+	block -= local_0;
+	if (!VirtualFree(block, 0, MEM_RELEASE))
 	{
 		GetLastError();
 	}
@@ -1097,9 +1099,21 @@ struct s_world_bounds_view
 void function_1c55e0(real const *bounds)
 {
 	s_world_bounds_query query;
-	real lower_x = bounds[0];
-	query.upper.set(bounds[1], bounds[3], bounds[5]);
-	query.lower.set(lower_x, bounds[2], bounds[4]);
+	real *local_0 = (real *)&query.lower;
+    real *local_1 = (real *)&query.upper;
+    real local_2 = *(volatile real const *)&bounds[0];
+    local_1[0] = *(volatile real const *)&bounds[1];
+    real local_3 = *(volatile real const *)&bounds[3];
+    local_0[0] = local_2;
+    real local_4 = *(volatile real const *)&bounds[2];
+    local_1[1] = local_3;
+    real local_5 = *(volatile real const *)&bounds[5];
+    local_0[1] = local_4;
+    real local_6 = *(volatile real const *)&bounds[4];
+    local_0[2] = local_6;
+    local_1[2] = local_5;
+    local_0[3] = 0.0f;
+    local_1[3] = 0.0f;
 	query.flags = 0;
 	__m128 half = _mm_set_ss(0.5f);
 	query.half_extent.m_quad = _mm_mul_ps(_mm_shuffle_ps(half, half, 0), _mm_sub_ps(query.upper.m_quad, query.lower.m_quad));

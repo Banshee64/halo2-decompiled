@@ -61,6 +61,12 @@ bool function_db540(long object_index, long key_a, long key_b);
 
 /* sets the bit of each entry that has no sections, or one of whose flagged
    sections is gone; clears the others */
+PRIVATE __forceinline bool function_1d6561(s_havok_component const *arg_0, s_physics_entry_section const *arg_1)
+{
+    long local_0 = *(volatile long const *)&arg_0->object_index;
+    return function_db540(local_0, arg_1->key_a, arg_1->key_b);
+}
+
 // @retail 0x1d6560
 void __stdcall function_1d6560(s_havok_component *component, s_physics_model_owner *owner, dword *mask)
 {
@@ -83,7 +89,7 @@ void __stdcall function_1d6560(s_havok_component *component, s_physics_model_own
 			{
 				s_physics_entry_section *section = &entry->sections[j];
 
-				if ((section->flags & 1) && !function_db540(component->object_index, section->key_a, section->key_b))
+				if ((section->flags & 1) && !function_1d6561(component, section))
 				{
 					mask[i >> 5] |= 1 << (i & 31);
 					break;
