@@ -1030,6 +1030,13 @@ static inline void cs_cross_product3d(vector3f const *a, vector3f const *b, vect
 	result->k = a->i * b->j - a->j * b->i;
 }
 
+PRIVATE __forceinline void function_25a1b3(vector3f const *arg_0, vector3f *arg_1)
+{
+	arg_1->i = 0.f - arg_0->i;
+	arg_1->j = 0.f - arg_0->j;
+	arg_1->k = 0.f - arg_0->k;
+}
+
 /* sets the facing from the object's forward: along it (0), against it (1),
    or to its side (2, 3 the other side) */
 // @retail 0x25a130
@@ -1055,9 +1062,7 @@ void function_25a130(long actor_index, long object_index, s_cs_facing *facing)
 		facing->direction = forward;
 		break;
 	case 1:
-		facing->direction.i = 0.f - forward.i;
-		facing->direction.j = 0.f - forward.j;
-		facing->direction.k = 0.f - forward.k;
+		function_25a1b3(&forward, &facing->direction);
 		break;
 	case 2:
 	case 3:
@@ -1083,9 +1088,7 @@ void function_25a130(long actor_index, long object_index, s_cs_facing *facing)
 			}
 			else
 			{
-				facing->direction.i = 0.f - side.i;
-				facing->direction.j = 0.f - side.j;
-				facing->direction.k = 0.f - side.k;
+				function_25a1b3(&side, &facing->direction);
 			}
 		}
 		break;
@@ -1129,13 +1132,16 @@ void function_259e70(long cs_index)
 #define cs_point_get(reference) \
 	(&((s_cs_scenario_view *)g_4e0350)->script_data->point_sets[((reference) >> 16) & 0xffff].points[(reference) & 0xffff])
 
+#pragma inline_depth(0)
 // @retail 0x259ec0
 bool function_259ec0(long actor_index, long cs_index)
 {
-	s_cs_datum *cs = cs_get(cs_index);
-	s_actor_view *actor = actor_get(actor_index);
+	volatile bool result = true;
+	s_record_pool *local_1 = g_502408;
+	s_record_pool *local_2 = g_4f55f0;
+	s_cs_datum *cs = (s_cs_datum *)(local_1->data + (cs_index & 0xffff) * sizeof(s_cs_datum));
+	s_actor_view *actor = (s_actor_view *)(local_2->data + (actor_index & 0xffff) * sizeof(s_actor_view));
 	s_cs_point *point = cs_point_get(cs->unknown28);
-	bool result = true;
 
 	if (actor->unknown018 == NONE)
 	{
@@ -1147,35 +1153,45 @@ bool function_259ec0(long actor_index, long cs_index)
 	((s_actor_cs_move_view *)actor)->unknown478 = cs->unknown75;
 	switch (cs->type)
 	{
+	case 15:
+	case 16:
+	case 17:
+		{
+			bool local_0 = function_1f4460(actor_index, &point->point, NONE, actor->unknown018, exact);
+			if (!local_0)
+			{
+				result = local_0;
+				return result;
+			}
+			result = local_0;
+		}
+		actor->unknown4cc = cs->unknown08;
+		break;
 	case 1:
 	case 2:
 	case 3:
 	case 19:
 		if (point->unknown30 == NONE)
 		{
-			return false;
+			result = false;
+			return result;
 		}
 		exact |= cs->unknown08 != 0.f;
-		result = function_1f4460(actor_index, &point->point, point->unknown30, NONE, exact);
-		if (!result)
 		{
-			return result;
+			bool local_0 = function_1f4460(actor_index, &point->point, point->unknown30, NONE, exact);
+			if (!local_0)
+			{
+				result = local_0;
+				return result;
+			}
+			result = local_0;
 		}
 		if (exact)
 		{
 			actor->unknown4b0 = cs->unknown08;
 		}
 		break;
-	case 15:
-	case 16:
-	case 17:
-		result = function_1f4460(actor_index, &point->point, NONE, actor->unknown018, exact);
-		if (!result)
-		{
-			return result;
-		}
-		actor->unknown4cc = cs->unknown08;
-		break;
+
 	}
 
 	if (cs->type == 17 || cs->type == 3)
@@ -1200,6 +1216,7 @@ bool function_259ec0(long actor_index, long cs_index)
 	}
 	return result;
 }
+#pragma inline_depth(255)
 
 // @retail 0x25aa10
 void function_25aa10(long actor_index, long object_index)
@@ -1786,23 +1803,24 @@ void function_25aba0(long actor_index)
 	s_actor_cs_view *actor = actor_cs_get(actor_index);
 
 	actor->unknown3b8 = false;
-	long i = 0;
+	short *local_0 = &actor->entries[0].timer;
+	long local_1 = 3;
 	do
 	{
-		if (actor->entries[i].type != NONE)
+		if (local_0[-4] != NONE)
 		{
-			actor->entries[i].timer--;
-			if (actor->entries[i].timer <= 0)
+			(*local_0)--;
+			if (*local_0 <= 0)
 			{
-				actor->entries[i].type = NONE;
-				actor->entries[i].unknown4 = NONE;
-				actor->entries[i].unknown6 = NONE;
-				actor->entries[i].unknowna = 0;
+				local_0[-4] = NONE;
+				local_0[-2] = NONE;
+				local_0[-1] = NONE;
+				local_0[1] = 0;
 			}
 		}
-		i++;
+		local_0 += 6;
 	}
-	while (i < 3);
+	while (--local_1);
 }
 
 // @retail 0x258b60

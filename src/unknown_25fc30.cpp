@@ -699,6 +699,14 @@ void __stdcall function_25e800(
 	}
 }
 
+PRIVATE __forceinline double function_25eb45(vector3f const *arg_0, vector3f const *arg_1)
+{
+	double local_0 = (double)arg_1->k * arg_0->k;
+	local_0 += (double)arg_0->j * arg_1->j;
+	local_0 += (double)arg_1->i * arg_0->i;
+	return local_0;
+}
+
 // @retail 0x25eb00
 void __stdcall function_25eb00(
 	long actor_index,
@@ -714,7 +722,7 @@ void __stdcall function_25eb00(
 
 			if (position->unknown4c)
 			{
-				position->score *= (real)fabs(dot3f(&context->unknown66c, &position->unknown34));
+				position->score *= (real)fabs(function_25eb45(&context->unknown66c, &position->unknown34));
 			}
 		}
 	}

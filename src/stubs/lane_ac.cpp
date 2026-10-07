@@ -1,5 +1,27 @@
 #include "unknown_11c920.h"
+
+class c_2784c4
+{
+public:
+    void function_30cb30(void *arg_0);
+};
+class c_2784c5
+{
+public:
+    void function_315910(void *arg_0);
+};
+
+// @stub 0x30cb30
+void c_2784c4::function_30cb30(void *arg_0) {}
+
+// @stub 0x315910
+void c_2784c5::function_315910(void *arg_0) {}
 #include "unknown_0259d0.h"
+
+class hkEntity;
+
+// @stub 0x315340
+void __cdecl function_315340(void *arg_0, hkEntity *arg_1, hkEntity *arg_2, real arg_3, real arg_4) {}
 
 // @stub 0x3153c0
 void __cdecl function_3153c0(void *arg_0, void *arg_1, void const *arg_2)

@@ -49,10 +49,6 @@ void function_1bbdf0(long vehicle_index) { }
 
 struct s_havok_component;
 struct s_unit_move_result;
-// @stub 0x1d48f0
-bool function_1d48f0(s_havok_component *component, short rigid_body_index, long type, point3f const *target,
-	vector3f const *offset, s_unit_move_result *result, long a5, real radius, long a7, point3f const *root_point,
-	long root_index) { return false; }
 
 /* outside the unit range */
 
@@ -87,5 +83,3 @@ struct s_unit_melee_hit;
 // @stub 0xa9260
 void function_a9260(long damage_index, s_unit_melee_hit const *hit) { }
 
-// @stub 0x20fec0
-void function_20fec0(long object_index, long sound_index) { }

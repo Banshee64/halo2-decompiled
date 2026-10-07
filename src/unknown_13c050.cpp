@@ -56,7 +56,6 @@ void function_13c050(s_13c051 const *arg_2, dword arg_1)
 		s_13c052 local_5[4];
 		local_5[0].field_0 = local_4[0];
 		local_5[1].field_0 = local_4[1];
-		local_5[2].field_0 = local_4[2];
 		local_5[0].field_8.x = 0.0f;
 		local_5[0].field_8.y = 0.0f;
 		local_5[1].field_8.x = 0.0f;
@@ -68,6 +67,7 @@ void function_13c050(s_13c051 const *arg_2, dword arg_1)
 		local_5[0].field_10 = arg_1;
 		local_5[1].field_10 = arg_1;
 		local_5[2].field_10 = arg_1;
+		local_5[2].field_0 = local_4[2];
 		local_5[3].field_10 = arg_1;
 		local_5[3].field_0 = local_4[3];
 		s_13c050 local_6;

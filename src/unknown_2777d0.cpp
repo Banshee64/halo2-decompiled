@@ -127,9 +127,9 @@ public:
 	byte active;
 	c_callback_277820 reference;
 	virtual bool test(s_278a70_body *first, s_278a70_body *second);
-	virtual void event0(void *event) {}
+	virtual void event0(void *event);
 	virtual void event1(void *arg_0);
-	virtual void event2(void *event) {}
+	virtual void event2(void *event);
 	virtual void slot1(hkEntity *entity);
 	virtual void slot2(hkEntity *entity);
 
@@ -799,4 +799,123 @@ bool c_interface_277890::test(s_278a70_body *first, s_278a70_body *second)
 		}
 	}
 	return result;
+}
+
+struct s_277ec0;
+class c_1cf520;
+class c_277b80;
+struct s_scale_definition;
+struct s_scale_owner
+{
+	byte unknown00[0x3c];
+	s_scale_definition *definition;
+	real get_inverse_scale() const;
+};
+struct s_277a00
+{
+	void *field_0;
+	byte field_4[8];
+	s_277a00 *field_c;
+	byte field_10[8];
+	long field_18;
+	long field_1c;
+	hkEntity *field_20;
+};
+struct s_277a01
+{
+	short field_0;
+	byte field_2[2];
+	c_1cf520 *field_4;
+	s_277a00 *field_8;
+	s_277a00 *field_c;
+	hkEntity *field_10;
+	byte field_14[0xc];
+	long field_20;
+};
+bool function_181e90(real arg_0, real arg_1);
+void function_181ee0(s_scale_owner const *arg_0, s_scale_owner const *arg_1, real *arg_2, real *arg_3);
+void __cdecl function_315340(void *arg_0, hkEntity *arg_1, hkEntity *arg_2, real arg_3, real arg_4);
+long __stdcall function_277b80(void *arg_0, bool arg_1, real arg_2,
+	c_1cf520 *arg_3, short arg_4, s_277ec0 *arg_5, s_277ec0 *arg_6,
+	hkEntity *arg_7, hkEntity *arg_8, c_277b80 **arg_9);
+
+PRIVATE __forceinline hkEntity *function_277a25(s_277a00 *arg_0)
+{
+	while (arg_0->field_c) arg_0 = arg_0->field_c;
+	return arg_0->field_18 == 1 ? arg_0->field_20 : NULL;
+}
+
+// @retail 0x277a00
+void c_interface_277890::event0(void *arg_0)
+{
+	s_277a01 *local_0 = (s_277a01 *)arg_0;
+	if (local_0->field_20 != 1)
+	{
+		hkEntity *local_1 = function_277a25(local_0->field_8);
+		hkEntity *local_2 = function_277a25(local_0->field_c);
+		if (local_1 && local_2)
+		{
+			real local_3 = 1.0f;
+			real local_4 = 1.0f;
+			if (*((byte *)local_1 + 0x48) == 1 && *((byte *)local_2 + 0x48) == 1 &&
+				((hkRigidBody *)local_1)->m_motion->getType() != 6 &&
+				((hkRigidBody *)local_1)->m_motion->getType() != 7 &&
+				((hkRigidBody *)local_2)->m_motion->getType() != 6 &&
+				((hkRigidBody *)local_2)->m_motion->getType() != 7 &&
+				function_181e90(((s_scale_owner *)local_1)->get_inverse_scale(),
+					((s_scale_owner *)local_2)->get_inverse_scale()))
+			{
+				function_181ee0((s_scale_owner *)local_1, (s_scale_owner *)local_2, &local_3, &local_4);
+				function_315340(local_0->field_4, local_1, local_2, local_3, local_4);
+			}
+			if (local_0->field_10 == local_1)
+				function_277b80(this, false, local_3, local_0->field_4, local_0->field_0,
+					(s_277ec0 *)local_0->field_8, (s_277ec0 *)local_0->field_c,
+					local_1, local_2, (c_277b80 **)local_0->field_c);
+			else
+				function_277b80(this, true, local_4, local_0->field_4, local_0->field_0,
+					(s_277ec0 *)local_0->field_c, (s_277ec0 *)local_0->field_8,
+					local_2, local_1, (c_277b80 **)local_0->field_8);
+		}
+	}
+}
+
+struct s_278100
+{
+    byte field_0[4];
+    s_277a00 *field_4;
+    s_277a00 *field_8;
+    byte field_c[4];
+    hkEntity *field_10;
+};
+struct s_1d0770;
+void function_1d0770(s_1d0770 *arg_0, s_havok_component *arg_1, long arg_2,
+    long arg_3, long arg_4, long arg_5);
+long havok_entity_property_2002_get(hkEntity const *arg_0);
+
+// @retail 0x278100
+void c_interface_277890::event2(void *arg_0)
+{
+    s_278100 *local_0 = (s_278100 *)arg_0;
+    hkEntity *local_1 = function_277a25(local_0->field_4);
+    hkEntity *local_2 = function_277a25(local_0->field_8);
+    if (local_1 && local_2)
+    {
+        long local_3 = havok_entity_component_index_get(local_1);
+        long local_4 = havok_entity_component_index_get(local_2);
+        long local_5 = havok_entity_property_2002_get(local_1);
+        long local_6 = havok_entity_property_2002_get(local_2);
+        if (local_0->field_10 == local_1)
+        {
+            s_havok_component *local_7 = havok_component_get(local_3);
+            if (local_7->unknown04 & 1)
+                function_1d0770((s_1d0770 *)local_0, local_7, local_3, local_4, local_5, local_6);
+        }
+        else
+        {
+            s_havok_component *local_8 = havok_component_get(local_4);
+            if (local_8->unknown04 & 1)
+                function_1d0770((s_1d0770 *)local_0, local_8, local_4, local_3, local_6, local_5);
+        }
+    }
 }

@@ -20,5 +20,3 @@ bool __stdcall function_18e8b0(s_session_options const *arg_0) { return false; }
 void function_18efa0(void) { }
 
 struct s_voice_position_batch;
-// @stub 0x221a70
-void __stdcall function_221a70(long arg_0, s_voice_position_batch *arg_1) { }

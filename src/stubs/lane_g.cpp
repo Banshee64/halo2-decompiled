@@ -10,11 +10,6 @@
 /* UI lane round 4: callees of the campaign level select list and the game
    engine variant category list */
 
-// @stub 0x212380
-long function_212380(long arg_9db745, long controller_index, byte *buffer)
-{
-	return 0;
-}
 
 
 

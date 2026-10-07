@@ -93,6 +93,20 @@ PRIVATE __forceinline long function_1d24a5(real arg_0)
  return local_0;
 }
 
+PRIVATE __forceinline real function_1d24a7(point3f const *arg_0, point3f const *arg_1,
+ vector3f const *arg_2, vector3f *arg_3)
+{
+ vector3f local_0;
+ local_0.i = arg_0->x - arg_1->x;
+ local_0.j = arg_0->y - arg_1->y;
+ local_0.k = arg_0->z - arg_1->z;
+ real local_1 = function_1d24a6(&local_0, arg_2);
+ arg_3->i = local_0.i - arg_2->i * local_1;
+ arg_3->j = local_0.j - arg_2->j * local_1;
+ arg_3->k = local_0.k - arg_2->k * local_1;
+ return function_30bf0(arg_3);
+}
+
 // @retail 0x1d24a0
 void __stdcall function_1d24a0(s_havok_component *arg_0, float arg_1)
 {
@@ -203,14 +217,7 @@ void __stdcall function_1d24a0(s_havok_component *arg_0, float arg_1)
    if (local_12->field_28 != 0.0f && local_12->field_2c != 0.0f)
    {
     vector3f local_43;
-    local_43.i = local_24.matrix.position.x - local_28.x;
-    local_43.j = local_24.matrix.position.y - local_28.y;
-    local_43.k = local_24.matrix.position.z - local_28.z;
-    real local_44 = function_1d24a6(&local_43, &local_24.matrix.forward);
-    vector3f local_45;
-    function_1d24a2(&local_24.matrix.forward, local_44, &local_45);
-    function_1d24a4(&local_43, &local_45);
-    real local_46 = function_30bf0(&local_43);
+    real local_46 = function_1d24a7(&local_24.matrix.position, &local_28, &local_24.matrix.forward, &local_43);
     if (local_46 != 0.0f)
     {
      real local_47 = function_1d24a1(&local_43, &local_30);

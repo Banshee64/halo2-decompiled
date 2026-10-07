@@ -8,6 +8,7 @@
 #include "unknown_0259d0.h"
 #include "local_cameras.h"
 #include <math.h>
+#include <string.h>
 
 #define PIN(n, floor, ceiling) ((n) < (floor) ? (floor) : ((n) > (ceiling) ? (ceiling) : (n)))
 
@@ -646,5 +647,192 @@ void function_222150(long cluster_index, point3f const *point, real const *value
 	{
 		result[0] = 1.0f;
 		result[1] = 0.0f;
+	}
+}
+
+struct s_221e30
+{
+	long field_0;
+	point3f field_4, field_10;
+	real field_1c, field_20;
+	point3f field_24;
+	real field_30, field_34, field_38;
+	long field_3c, field_40;
+	bool field_44, field_45, field_46, field_47;
+};
+
+struct s_221e31
+{
+	real field_0;
+	byte field_4[0x418];
+};
+
+struct s_221e32
+{
+	byte field_0[0x7a];
+	short field_7a;
+	byte field_7c[0x34];
+};
+
+struct s_221e33
+{
+	union
+	{
+		struct { vector3f field_0, field_c; } field_0;
+		real field_18[2];
+	};
+};
+
+struct s_collision_bsp_test_vector_result;
+struct s_slot_entry_list;
+extern s_slot_entry_list *g_4e0340;
+extern byte *g_4ed280;
+bool function_1de630(dword arg_0, s_slot_entry_list *arg_1, s_collision_bsp_test_vector_result *arg_2,
+	real arg_3, long arg_4, byte const *arg_5, point3f const *arg_6, vector3f const *arg_7);
+void function_222150(long arg_0, point3f const *arg_1, real const *arg_2,
+	point3f const *arg_3, long arg_4, real *arg_5);
+
+// @retail 0x221e30
+void function_221e30(s_221e30 *arg_0, real const *arg_1, s_local_camera const *arg_2)
+{
+	(void)&arg_1; (void)&arg_2;
+	if (*(long const *)arg_2->unknown00 != arg_0->field_40)
+	{
+		s_221e33 local_10;
+		s_structure_bsp_view *local_13 = (s_structure_bsp_view *)g_4e0348;
+		real local_0 = 0.0f;
+		if (!arg_0->field_47)
+		{
+			s_221e31 local_1, local_2;
+			byte const *local_5 = g_4ed280 + g_4686c4 * 0x20 + 1;
+			local_10.field_0.field_0.i = arg_0->field_24.x - arg_2->position.x;
+			local_10.field_0.field_0.j = arg_0->field_24.y - arg_2->position.y;
+			local_10.field_0.field_0.k = arg_0->field_24.z - arg_2->position.z;
+			if (function_1de630(1, g_4e0340, (s_collision_bsp_test_vector_result *)&local_1,
+				1.0f, 0x100, local_5, &arg_2->position, &local_10.field_0.field_0))
+			{
+				local_10.field_0.field_c.i = 0.0f - local_10.field_0.field_0.i;
+				local_10.field_0.field_c.j = 0.0f - local_10.field_0.field_0.j;
+				local_10.field_0.field_c.k = 0.0f - local_10.field_0.field_0.k;
+				if (function_1de630(1, g_4e0340, (s_collision_bsp_test_vector_result *)&local_2,
+					1.0f, 0x100, local_5, &arg_0->field_24, &local_10.field_0.field_c))
+				{
+					local_0 = PIN(1.0f - local_2.field_0 - local_1.field_0, 0.0f, 1.0f);
+					if (local_0 > 0.0f)
+					{
+						arg_0->field_45 = true;
+						arg_0->field_4.x = local_10.field_0.field_0.i * local_1.field_0 + arg_2->position.x;
+						arg_0->field_4.y = local_10.field_0.field_0.j * local_1.field_0 + arg_2->position.y;
+						arg_0->field_4.z = local_10.field_0.field_0.k * local_1.field_0 + arg_2->position.z;
+						arg_0->field_1c = local_1.field_0;
+						arg_0->field_10.x = local_10.field_0.field_c.i * local_2.field_0 + arg_0->field_24.x;
+						arg_0->field_10.y = local_10.field_0.field_c.j * local_2.field_0 + arg_0->field_24.y;
+						arg_0->field_10.z = local_10.field_0.field_c.k * local_2.field_0 + arg_0->field_24.z;
+						arg_0->field_20 = local_2.field_0;
+					}
+				}
+				else
+					local_0 = 1.0f - local_1.field_0;
+			}
+		}
+		else if (!arg_0->field_44 && arg_2->index != arg_0->field_3c)
+		{
+			real local_6 = function_249d60(arg_2->index, arg_0->field_3c, local_13);
+			real local_7 = distance3d(&arg_0->field_24, &arg_2->position);
+			local_0 = 1.0f - local_7 / ((local_7 + local_6) > 0.001f ? (local_7 + local_6) : 0.001f);
+		}
+		if (arg_2->index != NONE && arg_0->field_3c != NONE && arg_2->index != arg_0->field_3c)
+		{
+			if (arg_0->field_44)
+			{
+				arg_0->field_34 = 0.0f;
+				arg_0->field_38 = arg_1[arg_0->field_3c];
+			}
+			else
+			{
+				function_222150(arg_0->field_3c, &arg_0->field_24, arg_1,
+					&arg_2->position, arg_0->field_3c, local_10.field_18);
+				s_221e32 const *local_9 = *(s_221e32 const **)((byte *)g_4e0348 + 0xa0);
+				if (local_9[arg_2->index].field_7a == local_9[arg_0->field_3c].field_7a)
+					local_10.field_18[0] = 0.0f;
+				arg_0->field_34 = local_10.field_18[0];
+				arg_0->field_38 = local_10.field_18[1];
+			}
+		}
+		arg_0->field_30 += local_0;
+	}
+}
+
+#include "unknown_249e20.h"
+
+struct s_voice_position_entry
+{
+	long listener;
+	byte unknown04[0x20];
+	point3f position;
+	vector3f result;
+	long index, object;
+	bool flag44, flag45, flag46, flag47;
+};
+
+struct s_voice_position_batch
+{
+	long count;
+	s_voice_position_entry entries[0x48];
+};
+
+typedef void *(__fastcall *constructor_proc)(void *);
+void __stdcall vector_constructor_iterator(void *arg_0, unsigned arg_1, int arg_2, constructor_proc arg_3);
+void *__fastcall function_31bc70(void *arg_0);
+real function_18cac0(long arg_0);
+
+// @retail 0x221a70
+void __stdcall function_221a70(long arg_0, s_voice_position_batch *arg_1)
+{
+	(void)&arg_0; (void)&arg_1;
+	s_local_camera *local_0 = local_camera_get(arg_0);
+	if (local_0 && local_0->index != NONE)
+	{
+		s_structure_bsp_view *local_1 = (s_structure_bsp_view *)g_4e0348;
+		real local_2[0x200];
+		memset(local_2, 0, sizeof(local_2));
+		if (local_1->audibility_count > 0)
+		{
+			s_structure_audibility *local_3 = local_1->audibility;
+			dword local_4[4] = {0};
+			function_249d10(local_1, local_4, local_0->index);
+			for (long local_5 = 0; local_5 < local_3->door_count; local_5++)
+			{
+				if (local_4[local_5 >> 5] & (1 << (local_5 & 31)))
+				{
+					long local_6 = local_1->audibility->clusters[local_5];
+					if (local_6 != NONE)
+					{
+						real local_7 = function_18cac0(local_6);
+						dword local_8[2][16];
+						vector_constructor_iterator(local_8, 0x40, 2, function_31bc70);
+						function_249c90(local_8[0], local_1, local_5, local_8[1]);
+						long local_9;
+						long local_10 = local_0->index;
+						if (local_8[0][local_10 >> 5] & (1 << (local_10 & 31)))
+							local_9 = 1;
+						else if (local_8[1][local_10 >> 5] & (1 << (local_10 & 31)))
+							local_9 = 0;
+						else
+							continue;
+						for (long local_11 = 0; local_11 < local_1->cluster_count; local_11++)
+						{
+							if (local_11 != local_10 && (local_8[local_9][local_11 >> 5] & (1 << (local_11 & 31))))
+								local_2[local_11] = local_2[local_11] > local_7 ? local_2[local_11] : local_7;
+						}
+					}
+				}
+			}
+		}
+		for (long local_12 = 0; local_12 < arg_1->count; local_12++)
+		{
+			if (arg_1->entries[local_12].listener == arg_0)
+				function_221e30((s_221e30 *)&arg_1->entries[local_12], local_2, local_0);
+		}
 	}
 }

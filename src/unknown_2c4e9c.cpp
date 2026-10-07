@@ -1663,11 +1663,24 @@ c_screen_45d2b8::c_screen_45d2b8(long screen_id, long a, long b, word user_flags
 // @retail 0x2c87fe
 bool c_screen_45d2b8::v10(s_widget_event *event)
 {
-	if (event->type == 5 && (event->param == 1 || event->param == 13) && changed)
-	{
-		memcpy(&g_54e5d0.settings, settings, sizeof(g_54e5d0.settings));
-	}
-	return c_class_1473c9::v10(event);
+    bool result;
+    switch (event->type)
+    {
+    case 5:
+        switch (event->param)
+        {
+        case 1:
+        case 13:
+            if (changed)
+                memcpy(&g_54e5d0.settings, settings, sizeof(g_54e5d0.settings));
+            result = c_class_1473c9::v10(event);
+            goto done;
+        }
+        break;
+    }
+    result = c_class_1473c9::v10(event);
+done:
+    return result;
 }
 
 /* the emblem screen (vtable 0x45d328) */
@@ -1735,6 +1748,7 @@ c_screen_45d328::c_screen_45d328(long a, long b, word user_flags, long mode) :
 // @retail 0x2cb1d4
 bool c_screen_45d328::v10(s_widget_event *event)
 {
+    bool result;
 	switch (event->type)
 	{
 	case 5:
@@ -1744,13 +1758,16 @@ bool c_screen_45d328::v10(s_widget_event *event)
 			if (mode == 0)
 			{
 				g_54e5d0.settings.flag ^= true;
-				return true;
+                result = true;
+                goto done;
 			}
 			break;
 		}
 		break;
 	}
-	return c_screen_45d2b8::v10(event);
+	result = c_screen_45d2b8::v10(event);
+done:
+    return result;
 }
 
 // @retail 0x2c8920
@@ -3421,7 +3438,8 @@ void c_level_select_screen::v3()
 			{
 				function_2b0a7b((s_widget_view_2b0a *)bitmap, function_137550(level->bitmap_tag_index, 0));
 			}
-			text->function_22f52e()->set_text((word *)localized_description_get((s_localized_description *)level));
+			word *description = (word *)localized_description_get((s_localized_description *)level);
+			text->function_22f52e()->set_text(description);
 		}
 	}
 	c_class_1a2c81::v3();

@@ -2917,3 +2917,133 @@ void __stdcall function_2736c0(long arg_0)
 		}
 	}
 }
+
+PRIVATE __forceinline bool function_274611(long arg_0, short arg_1)
+{
+	s_slot_object_view *local_0 = object_get(arg_0);
+	return function_c8f60(arg_0, arg_1) != NONE ||
+		(local_0->type == 1 && ((local_0->unknown3b0 & (1 << arg_1)) ||
+		(local_0->unknown3b4 & (1 << arg_1))));
+}
+
+PRIVATE __forceinline long function_2746fc(long arg_0)
+{
+	long local_0 = arg_0;
+	while (local_0 != NONE)
+	{
+		s_slot_object_view *local_1 = object_get(local_0);
+		if (!TEST_FIELD_BIT((*(dword *)((byte *)local_1 + 4) >> 26) & 1)) break;
+		local_0 = local_1->parent_index;
+	}
+	return object_header_get(local_0)->type == 1 ? local_0 : arg_0;
+}
+
+// @retail 0x274470
+short __stdcall function_274470(long arg_0)
+{
+	struct { s_vehicle_enter_slot field_0; s_ai_actor_iterator field_40; } local_40;
+	dword local_0[10] = {0};
+	s_object_seat local_1[320];
+	short local_2 = 0;
+	short local_3 = 0;
+	short local_4 = 0;
+	s_ai_squad_iterator local_5;
+	ai_squad_iterator_new_inline(&local_5, arg_0);
+	s_squad_datum *local_6;
+	while ((local_6 = ai_squad_iterator_next(&local_5)) != NULL)
+	{
+		long local_7 = local_6->first_vehicle_index;
+		while (local_7 != NONE && local_2 < 320)
+		{
+			s_ai_script_squad_vehicle *local_8 = (s_ai_script_squad_vehicle *)ai_script_object_get(local_7);
+			short local_9 = 0;
+			function_c8a40(local_7, &local_1[local_2], &local_9, 320 - local_2);
+			local_2 += local_9;
+			local_7 = local_8->next_squad_vehicle_index;
+		}
+		if (local_2 >= 320) break;
+	}
+	for (long local_10 = 0; local_10 < local_2; local_10++)
+		if (function_274611(local_1[local_10].object_index, local_1[local_10].seat_index))
+			local_0[local_10 >> 5] |= 1 << (local_10 & 31);
+
+	ai_actor_iterator_new(arg_0, &local_40.field_40);
+	while (ai_actor_iterator_next(&local_40.field_40))
+		if (function_1a6fe0(local_40.field_40.actor_index, 0x4c) == NONE) local_4++;
+	for (;;)
+	{
+		real local_12 = 0.0f;
+		short local_13 = NONE;
+		long local_14 = NONE;
+		bool local_15 = false;
+		for (short local_16 = 0; local_16 < local_2; local_16++)
+		{
+			s_object_seat *local_17 = &local_1[local_16];
+			if (local_17->object_index != local_14)
+			{
+				local_14 = local_17->object_index;
+				long local_18 = function_2746fc(local_14);
+				local_15 = function_274611(local_18, function_274400(local_18));
+			}
+			if (!(local_0[local_16 >> 5] & (1 << (local_16 & 31))))
+			{
+				real local_19 = 0.0f;
+				if (TEST_FIELD_BIT(local_17->definition->flags.bit2))
+				{
+					if (TEST_FIELD_BIT(local_17->definition->flags.bit3)) local_19 = 3.0f;
+					else if (local_4 > 0) local_19 = 5.0f;
+				}
+				else if (TEST_FIELD_BIT(local_17->definition->flags.bit3))
+				{
+					if (local_15) local_19 = 20.0f;
+				}
+				else if (!TEST_FIELD_BIT(local_17->definition->flags.bit11))
+				{
+					if (local_15) local_19 = 1.0f;
+				}
+				if (local_19 > local_12) { local_12 = local_19; local_13 = local_16; }
+			}
+		}
+		if (local_13 == NONE) break;
+		long local_20 = local_1[local_13].object_index;
+		short local_21 = local_1[local_13].seat_index;
+		real local_22 = 3.402823466e38f;
+		long local_23 = NONE;
+		if (local_12 == 0.0f) break;
+		point3f local_24;
+		function_b9dd0(local_20, &local_24);
+		s_ai_actor_iterator local_25;
+		ai_actor_iterator_new(arg_0, &local_25);
+		s_actor_datum *local_26;
+		while ((local_26 = ai_actor_iterator_next(&local_25)) != NULL)
+		{
+			if (function_1a6fe0(local_25.actor_index, 0x4c) == NONE && local_26->unknown26c == NONE)
+			{
+				vector3f local_27;
+				vector3d_from_points3d(&local_26->position, &local_24, &local_27);
+				real local_28 = length_sq3f(&local_27);
+				if (local_28 < local_22) { local_23 = local_25.actor_index; local_22 = local_28; }
+			}
+		}
+		if (local_23 != NONE)
+		{
+
+			memset(&local_40.field_0, 0, sizeof(local_40.field_0));
+			local_40.field_0.vehicle_index = local_20;
+			local_40.field_0.seat_index = local_21;
+			local_40.field_0.flag0 = false;
+			local_40.field_0.flag3 = false;
+			local_40.field_0.flag5 = true;
+			local_40.field_0.flag6 = true;
+			local_40.field_0.unknown28 = 3.402823466e38f;
+			local_40.field_0.unknown2c = 3.402823466e38f;
+			if (function_1a80e0(local_23, 0x4c, (s_slot *)&local_40.field_0, 1))
+			{
+				local_3++;
+				local_4--;
+			}
+		}
+		local_0[local_13 >> 5] |= 1 << (local_13 & 31);
+	}
+	return local_3;
+}
