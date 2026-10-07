@@ -62,8 +62,6 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 
 
 
-// @stub 0x292130
-void function_292130(void) { }
 
 
 // @stub 0x292e00
