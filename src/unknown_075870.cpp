@@ -684,25 +684,31 @@ bool function_76520(long channel_index, bool target, long *bandwidth)
 // @retail 0x77940
 bool network_observer_channel_has_host(s_network_observer *observer, long channel_index)
 {
-	s_network_observer_channel *channel = &observer->channels[channel_index];
 	bool result = false;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->connection_index != NONE)
 	{
 		s_network_connection *connection = function_x7665e0(channel->connection_index);
 		if (connection->state >= 4)
 		{
-			long time = connection->state > 2 ? connection->timers[1].time : 0;
+			long time = 0;
+			if (connection->state > 2)
+				time = connection->timers[1].time;
 			if (observer_time_get() - time >= observer->configuration->timeout70)
 			{
 				for (long owner = 0; owner < MAXIMUM_OBSERVER_OWNERS; owner++)
 				{
 					if ((channel->owner_mask & (1 << owner)) && observer->owners[owner].active->channel_is_host_or_local(channel_index))
-						return true;
+					{
+						result = true;
+						goto local_0;
+					}
 				}
 			}
-			return false;
+			goto local_0;
 		}
 	}
+local_0:
 	return result;
 }
 
@@ -715,7 +721,7 @@ void network_samples_reset(s_network_samples *samples);
 static inline void observer_statistics_reset(s_network_statistics *statistics);
 
 // @retail 0x76ff0
-void network_observer_update_connection(s_network_observer *observer, long channel_index)
+void network_observer_update_connection(s_network_observer *volatile observer, long channel_index)
 {
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->state)

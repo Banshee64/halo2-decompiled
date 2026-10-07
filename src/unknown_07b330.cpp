@@ -155,8 +155,8 @@ bool __stdcall function_07b140(void *object, long destination, long type, long s
 // @retail 0x7afd0
 bool s_network_message_gateway::read_packet(const s_type_99af70 *address, s_bitstream *stream)
 {
-	unsigned __int64 storage[8192];
 	bool result = true;
+	unsigned __int64 storage[8192];
 	stream->mode = 3;
 	stream->bit_position = 0;
 	stream->checkpoint_count = 0;
@@ -189,7 +189,8 @@ bool s_network_message_gateway::read_packet(const s_type_99af70 *address, s_bits
 		}
 		if (result)
 			stream->mode = 5;
-		return result;
 	}
-	return false;
+	else
+		result = false;
+	return result;
 }
