@@ -290,13 +290,13 @@ void __stdcall function_17dd80(s_decal_mesh_view const *mesh, s_decal_quad_17d9a
 		short point_count = 4;
 		dword point_mask = 0;
 		point2f previous;
-		point2f *clipped_points;
+		point2f *polygon_points;
 		do
 		{
 			s_decal_mesh_edge const *edge = &mesh->edges[edge_index];
 			bool reverse = edge->faces[1] == face_index;
 			point3f const *vertex = &mesh->vertices[edge->vertices[!reverse]].position;
-			clipped_points = g_55ec10[iteration & 1];
+			polygon_points = g_55ec10[iteration & 1];
 			short const *axes = g_440b94[quad->axis * 2 + quad->positive];
 			if (iteration == 0)
 			{
@@ -323,7 +323,7 @@ void __stdcall function_17dd80(s_decal_mesh_view const *mesh, s_decal_quad_17d9a
 			{
 				clip.d = clip.n.j * current.y + clip.n.i * current.x;
 				bool clipped;
-				point_count = function_23a6f0(clipped_points, point_count, points, &clip, 12, &point_mask, &clipped, 0.0f);
+				point_count = function_23a6f0(polygon_points, point_count, points, &clip, 12, &point_mask, &clipped, 0.0f);
 				if (gather && clipped)
 					decal_add_adjacent_17dd80(mesh, edge, reverse, quad, radius, mode, adjacent, &count);
 			}
@@ -335,21 +335,21 @@ void __stdcall function_17dd80(s_decal_mesh_view const *mesh, s_decal_quad_17d9a
 			++iteration;
 			previous = current;
 			edge_index = edge->next_edges[reverse];
-			points = clipped_points;
+			points = polygon_points;
 		} while (edge_index != face->first_edge && point_count > 0);
 		if (point_count >= 3 && point_count <= 1024 - output->vertex_count && !(face->unknown04[0] & 0x2b))
 		{
 			output->polygon_sizes[output->polygon_count++] = point_count;
 			for (short i = 0; i < point_count; ++i)
 			{
-				real x = clipped_points[i].x - quad->corners[0].x;
-				real y = clipped_points[i].y - quad->corners[0].y;
+				real x = polygon_points[i].x - quad->corners[0].x;
+				real y = polygon_points[i].y - quad->corners[0].y;
 				real v = 0.0f - (quad->edges[0].j * x - quad->edges[0].i * y) * quad->inverse_determinant;
 				real u = (x * quad->edges[1].j - quad->edges[1].i * y) * quad->inverse_determinant;
 				output->vertices[output->vertex_count].texture.x = u;
 				output->vertices[output->vertex_count].texture.y = v;
 				function_120790((real *)&output->vertices[output->vertex_count].position,
-					(real const *)&plane, (real const *)&clipped_points[i], quad->axis, quad->positive);
+					(real const *)&plane, (real const *)&polygon_points[i], quad->axis, quad->positive);
 				if (!(point_mask & (1 << i)))
 				{
 					point3f *position = &output->vertices[output->vertex_count].position;
@@ -482,11 +482,11 @@ void function_17fd20(s_decal_placement const *placement, s_decal_mesh_view const
 	long tag_index, s_decal_output_17dd80 *output, s_decal_projection_17fd20 *projection)
 {
 	s_decal_mesh_view const *const *mesh_reference = &mesh;
-	long const *tag_reference = &tag_index;
+	long const *tag_index_alias = &tag_index;
 	s_decal_output_17dd80 *const *output_reference = &output;
 	s_decal_projection_17fd20 *const *projection_reference = &projection;
 	mesh = *mesh_reference;
-	tag_index = *tag_reference;
+	tag_index = *tag_index_alias;
 	output = *output_reference;
 	projection = *projection_reference;
 	byte const *definition = g_4e3b44[tag_index & 0xffff].bytes;
