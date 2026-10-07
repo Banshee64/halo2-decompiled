@@ -44,7 +44,8 @@ void function_120900(s_job_node *node)
 {
 	long priority;
 	async_work_callback callback;
-	s_async_insert_state state = { 0 };
+	s_async_insert_state state;
+	memset(&state, 0, sizeof(state));
 	s_job_node *previous = async_globals.work_list;
 
 	if (!previous)

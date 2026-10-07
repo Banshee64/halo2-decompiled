@@ -525,9 +525,9 @@ static __int64 read_tsc(void)
 /* 0x12c600 (xbox_texture_cache_update.cpp): the cache's per-frame update */
 void function_12c600(void);
 
-static inline long texture_cache_next_used_index(s_record_pool *data, long index)
+static __forceinline long texture_cache_next_used_index(s_record_pool *data, long index)
 {
-	if (index >= 0 && index < data->high_water_index)
+	if (index >= 0 && index < *(long volatile *)&data->high_water_index)
 	{
 		do
 		{
@@ -537,7 +537,7 @@ static inline long texture_cache_next_used_index(s_record_pool *data, long index
 			}
 			index++;
 		}
-		while (index < data->high_water_index);
+		while (index < *(long volatile *)&data->high_water_index);
 	}
 	return NONE;
 }
@@ -563,8 +563,9 @@ void function_12d0a0(void)
 		{
 			s_texture_cache_request *request = (s_texture_cache_request *)(data->data + data->size * index);
 
+			long local_0 = (request->salt << 16) | index;
 			request->bitmap->flags &= ~0x400;
-			record_pool_release(data, (request->salt << 16) | index);
+			record_pool_release(data, local_0);
 		}
 	}
 }
@@ -837,7 +838,7 @@ long function_12d400(long type, long size, long user_data, long update, long rel
 	long result = 0;
 	real timeout = 0.0f;
 	long maximum_pumps = 0;
-	long attempts = 5;
+	volatile long attempts = 5;
 	long pumps;
 
 	switch (type)

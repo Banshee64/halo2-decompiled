@@ -320,8 +320,11 @@ long function_1234a0(long type, s_cache_resource *resource, bool flush)
 // @retail 0x123550
 s_cache_load *function_123550(long priority, s_cache_resource *resource)
 {
+	long local_0 = resource->size;
+	s_physical_object *local_1 = g_4e3b54;
+	long local_2 = g_468810[priority].lifetime;
 	s_cache_load *result = NULL;
-	long block_index = function_13d370(g_4e3b54, resource->size, g_468810[priority].lifetime);
+	long block_index = function_13d370(local_1, local_0, local_2);
 
 	if (block_index != NONE)
 	{
