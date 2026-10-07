@@ -19,7 +19,7 @@ struct s_203780
 
 vector2f *function_11df30(vector2f *arg_0, vector3f const *arg_1);
 void function_bf380(void);
-long __stdcall function_1e0850(long arg_0, short arg_1, s_203780 const *arg_2, bool arg_3);
+long __stdcall function_1e0850(long arg_0, long arg_1, s_203780 const *arg_2, bool arg_3);
 
 // @retail 0x203780
 long function_203780(long arg_0, short arg_1, short arg_2, bool arg_3)
@@ -31,12 +31,15 @@ long function_203780(long arg_0, short arg_1, short arg_2, bool arg_3)
         return local_0;
     byte *local_3 = *(byte **)((byte *)g_4e0350 + 0x164) + (word)*local_1 * 0x74;
     s_203780 *local_4 = (s_203780 *)(*(byte **)(local_3 + 0x4c) + arg_1 * 0x64);
-    word local_5 = (word)local_4->field_20;
-    if (local_5 == (word)NONE)
-        local_5 = *(word *)(local_3 + 0x36);
-    if ((short)local_5 < 0 || (short)local_5 >= *(long *)((byte *)g_4e0350 + 0x178))
+    long local_5 = (word)local_4->field_20;
+    long local_10;
+    if ((short)local_5 != NONE)
+        local_10 = local_5;
+    else
+        local_10 = *(word *)(local_3 + 0x36);
+    if ((short)local_10 < 0 || (short)local_10 >= *(long *)((byte *)g_4e0350 + 0x178))
         return local_0;
-    long *local_6 = (long *)(*(byte **)((byte *)g_4e0350 + 0x17c) + (short)local_5 * 8);
+    long *local_6 = (long *)(*(byte **)((byte *)g_4e0350 + 0x17c) + (short)local_10 * 8);
     if (local_6[1] == NONE)
         return local_0;
     s_203780 local_7;
