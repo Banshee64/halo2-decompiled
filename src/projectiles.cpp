@@ -449,11 +449,10 @@ void function_f86f0(s_projectile_target const *target, point3f *point)
 {
 	long object_index = target->object_index;
 	s_projectile *object = PROJECTILE_GET(object_index);
+	s_object_marker marker;
 
 	if (target->node_index == NONE)
 	{
-		s_object_marker marker;
-
 		function_b8d30(object_index, 0x40000bd, &marker, 1, false);
 		*point = marker.matrix.position;
 		return;
@@ -468,8 +467,6 @@ void function_f86f0(s_projectile_target const *target, point3f *point)
 		*point = markers[0].matrix.position;
 		return;
 	}
-
-	s_object_marker marker;
 
 	function_b8d30(object_index, 0x40000bd, &marker, 1, false);
 	*point = marker.matrix.position;
@@ -1153,8 +1150,6 @@ void function_fd0e0(long definition_index, real scale_a, real scale_b, vector3f 
 	long sounds[3];
 	long effect_indices[3];
 	s_location location;
-	s_effect_marker markers[6];
-	s_effect_parameters parameters;
 	long i;
 
 	effect_indices[0] = NONE;
@@ -1164,40 +1159,45 @@ void function_fd0e0(long definition_index, real scale_a, real scale_b, vector3f 
 	sounds[1] = NONE;
 	sounds[2] = NONE;
 	function_11bed0(&location, point);
-	function_1763a0(point, direction, markers, normal);
-	projectile_effect_parameters_initialize(&parameters);
-	if (attached)
 	{
-		parameters.flags = 1;
-		parameters.object_index = object_index;
-		parameters.unknown18 = node_index;
-	}
-	parameters.scale_a = scale_a;
-	parameters.markers = markers;
-	parameters.scale_b = scale_b;
-	parameters.marker_count = 6;
-	function_fd740(point, definition, 0xf, index, &effect_indices[0], &sounds[0], &effect_indices[1], &sounds[1],
-		&effect_indices[2], &sounds[2]);
-	if (alternate && *(long *)(definition + 0xec) != NONE)
-	{
-		parameters.flags |= 4;
-		parameters.tag_index = *(long *)(definition + 0xec);
-		effect_new_from_parameters(&parameters);
-		return;
-	}
-	for (i = 0; i < 3; i++)
-	{
-		if (effect_indices[i] != NONE)
+		s_effect_marker markers[6];
+		s_effect_parameters parameters;
+
+		function_1763a0(point, direction, markers, normal);
+		projectile_effect_parameters_initialize(&parameters);
+		if (attached)
 		{
-			parameters.tag_index = effect_indices[i];
+			parameters.flags = 1;
+			parameters.object_index = object_index;
+			parameters.unknown18 = node_index;
+		}
+		parameters.scale_a = scale_a;
+		parameters.markers = markers;
+		parameters.scale_b = scale_b;
+		parameters.marker_count = 6;
+		function_fd740(point, definition, 0xf, index, &effect_indices[0], &sounds[0], &effect_indices[1], &sounds[1],
+			&effect_indices[2], &sounds[2]);
+		if (alternate && *(long *)(definition + 0xec) != NONE)
+		{
+			parameters.flags |= 4;
+			parameters.tag_index = *(long *)(definition + 0xec);
+			effect_new_from_parameters(&parameters);
+			return;
+		}
+		for (i = 0; i < 3; i++)
+		{
+			if (effect_indices[i] != NONE)
+			{
+				parameters.tag_index = effect_indices[i];
+				effect_new_from_parameters(&parameters);
+			}
+		}
+		parameters.flags |= 4;
+		if (*(long *)(definition + 0x144) != NONE)
+		{
+			parameters.tag_index = *(long *)(definition + 0x144);
 			effect_new_from_parameters(&parameters);
 		}
-	}
-	parameters.flags |= 4;
-	if (*(long *)(definition + 0x144) != NONE)
-	{
-		parameters.tag_index = *(long *)(definition + 0x144);
-		effect_new_from_parameters(&parameters);
 	}
 	for (i = 0; i < 3; i++)
 	{
