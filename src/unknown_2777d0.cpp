@@ -129,7 +129,7 @@ public:
 	virtual bool test(s_278a70_body *first, s_278a70_body *second);
 	virtual void event0(void *event);
 	virtual void event1(void *arg_0);
-	virtual void event2(void *event) {}
+	virtual void event2(void *event);
 	virtual void slot1(hkEntity *entity);
 	virtual void slot2(hkEntity *entity);
 
@@ -880,3 +880,42 @@ void c_interface_277890::event0(void *arg_0)
 	}
 }
 
+struct s_278100
+{
+    byte field_0[4];
+    s_277a00 *field_4;
+    s_277a00 *field_8;
+    byte field_c[4];
+    hkEntity *field_10;
+};
+struct s_1d0770;
+void function_1d0770(s_1d0770 *arg_0, s_havok_component *arg_1, long arg_2,
+    long arg_3, long arg_4, long arg_5);
+long havok_entity_property_2002_get(hkEntity const *arg_0);
+
+// @retail 0x278100
+void c_interface_277890::event2(void *arg_0)
+{
+    s_278100 *local_0 = (s_278100 *)arg_0;
+    hkEntity *local_1 = function_277a25(local_0->field_4);
+    hkEntity *local_2 = function_277a25(local_0->field_8);
+    if (local_1 && local_2)
+    {
+        long local_3 = havok_entity_component_index_get(local_1);
+        long local_4 = havok_entity_component_index_get(local_2);
+        long local_5 = havok_entity_property_2002_get(local_1);
+        long local_6 = havok_entity_property_2002_get(local_2);
+        if (local_0->field_10 == local_1)
+        {
+            s_havok_component *local_7 = havok_component_get(local_3);
+            if (local_7->unknown04 & 1)
+                function_1d0770((s_1d0770 *)local_0, local_7, local_3, local_4, local_5, local_6);
+        }
+        else
+        {
+            s_havok_component *local_8 = havok_component_get(local_4);
+            if (local_8->unknown04 & 1)
+                function_1d0770((s_1d0770 *)local_0, local_8, local_4, local_3, local_6, local_5);
+        }
+    }
+}

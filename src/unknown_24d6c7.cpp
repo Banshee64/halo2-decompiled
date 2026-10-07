@@ -228,3 +228,72 @@ void __stdcall function_24d8d3(long local_player_index)
 			point->team = NONE;
 	}
 }
+
+#include "unknown_13927e.h"
+
+extern long g_4b9ed8;
+
+// @retail 0x24da7d
+void function_24da7d(long arg_0)
+{
+	if (arg_0 != NONE)
+	{
+		long local_0;
+		if (function_14ddc0(arg_0))
+		{
+			long local_1 = function_14de70(arg_0);
+			local_0 = *(long *)(g_4e8c24->data + (local_1 & 0xffff) * 0x21c + 0x2c);
+		}
+		else
+			local_0 = NONE;
+		if (local_0 != NONE && *(long *)((byte *)g_510c94 + 0x120) != NONE)
+		{
+			s_nav_points *local_2 = &g_5023f8[arg_0];
+			for (long local_3 = 0; (short)local_3 < 4; ++local_3)
+			{
+				s_nav_point *local_4 = &local_2->points[(short)local_3];
+				if (local_4->type != NONE && local_4->object_index != NONE && local_4->team != NONE)
+				{
+					point3f local_5;
+					long local_6;
+					switch (local_4->team)
+					{
+					case 0:
+						local_5 = ((s_scenario_24d8d3 *)g_4e0350)->field_1e4[local_4->object_index].field_24;
+						break;
+					case 1:
+						if (!function_badc0(local_4->object_index, NONE))
+							continue;
+						function_30c60(local_4->object_index, &local_5, &local_6);
+						break;
+					default:
+						__assume(0);
+					}
+					local_5.z += local_4->value;
+					s_marker_list local_7;
+					local_7.b0 = true;
+					local_7.b1 = true;
+					local_7.l4 = 1;
+					local_7.position = local_5;
+					local_7.r14 = 0.0f;
+					local_7.r18 = 0.0f;
+					local_7.r1c = 0.0f;
+					local_7.l20 = NONE;
+					local_7.color24 = *function_13927e(g_4b9ed8);
+					local_7.color30 = *function_13927e(g_4b9ed8);
+					local_7.r3c = 1.0f;
+					local_7.r40 = 1.0f;
+					local_7.count = 1;
+					local_7.items[0].kind = 0;
+					local_7.items[0].a = *function_13927e(g_4b9ed8);
+					local_7.items[0].b = *function_13927e(g_4b9ed8);
+					local_7.items[0].r = 1.0f;
+					local_7.items[0].index = NONE;
+					function_24e59f(&local_7);
+				}
+				else
+					local_4->team = NONE;
+			}
+		}
+	}
+}

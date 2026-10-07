@@ -13,11 +13,6 @@ void function_235e5e(s_sprite_element *element, s_float_rect *from, s_float_rect
 struct s_player_profile_settings;
 
 
-// @stub 0x1a03a0
-long __stdcall function_1a03a0(long controller_index, word *name)
-{
-	return 0;
-}
 
 // @stub 0x120e20
 void function_120e20(long controller_index, long *profile_index)

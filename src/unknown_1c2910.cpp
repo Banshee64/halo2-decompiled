@@ -35,6 +35,11 @@ void function_1e9650();
 void function_1edc10();
 void function_1c3b70();
 
+PRIVATE __forceinline long function_1c2911()
+{
+ return *(long *)((byte *)g_4e0348 + 0x208);
+}
+
 // @retail 0x1c2910
 void function_1c2910()
 {
@@ -49,7 +54,7 @@ void function_1c2910()
   local_0 = new (local_0) c_1c2910;
   c_shape_library_base_a *local_1 = (c_shape_library_base_a *)local_2->function_1d7390(0x14, 0x22);
   local_1->allocation_size = 0x14;
-  local_1 = new (local_1) c_shape_library_base_a((c_havok_reference_counted *)local_0, *(long *)((byte *)g_4e0348 + 0x208));
+  local_1 = new (local_1) c_shape_library_base_a((c_havok_reference_counted *)local_0, function_1c2911());
   g_4f55b0 = (c_havok_reference_counted *)local_1;
   havok_reference_remove((c_havok_reference_counted *)local_0);
  }

@@ -299,8 +299,8 @@ bool player_slot_profile_in_use(long profile_index)
 // @retail 0x18fd7c
 long player_slot_get_value1fc(long index)
 {
-	s_player_slot_view *slot = &player_slots()[index];
 	long result = NONE;
+	s_player_slot_view *slot = &player_slots()[index];
 
 	if (slot)
 	{

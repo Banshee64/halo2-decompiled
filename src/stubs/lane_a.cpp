@@ -45,10 +45,6 @@ void __stdcall function_189cd0(long sound_index, long object_index, real scale, 
 
 
 
-// @stub 0x187df0
-void __stdcall function_187df0(bool value)
-{
-}
 
 // @stub 0x13c250
 void __stdcall function_13c250(long object_index, long a, long b)
@@ -75,15 +71,7 @@ void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 
 struct s_ai_trigger_condition;
 
-// @stub 0x202e90
-void __stdcall function_202e90(long squad_index, long index, long flag)
-{
-}
 
-// @stub 0x203120
-void __stdcall function_203120(long squad_group_index, long index, long flag)
-{
-}
 
 // @stub 0x1e0160
 long __stdcall function_1e0160(long squad_index, long entry_index, long unit_index, bool flag)

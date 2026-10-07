@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6734 functions match
+
+```
+matched 6734 of 11318 game functions (736034 of 2784283 bytes, 26.44%)
+```
+
+6734 new matches, none lost:
+- Merge batch r10: Codex lanes D round 27 (+6), Z round 9 (+1) and UI-screens round 8 (+7); the second machine's 19 PRs #130-#133 and #139-#153 (+40: lane Y rounds 1-7, F 4-5, O 8-9, I 3, U 1, M 5, C 28, AC 11, and caller fixes in lane C round 27); @BrassMonkey71's #129 (0xe5980).
+
 ## 2026-10-07: 6679 functions match
 
 ```
