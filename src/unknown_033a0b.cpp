@@ -7,6 +7,7 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include "globals.h"
 
 struct s_33a0b_view
 {
@@ -119,4 +120,129 @@ void function_033cf7(vector3f *out)
 void function_033d36(vector3f *out)
 {
 	copy_vector(out, &g_485780);
+}
+
+color3f *unpack_color3f(dword pixel, color3f *color);
+real function_33670(long selector);
+extern real g_48578c, g_4857a4, g_4857f8;
+extern long g_4b9f5c;
+extern real g_4b9f80, g_4b9f84;
+extern vector3f g_4b9dac;
+vector3f g_485798, g_4857ec;
+struct s_frame_offset
+{
+	point3f position;
+	vector3f forward;
+	vector3f up;
+};
+extern s_frame_offset g_485618;
+struct s_4e6950
+{
+	byte unknown00[0x70];
+	real user_values[4];
+};
+extern s_4e6950 g_4e6950;
+
+// @retail 0x33980
+void function_33980(long selector, vector3f *out)
+{
+	switch (selector)
+	{
+	case 0: *out = g_485618.forward; return;
+	case 3:
+	case 4:
+	case 21:
+	case 22:
+	{
+		long index;
+		switch (selector)
+		{
+		case 3: index = 0; break;
+		case 4: index = 1; break;
+		case 21: index = 2; break;
+		case 22: index = 3; break;
+		default: __assume(0);
+		}
+		byte *view = (byte *)g_485a58;
+		if (view && index >= 0 && index < view[0x74])
+			unpack_color3f(((dword *)(view + 0x64))[index], (color3f *)out);
+		else *out = *(vector3f *)g_468710;
+		return;
+	}
+	case 5: *out = g_4859dc; return;
+	case 6: *out = g_4859ec; return;
+	case 14: *out = g_485a58 ? g_485a58->vector3c : g_4686d4->vector; return;
+	case 15: *out = g_485a58 ? g_485a58->vector30 : g_4686d4->vector; return;
+	case 16: *out = g_485a58 ? g_485a58->vector54 : g_4686d4->vector; return;
+	case 17: *out = g_485a58 ? g_485a58->vector48 : g_4686d4->vector; return;
+	case 18: *out = g_485768; return;
+	case 19: *out = g_4857ec; return;
+	case 23:
+		*out = g_485a58 ? g_485a58->vector30 : g_4686d4->vector;
+		out->i = pin_unit(out->i * g_485a6c);
+		out->j = pin_unit(out->j * g_485a6c);
+		out->k = pin_unit(out->k * g_485a6c);
+		return;
+	case 24:
+		*out = g_485a58 ? g_485a58->vector10 : g_4686d4->vector;
+		out->i = pin_unit((g_485a70 + 1.0f) * out->i);
+		out->j = pin_unit((g_485a70 + 1.0f) * out->j);
+		out->k = pin_unit((g_485a70 + 1.0f) * out->k);
+		return;
+	case 25: *out = g_485768; return;
+	case 26:
+		out->i = g_485768.i * g_485774;
+		out->j = g_485768.j * g_485774;
+		out->k = g_485768.k * g_485774;
+		return;
+	case 27: *out = g_485780; return;
+	case 28:
+		out->i = g_485780.i * g_48578c;
+		out->j = g_485780.j * g_48578c;
+		out->k = g_485780.k * g_48578c;
+		return;
+	case 29: *out = g_485798; return;
+	case 30:
+		out->i = g_485798.i * g_4857a4;
+		out->j = g_485798.j * g_4857a4;
+		out->k = g_485798.k * g_4857a4;
+		return;
+	case 31: *out = g_4857ec; return;
+	case 32:
+		out->i = g_4857ec.i * g_4857f8;
+		out->j = g_4857ec.j * g_4857f8;
+		out->k = g_4857ec.k * g_4857f8;
+		return;
+	case 33: *out = *(vector3f *)(g_4e6950.unknown00 + 0x00); return;
+	case 34: *out = *(vector3f *)(g_4e6950.unknown00 + 0x0c); return;
+	case 35:
+		*out = g_485a58 ? g_485a58->vector30 : g_4686d4->vector;
+		out->i = pin_unit(out->i * g_485a6c * 0.5f);
+		out->j = pin_unit(out->j * g_485a6c * 0.5f);
+		out->k = pin_unit(out->k * g_485a6c * 0.5f);
+		return;
+	case 36: *out = *(vector3f *)(g_4e6950.unknown00 + 0x40); return;
+	case 37: *out = *(vector3f *)(g_4e6950.unknown00 + 0x4c); return;
+	case 38: *out = *(vector3f *)(g_4e6950.unknown00 + 0x58); return;
+	case 39: *out = *(vector3f *)(g_4e6950.unknown00 + 0x64); return;
+	case 40:
+	{
+		real value = function_33670(*(long *)g_485a58);
+		out->i = value;
+		out->j = value;
+		out->k = value;
+		return;
+	}
+	case 41:
+		if (g_4b9f5c != NONE && g_4b9f84 > g_4b9f80)
+		{
+			real inverse = 1.0f / (g_4b9f84 - g_4b9f80);
+			out->i = 0.0f - g_4b9dac.i * inverse;
+			out->j = 0.0f - g_4b9dac.j * inverse;
+			out->k = 0.0f - g_4b9dac.k * inverse;
+		}
+		else *out = g_4686d4->vector;
+		return;
+	default: __assume(0);
+	}
 }

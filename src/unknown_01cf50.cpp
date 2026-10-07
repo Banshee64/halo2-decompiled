@@ -8,6 +8,73 @@
 #include "unknown_058ee0.h"
 #include "unknown_163110.h"
 
+bool function_48b00(point3f const *point, real radius, real *screen, real *extent);
+void function_1cf50();
+
+struct s_unknown_01dcc0
+{
+    byte unknown00[4];
+    long sub_header[5];
+    long elements[4][6];
+    long element_count;
+    byte unknown7c[4];
+    long width, height;
+    void *data;
+    byte unknown8c[8];
+    bool flag94;
+    byte flag95;
+    byte unknown96[2];
+};
+extern s_unknown_01dcc0 g_4b4b58[39];
+bool function_01dd60(long index, long *width, long *height);
+void function_14bc0(short index, short element, bool use_depth);
+
+PRIVATE __forceinline void write_texture_corners(real u, real v)
+{
+    D3DDevice_SetVertexData2f(1, u, v);
+    D3DDevice_SetVertexData2f(2, u, v);
+    D3DDevice_SetVertexData2f(3, u, v);
+    D3DDevice_SetVertexData2f(4, u, v);
+}
+
+// @retail 0x15ec0
+void __stdcall function_15ec0(long index)
+{
+    long width = 0, height = 0;
+    long count;
+    if (g_4b4b58[index].data && !g_4b4b58[index].flag95)
+        count = g_4b4b58[index].element_count;
+    else count = index == 0 || index == 3 ? 1 : 0;
+    function_01dd60(index, &width, &height);
+    for (long level = 0; level < count; ++level)
+    {
+        real x = (real)width, y = (real)height;
+        real ratio = g_485ad4.hi / (g_485ad4.hi - g_485ad4.lo);
+        real z = (ratio - g_485ad4.lo * ratio) * 16777215.0f;
+        if (z < 0.0f) z = 0.0f;
+        else if (z > 16777215.0f) z = 16777215.0f;
+        real w = (1.0f / g_485ad4.hi) * 16777215.0f;
+        if (w < 0.0f) w = 0.0f;
+        else if (w > 16777215.0f) w = 16777215.0f;
+        function_14bc0((short)index, (short)level, false);
+        D3DDevice_Begin(D3DPT_TRIANGLESTRIP);
+        real fraction = count > 1 ? (real)level / (count - 1) : 0.0f;
+        D3DDevice_SetVertexData4f(5, 0.0f, 0.0f, 0.0f, fraction);
+        D3DDevice_SetVertexData4f(6, 0.0f, 0.0f, 0.0f, 0.0f);
+        write_texture_corners(0.0f, 0.0f);
+        D3DDevice_SetVertexData4f(0, 0.0f, 0.0f, z, w);
+        write_texture_corners(1.0f, 0.0f);
+        D3DDevice_SetVertexData4f(0, x, 0.0f, z, w);
+        write_texture_corners(0.0f, 1.0f);
+        D3DDevice_SetVertexData4f(0, 0.0f, y, z, w);
+        write_texture_corners(1.0f, 1.0f);
+        D3DDevice_SetVertexData4f(0, x, y, z, w);
+        D3DDevice_End();
+        width /= 2;
+        height /= 2;
+    }
+}
+
 bool function_015b10(long index, D3DPalette **out);
 const long g_43e8e8[4] = { 32, 64, 128, 256 };
 
@@ -2852,6 +2919,120 @@ extern s_44940_entry g_4ba138[850];
 extern byte g_485a75, g_485a76;
 void function_15370(short mode);
 
+void function_3c650(byte const *state);
+void function_3d000(real const *state);
+
+// @retail 0x467c0
+short __stdcall function_467c0(short first, short second, short count)
+{
+    if (count > 0)
+    {
+        function_0222d0(D3DRS_CULLMODE, 0x901);
+        function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+        function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+        function_0222d0(D3DRS_SRCBLEND, 0x304);
+        function_0222d0(D3DRS_DESTBLEND, 0);
+        function_0222d0(D3DRS_BLENDOP, 0x8006);
+        function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+        function_0222d0(D3DRS_ZENABLE, 0);
+        function_0222d0(D3DRS_ZBIAS, 0);
+        function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0xc), 0);
+        function_1c710(g_51f0f0);
+        real constants[32] = {
+            1.0f,0.0f,0.0f,-0.0078125f, 0.0f,1.0f,0.0f,-0.0078125f,
+            1.0f,0.0f,0.0f,0.0078125f, 0.0f,1.0f,0.0f,0.0078125f,
+            1.0f,0.0f,0.0f,-0.0078125f, 0.0f,1.0f,0.0f,0.0078125f,
+            1.0f,0.0f,0.0f,0.0078125f, 0.0f,1.0f,0.0f,-0.0078125f
+        };
+        D3DDevice_SetVertexShaderConstant(18, constants, 8);
+        D3DPIXELSHADERDEF program;
+        memset(&program, 0, sizeof(program));
+        program.PSAlphaOutputs[0] = 0xc00;
+        program.PSRGBOutputs[0] = 0xc00;
+        program.PSRGBOutputs[1] = 0xc00;
+        program.PSTextureModes = 0x8421;
+        program.PSCombinerCount = 2;
+        program.PSConstant0[0] = 0xff000000;
+        program.PSAlphaInputs[0] = 0x08a009a0;
+        program.PSRGBInputs[0] = 0x0aa00ba0;
+        program.PSRGBInputs[1] = 0x1c110c11;
+        program.PSFinalCombinerInputsABCD = 0xc;
+        g_484f68 = program;
+        D3DDevice_SetPixelShaderProgram(&program);
+        for (short i = 0; i < count; ++i)
+        {
+            short source = i & 1 ? second : first;
+            short target = i & 1 ? first : second;
+            for (short stage = 0; stage < 4; ++stage)
+            {
+                function_14f60(stage, source);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, 4);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, 4);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, 2);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, 2);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 1);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, 0);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, 0);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
+                D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
+            }
+            function_14bc0(target, 0, false);
+            program.PSConstant0[0] = (i > 0 ? 0x7fu : 0xffu) << 24;
+            g_484f68 = program;
+            D3DDevice_SetPixelShaderProgram(&program);
+            function_1cf50();
+            D3DDevice_Begin(D3DPT_TRIANGLEFAN);
+            D3DDevice_SetVertexData2s(3, 0, 0);
+            D3DDevice_SetVertexData4f(0, 0.53125f, 0.53125f, 16777215.0f, 16777215.0f);
+            D3DDevice_SetVertexData2s(3, 1, 0);
+            D3DDevice_SetVertexData4f(0, 64.53125f, 0.53125f, 16777215.0f, 16777215.0f);
+            D3DDevice_SetVertexData2s(3, 1, 1);
+            D3DDevice_SetVertexData4f(0, 64.53125f, 64.53125f, 16777215.0f, 16777215.0f);
+            D3DDevice_SetVertexData2s(3, 0, 1);
+            D3DDevice_SetVertexData4f(0, 0.53125f, 64.53125f, 16777215.0f, 16777215.0f);
+            D3DDevice_End();
+        }
+        function_14bc0((short)g_4858b8, 0, true);
+    }
+    return count & 1 ? second : first;
+}
+
+// @retail 0x4d640
+void __stdcall function_4d640(short index, long mode, bool setup)
+{
+    (void)&index;
+    s_44940_entry *entry = &g_4ba138[index];
+    if (entry->unknown10[10] != 0xff)
+    {
+        real opacity = (real)entry->unknown10[10] * (1.0f / 255.0f);
+        if (!(fabs(g_4b8494 - opacity) < 0.0001f))
+        {
+            D3DDevice_SetStipple(function_1c290(opacity));
+            g_4b8494 = opacity;
+        }
+    }
+    if (entry->unknown00 & 0x800)
+        function_12d50(NULL, true, NULL);
+    if (mode == 1 || mode == 3)
+    {
+        if (g_485a75 || g_485a76)
+            function_15370(0);
+        else if (entry->unknown00 & 0x4000)
+            function_15370(2);
+    }
+    if (setup)
+    {
+        byte *structure = (byte *)g_4e0348;
+        if (*(long *)(structure + 0x214) > 0)
+        {
+            byte *state = *(byte **)(structure + 0x218);
+            function_3c650(state);
+            function_3d000((real const *)state);
+        }
+    }
+}
+
 // @retail 0x4d720
 void function_4d720(short index, long mode)
 {
@@ -2875,6 +3056,71 @@ void __stdcall function_20bb0(long player, dword mask, long const *indices, long
 long __stdcall function_2e540(s_slot *slot, byte *data);
 extern long g_4b9ed4;
 extern long g_485898;
+extern vector3f g_4b9dac;
+
+// @retail 0x2e540
+long __stdcall function_2e540(s_slot *slot, byte *data)
+{
+    long result = 0;
+    long tag = *(long *)data;
+    point3f position = *(point3f *)(data + 4);
+    vector3f offset;
+    offset.i = data[0x10] * (2.0f / 255.0f) - 1.0f;
+    offset.j = data[0x11] * (2.0f / 255.0f) - 1.0f;
+    offset.k = data[0x12] * (2.0f / 255.0f) - 1.0f;
+    byte *definition = g_4e3b44[tag & 0xffff].bytes;
+    real scale = definition[0x28] & 0x40 ? *(real *)(data + 0x14) : 1.0f;
+    if (tag != NONE && !(definition[0x28] & 2))
+    {
+        real radius = *(real *)(definition + 0x10) * scale;
+        if ((*(dword *)slot & 0x38) == 0x20)
+        {
+            real sizes[7] = { 1.0f, 0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f };
+            radius *= sizes[*(short *)(definition + 0x16)];
+        }
+        switch (*(short *)(definition + 0x14))
+        {
+        case 0:
+            position.x += -radius * g_4b9dac.i;
+            position.y += -radius * g_4b9dac.j;
+            position.z += -radius * g_4b9dac.k;
+            break;
+        case 1:
+            position.x += offset.i * (radius * 1.4142135381698608f);
+            position.y += offset.j * (radius * 1.4142135381698608f);
+            position.z += offset.k * (radius * 1.4142135381698608f);
+            break;
+        }
+        real screen[4], extent[2];
+        if (function_48b00(&position, radius, screen, extent))
+        {
+            if (extent[0] < 2.0f) extent[0] = 2.0f;
+            else if (extent[0] > 128.0f) extent[0] = 128.0f;
+            if (extent[1] < 2.0f) extent[1] = 2.0f;
+            else if (extent[1] > 128.0f) extent[1] = 128.0f;
+            real left = (real)floor((double)screen[0] - extent[0]);
+            real top = (real)floor((double)screen[1] - extent[1]);
+            real right = (real)floor((double)screen[0] + extent[0]);
+            real bottom = (real)floor((double)screen[1] + extent[1]);
+            real area = (bottom - top) * (right - left);
+            if (area > 0.0f && area <= 2147483648.0f)
+            {
+                if (screen[2] < 0.0f) screen[2] = 0.0f;
+                else if (screen[2] > 16777215.0f) screen[2] = 16777215.0f;
+                if (screen[3] < 0.0f) screen[3] = 0.0f;
+                else if (screen[3] > 16777215.0f) screen[3] = 16777215.0f;
+                D3DDevice_Begin(D3DPT_TRIANGLEFAN);
+                D3DDevice_SetVertexData4f(0, left, top, screen[2], screen[3]);
+                D3DDevice_SetVertexData4f(0, right, top, screen[2], screen[3]);
+                D3DDevice_SetVertexData4f(0, right, bottom, screen[2], screen[3]);
+                D3DDevice_SetVertexData4f(0, left, bottom, screen[2], screen[3]);
+                D3DDevice_End();
+                result = (long)area;
+            }
+        }
+    }
+    return result;
+}
 
 // @retail 0x2dd30
 void function_2dd30()
@@ -3208,4 +3454,84 @@ void function_40890(void)
 	D3DDevice_SetVertexData2s(0, width, height);
 	D3DDevice_SetVertexData2s(0, 0, height);
 	D3DDevice_End();
+}
+
+bool function_48b00(point3f const *point, real radius, real *screen, real *extent);
+void function_1cf50();
+
+// @retail 0x484b0
+void __stdcall function_484b0(point3f const *point, real depth, real width, real height, real cosine, real sine, dword color)
+{
+    real screen[4], extent[2];
+    if (width > 0.0f && height > 0.0f && function_48b00(point, 1.0f, screen, extent))
+    {
+        real ratio = g_485ad4.hi / (g_485ad4.hi - g_485ad4.lo);
+        real z = ((ratio * depth - g_485ad4.lo * ratio) / depth) * 16777215.0f;
+        if (z < 0.0f) z = 0.0f;
+        else if (z > 16777215.0f) z = 16777215.0f;
+        real w = (depth / g_485ad4.hi) * 16777215.0f;
+        if (w < 0.0f) w = 0.0f;
+        else if (w > 16777215.0f) w = 16777215.0f;
+        function_1cf50();
+        D3DDevice_Begin(D3DPT_TRIANGLEFAN);
+        D3DDevice_SetVertexDataColor(5, color);
+        D3DDevice_SetVertexData2f(2, 1.0f, 0.0f);
+        real wc = width * cosine;
+        real hs = height * sine;
+        real ws = width * sine;
+        real hc = height * cosine;
+        real a = (wc - hs) * extent[0];
+        real b = (ws + hc) * extent[1];
+        real x = screen[0] + a;
+        real y = screen[1] - b;
+        D3DDevice_SetVertexData2f(1, x, y);
+        D3DDevice_SetVertexData4f(0, x, y, z, w);
+        real c = (hs + wc) * extent[0];
+        real d = (ws - hc) * extent[1];
+        D3DDevice_SetVertexData2f(2, 1.0f, 1.0f);
+        x = screen[0] + c;
+        y = screen[1] - d;
+        D3DDevice_SetVertexData2f(1, x, y);
+        D3DDevice_SetVertexData4f(0, x, y, z, w);
+        D3DDevice_SetVertexData2f(2, 0.0f, 1.0f);
+        x = screen[0] - a;
+        y = screen[1] + b;
+        D3DDevice_SetVertexData2f(1, x, y);
+        D3DDevice_SetVertexData4f(0, x, y, z, w);
+        D3DDevice_SetVertexData2f(2, 0.0f, 0.0f);
+        x = screen[0] - c;
+        y = screen[1] + d;
+        D3DDevice_SetVertexData2f(1, x, y);
+        D3DDevice_SetVertexData4f(0, x, y, z, w);
+        D3DDevice_End();
+    }
+}
+
+// @retail 0x480a0
+void __stdcall function_480a0(point3f const *point, real width, real height, real cosine, real sine, dword color)
+{
+    real screen[4], extent[2];
+    if (width > 0.0f && height > 0.0f && function_48b00(point, 1.0f, screen, extent))
+    {
+        function_1cf50();
+        D3DDevice_Begin(D3DPT_TRIANGLEFAN);
+        D3DDevice_SetVertexDataColor(9, color);
+        real wc = width * cosine;
+        real hs = height * sine;
+        real ws = width * sine;
+        real hc = height * cosine;
+        real a = (wc - hs) * extent[0];
+        real b = (ws + hc) * extent[1];
+        D3DDevice_SetVertexData2s(3, 1, 0);
+        D3DDevice_SetVertexData4f(0, screen[0] + a, screen[1] - b, screen[2], screen[3]);
+        real c = (hs + wc) * extent[0];
+        real d = (ws - hc) * extent[1];
+        D3DDevice_SetVertexData2s(3, 1, 1);
+        D3DDevice_SetVertexData4f(0, screen[0] + c, screen[1] - d, screen[2], screen[3]);
+        D3DDevice_SetVertexData2s(3, 0, 1);
+        D3DDevice_SetVertexData4f(0, screen[0] - a, screen[1] + b, screen[2], screen[3]);
+        D3DDevice_SetVertexData2s(3, 0, 0);
+        D3DDevice_SetVertexData4f(0, screen[0] - c, screen[1] + d, screen[2], screen[3]);
+        D3DDevice_End();
+    }
 }
