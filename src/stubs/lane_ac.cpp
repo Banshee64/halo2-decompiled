@@ -23,10 +23,6 @@ class hkEntity;
 // @stub 0x315340
 void __cdecl function_315340(void *arg_0, hkEntity *arg_1, hkEntity *arg_2, real arg_3, real arg_4) {}
 
-struct s_havok_component;
-// @stub 0x1d0770
-void __stdcall function_1d0770(s_havok_component *arg_0, long arg_1, long arg_2, long arg_3, long arg_4) {}
-
 // @stub 0x3153c0
 void __cdecl function_3153c0(void *arg_0, void *arg_1, void const *arg_2)
 {
