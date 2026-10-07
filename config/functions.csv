@@ -9833,7 +9833,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0029db90,441,game,speed,a16 pad,,,001fa7f0,src/unknown_29da40.cpp,todo
 0029dd50,204,game,speed,a16 pad,,,001697c0,src/unknown_29dd50.cpp,matched
 0029de20,110,game,speed,a16 pad,,,0029dd50,src/unknown_29dd50.cpp,matched
-0029de90,152,game,speed,a16 pad,,,0029de20,src/unknown_29dd50.cpp,near
+0029de90,152,game,speed,a16 pad,,,0029de20,src/unknown_29dd50.cpp,matched
 0029df30,287,game,speed,a16 pad,,,00262b40 0029de90,src/unknown_29dd50.cpp,todo
 0029e050,152,game,speed,a16 pad,,,002104b0 0029dd50 0029df30,src/unknown_29dd50.cpp,todo
 0029e0f0,1596,game,speed,a16 pad,,,00210850 00262b40 0029de20,src/unknown_29e0f0.cpp,todo
