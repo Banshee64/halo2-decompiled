@@ -117,7 +117,8 @@ struct s_projectile_definition
 		struct
 		{
 			dword unknown0 : 1;
-			dword unknown1 : 4;
+			dword gravity : 1;
+			dword unknown2 : 3;
 			dword drifts : 1;
 			dword unknown6 : 1;
 			dword unknown7 : 1;
@@ -652,19 +653,17 @@ void function_fa820(long projectile_index, vector3f const *impulse)
 void function_fcdd0(long definition_index, point3f const *point, vector3f const *forward)
 {
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
-	long sound_index = *(long *)((byte *)definition + 0x124);
-
-	if (sound_index != NONE)
+	if (*(long *)((byte *)definition + 0x124) != NONE)
 	{
-		s_location location = { 0 };
 		s_sound_position position = { 0 };
+		s_location location = { 0 };
 
 		function_11bed0(&location, point);
 		position.position = *point;
 		position.compressed_forward = vector3d_compress(forward);
 		position.velocity = *g_4687a4;
 		position.location = location;
-		function_1895f0(&position, 1.0f, sound_index);
+		function_1895f0(&position, 1.0f, *(long *)((byte *)definition + 0x124));
 	}
 }
 
@@ -679,10 +678,10 @@ void function_fcbc0(point3f const *point, vector3f const *normal, long definitio
 	s_effect_parameters parameters;
 	long effect_index;
 
-	markers[0].position = *point;
-	markers[1].position = *point;
-	markers[2].position = *point;
 	markers[3].position = *point;
+	markers[2].position = *point;
+	markers[1].position = *point;
+	markers[0].position = *point;
 	markers[0].forward = *normal;
 	markers[1].forward = *g_4687bc;
 	markers[2].forward = *g_4687b0;
@@ -963,13 +962,18 @@ bool function_fa6a0(long definition_index, real const *speed_override, point3f c
 	real speed;
 	bool result;
 
-	if (speed_override)
-		speed = *speed_override;
-	else
-		speed = definition->unknown17c *
-			(TEST_FIELD_BIT(definition->flag_bits.difficulty_scaled) ? projectile_difficulty_scale() : 1.0f);
+	if (!speed_override)
+	{
+		real scale = TEST_FIELD_BIT(definition->flag_bits.difficulty_scaled) ? projectile_difficulty_scale() : 1.0f;
 
-	if ((definition->flags & 2) && definition->gravity_scale > 0.0f)
+		speed = definition->unknown17c * scale;
+	}
+	else
+	{
+		speed = *speed_override;
+	}
+
+	if (TEST_FIELD_BIT(definition->flag_bits.gravity) && definition->gravity_scale > 0.0f)
 	{
 		result = function_fa1a0(speed, definition->gravity_scale, origin, target, unknown2, unknown3, unknown4,
 			unknown5, direction, speed_out, time, distance, NULL, NULL);

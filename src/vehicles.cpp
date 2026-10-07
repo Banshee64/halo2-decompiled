@@ -1242,11 +1242,13 @@ bool __stdcall function_efde0(long vehicle_index)
 // @retail 0xf06c0
 void function_f06c0(s_vehicle_physics_state *state)
 {
-	long i;
+	s_vehicle_contact *contact = state->contacts;
+	short i;
 
-	for (i = 0; i < 16; i++)
+	for (i = 16; i; i--)
 	{
-		state->contacts[i].unknownb0 = NONE;
+		contact->unknownb0 = NONE;
+		contact++;
 	}
 }
 
@@ -1632,18 +1634,20 @@ bool function_f12e0(long vehicle_index)
 bool function_f1320(long vehicle_index)
 {
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
+	bool flagged = (vehicle->flags_10a >> 2) & 1;
 	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
+	bool result = false;
 
-	if ((vehicle->flags_10a >> 2) & 1)
+	if (flagged)
 	{
 		short type = *(short *)(definition + 0x1f0);
 
 		if ((type == 4 && *(short *)(definition + 0x218) == 1) || type == 5)
 		{
-			return true;
+			result = true;
 		}
 	}
-	return false;
+	return result;
 }
 
 /* a gear's torque curve over the engine's angular velocity */
@@ -3020,6 +3024,7 @@ void function_f5bf0(long vehicle_index)
 {
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
+	long count;
 
 	if (*(short *)(definition + 0x1f0) == 1)
 	{
@@ -3036,25 +3041,27 @@ void function_f5bf0(long vehicle_index)
 			{
 				if (0.0f > vehicle->throttle)
 				{
-					if (vehicle->forward.j * velocity.j + vehicle->forward.k * velocity.k +
-						vehicle->forward.i * velocity.i > 0.0f)
+					if (vehicle->forward.i * velocity.i + vehicle->forward.k * velocity.k +
+						vehicle->forward.j * velocity.j > 0.0f)
 					{
 						goto braking;
 					}
 				}
-				else if (vehicle->throttle > 0.0f && 0.0f > vehicle->forward.j * velocity.j +
-					vehicle->forward.k * velocity.k + velocity.i * vehicle->forward.i)
+				else if (vehicle->throttle > 0.0f && 0.0f > velocity.i * vehicle->forward.i +
+					velocity.j * vehicle->forward.j + velocity.k * vehicle->forward.k)
 				{
 					goto braking;
 				}
 			}
 		}
 	}
-	vehicle->unknown384 = 0;
-	return;
+	count = 0;
+	goto done;
 
 braking:
-	vehicle->unknown384 = (byte)MIN(vehicle->unknown384 + 1, 0xfe);
+	count = MIN(vehicle->unknown384 + 1, 0xfe);
+done:
+	vehicle->unknown384 = (byte)count;
 }
 
 /* sets or clears one of the vehicle's 32 flags at +0x3b4 */
@@ -3928,50 +3935,51 @@ void function_f7ed0(long vehicle_index, vector3f *impulse)
 	{
 		byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 		real scale = *(real *)(definition + 0x2e0);
-		short type;
 
 		impulse->i *= scale;
 		impulse->j *= scale;
 		impulse->k *= scale;
-		type = *(short *)(definition + 0x1f0);
-		if (type >= 0)
+		switch (*(short *)(definition + 0x1f0))
 		{
-			if (type <= 1)
+		case 0:
+		case 1:
+		{
+			long seat_count = *(long *)(definition + 0x2f0);
+
+			if (seat_count > 0)
 			{
-				long seat_count = *(long *)(definition + 0x2f0);
+				long empty = 0;
+				long i;
 
-				if (seat_count > 0)
+				for (i = 0; i < seat_count; i++)
 				{
-					long empty = 0;
-					long i;
-
-					for (i = 0; i < seat_count; i++)
+					if (!(vehicle->unknown38e & (1 << i)))
 					{
-						if (!(vehicle->unknown38e & (1 << i)))
-						{
-							empty++;
-						}
+						empty++;
 					}
-					if (empty > seat_count >> 1)
+				}
+				if (empty > seat_count >> 1)
+				{
+					real dot = vehicle->up.k * impulse->k + vehicle->up.j * impulse->j +
+						impulse->i * vehicle->up.i;
+
+					if (0.0f > dot)
 					{
-						real dot = vehicle->up.k * impulse->k + vehicle->up.j * impulse->j +
-							impulse->i * vehicle->up.i;
+						vector3f into;
 
-						if (0.0f > dot)
-						{
-							vector3f into;
-
-							into.i = vehicle->up.i * dot;
-							into.j = vehicle->up.j * dot;
-							into.k = vehicle->up.k * dot;
-							impulse->i = (impulse->i - into.i) * 0.45f + into.i;
-							impulse->j = (impulse->j - into.j) * 0.45f + into.j;
-							impulse->k = (impulse->k - into.k) * 0.45f + into.k;
-						}
+						into.i = vehicle->up.i * dot;
+						into.j = vehicle->up.j * dot;
+						into.k = vehicle->up.k * dot;
+						impulse->i = (impulse->i - into.i) * 0.45f + into.i;
+						impulse->j = (impulse->j - into.j) * 0.45f + into.j;
+						impulse->k = (impulse->k - into.k) * 0.45f + into.k;
 					}
 				}
 			}
-			else if (type == 5 && function_d1210(vehicle_index) > 0.0f)
+			break;
+		}
+		case 5:
+			if (function_d1210(vehicle_index) > 0.0f)
 			{
 				real damping = 1.0f - (vehicle->throttle >= 0.0f ? vehicle->throttle : 0.0f - vehicle->throttle);
 
@@ -3979,6 +3987,7 @@ void function_f7ed0(long vehicle_index, vector3f *impulse)
 				impulse->j *= damping;
 				impulse->k *= damping;
 			}
+			break;
 		}
 	}
 }
