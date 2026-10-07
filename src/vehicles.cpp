@@ -26,6 +26,14 @@ helpers only they call. */
 #define PIN(n,floor,ceiling) ((n)<(floor) ? (floor) : ((n)>(ceiling)?(ceiling):(n)))
 #endif
 
+#ifndef FLAG
+#define FLAG(bit) (1 << (bit))
+#endif
+
+#ifndef SET_FLAG
+#define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= FLAG(bit)) : ((flags) &= ~FLAG(bit)))
+#endif
+
 /* the vehicle (the unit fields, then the vehicle's own from +0x334; the
    fields read here) */
 struct s_vehicle
@@ -151,6 +159,59 @@ struct s_vehicle_header
 #define VEHICLE_GET(index) (((s_vehicle_header *)g_4e0300->data)[(index) & 0xffff].vehicle)
 #define VEHICLE_HEADER_GET(index) (&((s_vehicle_header *)g_4e0300->data)[(index) & 0xffff])
 #define VEHICLE_DEFINITION_GET(vehicle) (g_4e3b44[(vehicle)->definition_index & 0xffff].bytes)
+
+/* a flags word read as bits */
+struct s_vehicle_word_flag_bits
+{
+	word bit0 : 1;
+	word bit1 : 1;
+	word bit2 : 1;
+	word bit3 : 1;
+	word bit4 : 1;
+	word bit5 : 1;
+	word bit6 : 1;
+	word bit7 : 1;
+	word : 8;
+};
+
+/* a flags dword read as bits */
+struct s_vehicle_flag_bits
+{
+	dword bit0 : 1;
+	dword bit1 : 1;
+	dword bit2 : 1;
+	dword bit3 : 1;
+	dword bit4 : 1;
+	dword bit5 : 1;
+	dword bit6 : 1;
+	dword bit7 : 1;
+	dword bit8 : 1;
+	dword bit9 : 1;
+	dword bit10 : 1;
+	dword bit11 : 1;
+	dword bit12 : 1;
+	dword bit13 : 1;
+	dword bit14 : 1;
+	dword bit15 : 1;
+	dword bit16 : 1;
+	dword bit17 : 1;
+	dword bit18 : 1;
+	dword bit19 : 1;
+	dword bit20 : 1;
+	dword bit21 : 1;
+	dword bit22 : 1;
+	dword bit23 : 1;
+	dword bit24 : 1;
+	dword bit25 : 1;
+	dword bit26 : 1;
+	dword bit27 : 1;
+	dword bit28 : 1;
+	dword bit29 : 1;
+	dword bit30 : 1;
+	dword bit31 : 1;
+};
+
+#define VEHICLE_DEFINITION_FLAGS(definition) ((s_vehicle_flag_bits const *)((definition) + 0x1ec))
 
 void __stdcall function_c42e0(long unit_index, void const *placement);
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
@@ -592,30 +653,17 @@ void __stdcall function_ef4f0(long vehicle_index, real *steering)
 			vehicle->throttle = g_4678d4;
 	}
 	*steering = 0.0f;
-	if ((vehicle->control_flags & 2) ||
-		((*(dword *)(definition + 0x1ec) >> 4) & 1) &&
-		(vehicle->throttle > 0.0f && 0.0f > vehicle->speed || 0.0f > vehicle->throttle && vehicle->speed > 0.0f))
+	SET_FLAG(*(word *)&vehicle->flags348, 3, (vehicle->control_flags & 2) ||
+		TEST_FIELD_BIT(VEHICLE_DEFINITION_FLAGS(definition)->bit4) &&
+		(vehicle->throttle > 0.0f && 0.0f > vehicle->speed || 0.0f > vehicle->throttle && vehicle->speed > 0.0f));
+	if (TEST_FIELD_BIT(VEHICLE_DEFINITION_FLAGS(definition)->bit17))
+		SET_FLAG(*(word *)&vehicle->flags348, 5,
+			TEST_FIELD_BIT(((s_vehicle_flag_bits const *)&vehicle->control_flags)->bit11));
+	*(word *)&vehicle->flags348 &= ~FLAG(4);
+	if (TEST_FIELD_BIT(((s_vehicle_flag_bits const *)(definition + 0xbc))->bit28) &&
+		(braking || vehicle->unknown334 > 0.0f))
 	{
-		vehicle->flags348 |= 8;
-	}
-	else
-	{
-		vehicle->flags348 &= ~8;
-	}
-	if ((*(dword *)(definition + 0x1ec) >> 17) & 1)
-	{
-		if ((vehicle->control_flags >> 11) & 1)
-			vehicle->flags348 |= 0x20;
-		else
-			vehicle->flags348 &= ~0x20;
-	}
-	*(word *)&vehicle->flags348 &= 0xffef;
-	if (((*(dword *)(definition + 0xbc) >> 28) & 1) && (braking || vehicle->unknown334 > 0.0f))
-	{
-		if (vehicle->unknown334 > vehicle->unknown338)
-			vehicle->flags348 |= 0x10;
-		else
-			*(word *)&vehicle->flags348 &= 0xffef;
+		SET_FLAG(*(word *)&vehicle->flags348, 4, vehicle->unknown334 > vehicle->unknown338);
 		if (braking)
 		{
 			vector3f *input = (vector3f *)&vehicle->throttle;
@@ -758,25 +806,20 @@ bool function_ef870(long vehicle_index)
 	return false;
 }
 
+
 /* whether a vehicle's controls are doing anything its definition reacts
    to */
 // @retail 0xefb60
 bool function_efb60(long vehicle_index)
 {
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
-	dword flags = *(dword *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1ec);
+	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 
-	if ((flags & 1) && (vehicle->speed != 0.0f || vehicle->gear != NONE))
-		return true;
-	if (((flags >> 1) & 1) && vehicle->steering_angle != 0.0f)
-		return true;
-	if (((flags >> 2) & 1) && vehicle->unknown25c != 0.0f)
-		return true;
-	if (((flags >> 3) & 1) && vehicle->unknown260 != 0.0f)
-		return true;
-	if (((flags >> 5) & 1) && vehicle->turn != 0.0f)
-		return true;
-	return false;
+	return TEST_FIELD_BIT(VEHICLE_DEFINITION_FLAGS(definition)->bit0) && (vehicle->speed != 0.0f || vehicle->gear != NONE) ||
+		TEST_FIELD_BIT(VEHICLE_DEFINITION_FLAGS(definition)->bit1) && vehicle->steering_angle != 0.0f ||
+		TEST_FIELD_BIT(VEHICLE_DEFINITION_FLAGS(definition)->bit2) && vehicle->unknown25c != 0.0f ||
+		TEST_FIELD_BIT(VEHICLE_DEFINITION_FLAGS(definition)->bit3) && vehicle->unknown260 != 0.0f ||
+		TEST_FIELD_BIT(VEHICLE_DEFINITION_FLAGS(definition)->bit5) && vehicle->turn != 0.0f;
 }
 
 /* a control value decayed toward zero, or zeroed when it's small */
@@ -797,8 +840,8 @@ void function_efc30(long vehicle_index)
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 	real scale = g_510c54->rate * 10.0f;
 
+	((s_vehicle_word_flag_bits *)&vehicle->flags348)->bit5 = false;
 	vehicle->gear = NONE;
-	vehicle->flags348 &= ~0x20;
 	vehicle_decay(&vehicle->unknown378, scale);
 	vehicle_decay(&vehicle->speed, scale);
 	vehicle_decay(&vehicle->steering_angle, scale);
@@ -1628,19 +1671,13 @@ bool function_f12e0(long vehicle_index)
 	return result;
 }
 
-/* whether a bit of a flags byte is set */
-PRIVATE inline bool vehicle_flag_test(byte flags, long bit)
-{
-	return (flags >> bit) & 1;
-}
-
 /* whether the vehicle, with its flag 2 at +0x10a set, is a type 5 vehicle
    or a type 4 one of kind 1 */
 // @retail 0xf1320
 bool function_f1320(long vehicle_index)
 {
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
-	bool flagged = vehicle_flag_test(vehicle->flags_10a, 2);
+	bool flagged = TEST_FIELD_BIT(((s_vehicle_word_flag_bits const *)&vehicle->flags_10a)->bit2);
 	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 	bool result = false;
 
@@ -1648,7 +1685,11 @@ bool function_f1320(long vehicle_index)
 	{
 		short type = *(short *)(definition + 0x1f0);
 
-		if ((type == 4 && *(short *)(definition + 0x218) == 1) || type == 5)
+		if (type == 4 && *(short *)(definition + 0x218) == 1)
+		{
+			result = true;
+		}
+		else if (type == 5)
 		{
 			result = true;
 		}
@@ -2925,7 +2966,7 @@ long function_f4360(long vehicle_index)
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 	long result = 0;
 
-	if (vehicle_flag_test(vehicle->flags348, 3) && !(vehicle->control_flags & 0x800))
+	if (TEST_FIELD_BIT(((s_vehicle_word_flag_bits const *)&vehicle->flags348)->bit3) && !(vehicle->control_flags & 0x800))
 	{
 		real throttle = vehicle->throttle >= 0.0f ? vehicle->throttle : 0.0f - vehicle->throttle;
 		real steering = vehicle->steering >= 0.0f ? vehicle->steering : 0.0f - vehicle->steering;

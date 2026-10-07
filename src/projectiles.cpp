@@ -548,13 +548,15 @@ s_projectile_material_response g_547660;
 s_projectile_material_response *__stdcall projectile_get_material_response(s_projectile_definition const *definition,
 	short material_index)
 {
+	short const *reference = &material_index;
 	long response_count = definition->material_response_count;
+	byte *materials = (byte *)g_4e034c;
 	s_projectile_material_response *result = NULL;
 
 	while (material_index != NONE && material_index >= 0 &&
-		material_index < *(long *)((byte *)g_4e034c + 0x150))
+		material_index < *(long *)(materials + 0x150))
 	{
-		byte *material = *(byte **)((byte *)g_4e034c + 0x154) + material_index * 0xb4;
+		byte *material = *(byte **)(materials + 0x154) + material_index * 0xb4;
 
 		if (!material)
 			break;
