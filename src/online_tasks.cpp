@@ -593,7 +593,7 @@ HRESULT online_task_continue(s_type_9df9da *task)
 }
 
 // @retail 0x6c450
-void online_task_update(s_type_9df9da *task)
+HRESULT online_task_update(s_type_9df9da *task)
 {
 	HRESULT result = online_task_continue(task);
 	if (SUCCEEDED(result))
@@ -607,6 +607,7 @@ void online_task_update(s_type_9df9da *task)
 	{
 		task->flags = (task->flags & ~1) | 0x24;
 	}
+	return result;
 }
 
 // @retail 0x6b640
@@ -882,4 +883,127 @@ bool function_6c360(s_type_9df9da *task)
 		break;
 	}
 	return result;
+}
+
+
+extern bool g_51055d;
+long online_friends_startup(void);
+void function_6c4a0(long result, long task_index);
+
+// @retail 0x6c560
+bool function_6c560(s_type_9df9da *task, long task_index)
+{
+ bool result = true;
+ if ((task->flags & 1) && !(task->flags & 4))
+ {
+  switch (task->type)
+  {
+  case 0:
+   result = function_6c2a0(task, task_index);
+   break;
+  case 1:
+   function_6c360(task);
+   break;
+  case 2:
+   {
+    HRESULT status = online_task_update(task);
+    if (FAILED(status) && status != (HRESULT)0x80151000)
+     online_friends_startup();
+   }
+   break;
+  case 41:
+  case 42:
+  case 43:
+  case 44:
+   {
+    HRESULT status = online_task_update(task);
+    if (!(task->flags & 1))
+     function_6c4a0(status, task_index);
+   }
+   break;
+  case 13:
+   {
+    HRESULT status = online_task_update(task);
+    if ((task->flags & 4) && status == 0x153101)
+     g_51055d = true;
+   }
+   break;
+  default:
+   online_task_update(task);
+   break;
+  }
+ }
+ if (task->flags & 4)
+ {
+  if (task->flags & 8)
+   task->flags = (task->flags & ~8) | 16;
+  else if (task->flags & 16)
+   function_6b640(task_index);
+ }
+ return result;
+}
+
+
+struct s_presence_name_cache;
+void function_8bf70(s_presence_name_cache *cache);
+
+static __forceinline long online_task_next_absolute_index(s_record_pool *data, long index)
+{
+ long result = NONE;
+ if (index >= 0 && index < data->high_water_index)
+ {
+  long count = data->high_water_index;
+  dword *bits = data->bitmap;
+  do
+  {
+   if (bits[index >> 5] & (1 << (index & 0x1f)))
+   {
+    result = index;
+    break;
+   }
+   index++;
+  } while (index < count);
+ }
+ return result;
+}
+
+static __forceinline s_type_9df9da *online_task_next(s_record_pool_iterator *iterator)
+{
+ s_record_pool *data = iterator->data;
+ long index = online_task_next_absolute_index(data, iterator->index + 1);
+ s_type_9df9da *result;
+ if (index != NONE)
+ {
+  result = (s_type_9df9da *)(data->data + data->size * index);
+  iterator->index = index;
+  iterator->datum_index = (result->salt << 16) | index;
+ }
+ else
+ {
+  iterator->index = data->maximum_count;
+  iterator->datum_index = NONE;
+  result = 0;
+ }
+ return result;
+}
+
+// @retail 0x6b4a0
+void function_6b4a0(void)
+{
+ if (g_467214 != NONE)
+ {
+  long status = online_task_get_logon_status(g_467214);
+  if (status >= 0 && status <= 1)
+  {
+   s_record_pool_iterator iterator;
+   s_type_9df9da *task;
+   online_task_iterator_new(&iterator);
+   while ((task = online_task_next(&iterator)) != 0)
+   {
+    if (!function_6c560(task, iterator.datum_index))
+     break;
+   }
+   function_8bf70((s_presence_name_cache *)g_4771c8);
+  }
+ }
 }

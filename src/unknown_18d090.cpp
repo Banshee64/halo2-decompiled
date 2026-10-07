@@ -121,7 +121,9 @@ bool function_18d360(long tag_index)
 
 	for (short i = 0; i < effects->count; i++)
 	{
-		long effect_tag_index = effects->entries[i].effect_tag_index;
+		s_sound_permutation_entry const *local_0 = &effects->entries[i];
+		__assume(local_0 != NULL);
+		long effect_tag_index = local_0->effect_tag_index;
 		if (effect_tag_index != NONE)
 		{
 			short type = ((s_sound_effect_definition *)tag_get_data(effect_tag_index))->type;

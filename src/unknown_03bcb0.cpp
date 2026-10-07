@@ -705,7 +705,7 @@ struct s_41490_record
 };
 
 // @retail 0x41490
-void function_41490(long tag, short group, word kind, real distance, t_record_fill fill,
+void function_41490(long tag, short group, short kind, real distance, t_record_fill fill,
     dword value, t_41490_callback callback, void *context, point3f const *position)
 {
     byte *definition = g_4e3b44[tag & 0xffff].bytes;
@@ -987,4 +987,139 @@ void function_3ca90(byte const *state)
 		corners[i].z = g_4c1b38[2][1] * y + g_4c1b38[2][0] * x + basis.up.k * 0.0f + basis.position.z;
 	}
 	memcpy(g_4c1b08, corners, sizeof(corners));
+}
+
+struct s_44940_entry
+{
+    dword unknown00;
+    long tag;
+    dword unknown08;
+    dword flags;
+    byte unknown10[0x10];
+};
+extern s_44940_entry g_4ba138[850];
+void *function_44940(short index, bool instance);
+long function_1cb20(long mode, dword index, long tag);
+extern byte *g_485a80;
+extern long g_4b9f5c;
+extern bool g_4ba004;
+extern byte g_485a75, g_485a76;
+real g_4b9f78, g_4b9f7c;
+byte g_4b9f88;
+
+// @retail 0x4cbf0
+bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
+    long entry_index, long handle, void *record)
+{
+    s_sort_record *out = (s_sort_record *)record;
+    long key = (byte)handle;
+    short index = (short)(handle >> 8);
+    s_44940_entry *source = &g_4ba138[index];
+    byte *object = *(byte **)source->unknown10;
+    long mode = function_15d70(tag, stage, pass, source->tag != NONE,
+        (bool)((source->unknown00 >> 10) & 1));
+    bool result = false;
+    switch (stage)
+    {
+    case 3:
+        switch (source->unknown00 >> 29)
+        {
+        case 0: mode = 0; break;
+        case 1: mode = 1; break;
+        case 2: mode = 2; break;
+        case 3: mode = 3; break;
+        case 4: mode = 4; break;
+        default: mode = 3; break;
+        }
+        break;
+    case 16:
+    {
+        bool enabled = g_4ba004 && !g_485a75 && !g_485a76;
+        if (!(source->unknown00 & 0x80)) mode = NONE;
+        else if (source->unknown00 & 0x100) mode = enabled ? NONE : 1;
+        else mode = enabled ? 2 : 0;
+        break;
+    }
+    case 18:
+    {
+        byte *definition = g_4e3b44[tag & 0xffff].bytes;
+        if (!(definition[0x16] & 4))
+        {
+            byte *groups = record_format_groups(tag);
+            byte *pass_entry = *(byte **)(groups + 4) + pass * 10;
+            tag = *(long *)(g_485a80 + 0xd0);
+            pass = 0;
+            if (object)
+                mode = (*(dword *)(pass_entry + 2) & 0x8000) ? 2 : object[0x76] == 0xff;
+        }
+        break;
+    }
+    case 19:
+    {
+        byte *definition = g_4e3b44[tag & 0xffff].bytes;
+        if (!(definition[0x16] & 4))
+        {
+            tag = *(long *)(g_485a80 + 0xd0);
+            pass = 0;
+            if (object && g_4b9f5c != NONE && !g_4b9f88 &&
+                (g_4b9f78 > g_4b9f7c ? g_4b9f78 : g_4b9f7c) > 0.0f && object[0x76] < 0xff)
+                mode = 0;
+        }
+        break;
+    }
+    }
+    out->unknown04 = (byte)mode;
+    if (mode != NONE)
+    {
+        long kind = source->flags >> 29;
+        if (kind)
+        {
+            out->group = kind == 1 ? 1 : 2;
+            out->value0c = ((source->flags >> 9) & 0x1ff) | ((source->tag & 0xffff) << 11);
+        }
+        else
+            out->group = 1;
+        bool instance = (bool)((source->unknown00 >> 12) & 1);
+        byte *section = (byte *)function_44940(index, instance);
+        byte *geometry;
+        if (source->tag != NONE)
+        {
+            byte *definition = g_4e3b44[source->tag & 0xffff].bytes;
+            byte *sections = *(byte **)(definition + 0x28);
+            geometry = *(byte **)(sections + ((source->flags >> 9) & 0x1ff) * 0x5c + 0x34);
+        }
+        else
+        {
+            byte *structure = (byte *)g_4e0348;
+            if (!instance)
+                geometry = *(byte **)(*(byte **)(structure + 0xa0) + ((source->flags >> 9) & 0x1ff) * 0xb0 + 0x50);
+            else
+            {
+                short definition_index = *(short *)(*(byte **)(structure + 0x144) +
+                    ((source->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+                geometry = *(byte **)(*(byte **)(structure + 0x13c) + definition_index * 0xc8 + 0x50);
+            }
+        }
+        byte *geometry_entry = *(byte **)(geometry + 4) + (short)key * 72;
+        byte *material = record_material(tag, pass, stage, entry_index) + (byte)mode * 0x132;
+        out->value10 = (dword)material;
+        word primitive = *(word *)geometry_entry;
+        long selection;
+        switch (primitive)
+        {
+        case 1: selection = (signed char)section[0x10]; break;
+        case 2: selection = (signed char)section[0x10]; break;
+        case 3: selection = (signed char)section[0x10]; break;
+        case 4: selection = (signed char)section[0x11]; break;
+        case 5: selection = (signed char)section[0x11]; break;
+        default: selection = (signed char)section[0x10]; break;
+        }
+        long shader = function_1cb20(*(word *)(section + 0x14), selection, *(long *)(material + 0x100));
+        out->value08 = (word)shader;
+        out->unknown14 = *(dword *)source->unknown10;
+        result = function_4cbb0(*(long *)(material + 0x100), (word)shader) != 0;
+        if (stage == 5)
+            result = (bool)((source->unknown00 >> 13) & 1);
+    }
+    return result;
 }

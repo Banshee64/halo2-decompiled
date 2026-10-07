@@ -8,6 +8,86 @@
 #include "data_array.h"
 #include <math.h>
 #include "object_list.h"
+#include "unknown_1efac0.h"
+
+struct s_table;
+struct s_iterator
+{
+    s_table *table;
+    signed char bytes[16];
+    union
+    {
+        dword position;
+        struct { byte first, item, sub, group; };
+    };
+    void *current;
+    bool advance();
+};
+
+struct s_mix_output;
+struct s_mix_source;
+struct s_bsp3d;
+struct s_1de2c1
+{
+    long field_0;
+    long field_4[256];
+};
+struct s_1de2c2
+{
+    s_1de2c1 field_0;
+    s_1de2c1 field_404;
+    s_1de2c1 field_808;
+    s_1de2c1 field_c0c;
+};
+struct s_245aa0;
+struct s_source_245400;
+struct s_collection_245270;
+void function_1efbd0(dword id, s_mix_output *output, s_mix_source *source, signed char *indices);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+bool function_1dde10(s_bsp3d const *bsp, short count, dword const *mask,
+    point3f const *point, real radius, s_1de2c2 *hits);
+void function_245aa0(s_245aa0 const *hits, s_source_245400 const *source,
+    transform4x3f const *matrix, real height, real thickness,
+    long object_index, long position, s_collection_245270 *collection);
+
+// @retail 0x1f0230
+bool __stdcall function_1f0230(s_lookup *lookup, point3f const *point, real radius,
+    real height, real thickness, s_collection_245270 *collection)
+{
+    bool result = false;
+    s_iterator iterator;
+    function_1efbd0((dword)lookup->tag_b, (s_mix_output *)&iterator,
+        (s_mix_source *)lookup->tag_a, (signed char *)lookup->pointer_a);
+    while (iterator.advance())
+    {
+        dword position = iterator.position;
+        transform4x3f const *matrix = (transform4x3f const *)lookup->pointer_b + (position & 0xff);
+        transform4x3f inverse;
+        function_141590(matrix, &inverse);
+        point3f scaled;
+        scaled.x = point->x;
+        scaled.y = point->y;
+        scaled.z = point->z;
+        if (inverse.scale != 1.0f)
+        {
+            scaled.x *= inverse.scale;
+            scaled.y *= inverse.scale;
+            scaled.z *= inverse.scale;
+        }
+        point3f local;
+        local.x = inverse.up.i * scaled.z + inverse.left.i * scaled.y + inverse.forward.i * scaled.x + inverse.position.x;
+        local.y = inverse.up.j * scaled.z + inverse.left.j * scaled.y + inverse.forward.j * scaled.x + inverse.position.y;
+        local.z = inverse.up.k * scaled.z + inverse.left.k * scaled.y + inverse.forward.k * scaled.x + inverse.position.z;
+        s_1de2c2 hits;
+        if (function_1dde10((s_bsp3d *)iterator.current, 0, NULL, &local, inverse.scale * radius, &hits))
+        {
+            function_245aa0((s_245aa0 *)&hits, (s_source_245400 *)iterator.current,
+                matrix, height, thickness, lookup->handle, position, collection);
+            result = true;
+        }
+    }
+    return result;
+}
 
 #define PIN(x, lower, upper) ((x) < (lower) ? (lower) : ((x) > (upper) ? (upper) : (x)))
 

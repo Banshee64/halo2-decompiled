@@ -31,10 +31,6 @@ bool __stdcall network_session_handle_player_add(c_class_58d20 *session, long re
 
 
 /* lane D's region: a connection's update */
-// @stub 0x883c0
-void __stdcall function_0883c0(struct s_network_connection *connection)
-{
-}
 
 /* lane D's region: a connection's reconnect */
 /* lane J's, kept out of the build in src/unknown_075800.cpp (they
