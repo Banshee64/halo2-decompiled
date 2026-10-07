@@ -19,9 +19,9 @@ byte function_1f8640(long index)
 // @retail 0x1f8660
 bool function_1f8660(long index)
 {
+	bool result = false;
 	s_slot_owner_entry *s = OWNER_STATE(index);
 	byte flag = s->unknown50c;
-	bool result = false;
 	if (flag && s->unknown504 == 1)
 		result = true;
 	return result;

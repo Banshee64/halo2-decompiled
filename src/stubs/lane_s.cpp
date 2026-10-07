@@ -42,3 +42,12 @@ bool __stdcall function_b7430(long object_index, point3f const *position, vector
 
 // @stub 0xb98e0
 void __stdcall function_b98e0(long object_index, transform4x3f const *matrix) { }
+
+// @stub 0x1c8560
+long __stdcall function_1c8560(long level, void *buffer, long size, bool *again, void *unused, long maximum) { return 0; }
+// @stub 0x1c88c0
+long __stdcall function_1c88c0(long level, void *buffer, long size, bool *again, void *unused, long maximum) { return 0; }
+
+struct s_object_link_iterator;
+// @stub 0xb8a80
+short function_b8a80(long object_index, s_object_link_iterator *iterator) { return NONE; }

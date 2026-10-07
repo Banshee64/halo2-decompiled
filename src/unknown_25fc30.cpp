@@ -1587,10 +1587,13 @@ bool __stdcall function_25ff90(
 			switch (position->type)
 			{
 			default:
-				position->unknown4d = true;
-				if (!context->unknown14)
+				if (!context->unknown644)
 				{
-					position->unknown4c = false;
+					position->unknown4d = true;
+					if (!context->unknown14)
+					{
+						position->unknown4c = false;
+					}
 				}
 				break;
 			case 1:

@@ -235,8 +235,8 @@ bool function_1bf3f0(long other_index, long actor_index, short type)
 // @retail 0x1bf480
 short __stdcall function_1bf480(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (function_1b7920(actor_index) && function_1bf3f0(actor->unknown3cc, actor_index, actor->unknown3d0))
 		result = 3;

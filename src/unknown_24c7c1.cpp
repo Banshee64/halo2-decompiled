@@ -150,9 +150,11 @@ void function_24c7e4(void *list_pointer, s_event **event, long *key)
 // @retail 0x24c80b
 s_hud_globals_definition *function_24c80b(void)
 {
-	s_hud_globals_definition *view = g_510c94;
-
-	return view ? (s_hud_globals_definition *)view->unknown00 : 0;
+	s_hud_globals_definition *local_0 = 0;
+	s_hud_globals_definition *local_1 = g_510c94;
+	if (local_1)
+		local_0 = (s_hud_globals_definition *)local_1->unknown00;
+	return local_0;
 }
 
 // @retail 0x24c831

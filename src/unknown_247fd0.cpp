@@ -214,13 +214,22 @@ void function_246e60(long arg_0, dword arg_1, s_particle_impact const *arg_2, s_
 void function_247950(s_particle_system_datum *arg_2, s_particle_spawn_definition const *arg_3,
 	dword arg_4, real arg_5, real arg_6, real arg_7, s_247950 *arg_1, s_247fd0 *arg_0)
 {
-	s_collision_result_1697c0 local_9;
-	s_placement local_17;
+	struct s_247961
+	{
+		point3f field_0;
+		point3f field_c;
+		vector3f field_18;
+		s_collision_result_1697c0 field_24;
+		s_placement field_70;
+	} local_23;
 	volatile bool local_18;
 	long local_0 = arg_2->effect_index;
 	if (local_0 != NONE)
 	{
-		if (local_18 = TEST_FIELD_BIT(DATUM(g_4ea93c, s_effect_datum, local_0)->flag3))
+		byte local_24 = *(byte const *)((byte const *)DATUM(g_4ea93c, s_effect_datum, local_0) + 2);
+		local_24 >>= 3;
+		local_24 &= 1;
+		if (local_18 = local_24 != 0)
 			return;
 	}
 	long local_1 = record_pool_allocate(g_51ec84);
@@ -259,27 +268,28 @@ void function_247950(s_particle_system_datum *arg_2, s_particle_spawn_definition
 		if (local_3->unknown0c == 0)
 		{
 			vector3f const *local_5 = local_0 != NONE ? &DATUM(g_4ea93c, s_effect_datum, arg_2->effect_index)->velocity : g_4687a4;
-			point3f local_6;
-			local_6.x = arg_1->field_34.x * arg_5 + arg_1->field_40.x * (1.f - arg_5);
-			local_6.y = arg_1->field_40.y * (1.f - arg_5) + arg_1->field_34.y * arg_5;
-			local_6.z = arg_1->field_40.z * (1.f - arg_5) + arg_1->field_34.z * arg_5;
+			local_23.field_0.x = arg_1->field_34.x * arg_5 + arg_1->field_40.x * (1.f - arg_5);
+			local_23.field_0.y = arg_1->field_40.y * (1.f - arg_5) + arg_1->field_34.y * arg_5;
+			local_23.field_0.z = arg_1->field_40.z * (1.f - arg_5) + arg_1->field_34.z * arg_5;
 			function_143070((vector3f *)&local_2->field_1c, &arg_1->field_10, (vector3f *)&local_2->field_1c);
-			local_2->field_1c.x = local_6.x + local_2->field_1c.x;
-			local_2->field_1c.y = local_6.y + local_2->field_1c.y;
-			local_2->field_1c.z = local_6.z + local_2->field_1c.z;
+			local_2->field_1c.x = local_23.field_0.x + local_2->field_1c.x;
+			local_2->field_1c.y = local_23.field_0.y + local_2->field_1c.y;
+			local_2->field_1c.z = local_23.field_0.z + local_2->field_1c.z;
 			function_143070(&local_2->field_28, &arg_1->field_10, &local_2->field_28);
 			if (*(long *)((byte const *)arg_3 + 0x78) == 8)
 			{
-				point3f local_7 = local_2->field_1c;
-				vector3f local_8 = { 0.f, 0.f, -1.f };
-				local_7.z += 1.f;
-				local_9.unknown24 = NONE;
-				if (function_1697c0(0x800005, &local_7, &local_8, NONE, NONE, &local_9))
+				local_23.field_c = local_2->field_1c;
+				local_23.field_18.i = 0.f;
+				local_23.field_18.j = 0.f;
+				local_23.field_18.k = -1.f;
+				local_23.field_c.z += 1.f;
+				local_23.field_24.unknown24 = NONE;
+				if (function_1697c0(0x800005, &local_23.field_c, &local_23.field_18, NONE, NONE, &local_23.field_24))
 				{
-					vector3f const *local_10 = (vector3f const *)((byte const *)&local_9 + 0x28);
-					local_2->field_1c.x = local_10->i * 0.005f + local_9.point.x;
-					local_2->field_1c.y = local_10->j * 0.005f + local_9.point.y;
-					local_2->field_1c.z = local_10->k * 0.005f + local_9.point.z;
+					vector3f const *local_10 = (vector3f const *)((byte const *)&local_23.field_24 + 0x28);
+					local_2->field_1c.x = local_10->i * 0.005f + local_23.field_24.point.x;
+					local_2->field_1c.y = local_10->j * 0.005f + local_23.field_24.point.y;
+					local_2->field_1c.z = local_10->k * 0.005f + local_23.field_24.point.z;
 					local_2->field_02 |= 0xa;
 					local_2->field_28 = *local_10;
 				}
@@ -302,7 +312,7 @@ void function_247950(s_particle_system_datum *arg_2, s_particle_spawn_definition
 		}
 		local_2->field_3c = arg_4;
 		++arg_1->field_2;
-		short volatile *local_22 = &local_17.value24;
+		short volatile *local_22 = &local_23.field_70.value24;
 		*local_22 = NONE;
 		c_247951 *local_12 = (c_247951 *)function_137bd0(local_3->tag_index);
 		for (long local_13 = 0; local_13 < local_12->function_247958(); ++local_13)
@@ -323,12 +333,12 @@ void function_247950(s_particle_system_datum *arg_2, s_particle_spawn_definition
 		}
 		if (local_12->function_247957() != NONE)
 		{
-			placement_set(&local_17, &local_2->field_28, &local_2->field_1c, g_4687b0, 0);
+			placement_set(&local_23.field_70, &local_2->field_28, &local_2->field_1c, g_4687b0, 0);
 			local_3 = arg_2->function_1751d0();
 			long local_19 = local_3->tag_index;
 			long local_20 = local_12->function_247957();
 			dword local_21 = local_12->function_247956();
-			function_246e60(local_20, local_21, (s_particle_impact const *)&local_17, (s_object_246eb0 const *)local_2, local_19);
+			function_246e60(local_20, local_21, (s_particle_impact const *)&local_23.field_70, (s_object_246eb0 const *)local_2, local_19);
 		}
 	}
 }

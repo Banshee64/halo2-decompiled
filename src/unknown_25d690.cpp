@@ -688,25 +688,35 @@ bool function_25da00(s_prop_node_view *node)
 	return false;
 }
 
+PRIVATE __forceinline s_type_76cf92 *function_25da41(long arg_0)
+{
+	return (s_type_76cf92 *)(g_50241c->data + (arg_0 & 0xffff) * sizeof(s_type_76cf92));
+}
+
 // @retail 0x25da40
 bool function_25da40(s_prop_datum *datum)
 {
-	s_type_76cf92 *prop = prop_get(datum->prop_index);
+	s_type_76cf92 *prop = function_25da41(datum->prop_index);
+	long *local_2 = &datum->tracking_index;
+	long local_1 = *(volatile long *)local_2;
+	bool local_0 = true;
 
-	if (datum->tracking_index != NONE)
+	if (local_1 != NONE)
 	{
 		if (prop->actor_index != NONE)
 		{
 			s_actor_view *actor = actor_get(prop->actor_index);
 			if (actor->unknown004 == 15 || (actor->unknown267 && !actor->unknown268))
 			{
-				return false;
+				local_0 = false;
 			}
 		}
-		return true;
 	}
-
-	return prop->unknown25 && !prop->unknown23;
+	else
+	{
+		local_0 = prop->unknown25 && !prop->unknown23;
+	}
+	return local_0;
 }
 
 // @retail 0x25dac0

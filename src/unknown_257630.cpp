@@ -91,15 +91,25 @@ s_slot_handler_2x g_47faa8 =
 	2, 2, 1.0f, 0
 };
 
+PRIVATE __forceinline s_actor_view *function_257631(long arg_0)
+{
+	return (s_actor_view *)(g_4f55f0->data + (arg_0 & 0xffff) * sizeof(s_actor_view));
+}
+
+PRIVATE __forceinline s_clump_7f_view *function_257632(long arg_0)
+{
+	return (s_clump_7f_view *)(g_502420->data + (arg_0 & 0xffff) * sizeof(s_502420_element));
+}
+
 // @retail 0x257630
 short __stdcall function_257630(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = function_257631(actor_index);
 
 	if (actor->unknown07c != NONE)
 	{
-		s_clump_7f_view *clump = (s_clump_7f_view *)element_502420_get(actor->unknown07c);
+		s_clump_7f_view *clump = function_257632(actor->unknown07c);
 
 		if (actor->unknown004 == 2)
 		{

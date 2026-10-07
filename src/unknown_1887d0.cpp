@@ -124,15 +124,29 @@ void object_looping_sounds_initialize_for_new_structure_bsp(void)
 	}
 }
 
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
+
+PRIVATE real const volatile g_45dc5c = 0.2f;
+PRIVATE real const volatile g_45dbc0 = 1.0f;
+
 // @retail 0x188cd0
 void function_188cd0(void)
 {
 	if (g_55e4d0[g_4e9ae8->engine_index])
 	{
-		function_221980("", function_2197f0(0.0f), 1.0f);
-		function_221980("ambient_nature", function_2197f0(0.2f), 1.0f);
-		function_221980("ambient_machinery", function_2197f0(0.2f), 1.0f);
-		function_221980("ambient_computers", function_2197f0(0.2f), 1.0f);
+		long local_0 = function_2197f0(0.0f);
+		_ReadWriteBarrier();
+		function_221980("", local_0, 1.0f);
+		local_0 = function_2197f0(g_45dc5c);
+		_ReadWriteBarrier();
+		function_221980("ambient_nature", local_0, 1.0f);
+		local_0 = function_2197f0(g_45dc5c);
+		_ReadWriteBarrier();
+		function_221980("ambient_machinery", local_0, 1.0f);
+		local_0 = function_2197f0(g_45dc5c);
+		_ReadWriteBarrier();
+		function_221980("ambient_computers", local_0, 1.0f);
 	}
 }
 
@@ -141,11 +155,19 @@ void function_188d60(void)
 {
 	if (g_55e4d0[g_4e9ae8->engine_index])
 	{
-		function_221980("", function_2197f0(0.0f), 0.0f);
-		function_221980("", function_2197f0(1.0f), 2.0f);
-		function_221980("scripted_dialog_player", function_2197f0(1.0f), 0.0f);
+		long local_0 = function_2197f0(0.0f);
+		_ReadWriteBarrier();
+		function_221980("", local_0, 0.0f);
+		local_0 = function_2197f0(g_45dbc0);
+		_ReadWriteBarrier();
+		function_221980("", local_0, 2.0f);
+		local_0 = function_2197f0(g_45dbc0);
+		_ReadWriteBarrier();
+		function_221980("scripted_dialog_player", local_0, 0.0f);
 	}
 }
+
+#pragma function(_ReadWriteBarrier)
 
 // @retail 0x188790
 short function_188790(real angle)

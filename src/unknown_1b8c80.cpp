@@ -707,10 +707,11 @@ short __stdcall function_1b9890(long actor_index, s_slot *slot)
 
 			if (prop_index != NONE && prop_node_get(prop_index)->unknown24 < 1)
 				function_25c230(actor_index, prop_index, 3);
-			state->unknown1c = actor->unknown2e8;
-			state->unknown28 = 11.0f;
-			state->unknown2c = 14.0f;
+			long updated_vehicle = actor->unknown2e8;
+			state->unknown28 = 20.0f;
 			state->seat_index = NONE;
+			state->unknown2c = 24.0f;
+			state->unknown1c = updated_vehicle;
 			state->flags |= 0x29;
 			result = 0x4c;
 		}

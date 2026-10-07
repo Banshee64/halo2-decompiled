@@ -711,7 +711,7 @@ bool __stdcall ai_importance_compare(void const *a, void const *b, void const *c
 }
 
 // @retail 0x1c8700
-void ai_importance_list_build(long unused, s_ai_importance_list *list, long unused2)
+void __stdcall ai_importance_list_build(long unused, s_ai_importance_list *list, long unused2)
 {
 	long actor_index;
 	s_record_pool_iterator iterator;
