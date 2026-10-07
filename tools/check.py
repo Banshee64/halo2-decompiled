@@ -312,7 +312,9 @@ def write_report(path, report, merge):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    # `@file` reads arguments one per line, so long address lists stay off the
+    # command line (antivirus heuristics flag long runs of hex arguments)
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0], fromfile_prefix_chars='@')
     ap.add_argument('addresses', nargs='*')
     ap.add_argument('--no-build', action='store_true')
     args = ap.parse_args()
