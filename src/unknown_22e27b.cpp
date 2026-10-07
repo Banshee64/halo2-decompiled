@@ -1587,9 +1587,9 @@ extern color4f *g_4686dc;
 void unicode_string_snprintf(word *buffer, long maximum_count, word const *format, ...);
 
 // @retail 0x2538f5
-void c_text_widget_45a5e0::v4(long screen_bounds)
+void c_text_widget_45a5e0::v4(long screen_rect_address)
 {
-    short_rectangle2d const *screen = (short_rectangle2d const *)screen_bounds;
+    short_rectangle2d const *screen = (short_rectangle2d const *)screen_rect_address;
     real alpha = animation.scale;
     real depth = get_depth();
     byte debug = g_54d598.unknown05[2];

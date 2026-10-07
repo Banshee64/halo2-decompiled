@@ -162,9 +162,9 @@ s_button_block *function_253cc8(c_class_19b8b1 *button)
 }
 
 // @retail 0x253ea8
-void c_class_19b8b1::v4(long screen_bounds)
+void c_class_19b8b1::v4(long screen_rect_address)
 {
-    short_rectangle2d const *screen = (short_rectangle2d const *)screen_bounds;
+    short_rectangle2d const *screen = (short_rectangle2d const *)screen_rect_address;
     s_button_block *definition = function_253cc8(this);
     real alpha = animation.scale;
     real depth = get_depth();

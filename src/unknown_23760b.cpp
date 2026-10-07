@@ -89,7 +89,7 @@ public:
 	c_virtual_keyboard_screen(long a, long b, word user_flags);
 
 	virtual void v3();
-	virtual void v4(long screen_bounds);
+	virtual void v4(long screen_rect_address);
 	virtual bool v10(s_widget_event *event);
 	/* builds the screen around its keys */
 	virtual void v18(void *parameters);
@@ -1460,9 +1460,9 @@ extern dword g_54d5b8;
 
 /* Draws the text selection and the keyboard cursor. */
 // @retail 0x237c04
-void c_virtual_keyboard_screen::v4(long screen_bounds)
+void c_virtual_keyboard_screen::v4(long screen_rect_address)
 {
-	short_rectangle2d const *screen = (short_rectangle2d const *)screen_bounds;
+	short_rectangle2d const *screen = (short_rectangle2d const *)screen_rect_address;
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
 	update_string();
 	if (text && string && (dword)text->animation.end_time <= g_54d5b8 && !ANIMATION_FLAG(text->animation, 1))

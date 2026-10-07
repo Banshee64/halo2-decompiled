@@ -565,7 +565,7 @@ public:
 	/* for one controller's user (any user when NONE) */
 	c_text_widget_45a5e0(long controller_index);
 
-	virtual void v4(long screen_bounds);
+	virtual void v4(long screen_rect_address);
 	virtual long v6();
 
 	/* shows the string with this id from the screen's string list */
@@ -609,7 +609,7 @@ public:
 
 	/* colours the text: focused or as the definition says */
 	virtual void v3();
-	virtual void v4(long screen_bounds);
+	virtual void v4(long screen_rect_address);
 	virtual long v6();
 	/* a press of A or start runs the handlers; the directions move the
 	   focus unless the definition's flags stop them */
