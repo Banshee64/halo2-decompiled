@@ -1283,6 +1283,7 @@ long function_70570(c_session_state_matchmaking *state)
 // @retail 0x71f80
 bool function_71f80(c_session_state_matchmaking *state)
 {
+	bool local_0 = false;
 	s_session_owner *owner = state->owner;
 	c_class_58d20 *session = owner->session_b;
 	long current = session->state;
@@ -1297,13 +1298,14 @@ bool function_71f80(c_session_state_matchmaking *state)
 			else if (type == 5)
 				next = 9;
 			else
-				return false;
+				goto local_1;
 			function_06df60(owner, next, 0, 0);
 			state->mode = 2;
-			return true;
+			local_0 = true;
 		}
 	}
-	return false;
+local_1:
+	return local_0;
 }
 
 bool network_session_is_leaving(c_class_58d20 *session);

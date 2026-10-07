@@ -1,0 +1,200 @@
+// @flags /O2 /Ob1 /Gr
+#include "unknown_11c920.h"
+#include "unknown_058dd0.h"
+#include "unknown_0662e0.h"
+#include <xtl.h>
+#include <string.h>
+
+void network_session_close(c_class_58d20 *arg_0);
+bool function_71f80(c_session_state_matchmaking *arg_0);
+bool network_session_is_leaving(c_class_58d20 *arg_0);
+bool network_session_players_match(c_class_58d20 *arg_0, c_class_58d20 *arg_1);
+long function_75890(long arg_0);
+struct s_session_search;
+struct s_search_session;
+void session_search_mark_session(s_session_search *arg_0, const s_search_session *arg_1);
+bool __stdcall function_59e50(c_class_58d20 *arg_0, long arg_1, long arg_2,
+	const XNKID *arg_3, const XNKEY *arg_4, const s_session_member_identity *arg_5,
+	long arg_6, const dword *arg_7, const long *arg_8, const long *arg_9,
+	bool arg_10, long arg_11, const s_session_id *arg_12, const void *arg_13);
+
+struct s_71e00
+{
+	dword field_0[3];
+};
+
+PRIVATE inline bool function_5b1a0(c_class_58d20 *arg_0, s_session_snapshot *arg_1)
+{
+	bool local_0 = false;
+	if (arg_0->state > 2 && arg_0->state <= 8 && arg_0->flag5dd8)
+	{
+		memcpy(arg_1, arg_0->data5ddc, sizeof(arg_0->data5ddc));
+		local_0 = true;
+	}
+	return local_0;
+}
+
+// @retail 0x71e00
+void function_71e00(c_session_state *arg_0)
+{
+	c_class_58d20 *local_0 = arg_0->owner->session_a;
+	c_class_58d20 *local_1 = arg_0->owner->session_b;
+	s_session_snapshot local_2;
+	if (local_0->state > 2 && local_0->state <= 8 && function_5b1a0(local_0, &local_2))
+	{
+		if (local_1->state)
+		{
+			const s_session_id *local_3 = NULL;
+			if (local_1->flag24)
+				local_3 = (const s_session_id *)&local_1->unknown1c;
+			if (memcmp(local_3, local_2.unknown04, sizeof(s_session_id)) != 0)
+				network_session_close(local_1);
+		}
+		if (!local_1->state)
+		{
+			long local_4 = 0;
+			s_71e00 local_5[4];
+			long local_6[4];
+			long local_7[4];
+			long local_8 = 0;
+			do
+			{
+				if ((local_0->player_mask & (1 << local_8)) &&
+					local_0->players[local_8].member_index == local_0->current_member)
+				{
+					local_5[local_4] = *(const s_71e00 *)&local_0->players[local_8].user_id;
+					local_7[local_4] = NONE;
+					local_6[local_4] = NONE;
+					local_4++;
+				}
+				local_8++;
+			} while (local_8 < 16);
+			if (local_4 > 0)
+			{
+				const s_session_id *local_9 = NULL;
+				if (local_0->state && local_0->flag24)
+					local_9 = (const s_session_id *)&local_0->unknown1c;
+				s_session_id local_10 = *local_9;
+				function_59e50(local_1, 2, local_2.unknown00,
+					(const XNKID *)local_2.unknown04, (const XNKEY *)local_2.unknown0c,
+					(const s_session_member_identity *)local_2.words, local_4,
+					local_5[0].field_0, local_7, local_6, false, 0, &local_10, NULL);
+			}
+		}
+	}
+}
+
+#pragma inline_depth(0)
+// @retail 0x71d70
+bool __stdcall function_71d70(c_session_state_matchmaking *arg_0)
+{
+	c_session_state_matchmaking *const *local_6 = &arg_0;
+	s_session_owner *local_0 = (*local_6)->owner;
+	c_class_58d20 *local_1 = local_0->session_a;
+	c_class_58d20 *local_2 = local_0->session_b;
+	bool local_3 = function_71f80(arg_0);
+	if (!local_3 && !local_0->failed)
+	{
+		long local_4 = local_1->state;
+		if (local_4 == 5 || local_4 == 6 || local_4 == 7 || local_4 == 8)
+		{
+			if (local_2->function_058d20())
+				network_session_set_mode(local_2, 2);
+			else
+				arg_0->mode = 14;
+			local_3 = true;
+		}
+		else
+		{
+			volatile long local_5 = local_4;
+			function_71e00(arg_0);
+		}
+	}
+	return local_3;
+}
+#pragma inline_depth(255)
+
+// @retail 0x712d0
+bool function_712d0(c_session_state_matchmaking *arg_0)
+{
+	bool local_0 = false;
+	s_session_owner *local_1 = arg_0->owner;
+	c_class_58d20 *local_2 = local_1->session_a;
+	c_class_58d20 *local_3 = local_1->session_b;
+	if (local_2->type == 9)
+	{
+		long local_4 = local_2->state;
+		if (local_4 == 5 || local_4 == 6 || local_4 == 7 || local_4 == 8)
+		{
+			if (!local_3->state)
+			{
+local_7:
+				if (arg_0->flag97c)
+					session_search_mark_session((s_session_search *)&arg_0->flag97c,
+						(const s_search_session *)((byte *)arg_0 + 0xa20));
+				network_session_set_mode(local_2, 7);
+				local_0 = true;
+				goto local_6;
+			}
+			if (network_session_players_match(local_2, local_3))
+			{
+				network_session_set_mode(local_2, 13);
+				local_0 = true;
+			}
+			else if (function_75890(arg_0->unknown970) > g_network_configuration.value190)
+				goto local_7;
+		}
+		else
+		{
+			volatile long local_5 = local_4;
+			function_71e00(arg_0);
+		}
+	}
+local_6:
+	return local_0;
+}
+
+// @retail 0x71390
+bool __stdcall function_71390(c_session_state_matchmaking *arg_0)
+{
+	s_session_owner *local_0 = arg_0->owner;
+	c_class_58d20 *local_1 = local_0->session_a;
+	c_class_58d20 *local_2 = local_0->session_b;
+	bool local_3 = false;
+	if (local_1->type == 13)
+	{
+		local_3 = function_71f80(arg_0);
+		if (!local_3 && !local_0->failed)
+		{
+			if (!local_2->state)
+			{
+				local_2 = local_1;
+				if (local_2->function_058d20())
+				{
+					if (arg_0->flag97c)
+						session_search_mark_session((s_session_search *)&arg_0->flag97c,
+							(const s_search_session *)((byte *)arg_0 + 0xa20));
+					network_session_set_mode(local_2, 7);
+					local_3 = true;
+				}
+				else
+					function_71e00(arg_0);
+			}
+			else
+			{
+				if (local_2->function_058d20() && local_2->type != 14 &&
+					!network_session_is_leaving(local_2))
+				{
+					network_session_set_mode(local_2, 14);
+					local_3 = true;
+				}
+				if (local_1->function_058d20() && local_2->type == 14)
+				{
+					network_session_set_mode(local_1, 7);
+					local_3 = true;
+				}
+			}
+		}
+	}
+	return local_3;
+}
