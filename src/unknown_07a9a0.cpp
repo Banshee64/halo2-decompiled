@@ -331,16 +331,14 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 	{
 		stream_write_checked(stream, packet->flag0, 1);
 		i = 0;
-		const word *character = packet->name;
 		for (; i < 32; i++)
 		{
-			word c = *character;
+			word c = packet->name[i];
 			function_195720(stream, c, 16);
 			if (c == 0)
 			{
 				break;
 			}
-			character++;
 		}
 		stream_write_checked(stream, packet->field3 + 1, 7);
 		stream_write_checked(stream, packet->field48, 15);
@@ -397,7 +395,7 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 		case 4:
 			stream_write_checked(stream, packet->u.d[0], 5);
 			stream_write_checked(stream, packet->u.w[2], 16);
-			break;
+			return;
 		case 7:
 			stream_write_checked(stream, packet->u.d[0], 7);
 			STREAM_WRITE_RANGE(stream, packet->u.w[2], 2);

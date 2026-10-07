@@ -359,6 +359,7 @@ long network_connection_send_capacity(s_network_connection *connection);
 // @retail 0x77580
 bool network_observer_channel_stalled(s_network_observer *observer, long channel_index, long reason)
 {
+	bool local_1 = false;
 	bool blocked = true;
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->connection_index != NONE)
@@ -381,17 +382,27 @@ bool network_observer_channel_stalled(s_network_observer *observer, long channel
 			channel->time9c = observer_time_get();
 		long local_0 = observer_time_since(channel->time9c);
 		if (expired || local_0 > g_network_configuration.value1528)
-			return true;
+			{
+				local_1 = true;
+				goto local_2;
+			}
 	}
 	else
 	{
 		channel->time9c = 0;
 		if (expired)
-			return true;
+			{
+				local_1 = true;
+				goto local_2;
+			}
 	}
 	if (!function_7af40(&channel->address))
-		return true;
-	return false;
+		{
+			local_1 = true;
+			goto local_2;
+		}
+local_2:
+	return local_1;
 }
 /* the security code's connect status of an address (unknown_07a9a0.cpp) */
 long function_07acf0(const s_type_99af70 *address);
