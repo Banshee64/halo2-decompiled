@@ -104,8 +104,8 @@ bool function_1c0290(long actor_index)
 // @retail 0x1c0300
 short __stdcall function_1c0300(long actor_index)
 {
+	long result = 0;
 	s_actor_view *actor = actor_get(actor_index);
-	short result = 0;
 
 	if (actor->prop_index != NONE && function_1c0290(actor_index))
 	{
@@ -119,9 +119,8 @@ short __stdcall function_1c0300(long actor_index)
 			(actor->times[3] == NONE || game_ticks_to_seconds(g_510c54->game_time - actor->times[3]) > entry->unknown18) &&
 			function_1c9ee0(entry->unknown08) > function_259a0(&g_4e7408->unknown0))
 		{
-			return 3;
+			result = 3;
 		}
-		return 0;
 	}
 	return result;
 }
