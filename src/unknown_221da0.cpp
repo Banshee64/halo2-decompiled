@@ -55,33 +55,24 @@ struct s_sound_transmission_view
 bool function_221da0(long listener_index, s_sound_transmission_view const *sound, real scale)
 {
 	bool result = listener_index == NONE;
-
 	if (!result && !(sound->flags & 1))
 	{
 		byte type = sound->type;
-
 		if (type == 1)
 		{
 			s_local_camera *listener = local_camera_get(listener_index);
 			short sound_cluster = sound->cluster_index;
-
-			if (sound_cluster == NONE)
+			result = type;
+			if (sound_cluster != NONE)
 			{
-				return type;
+				short listener_cluster = listener->index;
+				if (listener_cluster != NONE &&
+					(*(long *)listener->unknown00 == sound->bsp_index || listener_cluster == sound_cluster ||
+					!(function_249d60(sound_cluster, listener_cluster, (s_structure_bsp_view *)g_4e0348) * scale < 256.0f)))
+				{
+					result = false;
+				}
 			}
-
-			short listener_cluster = listener->index;
-			if (listener_cluster == NONE)
-			{
-				return type;
-			}
-
-			if (*(long *)listener->unknown00 == sound->bsp_index || listener_cluster == sound_cluster ||
-				!(function_249d60(sound_cluster, listener_cluster, (s_structure_bsp_view *)g_4e0348) * scale < 256.0f))
-			{
-				return false;
-			}
-			return type;
 		}
 	}
 	return result;
@@ -637,11 +628,11 @@ void function_222150(long cluster_index, point3f const *point, real const *value
 
 	if (environment_index != NONE)
 	{
-		real value = values[index];
-
-		distance = function_14b240((s_14b240_owner const *)bsp, (s_bsp3d_disk const *)&bsp->environments[environment_index], listener);
+		s_sound_environment_disk_view *local_0 = environment_index + ((volatile s_sound_environment_bsp_view *)bsp)->environments;
+		real value = ((volatile real const *)values)[index];
+		real local_1 = function_14b240((s_14b240_owner const *)bsp, (s_bsp3d_disk const *)local_0, listener);
 		result[1] = value;
-		result[0] = (real)(1.0 - 1.0f / (distance + 1.0f));
+		result[0] = (real)(1.0 - 1.0f / (local_1 + 1.0f));
 	}
 	else
 	{
