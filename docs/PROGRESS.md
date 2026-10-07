@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6790 functions match
+
+```
+matched 6790 of 11318 game functions (744337 of 2784283 bytes, 26.73%)
+```
+
+6790 new matches, none lost:
+- Merge batch r15: the second machine's #162 (lane AC round 12, +7) and Codex lane D round 29 (written source only).
+
 ## 2026-10-07: 6783 functions match
 
 ```
