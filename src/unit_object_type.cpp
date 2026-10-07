@@ -927,11 +927,11 @@ short function_cd620(long unit_index)
 // @retail 0xcdff0
 short function_cdff0(long unit_index, short grenade_type)
 {
-	if (grenade_type == NONE)
+	if (grenade_type != NONE)
 	{
-		return 0;
+		return UNIT_GET(unit_index)->grenade_counts[grenade_type];
 	}
-	return UNIT_GET(unit_index)->grenade_counts[grenade_type];
+	return 0;
 }
 
 // @retail 0xce020
