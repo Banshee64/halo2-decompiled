@@ -556,6 +556,7 @@ PRIVATE __forceinline s_joint_cs_datum *function_258341(long arg_0)
 // @retail 0x258340
 bool function_258340(short participant_index, long joint_index)
 {
+	bool local_0 = true;
 	long const *local_1 = &joint_index;
 	s_joint_cs_datum *joint = function_258341(*local_1);
 
@@ -572,14 +573,15 @@ bool function_258340(short participant_index, long joint_index)
 		{
 			cs_get(cs_index)->unknown44 = false;
 			joint->leader = participant_index;
-			return true;
+			goto local_2;
 		}
 
+		local_0 = false;
 		function_2583e0(joint_index);
-		return false;
 	}
 
-	return true;
+local_2:
+	return local_0;
 }
 
 // @retail 0x2583e0
@@ -932,6 +934,7 @@ long g_5023fc;
 // @retail 0x258a00
 short function_258a00(long actor_index, long unknown, long cs_index, short *result)
 {
+	short local_0 = 0;
 	s_cs_datum *cs = cs_get(cs_index);
 
 	g_502400 = (long)result;
@@ -971,11 +974,13 @@ short function_258a00(long actor_index, long unknown, long cs_index, short *resu
 			if (status == 2)
 			{
 				*result = 2;
-				return 0;
+				local_0 = 0;
+				goto local_1;
 			}
 			if (status == 0)
 			{
-				return 1;
+				local_0 = 1;
+				goto local_1;
 			}
 			if (status == 1)
 			{
@@ -986,7 +991,8 @@ short function_258a00(long actor_index, long unknown, long cs_index, short *resu
 			}
 			else if (status == 3)
 			{
-				return 2;
+				local_0 = 2;
+				goto local_1;
 			}
 		}
 		else
@@ -994,6 +1000,8 @@ short function_258a00(long actor_index, long unknown, long cs_index, short *resu
 			return (cs->state != 2) + 1;
 		}
 	}
+local_1:
+	return local_0;
 }
 
 /* a command script's facing (mode at +8, the direction at +0xc) */

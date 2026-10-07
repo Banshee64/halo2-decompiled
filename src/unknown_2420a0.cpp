@@ -2124,7 +2124,7 @@ void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4
 	real arg_9, point3f const *arg_10, real arg_11);
 struct s_sort_record;
 typedef bool (__stdcall *t_record_fill)(long, void *, long, long, long, void *, s_sort_record *);
-void function_41490(long tag, short group, word kind, real distance, t_record_fill fill,
+void function_41490(long tag, short group, short kind, real distance, t_record_fill fill,
 	dword value, void (__stdcall *callback)(void *), void *context, point3f const *position);
 
 // @retail 0x244470

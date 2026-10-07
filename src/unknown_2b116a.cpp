@@ -645,7 +645,7 @@ void c_campaign_options_list::handle_item(s_controller_reference **controller, l
 		case 3:
 			if (player_slot_get_single_profile() == NONE)
 			{
-				break;
+				goto animate;
 			}
 			if ((bool)(((dword)player_slot_get_single_profile_index() >> 21) & 1))
 			{
@@ -654,14 +654,15 @@ void c_campaign_options_list::handle_item(s_controller_reference **controller, l
 			}
 			function_149f49((s_message *)&parameters, 0, 0, (word)(1 << (*controller)->controller_index), 5, 4, (long)function_2b130a);
 			parameters.load(&parameters);
-			break;
+			goto animate;
 		case 2:
 		case 4:
 			function_149f49((s_message *)&parameters, 0, 0, (word)(1 << (*controller)->controller_index), 5, 4, (long)function_2524a8);
 			parameters.load(&parameters);
-			break;
+			goto animate;
 		}
 	}
+animate:
 	get_screen()->start_animation(3);
 }
 

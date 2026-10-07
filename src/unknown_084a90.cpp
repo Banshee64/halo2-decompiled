@@ -22,7 +22,9 @@ struct s_simulation_player_datum
 	short controller_index;
 	byte unknown1e[2];
 	long unknown20;
-	byte unknown24[0xd4 - 0x24];
+	long value24;
+	short index28;
+	byte unknown2a[0xd4 - 0x2a];
 	dword configuration[0x24];
 	byte unknown164[0x21c - 0x164];
 };
@@ -295,6 +297,162 @@ bool function_84fb0(const s_simulation_player_update *update)
    function_14c320(first_index, second_index);
    result = true;
   }
+ }
+ return result;
+}
+
+void __stdcall function_14be90(long player_index, const dword *configuration);
+
+// @retail 0x854c0
+bool __stdcall function_854c0(const s_simulation_player_update *update)
+{
+ const s_simulation_player_update *const *update_reference = &update;
+ update = *update_reference;
+ s_record_pool *data = g_4e8c24;
+ long index = update->player_index;
+ s_simulation_player_datum *player = simulation_player_at_index(data, index);
+ bool result = false;
+ if (player && !memcmp(player->key, update->key, sizeof(player->key)))
+ {
+  function_14be90(data_datum_index(data, index), update->configuration);
+  result = true;
+ }
+ return result;
+}
+
+#pragma pack(push, 1)
+struct s_player_creation_record
+{
+ bool active;
+ bool field_2_2;
+ short controller_index;
+ long value04;
+ s_machine_address machine;
+ dword key[3];
+ byte unknown1a[2];
+ dword configuration[0x24];
+ byte unknownac[0xe4 - 0xac];
+};
+#pragma pack(pop)
+
+struct s_player_machine_table
+{
+ byte unknown00[0x2c];
+ dword mask;
+ s_machine_address machines[16];
+};
+
+long __stdcall function_14bc00(long player_index, const s_player_creation_record *record);
+void __stdcall function_14bf80(long player_index, const s_player_creation_record *record);
+
+static __forceinline long simulation_player_next_absolute_index(s_record_pool *data, long index)
+{
+ long result = NONE;
+ if (index >= 0 && index < data->high_water_index)
+ {
+  long count = data->high_water_index;
+  dword *bits = data->bitmap;
+  do
+  {
+   if (bits[index >> 5] & (1 << (index & 0x1f)))
+   {
+    result = index;
+    break;
+   }
+   index++;
+  } while (index < count);
+ }
+ return result;
+}
+
+// @retail 0x85140
+bool __stdcall function_85140(const s_simulation_player_update *update)
+{
+ const s_simulation_player_update *const *update_reference = &update;
+ update = *update_reference;
+ s_record_pool *data = g_4e8c24;
+ long index = update->player_index;
+ s_simulation_player_datum *existing = simulation_player_at_index(data, index);
+ volatile bool result = false;
+ long machine_index = NONE;
+ if (!update->field_2_2 &&
+  (update->controller_index < 0 || update->controller_index >= 4 ||
+   update->unknown20 < 0 || update->unknown20 >= 4))
+  return result;
+ if (!update->field_2_2)
+ {
+  const s_player_machine_table *table = (const s_player_machine_table *)g_4e8c20;
+  dword mask = table->mask;
+  s_machine_address machines[16];
+  memcpy(machines, table->machines, sizeof(machines));
+  for (long i = 0; i < 16; i++)
+   if ((mask & (1 << i)) && !memcmp(&update->machine, &machines[i], sizeof(s_machine_address)))
+   {
+    machine_index = i;
+    break;
+   }
+  if (machine_index == NONE)
+   return result;
+ }
+ long cursor = NONE;
+ while ((cursor = simulation_player_next_absolute_index(data, cursor + 1)) != NONE)
+ {
+  s_simulation_player_datum *player = (s_simulation_player_datum *)(data->data + data->size * cursor);
+  if ((short)data_datum_index(data, cursor) != index &&
+   !memcmp(player->key, update->key, sizeof(player->key)))
+   return result;
+ }
+ if (!update->field_2_2)
+ {
+  cursor = NONE;
+  while ((cursor = simulation_player_next_absolute_index(data, cursor + 1)) != NONE)
+  {
+   s_simulation_player_datum *player = (s_simulation_player_datum *)(data->data + data->size * cursor);
+   if (player->machine_index == machine_index && (short)data_datum_index(data, cursor) != index &&
+    (player->index28 == update->controller_index || player->value24 == update->unknown20))
+    return result;
+  }
+ }
+ s_player_creation_record record;
+ memset(&record, 0, sizeof(record));
+ bool special = update->field_2_2;
+ record.active = true;
+ record.field_2_2 = special;
+ if (!special)
+ {
+  record.machine = update->machine;
+  record.controller_index = (short)update->controller_index;
+  record.value04 = update->unknown20;
+ }
+ else
+ {
+  record.controller_index = NONE;
+  record.value04 = NONE;
+ }
+ memcpy(record.key, update->key, sizeof(record.key));
+ memcpy(record.configuration, update->configuration, sizeof(record.configuration));
+ char *team = (char *)record.configuration + 0x7c;
+ if (*team != NONE)
+ {
+  if (g_4e6948->flags184.bit0)
+  {
+   char value = *team;
+   if (value < 0) value = 0;
+   else if (value > 7) value = 7;
+   *team = value;
+  }
+  else
+   *team = (char)index;
+ }
+ if (!existing)
+ {
+  if (function_14bc00(index, &record) != NONE)
+   result = true;
+ }
+ else if (!memcmp(existing->key, record.key, sizeof(record.key)) && existing->field_2_2)
+ {
+  function_14bf80(data_datum_index(data, index), &record);
+  result = true;
  }
  return result;
 }
