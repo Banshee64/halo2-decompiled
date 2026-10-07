@@ -3,6 +3,7 @@
 #include "slot_handler.h"
 #include "unknown_2626b0.h"
 #include "unknown_1e3920.h"
+#include "unknown_2605d0.h"
 
 /* slot type 0x3a (its first callbacks, from 0x1afde0, precede the region) */
 
@@ -101,4 +102,103 @@ bool function_1b02a0(long actor_index)
 		}
 	}
 	return result;
+}
+
+struct s_follow_search_state
+{
+	short count;
+	bool flag2;
+	bool flag3;
+	s_reference reference;
+	bool flag8;
+	byte unknown09[0x10 - 9];
+	long actor_index;
+};
+
+struct s_follow_search_fields
+{
+	byte unknown00[0x20];
+	bool use_point;
+	byte unknown21[3];
+	point3f point;
+	s_type_c3b527 location;
+	long location_index;
+	short value44;
+	bool flag46;
+	byte unknown47;
+	real distance;
+	real minimum;
+	byte unknown50[2];
+	bool flag52;
+};
+
+void function_26c180(long actor_index);
+
+// @retail 0x1b0540
+void function_1b0540(long actor_index, s_follow_search_state *state)
+{
+	s_2605d0_request request;
+	memset(&request, 0, sizeof(request));
+	s_actor_view *actor = actor_get(actor_index);
+	s_follow_search_fields *fields = (s_follow_search_fields *)&request;
+	fields->distance = 10.0f;
+	fields->minimum = 3.0f;
+	request.type = 1;
+	fields->flag46 = true;
+	request.unknown008 = 4.0f;
+	request.unknown00c = 4.0f;
+	request.unknown010 = 7.0f;
+	if (actor->unknown344 != NONE)
+	{
+		fields->flag52 = state->flag2;
+	}
+	else if (state->actor_index != NONE)
+	{
+		function_26c180(state->actor_index);
+		s_actor_view *other = actor_get(state->actor_index);
+		s_slot_object_view *unit = object_get(other->unknown018);
+		fields->use_point = true;
+		fields->point = other->position;
+		fields->location_index = other->unknown27c.unknown10;
+		fields->location = other->unknown27c.point;
+		fields->value44 = *(short *)((byte *)unit + 0x2c);
+	}
+	if (state->count > 0)
+	{
+		request.unknown014 = true;
+		request.unknown015 = true;
+	}
+	byte *scratch = ai_scratch_buffer_get();
+	s_261d20_entry entry;
+	long other_index;
+	bool unknown;
+	state->reference = function_2605d0(actor_index, &request, (long)&entry, (long)&other_index, scratch, &unknown);
+	state->reference = function_2626b0(actor_index, state->reference, other_index, scratch, unknown, false);
+	state->flag8 = !REFERENCE_EQUAL(state->reference, g_470fa0) && !unknown;
+	state->flag3 = false;
+	ai_scratch_buffer_release(scratch);
+}
+
+
+bool function_114b60(short entry_index, short fallback_index, long unit_index, long priority, void const *extra);
+
+// @retail 0x1b0020
+void __stdcall function_1b0020(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    ++*(long *)((byte *)slot + 0x18);
+    if (*(short *)((byte *)slot + 0xc) > 0)
+        --*(short *)((byte *)slot + 0xc);
+    long unit_index = actor->unknown018;
+    byte *unit = (byte *)object_get(unit_index);
+    if (*(short *)(unit + *(short *)(unit + 0x342) + 0xc) <= 0)
+    {
+        if (*(short *)((byte *)slot + 0x22) > 0)
+            --*(short *)((byte *)slot + 0x22);
+        else
+        {
+            function_114b60(NONE, 0xc, unit_index, 0xd, 0);
+            *(short *)((byte *)slot + 0x22) = (short)real_to_long(slot_random_range(0.5f, 1.5f) * g_510c54->field_2_3);
+        }
+    }
 }

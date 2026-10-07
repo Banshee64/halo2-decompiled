@@ -8,9 +8,70 @@
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
+#include "unknown_123b30.h"
 #include "unknown_075870.h"
 #include "unknown_067e10.h"
 #include "unknown_0662e0.h"
+#include "unknown_0820f0.h"
+
+struct s_sender;
+void function_96ed0(s_sender *self);
+
+struct s_view_distribution_senders
+{
+	s_handle_peers handles;
+	byte unknown2048[8];
+	dword sender_mask;
+	s_sender *senders[15];
+};
+
+static __forceinline void view_clear_child(c_vtable_450cf4 *aggregate, long index)
+{
+	aggregate->unknown24 -= ((long *)aggregate->unknown18)[index];
+	aggregate->children[index] = 0;
+}
+
+static __forceinline void view_clear_updates(c_vtable_450c94 *updates)
+{
+	updates->initialized = false;
+	updates->source = 0;
+}
+
+// @retail 0x85880
+void function_85880(c_simulation_view *view)
+{
+	if (view->state)
+		view->set_state(0, NONE);
+	((s_network_connection *)g_4d87d4)[view->unknown3c].callback = 0;
+	view->unknown44[0] = 0;
+	if (view->type == 3 || view->type == 4)
+	{
+		s_view_distribution_senders *distribution = (s_view_distribution_senders *)view->world->distribution;
+		view_clear_child(&((c_replication_view_storage *)view->data)->aggregate, 1);
+		view_clear_child(&((c_replication_view_storage *)view->data)->aggregate, 0);
+		((c_replication_view_storage *)view->data)->unknown2c = 0;
+		long index = view->world_index;
+		distribution->handles.tables[index]->function_97fe0();
+		distribution->handles.tables[index] = 0;
+		distribution->handles.table_mask &= ~(1 << index);
+		index = view->world_index;
+		function_96ed0(distribution->senders[index]);
+		distribution->sender_mask &= ~(1 << index);
+		distribution->senders[index] = 0;
+		view_clear_updates(&((c_replication_view_storage *)view->data)->updates);
+		c_vtable_450d1c *sender = &((c_replication_view_storage *)view->data)->sender;
+		function_96ed0((s_sender *)sender);
+		sender->unknown08 = 0;
+		view->data->unknown38 = 0;
+		((c_replication_view_storage *)view->data)->aggregate.unknown04[0] = 0;
+	}
+	s_network_observer_channel *channel = &view->observer->channels[view->channel_index];
+	channel->owner_mask &= ~8;
+	view->observer = 0;
+	view->unknown40 = NONE;
+	view->unknown3c = NONE;
+	view->channel_index = NONE;
+}
 
 /* the establishment message (type 0x25) */
 struct s_simulation_view_establishment
@@ -590,4 +651,359 @@ bool c_simulation_view::baseline_update(long id, long sequence, const s_input_up
 		result = true;
 	}
 	return result;
+}
+
+long network_observer_attach_channel(s_network_observer *observer, long owner_index, const XNADDR *address);
+void function_97f60(s_handle_peers *peers, long index, c_handle_table_450cd0 *table);
+void replication_table_attach_sender(s_handle_peers *peers, long index, c_handle_table_450cd0 *table);
+void __stdcall function_68550(c_simulation_view *view);
+void network_connection_callback_initialize(s_connection_callback *callback, c_connection_client *const *clients,
+ void *context, void (__stdcall *function)(void *), long count, const dword *types, bool active);
+
+static __forceinline void view_add_child(c_vtable_450cf4 *aggregate, long index, c_interface_450c94 *child)
+{
+ aggregate->children[index] = child;
+ long count = child->v2();
+ aggregate->unknown24 += count;
+ ((long *)aggregate->unknown18)[index] = count;
+ *((long *)child + 1) = index;
+}
+
+// @retail 0x85650
+void function_85650(c_simulation_view *view, s_network_observer *observer, const XNADDR *address, long channel_index)
+{
+ network_observer_attach_channel(observer, 3, address);
+ long connection_index = observer->channels[channel_index].connection_index;
+ s_network_connection *connection = &((s_network_connection *)g_4d87d4)[connection_index];
+ view->unknown3c = connection_index;
+ view->observer = observer;
+ view->channel_index = channel_index;
+ view->unknown40 = connection->local_sequence;
+ view->failure_reason = 0;
+ if (view->type == 3 || view->type == 4)
+ {
+  s_view_distribution_senders *distribution = (s_view_distribution_senders *)view->world->distribution;
+  c_replication_view_storage *storage = (c_replication_view_storage *)view->data;
+  *(long *)&storage->aggregate.unknown04[4] = view->world_index;
+  storage->aggregate.unknown24 = 0;
+  for (long i = 0; i < 3; i++)
+  {
+   storage->aggregate.children[i] = 0;
+   ((long *)storage->aggregate.unknown18)[i] = 0;
+  }
+  storage->unknown2c = 0;
+  storage->aggregate.unknown04[0] = 1;
+  ((c_replication_view_storage *)view->data)->source.world = (s_world_450d14 *)view;
+  ((c_replication_view_storage *)view->data)->unknown2c = (long)&((c_replication_view_storage *)view->data)->source;
+  c_vtable_450d1c *sender = &((c_replication_view_storage *)view->data)->sender;
+  sender->player = view->world_index;
+  sender->requests = 0;
+  sender->request_count = 0;
+  sender->unknown08 = 1;
+  sender->unknown09 = 0;
+  sender->pending = 0;
+  sender->unknown1c = 0;
+  sender->unknown24 = 0;
+  sender->owner = (s_owner_450d1c *)((byte *)distribution + 0x2048);
+  view_add_child(&((c_replication_view_storage *)view->data)->aggregate, 0, sender);
+  distribution->sender_mask |= 1 << view->world_index;
+  distribution->senders[view->world_index] = (s_sender *)&((c_replication_view_storage *)view->data)->sender;
+  function_97f60(&distribution->handles, view->world_index, &((c_replication_view_storage *)view->data)->handles);
+  view_add_child(&((c_replication_view_storage *)view->data)->aggregate, 1,
+   (c_interface_450c94 *)&((c_replication_view_storage *)view->data)->handles);
+  replication_table_attach_sender(&distribution->handles, view->world_index,
+   &((c_replication_view_storage *)view->data)->handles);
+  ((c_replication_view_storage *)view->data)->updates.reset(
+   (c_source_450c94 *)&((c_replication_view_storage *)view->data)->source);
+  view_add_child(&((c_replication_view_storage *)view->data)->aggregate, 2,
+   &((c_replication_view_storage *)view->data)->updates);
+  s_simulation_view_baseline *baseline = &view->data->baseline;
+  baseline->view = view;
+  *((byte *)baseline + 6) = 0;
+  *((byte *)baseline + 5) = 0;
+  *((byte *)baseline + 4) = 0;
+ }
+ dword types[4];
+ c_connection_client *clients[4];
+ long count = 0;
+ if (view->type == 3 || view->type == 4)
+ {
+  types[0] = 0x1a;
+  clients[0] = (c_connection_client *)&((c_replication_view_storage *)view->data)->aggregate;
+  count = 1;
+ }
+ bool active = view->world->state != 3 && view->world->state != 5;
+ s_connection_callback *callback = (s_connection_callback *)view->unknown44;
+ network_connection_callback_initialize(callback, clients, view,
+  (void (__stdcall *)(void *))function_68550, count, types, active);
+ connection->callback = callback;
+ view->flag78 = false;
+ view->set_state(view->state, view->state_id);
+}
+
+
+struct s_ring_buffer
+{
+ void write_wrapped(long count, long offset, const void *src);
+ void read_wrapped(long offset, long count, void *dst);
+ long write(long count, const void *src);
+ long size;
+ byte *data;
+ long start;
+ long used;
+};
+static inline long view_buffer_write(s_ring_buffer *buffer, long count, const void *source)
+{
+ long result = NONE;
+ if (buffer->used + count <= buffer->size)
+ {
+  result = (buffer->start + buffer->used) % buffer->size;
+  if (count > 0) buffer->write_wrapped(count, result, source);
+  buffer->used += count;
+ }
+ return result;
+}
+bool function_1995a0(const byte *source, dword source_size, byte *destination, long *compressed_size, dword capacity, long level);
+
+// @retail 0x86800
+bool function_86800(dword capacity, c_simulation_view *view, dword source_size, byte *destination)
+{
+ long compressed_size;
+ bool result = function_1995a0(game_state_globals.base_address, source_size, destination, &compressed_size, capacity, 9);
+ if (result)
+ {
+  long remaining = compressed_size;
+  long offset = 0;
+  s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
+  for (;;)
+  {
+   struct { short kind; short size; long offset; } header;
+   memset(&header, 0, sizeof(header));
+   header.kind = 1;
+   if (remaining > 0)
+   {
+    header.size = (short)(remaining > 1024 ? 1024 : remaining);
+    header.offset = offset;
+    if (view_buffer_write(buffer, sizeof(header), &header) == NONE ||
+     view_buffer_write(buffer, header.size, destination + offset) == NONE)
+     return false;
+    offset += header.size;
+    remaining -= header.size;
+    view->unknownac++;
+   }
+   else
+   {
+    header.size = 0;
+    header.offset = offset;
+    if (view_buffer_write(buffer, sizeof(header), &header) == NONE)
+     return false;
+    view->unknownac++;
+    break;
+   }
+  }
+ }
+ return result;
+}
+
+#include "physical_memory.h"
+#include <d3d8.h>
+extern s_physical_object *g_4e6464;
+long __stdcall function_12d2f0(long size, long user_data, long update, long release);
+void function_12c600(void);
+double timing_ticks_to_seconds(__int64 ticks);
+void function_6a860(c_class_6a600 *world, long *size);
+
+static inline __int64 view_read_ticks(void)
+{
+ volatile __int64 value = 0;
+ __asm rdtsc
+}
+
+static __forceinline byte *view_allocate_buffer(long size, long owner, long release)
+{
+ __int64 start = view_read_ticks();
+ byte *memory = 0;
+ if (g_4e6464->page_count > 0)
+ {
+  long attempts = 0;
+  while (!(memory = (byte *)function_12d2f0(size, owner, 0, release)))
+  {
+   if (attempts < 30)
+   {
+    attempts++;
+    function_12c600();
+   }
+   else
+   {
+    __int64 elapsed = view_read_ticks() - start;
+    if (elapsed < 0) elapsed = 0;
+    if (timing_ticks_to_seconds(elapsed) >= 0.1f) break;
+    D3DDevice_KickPushBuffer();
+    D3DDevice_IsBusy();
+    SwitchToThread();
+   }
+  }
+ }
+ return memory;
+}
+
+// @retail 0x862e0
+bool function_862e0(c_simulation_view *view)
+{
+ bool result = false;
+ view->unknown90++;
+ byte *memory = view_allocate_buffer(0x80000, (long)view, (long)simulation_view_buffer_disposed);
+ byte *scratch = view_allocate_buffer(0x40000, 0, 0);
+ if (memory)
+ {
+  if (scratch)
+  {
+   view->buffer = memory;
+   view->unknown98 = 0x80000;
+   s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
+   buffer->size = 0x80000;
+   buffer->data = memory;
+   buffer->start = 0;
+   buffer->used = 0;
+   view->unknownac = 0;
+   struct { short kind; short size; long value; } header;
+   memset(&header, 0, sizeof(header));
+   result = true;
+   header.kind = 0;
+   header.size = 0;
+   header.value = view->world->unknown28;
+   if (view_buffer_write(buffer, sizeof(header), &header) == NONE)
+    result = false;
+   else
+   {
+    view->unknownac++;
+    long size;
+    function_6a860(view->world, &size);
+    if (!function_86800(0x40000, view, size, scratch)) result = false;
+    view->world->flag11fc = 0;
+    g_46e320[4](0);
+   }
+   if (!result) view->release_buffer();
+  }
+  else
+   function_12d520((long)memory);
+ }
+ if (scratch) function_12d520((long)scratch);
+ return result;
+}
+
+
+bool function_685f0(void *block, long *size, byte *destination, long capacity);
+
+// @retail 0x869a0
+bool function_869a0(c_simulation_view *view, void *block)
+{
+ byte encoded[0xffff];
+ long encoded_size;
+ volatile bool result = false;
+ if (function_685f0(block, &encoded_size, encoded, sizeof(encoded)))
+ {
+  struct { short kind; short size; long sequence; } header;
+  memset(&header, 0, sizeof(header));
+  header.kind = 2;
+  header.size = (short)encoded_size;
+  header.sequence = *(long *)block;
+  s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
+  if (view_buffer_write(buffer, sizeof(header), &header) != NONE &&
+   buffer->write(encoded_size, encoded) != NONE)
+  {
+   view->unknownac++;
+   return true;
+  }
+ }
+ return result;
+}
+
+
+bool function_68670(byte *source, long size, void *block);
+
+// @retail 0x865d0
+void __stdcall function_865d0(c_simulation_view *view)
+{
+ // Keep the retail stack argument under whole-program optimization.
+ c_simulation_view *const *view_reference = &view;
+ while (view->established() && view->unknownac != 0)
+ {
+  s_network_connection *connection = function_x7665e0(view->unknown3c);
+  if (connection->state != 5 || !(connection->flags & 0x10)) break;
+  s_network_stream_header *stream = network_stream_get(connection->stream_index);
+  if ((512 - (stream->window.next - stream->window.end)) * 32 < 0x600) break;
+  struct { short kind; short size; long value; } header;
+  byte payload[1024];
+  s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
+  buffer->read_wrapped(buffer->start, sizeof(header), &header);
+  buffer->start = (buffer->start + (long)sizeof(header)) % buffer->size;
+  buffer->used -= sizeof(header);
+  if (header.size > 0)
+  {
+   long size = header.size;
+   buffer->read_wrapped(buffer->start, size, payload);
+   buffer->start = (buffer->start + size) % buffer->size;
+   buffer->used -= size;
+  }
+  switch (header.kind)
+  {
+  case 0:
+   {
+    long value = header.value;
+    view_send_message(view, 0x29, sizeof(value), &value);
+   }
+   break;
+  case 1:
+   {
+    struct { long offset; long size; byte bytes[0x10000]; } message;
+    message.offset = 0;
+    message.size = 0;
+    message.offset = header.value;
+    message.size = header.size;
+    if (message.size > 0) memcpy(message.bytes, payload, message.size);
+    view_send_message(view, 0x2a, message.size + 8, &message);
+   }
+   break;
+  case 2:
+   {
+    union { __int64 alignment; byte bytes[0x4048]; } block;
+    memset(&block, 0, sizeof(block));
+    if (!function_68670(payload, header.size, &block))
+    {
+     if (!view->failure_reason)
+     {
+      view->set_state(0, NONE);
+      view->failure_reason = 5;
+     }
+     return;
+    }
+    view_send_message(view, 0x27, sizeof(block), &block);
+   }
+   break;
+  default: __assume(0);
+  }
+  view->unknownac--;
+ }
+}
+
+
+// @retail 0x860b0
+void function_860b0(c_simulation_view *view, void *block)
+{
+ if (view->state == 5)
+ {
+  union { __int64 alignment; byte bytes[0x4048]; } message;
+  memcpy(&message, block, sizeof(message));
+  view_send_message(view, 0x27, sizeof(message), &message);
+ }
+ else if (view->buffer)
+ {
+  if (function_869a0(view, block)) function_865d0(view);
+  else if (!view->failure_reason)
+  {
+   view->set_state(0, NONE);
+   view->failure_reason = 5;
+  }
+ }
 }

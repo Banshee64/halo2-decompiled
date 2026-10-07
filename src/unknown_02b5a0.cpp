@@ -68,3 +68,44 @@ void function_02b5a0(void)
 		}
 	}
 }
+
+
+bool function_bad50(long object_index, long index, point3f *out);
+dword __cdecl pack_color3f(color3f const *color);
+
+struct s_3dd10_object_header
+{
+	byte unknown00[8];
+	byte *object;
+};
+
+struct s_3dd10_cache
+{
+	byte unknown00[0xa8];
+	dword colors[4];
+	byte count;
+	byte unknownb9[0x47];
+};
+
+// @retail 0x3dd10
+void function_3dd10(long object_index, bool force)
+{
+	(void)&object_index;
+	(void)&force;
+	byte *object = ((s_3dd10_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	long cache_index = *(long *)(object + 0xcc);
+	if (cache_index != NONE && (force || (g_4e3b44[*(long *)object & 0xffff].bytes[0x1c] & 1)))
+	{
+		s_3dd10_cache *cache = &((s_3dd10_cache *)g_509434->data)[cache_index & 0xffff];
+		cache->count = 0;
+		for (long i = 0; i < 4; ++i)
+		{
+			point3f color;
+			if (function_bad50(object_index, i, &color))
+			{
+				cache->colors[i] = pack_color3f((color3f const *)&color);
+				++cache->count;
+			}
+		}
+	}
+}

@@ -2,6 +2,7 @@
 #include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_26e370.h"
+#include "props.h"
 
 /* slot type 0x12 */
 
@@ -19,7 +20,7 @@ struct s_slot_12
 
 short __stdcall function_1b7e40(long actor_index);
 short __stdcall function_1b81c0(long actor_index, s_slot *slot, bool active);
-void __stdcall function_1b8070(long actor_index, s_slot *slot);
+long __stdcall function_1b8070(long actor_index, s_slot *slot);
 bool __stdcall function_1b82d0(long actor_index, s_slot *slot, long index);
 struct s_invite_data;
 short __stdcall function_1b83b0(long actor_index, long leader_index, s_slot *slot, s_invite_data *data);
@@ -62,6 +63,66 @@ void __stdcall function_1b8460(long actor_index, s_slot *slot, long index)
 }
 
 void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
+
+bool actor_has_joint_invitation(long actor_index, short type);
+long function_25d810(long object_index, long actor_index, bool create);
+bool function_25d9b0(long prop_index);
+
+// @retail 0x1b7e40
+short __stdcall function_1b7e40(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long prop_index = actor->prop_index;
+	s_prop_node_view *node = prop_index != NONE ? prop_node_get(prop_index) : NULL;
+	short priority;
+	if (actor_has_joint_invitation(actor_index, 0x12))
+	{
+		s_slot_entry_iterator iterator;
+		iterator.actor_index = actor_index;
+		iterator.reference.unknown2 = 0x12;
+		iterator.reference.unknown0 = NONE;
+		while (function_26f0c0(&iterator))
+		{
+			short invitation_index = iterator.reference.unknown0;
+			s_joint_invitation *invitation = &((s_slot_owner_entry *)actor)->joint_invitations[invitation_index];
+			s_502424_element *joint = element_502424_get(invitation->joint_index);
+			if (!node || joint->target.unknown0 != node->object_index)
+			{
+				long new_prop;
+				if (actor->unknown086 >= 4 || (new_prop = function_25d810(joint->target.unknown0, actor_index, false)) == NONE)
+				{
+					joint_decline(actor_index, iterator.reference.unknown0);
+					continue;
+				}
+				node = prop_node_get(new_prop);
+			}
+			priority = *(short *)((byte *)joint + invitation->participant_index * 12 + 0xa);
+			if (priority <= 0)
+				return 0;
+			goto evaluate;
+		}
+		return 0;
+	}
+	else
+	{
+		if (actor->unknown07c == NONE || !node)
+			return 0;
+		node = prop_node_get(prop_index);
+		if (node->unknown27 < 2)
+			return 0;
+		priority = 3;
+	}
+evaluate:
+	s_type_5cfb45 *state = function_25d690((s_prop_datum *)node);
+	s_prop_view_fields *view = prop_node_view(node);
+	vector3f velocity;
+	function_ba1d0(node->object_index, &velocity, NULL);
+	if (node->unknown28 > 1.6f && sqrt(length_sq3f(&velocity)) < 1.0f &&
+		view->unknown54 < 0.31 && node->unknown28 <= 15.0f &&
+		!state->unknown64 && !function_25d9b0(actor->prop_index))
+		return priority;
+	return 0;
+}
 
 // @retail 0x1b81c0
 short __stdcall function_1b81c0(long actor_index, s_slot *slot, bool active)
@@ -151,6 +212,71 @@ s_slot_handler_2x g_47e898 =
 		},
 		(t_slot_proc)joint_update, joint_activate, joint_deactivate
 	},
-	function_1b8070, 0, (t_slot_release)function_1b82d0, function_1b8360, function_1b8370, (t_slot_proc4)function_1b83b0,
+	(t_slot_proc)function_1b8070, 0, (t_slot_release)function_1b82d0, function_1b8360, function_1b8370, (t_slot_proc4)function_1b83b0,
 	1, 10, 1.0f, 0
 };
+
+
+void function_26ee40(s_joint_behavior_state *behavior);
+void function_267770(long prop_index, long actor_index);
+
+// @retail 0x1b8070
+long __stdcall function_1b8070(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    s_slot_entry_iterator iterator;
+    iterator.actor_index = actor_index;
+    iterator.reference.unknown2 = 0x12;
+    iterator.reference.unknown0 = NONE;
+    s_slot_memory_entry *entry;
+    s_slot_12 *state = (s_slot_12 *)slot;
+    long joint_index = NONE;
+    while ((entry = function_26f0c0(&iterator)) != NULL)
+    {
+        if (function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+        {
+            joint_index = entry->unknown4;
+            break;
+        }
+    }
+    if (joint_index == NONE)
+    {
+        joint_index = function_26e940(actor_index);
+        if (joint_index != NONE)
+        {
+            state->unknown0c = true;
+            state->element_index = joint_index;
+        }
+    }
+    if (joint_index != NONE)
+    {
+        s_502424_element *element = element_502424_get(joint_index);
+        if (state->unknown0c)
+        {
+            element->target.unknown0 = prop_node_get(actor->prop_index)->object_index;
+            state->unknown1c = actor->prop_index;
+        }
+        else
+        {
+            long prop_index = function_25d810(element->target.unknown0, actor_index, false);
+            if (prop_index == NONE)
+            {
+                if (joint_index != NONE)
+                    function_26ee40((s_joint_behavior_state *)slot);
+                return NONE;
+            }
+            state->unknown1c = prop_index;
+            if (prop_index != actor->prop_index)
+                function_267770(prop_index, actor_index);
+        }
+        real time = (real)g_510c54->field_2_3 * 10.0f;
+        long ticks;
+        __asm
+        {
+            fld time
+            fistp ticks
+        }
+        state->unknown20 = ticks;
+    }
+    return joint_index;
+}

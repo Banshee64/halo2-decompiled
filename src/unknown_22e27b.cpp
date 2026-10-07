@@ -8,6 +8,59 @@
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
+#include "unknown_030290.h"
+#include "globals.h"
+
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
+void function_22d2ee(word *string, long maximum_length);
+void function_13ed90(long font);
+void function_2360c3(short_rectangle2d const *bounds, point3f *point);
+void function_13e9c0(word const *text, short_rectangle2d const *bounds,
+	short_rectangle2d *a, short_rectangle2d *b, real scale);
+
+// @retail 0x22d13d
+void function_22d13d(c_class_22cc8e *text, short_rectangle2d const *bounds,
+	real depth, short_rectangle2d const *screen, short length,
+	short_rectangle2d *ink_bounds, short_rectangle2d *output)
+{
+	word buffer[0x400];
+	word *string = text->function_22f52e();
+	if (string && *string)
+		unicode_string_copy(buffer, string, 0x400);
+	else
+		buffer[0] = 0;
+	buffer[length] = 0;
+	function_22d2ee(buffer, 0x400);
+	function_13ed90(text->value04);
+	long flags = *(volatile short *)&text->value16;
+	long justification = *(volatile long *)&text->value1c;
+	long style = *(volatile long *)&text->value18;
+	g_4e73a0.flags = flags;
+	g_4e73a0.justification = justification;
+	g_4e73a0.style = style;
+	point3f first, last;
+	first.x = (real)bounds->left;
+	first.y = (real)bounds->top;
+	first.z = depth;
+	last.x = (real)bounds->right;
+	last.y = (real)bounds->bottom;
+	last.z = depth;
+	long width = bounds->right - bounds->left;
+	function_2360c3(screen, &first);
+	function_2360c3(screen, &last);
+	short_rectangle2d projected, measured;
+	projected.top = (short)first.y;
+	long left = (long)first.x;
+	projected.left = (short)left;
+	projected.right = (short)last.x;
+	projected.bottom = (short)last.y;
+	function_13e9c0(buffer, &projected, &measured, ink_bounds,
+		(last.x - first.x) * text->value20 / (real)width);
+	output->top = projected.top;
+	output->left = (short)left;
+	output->right = measured.right;
+	output->bottom = measured.bottom;
+}
 
 extern dword g_54d5b8;
 
@@ -297,7 +350,7 @@ void c_class_1a2c81::delete_children()
 // @retail 0x22e89c
 void c_class_1a2c81::set_animation(s_type_0cfb31 *definition)
 {
-	long time = g_54d5b8;
+	long time = g_54d598.m20;
 	long direction;
 
 	animation.type = definition->type;
@@ -737,7 +790,7 @@ void c_class_1a2c81::build_animation(s_type_0cfb31 *animation, short index, long
 			short direction = (count ? (count >= 0 ? 1 : -1) : 0) >= 0 ? 1 : -1;
 
 			animation->direction = direction;
-			animation->end_time = g_54d5b8;
+			animation->end_time = g_54d598.m20;
 			animation->value20 = value;
 			animation->value8 = frames;
 			animation->target = (long)keys;
@@ -768,15 +821,15 @@ void c_class_1a2c81::build_animation(s_type_0cfb31 *animation, short index, long
 			case 1:
 				animation->target = definition->b.target;
 				animation->value8 = definition->b.frames;
-				animation->direction = -1;
 				animation->valuea = animation->value8 > 0 ? animation->value8 - 1 : 0;
+				animation->direction = -1;
 				animation->value20 = definition->b.value;
 				break;
 			case 2:
 				animation->target = definition->a.target;
 				animation->value8 = definition->a.frames;
-				animation->direction = -1;
 				animation->valuea = animation->value8 > 0 ? animation->value8 - 1 : 0;
+				animation->direction = -1;
 				animation->value20 = definition->a.value;
 				break;
 			case 3:
@@ -1324,4 +1377,21 @@ void c_text_widget_45a5e0::function_253b1a(long string_handle)
 			function_22f52e()->set_text(buffer);
 		}
 	}
+}
+
+// @retail 0x22d0e3
+void function_22d0e3(c_class_22cc8e *text, short_rectangle2d const *bounds,
+    real depth, short_rectangle2d const *screen, short length, short_rectangle2d *ink_bounds)
+{
+    short_rectangle2d output;
+    function_22d13d(text, bounds, depth, screen, length, ink_bounds, &output);
+}
+
+// @retail 0x22d108
+void function_22d108(c_class_22cc8e *text, short_rectangle2d const *bounds,
+    real depth, short_rectangle2d const *screen, short_rectangle2d *output)
+{
+    short_rectangle2d ink_bounds;
+    short length = (short)wcslen((wchar_t *)text->function_22f52e());
+    function_22d13d(text, bounds, depth, screen, length, &ink_bounds, output);
 }

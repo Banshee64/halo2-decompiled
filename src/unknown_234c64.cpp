@@ -118,7 +118,10 @@ void c_window_channel::update()
 			if (current)
 			{
 				previous = current;
-				current->function_22e957(modal ? 2 : 3);
+				if (modal)
+					current->function_22e957(2);
+				else
+					current->function_22e957(3);
 			}
 		}
 		current = next;
@@ -252,7 +255,11 @@ void c_window_channel::v9()
 {
 	if (current)
 	{
-		function_149f49((s_message *)&request, 0x7fff, 0, current->user_flags, current->v20(), current->v21(), (long)current->get_load_proc());
+		word users = current->user_flags;
+		long load = (long)current->get_load_proc();
+		long b = current->v21();
+		long a = current->v20();
+		function_149f49((s_message *)&request, 0x7fff, 0, users, a, b, load);
 	}
 	dispose();
 }
@@ -265,7 +272,8 @@ void c_window_channel::v10()
 		s_screen_request new_request;
 		request.type = 0;
 		function_149f49((s_message *)&new_request, 0, (dword *)&request.id, request.user_flags, request.a, request.b, (long)request.load);
-		set_next(request.load(&new_request), &new_request);
+		c_class_1473c9 *screen = request.load(&new_request);
+		set_next(screen, &new_request);
 	}
 }
 
@@ -388,16 +396,17 @@ void c_window_channel_45997c::update()
 	{
 		long new_state;
 		long id = function_147f4f();
-		if (id == NONE)
-			new_state = 0;
-		else if (id == 6)
-			new_state = 1;
-		else if (id == 9)
-			new_state = 0;
-		else if (id == 11 || id == 19 || id == 30 || id == 186)
-			new_state = 2;
-		else
-			new_state = 3;
+		switch (id)
+		{
+		case NONE:
+		case 9: new_state = 0; break;
+		case 6: new_state = 1; break;
+		case 11:
+		case 19:
+		case 30:
+		case 186: new_state = 2; break;
+		default: new_state = 3; break;
+		}
 
 		if (state != new_state)
 		{
@@ -543,10 +552,15 @@ void c_window_channel_4599a8::set_next(c_class_1473c9 *screen, s_screen_paramete
 {
 	if (current && !(new_request->type & 6))
 	{
+		c_class_1473c9 *active = current;
 		s_screen_request previous_request;
-		function_149f49((s_message *)&previous_request, 2, 0, current->user_flags, current->v20(), current->v21(), (long)current->get_load_proc());
-		current->v24((s_screen_focus *)&previous_request.id);
-		function_2355ed(this, &previous_request, current->screen_id);
+		word flags = active->user_flags;
+		screen_load_proc load = active->get_load_proc();
+		long window = active->v21();
+		long channel = active->v20();
+		function_149f49((s_message *)&previous_request, 2, 0, flags, channel, window, (long)load);
+		active->v24((s_screen_focus *)&previous_request.id);
+		function_2355ed(this, &previous_request, active->screen_id);
 	}
 	if (new_request->type & 4)
 		function_235647(this);
@@ -566,11 +580,12 @@ void c_window_channel_4599a8::v11(short count)
 
 	if (count > 1)
 	{
-		for (word i = count - 1; i != 0; i--)
+		long i = (word)(count - 1);
+		do
 		{
 			if (queue)
 				function_235626(this, &request);
-		}
+		} while (--i);
 	}
 	if (queue)
 	{
@@ -913,7 +928,7 @@ void c_window_channel_459a34::render(long window)
 /* ---- drawing the screens back to front ---- */
 
 // @retail 0x23566a
-void function_23566a(c_class_1a2c81 *screen, s_screen_sort_entry *entries, long *count)
+void __stdcall function_23566a(c_class_1a2c81 *screen, s_screen_sort_entry *entries, long *count)
 {
 	if (screen->v16())
 	{

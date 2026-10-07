@@ -470,7 +470,7 @@ vector3f *matrix4x3_rotation_between(
 	real angle;
 
 	function_141590(a, &inverse);
-	function_142a60(&inverse, b, &relative);
+	function_142a60(b, &inverse, &relative);
 	function_141f60(&relative.rotation, &rotation);
 	function_11d790(&rotation, out, &angle);
 	out->i *= angle;

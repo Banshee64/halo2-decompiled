@@ -3,8 +3,6 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
-#include <math.h>
-#include <string.h>
 
 /* the scenario's palette entries (8 bytes each): a tag reference */
 struct s_scenario_palette_entry
@@ -93,129 +91,156 @@ long function_130f60(s_palette_owner const *owner, long *palette_index)
 	return result;
 }
 
-struct s_131030
+#include "unknown_0259d0.h"
+#include <math.h>
+#include <string.h>
+
+struct s_fog_accumulator
 {
-	color3f field_0;
-	real field_c;
-	real field_10;
-	real field_14;
-	real field_18;
-	real field_1c;
+	color3f color;
+	real intensity;
+	real distance;
+	real height;
+	real weight;
+	real remaining;
 };
-
-PRIVATE __forceinline void function_131031(s_131030 *arg_1, color3f const *arg_2, real arg_3, real arg_4, real arg_5, real arg_6)
+struct s_fog_direction_sample
 {
-	real local_1 = 0.0f > arg_6 ? 0.0f : (arg_6 > 1.0f ? 1.0f : arg_6);
-	arg_1->field_0.red += arg_2->red * local_1;
-	arg_1->field_0.green += arg_2->green * local_1;
-	arg_1->field_0.blue += arg_2->blue * local_1;
-	arg_1->field_c += arg_3 * local_1;
-	arg_1->field_10 += arg_4 * local_1;
-	arg_1->field_14 += arg_5 * local_1;
-	arg_1->field_18 += local_1;
-	arg_1->field_1c *= 1.0f - local_1;
-}
-
-PRIVATE __forceinline void function_131032(real arg_1, real arg_2, vector3f *arg_3)
+	color3f color;
+	real intensity;
+	real distance;
+	real height;
+	real angle_start;
+	real angle_end;
+	real weights[3];
+};
+struct s_fog_direction
 {
-	real local_1 = (real)cos(arg_2);
-	arg_3->i = (real)cos(arg_1) * local_1;
-	arg_3->j = (real)sin(arg_1) * local_1;
-	arg_3->k = (real)sin(arg_2);
-}
-
+	vector3f direction;
+	real yaw;
+	real pitch;
+	byte unknown14[8];
+	long forward_count;
+	s_fog_direction_sample *forward;
+	long opposite_count;
+	s_fog_direction_sample *opposite;
+	byte unknown2c[8];
+};
+struct s_fog_base_layer
+{
+	color3f color;
+	real intensity;
+	real distance;
+	real height;
+};
+struct s_fog_direction_tag
+{
+	byte unknown00[0x48];
+	long first_count;
+	s_fog_base_layer *first;
+	long second_count;
+	s_fog_base_layer *second;
+	long third_count;
+	s_fog_base_layer *third;
+	byte unknown60[0x18];
+	long direction_count;
+	s_fog_direction *directions;
+};
 real function_11ce20(vector3f const *a, vector3f const *b);
 
-// @retail 0x131030
-void function_131030(long arg_1, vector3f const *arg_2, s_131030 *arg_3, s_131030 *arg_4, s_131030 *arg_5)
+__forceinline void fog_accumulate(s_fog_accumulator *out, color3f const *color, real intensity, real distance, real height, real weight)
 {
-	(void)&arg_2;
-	(void)&arg_5;
-	byte *local_1 = g_4e3b44[arg_1 & 0xffff].bytes;
-	memset(arg_3, 0, sizeof(*arg_3));
-	arg_3->field_1c = 1.0f;
-	memset(arg_4, 0, sizeof(*arg_4));
-	arg_4->field_1c = 1.0f;
-	memset(arg_5, 0, sizeof(*arg_5));
-	arg_5->field_1c = 1.0f;
-	for (long local_2 = 0; local_2 < *(long *)(local_1 + 0x78); local_2++)
+	weight = weight < 0.0f ? 0.0f : (weight > 1.0f ? 1.0f : weight);
+	out->color.red += color->red * weight;
+	out->color.green += color->green * weight;
+	out->color.blue += color->blue * weight;
+	out->intensity += intensity * weight;
+	out->distance += distance * weight;
+	out->height += height * weight;
+	out->weight += weight;
+	out->remaining *= 1.0f - weight;
+}
+
+// @retail 0x131030
+void function_131030(long tag_index, vector3f const *view_direction, s_fog_accumulator *first, s_fog_accumulator *second, s_fog_accumulator *third)
+{
+	s_fog_direction_tag *tag = (s_fog_direction_tag *)g_4e3b44[tag_index & 0xffff].bytes;
+	memset(first, 0, sizeof(*first));
+	first->remaining = 1.0f;
+	memset(second, 0, sizeof(*second));
+	second->remaining = 1.0f;
+	memset(third, 0, sizeof(*third));
+	third->remaining = 1.0f;
+	for (long i = 0; i < tag->direction_count; i++)
 	{
-		byte *local_3 = *(byte **)(local_1 + 0x7c) + local_2 * 0x34;
-		vector3f local_4 = *(vector3f *)local_3;
-		vector3f local_5;
-		if (local_4.i == 0.0f && local_4.j == 0.0f && local_4.k == 0.0f)
+		s_fog_direction *source = &tag->directions[i];
+		vector3f direction = source->direction;
+		vector3f opposite;
+		if (direction.i == 0.0f && direction.j == 0.0f && direction.k == 0.0f)
 		{
-			real local_6 = *(real *)(local_3 + 0xc) + 3.1415927410125732f;
-			function_131032(*(real *)(local_3 + 0xc), *(real *)(local_3 + 0x10), &local_4);
-			function_131032(local_6, 0.0f, &local_5);
+			real angles[2] = { source->yaw, source->pitch };
+			double yaw = (double)angles[0] + 3.1415927410125732422f;
+			double pitch_cosine = cos(source->pitch);
+			direction.i = (real)(cos(source->yaw) * pitch_cosine);
+			direction.j = (real)(sin(source->yaw) * pitch_cosine);
+			direction.k = (real)sin(source->pitch);
+			opposite.i = (real)(cos(yaw) * cos(0.0));
+			opposite.j = (real)(sin(yaw) * cos(0.0));
+			opposite.k = (real)sin(0.0);
 		}
 		else
 		{
-			local_5.i = -local_4.i;
-			local_5.j = -local_4.j;
-			local_5.k = 0.0f;
-			real local_7 = (real)sqrt(local_5.j * local_5.j + local_5.i * local_5.i);
-			if (!(0.0001f > (real)fabs(local_7)))
+			opposite.i = -direction.i;
+			opposite.j = -direction.j;
+			opposite.k = 0.0f;
+			real magnitude = (real)sqrt((double)opposite.j * opposite.j + (double)opposite.i * opposite.i);
+			if (!(0.0001f > fabs(magnitude)))
 			{
-				real local_8 = 1.0f / local_7;
-				local_5.i *= local_8;
-				local_5.j *= local_8;
-				local_5.k *= local_8;
+				real reciprocal = 1.0f / magnitude;
+				opposite.i *= reciprocal;
+				opposite.j *= reciprocal;
+				opposite.k *= reciprocal;
 			}
 		}
-		if (local_4.k * local_4.k + local_4.j * local_4.j + local_4.i * local_4.i > 0.0f)
+		if (direction.k * direction.k + direction.j * direction.j + direction.i * direction.i > 0.0f)
 		{
-			long local_9 = 0;
+			long j = 0;
 			do
 			{
-				real *local_10;
-				vector3f const *local_11;
-				switch (local_9)
+				s_fog_direction_sample *sample;
+				vector3f const *axis;
+				switch (j)
 				{
-				case 0:
-					local_10 = *(long *)(local_3 + 0x1c) > 0 ? *(real **)(local_3 + 0x20) : NULL;
-					local_11 = &local_4;
-					break;
-				case 1:
-					local_10 = *(long *)(local_3 + 0x24) > 0 ? *(real **)(local_3 + 0x28) : NULL;
-					local_11 = &local_5;
-					break;
-				default:
-					__assume(0);
+				case 0: sample = source->forward_count > 0 ? source->forward : NULL; axis = &direction; break;
+				case 1: sample = source->opposite_count > 0 ? source->opposite : NULL; axis = &opposite; break;
+				default: __assume(0);
 				}
-				real local_12 = function_11ce20(arg_2, local_11);
-				if (local_10 && local_10[7] > local_10[6])
+				real angle = function_11ce20(view_direction, axis);
+				if (sample && sample->angle_end > sample->angle_start)
 				{
-					real local_13 = 0.0f > ((local_12 - local_10[7]) / (local_10[6] - local_10[7])) ? 0.0f : (((local_12 - local_10[7]) / (local_10[6] - local_10[7])) > 1.0f ? 1.0f : ((local_12 - local_10[7]) / (local_10[6] - local_10[7])));
-					function_131031(arg_3, (color3f *)local_10, local_10[3], local_10[4], local_10[5], local_10[8] * local_13);
-					function_131031(arg_4, (color3f *)local_10, local_10[3], local_10[4], local_10[5], local_10[9] * local_13);
-					function_131031(arg_5, (color3f *)local_10, local_10[3], local_10[4], local_10[5], local_10[10] * local_13);
+					real weight = (angle - sample->angle_end) / (sample->angle_start - sample->angle_end);
+					weight = weight < 0.0f ? 0.0f : (weight > 1.0f ? 1.0f : weight);
+					fog_accumulate(first, &sample->color, sample->intensity, sample->distance, sample->height, sample->weights[0] * weight);
+					fog_accumulate(second, &sample->color, sample->intensity, sample->distance, sample->height, sample->weights[1] * weight);
+					fog_accumulate(third, &sample->color, sample->intensity, sample->distance, sample->height, sample->weights[2] * weight);
 				}
-				local_9++;
-			} while (local_9 < 2);
+				j++;
+			}
+			while (j < 2);
 		}
 	}
-	real local_14 = arg_3->field_1c * arg_4->field_1c;
-	real local_15 = arg_5->field_1c;
-	if (*(long *)(local_1 + 0x48) > 0)
-	{
-		real *local_16 = *(real **)(local_1 + 0x4c);
-		function_131031(arg_3, (color3f *)local_16, local_16[3], local_16[4], local_16[5], local_14);
-	}
+	real remaining = first->remaining * second->remaining;
+	real third_remaining = third->remaining;
+	if (tag->first_count > 0)
+		fog_accumulate(first, &tag->first->color, tag->first->intensity, tag->first->distance, tag->first->height, remaining);
 	else
-		arg_3->field_18 += local_14;
-	if (*(long *)(local_1 + 0x50) > 0)
-	{
-		real *local_17 = *(real **)(local_1 + 0x54);
-		function_131031(arg_4, (color3f *)local_17, local_17[3], local_17[4], local_17[5], local_14);
-	}
+		first->weight += remaining;
+	if (tag->second_count > 0)
+		fog_accumulate(second, &tag->second->color, tag->second->intensity, tag->second->distance, tag->second->height, remaining);
 	else
-		arg_4->field_18 += local_14;
-	if (*(long *)(local_1 + 0x58) > 0)
-	{
-		real *local_18 = *(real **)(local_1 + 0x5c);
-		function_131031(arg_5, (color3f *)local_18, local_18[3], 0.0f, 1.0f, local_15);
-	}
+		second->weight += remaining;
+	if (tag->third_count > 0)
+		fog_accumulate(third, &tag->third->color, tag->third->intensity, 0.0f, 1.0f, third_remaining);
 	else
-		arg_5->field_18 += local_15;
+		third->weight += third_remaining;
 }

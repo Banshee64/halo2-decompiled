@@ -260,3 +260,184 @@ bool game_state_core_read(char const *name, void *buffer, dword size)
 	}
 	return result;
 }
+
+#include "main_globals.h"
+extern long g_5020e4;
+extern bool g_5020f2[2];
+void __stdcall game_state_cache_lock_release(void *arg_0, long arg_1);
+bool game_state_cache_read(short arg_0);
+bool __stdcall function_11c1b0(short arg_0, bool arg_1);
+void function_199520(dword arg_0);
+void function_199540(dword arg_0);
+
+// @retail 0x123f60
+void function_123f60(dword arg_0)
+{
+	s_arena_header local_0;
+	if (game_state_globals.flag2)
+	{
+		short local_1 = game_state_globals.slot;
+		if (g_5020e4)
+			game_state_cache_lock_release((void *)g_5020e4, 0);
+		if (g_5020f2[local_1])
+		{
+			local_0 = game_state_globals.saved_headers[game_state_globals.slot];
+			if (function_124520(&local_0))
+			{
+				*((byte *)local_0.field_130_2 + 4) = true;
+				*((byte *)game_state_globals.arena->field_130_2 + 4) = true;
+				if (g_4e6948 && g_4e6948->flag1120 &&
+					function_1384a0((s_session_options const *)((byte *)g_4e6948 + 8), (s_session_options const *)local_0.field_130_2) &&
+					function_11c1b0((short)*(long *)((byte *)&local_0 + 0x1248), true) &&
+					game_state_headers_match(&local_0, game_state_globals.arena))
+				{
+					dword local_2 = ((byte)arg_0 & 1) << 5;
+					if ((bool)((arg_0 >> 1) & 1)) local_2 |= 0x40;
+					else local_2 &= ~0x40;
+					function_199520(local_2);
+					for (;;)
+					{
+						game_state_cache_read(game_state_globals.slot);
+						if (game_state_headers_match(&local_0, game_state_globals.arena))
+							break;
+					}
+					function_199540(local_2);
+					return;
+				}
+			}
+		}
+	}
+	main_globals.reset_map = true;
+}
+
+void function_593e0(void);
+bool function_124790(long arg_0, void *arg_1, long arg_2, long arg_3);
+void function_124800(long arg_0, void *arg_1, long arg_2);
+
+// @retail 0x1240b0
+void function_1240b0(long arg_0)
+{
+	s_arena_header local_0;
+	if (function_124790(arg_0, &local_0, sizeof(local_0), 0x3fe000) && function_124520(&local_0))
+	{
+		function_593e0();
+		*((byte *)local_0.field_130_2 + 4) = true;
+		*((byte *)game_state_globals.arena->field_130_2 + 4) = true;
+		if (g_4e6948 && g_4e6948->flag1120 &&
+			function_1384a0((s_session_options const *)((byte *)g_4e6948 + 8), (s_session_options const *)local_0.field_130_2) &&
+			function_11c1b0((short)*(long *)((byte *)&local_0 + 0x1248), true) &&
+			game_state_headers_match(&local_0, game_state_globals.arena))
+		{
+			function_199520(0xc);
+			function_124800(arg_0, game_state_globals.base_address, 0x3fe000);
+			function_199540(0xc);
+			function_123e20();
+			game_state_globals.arena_flag = true;
+		}
+	}
+}
+
+bool __stdcall function_18e8b0(s_session_options const *arg_0);
+void __stdcall function_18f1c0(long arg_0);
+
+// @retail 0x124380
+void function_124380(char const *arg_0)
+{
+	s_arena_header local_0;
+	bool local_1 = false;
+	if (game_state_core_read(arg_0, &local_0, sizeof(local_0)) && function_124520(&local_0))
+	{
+		function_593e0();
+		*((byte *)local_0.field_130_2 + 4) = true;
+		*((byte *)game_state_globals.arena->field_130_2 + 4) = true;
+		if (!g_4e6948 || !g_4e6948->flag1120 ||
+			!function_1384a0((s_session_options const *)((byte *)g_4e6948 + 8), (s_session_options const *)local_0.field_130_2))
+		{
+			local_1 = true;
+			if (!function_18e8b0((s_session_options const *)local_0.field_130_2))
+			{
+				function_18f1c0(0);
+				return;
+			}
+		}
+		if (function_11c1b0((short)*(long *)((byte *)&local_0 + 0x1248), true) &&
+			game_state_headers_match(&local_0, game_state_globals.arena))
+		{
+			function_199520(0xc);
+			game_state_core_read(arg_0, game_state_globals.base_address, 0x3fe000);
+			function_199540(0xc);
+			return;
+		}
+		if (local_1)
+			function_18f1c0(0);
+	}
+}
+
+#include "physical_memory.h"
+#include "unknown_2b116a.h"
+#include <xtl.h>
+extern s_physical_object *g_4e6464;
+long player_slot_get_single_profile(void);
+long player_slot_get_single_profile_index(void);
+void function_19048c(long arg_0);
+long __stdcall function_12d2f0(long arg_0, long arg_1, long arg_2, long arg_3);
+void function_12c600(void);
+double timing_ticks_to_seconds(__int64 arg_0);
+bool __stdcall function_217520(long arg_0, void const *arg_1, long arg_2, void const *arg_3, long arg_4, s_saved_game_read *arg_5);
+bool function_124840(long arg_0, void const *arg_1, long arg_2, long arg_3);
+
+PRIVATE __int64 function_12421c(void)
+{
+	volatile __int64 local_0 = 0;
+	__asm rdtsc
+}
+
+// @retail 0x1241b0
+void function_1241b0(s_saved_game_read *arg_0)
+{
+	if (*(long *)((byte *)g_4e6948 + 8) != 1 || *((byte *)g_4e6948 + 0x134))
+		return;
+	long local_0 = player_slot_get_single_profile();
+	long local_1 = player_slot_get_single_profile_index();
+	function_123f60(0);
+	long local_2 = 0;
+	__int64 local_3 = function_12421c();
+	if (g_4e6464->page_count > 0)
+	{
+		long local_4 = 0;
+		do
+		{
+			local_2 = function_12d2f0(0x3fe000, 0, 0, (long)game_state_cache_block_release);
+			if (!local_2)
+			{
+				if (local_4 < 90)
+				{
+					local_4++;
+					function_12c600();
+				}
+				else
+				{
+					__int64 local_5 = function_12421c() - local_3;
+					if (local_5 < 0) local_5 = 0;
+					if (!(timing_ticks_to_seconds(local_5) < 1.0)) break;
+					D3DDevice_KickPushBuffer();
+					D3DDevice_IsBusy();
+					SwitchToThread();
+				}
+			}
+		} while (!local_2);
+	}
+	if (local_2)
+	{
+		memcpy((void *)local_2, game_state_globals.base_address, 0x3fe000);
+		if (function_217520(local_1, (void *)local_2, 0x1288, (void *)(local_2 + 0x1288), 0x3fcd78, arg_0))
+			function_19048c(local_0);
+	}
+	else if (function_124840(local_1, game_state_globals.base_address, 0x1288, 0x3fe000))
+	{
+		arg_0->error = 0;
+		arg_0->done = true;
+		arg_0->success = true;
+		function_19048c(local_0);
+	}
+}

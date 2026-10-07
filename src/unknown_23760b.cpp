@@ -339,29 +339,31 @@ long c_keyboard_key_widget::v17()
 	case 0x29:
 		if ((bool)(keyboard->key_flags & 1))
 		{
-			return 1;
+			goto active;
 		}
-		break;
+		return c_class_19b8b1::v17();
 	case 0x2a:
 		if ((bool)(((dword)(char)keyboard->key_flags >> 1) & 1))
 		{
-			return 1;
+			goto active;
 		}
-		break;
+		return c_class_19b8b1::v17();
 	case 0x2b:
 		if ((bool)(((dword)(char)keyboard->key_flags >> 2) & 1))
 		{
-			return 1;
+			goto active;
 		}
-		break;
+		return c_class_19b8b1::v17();
 	case 0x2c:
 		if ((bool)(((dword)(char)keyboard->key_flags >> 3) & 1))
 		{
-			return 1;
+			goto active;
 		}
-		break;
+		return c_class_19b8b1::v17();
 	}
 	return c_class_19b8b1::v17();
+active:
+	return 1;
 }
 
 // @retail 0x23784f
@@ -706,23 +708,16 @@ long c_virtual_keyboard_screen::check_string()
 			characters_valid = false;
 		}
 	}
-	if ((keyboard_type->flags & 1) && !has_alphanumeric ||
-		(keyboard_type->flags & 2) && !characters_valid ||
-		!(keyboard_type->flags & 4) && empty)
+	if ((!(keyboard_type->flags & 1) || has_alphanumeric) &&
+		(!(keyboard_type->flags & 2) || characters_valid) &&
+		((keyboard_type->flags & 4) || !empty) &&
+		(!(keyboard_type->flags & 8) || gamertag_valid(string)))
 	{
-		result = 1;
+		if (keyboard_type->check && !keyboard_type->check(this))
+			result = 2;
 	}
 	else
-	{
-		if ((keyboard_type->flags & 8) && !gamertag_valid(string))
-		{
-			result = 1;
-		}
-		else if (keyboard_type->check && !keyboard_type->check(this))
-		{
-			result = 2;
-		}
-	}
+		result = 1;
 	return result;
 }
 
@@ -1218,9 +1213,11 @@ bool __stdcall function_2380c0(c_virtual_keyboard_screen *keyboard)
 // @retail 0x2380d6
 bool __stdcall function_2380d6(c_virtual_keyboard_screen *keyboard)
 {
-	bool result;
+	long result;
+	wchar_t *value = (wchar_t *)keyboard->string;
+	wchar_t **value_reference = &value;
 
-	if (wcscmp((wchar_t *)keyboard->string, (wchar_t *)keyboard->original) == 0 || function_216120(keyboard->string, keyboard->value614))
+	if (wcscmp(*value_reference, (wchar_t *)keyboard->original) == 0 || function_216120(keyboard->string, keyboard->value614))
 	{
 		result = true;
 	}
@@ -1228,7 +1225,7 @@ bool __stdcall function_2380d6(c_virtual_keyboard_screen *keyboard)
 	{
 		result = false;
 	}
-	return result;
+	return *(bool *)&result;
 }
 
 /* ---- finishing ---- */

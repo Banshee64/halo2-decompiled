@@ -12,39 +12,63 @@
 
 s_draw_string_globals g_4e73a0;
 
-struct s_13e8e0_bounds
+struct s_text_bounds
 {
-	short_rectangle2d bounds;
-	short field_8;
-	short field_a;
+	short_rectangle2d rectangle;
+	short ascending_height;
+	short descending_height;
 };
 
-s_13e8e0_bounds g_4e7394;
+s_text_bounds g_4e7394;
 
-typedef bool (__stdcall *f_13e8e0_vertices)(real *vertices, long parameter);
+typedef void (__stdcall *text_glyph_callback)(long, long, long, long, long,
+	real, real, real, real, real, real, real, long, long);
+void __stdcall function_13f0e0(text_glyph_callback callback, short_rectangle2d const *bounds,
+	short *position, short_rectangle2d const *clip, short line_gap, real scale, dword const *text);
 
 // @retail 0x13e8e0
-void __stdcall function_13e8e0(void const *glyph, long font, long character,
-	dword color, dword shadow, real x, real y, real u, real v,
-	real width, real height, real scale,
-	f_13e8e0_vertices vertex_proc, long parameter)
+void __stdcall function_13e8e0(long unknown0, long font, long unknown2, long unknown3, long unknown4,
+	real x, real y, real unknown7, real unknown8, real width, real height, real scale, long unknown12, long unknown13)
 {
 	s_font_header *header = font_get(g_4e28f4[font]);
-	real right = width * scale + x + 1.0f;
-	real bottom = height * scale + y + 1.0f;
-	if (g_4e7394.bounds.left > x)
-		g_4e7394.bounds.left = (short)x;
-	if (g_4e7394.bounds.top > y)
-		g_4e7394.bounds.top = (short)y;
-	if (right > g_4e7394.bounds.right)
-		g_4e7394.bounds.right = (short)right;
-	if (bottom > g_4e7394.bounds.bottom)
-		g_4e7394.bounds.bottom = (short)bottom;
+	real right = x + width * scale + 1.0f;
+	real bottom = y + height * scale + 1.0f;
+	if (g_4e7394.rectangle.left > x)
+		g_4e7394.rectangle.left = (short)x;
+	if (g_4e7394.rectangle.top > y)
+		g_4e7394.rectangle.top = (short)y;
+	if (right > g_4e7394.rectangle.right)
+		g_4e7394.rectangle.right = (short)right;
+	if (bottom > g_4e7394.rectangle.bottom)
+		g_4e7394.rectangle.bottom = (short)bottom;
 	if (header)
 	{
-		g_4e7394.field_8 = header->ascending_height;
-		g_4e7394.field_a = header->descending_height;
+		g_4e7394.ascending_height = header->ascending_height;
+		g_4e7394.descending_height = header->descending_height;
 	}
+}
+
+// @retail 0x13ea60
+void function_13ea60(short_rectangle2d const *bounds, short_rectangle2d *ink_bounds,
+	short_rectangle2d *line_bounds, dword const *text, real scale)
+{
+	short position[2];
+	s_font_header *header = font_get(g_4e28f4[g_4e73a0.font]);
+	g_4e7394.rectangle.top = 32767;
+	g_4e7394.rectangle.left = 32767;
+	g_4e7394.rectangle.bottom = -32768;
+	g_4e7394.rectangle.right = -32768;
+	if (header)
+	{
+		g_4e7394.ascending_height = header->ascending_height;
+		g_4e7394.descending_height = header->descending_height;
+	}
+	function_13f0e0(function_13e8e0, bounds, position, NULL, 0, scale, text);
+	line_bounds->left = position[0];
+	line_bounds->right = position[0] + 1;
+	line_bounds->top = position[1] - g_4e7394.ascending_height;
+	line_bounds->bottom = position[1] + g_4e7394.descending_height;
+	*ink_bounds = g_4e7394.rectangle;
 }
 
 void function_13eb60(color4f const *color);
@@ -393,13 +417,14 @@ bool function_13ef30(word const *string)
 /* whether a private use character is drawn as a glyph (rather than being a
    formatting code) */
 // @retail 0x13f660
-bool function_13f660(long character)
+bool function_13f660(utf32 codepoint)
 {
+	long character = codepoint.value;
 	bool result = false;
 
 	if (character >= 0xe112 && character <= 0xe12b)
 	{
-		return result;
+		return false;
 	}
 
 	if (character >= 0xe000 && character <= 0xe3ff)
@@ -429,7 +454,7 @@ bool function_13f660(long character)
 		case 0xe12f:
 		case 0xe130:
 		case 0xe131:
-			break;
+			return false;
 		default:
 			result = true;
 			break;
@@ -439,175 +464,171 @@ bool function_13f660(long character)
 	return result;
 }
 
-struct s_13ef40_header
+struct s_font_character_header
 {
-	short field_0;
-	word field_2;
+	word unknown00;
+	word pixels_size;
 	short width;
 	short height;
-	short field_8;
-	short field_a;
-	dword field_c;
+	byte unknown08[4];
+	dword pixels_offset;
 };
 
-struct s_13ef40_entry
+struct s_text_cached_character
 {
-	byte field_0[0x10];
+	byte unknown00[0x10];
 	long state;
-	byte field_14[8];
-	s_13ef40_header header;
-	byte field_2c[0xc];
-};
-
-struct s_13ef40_result
-{
-	real width;
-	long index;
+	byte unknown14[8];
+	s_font_character_header header;
+	byte unknown2c[0xc];
 };
 
 extern s_record_pool *g_54d574;
 long font_cache_get_character(long font_index, long character, dword flags);
 bool font_cache_character_load_pixels(long datum_index, dword flags);
+s_font_character_header *font_cache_get_character_header(long font_index, long character, dword flags);
 short function_122570(s_font_header const *header, dword first_character, dword second_character);
 
-// @retail 0x13ef40
-s_13ef40_result function_13ef40(s_text_iterator *iterator, point2f const *origin, real const *bounds, real scale)
+struct s_text_line_measurement
 {
-	real local_1 = 0.0f;
-	// Retail keeps this value in a stack slot across calls.
-	volatile long local_2 = 0;
-	long count = 0;
+	real width;
+	long index;
+};
+
+// @retail 0x13ef40
+s_text_line_measurement function_13ef40(s_text_iterator *iterator, point2f const *position, box2f const *bounds, real scale)
+{
+	real width = 0.0f;
+	volatile long index = 0;
+	volatile long count = 0;
 	long break_index = 0;
 	real break_width;
-	bool stop = false;
+	bool done = false;
 	do
 	{
-		bool keep_break = false;
+		bool wrapped = false;
 		function_13f5a0(iterator);
 		if (iterator->token == _text_token_character)
 		{
-			long datum_index = font_cache_get_character(iterator->font, iterator->character, 3);
-			if (datum_index != NONE && font_cache_character_load_pixels(datum_index, 3))
+			long glyph_index = font_cache_get_character(iterator->font, iterator->character, 3);
+			s_font_character_header *header = NULL;
+			if (glyph_index != NONE && font_cache_character_load_pixels(glyph_index, 3))
 			{
-				s_13ef40_entry *entry = &((s_13ef40_entry *)g_54d574->data)[datum_index & 0xffff];
-				s_13ef40_header const *header = entry->state == 4 ? &entry->header : NULL;
-				if (header)
+				s_text_cached_character *glyph = &((s_text_cached_character *)g_54d574->data)[glyph_index & 0xffff];
+				if (glyph->state == 4)
+					header = &glyph->header;
+			}
+			if (header)
+			{
+				real kerning = function_122570(iterator->field_4_3, iterator->character, iterator->previous_character) * scale;
+				real advance = (short)header->unknown00 * scale;
+				real offset = *(short *)header->unknown08 * scale;
+				if (iterator->can_break)
 				{
-					short spacing = function_122570(iterator->field_4_3, iterator->previous_character, iterator->character);
-					real advance = header->field_0 * scale;
-					real offset = header->field_8 * scale;
-					real kerning = spacing * scale;
-					if (iterator->can_break)
-					{
-						break_index = local_2;
-						break_width = local_1;
-					}
-					if (bounds[1] > origin->x + advance + offset + kerning + local_1 || !count)
-					{
-						local_1 = advance + offset + kerning + local_1;
-						count++;
-					}
-					else if (g_4e73a0.flags & 1)
+					break_index = index;
+					break_width = width;
+				}
+				if (!(bounds->x1 > position->x + advance + offset + kerning + width) && count)
+				{
+					if (g_4e73a0.flags & 1)
 					{
 						if (break_index > 0)
 						{
-							local_1 = break_width;
-							local_2 = break_index;
-							keep_break = true;
+							index = break_index;
+							width = break_width;
+							wrapped = true;
 						}
-						stop = true;
+						done = true;
 					}
+				}
+				else
+				{
+					count++;
+					width = advance + offset + kerning + width;
 				}
 			}
 		}
 		else
-		{
-			stop = true;
-		}
-		if (keep_break)
-			break;
-		local_2 = iterator->index;
-	} while (!stop);
-	s_13ef40_result result = { local_1, local_2 };
+			done = true;
+		if (!wrapped)
+			index = iterator->index;
+	} while (!done);
+	s_text_line_measurement result = { width, index };
 	return result;
 }
 
-typedef void (__stdcall *f_13f700_draw)(void const *, long, long, dword, dword,
-	real, real, real, real, real, real, real, f_13e8e0_vertices, long);
-
-struct s_font_character_header;
-s_font_character_header *font_cache_get_character_header(long font_index, long character, dword flags);
-
 // @retail 0x13f700
-void function_13f700(real const *bounds, f_13f700_draw draw, point2f *origin,
-	dword color, dword shadow, dword const *string, short end, real scale,
-	short begin, real const *clip)
+void function_13f700(box2f const *bounds, box2f const *clip, short first,
+	text_glyph_callback callback, point2f *position, dword color, dword shadow,
+	dword const *text, short last, real scale)
 {
-	real right, left, bottom, top;
-	top = left = -32768.0f;
-	bottom = right = 32767.0f;
+	real left = -32768.0f;
+	real top = -32768.0f;
+	real right = 32767.0f;
+	real bottom = 32767.0f;
 	if (bounds)
 	{
-		if (bounds[0] > left) left = bounds[0];
-		if (right > bounds[1]) right = bounds[1];
-		if (bounds[2] > top) top = bounds[2];
-		if (bottom > bounds[3]) bottom = bounds[3];
+		if (bounds->x0 > left) left = bounds->x0;
+		if (bounds->x1 < right) right = bounds->x1;
+		if (bounds->y0 > top) top = bounds->y0;
+		if (bounds->y1 < bottom) bottom = bounds->y1;
 	}
 	if (clip)
 	{
-		if (clip[0] > left) left = clip[0];
-		if (right > clip[1]) right = clip[1];
-		if (clip[2] > top) top = clip[2];
-		if (bottom > clip[3]) bottom = clip[3];
+		if (clip->x0 > left) left = clip->x0;
+		if (clip->x1 < right) right = clip->x1;
+		if (clip->y0 > top) top = clip->y0;
+		if (clip->y1 < bottom) bottom = clip->y1;
 	}
 	if (right > left && bottom > top)
 	{
 		s_text_iterator iterator;
-		if (function_13f470(&iterator, g_4e73a0.font, (short)g_4e73a0.justification, string,
+		if (function_13f470(&iterator, g_4e73a0.font, (short)g_4e73a0.justification, text,
 			(short)g_4e73a0.style, &g_4e73a0.color, &g_4e73a0.shadow, &g_4e73a0.field_24))
 		{
-			iterator.index = begin;
-			while (iterator.index < end)
+			iterator.index = first;
+			while (iterator.index < last)
 			{
 				function_13f5a0(&iterator);
 				if (!iterator.character)
 					break;
 				if (iterator.token == _text_token_character && ((long)iterator.character < 0 || (long)iterator.character > 31))
 				{
-					s_13ef40_header const *header = (s_13ef40_header const *)font_cache_get_character_header(iterator.font, iterator.character, 3);
+					s_font_character_header *header = font_cache_get_character_header(iterator.font, iterator.character, 3);
 					if (header)
 					{
 						real width = header->width;
 						real height = header->height;
-						real u = 0.0f;
-						real v = 0.0f;
-						short spacing = function_122570(iterator.field_4_3, iterator.previous_character, iterator.character);
-						real offset = header->field_8 * scale;
-						real kerning = spacing * scale;
-						real x = origin->x + offset + kerning;
-						real y = origin->y - header->field_a * scale;
+						real source_x = 0.0f;
+						real source_y = 0.0f;
+						real kerning = function_122570(iterator.field_4_3, iterator.character, iterator.previous_character) * scale;
+						real offset = *(short *)header->unknown08 * scale;
+						real x = position->x + offset + kerning;
+						real y = position->y - *(short *)(header->unknown08 + 2) * scale;
 						if (x + width > right) width = right - x;
-						if (left > x)
+						if (x < left)
 						{
-							u = left - x;
+							source_x = left - x;
 							x = left;
-							width -= u;
+							width -= source_x;
 						}
 						if (y + height > bottom) height = bottom - y;
-						if (top > y)
+						if (y < top)
 						{
-							v = top - y;
+							source_y = top - y;
 							y = top;
-							height -= v;
+							height -= source_y;
 						}
 						if (width > 0.0f && height > 0.0f)
 						{
-							dword glyph_color = color;
-							if (function_13f660(iterator.character)) glyph_color |= 0xffffff;
-							draw(&iterator, iterator.font, iterator.character, glyph_color, shadow,
-								x, y, u, v, width, height, scale, g_4e73a0.vertex_proc, g_4e73a0.vertex_proc_parameter);
+							dword pixel = color;
+							utf32 codepoint = { iterator.character };
+							if (function_13f660(codepoint)) pixel |= 0xffffff;
+							callback((long)&iterator, iterator.font, iterator.character, pixel, shadow,
+								x, y, source_x, source_y, width, height, scale,
+								(long)g_4e73a0.vertex_proc, g_4e73a0.vertex_proc_parameter);
 						}
-						origin->x = header->field_0 * scale + origin->x + offset + kerning;
+						position->x = (short)header->unknown00 * scale + position->x + offset + kerning;
 					}
 				}
 			}
@@ -615,123 +636,105 @@ void function_13f700(real const *bounds, f_13f700_draw draw, point2f *origin,
 	}
 }
 
-struct s_13f0e0_point
-{
-	short x, y;
-};
-
 // @retail 0x13f0e0
-void function_13f0e0(f_13f700_draw draw, short_rectangle2d const *bounds, s_13f0e0_point *cursor,
-	short_rectangle2d const *clip, short spacing, real scale, dword const *string)
+void __stdcall function_13f0e0(text_glyph_callback callback, short_rectangle2d const *bounds,
+	short *arg_c5cac5, short_rectangle2d const *clip, short line_gap, real scale, dword const *text)
 {
-	short row = 0;
-	short column = 0;
-	short maximum_line = 0;
-	short line = 0;
 	point2f position = { (real)bounds->left, (real)bounds->top };
+	long tab = 0;
+	long line = 0;
+	long maximum_lines = 0;
+	long wrapped_line = 0;
 	s_text_iterator iterator;
-	if (function_13f470(&iterator, g_4e73a0.font, (short)g_4e73a0.justification, string,
+	if (function_13f470(&iterator, g_4e73a0.font, (short)g_4e73a0.justification, text,
 		(short)g_4e73a0.style, &g_4e73a0.color, &g_4e73a0.shadow, &g_4e73a0.field_24))
 	{
 		for (;;)
 		{
-			long begin = iterator.index;
+			long first = iterator.index;
 			long justification = iterator.justification;
-			s_font_header *font = iterator.field_4_3;
-			real line_bounds[4] = { (real)bounds->left, (real)bounds->right, (real)bounds->top, (real)bounds->bottom };
+			box2f line_bounds = { (real)bounds->left, (real)bounds->right, (real)bounds->top, (real)bounds->bottom };
 			if (g_4e73a0.tab_stop_count > 0)
 			{
-				if (column)
-					line_bounds[0] = g_4e73a0.tab_stops[column - 1] * scale;
+				if ((short)tab != 0)
+					line_bounds.x0 = g_4e73a0.tab_stops[(short)tab - 1] * scale;
 				else
-					line_bounds[0] += (row ? (long)g_4e73a0.unknown60 : (long)g_4e73a0.unknown5e) * scale;
-				if (column < g_4e73a0.tab_stop_count)
-					line_bounds[1] = g_4e73a0.tab_stops[column] * scale;
+					line_bounds.x0 += ((short)line == 0 ? g_4e73a0.unknown5e : g_4e73a0.unknown60) * scale;
+				if ((short)tab < g_4e73a0.tab_stop_count)
+					line_bounds.x1 = g_4e73a0.tab_stops[(short)tab] * scale;
 			}
 			else
-				line_bounds[0] += (row ? (long)g_4e73a0.unknown60 : (long)g_4e73a0.unknown5e) * scale;
-			position.x = *(short const *)font->unknown0a * scale + line_bounds[0];
-			position.y = (font->ascending_height + (row + line) * (font->ascending_height + font->descending_height + font->leading_height + spacing)) * scale + line_bounds[2];
-			s_13ef40_result measured = function_13ef40(&iterator, &position, line_bounds, scale);
-			font = iterator.field_4_3;
-			if (justification == 1)
-				position.x = line_bounds[1] - line_bounds[0] + line_bounds[0] - measured.width - *(short const *)font->unknown0a;
-			else if (justification == 2)
-				position.x = (line_bounds[1] - line_bounds[0] - measured.width) * 0.5f + line_bounds[0];
-			if (line_bounds[3] > position.y)
+				line_bounds.x0 += ((short)line == 0 ? g_4e73a0.unknown5e : g_4e73a0.unknown60) * scale;
+			s_font_header *header = iterator.field_4_3;
+			position.x = *(short *)header->unknown0a * scale + line_bounds.x0;
+			position.y = (header->ascending_height +
+				(header->leading_height + line_gap + header->descending_height + header->ascending_height) * ((short)wrapped_line + (short)line)) * scale + line_bounds.y0;
+			s_text_line_measurement measured = function_13ef40(&iterator, &position, &line_bounds, scale);
+			header = iterator.field_4_3;
+			switch (justification)
 			{
-				real clip_bounds[4];
-				real const *clip_pointer = NULL;
+			case 1:
+				position.x = line_bounds.x1 - line_bounds.x0 + line_bounds.x0 - measured.width - *(short *)header->unknown0a;
+				break;
+			case 2:
+				position.x = (line_bounds.x1 - line_bounds.x0 - measured.width) * 0.5f + line_bounds.x0;
+				break;
+			}
+			if (line_bounds.y1 > position.y)
+			{
+				box2f clip_bounds;
+				box2f const *clipping = NULL;
 				if (clip)
 				{
-					clip_bounds[0] = clip->left;
-					clip_bounds[1] = clip->right;
-					clip_bounds[2] = clip->top;
-					clip_bounds[3] = clip->bottom;
-					clip_pointer = clip_bounds;
+					clip_bounds.x0 = clip->left;
+					clip_bounds.x1 = clip->right;
+					clip_bounds.y0 = clip->top;
+					clip_bounds.y1 = clip->bottom;
+					clipping = &clip_bounds;
 				}
-				function_13f700(line_bounds, draw, &position, iterator.color, iterator.field_24,
-					string, (short)measured.index, scale, begin, clip_pointer);
+				function_13f700(&line_bounds, clipping, (short)first, callback, &position, iterator.color, iterator.field_24, text, (short)measured.index, scale);
 			}
 			iterator.index = (short)measured.index;
 			switch (iterator.token)
 			{
-			case _text_token_end: goto done;
+			case _text_token_end:
+				goto done;
 			case _text_token_newline:
-				row += maximum_line + 1;
-				column = 0;
-				line = 0;
-				maximum_line = 0;
+				line += maximum_lines + 1;
+				tab = 0;
+				maximum_lines = 0;
+				wrapped_line = 0;
 				break;
 			case _text_token_tab:
-				if (column >= g_4e73a0.tab_stop_count) break;
-				column++;
+				if ((short)tab < g_4e73a0.tab_stop_count)
+				{
+					tab++;
+					wrapped_line = 0;
+				}
+				break;
 			case _text_token_justification:
-				line = 0;
+				wrapped_line = 0;
 				break;
 			case _text_token_character:
-				line++;
-				if (line > maximum_line) maximum_line = line;
+				wrapped_line++;
+				if ((short)wrapped_line > (short)maximum_lines)
+					maximum_lines = wrapped_line;
 				break;
 			}
 		}
 	}
 done:
-	if (cursor)
+	if (arg_c5cac5)
 	{
-		cursor->x = (short)position.x;
-		cursor->y = (short)position.y;
+		arg_c5cac5[0] = (short)position.x;
+		arg_c5cac5[1] = (short)position.y;
 	}
-}
-
-// @retail 0x13ea60
-void function_13ea60(short_rectangle2d const *bounds, dword const *string, real scale,
-	short_rectangle2d *area, short_rectangle2d *cursor)
-{
-	s_font_header *font = font_get(g_4e28f4[g_4e73a0.font]);
-	g_4e7394.bounds.top = 0x7fff;
-	g_4e7394.bounds.left = 0x7fff;
-	g_4e7394.bounds.bottom = (short)0x8000;
-	g_4e7394.bounds.right = (short)0x8000;
-	if (font)
-	{
-		g_4e7394.field_8 = font->ascending_height;
-		g_4e7394.field_a = font->descending_height;
-	}
-	s_13f0e0_point point;
-	function_13f0e0(function_13e8e0, bounds, &point, NULL, 0, scale, string);
-	cursor->left = point.x;
-	cursor->right = point.x + 1;
-	cursor->top = point.y - g_4e7394.field_8;
-	cursor->bottom = point.y + g_4e7394.field_a;
-	*area = g_4e7394.bounds;
 }
 
 // @retail 0x13e9c0
-void function_13e9c0(word const *text, short_rectangle2d const *bounds,
-	short_rectangle2d *area, short_rectangle2d *cursor, real scale)
+void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale)
 {
 	dword characters[0x800];
 	unicode_string_to_characters(0x800, text, characters);
-	function_13ea60(bounds, characters, scale, area, cursor);
+	function_13ea60(bounds, a, b, characters, scale);
 }

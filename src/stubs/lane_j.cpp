@@ -2,10 +2,6 @@
 // are not decompiled yet
 #include "unknown_11c920.h"
 
-// @stub 0xa9120
-void __stdcall function_a9120(long unit_index, long trick)
-{
-}
 
 struct s_bitstream;
 struct s_network_connection;
@@ -24,28 +20,8 @@ struct s_session_member_identity;
 struct s_type_99af70;
 
 /* lane D's region: the session handlers the message handler calls */
-// @stub 0x61570
-void __stdcall function_061570(c_class_58d20 *session, bool flag)
-{
-}
 
-// @stub 0x5e3f0
-bool __stdcall function_05e3f0(c_class_58d20 *session, s_type_99af70 const *address)
-{
-	return false;
-}
 
-// @stub 0x5cb80
-bool __stdcall function_05cb80(c_class_58d20 *session, void const *message)
-{
-	return false;
-}
-
-// @stub 0x5d9e0
-bool __stdcall function_05d9e0(c_class_58d20 *session, void const *message)
-{
-	return false;
-}
 
 /* kept out of the build in src/unknown_059ad0.cpp: built there, its session
    moves into a register and the matched 0x94700 no longer matches */
@@ -55,11 +31,7 @@ bool __stdcall network_session_handle_player_add(c_class_58d20 *session, long re
 	return false;
 }
 
-// @stub 0x5e7f0
-bool __stdcall function_05e7f0(c_class_58d20 *session, s_type_99af70 const *address, void const *message, long *reason, bool *has_identity, s_session_member_identity *identity)
-{
-	return false;
-}
+
 
 /* lane D's region: a connection's update */
 // @stub 0x883c0
@@ -106,14 +78,5 @@ void __stdcall function_0b2fc0(s_network_message_session_query const *message)
 {
 }
 
-// @stub 0x63080
-void __stdcall function_063080(c_class_58d20 *session, s_network_message_session_query const *message, s_type_99af70 const *address)
-{
-}
-
-// @stub 0x785d0
-void __stdcall function_0785d0(void *unknown10, s_type_99af70 const *address, void const *message)
-{
-}
 
 class c_simulation_view;

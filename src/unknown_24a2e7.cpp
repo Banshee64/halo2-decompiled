@@ -1,6 +1,11 @@
 #include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "data_array.h"
+#include "unknown_24b5bc.h"
+#include "unknown_19b510.h"
+#include "unknown_19b516.h"
+#include "unknown_2b116a.h"
+#include "loop_allocator.h"
 #include <wchar.h>
 #include <string.h>
 
@@ -20,12 +25,18 @@ struct s_entry_24a64d
 class c_list_24a64d : public c_list_widget_with_items
 {
 public:
+	c_list_24a64d(word arg_0);
+	virtual void v20(c_class_1a2c81 *item, long);
 	virtual void *function_24a64d(long index);
 	virtual void v24();
 	virtual word const *function_24a691(long index, bool append);
 	bool function_24a2e7(long controller);
+	void function_24a30e(s_controller_reference **arg_0, long *arg_1);
 	byte field_88;
 	bool field_89;
+	bool field_8a;
+	long field_8c;
+	c_list_item_handler field_90;
 };
 
 short player_slot_count_active(void);
@@ -88,6 +99,8 @@ class c_screen_24a7bf : public c_screen_with_menu
 {
 public:
 	virtual void v19();
+	virtual void v3();
+	virtual void v25(s_screen_focus *arg_0);
 	s_entry_24a64d *function_24a828();
 	bool function_24a855();
 	c_list_24a64d field_614;
@@ -134,6 +147,44 @@ s_entry_24a64d *c_screen_24a7bf::function_24a828()
 
 void unicode_string_copy(word *destination, word const *source, long maximum_count);
 void ascii_string_to_unicode(char const *source, word *destination, long maximum_count);
+
+bool function_24aae8();
+void function_22f042(s_widget_item *items, c_class_1a2c81 *widget, long count);
+
+// @retail 0x24a09b
+void c_list_24a64d::v20(c_class_1a2c81 *item, long)
+{
+	long datum_index = ((c_class_14750b *)item)->value70;
+	if (datum_index != NONE)
+	{
+		c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
+		s_datum_24a763 *datum = &((s_datum_24a763 *)data->data)[datum_index & 0xffff];
+		if (text)
+		{
+			s_widget_item layout;
+			if (datum->index == NONE)
+			{
+				layout.value5e = true;
+				layout.flags = 0x20;
+				text->function_253b1a(0x12000195);
+				text->value6e = true;
+			}
+			else
+			{
+				void const *appearance = function_24a64d(datum->index);
+				layout.value4 = (long)function_24a691(datum->index, function_24aae8());
+				layout.flags |= 1;
+				if (appearance)
+				{
+					memcpy(layout.value48, appearance, sizeof(layout.value48));
+					layout.flags |= 2;
+				}
+				text->value6e = false;
+			}
+			function_22f042(&layout, item, 1);
+		}
+	}
+}
 
 // @retail 0x24a691
 word const *c_list_24a64d::function_24a691(long index, bool append)
@@ -227,4 +278,310 @@ void c_list_24a64d::v24()
 			}
 		}
 	}
+}
+
+// @retail 0x249f0d
+c_list_24a64d::c_list_24a64d(word arg_0) :
+	c_list_widget_with_items(arg_0),
+	field_88(0), field_89(false), field_8a(false), field_8c(NONE),
+	field_90(this, (list_item_method)&c_list_24a64d::function_24a30e)
+{
+	data = user_interface_data_new("player profile list", 0x1001, 8);
+	function_16b790(data);
+	delegate_register(&item_handlers, &field_90);
+}
+
+void function_24c166(c_class_1474e8 *arg_0);
+void __stdcall function_215900(long arg_0, long arg_1, word *arg_2, long *arg_3, long arg_4);
+bool player_slot_profile_in_use(long arg_0);
+
+// @retail 0x24a190
+void function_24a190(void *arg_0)
+{
+	c_list_24a64d *local_0 = (c_list_24a64d *)arg_0;
+	record_pool_release_all(local_0->data);
+	function_24c166(local_0);
+	bool local_1 = !local_0->field_89;
+	word local_2 = 0x1000;
+	long local_3[0x1000];
+	long local_4 = 0;
+	long local_5 = 0;
+	c_class_14750b *local_6 = (c_class_14750b *)local_0->get_item_data();
+	long local_7 = local_0->get_item_count();
+	function_215900(local_0->get_controller_index(), 0, &local_2, local_3, local_1);
+	if (!network_session_manager_session_unready())
+	{
+		long local_8 = record_pool_allocate(local_0->data);
+		((s_datum_24a763 *)local_0->data->data)[local_8 & 0xffff].index = NONE;
+		if (local_7 > 0)
+			local_0->add_child(&local_6[0]);
+		local_4 = 1;
+	}
+	for (; local_5 < local_2; ++local_5)
+	{
+		if (local_0->field_89 || !player_slot_profile_in_use(local_3[local_5]))
+		{
+			long local_8 = record_pool_allocate(local_0->data);
+			((s_datum_24a763 *)local_0->data->data)[local_8 & 0xffff].index = local_3[local_5];
+			if (local_4 < local_7)
+				local_0->add_child(&local_6[local_4]);
+			++local_4;
+		}
+	}
+	s_entry_24a64d *local_9 = (s_entry_24a64d *)local_0->get_items(&local_7);
+	for (long local_10 = 0; local_10 < local_7; ++local_10)
+	{
+		local_9[local_10].index = NONE;
+		memset((byte *)&local_9[local_10] + 4, 0, 0x1e0);
+	}
+	function_24c0c4((c_widget *)local_0);
+}
+
+extern byte g_54eae8[4][0xc70];
+extern long g_470a60;
+bool function_8d7c0();
+void function_120df0(long arg_0, wchar_t const *arg_1);
+bool __stdcall function_24ab0c(long arg_0, XONLINE_USER *arg_1, char const *arg_2);
+bool online_user_requires_passcode(XONLINE_USER const *arg_0);
+c_class_1473c9 *__stdcall function_2baa9b(s_screen_parameters *arg_0);
+c_class_1473c9 *__stdcall function_2ba45b(s_screen_parameters *arg_0);
+c_class_1473c9 *__stdcall function_24b4a9(s_screen_parameters *arg_0);
+bool __stdcall function_24aad1(long arg_0);
+
+// @retail 0x24a30e
+void c_list_24a64d::function_24a30e(s_controller_reference **arg_0, long *arg_1)
+{
+	s_datum_24a763 *local_0 = (s_datum_24a763 *)record_pool_lookup(data, *arg_1);
+	if (local_0)
+	{
+		if (local_0->index == NONE)
+		{
+			if (function_24a2e7((*arg_0)->controller_index) && !field_89)
+				function_14800c(v11(), v12());
+		}
+		else
+		{
+			s_player_profile_settings local_1;
+			if (function_1a0540(&local_1, local_0->index))
+			{
+				if (field_89)
+				{
+					s_screen_parameters local_2;
+					local_2.field_c = 0;
+					profile_edit_begin((*arg_0)->controller_index, &local_1, local_0->index);
+					function_149f49((s_message *)&local_2, 0, 0, 1 << (*arg_0)->controller_index, 3, 4, (long)function_2baa9b);
+					c_class_1473c9 *local_3 = local_2.load(&local_2);
+					if (local_3)
+					{
+						*(long *)((byte *)local_3 + 0x614) = 0;
+						*(long *)((byte *)local_3 + 0x6a0) = 0;
+					}
+				}
+				else
+				{
+					s_player_slot_profile *local_4 = (s_player_slot_profile *)g_54eae8[(*arg_0)->controller_index];
+					local_4->initialize((*arg_0)->controller_index);
+					local_4->set_profile_index(local_0->index);
+					function_120df0((*arg_0)->controller_index, (wchar_t const *)local_1.name);
+					if (field_88)
+					{
+						if (!function_8d7c0())
+						{
+							function_14800c(v11(), v12());
+							return;
+						}
+						XONLINE_USER local_5 = {0};
+						if (function_24ab0c((*arg_0)->controller_index, &local_5, (char const *)&local_1 + 0x48))
+						{
+							local_4->user = local_5;
+							if (online_user_requires_passcode(&local_5))
+							{
+								s_screen_parameters local_6;
+								local_6.field_c = 0;
+								function_149f49((s_message *)&local_6, 6, 0, 1 << (*arg_0)->controller_index, 3, 4, (long)function_2ba45b);
+								local_6.load(&local_6);
+								return;
+							}
+						}
+						else
+						{
+							s_screen_parameters local_6;
+							local_6.field_c = 0;
+							function_149f49((s_message *)&local_6, 6, 0, 1 << (*arg_0)->controller_index, 3, 4, (long)function_24b4a9);
+							local_6.load(&local_6);
+							return;
+						}
+					}
+					local_4->sign_in(0);
+					function_14800c(v11(), v12());
+				}
+			}
+			else
+			{
+				g_470a60 = local_0->index;
+				field_8a = true;
+				dialog_choice_show(1, 0x77, 4, 1 << (*arg_0)->controller_index, function_24aad1, 0, 0);
+			}
+		}
+	}
+}
+
+void function_120e20(long arg_0, long *arg_1);
+
+// @retail 0x249fcc
+void function_249fcc(c_unknown_249fa3 *arg_0)
+{
+	c_list_24a64d *local_0 = (c_list_24a64d *)arg_0;
+	long local_1;
+	function_120e20(local_0->get_controller_index(), &local_1);
+	if (local_1 != NONE)
+	{
+		s_list_item_iterator local_2;
+		local_2.iterator.data = local_0->data;
+		local_2.iterator.datum_index = NONE;
+		local_2.iterator.index = NONE;
+		while (function_2b2327(&local_2))
+		{
+			if (((s_datum_24a763 *)local_2.item)->index == local_1)
+			{
+				local_0->select_datum(local_2.iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+// @retail 0x24a80d
+void c_screen_24a7bf::v25(s_screen_focus *arg_0)
+{
+	c_class_1473c9::v25(arg_0);
+	function_249fcc((c_unknown_249fa3 *)&field_614);
+}
+
+void function_2b10a3(dword const *arg_0, c_class_2b0b5e *arg_1, long arg_2);
+
+// @retail 0x24a7ec
+void function_24a7ec(dword const *arg_0, c_class_2b0b5e *arg_1, long arg_2, bool arg_3)
+{
+	if (arg_1)
+	{
+		if (arg_3)
+			arg_1->value6e = false;
+		else
+			function_2b10a3(arg_0, arg_1, arg_2);
+	}
+}
+
+struct s_key_set;
+struct s_entry_b;
+struct s_localized_name;
+void function_1a06f0(s_key_set *arg_0, long *arg_1, long *arg_2);
+long function_19c4e0(long arg_0);
+long function_19c440(long arg_0, long arg_1);
+s_entry_b *function_19c1f0(long arg_0);
+wchar_t *localized_name_get(s_localized_name *arg_0);
+s_text_block *function_253c06(c_class_1a2c81 *arg_0);
+
+// @retail 0x24a886
+void c_screen_24a7bf::v3()
+{
+	c_class_1a2c81::v3();
+	bool local_0 = function_24a855();
+	s_entry_24a64d *local_1 = function_24a828();
+	dword local_2[4];
+	memcpy(local_2, local_1->field_11c, sizeof(local_2));
+	s_widget_item local_3;
+	if (local_0)
+	{
+		local_3.value5e = true;
+		local_3.flags = 0x20;
+	}
+	else
+	{
+		local_3.value4 = (long)local_1->field_0c;
+		memcpy(local_3.value48, local_2, sizeof(local_2));
+		local_3.flags = 3;
+	}
+	function_22f042(&local_3, this, 1);
+	set_child_value6e(6, 3, false);
+	c_text_widget_45a5e0 *local_4 = (c_text_widget_45a5e0 *)find_child(6, 4, false);
+	if (local_4)
+	{
+		long local_5 = 0x7000001;
+		if (!local_0)
+		{
+			switch (((byte *)local_1)[0x105])
+			{
+			case 0: local_5 = 0x7000001; break;
+			case 1: local_5 = 0x80002f5; break;
+			case 2: local_5 = 0x60002f6; break;
+			case 3: local_5 = 0xf0002f7; break;
+			default: local_5 = 0; break;
+			}
+		}
+		local_4->function_253b1a(local_5);
+		local_4->value6e = true;
+	}
+	local_4 = (c_text_widget_45a5e0 *)find_child(6, 5, false);
+	if (local_4)
+	{
+		long local_5 = 0x7000001;
+		if (!local_0)
+		{
+			switch (((byte *)local_1)[0x104])
+			{
+			case 0: local_5 = 0x7000001; break;
+			case 1: local_5 = 0x90003e4; break;
+			case 2: local_5 = 0x50003e5; break;
+			case 3: local_5 = 0xb0003e6; break;
+			default: local_5 = 0; break;
+			}
+		}
+		local_4->function_253b1a(local_5);
+		local_4->value6e = true;
+	}
+	local_4 = (c_text_widget_45a5e0 *)find_child(6, 6, false);
+	if (local_4)
+	{
+		if (!local_0)
+		{
+			long local_5, local_6;
+			function_1a06f0((s_key_set *)((byte *)local_1 + 4), &local_5, &local_6);
+			if (local_5 != function_19c4e0(1))
+				local_5 = function_19c440(1, local_5);
+			if (local_5 != NONE)
+			{
+				s_entry_b *local_7 = function_19c1f0(local_5);
+				if (local_7)
+				{
+					word *local_8 = (word *)localized_name_get((s_localized_name *)local_7);
+					local_4->function_22f52e()->set_text(local_8);
+					goto local_9;
+				}
+			}
+		}
+		local_4->function_253b1a(function_253c06(local_4)->string_handle);
+	}
+local_9:
+	local_4 = (c_text_widget_45a5e0 *)find_child(6, 7, false);
+	if (local_4)
+	{
+		long local_5 = 0x60000b8;
+		if (!local_0)
+		{
+			long local_6, local_7;
+			function_1a06f0((s_key_set *)((byte *)local_1 + 4), &local_6, &local_7);
+			switch (local_7)
+			{
+			case 0: local_5 = 0x400028e; break;
+			case 1: break;
+			case 2: local_5 = 0x600028f; break;
+			case 3: local_5 = 0x9000290; break;
+			}
+		}
+		local_4->function_253b1a(local_5);
+	}
+	set_child_value6e(8, 6, local_0);
+	function_24a7ec(local_2, (c_class_2b0b5e *)find_child(7, 0, false), 0, local_0);
+	function_24a7ec(local_2, (c_class_2b0b5e *)find_child(7, 1, false), 1, local_0);
 }

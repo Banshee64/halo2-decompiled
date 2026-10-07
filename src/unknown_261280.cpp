@@ -154,3 +154,51 @@ void function_260530(s_reference_candidate_view *entry, s_reference_direction_re
 	}
 }
 
+
+long function_262a30(s_reference reference);
+
+struct s_reference_filter_view
+{
+	byte unknown00[0x56];
+	bool allow_a;
+	bool require_flag;
+	bool allow_b;
+	bool allow_any;
+};
+
+// @retail 0x2623a0
+bool function_2623a0(s_reference_filter_view const *filter, long actor_index, s_actor_view *actor, s_reference reference)
+{
+	if (filter)
+	{
+		s_262b40_result *entry = function_262b40(reference);
+		if (!entry || (!filter->allow_a && !filter->allow_b &&
+			(*(long *)((byte *)entry + 0x14) == NONE || !(entry->flags & 0x60))))
+			return false;
+		bool result;
+		bool flag = (bool)(((dword)entry->flags >> 5) & 1);
+		if (filter->require_flag)
+			result = flag;
+		else if (filter->allow_any)
+			result = true;
+		else
+			result = !flag;
+		if (result)
+		{
+			long other_index = function_262a30(reference);
+			if (other_index != actor_index && other_index != NONE)
+			{
+				s_actor_view *other = actor_get(other_index);
+				if (other->unknown024 != actor->unknown024)
+					return false;
+				point3f point;
+				function_210850((s_type_c3b527 *)entry, &point);
+				real distance = distance3d((point3f *)((byte *)other + 0x238), &point);
+				if (distance < 1.0f || distance3d((point3f *)((byte *)actor + 0x238), &point) * 2.0f > distance)
+					return false;
+			}
+		}
+		return result;
+	}
+	return true;
+}

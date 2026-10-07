@@ -4,7 +4,6 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
-#include "globals.h"
 
 #define PIN(n,floor,ceiling) ((n)<(floor) ? (floor) : ((n)>(ceiling)?(ceiling):(n)))
 
@@ -257,99 +256,161 @@ void function_1301c0(s_fog_state *fog)
 	}
 }
 
+#include "globals.h"
 bool function_16e210(long cluster_index, long value);
 
-PRIVATE __forceinline real function_1305d1(real arg_1)
+struct s_fog_plane_view
 {
-	arg_1 = 0.0f > arg_1 ? 0.0f : (arg_1 > 1.0f ? 1.0f : arg_1);
-	if (0.0001f > arg_1)
-		arg_1 = 0.0f;
-	else if (arg_1 > 0.9999f)
-		arg_1 = 1.0f;
-	return arg_1;
+	byte unknown00[0x1c];
+	s_fog_layer layers[2];
+	color3f color4c;
+	real intensity58;
+	color3f combined_color;
+	real combined_intensity;
+	long index6c;
+	color3f color70;
+	color3f color7c;
+	real value88;
+	real value8c;
+	real value90;
+	real value94;
+	byte unknown98[4];
+	long tag_index;
+	s_fog_layer pending;
+	real valueb8;
+	real valuebc;
+	bool flagc0;
+	byte unknownc1[3];
+	real valuec4;
+	byte unknownc8[0x10];
+	real valued8;
+	real valuedc;
+	byte unknowne0[0x14];
+	plane3f plane;
+	byte unknown104[4];
+	real plane_distance;
+	real blend;
+	real offset;
+	byte unknown114[4];
+	real fade;
+};
+struct s_fog_blend_definition
+{
+	color3f color0;
+	color3f colorc;
+	real value18;
+	real value1c;
+	real value20;
+	real value24;
+	real threshold;
+	byte unknown2c[4];
+	long index;
+};
+struct s_fog_blend_tag
+{
+	byte unknown00[0x30];
+	long count;
+	s_fog_blend_definition *definitions;
+};
+__forceinline real fog_pin_unit(real value)
+{
+	value = PIN(value, 0.0f, 1.0f);
+	if (value < 0.0001f)
+		value = 0.0f;
+	else if (value > 0.9999f)
+		value = 1.0f;
+	return value;
 }
 
 // @retail 0x1305d0
-void function_1305d0(s_fog_state *arg_1, long arg_2, point3f const *arg_3, bool arg_4)
+void function_1305d0(point3f const *point, long cluster_index, s_fog_plane_view *fog, bool force)
 {
-	(void)&arg_2;
-	if (arg_1->pending.intensity > 0.0f)
+	if (fog->pending.intensity > 0.0f)
 	{
-		if (arg_4)
+		if (force)
 		{
-			*(real *)((byte *)arg_1 + 0x108) = 0.0f - arg_1->pending.height;
-			arg_1->value10c = 1.0f;
+			fog->plane_distance = 0.0f - fog->pending.height;
+			fog->blend = 1.0f;
 		}
 		else
 		{
-			*(real *)((byte *)arg_1 + 0x108) = plane_distance_to_point((plane3f *)((byte *)arg_1 + 0xf4), arg_3);
-			arg_1->value10c = function_1305d1(0.0f - *(real *)((byte *)arg_1 + 0x108) / arg_1->pending.height);
-			real local_1 = 0.0f > *(real *)((byte *)arg_1 + 0x108) ? 0.0f : *(real *)((byte *)arg_1 + 0x108);
-			arg_1->value110 = 0.0f - (*(real *)((byte *)arg_1 + 0xc4) / arg_1->pending.distance) * local_1;
-			if (0.0f > *(real *)((byte *)arg_1 + 0x108) && !function_16e210(arg_2, *(long *)((byte *)arg_1 + 0x9c)))
+			fog->plane_distance = point->x * fog->plane.i + fog->plane.j * point->y + fog->plane.k * point->z - fog->plane.d;
+			fog->blend = fog_pin_unit(0.0f - fog->plane_distance / fog->pending.height);
+			fog->offset = 0.0f - (fog->valuec4 / fog->pending.distance) * (0.0f > fog->plane_distance ? 0.0f : fog->plane_distance);
+			if (0.0f > fog->plane_distance && !function_16e210(cluster_index, fog->tag_index))
 			{
-				*(real *)((byte *)arg_1 + 0x108) = 0.0f;
-				arg_1->value10c = 0.0f;
-				arg_1->value110 = 0.0f;
+				fog->plane_distance = 0.0f;
+				fog->blend = 0.0f;
+				fog->offset = 0.0f;
 			}
 		}
-		long local_2 = *(long *)((byte *)arg_1 + 0x9c);
-		if (local_2 != NONE)
+		if (fog->tag_index != NONE)
 		{
-			byte *local_3 = g_4e3b44[local_2 & 0xffff].bytes;
-			if (*(long *)(local_3 + 0x30) > 0)
+			s_fog_blend_tag *tag = (s_fog_blend_tag *)g_4e3b44[fog->tag_index & 0xffff].bytes;
+			if (tag->count > 0)
 			{
-				real *local_4 = *(real **)(local_3 + 0x34);
-				real local_5 = 0.0f > local_4[10] ? 0.0f : (local_4[10] > 0.9999f ? 0.9999f : local_4[10]);
-				real local_6 = PIN((arg_1->value10c - local_5) / (1.0f - local_5), 0.0f, 1.0f);
-				if (local_6 > 0.0f)
+				s_fog_blend_definition *definition = tag->definitions;
+				real threshold = PIN(definition->threshold, 0.0f, 0.9999f);
+				real blend = PIN((fog->blend - threshold) / (1.0f - threshold), 0.0f, 1.0f);
+				if (blend > 0.0f)
 				{
-					arg_1->color70.red += (local_4[0] - arg_1->color70.red) * local_6;
-					arg_1->color70.green += (local_4[1] - arg_1->color70.green) * local_6;
-					arg_1->color70.blue += (local_4[2] - arg_1->color70.blue) * local_6;
-					arg_1->color7c.red += (local_4[3] - arg_1->color7c.red) * local_6;
-					arg_1->color7c.green += (local_4[4] - arg_1->color7c.green) * local_6;
-					arg_1->color7c.blue += (local_4[5] - arg_1->color7c.blue) * local_6;
-					arg_1->value88 += (local_4[6] - arg_1->value88) * local_6;
-					arg_1->value8c += (local_4[7] - arg_1->value8c) * local_6;
-					arg_1->value90 += (local_4[8] - arg_1->value90) * local_6;
-					arg_1->value94 += (local_4[9] - arg_1->value94) * local_6;
-					if (arg_1->index6c == NONE)
-						arg_1->index6c = *(long *)(local_4 + 12);
+					fog->color70.red += (definition->color0.red - fog->color70.red) * blend;
+					fog->color70.green += (definition->color0.green - fog->color70.green) * blend;
+					fog->color70.blue += (definition->color0.blue - fog->color70.blue) * blend;
+					fog->color7c.red += (definition->colorc.red - fog->color7c.red) * blend;
+					fog->color7c.green += (definition->colorc.green - fog->color7c.green) * blend;
+					fog->color7c.blue += (definition->colorc.blue - fog->color7c.blue) * blend;
+					fog->value88 += (definition->value18 - fog->value88) * blend;
+					fog->value8c += (definition->value1c - fog->value8c) * blend;
+					fog->value90 += (definition->value20 - fog->value90) * blend;
+					fog->value94 += (definition->value24 - fog->value94) * blend;
+					if (fog->index6c == NONE)
+						fog->index6c = definition->index;
 				}
 			}
 		}
-		arg_1->value110 += *(real *)((byte *)arg_1 + 0xdc) * *(real *)((byte *)arg_1 + 0xd8);
-		if (arg_1->flagc0)
+		fog->offset += fog->valuedc * fog->valued8;
+		if (fog->flagc0)
 		{
-			arg_1->valuebc = 1024.0f;
-			arg_1->valueb8 = 1023.0f;
+			fog->valuebc = 1024.0f;
+			fog->valueb8 = 1023.0f;
 		}
-		arg_1->valueb8 = arg_1->valueb8 > 0.0f ? arg_1->valueb8 : 0.0f;
-		arg_1->valuebc = arg_1->valuebc > arg_1->valueb8 + 0.0001f ? arg_1->valuebc : arg_1->valueb8 + 0.0001f;
-		if (arg_1->layers[0].intensity > 0.0f || arg_1->layers[1].intensity > 0.0f)
-			arg_1->value118 = function_1305d1((*(real *)((byte *)arg_1 + 0x108) - arg_1->valueb8) / (arg_1->valuebc - arg_1->valueb8));
+		fog->valueb8 = fog->valueb8 > 0.0f ? fog->valueb8 : 0.0f;
+		real end = fog->valueb8 + 0.0001f;
+		fog->valuebc = fog->valuebc > end ? fog->valuebc : end;
+		if (fog->layers[0].intensity > 0.0f || fog->layers[1].intensity > 0.0f)
+			fog->fade = fog_pin_unit((fog->plane_distance - fog->valueb8) / (fog->valuebc - fog->valueb8));
 		else
-			arg_1->value118 = 0.0f;
+			fog->fade = 0.0f;
 	}
 	else
-		arg_1->value118 = 1.0f;
-
-	real local_7 = PIN(arg_1->value10c * arg_1->pending.intensity, 0.0f, 1.0f);
-	if (arg_1->value10c > 0.0f)
+		fog->fade = 1.0f;
+	real weight = PIN(fog->blend * fog->pending.intensity, 0.0f, 1.0f);
+	if (fog->blend > 0.0f)
 	{
-		real local_8 = (0.0f > arg_1->layers[2].intensity ? 0.0f : (arg_1->layers[2].intensity > 1.0f ? 1.0f : arg_1->layers[2].intensity)) * PIN(1.0f - local_7, 0.0f, 1.0f);
-		*(real *)((byte *)arg_1 + 0x5c) = PIN(arg_1->pending.color.red * local_7 + arg_1->layers[2].color.red * local_8, 0.0f, 1.0f);
-		*(real *)((byte *)arg_1 + 0x60) = PIN(arg_1->pending.color.green * local_7 + arg_1->layers[2].color.green * local_8, 0.0f, 1.0f);
-		*(real *)((byte *)arg_1 + 0x64) = PIN(arg_1->pending.color.blue * local_7 + arg_1->layers[2].color.blue * local_8, 0.0f, 1.0f);
-		*(real *)((byte *)arg_1 + 0x68) = function_1305d1(1.0f - PIN(1.0f - arg_1->layers[2].intensity, 0.0f, 1.0f) * PIN(1.0f - local_7, 0.0f, 1.0f));
+		real scale = PIN(fog->intensity58, 0.0f, 1.0f);
+		real remainder = 1.0f - weight;
+		scale = PIN(remainder, 0.0f, 1.0f) * scale;
+		real value = fog->pending.color.red * weight + fog->color4c.red * scale;
+		fog->combined_color.red = PIN(value, 0.0f, 1.0f);
+		value = fog->pending.color.green * weight + fog->color4c.green * scale;
+		fog->combined_color.green = PIN(value, 0.0f, 1.0f);
+		value = fog->pending.color.blue * weight + fog->color4c.blue * scale;
+		fog->combined_color.blue = PIN(value, 0.0f, 1.0f);
+		value = 1.0f - fog->intensity58;
+		value = PIN(value, 0.0f, 1.0f);
+		real remaining = PIN(remainder, 0.0f, 1.0f);
+		fog->combined_intensity = fog_pin_unit(1.0f - remaining * value);
 	}
 	else
 	{
-		real local_9 = (0.0f > arg_1->layers[2].intensity ? 0.0f : (arg_1->layers[2].intensity > 1.0f ? 1.0f : arg_1->layers[2].intensity));
-		*(real *)((byte *)arg_1 + 0x5c) = PIN(arg_1->layers[2].color.red * local_9, 0.0f, 1.0f);
-		*(real *)((byte *)arg_1 + 0x60) = PIN(arg_1->layers[2].color.green * local_9, 0.0f, 1.0f);
-		*(real *)((byte *)arg_1 + 0x64) = PIN(arg_1->layers[2].color.blue * local_9, 0.0f, 1.0f);
-		*(real *)((byte *)arg_1 + 0x68) = function_1305d1(arg_1->layers[2].intensity);
+		real scale = PIN(fog->intensity58, 0.0f, 1.0f);
+		real value = fog->color4c.red * scale;
+		fog->combined_color.red = PIN(value, 0.0f, 1.0f);
+		value = fog->color4c.green * scale;
+		fog->combined_color.green = PIN(value, 0.0f, 1.0f);
+		value = fog->color4c.blue * scale;
+		fog->combined_color.blue = PIN(value, 0.0f, 1.0f);
+		fog->combined_intensity = fog_pin_unit(fog->intensity58);
 	}
 }

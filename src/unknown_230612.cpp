@@ -83,45 +83,6 @@ bool __stdcall function_2323b7(long controller_index)
 	return true;
 }
 
-/* three counted lists of words */
-struct s_word_lists_232d54
-{
-	s_word_lists_232d54();
-
-	short count00;
-	byte unknown02[0x3e];
-	short count40;
-	byte unknown42[0x9e];
-	short counte0;
-};
-
-struct s_word_lists_232d67
-{
-	s_word_lists_232d67();
-
-	short count00;
-	byte unknown02[0x3e];
-	short count40;
-	byte unknown42[0x22];
-	short count64;
-};
-
-// @retail 0x232d54
-s_word_lists_232d54::s_word_lists_232d54()
-{
-	count00 = 0;
-	count40 = 0;
-	counte0 = 0;
-}
-
-// @retail 0x232d67
-s_word_lists_232d67::s_word_lists_232d67()
-{
-	count00 = 0;
-	count40 = 0;
-	count64 = 0;
-}
-
 /* ---- callbacks of the pause screens ---- */
 
 

@@ -327,7 +327,7 @@ void function_114240(long unit_index);
 void function_a94b0(long unit_index);
 void function_a9440(long unit_index, long player_index);
 void function_a7bc0(long unit_index);
-void function_a9500(long unit_index, long index);
+bool function_a9500(long unit_index, long index);
 bool function_101640(long weapon_index);
 bool function_e68c0(long type, long unit_index);
 struct s_effect_owner;
@@ -474,7 +474,7 @@ void function_cafc0(long unit_index, point3f *position);
 real function_11cf50(vector3f const *a, vector3f const *b);
 void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
 void function_b9a90(long object_index);
-void function_11bf90(long object_index, point3f *point);
+long function_11bf90(long object_index, point3f *point);
 void function_b75a0(long object_index, point3f const *point, vector3f const *forward, vector3f const *up,
 	s_location const *location, bool unknown);
 void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity);
@@ -572,7 +572,7 @@ void function_114e80(long unit_index);
 void function_100430(long weapon_index, long value, real amount);
 bool function_106030(long weapon_index);
 bool function_101d20(long weapon_index);
-void function_1509e0(long weapon_index, bool *modes);
+void function_1509e0(long player_index, long weapon_index, bool *modes);
 void function_1060a0(long weapon_index, long unit_index);
 struct s_juggernaut_globals;
 extern s_juggernaut_globals *g_510c9c;
@@ -587,8 +587,8 @@ void function_11f0d0(vector3f *position, vector3f *forward, vector3f const *targ
 void function_bba20(long object_index);
 long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
 	point3f const *origin, vector3f const *direction);
-void function_15cbf0(long player_index, bool flag);
-void function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard);
+void function_15cbf0(long attacker_index, long player_index, long flags);
+bool function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard);
 void function_c86e0(long unit_index, bool keep_weapon_zoom);
 void function_1c95d0(long unit_index, long attacker_index, short type, real amount);
 void function_1c9e10(long unit_index, vector3f const *direction, real shake);
@@ -3934,7 +3934,7 @@ void function_ce6b0(long unit_index, long name, long object_index, real scale)
 	function_b8ee0(unit_index, name, object_index, 0);
 	function_b9a90(object_index);
 	function_10b360(object_index);
-	real speed = (real)random_next(&g_4e7408->unknown0) * (1.0f / 65535.0f) * 0.4f + 0.8f;
+	real speed = (real)random_next(&g_4e7408->unknown0) * (1.0f / 65535.0f) * (1.2f - 0.8f) + 0.8f;
 	object->linear_velocity = *g_4687a4;
 	*(vector3f *)((byte *)object + 0x94) = *g_4687a4;
 	vector3f direction;
@@ -6060,7 +6060,7 @@ bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes)
 	}
 	if (unit->unknown13c != NONE)
 	{
-		function_1509e0(weapon_index, modes);
+		function_1509e0(unit->unknown13c, weapon_index, modes);
 	}
 	for (long hand = 0; hand < 2; hand++)
 	{
@@ -6755,7 +6755,7 @@ void __stdcall function_ca0b0(long unit_index, s_damage_report const *report)
 	if (report->owner.player_index != NONE && unit->unknown13c != NONE &&
 		report->unknown48 + report->unknown44 > 0.0001f)
 	{
-		function_15cbf0(report->owner.player_index, (report->flags >> 4) & 1);
+		function_15cbf0(report->owner.player_index, unit->unknown13c, (report->flags >> 4) & 1);
 	}
 	if (report->owner.player_index != NONE || report->owner.object_index != NONE)
 	{

@@ -257,10 +257,62 @@ void replication_table_mark(s_handle_peers *peers, long handle, dword mask)
 class c_handle_owner_with_mask : public c_handle_owner
 {
 public:
-	virtual void slot13() = 0;
+	virtual bool slot13(long handle) = 0;
 	virtual void slot14() = 0;
 	virtual dword get_pending_mask(long handle) = 0;
 };
+
+// @retail 0x89a20
+void function_89a20(s_handle_peers *peers)
+{
+	for (long i = 0; i < 1024; i++)
+	{
+		s_handle_peer *peer = &peers->peers[i];
+		if ((peer->flags & 1) && !(peer->flags & 4))
+		{
+			if (peer->flags & 8)
+			{
+				long handle = (peer->unknown01 << 28) | i;
+				long handles[4];
+				long count = 0;
+				for (long current = handle; current != NONE;
+					current = peers->peers[HANDLE_INDEX(current)].unknown04)
+					handles[count++] = current;
+				for (long j = 0; j < count; j++)
+				{
+					peers->peers[HANDLE_INDEX(handles[j])].flags |= 4;
+					if (!((c_handle_owner_with_mask *)peers->owner)->slot13(handles[j]))
+					{
+						replication_table_update_chain(peers, handle);
+						break;
+					}
+				}
+			}
+			else if (!(peer->flags & 16))
+			{
+				long handle = (peer->unknown01 << 28) | i;
+				peer->flags |= 4;
+				if (!((c_handle_owner_with_mask *)peers->owner)->slot13(handle))
+					replication_table_update(peers, handle);
+			}
+		}
+	}
+	for (long i = 0; i < 1024; i++)
+	{
+		s_handle_peer *peer = &peers->peers[i];
+		if (peer->flags & 1)
+		{
+			peer->unknown01 = (peer->unknown01 + 1) % 16;
+			long next = peer->unknown04;
+			if (next != NONE)
+			{
+				byte sequence = ((long)((dword)next >> 28) + 1) % 16;
+				peer->unknown04 = (sequence << 28) | HANDLE_INDEX(next);
+			}
+		}
+	}
+	((c_handle_owner_with_mask *)peers->owner)->slot14();
+}
 
 // @retail 0x898c0
 void replication_table_attach_sender(s_handle_peers *peers, long index, c_handle_table_450cd0 *sender)

@@ -342,8 +342,8 @@ extern s_bink_globals g_4e9188;
 struct s_game_proc_table_509448
 {
 	byte unknown00[0x20];
-	void (*proc20)(void);
-	void (*proc24)(void);
+	void (__stdcall *proc20)(long);
+	long (__stdcall *proc24)(long);
 	byte unknown28[0x6c - 0x28];
 	c_data_allocator *allocator;
 };

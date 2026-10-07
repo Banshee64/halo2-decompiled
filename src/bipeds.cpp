@@ -651,7 +651,7 @@ bool __stdcall function_dd360(long arg_159e6d)
 			}
 		}
 		biped->unknown34a = function_dd300(*(long *)(state + 0x7c));
-		if (0.01f > biped->control.i * biped->control.i + biped->control.j * biped->control.j +
+		if (0.1f * 0.1f > biped->control.i * biped->control.i + biped->control.j * biped->control.j +
 			biped->control.k * biped->control.k)
 		{
 			biped->control = *g_4687a4;
@@ -1290,7 +1290,7 @@ void __stdcall function_de620(long arg_159e6d, vector3f const *impulse)
 
 	if (!((*(dword *)(definition + 0xbc) >> 20) & 1))
 	{
-		bool strong = impulse->i * impulse->i + impulse->j * impulse->j + impulse->k * impulse->k > 1.96f;
+		bool strong = impulse->i * impulse->i + impulse->j * impulse->j + impulse->k * impulse->k > 1.4f * 1.4f;
 		bool spinning = false;
 		vector3f velocity = *impulse;
 		vector3f spin = *g_4687a4;
@@ -1346,7 +1346,7 @@ apply:
 		}
 		if (biped->parent_object_index == NONE && biped->unknown13c == NONE && biped->physics_mode != 4 &&
 			biped->physics_mode != 5 && !biped->unknown34b && (strong || biped->physics_mode != 3) &&
-			impulse->j * impulse->j + impulse->k * impulse->k + impulse->i * impulse->i > 1.96f)
+			impulse->j * impulse->j + impulse->k * impulse->k + impulse->i * impulse->i > 1.4f * 1.4f)
 		{
 			vector3f away;
 
@@ -1744,7 +1744,7 @@ void __stdcall function_dfba0(long arg_159e6d, long other_index, long object_ind
 
 struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
-long function_1fa3a0(long a, long b, long c, point3f const *point);
+long function_1fa3a0(long a, long b, long object_index, long c, point3f const *point);
 
 /* the ground the biped stands on: its surface, its location, the point and
    the object (with that object's surface) under it, probed again at most
@@ -1794,7 +1794,7 @@ void function_dfdb0(long arg_159e6d, long *surface, long *location, point3f *poi
 		{
 			if (biped->unknown354 != NONE)
 			{
-				biped->unknown358 = function_1fa3a0(biped->unknown35c, biped->unknown354, biped->unknown364,
+				biped->unknown358 = function_1fa3a0(biped->unknown35c, biped->unknown354, biped->unknown360, biped->unknown364,
 					&biped->unknown368);
 			}
 			else
@@ -2384,7 +2384,7 @@ bool __stdcall function_e0ef0(long arg_159e6d)
 
 struct rigid_transform_scaled;
 struct real_quaternion_transform;
-void function_1faf80(vector3f *facing, long arg_159e6d, void const *definition_flight, vector3f const *control,
+bool function_1faf80(vector3f *facing, long arg_159e6d, void const *definition_flight, vector3f const *control,
 	real rate, real *turn);
 bool function_bf5d0(long object_index);
 void matrix4x3_rotation_between_vectors(transform4x3f *matrix, vector3f const *arg_5f338b,
@@ -2726,7 +2726,7 @@ bool __stdcall function_e1c40(long arg_159e6d, point3f const *point, real value,
 		delta.i = placed.x - target.x;
 		delta.j = placed.y - target.y;
 		delta.k = placed.z - target.z;
-		if (delta.k * delta.k + delta.j * delta.j + delta.i * delta.i > 1.0e-6f &&
+		if (delta.k * delta.k + delta.j * delta.j + delta.i * delta.i > 0.001f * 0.001f &&
 			function_168f40(0x80040d, (s_vehicle_ray const *)&placed, arg_159e6d, NONE))
 		{
 			vector3f back;
@@ -2799,7 +2799,7 @@ bool __stdcall function_e23e0(long arg_159e6d, point3f const *point, real value,
 struct s_1faf30_timer;
 void function_1faf30(s_1faf30_timer *timer);
 bool function_1cb920(void *data, long mode);
-void function_114b60(long a, long b, long arg_159e6d, long c, long d);
+bool function_114b60(short entry_index, short fallback_index, long unit_index, long priority, void const *extra);
 void __stdcall function_b8890(long unit_index);
 
 /* counts down the biped's landing (+0x39d); a ragdolling biped that can
@@ -3925,7 +3925,7 @@ void __stdcall function_1e55d0(s_biped_physics_move *move, void *physics, s_bipe
 void matrix4x3_from_forward_and_up(transform4x3f *out, vector3f const *forward, vector3f const *up);
 vector3f *function_1427f0(transform4x3f const *matrix, vector3f const *vector,
 	vector3f *out);
-void __stdcall function_1cd8a0(s_animation_state *state, long arg_159e6d, vector3f const *velocity);
+bool __stdcall function_1cd8a0(s_animation_state *state, long arg_159e6d, vector3f const *velocity);
 void __stdcall function_1cdb00(long arg_159e6d, vector3f const *control);
 void function_e6f90(long unit_index);
 void __stdcall function_b87b0(long object_index);

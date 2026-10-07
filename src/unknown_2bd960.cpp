@@ -515,7 +515,9 @@ struct s_player_2be
 	byte type;
 	byte unknown89[0xc0 - 0x89];
 	char team;
-	byte unknownc1[0x21c - 0xc1];
+	byte unknownc1[0x1b8 - 0xc1];
+	short time_inside;
+	byte unknown1ba[0x21c - 0x1ba];
 };
 
 struct s_player_iterator_2be
@@ -529,7 +531,7 @@ struct s_player_iterator_2be
 bool function_19f300(long *iterator);
 extern color3f *g_468714;
 extern long g_4b9ed8;
-color3f *function_7f720(color3f *color, long team_index);
+color3f *function_7f720(color3f *color, short team_index);
 
 static inline s_player_2be *player_get_2be(long index)
 {
@@ -1684,4 +1686,161 @@ bool c_engine_peer_b::q2(dword mask, long unused, s_settings_2c0 *settings)
 		}
 	}
 	return result;
+}
+
+#include "flexible_surface_calls.h"
+struct s_sort_record;
+typedef bool (__stdcall *t_record_fill_2be)(long, void *, long, long, long, void *, s_sort_record *);
+void function_41490(long tag, short group, word kind, real distance, t_record_fill_2be fill,
+    dword value, void (__stdcall *callback)(void *), void *context, point3f const *position);
+void __stdcall function_2be5d0(long, long, long, long, long, long, void *);
+
+// @retail 0x2be650
+void __stdcall function_2be650(void *submission)
+{
+    function_40f60(submission, function_d4bc0, function_2be5d0);
+}
+
+// @retail 0x2be670
+void function_2be670(s_polygon_2be *hill)
+{
+    byte *definition = g_4e3b44[g_4e034c->index & 0xffff].bytes;
+    byte *data = *(byte **)(definition + 0xc);
+    byte *item = *(byte **)(data + 0x534);
+    function_41490(*(long *)(item + 0xc4), 0, NONE, 640.f,
+        (t_record_fill_2be)function_d4bc0, (dword)function_2be5d0,
+        function_2be650, (void *)NONE, (point3f *)&hill->center_x);
+}
+
+bool function_15b2f0();
+bool function_15b7c0(long delta, long player_index);
+void function_1972a0(long player_index, long value14, long value10);
+long function_19fc70(dword player_index);
+void function_19f470(long player_index, long score);
+
+// @retail 0x2beee0
+void function_2beee0()
+{
+    long players = 0;
+    long teams = 0;
+    s_player_iterator_2be iterator;
+    iterator.data = g_4e8c24;
+    iterator.absolute_index = NONE;
+    iterator.index = NONE;
+    while (function_19f300((long *)&iterator))
+    {
+        if (iterator.player->time_inside)
+        {
+            players |= 1 << iterator.index;
+            if (game_is_team_game_2be() && iterator.player->team != NONE)
+                teams |= 1 << iterator.player->team;
+        }
+    }
+    if ((g_4e6948->flags22c & 1))
+    {
+        if (game_is_team_game_2be())
+        {
+            if (!teams || ((teams - 1) & teams))
+                return;
+        }
+        else if (!players || ((players - 1) & players))
+            return;
+    }
+    if (!function_15b2f0())
+        return;
+    if (game_is_team_game_2be())
+    {
+        long *times = (long *)((byte *)g_51ecc8 + 0x180);
+        for (long i = 0; i < 8; ++i)
+        {
+            if (teams & (1 << i))
+                ++times[i];
+            else
+                times[i] = 0;
+        }
+        for (long team = 0; team < 8; ++team)
+        {
+            long last = NONE;
+            if ((teams & (1 << team)) && times[team] % g_510c54->field_2_3 == 0)
+            {
+                s_player_iterator_2be members;
+                members.data = g_4e8c24;
+                members.absolute_index = NONE;
+                members.index = NONE;
+                while (function_19f300((long *)&members))
+                {
+                    if (members.player->team == team && members.player->time_inside)
+                    {
+                        bool award = true;
+                        if (!(g_4e6948->flags22c & 2))
+                        {
+                            iterator.data = g_4e8c24;
+                            iterator.absolute_index = NONE;
+                            iterator.index = NONE;
+                            while (function_19f300((long *)&iterator))
+                            {
+                                if (iterator.index != members.index && iterator.player->team == members.player->team &&
+                                    iterator.player->time_inside &&
+                                    (iterator.player->time_inside > members.player->time_inside ||
+                                    (iterator.player->time_inside == members.player->time_inside &&
+                                     (members.index & 0xff) < (iterator.index & 0xff))))
+                                    award = false;
+                            }
+                        }
+                        if (award)
+                        {
+                            long score = function_19fc70(members.index);
+                            function_15b7c0(1, members.index);
+                            long updated = function_19fc70(members.index);
+                            last = members.index;
+                            if (score != updated)
+                                function_19f470(members.index, updated);
+                        }
+                    }
+                }
+                if (last != NONE)
+                    player_get_2be(last)->time_inside = 1;
+            }
+        }
+    }
+    else
+    {
+        s_player_iterator_2be members;
+        members.data = g_4e8c24;
+        members.absolute_index = NONE;
+        members.index = NONE;
+        while (function_19f300((long *)&members))
+        {
+            if (members.player->time_inside && members.player->time_inside % g_510c54->field_2_3 == 0)
+            {
+                long score = function_19fc70(members.index);
+                function_1972a0(members.index, 4, NONE);
+                function_15b7c0(1, members.index);
+                long updated = function_19fc70(members.index);
+                if (score != updated)
+                    function_19f470(members.index, updated);
+            }
+        }
+    }
+}
+
+void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
+    point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
+    real arg_9, point3f const *arg_10, real arg_11);
+
+// @retail 0x2be5d0
+void __stdcall function_2be5d0(long arg_0, long arg_1, long arg_2, long arg_3,
+    long arg_4, long arg_5, void *arg_6)
+{
+    s_polygon_2be *hill = (s_polygon_2be *)g_51ecc8;
+    if (hill->count >= 4 && !(hill->count & 1))
+    {
+        long player = NONE;
+        s_color_bits color;
+        if (g_4b9ed8 != NONE)
+            player = g_4e8c20->entries[g_4b9ed8];
+        hill_color(player, &color);
+        function_19f680(arg_0, arg_2, arg_4, arg_3, arg_6, hill->vertices, 32,
+            (point3f *)&hill->center_x, hill->radius, hill->perimeter, (point3f *)&color, 0.8f);
+    }
 }

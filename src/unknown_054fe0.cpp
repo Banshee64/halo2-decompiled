@@ -13,6 +13,23 @@
 #include "online_tasks.h"
 #include "unknown_0662e0.h"
 
+struct s_member_quality_collection;
+void function_7e100(long current, const s_member_quality_collection *collection,
+	long *selected, long *first, long *second, long *level);
+
+// @retail 0x63ec0
+long function_63ec0(void)
+{
+	long result = 0;
+	if (g_527330.initialized)
+	{
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+		if (session->state)
+			function_7e100(session->member_index, (const s_member_quality_collection *)((byte *)session + 0x4c), 0, 0, 0, &result);
+	}
+	return result;
+}
+
 /* one local user's state (0xd0 bytes) */
 #pragma pack(push, 1)
 struct s_session_interface_user
@@ -1360,4 +1377,382 @@ void voice_update_local_properties(long controller_index)
 		memcpy(g_4cd868.users[user_index].properties, properties, sizeof(properties));
 		g_4cd868.users[user_index].unknowna4 = flags;
 	}
+}
+
+struct s_surface_description
+{
+ long type;
+ byte unknown04[0x5e4 - 4];
+ long field5e4;
+ byte unknown5e8[4];
+ long field5ec;
+ long field5f0;
+ long field5f4;
+ byte unknown5f8[4];
+ long field5fc;
+ byte unknown600[0x14];
+};
+struct s_game_variant_globals
+{
+ dword unknown0;
+ dword flags;
+ word count;
+ word state;
+};
+extern s_surface_description g_551ae8[16];
+extern s_game_variant_globals g_47d8f4;
+long game_variant_get_map_status(long index);
+bool function_1934f0(s_surface_description *variant);
+bool function_73a10(long player, long group_index, long field, long *value);
+struct s_cached_player_identity;
+struct s_cached_player_source;
+void function_80490(const s_cached_player_identity *identity, const s_cached_player_source *source,
+ bool local, bool recent);
+
+// @retail 0x65530
+void __stdcall function_65530(long user_index)
+{
+ long levels[16];
+ memset(levels, NONE, sizeof(levels));
+ long maximum = NONE;
+ for (long i = 0; i < 16; i++)
+ {
+  if (game_variant_get_map_status(i) == 1)
+  {
+   s_surface_description *variant = 0;
+   if (i >= 0 && i < 16 && g_47d8f4.count && (g_47d8f4.flags & 2) &&
+    function_1934f0(&g_551ae8[i]))
+    variant = &g_551ae8[i];
+   if (variant && (variant->type == 5 || variant->type == 2 || variant->type == 4))
+   {
+    if (!function_73a10(i, user_index, 1, &levels[i]))
+    {
+     maximum = NONE;
+     break;
+    }
+    if (maximum <= levels[i])
+     maximum = levels[i];
+   }
+  }
+ }
+ s_session_interface_user *user = &g_4cd868.users[user_index];
+ user->properties[0x7f] = (byte)maximum;
+ if (g_4cd868.unknown98 >= 0 && g_4cd868.unknown98 < 16)
+  user->properties[0x7e] = (byte)levels[g_4cd868.unknown98];
+ else
+  user->properties[0x7e] = 0xff;
+ c_class_58d20 *session = network_session_get_live();
+ long variant = NONE;
+ if (session && SESSION_STATE_IS_LIVE(session->state))
+  variant = session->value49c8;
+ long value, level;
+ if (variant != NONE && function_73a10(variant, user_index, 0, &value) &&
+  function_73a10(variant, user_index, 1, &level))
+ {
+  *(long *)&user->properties[0x84] = variant;
+  *(long *)&user->properties[0x8c] = value;
+  *(short *)&user->properties[0x8a] = (short)level;
+ }
+ else
+ {
+  *(long *)&user->properties[0x84] = NONE;
+  *(long *)&user->properties[0x8c] = NONE;
+  *(short *)&user->properties[0x8a] = NONE;
+ }
+ *(word *)&user->properties[0x88] = 0xffff;
+ if (!(user->xuid.dwUserFlags & 3) && user->xuid.dwUserFlags != 0xbad00000)
+  function_80490((const s_cached_player_identity *)&user->xuid,
+   (const s_cached_player_source *)user->properties, true, false);
+}
+
+struct s_message_identities;
+struct s_message_identity;
+bool function_7ed20(const s_message_identities *message, s_message_identity *common, bool *missing, bool *different);
+s_surface_description *function_192e60(long index);
+long function_193250(s_surface_description *variant);
+
+// @retail 0x66050
+long function_66050(c_class_58d20 *session, long variant_index)
+{
+ bool missing = false;
+ bool compatible;
+ long current = session->member_index;
+ compatible = function_7ed20((const s_message_identities *)&session->value4c, 0, &missing, &compatible);
+ s_surface_description *variant = function_192e60(variant_index);
+ volatile long result = 0;
+ if (!variant)
+ {
+  result = 2;
+  return result;
+ }
+ if (variant->type == 5 || variant->type == 2 || variant->type == 4)
+ {
+  for (long i = 0; i < 16; i++)
+   if ((session->player_mask & (1 << i)) && (session->players[i].user_flags & 3))
+   {
+    result = 12;
+    return result;
+   }
+ }
+ for (long i = 0; i < 16; i++)
+  if ((session->player_mask & (1 << i)) && session->players[i].user_flags == 0xbad00000)
+  {
+   result = 13;
+   return result;
+  }
+ for (long member = 0; member < session->member_count; member++)
+ {
+  long state = *(long *)((byte *)&session->members[member] + 0xac + variant_index * 4);
+  if (state != 1)
+  {
+   if (!state)
+    result = 14;
+   else
+    result = state == 3 ? 2 : 11;
+   return result;
+  }
+ }
+ for (long i = 0; i < 16; i++)
+  if ((session->player_mask & (1 << i)) && (signed char)session->players[i].propertiesa8[0x81] < variant->field5e4)
+  {
+   result = 15;
+   return result;
+  }
+ if (variant->type == 5 && !compatible)
+ {
+  result = missing ? 8 : 9;
+  return result;
+ }
+ long minimum;
+ if (variant->type <= 3)
+  minimum = 1;
+ else if (variant->type == 4)
+  minimum = variant->field5fc;
+ else
+  minimum = variant->field5f0;
+ long count = session->player_count;
+ if (count < minimum)
+ {
+  result = 6;
+  return result;
+ }
+ if (count > function_193250(variant))
+ {
+  result = 7;
+  return result;
+ }
+ if (variant->type == 5)
+ {
+  function_7e100(current, (const s_member_quality_collection *)&session->value4c, 0, 0, 0, &current);
+  long required;
+  switch (variant->type)
+  {
+  case 1: required = variant->field5f0; break;
+  case 2: required = variant->field5f0; break;
+  case 3: required = variant->field5ec * variant->field5f4; break;
+  case 4: required = variant->field5ec * variant->field5f4; break;
+  case 5: required = variant->field5ec * variant->field5f4; break;
+  default: __assume(0);
+  }
+  if (current < required)
+   result = 10;
+ }
+ return result;
+}
+
+// @retail 0x63e90
+long __stdcall function_63e90(long index)
+{
+ if (g_527330.initialized)
+ {
+  c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+  if (session->state)
+   return function_66050(session, index);
+ }
+ return 1;
+}
+
+
+typedef bool (__stdcall *t_session_summary_compare)(const void *, const void *, const void *);
+void function_13da70(void *elements, unsigned long count, unsigned long element_size,
+ t_session_summary_compare compare, const void *context);
+long network_session_get_maximum_players(c_class_58d20 *session);
+long player_index_from_absolute_index(long index);
+long function_1587b0(long player_index);
+long function_1587f0(long team);
+void function_158850(long *type, long *count);
+
+#pragma pack(push, 1)
+struct s_session_browser_summary
+{
+ short version;
+ short field_02;
+ long protocol;
+ long build;
+ long compatible_build;
+ short type;
+ short local;
+ short mode;
+ short field_16;
+ wchar_t name[32];
+ s_session_id id;
+ byte key[16];
+ dword identity[9];
+ short public_open;
+ short private_open;
+ short public_used;
+ short private_used;
+ short variant;
+ short state;
+ long game_type;
+ long map;
+ long option;
+ long map_variant;
+ bool teams;
+ byte field_b1[3];
+ long score_type;
+ long score_limit;
+ short player_count;
+ byte player_keys[16][12];
+ wchar_t player_names[16][32];
+ short field_57e;
+ long scores[16];
+ short player_teams[16];
+ byte field_5e0[16][16];
+ dword team_mask;
+ long team_scores[8];
+ byte field_704[16];
+};
+#pragma pack(pop)
+
+struct s_summary_player_sort_entry
+{
+ s_sort_key sort;
+ dword key[3];
+ byte properties[0x90];
+};
+
+// @retail 0x64d70
+bool __stdcall function_64d70(s_session_browser_summary *output)
+{
+ bool result = false;
+ if (g_527330.initialized)
+ {
+  c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
+  if (session->state && session->value18 && SESSION_STATE_IS_LIVE(session->state))
+  {
+   long map = NONE;
+   long map_variant = NONE;
+   byte *map_data;
+   bool statistics = false;
+   dword team_mask = 0;
+   byte *variant = 0;
+   if (SESSION_STATE_IS_LIVE(session->state)) variant = session->data4db0;
+   const wchar_t *name = session->members[session->value50].properties.description;
+   session->get_values_4d08(&map, &map_variant, &map_data);
+   memset(output, 0, sizeof(*output));
+   output->version = 2;
+   output->field_02 = 0;
+   output->protocol = 4;
+   output->build = 0x2651;
+   output->compatible_build = 0x2651;
+   output->type = (short)session->value18;
+   output->local = (short)session->value14;
+   long mode = 0;
+   if (SESSION_STATE_IS_LIVE(session->state)) mode = session->value498c;
+   output->mode = (short)mode;
+   if (*name)
+   {
+    wcsncpy(output->name, name, 31);
+    output->name[31] = 0;
+   }
+   if (session->state && session->flag24)
+   {
+    output->id = *(s_session_id *)&session->unknown1c;
+    memcpy(output->key, session->data25, sizeof(output->key));
+   }
+   memcpy(output->identity, session->members[session->member_index].words, sizeof(output->identity));
+   long maximum = 16;
+   if (SESSION_STATE_IS_LIVE(session->state)) maximum = session->value4990;
+   if (session->member_count >= maximum)
+   {
+    if (output->mode == 0) output->public_used = (short)session->player_count;
+    else if (output->mode > 0 && output->mode <= 2) output->private_used = (short)session->player_count;
+   }
+   else
+   {
+    long used = session->player_count;
+    long available = network_session_get_maximum_players(session) - used;
+    switch (output->mode)
+    {
+    case 0: output->public_used = (short)used; output->public_open = (short)available; break;
+    case 1: output->private_used = (short)used; output->private_open = (short)available; break;
+    case 2: output->private_used = (short)used; break;
+    }
+   }
+   output->variant = network_session_interface_get_value_49a4() == 2 ? 2 : 1;
+   short state = (short)(g_527330.initialized ? g_527330.state : 0);
+   output->state = state;
+   output->game_type = *(long *)(variant + 0x44);
+   output->map = map;
+   short option = NONE;
+   if (SESSION_STATE_IS_LIVE(session->state)) option = session->value5dd0;
+   output->option = option;
+   output->map_variant = map_variant;
+   output->teams = (variant[0x48] & 1) != 0;
+   if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->index == 2 && state == 3)
+   {
+    statistics = true;
+    function_158850(&output->score_type, &output->score_limit);
+   }
+   s_summary_player_sort_entry entries[16];
+   long count = 0;
+   for (long i = 0; i < 16; i++)
+   {
+    if (session->player_mask & (1 << i))
+    {
+     s_summary_player_sort_entry *entry = &entries[count];
+     memcpy(entry->key, &session->players[i], sizeof(entry->key));
+     memcpy(entry->properties, session->players[i].propertiesa8, sizeof(entry->properties));
+     entry->sort.low = i;
+     entry->sort.middle = 0;
+     entry->sort.high = 0;
+     if (statistics && i != NONE && i >= 0 && i < g_4e8c24->high_water_index)
+     {
+      byte *player = (byte *)g_4e8c24->data + i * g_4e8c24->size;
+      if (*(word *)player && player[0xc0] != 0xff)
+      {
+       entry->sort.middle = function_1587b0(player_index_from_absolute_index(i));
+       entry->sort.high = function_1587f0(*(signed char *)(player + 0xc0));
+       team_mask |= 1 << player[0xc0];
+      }
+     }
+     count++;
+    }
+   }
+   function_13da70(entries, count, sizeof(entries[0]), (t_session_summary_compare)sort_key_less_than, 0);
+   output->player_count = (short)count;
+   for (long j = 0; j < count; j++)
+   {
+    s_summary_player_sort_entry *entry = &entries[j];
+    memcpy(output->player_keys[j], entry->key, sizeof(entry->key));
+    memcpy(output->player_names[j], entry->properties, sizeof(output->player_names[j]));
+    output->scores[j] = entry->sort.middle;
+    output->player_teams[j] = *(signed char *)(entry->properties + 0x7c);
+    memcpy(output->field_5e0[j], entry->properties + 0x40, sizeof(output->field_5e0[j]));
+   }
+   if ((variant[0x48] & 1) && statistics)
+   {
+    output->team_mask = 0;
+    for (long team = 0; team < 8; team++)
+    {
+     long score = function_1587f0(team);
+     output->team_scores[team] = score;
+     if (score || (team_mask & (1 << team))) output->team_mask |= 1 << team;
+    }
+   }
+   result = true;
+  }
+ }
+ return result;
 }

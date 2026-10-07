@@ -10,32 +10,16 @@
 /* UI lane round 4: callees of the campaign level select list and the game
    engine variant category list */
 
-// @stub 0x215f40
-bool __stdcall function_215f40(long arg_9db745, byte *buffer)
-{
-	return false;
-}
-
 // @stub 0x212380
 long function_212380(long arg_9db745, long controller_index, byte *buffer)
 {
 	return 0;
 }
 
-// @stub 0x8c150
-bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void *data, unsigned __int64 *clan_id)
-{
-	return false;
-}
 
 
 
 
-// @stub 0x124770
-bool function_124770(long profile_index)
-{
-	return false;
-}
 
 // @stub 0x147cdb
 void c_render_window::function_147cdb(dword color)
@@ -81,16 +65,6 @@ void c_class_2c9e69::handle_item(s_controller_reference **controller, long *item
 {
 }
 
-// @stub 0x2ca0d9
-void c_class_2c9e69::fill()
-{
-}
-
-// @stub 0x120e70
-long __stdcall function_120e70(byte *buffer)
-{
-	return 0;
-}
 
 /* unknown_2b116a.cpp's list (only the member the stub defines) */
 class c_potential_squad_leader_player_list
@@ -99,18 +73,8 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 };
 
-// @stub 0x2b8497
-void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
 
 /* UI lane round 3: callees of user_interface_text_parser.cpp */
-
-// @stub 0x122dd0
-real __stdcall function_122dd0(byte *map_name, long unknown)
-{
-	return 0.f;
-}
 
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
@@ -121,11 +85,6 @@ real __stdcall function_122dd0(byte *map_name, long unknown)
 
 /* lane D */
 struct _XONLINE_USER;
-// @stub 0x6c8b0
-long function_6c8b0(_XONLINE_USER *user, long player)
-{
-	return 0;
-}
 
 /* my own, not written yet */
 // @stub 0x24b869
@@ -135,11 +94,7 @@ void __stdcall function_24b869(c_class_1473c9 *screen)
 
 
 /* lane D */
-// @stub 0x6cc10
-long __stdcall function_6cc10(long controller_index)
-{
-	return 0;
-}
+
 
 
 /* UI lane round 7: my own, not written yet */
@@ -159,8 +114,4 @@ struct s_saved_game_header;
 struct s_saved_game_read;
 class c_campaign_options_list;
 
-// @stub 0x124360
-bool function_124360(s_saved_game_header *header, s_saved_game_read *read)
-{
-	return false;
-}
+

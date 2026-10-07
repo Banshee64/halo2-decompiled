@@ -69,6 +69,7 @@ public:
 	virtual void v6(void *a, long b, long *size);
 	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 	virtual bool v11(long a, long const *entities, long c, void const *data);
 };
 
@@ -151,6 +152,7 @@ public:
 	virtual real v7(long a, long b, long c);
 	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_damage_section_response_event_definition : public c_event_definition
@@ -176,6 +178,9 @@ public:
 class c_projectile_impact_effect_event : public c_event_definition
 {
 public:
+	virtual bool v11(long a, long const *entities, long c, void const *data);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
 	virtual void v8(long a, long b, long c, long size, char *buffer);
@@ -184,6 +189,10 @@ public:
 class c_projectile_effect_event : public c_event_definition
 {
 public:
+	virtual real v7(long a, long b, long c);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
+	virtual bool v11(long a, long const *entities, long c, void const *data);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
@@ -193,6 +202,9 @@ public:
 class c_projectile_object_impact_effect_event : public c_event_definition
 {
 public:
+	virtual real v7(long a, long b, long c);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
@@ -220,6 +232,8 @@ public:
 class c_weapon_fire_event : public c_event_definition
 {
 public:
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
@@ -266,6 +280,7 @@ public:
 class c_game_engine_request_boot_player_event : public c_event_definition
 {
 public:
+	virtual bool v11(long a, long const *entities, long c, void const *data);
 	virtual long v0();
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
@@ -288,7 +303,7 @@ public:
 	virtual void v6(void *a, long b, long *size);
 	virtual void v7() {}
 	virtual void v8(long a, long b, long c, long size, char *buffer);
-	virtual void v9() {}
-	virtual void v10() {}
-	virtual void v11() {}
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
+	virtual bool v11(long a, long const *entities, long c, void const *data);
 };

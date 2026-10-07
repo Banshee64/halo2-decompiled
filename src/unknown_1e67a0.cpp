@@ -315,3 +315,231 @@ void function_1e6980(s_time_entry *entries, short a, byte b)
 	entries[index].a = a;
 	entries[index].b = b;
 }
+
+#include "unknown_1cafc0.h"
+#include <math.h>
+#include <xmmintrin.h>
+
+bool g_46fcc4 = true;
+bool g_51e9bc;
+
+// @retail 0x1e6360
+void function_1e6360(s_biped_physics_output *output, real rate, long object_index, real blend)
+{
+ s_physics_movement_output *state = (s_physics_movement_output *)output;
+ (void)&object_index;
+ (void)&blend;
+ *(real *)((byte *)state + 0x28) = rate;
+ state->enabled = true;
+ byte *definition = (byte *)state->definition;
+ real input_fraction = 1.0f - ((real)sqrt(state->control.i * state->control.i +
+  state->control.j * state->control.j + state->control.k * state->control.k) < 1.0f ?
+  (real)sqrt(state->control.i * state->control.i + state->control.j * state->control.j +
+   state->control.k * state->control.k) : 1.0f);
+ real factor = 1.0f;
+ if (*(real *)(definition + 0x90) > 0.0f)
+ {
+  if (blend == 1.0f) factor = *(real *)(definition + 0x90);
+  else if (blend > 0.0f) factor = (*(real *)(definition + 0x90) - 1.0f) * blend + 1.0f;
+ }
+ factor *= *(real *)((byte *)state + 0x134);
+ real scale = *(real *)((byte *)state + 0x20);
+ vector3f limits;
+ limits.i = (*(real *)(definition + 0x78) * scale) * factor;
+ limits.j = (*(real *)(definition + 0x7c) * scale) * factor;
+ limits.k = limits.j;
+ real acceleration = ((1.0f - input_fraction) * *(real *)(definition + 0x80) +
+  *(real *)(definition + 0x84) * input_fraction) * scale * factor;
+ state->speed = acceleration;
+ *(real *)&state->field_148 = acceleration;
+ state->velocity.i = state->control.i * limits.i;
+ state->velocity.j = state->control.j * limits.j;
+ state->velocity.k = state->control.k * limits.k;
+ if (g_46fcc4)
+ {
+  vector3f movement;
+  real angular;
+  ((s_animation_state *)*(long *)((byte *)state + 0x1c))->movement_rate_get(object_index, &movement, &angular);
+  movement.i *= scale;
+  movement.j *= scale;
+  movement.k *= scale;
+  vector3f direction = movement;
+  real length_squared = direction.k * direction.k + direction.j * direction.j + direction.i * direction.i;
+  if (length_squared != 0.0f)
+  {
+   real inverse;
+   _mm_store_ss(&inverse, _mm_rsqrt_ss(_mm_load_ss(&length_squared)));
+   direction.i *= inverse;
+   direction.j *= inverse;
+   direction.k *= inverse;
+  }
+  real projection = 0.0f - (state->velocity.k * direction.k + state->velocity.j * direction.j + state->velocity.i * direction.i);
+  state->velocity.i += projection * direction.i;
+  state->velocity.j += projection * direction.j;
+  state->velocity.k += projection * direction.k;
+  state->velocity.i += movement.i;
+  state->velocity.j += movement.j;
+  state->velocity.k += movement.k;
+ }
+ if (g_51e9bc)
+ {
+  long bits = g_510c54->game_time * *(long *)((byte *)state + 0x18);
+  real x = ((bits & 8) ? 1.0f : -1.0f) * ((bits & 1) ? 1.0f : 0.0f);
+  real y = ((bits & 16) ? 1.0f : -1.0f) * ((bits & 2) ? 1.0f : 0.0f);
+  real z = ((bits & 32) ? 1.0f : -1.0f) * ((bits & 4) ? 1.0f : 0.0f);
+  x *= (bits & 64) ? 1.0f : 0.5f;
+  y *= (bits & 128) ? 1.0f : 0.5f;
+  z *= (bits & 256) ? 1.0f : 0.5f;
+  state->velocity.i += x * 0.2f * limits.i;
+  state->velocity.j += y * 0.2f * limits.j;
+  state->velocity.k += z * 0.2f * limits.k;
+ }
+}
+
+struct s_physics_initial_state
+{
+ long mode;
+ bool enabled;
+ byte field_5[3];
+ const void *definition;
+ long physics8;
+ long physicsc;
+ dword flags;
+ long component_index;
+ s_animation_state *animation;
+ real scale;
+ long value;
+ real height;
+ byte field_2c[0xdc - 0x2c];
+ vector3f control;
+ point3f position;
+ vector3f forward;
+ vector3f up;
+ vector3f facing_goal;
+ vector3f facing;
+ vector3f ground_velocity;
+ real gravity;
+ real boost;
+ vector3f velocity;
+ real speed;
+ real field_148;
+ long material;
+};
+
+PRIVATE inline void initial_cross(const vector3f *a, const vector3f *b, vector3f *result)
+{
+ result->i = a->j * b->k - a->k * b->j;
+ result->j = a->k * b->i - a->i * b->k;
+ result->k = a->i * b->j - a->j * b->i;
+}
+
+PRIVATE inline real initial_dot(const vector3f *a, const vector3f *b)
+{
+ return a->k * b->k + a->j * b->j + a->i * b->i;
+}
+
+// @retail 0x1e5bb0
+void function_1e5bb0(s_biped_physics_output *output, void *physics, void *animation_state, real speed_scale,
+ long component_index, long object_index, void const *definition, long value, bool b, bool turning,
+ bool c, bool landing, bool d, bool grounded, bool e, bool f, real gravity, real boost,
+ vector3f const *control, point3f const *position, vector3f const *forward, vector3f const *up,
+ vector3f const *facing_goal, vector3f const *facing, vector3f const *ground_velocity, long material)
+{
+ s_physics_initial_state *state = (s_physics_initial_state *)output;
+ s_animation_state *animation = (s_animation_state *)animation_state;
+ byte *component = g_51e9b8->data + (component_index & 0xffff) * 0xa0;
+ state->mode = *(byte *)physics;
+ state->component_index = component_index;
+ state->definition = definition;
+ state->physics8 = *(long *)((byte *)physics + 8);
+ state->physicsc = *(long *)((byte *)physics + 0xc);
+ state->value = value;
+ state->flags = 0;
+ state->animation = animation;
+ state->scale = speed_scale;
+ if (b) state->flags |= 1; else state->flags &= ~1;
+ if (d) state->flags |= 2; else state->flags &= ~2;
+ if (grounded) state->flags |= 4; else state->flags &= ~4;
+ if (e) state->flags |= 8; else state->flags &= ~8;
+ if (f) state->flags |= 16; else state->flags &= ~16;
+ if (!((bool)((*(dword *)(component + 4) >> 1) & 1))) state->flags |= 64;
+ else state->flags &= ~64;
+ state->gravity = gravity;
+ state->boost = boost;
+ state->control = *control;
+ state->position = *position;
+ state->forward = *forward;
+ state->up = *up;
+ state->facing = *facing;
+ state->facing_goal = *facing_goal;
+ state->ground_velocity = *ground_velocity;
+ state->material = material;
+ state->velocity = *g_4687a4;
+ state->speed = 4.8f;
+ state->field_148 = 0.0f;
+ state->enabled = false;
+ if (animation->graph_tag_index != NONE && *(long *)animation != NONE &&
+  *(short *)((byte *)animation + 6) != NONE && !landing)
+ {
+  vector3f movement;
+  real angle;
+  animation->movement_rate_get(object_index, &movement, &angle);
+  state->velocity.i = movement.i * state->scale;
+  state->velocity.j = movement.j * state->scale;
+  state->velocity.k = movement.k * state->scale;
+  if (fabs(angle) >= 0.0001f)
+  {
+   vector3f original = state->forward;
+   real rotation = angle * g_510c54->rate;
+   real sine = (real)sin(rotation);
+   real cosine = (real)cos(rotation);
+   real projection = (original.j * state->up.j + original.k * state->up.k + original.i * state->up.i) * (1.0f - cosine);
+   vector3f cross;
+   initial_cross(&original, &state->up, &cross);
+   vector3f rotated;
+   rotated.i = original.i * cosine + projection * state->up.i - cross.i * sine;
+   rotated.j = projection * state->up.j + original.j * cosine - cross.j * sine;
+   rotated.k = projection * state->up.k + original.k * cosine - cross.k * sine;
+   if (c && turning)
+   {
+    real alignment = state->forward.j * facing_goal->j + state->forward.k * facing_goal->k + state->forward.i * facing_goal->i;
+    if (alignment > 0.5f)
+    {
+     vector3f old_cross, new_cross;
+     initial_cross(facing_goal, &state->forward, &old_cross);
+     initial_cross(facing_goal, &rotated, &new_cross);
+     bool moved_away = false;
+     if (alignment > 0.99f && alignment > initial_dot(&rotated, facing_goal)) moved_away = true;
+     if (initial_dot(&state->up, &old_cross) * initial_dot(&state->up, &new_cross) <= 0.0f || moved_away)
+     {
+      state->forward = *facing_goal;
+      state->flags |= 32;
+      return;
+     }
+    }
+   }
+   state->forward = rotated;
+  }
+ }
+}
+
+struct s_shape_state;
+struct s_direction_rotation_input;
+void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *up, vector3f *forward);
+void function_1faa20(byte const *state, vector3f *up, vector3f *forward, long *ticks);
+void function_1ecf50(s_direction_rotation_input *input, vector3f *up, vector3f *forward);
+
+// @retail 0x1e5af0
+void function_1e5af0(s_biped_physics_output *output, void *physics, vector3f const *up, vector3f const *forward)
+{
+ switch (*(byte *)physics)
+ {
+ case 1: function_1f1460((byte *)output, (s_shape_state *)((byte *)physics + 0x10), (vector3f *)up, (vector3f *)forward); break;
+ case 2: function_1faa20((byte *)output, (vector3f *)up, (vector3f *)forward, (long *)((byte *)physics + 0x10)); break;
+ case 3: function_1ecf50((s_direction_rotation_input *)output, (vector3f *)up, (vector3f *)forward); break;
+ case 4: break;
+ case 5: break;
+ case 6: break;
+ default: __assume(0);
+ }
+}

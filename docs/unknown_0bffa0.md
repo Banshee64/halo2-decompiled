@@ -457,7 +457,8 @@ set. Otherwise, while the light globals' byte at `+0x8` is set and the light
 is lit, it fills the render data in `eax` with the shape (`0xc19f0`) and
 `0xc1a80`. It returns whether the result has any size: for kind 0 a value
 above 0.0001 at `+0x44`; for the other kinds one above 0.0001 at `+0x64`,
-and a pair at `+0x68` and `+0x6c` whose squared length is above 1e-8.
+and a pair at `+0x68` and `+0x6c` whose squared length is above 0.0001
+squared (`0x45e0b0`).
 
 Callers: `0x31590`, `0x31c80`, `0x404b0` and `0xc35a0`.
 
@@ -672,7 +673,8 @@ all their arguments on the stack.
   is 0.001, `0x45dc0c` is 2.0, `0x45dc68` is 0.1, `0x45dc00` is 10.0,
   `0x45dbf0` is 5.0, `0x45dc10` is 4.0, `0x45dc1c` is 0.05, `0x45dc64` is
   1/3, `0x45dbd0` is -3.0, `0x45dbb4` is 1/255, `0x45dbb8` is 2^32 and
-  `0x45e0b0` is 1e-8. The fade tables hold five floats each: `0x4405f0`
+  `0x45e0b0` is `0.0001f * 0.0001f` (`0x322bcc76`, one step below
+  `1.0e-8f`). The fade tables hold five floats each: `0x4405f0`
   (20, 15, 10, 5, 0), `0x440604` (15, 10, 7, 3, 0), `0x440618` and
   `0x44062c` (2.5, 2, 1.5, 1, 0.5), and `0x440640` (zeros).
 - The strings "lights", "light" and "liquid" and the group tags `tdtl`,

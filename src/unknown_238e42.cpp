@@ -515,9 +515,11 @@ void __stdcall function_238f3f(long controller_index, void *message, unsigned __
 
 	((s_online_selection *)&g_54d598.settings)->join_pending = false;
 	function_14887e((s_screen_settings_54dc6c *)&selection);
-	invite = (s_invite_message_view *)message;
-	if (selection.type == 1)
+	switch (selection.type)
 	{
+	case 1:
+	{
+		invite = (s_invite_message_view *)*message_reference;
 		XONLINE_FRIEND friend_;
 
 		if (!invite || !session_id)
@@ -531,16 +533,20 @@ void __stdcall function_238f3f(long controller_index, void *message, unsigned __
 		selection.friend_.dwTitleID = invite->title_id;
 		selection.friend_.gameinviteTime = invite->time;
 		selection.type = 2;
-		invite = NULL;
+		message = NULL;
 		online_game_invite_answer(controller_index, (s_online_game_invite *)&selection.friend_, 0);
 		selection.friend_.dwFriendState = 1;
 		function_148893((s_name_request *)&selection, 1);
+		break;
 	}
+	}
+	invite = (s_invite_message_view *)*message_reference;
 	if (invite && session_id)
 	{
-		*(unsigned __int64 *)&selection.friend_.sessionID = session_id;
+		((dword *)&selection.friend_.sessionID)[1] = (dword)(session_id >> 32);
 		selection.friend_.dwTitleID = invite->title_id;
 		selection.friend_.gameinviteTime = invite->time;
+		((dword *)&selection.friend_.sessionID)[0] = (dword)session_id;
 		function_148893((s_name_request *)&selection, 1);
 	}
 	function_2395dc(&selection.friend_, controller_index, 0);
@@ -707,7 +713,10 @@ void function_239a3d(long controller_index)
 	online_messages_enumerate(controller_index, entries, &count);
 	for (entry = entries; count != 0; count--, entry++)
 	{
-		XUID const *entry_sender = entry ? (XUID const *)entry : NULL;
+		XUID const *entry_sender = NULL;
+
+		if (entry)
+			entry_sender = (XUID const *)entry;
 
 		if ((entry->flags & 0x10000) && xuid_equal(entry_sender, sender, true))
 		{

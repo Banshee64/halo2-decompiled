@@ -548,3 +548,47 @@ short __stdcall function_1b4fe0(long actor_index, s_slot *slot)
 
 	return result;
 }
+
+
+real function_30bf0(vector3f *vector);
+real function_259a0(dword *seed);
+void *function_1e5380(long actor_index);
+bool function_255b10(long actor_index, s_type_c3b527 const *point, long target_index, bool unknown);
+
+// @retail 0x1b54d0
+short __stdcall function_1b54d0(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    if (actor->unknown344 != NONE)
+    {
+        byte *entry = (byte *)function_1e5380(actor_index);
+        s_prop_node_view *node = prop_node_get(actor->unknown344);
+        if (g_4f55d0->unknown340 && entry && *(short *)(entry + 6) != NONE &&
+            *(signed char *)((byte *)node + 0x27) >= 1 && node->unknown28 > *(real *)(entry + 0x18) &&
+            *(short *)((byte *)actor + 0x7c4) <= 0 &&
+            (*(long *)((byte *)actor + 0x7c8) == NONE ||
+             (g_510c54->game_time - *(long *)((byte *)actor + 0x7c8)) * g_510c54->rate >= *(real *)(entry + 0x28)))
+        {
+            byte *character = (byte *)function_1e4ef0(actor_index);
+            if (function_259a0(&g_4e7408->unknown0) < *(real *)(character + 0x40) && actor->unknown07c != NONE)
+            {
+                s_prop_state_view *state = (s_prop_state_view *)function_25d690((s_prop_datum *)node);
+                vector3f direction;
+                vector3d_from_points3d(&actor->position, (point3f *)((byte *)state + 4), &direction);
+                real distance = function_30bf0(&direction);
+                if (distance > 0.0f)
+                {
+                    real range = *(real *)(entry + 0x18);
+                    distance = distance > range * 2.0f ? distance * 0.5f : range;
+                    s_type_c3b527 point;
+                    point.point.x = actor->position.x + direction.i * distance;
+                    point.point.y = actor->position.y + direction.j * distance;
+                    point.point.z = actor->position.z + direction.k * distance;
+                    point.output_index = NONE;
+                    function_255b10(actor_index, &point, NONE, false);
+                }
+            }
+        }
+    }
+    return g_46fbe4;
+}

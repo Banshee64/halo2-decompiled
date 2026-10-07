@@ -1,6 +1,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1428b0.h"
+#include "unknown_067e10.h"
 
 // @flags /O2 /Gr /arch:SSE
 
@@ -48,6 +49,79 @@ struct s_world
 	s_world_data *data;
 	long state;
 };
+
+struct c_entry_table;
+struct s_handle_peers;
+long entity_table_new_entity(c_entry_table *table, long handler_index);
+bool entity_table_new_entities(long *identifiers, c_entry_table *table, long count, long const *handler_indices);
+void replication_table_update(s_handle_peers *peers, long handle);
+void replication_table_update_chain(s_handle_peers *peers, long handle);
+
+// @retail 0xb57d0
+long function_b57d0(long handler_index, long object_index)
+{
+	s_world *world = (s_world *)g_4cf77c;
+	long state = world->state;
+	long result = NONE;
+	if (state == 4 || state == 5)
+	{
+		if (state != 3 && state != 5)
+		{
+			s_world_pool *pool = &world->data->pool;
+			result = entity_table_new_entity((c_entry_table *)pool, handler_index);
+			if (result != NONE)
+				*(long *)((byte *)&pool->slots[result & 0x3ff] + 8) = object_index;
+		}
+	}
+	return result;
+}
+
+// @retail 0xb5830
+bool function_b5830(long *identifiers, long count, long const *handler_indices, long const *object_indices)
+{
+	bool result = false;
+	s_world *world = (s_world *)g_4cf77c;
+	long state = world->state;
+	if (state == 4 || state == 5)
+	{
+		if (state != 3 && state != 5)
+		{
+			s_world_pool *pool = &world->data->pool;
+			if (entity_table_new_entities(identifiers, (c_entry_table *)pool, count, handler_indices))
+			{
+				for (long i = 0; i < count; i++)
+					*(long *)((byte *)&pool->slots[identifiers[i] & 0x3ff] + 8) = object_indices[i];
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0xb5920
+void function_b5920(long identifier)
+{
+	s_world *world = (s_world *)g_4cf77c;
+	long state = world->state;
+	if (state == 4 || state == 5)
+	{
+		s_world_pool *pool = &world->data->pool;
+		long index = identifier & 0x3ff;
+		byte flags = *(byte *)&pool->state->entries[index];
+		s_world_slot *slot = &pool->slots[index];
+		*((byte *)slot + 6) = 0;
+		*(long *)((byte *)slot + 8) = NONE;
+		if (flags & 4)
+		{
+			s_world_state *peers = pool->state;
+			byte current_flags = *(byte *)&peers->entries[index];
+			if (current_flags & 8)
+				replication_table_update_chain((s_handle_peers *)peers, identifier);
+			else if (!(current_flags & 0x10))
+				replication_table_update((s_handle_peers *)peers, identifier);
+		}
+	}
+}
 
 struct s_object
 {
@@ -148,4 +222,138 @@ point3f *function_b9dd0(long object_index, point3f *result)
 	result->y = matrix->rotation.up.j * z + matrix->rotation.left.j * y + matrix->rotation.forward.j * x + matrix->position.y;
 	result->z = matrix->rotation.up.k * z + matrix->rotation.left.k * y + matrix->rotation.forward.k * x + matrix->position.z;
 	return result;
+}
+
+
+struct s_entity_definition_ab
+{
+    short kind;
+    byte unknown02[0x38 - 2];
+    long model_index;
+};
+struct s_entity_model_ab
+{
+    byte unknown00[0x60];
+    long count;
+    byte *entries;
+};
+
+// @retail 0xb5990
+long function_b5990(long tag_index, bool flag)
+{
+    s_entity_definition_ab *definition = (s_entity_definition_ab *)g_4e3b44[tag_index & 0xffff].bytes;
+    long result = NONE;
+    switch (definition->kind)
+    {
+    case 0: result = 9; break;
+    case 1: result = flag ? 12 : 15; break;
+    case 2: if (flag) result = 14; break;
+    case 3: result = 10; break;
+    case 4: result = 10; break;
+    case 5: result = 13; break;
+    case 6:
+        if (definition->model_index != NONE)
+        {
+            s_entity_model_ab *model = (s_entity_model_ab *)g_4e3b44[definition->model_index & 0xffff].bytes;
+            if (model->count > 0 && (*(long *)(model->entries + 0xbc) > 0 || *(long *)(model->entries + 0xe0) > 0))
+                result = 11;
+        }
+        break;
+    case 7: result = 16; break;
+    case 8: result = 16; break;
+    case 9: break;
+    case 10: break;
+    case 11: result = 11; break;
+    }
+    return result;
+}
+
+struct s_event_distribution;
+long function_a5930(long index);
+long function_a5980(long index);
+long simulation_watcher_find_machine(s_simulation_world_owner const *watcher, s_machine_address const *address);
+void function_8b4d0(s_event_distribution *distribution, long type, long entity_count,
+    long const *entities, dword machine_mask, long size, void const *data, long timeout);
+
+// @retail 0xb5a70
+void __stdcall function_b5a70(long player_index, long type, long count, long object_indices,
+    long size, void const *data, long timeout)
+{
+    // Preserve NONE while reducing valid handles to their player slots.
+    player_index = player_index == NONE ? NONE : (player_index & 0xffff);
+    // Keep the count and object-list inputs in their retail stack slots.
+    long const *count_reference = &count;
+    long const *object_indices_reference = &object_indices;
+    long entities[2];
+    s_world *world = (s_world *)g_4cf77c;
+    long state = world->state;
+    if (state == 4 || state == 5)
+    {
+        s_event_distribution *distribution = (s_event_distribution *)((byte *)world->data + 0xa0ac);
+        for (long i = 0; i < *count_reference; i++)
+        {
+            if (state != 3 && state != 5)
+                entities[i] = function_a5930(((long const *)*object_indices_reference)[i]);
+            else
+                entities[i] = function_a5980(((long const *)*object_indices_reference)[i]);
+        }
+        if (*count_reference <= 0 || entities[0] != NONE)
+        {
+            dword mask = NONE;
+            if (state != 3 && state != 5 && player_index != NONE)
+            {
+                byte *player = g_4e8c24->data + (player_index & 0xffff) * 0x21c;
+                short machine = *(short *)(player + 0x1a);
+                if (machine != NONE)
+                {
+                    s_machine_address const *address = (s_machine_address const *)((byte *)g_4e8c20 + 0x30) + machine;
+                    long index = simulation_watcher_find_machine(*(s_simulation_world_owner **)g_4cf77c, address);
+                    if (index != NONE)
+                        mask = ~(1 << index);
+                }
+            }
+            function_8b4d0(distribution, type, *count_reference, *count_reference > 0 ? entities : 0, mask, size, data, timeout);
+        }
+    }
+}
+
+// @retail 0xb5ba0
+void __stdcall function_b5ba0(long player_index, long type, long count, long object_indices,
+    long size, void const *data, long timeout)
+{
+    // Preserve NONE while reducing valid handles to their player slots.
+    player_index = player_index == NONE ? NONE : (player_index & 0xffff);
+    // Keep the count and object-list inputs in their retail stack slots.
+    long const *count_reference = &count;
+    long const *object_indices_reference = &object_indices;
+    long entities[2];
+    s_world *world = (s_world *)g_4cf77c;
+    long state = world->state;
+    if (state == 4 || state == 5)
+    {
+        s_event_distribution *distribution = (s_event_distribution *)((byte *)world->data + 0xa0ac);
+        for (long i = 0; i < *count_reference; i++)
+        {
+            if (state != 3 && state != 5)
+                entities[i] = function_a5930(((long const *)*object_indices_reference)[i]);
+            else
+                entities[i] = function_a5980(((long const *)*object_indices_reference)[i]);
+        }
+        if (*count_reference <= 0 || entities[0] != NONE)
+        {
+            if (state != 3 && state != 5 && player_index != NONE)
+            {
+                byte *player = g_4e8c24->data + (player_index & 0xffff) * 0x21c;
+                short machine = *(short *)(player + 0x1a);
+                if (machine != NONE)
+                {
+                    s_machine_address const *address = (s_machine_address const *)((byte *)g_4e8c20 + 0x30) + machine;
+                    long index = simulation_watcher_find_machine(*(s_simulation_world_owner **)g_4cf77c, address);
+                    if (index != NONE)
+                        function_8b4d0(distribution, type, *count_reference, *count_reference > 0 ? entities : 0,
+                            1 << index, size, data, timeout);
+                }
+            }
+        }
+    }
 }

@@ -1201,19 +1201,21 @@ struct s_unit_player_assignment
 // @retail 0x14cad0
 void function_14cad0(long player_index, long unit_index)
 {
-	s_player *player = player_get(player_index);
+	long volatile const *player_reference = &player_index;
+	s_player *player = player_get(*player_reference);
+	s_unit_player_assignment *unit;
 	if (player->unit_index != unit_index)
 	{
 		if (player->unit_index != NONE)
 		{
-			s_unit_player_assignment *unit = (s_unit_player_assignment *)object_get_unchecked(player->unit_index);
+			unit = (s_unit_player_assignment *)object_get_unchecked(player->unit_index);
 			if (player->user_index != NONE)
 			{
 				player_control_set_unit(player->user_index, NONE);
 				function_1682bf(NONE, player->user_index, NONE);
 			}
 			unit->player_index = NONE;
-			unit->previous_player_index = player_index;
+			unit->previous_player_index = *player_reference;
 			long target = ((s_unit_player_assignment *)object_get_unchecked(player->unit_index))->field_d4;
 			if (target != NONE)
 			{
@@ -1232,8 +1234,8 @@ void function_14cad0(long player_index, long unit_index)
 		player->field_17e = 0;
 		if (unit_index != NONE)
 		{
-			s_unit_player_assignment *unit = (s_unit_player_assignment *)object_get_unchecked(unit_index);
-			unit->player_index = player_index;
+			unit = (s_unit_player_assignment *)object_get_unchecked(unit_index);
+			unit->player_index = *player_reference;
 			unit->previous_player_index = NONE;
 			long target = ((s_unit_player_assignment *)object_get_unchecked(unit_index))->field_d4;
 			if (target != NONE)
@@ -1263,7 +1265,7 @@ void function_14cad0(long player_index, long unit_index)
 			}
 			if (g_55e4d0[g_4e9ae8->engine_index])
 			{
-				unit->field_f0 = function_1588b0(player_index, 2);
+				unit->field_f0 = function_1588b0(*player_reference, 2);
 			}
 		}
 		function_152340();
@@ -1300,4 +1302,185 @@ void function_14c540(long player_index)
 		function_196470();
 	}
 	function_bb8f0(player_index);
+}
+
+
+bool function_bacc0(long object_index, long index, point3f const *point);
+void __stdcall function_be240(long object_index, dword color_mask, color3f const *colors);
+bool function_15f330(s_player_appearance const *appearance, short team_index, color3f *colors);
+
+// @retail 0x14bfc0
+void function_14bfc0(long player_index, long object_index)
+{
+    s_player *player = player_get(player_index);
+    byte *object = object_get_unchecked(object_index);
+    if ((1 << object[0xaa]) & 3)
+        *(short *)(object + 0x138) = (short)*(char *)((byte *)player + 0xc0);
+    *(long *)(object + 0x24) = *(long *)((byte *)player + 0x89);
+    color3f colors[4];
+    if (function_15f330(&player->appearance, (short)*(char *)((byte *)player + 0xc0), colors))
+    {
+        function_bacc0(object_index, 0, (point3f *)&colors[0]);
+        function_bacc0(object_index, 1, (point3f *)&colors[1]);
+        function_bacc0(object_index, 2, (point3f *)&colors[2]);
+        function_bacc0(object_index, 3, (point3f *)&colors[3]);
+    }
+    else
+        function_be240(object_index, 0, NULL);
+}
+
+
+void function_158000(long previous_index, long player_index);
+void ai_player_add(long player_index);
+struct s_object_values;
+void function_1e9e80(long first, s_object_values *table, long second);
+void function_152df0(long player_index);
+
+static inline s_player *player_get_absolute(long index)
+{
+    s_player *result = NULL;
+    s_record_pool *data = g_4e8c24;
+    if (index != NONE && index >= 0 && index < data->high_water_index)
+    {
+        s_player *player = (s_player *)(data->data + data->size * index);
+        if (player->salt != 0)
+            result = player;
+    }
+    return result;
+}
+
+// @retail 0x14c320
+void function_14c320(long first, long second)
+{
+    long const *first_reference = &first;
+    long const *second_reference = &second;
+    s_player *first_player = player_get_absolute(*first_reference);
+    s_player *second_player = player_get_absolute(*second_reference);
+    long first_old = NONE;
+    long first_new = NONE;
+    long second_old = NONE;
+    long second_new = NONE;
+    s_player first_copy;
+    s_player second_copy;
+    if (first_player)
+    {
+        first_old = data_datum_index(g_4e8c24, *first_reference);
+        first_copy = *first_player;
+        record_pool_release(g_4e8c24, first_old);
+    }
+    if (second_player)
+    {
+        second_old = data_datum_index(g_4e8c24, *second_reference);
+        second_copy = *second_player;
+        record_pool_release(g_4e8c24, second_old);
+    }
+    if (first_old != NONE)
+    {
+        first_new = function_16b990(g_4e8c24, *second_reference);
+        s_player *player = player_get(first_new);
+        *player = first_copy;
+        player->salt = (short)(first_new >> 16);
+    }
+    if (second_old != NONE)
+    {
+        second_new = function_16b990(g_4e8c24, *first_reference);
+        s_player *player = player_get(second_new);
+        *player = second_copy;
+        player->salt = (short)(second_new >> 16);
+    }
+    if (g_55e4d0[g_4e9ae8->engine_index])
+        function_1e9e80(*first_reference, (s_object_values *)((byte *)g_4e9ae8 + 0x304), *second_reference);
+    if (first_old != NONE)
+    {
+        function_158000(first_old, first_new);
+        if (g_4e6948->state == 1)
+        {
+            for (long i = 0; i < MAXIMUM_AI_PLAYERS; i++)
+                if (g_4f55cc[i].player_index == first_old)
+                    g_4f55cc[i].player_index = NONE;
+        }
+        ai_player_add(first_new);
+    }
+    if (second_old != NONE)
+    {
+        function_158000(second_old, second_new);
+        if (g_4e6948->state == 1)
+        {
+            for (long i = 0; i < MAXIMUM_AI_PLAYERS; i++)
+                if (g_4f55cc[i].player_index == second_old)
+                    g_4f55cc[i].player_index = NONE;
+        }
+        ai_player_add(second_new);
+    }
+}
+
+// @retail 0x14c630
+void function_14c630(dword valid_mask, s_machine_address const *addresses)
+{
+    dword const *valid_reference = &valid_mask;
+    s_machine_address const *const *addresses_reference = &addresses;
+    s_players_globals *globals = (s_players_globals *)g_4e8c20;
+    dword old_valid = globals->machine_valid_mask;
+    s_machine_address old_addresses[16];
+    long remapping[16];
+    memcpy(old_addresses, globals->machine_addresses, sizeof(old_addresses));
+    memset(remapping, NONE, sizeof(remapping));
+    for (long i = 0; i < 16; i++)
+    {
+        if (TEST_FLAG(old_valid, i))
+        {
+            for (long j = 0; j < 16; j++)
+            {
+                if (TEST_FLAG(*valid_reference, j) &&
+                    memcmp(&(*addresses_reference)[j], &old_addresses[i], sizeof(s_machine_address)) == 0)
+                {
+                    remapping[i] = j;
+                    break;
+                }
+            }
+        }
+    }
+    s_record_pool_iterator iterator;
+    s_player *player;
+    iterator.data = g_4e8c24;
+    iterator.index = NONE;
+    while ((player = (s_player *)data_iterator_next_inlined(&iterator)) != NULL)
+    {
+        if (player->machine_index != NONE && remapping[player->machine_index] == NONE)
+            function_152df0(iterator.datum_index);
+    }
+    globals = (s_players_globals *)g_4e8c20;
+    globals->machine_valid_mask = *valid_reference;
+    memcpy(globals->machine_addresses, *addresses_reference, sizeof(globals->machine_addresses));
+    iterator.data = g_4e8c24;
+    iterator.index = NONE;
+    while ((player = (s_player *)data_iterator_next_inlined(&iterator)) != NULL)
+    {
+        if (player->machine_index != NONE)
+        {
+            long new_index = remapping[player->machine_index];
+            if (new_index != NONE)
+                player->machine_index = (short)new_index;
+        }
+    }
+    if (globals->local_machine_valid)
+    {
+        long machine_index = NONE;
+        for (long i = 0; i < 16; i++)
+        {
+            if (TEST_FLAG(*valid_reference, i) &&
+                memcmp(&(*addresses_reference)[i], &globals->local_machine_address, sizeof(s_machine_address)) == 0)
+            {
+                machine_index = i;
+                break;
+            }
+        }
+        if (machine_index != NONE)
+        {
+            if (globals->local_machine_index == NONE)
+                players_set_local_machine(&globals->local_machine_address);
+            else
+                globals->local_machine_index = machine_index;
+        }
+    }
 }

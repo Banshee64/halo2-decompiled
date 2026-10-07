@@ -2,6 +2,591 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6600 functions match
+
+```
+matched 6600 of 11318 game functions (713625 of 2784283 bytes, 25.63%)
+```
+
+6600 new matches, none lost:
+- Codex lane B round 10: 0x1b3f60 and 0x1bbc00.
+
+## 2026-10-06: 6598 functions match
+
+```
+matched 6598 of 11318 game functions (713331 of 2784283 bytes, 25.62%)
+```
+
+6598 new matches, none lost:
+- Codex lane U round 11: 0x204ca0, and lane L's 0x124360, 0x124790, 0x124800 and 0x124840 once their callees 0x2174b0 and 0x217520 became real code.
+
+## 2026-10-06: 6593 functions match
+
+```
+matched 6593 of 11318 game functions (712902 of 2784283 bytes, 25.60%)
+```
+
+6593 new matches, none lost:
+- Codex UI-core lane rounds 7 and 8: 16 more UI-core functions (0x22df04 to 0x23dda0).
+
+## 2026-10-06: 6577 functions match
+
+```
+matched 6577 of 11318 game functions (709648 of 2784283 bytes, 25.49%)
+```
+
+6577 new matches, none lost:
+- Codex UI-screens lane round 7: nine screen and list functions (0x2b0b96 to 0x2cad45), and lane O's 0x24a7ec through its callee 0x2b10a3.
+
+## 2026-10-06: 6567 functions match
+
+```
+matched 6567 of 11318 game functions (708667 of 2784283 bytes, 25.45%)
+```
+
+6567 new matches, none lost:
+- Codex lane Q round 6: 0x150820, 0x151c10 and 0x151c90.
+
+## 2026-10-06: 6564 functions match
+
+```
+matched 6564 of 11318 game functions (707829 of 2784283 bytes, 25.42%)
+```
+
+6564 new matches, none lost:
+- Codex UI-core lane rounds 5 and 6: 27 matches in the UI core (0x22d0e3 to 0x23c0e0, plus 0x1489b5 and 0x148c3e).
+
+## 2026-10-06: 6537 functions match
+
+```
+matched 6537 of 11318 game functions (704840 of 2784283 bytes, 25.31%)
+```
+
+6537 new matches, none lost:
+- Codex UI-screens lane round 6: 0x2b635f, 0x2b9670, 0x2be650, 0x2c5224 and 0x2c52af.
+- Codex lane D round 25: 0x53610 and 0x56b70.
+
+## 2026-10-06: 6530 functions match
+
+```
+matched 6530 of 11318 game functions (703949 of 2784283 bytes, 25.28%)
+```
+
+6530 new matches, none lost:
+- Merge batch r7: the second machine's lane C rounds 20 and 21 (+27; PRs #106, #108), lane L rounds 2 and 3 (+6 including 0x2155f4; #105, #107), and written source for lanes O and J (#100, #103).
+
+## 2026-10-06: 6497 functions match
+
+```
+matched 6497 of 11318 game functions (701247 of 2784283 bytes, 25.19%)
+```
+
+6497 new matches, none lost:
+- Codex lane D round 24: 0x68f30, 0x69880, 0x69c80, 0x69d50, 0x6f700 and 0x860b0.
+- Codex lane AB round 7: 0xb75a0 and 0xb8460.
+
+## 2026-10-06: 6489 functions match
+
+```
+matched 6489 of 11318 game functions (699767 of 2784283 bytes, 25.13%)
+```
+
+6489 new matches, none lost:
+- Codex lane Z round 8: four more event senders (0xa8c10, 0xa8cf0, 0xa8dd0, 0xa9120).
+
+## 2026-10-06: 6485 functions match
+
+```
+matched 6485 of 11318 game functions (699052 of 2784283 bytes, 25.11%)
+```
+
+6485 new matches, none lost:
+- Codex lane D round 23: 0x5d9e0, 0x68670, 0x69040, 0x6f940, 0x84fb0 and 0x86aa0, plus the wrappers 0xb2710 and 0xb2730.
+
+## 2026-10-06: 6477 functions match
+
+```
+matched 6477 of 11318 game functions (698071 of 2784283 bytes, 25.07%)
+```
+
+6477 new matches, none lost:
+- Codex lane Z rounds 6 and 7: 17 network event senders (0xa7c50 to 0xa9400), once 0xa76b0 and 0xa5980 kept retail's call boundaries.
+
+## 2026-10-06: 6460 functions match
+
+```
+matched 6460 of 11318 game functions (695856 of 2784283 bytes, 24.99%)
+```
+
+6460 new matches, none lost:
+- Merge batch r6: the second machine's PRs #98 (lane O round 6: 0x244610, 0x249fa3, 0x24a80d), #97 and #99 (lane AA's last functions, written), #76 (lane K) and #82 (lane I), the last four adding written source only.
+
+## 2026-10-06: 6457 functions match
+
+```
+matched 6457 of 11318 game functions (695776 of 2784283 bytes, 24.99%)
+```
+
+6457 new matches, none lost:
+- Codex lane N round 5: 0x14c320, 0x14c540 and 0x14c630, and five more through them: 0xa94b0, 0x152cf0 and 0x158090 (callers of 0x14cad0, whose parameters it fixed) and 0x24f850 and 0x24f880.
+
+## 2026-10-06: 6449 functions match
+
+```
+matched 6449 of 11318 game functions (693834 of 2784283 bytes, 24.92%)
+```
+
+6449 new matches, none lost:
+- Codex lane X round 5: 0x1e17d0, 0x1e2150, 0x1e3400 and 0x1e4570, and lane V's 0x26abd0 through 0x1e2150's argument order.
+- Codex lane T round 7: 0x16f570.
+
+## 2026-10-06: 6443 functions match
+
+```
+matched 6443 of 11318 game functions (690371 of 2784283 bytes, 24.80%)
+```
+
+6443 new matches, none lost:
+- Merge batch r5: the second machine's Codex PRs #73, #74, #75, #77, #78, #79, #80, #81 and #83 (lanes O, M, I, P, L and J): +15 that main didn't already have.
+
+## 2026-10-06: 6428 functions match
+
+```
+matched 6428 of 11318 game functions (686770 of 2784283 bytes, 24.67%)
+```
+
+6428 new matches, none lost:
+- Codex lane W round 12: 0x18ee0 and 0x36560.
+- Codex lane U round 10: 0x20d220 and 0x20e460.
+
+## 2026-10-06: 6424 functions match
+
+```
+matched 6424 of 11318 game functions (684019 of 2784283 bytes, 24.57%)
+```
+
+6424 new matches, none lost:
+- Codex lane D round 22: 0x6c4a0 and 0x84560.
+
+## 2026-10-06: 6422 functions match
+
+```
+matched 6422 of 11318 game functions (683641 of 2784283 bytes, 24.55%)
+```
+
+6422 new matches, none lost:
+- Codex lane C round 19: 0x1d05d0.
+
+## 2026-10-06: 6421 functions match
+
+```
+matched 6421 of 11318 game functions (683406 of 2784283 bytes, 24.55%)
+```
+
+6421 new matches, none lost:
+- Codex lane V round 6: 0x268700, 0x2691b0, 0x269de0 and 0x26a480.
+
+## 2026-10-06: 6417 functions match
+
+```
+matched 6417 of 11318 game functions (682868 of 2784283 bytes, 24.53%)
+```
+
+6417 new matches, none lost:
+- Codex lane Q round 5: 0x155b60, 0x155c60 and 0x155d80.
+- Codex lane FP round 1: the inline and call boundaries around 0x214ac0 and 0x214b80 are now explicit, so those two no longer depend on inlining choices elsewhere.
+
+## 2026-10-06: 6414 functions match
+
+```
+matched 6414 of 11318 game functions (682310 of 2784283 bytes, 24.51%)
+```
+
+6414 new matches, none lost:
+- Codex lane AB round 6: 0xb6df0, 0xb7150 and 0xc1670.
+- Codex near-match polish round 2: 0x2566c0.
+- @coldspear's #96: retail's values for the constants, string and script definitions from #90 and #91.
+
+## 2026-10-06: 6410 functions match
+
+```
+matched 6410 of 11318 game functions (681349 of 2784283 bytes, 24.47%)
+```
+
+6410 new matches, none lost:
+- Codex near-match polish round 1: 0x3d4f0, 0x3f220, 0x191300 and 0x28c470, four near matches finished by small rewrites.
+
+## 2026-10-06: 6406 functions match
+
+```
+matched 6406 of 11318 game functions (680567 of 2784283 bytes, 24.44%)
+```
+
+6406 new matches, none lost:
+- Codex lane V round 5: 10 matches in 0x260000-0x26e36f, plus 0x1a9e00 and 0x1b3820, whose stub callees became real code.
+
+## 2026-10-06: 6394 functions match
+
+```
+matched 6394 of 11318 game functions (678059 of 2784283 bytes, 24.35%)
+```
+
+6394 new matches, none lost:
+- Codex lane AB round 5: 8 matches in the object core (0xb7300, 0xb8840, 0xb8890, 0xbd020, 0xbe690, 0xc00a0, 0xc01c0, 0xc3f90).
+- Codex lane Y round 6: 0x74970.
+
+## 2026-10-06: 6385 functions match
+
+```
+matched 6385 of 11318 game functions (677037 of 2784283 bytes, 24.32%)
+```
+
+7 new matches, none lost:
+- **Codex lane D**, round 21 (4): session and network helpers in the 0x50000–0x6ffff and 0x80000–0x8ffff ranges, plus lane J's 0x94100 through a now-real callee.
+- **Codex lane AA**, round 2 (3): unit and object helpers in the 0x110000–0x11ffff range.
+
+## 2026-10-06: 6378 functions match
+
+```
+matched 6378 of 11318 game functions (676266 of 2784283 bytes, 24.29%)
+```
+
+4 new matches, none lost:
+- **Codex lane U**, round 9 (4): squad and image helpers in the 0x200000–0x217fff range.
+
+## 2026-10-06: 6374 functions match
+
+```
+matched 6374 of 11318 game functions (675720 of 2784283 bytes, 24.27%)
+```
+
+3 new matches, none lost:
+- **Codex lane C**, round 18 (3): actor and havok helpers in the 0x1c0000–0x1dffff range.
+
+## 2026-10-06: 6371 functions match
+
+```
+matched 6371 of 11318 game functions (675272 of 2784283 bytes, 24.25%)
+```
+
+32 new matches, none lost:
+- **Codex lane AA**, round 1 (25): unit, weapon, object attachment and physics helpers in the new 0x110000–0x11ffff range; its corrected prototypes and new callees also make @Banshee64's 0xce040 and the existing 0xeb5a0 match.
+- **Codex lane P**, round 2 (7): three string and list helpers in the 0x130000–0x13ffff range, and four lane A callers that now match through them.
+
+## 2026-10-06: 6339 functions match
+
+```
+matched 6339 of 11318 game functions (670909 of 2784283 bytes, 24.10%)
+```
+
+7 new matches, none lost:
+- **Codex lane D**, round 20 (7): friend presence, matchmaking and voice queue helpers in the 0x50000–0x6ffff and 0x80000–0x8ffff ranges, plus two callers that now match (0x943d0, 0x2359ce).
+
+## 2026-10-06: 6332 functions match
+
+```
+matched 6332 of 11318 game functions (668717 of 2784283 bytes, 24.02%)
+```
+
+11 new matches, none lost:
+- **Codex lane W**, round 11 (1): one more core utility.
+- **Codex lane F** (10): player control and looping-sound helpers in the 0x180000–0x18ffff range, and lane K's 0x21db80 through its now-real callee.
+
+## 2026-10-06: 6321 functions match
+
+```
+matched 6321 of 11318 game functions (667886 of 2784283 bytes, 23.99%)
+```
+
+1 new matches, none lost:
+- **UI-core lane**, round 4 (1): a director camera helper at 0x23d790.
+
+## 2026-10-06: 6320 functions match
+
+```
+matched 6320 of 11318 game functions (667562 of 2784283 bytes, 23.98%)
+```
+
+5 new matches, none lost:
+- **Codex lane AB**, round 4 (5): object connection, cluster and light helpers in the 0x0b3d30–0x0c42df range.
+
+## 2026-10-06: 6315 functions match
+
+```
+matched 6315 of 11318 game functions (666928 of 2784283 bytes, 23.95%)
+```
+
+9 new matches, none lost:
+- **Codex lane D**, round 19 (8): network voice, observer and session join-state helpers in the 0x50000–0x6ffff and 0x80000–0x8ffff ranges.
+- **Codex lane B**, round 9 (1): an actor helper in the 0x1b0000–0x1bffff range.
+
+## 2026-10-06: 6306 functions match
+
+```
+matched 6306 of 11318 game functions (664864 of 2784283 bytes, 23.88%)
+```
+
+12 new matches, none lost:
+- **Codex lane R** (2): an effect helper in the 0x170000–0x17ffff range, and its now-matching caller 0x16f190.
+- **Codex lane Y**, round 5 (10): six session and network-estimation helpers, and four codec functions that now match through them.
+
+## 2026-10-06: 6294 functions match
+
+```
+matched 6294 of 11318 game functions (659320 of 2784283 bytes, 23.68%)
+```
+
+4 new matches, none lost:
+- **Codex lane U**, round 8 (4): game variant, saved-game and image helpers in the 0x200000–0x217fff range.
+
+## 2026-10-06: 6290 functions match
+
+```
+matched 6290 of 11318 game functions (658972 of 2784283 bytes, 23.67%)
+```
+
+10 new matches, none lost:
+- **Codex lane X**, round 4 (7): actor, prop and shape helpers in the 0x1e0000–0x1effff range.
+- **Codex lane C**, round 17 (3): cluster and object list helpers in the 0x1c0000–0x1dffff range.
+
+## 2026-10-06: 6280 functions match
+
+```
+matched 6280 of 11318 game functions (657692 of 2784283 bytes, 23.62%)
+```
+
+6 new matches, none lost:
+- **Codex lane J** (4): network stream and session search helpers in the 0x90000–0x9ffff range.
+- **Codex lane L** (2): a font helper in the 0x120000–0x12ffff range, and its caller 0x22d7ce.
+
+## 2026-10-06: 6274 functions match
+
+```
+matched 6274 of 11318 game functions (655763 of 2784283 bytes, 23.55%)
+```
+
+10 new matches, none lost:
+- **Codex lane P** (8): team colours, palette, string and HUD helpers in the 0x130000–0x13ffff range, plus 0x7f720 and 0x7f790; a corrected prototype also makes UI functions 0x2c0400 and 0x24ce9d match.
+
+## 2026-10-06: 6264 functions match
+
+```
+matched 6264 of 11318 game functions (653773 of 2784283 bytes, 23.48%)
+```
+
+3 new matches, none lost:
+- **Codex lane S**, round 6 (3): weapon, device and item helpers in the 0x100000–0x10ffff range.
+
+## 2026-10-06: 6261 functions match
+
+```
+matched 6261 of 11318 game functions (652805 of 2784283 bytes, 23.45%)
+```
+
+6 new matches, none lost:
+- **Codex lane AC**, round 3 (6): interface constructors and callbacks in the 0x2729b0–0x29ffff range.
+
+## 2026-10-06: 6255 functions match
+
+```
+matched 6255 of 11318 game functions (650905 of 2784283 bytes, 23.38%)
+```
+
+2 new matches, none lost:
+- **Codex lane W**, round 10 (2): two more core utilities in the 0x11000–0x4ffff range.
+
+## 2026-10-06: 6253 functions match
+
+```
+matched 6253 of 11318 game functions (650189 of 2784283 bytes, 23.35%)
+```
+
+11 new matches, none lost:
+- **Codex lane Z**, round 4 (4): more object type and event helpers in the 0xa0000–0xac48f range.
+- **Codex lane V**, round 4 (7): path and clump helpers in the 0x260000–0x26e36f range.
+
+## 2026-10-06: 6242 functions match
+
+```
+matched 6242 of 11318 game functions (647596 of 2784283 bytes, 23.26%)
+```
+
+18 new matches, none lost:
+- **Codex lane AC**, round 2 (18): object-chain flags, groups and interface helpers in the 0x2729b0–0x29ffff range.
+
+## 2026-10-06: 6224 functions match
+
+```
+matched 6224 of 11318 game functions (644727 of 2784283 bytes, 23.16%)
+```
+
+4 new matches, none lost:
+- **Codex lane B**, round 8 (4): actor slot handlers in the 0x1b0000–0x1bffff and 0x1f0000–0x1fffff ranges.
+
+## 2026-10-05: 6220 functions match
+
+```
+matched 6220 of 11318 game functions (643669 of 2784283 bytes, 23.12%)
+```
+
+7 new matches, none lost:
+- **Codex lane Q**, round 4 (7): player pickup, weapon and HUD helpers in the 0x150000–0x15ffff range.
+
+## 2026-10-05: 6213 functions match
+
+```
+matched 6213 of 11318 game functions (642366 of 2784283 bytes, 23.07%)
+```
+
+10 new matches, none lost:
+- **Codex lane D**, round 18 (10): network session, voice and presence helpers in the 0x50000–0x6ffff and 0x80000–0x8ffff ranges.
+
+## 2026-10-05: 6203 functions match
+
+```
+matched 6203 of 11318 game functions (641123 of 2784283 bytes, 23.03%)
+```
+
+25 new matches, none lost:
+- **Codex lane AC**, round 1 (25): interface destructors, tracking hooks, iterators and actor helpers in the new 0x2729b0–0x29ffff range.
+
+## 2026-10-05: 6178 functions match
+
+```
+matched 6178 of 11318 game functions (639613 of 2784283 bytes, 22.97%)
+```
+
+3 new matches, none lost:
+- **Codex lane U**, round 7 (3): two more helpers in the 0x200000–0x217fff range, and a prototype fix that makes lane B's 0x1bcc90 match.
+
+## 2026-10-05: 6175 functions match
+
+```
+matched 6175 of 11318 game functions (638810 of 2784283 bytes, 22.94%)
+```
+
+8 new matches, none lost:
+- **Codex lane Y**, round 4 (8): session and gateway stream helpers in the 0x70000–0x7ffff range.
+
+## 2026-10-05: 6167 functions match
+
+```
+matched 6167 of 11318 game functions (637310 of 2784283 bytes, 22.89%)
+```
+
+3 new matches, none lost:
+- **Codex lane C**, round 16 (3): havok component and actor helpers in the 0x1c0000–0x1dffff range.
+
+## 2026-10-05: 6164 functions match
+
+```
+matched 6164 of 11318 game functions (636418 of 2784283 bytes, 22.86%)
+```
+
+9 new matches, none lost:
+- **Codex lane W**, round 9 (9): more core utilities in the 0x11000–0x4ffff range.
+
+## 2026-10-05: 6155 functions match
+
+```
+matched 6155 of 11318 game functions (634827 of 2784283 bytes, 22.80%)
+```
+
+14 new matches, none lost:
+- **Codex lane Z**, round 3 (14): object creation codecs, event definitions and device helpers in the 0xa0000–0xac48f range.
+
+## 2026-10-05: 6141 functions match
+
+```
+matched 6141 of 11318 game functions (630928 of 2784283 bytes, 22.66%)
+```
+
+11 new matches, none lost:
+- **Codex lane AB**, round 3 (11): more object core iterators, storage and light helpers; one lane O function (0x240fe0) now matches too.
+
+## 2026-10-05: 6130 functions match
+
+```
+matched 6130 of 11318 game functions (629567 of 2784283 bytes, 22.61%)
+```
+
+10 new matches, none lost:
+- **Codex lane U**, round 6 (10): actor and squad iterators, script and widget helpers in the 0x200000–0x217fff range; its callee 0x216120 also makes two UI functions (0x2380a6, 0x2380c0) match.
+
+## 2026-10-05: 6120 functions match
+
+```
+matched 6120 of 11318 game functions (628337 of 2784283 bytes, 22.57%)
+```
+
+10 new matches, none lost:
+- **Codex lane W**, round 8 (10): more core utilities in the 0x11000–0x4ffff range, including the 0x43850 callback with its shared type fixed.
+
+## 2026-10-05: 6110 functions match
+
+```
+matched 6110 of 11318 game functions (625818 of 2784283 bytes, 22.48%)
+```
+
+12 new matches, none lost:
+- **Codex lane Y**, round 3 (12): session search registration, player caches and network estimation helpers in the 0x70000–0x7ffff range.
+
+## 2026-10-05: 6098 functions match
+
+```
+matched 6098 of 11318 game functions (622981 of 2784283 bytes, 22.37%)
+```
+
+21 new matches, none lost:
+- **Codex lane Y**, round 2 (21): game-session state, network bandwidth estimation and observer helpers in the 0x70000–0x7ffff range.
+
+## 2026-10-05: 6077 functions match
+
+```
+matched 6077 of 11318 game functions (619215 of 2784283 bytes, 22.24%)
+```
+
+14 new matches, none lost:
+- **Codex lane AB**, round 2 (14): more of the object core, plus four round-1 functions finished.
+
+## 2026-10-05: 6063 functions match
+
+```
+matched 6063 of 11318 game functions (617294 of 2784283 bytes, 22.17%)
+```
+
+16 new matches, none lost:
+- **Codex lane W**, round 7 (8): more core utilities, and its new callee makes @Banshee64's 0x117060 match.
+- **Codex lane C**, round 15 (8): AI, actor and havok helpers in the 0x1c0000–0x1dffff range; one lane A caller (0x2a10d0) now matches too.
+
+## 2026-10-05: 6047 functions match
+
+```
+matched 6047 of 11318 game functions (614962 of 2784283 bytes, 22.09%)
+```
+
+45 new matches, none lost:
+- **Codex lane AB**, round 1 (43): the object core (object defaults, velocities, deletion, map connection, cluster iterators, havok components) and lights and liquids, using @coldspear's analysis documents (#47, #61, #68) as the map.
+- **Status fixes** (2): 0x240290 and 0x2432e0 already had matching source; their rows are now recorded.
+
+## 2026-10-05: 6002 functions match
+
+```
+matched 6002 of 11318 game functions (611428 of 2784283 bytes, 21.96%)
+```
+
+20 new matches, none lost:
+- **Codex lane W**, round 6 (20): more core utilities in the 0x11000–0x4ffff range; its new 0x47870 also makes @Banshee64's flexible chain function 0x116080 match.
+
+## 2026-10-05: 5982 functions match
+
+```
+matched 5982 of 11318 game functions (608994 of 2784283 bytes, 21.87%)
+```
+
+14 new matches, none lost:
+- **Codex lane Z**, round 2 (14): more game event and object creation codecs in the 0xa0000–0xac48f range.
+
 ## 2026-10-05: 5968 functions match
 
 ```

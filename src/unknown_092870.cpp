@@ -77,6 +77,7 @@ public:
 class c_class_93590
 {
 public:
+	c_class_93590();
 	void function_93590(s_link_packet const *packet, long *size, byte *buffer, long buffer_size) const;
 	bool function_93610(long size, byte const *buffer, s_link_packet *packet) const;
 
@@ -90,6 +91,25 @@ public:
 	long m_unknown224;
 	s_network_statistics m_statistics[4];
 };
+
+// @retail 0x81310
+c_class_93590::c_class_93590()
+{
+	m_statistics[0].rate_scale = 0.0f;
+	for (long i = 0; i < 4; i++)
+	{
+		m_statistics[i].interval = 0;
+		m_statistics[i].period = 0;
+		if (i)
+			m_statistics[i].rate_scale = 0.0f;
+	}
+	m_initialized = false;
+	m_sequence = 0;
+	m_open = false;
+	memset(m_endpoints, 0, sizeof(m_endpoints));
+	m_route_count = 0;
+	m_out_of_band_consumer = 0;
+}
 
 /* clears a direction's traffic */
 static inline void network_statistics_reset(s_network_statistics *statistics)

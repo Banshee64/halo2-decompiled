@@ -100,6 +100,8 @@ void function_23620d(long string_handle, word *buffer)
 }
 
 /* loads every bitmap of a bitmap tag */
+/* Retail callers retain the bitmap-loader call boundary. */
+__declspec(noinline) void function_23625d(long tag_index);
 // @retail 0x23625d
 void function_23625d(long tag_index)
 {
@@ -418,8 +420,8 @@ extern long g_54e7c8;
 // @retail 0x23643f
 void function_23643f(void)
 {
+	long volatile value18 = g_54e7c4;
 	long value12a = g_54e7c8;
-	long value18 = g_54e7c4;
 	long value14 = g_54e7c0;
 	s_entry_a *entry = function_148d61();
 	char const *map_name;
@@ -431,12 +433,12 @@ void function_23643f(void)
 		long count;
 
 		function_138110(&options);
-		options.value12a = (short)value12a;
+		options.value12a = *(short volatile *)&value12a;
 		options.value18 = value18;
 		options.state = 1;
 		options.single_player = false;
 		options.value14 = value14;
-		strncpy(options.map_name, map_name, sizeof(options.map_name));
+		strncpy(options.map_name, *(char const *volatile *)&map_name, sizeof(options.map_name));
 		options.map_name[sizeof(options.map_name) - 1] = 0;
 		options.time = function_1462b0();
 		function_23654b(options.players, &address, &count);
@@ -496,8 +498,8 @@ void function_23661f(s_dialog_definition *definition, long dialog_id)
 	s_dialog_globals_view *globals = (s_dialog_globals_view *)function_148350();
 
 	memset(definition, 0, sizeof(*definition));
-	definition->string_list_index = NONE;
 	definition->dialog_id = dialog_id;
+	definition->string_list_index = NONE;
 	definition->title = 0;
 	definition->message = 0;
 	definition->screen_id = 7;
@@ -555,14 +557,16 @@ void function_23661f(s_dialog_definition *definition, long dialog_id)
 					{
 						definition->choices = entry->choices;
 					}
+					long screen_id;
 					if ((group->flags & 1) || (entry->flags & 1))
 					{
-						definition->screen_id = 0xf0;
+						screen_id = 0xf0;
 					}
 					else
 					{
-						definition->screen_id = 7;
+						screen_id = 7;
 					}
+					definition->screen_id = (short)screen_id;
 				}
 			}
 		}
@@ -571,4 +575,41 @@ void function_23661f(s_dialog_definition *definition, long dialog_id)
 	{
 		function_23661f(definition, 1);
 	}
+}
+
+struct s_1ed70_point { short x, y; };
+void function_1eb00();
+void function_1ed70(color4f const *color, s_1ed70_point const *points, short count);
+void function_1ee50();
+
+// @retail 0x235d69
+void function_235d69(short_rectangle2d const *rectangle, real depth,
+    short_rectangle2d const *screen, color4f const *color)
+{
+    point3f a, b, c, d;
+    a.x = (real)rectangle->left;
+    a.y = (real)rectangle->top;
+    a.z = depth;
+    b.x = (real)rectangle->right;
+    b.y = (real)rectangle->top;
+    b.z = depth;
+    c.x = (real)rectangle->left;
+    c.y = (real)rectangle->bottom;
+    c.z = depth;
+    d.x = (real)rectangle->right;
+    d.y = (real)rectangle->bottom;
+    d.z = depth;
+    function_2360c3(screen, &a);
+    function_2360c3(screen, &b);
+    function_2360c3(screen, &c);
+    function_2360c3(screen, &d);
+    s_1ed70_point points[5];
+    points[0].x = (short)a.x; points[0].y = (short)a.y;
+    points[1].x = (short)c.x; points[1].y = (short)c.y;
+    points[2].x = (short)d.x; points[2].y = (short)d.y;
+    points[3].x = (short)b.x; points[3].y = (short)b.y;
+    points[4] = points[0];
+    function_1eb00();
+    function_1ed70(color, points, 5);
+    function_1ee50();
 }

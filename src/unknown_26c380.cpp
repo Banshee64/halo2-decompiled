@@ -397,6 +397,102 @@ bool function_26cbe0(s_pathfinding_data const *pathfinding, point3f const *origi
 	return false;
 }
 
+struct s_obstacle_list;
+struct s_obstacle_hit
+{
+	real distance;
+	short index;
+	short group;
+};
+
+struct s_avoidance_trace
+{
+	real distance;
+	long sector;
+	long edge;
+	short obstacle;
+	short group;
+};
+
+bool obstacle_list_cast_ray(s_obstacle_list const *list, short ignore_index, point2f const *origin,
+	point2f const *direction, real radius, real maximum_distance, bool ignore_flagged, s_obstacle_hit *hit);
+
+// @retail 0x26ccb0
+bool __stdcall function_26ccb0(s_pathfinding_data const *pathfinding, s_obstacle_list const *obstacles,
+	short ignored_obstacle, point2f const *origin, long sector, long target_sector, point2f const *direction,
+	real radius, real distance, bool first, bool stop_at_goal, bool ignore_flagged,
+	s_path_location const *location, s_avoidance_trace *trace)
+{
+	bool hit = false;
+	trace->distance = distance;
+	trace->sector = NONE;
+	trace->edge = 0xffff;
+	trace->obstacle = NONE;
+	trace->group = NONE;
+	if (sector == NONE || sector == 0xffff)
+		return true;
+	real limit = stop_at_goal ? distance - radius : distance;
+	point3f start = {origin->x, origin->y, 0.0f};
+	vector3f forward = {direction->x, direction->y, 0.0f};
+	s_sector_trace_result offset, side, center;
+	if (!first)
+	{
+		if (!(pathfinding->nodes[sector].flags & 0x10))
+			return true;
+		point3f end;
+		function_x697631(&start, &forward, distance, &end);
+		if (function_26c590(pathfinding, &start, sector, target_sector, &forward, distance, location,
+			(s_path_trace_result *)&center) &&
+			(center.distance < limit || (target_sector != NONE && center.sector_index != target_sector)))
+		{
+			hit = true;
+			trace->distance = center.distance;
+			trace->edge = center.edge_index;
+		}
+		vector3f lateral = {0.0f - direction->y, direction->x, 0.0f};
+		function_26c590(pathfinding, &start, sector, NONE, &lateral, radius, NULL, (s_path_trace_result *)&offset);
+		if (function_26c590(pathfinding, &offset.point, offset.sector_index, NONE, &forward,
+			trace->distance, location, (s_path_trace_result *)&side) &&
+			side.distance < trace->distance && side.distance < limit &&
+			(center.blocked || function_26cbe0(pathfinding, &side.point, &end, side.sector_index, target_sector, location)))
+		{
+			hit = true;
+			trace->distance = side.distance;
+			trace->edge = side.edge_index;
+		}
+		lateral.i *= -1.0f;
+		lateral.j *= -1.0f;
+		lateral.k *= -1.0f;
+		function_26c590(pathfinding, &start, sector, NONE, &lateral, radius, NULL, (s_path_trace_result *)&offset);
+		if (function_26c590(pathfinding, &offset.point, offset.sector_index, NONE, &forward,
+			trace->distance, location, (s_path_trace_result *)&side) &&
+			side.distance < trace->distance && side.distance < limit &&
+			(center.blocked || function_26cbe0(pathfinding, &side.point, &end, side.sector_index, target_sector, location)))
+		{
+			hit = true;
+			trace->distance = side.distance;
+			trace->edge = side.edge_index;
+		}
+	}
+	if (obstacles)
+	{
+		s_obstacle_hit obstacle;
+		if (obstacle_list_cast_ray(obstacles, ignored_obstacle, origin, direction, radius, distance, ignore_flagged, &obstacle) &&
+			obstacle.distance < trace->distance && obstacle.distance < limit)
+		{
+			hit = true;
+			trace->distance = obstacle.distance;
+			trace->edge = 0xffff;
+			trace->obstacle = obstacle.index;
+			trace->group = obstacle.group;
+		}
+	}
+	function_26c590(pathfinding, &start, sector, target_sector, &forward, trace->distance, location,
+		(s_path_trace_result *)&center);
+	trace->sector = center.sector_index;
+	return hit;
+}
+
 struct s_trace_structure_view
 {
 	byte unknown00[0xc4];

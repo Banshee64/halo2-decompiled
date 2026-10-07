@@ -14,7 +14,3 @@ void function_1c27a0(void) { }
 
 // @stub 0x1c2690
 void function_1c2690(void) { }
-
-// @stub 0x1c4590
-void __stdcall function_1c4590(long unknown) { }
-

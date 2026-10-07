@@ -84,6 +84,9 @@ long function_a5930(long index)
 	return result;
 }
 
+// Event distribution retains this entity lookup as an out-of-line call.
+__declspec(noinline) long function_a5980(long index);
+
 // @retail 0xa5980
 long function_a5980(long index)
 {
@@ -381,17 +384,18 @@ void function_a9a70(long index, s_z_copy_state *state)
 {
 	byte *object = (byte *)((s_object_header *)g_4e0300->data)[index & 0xffff].object;
 	vector3f const *position = (vector3f const *)(object + 0x64);
+	vector3f *saved = &state->position;
 	vector3f difference;
-	vector3d_from_points3d((point3f const *)&state->position, (point3f const *)position, &difference);
-	if (sqrt(length_sq3f(&difference)) > 0.05000000074505806f)
+	vector3d_from_points3d((point3f const *)saved, (point3f const *)position, &difference);
+	if (sqrt(difference.i * difference.i + (difference.j * difference.j + difference.k * difference.k)) > 0.05000000074505806f)
 	{
-		state->position.i = state->position.i * 0.550000011920929f + position->i * 0.44999998807907104f;
-		state->position.j = state->position.j * 0.550000011920929f + position->j * 0.44999998807907104f;
-		state->position.k = state->position.k * 0.550000011920929f + position->k * 0.44999998807907104f;
+		saved->i = saved->i * 0.550000011920929f + position->i * 0.44999998807907104f;
+		saved->j = saved->j * 0.550000011920929f + position->j * 0.44999998807907104f;
+		saved->k = saved->k * 0.550000011920929f + position->k * 0.44999998807907104f;
 	}
 	else
 	{
-		state->position = *position;
+		*saved = *position;
 		state->flags &= ~1;
 	}
 }
@@ -434,6 +438,8 @@ bool function_a7700(long index, long which, long *player_out)
 	return player != NONE;
 }
 
+// Event senders retain this local player eligibility call boundary.
+__declspec(noinline) bool function_a76b0(long index, long which);
 
 // @retail 0xa76b0
 bool function_a76b0(long index, long which)
@@ -447,3 +453,619 @@ bool function_a76b0(long index, long which)
 	return result;
 }
 
+
+bool function_e4050(long object_index);
+bool function_cc410(long unit_index);
+
+// @retail 0xaa970
+bool function_aa970(long index)
+{
+ s_object_header *header = &((s_object_header *)g_4e0300->data)[index & 0xffff];
+ bool result = false;
+ if (!header->unknown03[0])
+ {
+  s_object_view *object = header->object;
+  if ((TEST_FIELD_BIT(object->flag2) && !function_e4050(index)) || function_cc410(index) ||
+   (bool)((*(dword *)((byte *)object + 0x134) >> 27) & 1))
+   result = true;
+ }
+ return result;
+}
+
+#include "unknown_0d0690.h"
+
+// @retail 0xaa9e0
+void function_aa9e0(long index, point3f const *previous_position, vector3f const *velocity)
+{
+ s_record_pool *objects = g_4e0300;
+ s_object_header *header = &((s_object_header *)objects->data)[index & 0xffff];
+ if (header->unknown03[0] == 1)
+ {
+  byte *object = (byte *)header->object;
+  real elapsed = g_510c54->rate;
+  if (previous_position)
+  {
+   real x = *(real *)(object + 0x64) - previous_position->x;
+   real y = *(real *)(object + 0x68) - previous_position->y;
+   real z = *(real *)(object + 0x6c) - previous_position->z;
+   *(real *)(object + 0x270) += x;
+   *(real *)(object + 0x274) += y;
+   *(real *)(object + 0x278) += z;
+  }
+  vector3f difference;
+  if (velocity)
+  {
+   difference.i = (velocity->i - *(real *)(object + 0x88)) * elapsed;
+   difference.j = (velocity->j - *(real *)(object + 0x8c)) * elapsed;
+   difference.k = (velocity->k - *(real *)(object + 0x90)) * elapsed;
+  }
+  s_object_child_iterator iterator;
+  function_d0620(index, &iterator);
+  while (function_d0690(&iterator))
+  {
+   byte *child = (byte *)((s_object_header *)objects->data)[iterator.child_index & 0xffff].object;
+   if (velocity)
+   {
+    *(real *)(child + 0x270) += difference.i;
+    *(real *)(child + 0x274) += difference.j;
+    *(real *)(child + 0x278) += difference.k;
+   }
+   *(dword *)(child + 0x134) |= 0x10000000;
+  }
+ }
+}
+
+
+long function_b5990(long tag_index, bool flag);
+void function_b5920(long identifier);
+void function_108e80(long object_index);
+struct s_effect_object_placement;
+
+// @retail 0xa7640
+bool function_a7640(s_effect_object_placement *data)
+{
+ long tag_index = *(long *)data;
+ if (tag_index == NONE) return false;
+ if (g_4e6948->mode == 4)
+ {
+  if (function_b5990(tag_index, true) == NONE) return true;
+  return false;
+ }
+ return true;
+}
+
+// @retail 0xa7a60
+void function_a7a60(long index)
+{
+ s_object_header *header = &((s_object_header *)g_4e0300->data)[index & 0xffff];
+ long identifier = header->object->field_d4;
+ if (identifier != NONE)
+ {
+  function_b5920(identifier);
+  s_object_view *object = ((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+  function_108e80(index);
+  object->field_d4 = NONE;
+  object->field_d8 = 0;
+ }
+}
+
+// @retail 0xa7970
+void __stdcall function_a7970(long index, bool flag, long maximum, long *count, long *types, long *objects)
+{
+ s_object_header *header = &((s_object_header *)g_4e0300->data)[index & 0xffff];
+ s_object_view *object = header->object;
+ if (!(header->flags & 0x10) && object->field_d4 == NONE)
+ {
+  long type = function_b5990(object->definition_index, flag);
+  if (type != NONE && *count < maximum)
+  {
+   types[*count] = type;
+   objects[*count] = index;
+   ++*count;
+   for (long child = object->first_child; child != NONE; child = object->next_sibling)
+   {
+    object = ((s_object_header *)g_4e0300->data)[child & 0xffff].object;
+    if ((bool)((*(dword *)((byte *)object + 4) >> 26) & 1))
+     function_a7970(child, false, maximum, count, types, objects);
+   }
+  }
+ }
+}
+
+
+#include "engine_peer.h"
+struct c_entry_table
+{
+ void function_08a400(dword identifier);
+};
+long function_b57d0(long handler_index, long object_index);
+
+// @retail 0xa77c0
+void function_a77c0()
+{
+ c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
+ if (engine)
+ {
+  long type = engine->get_current_id();
+  if (type != NONE)
+  {
+   long identifier = function_b57d0(type, NONE);
+   if (identifier != NONE)
+   {
+    s_simulation_world_view *world = (s_simulation_world_view *)g_4cf77c;
+    c_entry_table *table = (c_entry_table *)&world->database->table;
+    g_4e9ae8->value24 = identifier;
+    table->function_08a400(identifier);
+   }
+  }
+ }
+}
+
+// @retail 0xa8e90
+void function_a8e90(long slot)
+{
+ long mode = g_4e6948->mode;
+ if (mode >= 4 && mode <= 5 && mode != 4)
+ {
+  long identifier = function_b57d0(8, slot);
+  if (identifier != NONE)
+  {
+   s_simulation_world_view *world = (s_simulation_world_view *)g_4cf77c;
+   ((c_entry_table *)&world->database->table)->function_08a400(identifier);
+   if (slot >= 0 && slot < 8) g_4eca60[slot] = identifier;
+  }
+ }
+}
+
+struct s_effect_owner;
+void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
+
+// @retail 0xa5d90
+bool function_a5d90(void *data, s_entity_info *info, long *flags, long state)
+{
+ bool result = false;
+ byte *creation = (byte *)data;
+ if (info->field0 == NONE)
+ {
+  function_b7930(data, info->definition_index, NONE, 0);
+  *(dword *)(creation + 0x18) |= 0x12;
+  *(long *)(creation + 0xa8) = *(long *)((byte *)info + 0xc);
+  if (*flags & 2)
+  {
+   *(point3f *)(creation + 0x1c) = *(point3f *)state;
+   *flags &= ~2;
+  }
+  if (*flags & 4)
+  {
+   *(vector3f *)(creation + 0x28) = *(vector3f *)(state + 0xc);
+   *(vector3f *)(creation + 0x34) = *(vector3f *)(state + 0x18);
+   *flags &= ~4;
+  }
+  if (*flags & 8)
+  {
+   *(real *)(creation + 0x58) = *(real *)(state + 0x24);
+   *flags &= ~8;
+  }
+  if (*flags & 0x10)
+  {
+   *(vector3f *)(creation + 0x40) = *(vector3f *)(state + 0x28);
+   *flags &= ~0x10;
+  }
+  if (*flags & 0x20)
+  {
+   *(vector3f *)(creation + 0x4c) = *(vector3f *)(state + 0x34);
+   *flags &= ~0x20;
+  }
+  result = true;
+ }
+ return result;
+}
+
+
+#include "unknown_1946f0.h"
+void simulation_read_position(s_bitstream *stream, real *position, long bits);
+void function_195070(s_bitstream *stream, vector3f *out, real lo, real hi, long bits);
+bool function_a7570(vector3f const *vector);
+bool function_a74c0(vector3f const *forward, vector3f const *up);
+
+PRIVATE inline real z_decode_state_scalar(s_bitstream *stream, long bits, long maximum, real lo, real hi)
+{
+ long value = function_1959c0(stream, bits);
+ real result;
+ if (!value) result = lo;
+ else if (value >= maximum) result = hi;
+ else result = ((maximum - value) * lo + value * hi) * (1.0f / maximum);
+ return result;
+}
+PRIVATE inline bool z_state_real_valid(real value)
+{
+ return (*(long *)&value & 0x7f800000) != 0x7f800000;
+}
+
+// @retail 0xa6d50
+bool function_a6d50(long flags_address, long state_address, s_bitstream *stream)
+{
+ s_bitstream *const *stream_reference = &stream;
+ stream = *stream_reference;
+ bool result = true;
+ long *flags = (long *)flags_address;
+ byte *state = (byte *)state_address;
+ if (function_1957d0(stream))
+ {
+  *(bool *)(state + 0x4d) = function_1957d0(stream);
+  *flags |= 1;
+ }
+ if (function_1957d0(stream))
+ {
+  simulation_read_position(stream, (real *)state, 16);
+  *flags |= 2;
+  result = function_a7570((vector3f *)state) != false;
+ }
+ if (function_1957d0(stream))
+ {
+  function_195240(stream, (vector3f *)(state + 0xc), (vector3f *)(state + 0x18));
+  *flags |= 4;
+  result = result && function_a74c0((vector3f *)(state + 0xc), (vector3f *)(state + 0x18));
+ }
+ if (function_1957d0(stream))
+ {
+  *(real *)(state + 0x24) = z_decode_state_scalar(stream, 7, 127, 0.0f, 10.0f);
+  *flags |= 8;
+  result = result && z_state_real_valid(*(real *)(state + 0x24));
+ }
+ if (function_1957d0(stream))
+ {
+  function_195070(stream, (vector3f *)(state + 0x28), 0.03f, 350.0f, 10);
+  *flags |= 0x10;
+  result = result && function_a7570((vector3f *)(state + 0x28));
+ }
+ if (function_1957d0(stream))
+ {
+  function_195070(stream, (vector3f *)(state + 0x34), 0.03f, 30.0f, 8);
+  *flags |= 0x20;
+  result = result && function_a7570((vector3f *)(state + 0x34));
+ }
+ if (function_1957d0(stream))
+ {
+  *(real *)(state + 0x40) = z_decode_state_scalar(stream, 8, 254, -1.0f, 1.0f);
+  *(bool *)(state + 0x44) = function_1957d0(stream);
+  *flags |= 0x40;
+  result = result && z_state_real_valid(*(real *)(state + 0x40));
+ }
+ if (function_1957d0(stream))
+ {
+  *(real *)(state + 0x48) = z_decode_state_scalar(stream, 8, 254, 0.0f, 3.0f);
+  *(bool *)(state + 0x4c) = function_1957d0(stream);
+  *flags |= 0x80;
+  result = result && z_state_real_valid(*(real *)(state + 0x48));
+ }
+ if (function_1957d0(stream))
+ {
+  state[0x50] = (byte)function_1959c0(stream, 4);
+  result = result && state[0x50] <= 16;
+  for (long i = 0; i < 16; ++i)
+  {
+   state[0x51 + i] = (byte)function_1959c0(stream, 3);
+   result = result && state[0x51 + i] < 12;
+  }
+  *flags |= 0x100;
+ }
+ if (stream_read_bit(stream))
+ {
+  state[0x61] = (byte)function_1959c0(stream, 5);
+  result = result && state[0x61] <= 16;
+  if (state[0x61] > 0)
+  {
+   *(word *)(state + 0x62) = (word)function_1959c0(stream, state[0x61]);
+   *(word *)(state + 0x64) = (word)function_1959c0(stream, state[0x61]);
+  }
+  *flags |= 0x200;
+ }
+ if (result && stream->bit_position <= (stream->size_in_bytes << 3)) return true;
+ return false;
+}
+
+
+bool function_b5830(long *identifiers, long count, long const *handler_indices, long const *object_indices);
+void function_bb780(long object_index, long value);
+
+// @retail 0xa7870
+void __stdcall function_a7870(long index)
+{
+ long mode = g_4e6948->mode;
+ if (mode >= 4 && mode <= 5)
+ {
+  switch (mode)
+  {
+  case 2:
+  case 4:
+   break;
+  default:
+   {
+    long count = 0;
+    long objects[4], types[4], identifiers[4];
+    function_a7970(index, true, 4, &count, types, objects);
+    if (count == 1)
+    {
+     long identifier = function_b57d0(types[0], objects[0]);
+     if (identifier != NONE)
+     {
+      s_simulation_world_view *world = (s_simulation_world_view *)g_4cf77c;
+      c_entry_table *table = (c_entry_table *)&world->database->table;
+      function_bb780(objects[0], identifier);
+      table->function_08a400(identifier);
+     }
+    }
+    else if (count > 1 && function_b5830(identifiers, count, types, objects))
+    {
+     s_simulation_world_view *world = (s_simulation_world_view *)g_4cf77c;
+     c_entry_table *table = (c_entry_table *)&world->database->table;
+     for (long i = 0; i < count; ++i)
+     {
+      long identifier = identifiers[i];
+      function_bb780(objects[i], identifier);
+      table->function_08a400(identifier);
+     }
+    }
+   }
+   break;
+  }
+ }
+}
+
+
+#include "flags_writer.h"
+void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+void function_194830(s_bitstream *stream, bool value);
+void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f const *up);
+void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real hi, long bits);
+void function_1947e0(s_bitstream *stream, dword value, long bits);
+
+PRIVATE inline void z_encode_state_scalar(s_bitstream *stream, real value, real minimum, real multiplier, long bits)
+{
+ real scaled = (value - minimum) * multiplier;
+ long quantized;
+ __asm
+ {
+  fld scaled
+  fistp quantized
+ }
+ function_195720(stream, quantized, bits);
+}
+
+// @retail 0xa69a0
+bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
+{
+ bool result = false;
+ long const *requested_reference = &b;
+ s_bitstream *stream = (s_bitstream *)e;
+ byte const *state = (byte const *)d;
+ s_flags_writer writer;
+ flags_writer_initialize(&writer, stream, 0, 10, *requested_reference, g);
+ if (writer.space)
+ {
+ if (flags_writer_begin(&writer, 0, "dead-exists"))
+  function_194830(stream, *(bool const *)(state + 0x4d));
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 1, "position-exists"))
+  simulation_write_position((real const *)state, 16, stream, (byte)a != 0 || f);
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 2, "forward-and-up-exists"))
+  function_194d30(stream, (vector3f const *)(state + 0xc), (vector3f const *)(state + 0x18));
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 3, "scale-exists"))
+  z_encode_state_scalar(stream, *(real const *)(state + 0x24), 0.0f, 12.699999809265137f, 7);
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 4, "translational-velocity-exists"))
+  function_194c10(stream, (vector3f const *)(state + 0x28), 0.03f, 350.0f, 10);
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 5, "angular-velocity-exists"))
+  function_194c10(stream, (vector3f const *)(state + 0x34), 0.03f, 30.0f, 8);
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 6, "body-vitality-exists"))
+ {
+  z_encode_state_scalar(stream, *(real const *)(state + 0x40), -1.0f, 127.0f, 8);
+  function_194830(stream, *(bool const *)(state + 0x44));
+ }
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 7, "shield-vitality-exists"))
+ {
+  z_encode_state_scalar(stream, *(real const *)(state + 0x48), 0.0f, 84.66666412353516f, 8);
+  function_194830(stream, *(bool const *)(state + 0x4c));
+ }
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 8, "region-state-exists"))
+ {
+  stream_write_checked(stream, state[0x50], 4);
+  for (long i = 0; i < 16; ++i) stream_write_checked(stream, state[0x51 + i], 3);
+ }
+ flags_writer_end(&writer);
+ if (flags_writer_begin(&writer, 9, "constraint-state-exists"))
+ {
+  stream_write_checked(stream, state[0x61], 5);
+  if (state[0x61] > 0)
+  {
+   function_1947e0(stream, *(word const *)(state + 0x62), state[0x61]);
+   function_1947e0(stream, *(word const *)(state + 0x64), state[0x61]);
+  }
+ }
+ flags_writer_end(&writer);
+ *(dword *)c |= writer.written;
+ result = true;
+ }
+ return result;
+}
+
+
+quaternionf *function_141f60(matrix3x3 const *matrix, quaternionf *out);
+void function_11d790(quaternionf const *q, vector3f *axis, real *angle);
+matrix3x3 *function_141e10(matrix3x3 *out, quaternionf const *q);
+
+PRIVATE inline void z_orientation_matrix(vector3f const *forward, vector3f const *up, matrix3x3 *matrix)
+{
+ matrix->left.i = up->j * forward->k - forward->j * up->k;
+ matrix->left.j = forward->i * up->k - forward->k * up->i;
+ matrix->left.k = up->i * forward->j - forward->i * up->j;
+ matrix->forward = *forward;
+ matrix->up = *up;
+}
+
+// @retail 0xa9b40
+void function_a9b40(long index, s_z_copy_state *state)
+{
+ byte *object = (byte *)((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+ real saved_angle = 0.0f;
+ real current_angle = 0.0f;
+ matrix3x3 saved_matrix, current_matrix;
+ quaternionf saved_rotation, current_rotation, blended;
+ vector3f axis;
+ vector3f *saved_up = &state->forward;
+ vector3f *saved_forward = &state->up;
+ vector3f const *current_forward = (vector3f const *)(object + 0x70);
+ vector3f const *current_up = (vector3f const *)(object + 0x7c);
+ z_orientation_matrix(saved_forward, saved_up, &saved_matrix);
+ z_orientation_matrix(current_forward, current_up, &current_matrix);
+ function_141f60(&saved_matrix, &saved_rotation);
+ function_141f60(&current_matrix, &current_rotation);
+ function_11d790(&saved_rotation, &axis, &saved_angle);
+ function_11d790(&current_rotation, &axis, &current_angle);
+ if (current_angle - saved_angle > 0.0001f)
+ {
+  real weight = 0.35f;
+  real dot = current_rotation.w * saved_rotation.w + current_rotation.k * saved_rotation.k +
+   current_rotation.j * saved_rotation.j + current_rotation.i * saved_rotation.i;
+  if (dot < 0.0f) weight = -0.35f;
+  blended.i = current_rotation.i * weight + saved_rotation.i * 0.65f;
+  blended.j = current_rotation.j * weight + saved_rotation.j * 0.65f;
+  blended.k = current_rotation.k * weight + saved_rotation.k * 0.65f;
+  blended.w = current_rotation.w * weight + saved_rotation.w * 0.65f;
+  real squared = blended.w * blended.w + blended.k * blended.k + blended.j * blended.j + blended.i * blended.i;
+  if (squared > 0.0f)
+  {
+   double scale = 1.0f / sqrt(squared);
+   blended.i = (real)(blended.i * scale);
+   blended.j = (real)(blended.j * scale);
+   blended.k = (real)(blended.k * scale);
+   blended.w = (real)(blended.w * scale);
+  }
+  else
+  {
+   blended.i = blended.j = blended.k = 0.0f;
+   blended.w = 1.0f;
+  }
+  function_141e10(&current_matrix, &blended);
+  *saved_forward = current_matrix.forward;
+  *saved_up = current_matrix.up;
+ }
+ else
+ {
+  *saved_forward = *current_forward;
+  *saved_up = *current_up;
+  state->flags &= ~2;
+ }
+}
+
+// @retail 0xa9570
+void function_a9570(long index)
+{
+ s_object_view *object = ((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+ if (object->field_d8 & 1)
+ {
+  if (*(long *)((byte *)object + 0x14) != NONE)
+   function_a9640(index);
+  else
+  {
+   bool changed = false;
+   s_z_copy_state state;
+   z_copy_state_clear(&state);
+   function_a9820((long *)&state, index);
+   if (state.flags & 1)
+   {
+    function_a9a70(index, &state);
+    changed = true;
+   }
+   if (state.flags & 2)
+   {
+    function_a9b40(index, &state);
+    changed = true;
+   }
+   if (changed)
+   {
+    function_a99f0(index, (long *)&state);
+    if (state.flags) return;
+   }
+   object->field_d8 &= ~1;
+  }
+ }
+}
+
+class c_class_6a600;
+long function_6a690(long index, c_class_6a600 *world, long value);
+
+// @retail 0xa9500
+bool function_a9500(long unit_index, long index)
+{
+ s_object_header *headers = (s_object_header *)g_4e0300->data;
+ s_z_unit_mapping_view *object = (s_z_unit_mapping_view *)headers[unit_index & 0xffff].object;
+ bool result = false;
+ if (object->player_index == NONE)
+ {
+  s_z_unit_mapping_world *world = (s_z_unit_mapping_world *)g_4cf77c;
+  if (world->entries[index].first == NONE)
+  {
+   long mapping = function_6a690(index, (c_class_6a600 *)world, unit_index);
+   object = (s_z_unit_mapping_view *)((s_object_header *)g_4e0300->data)[unit_index & 0xffff].object;
+   object->mapping_index = mapping;
+   function_cbf60(unit_index, true);
+   result = true;
+  }
+ }
+ return result;
+}
+
+// @retail 0xa7b30
+void function_a7b30(long index)
+{
+ long mode = g_4e6948->mode;
+ if (mode >= 4 && mode <= 5)
+ {
+  switch (mode)
+  {
+  case 2:
+  case 4:
+   break;
+  default:
+  {
+   s_z_unit_mapping_view *object = (s_z_unit_mapping_view *)((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+   object->mapping_index = function_6a690(NONE, (c_class_6a600 *)g_4cf77c, index);
+   function_cbf60(index, true);
+   function_a7870(index);
+   object = (s_z_unit_mapping_view *)((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+   if (object->identifier != NONE)
+    function_b58c0(object->identifier, 0x400);
+   break;
+  }
+  }
+ }
+}
+
+// @retail 0xa7ab0
+void function_a7ab0(long index)
+{
+ s_object_view *object = ((s_object_header *)g_4e0300->data)[index & 0xffff].object;
+ long identifier = object->field_d4;
+ if (identifier != NONE)
+ {
+  function_108e80(index);
+  object->field_d4 = NONE;
+  object->field_d8 = 0;
+  s_z_state_world *world = (s_z_state_world *)g_4cf77c;
+  if (world->state == 4 || world->state == 5)
+  {
+   s_z_entity_record *entity = &world->database->entities[identifier & 0x3ff];
+   entity->active = false;
+   entity->object_index = NONE;
+  }
+  function_b8540(index);
+ }
+}

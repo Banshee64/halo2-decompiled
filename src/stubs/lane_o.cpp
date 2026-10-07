@@ -3,15 +3,6 @@
 #include "unknown_0259d0.h"
 #include "unknown_030290.h"
 
-// @stub 0xa7870
-void __stdcall function_a7870(long object_index) { }
-// @stub 0xb7930
-struct s_effect_owner;
-void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner) { }
-// @stub 0xbacc0
-bool function_bacc0(long object_index, long index, point3f const *point) { return false; }
-// @stub 0xb5a70
-void __stdcall function_b5a70(long a, long type, long b, long c, long size, void const *data, long d) { }
 // @stub 0x148b27
 void __stdcall function_148b27(long index) { }
 // @stub 0x15e360
@@ -20,5 +11,13 @@ void __stdcall function_15e360(point3f const *point) { }
 void function_1396c7(long a, point2f *point) { }
 // @stub 0x1fa30
 void function_1fa30(word const *text, short_rectangle2d *bounds) { }
-// @stub 0x15f120
-bool function_15f120(long player_index, word *text, long maximum_count, long a) { return false; }
+
+class c_class_2b0b5e;
+
+#include "flexible_surface_calls.h"
+// @stub 0x19f680
+void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
+	point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
+	real arg_9, point3f const *arg_10, real arg_11) { }
+
+struct s_bsp3d;

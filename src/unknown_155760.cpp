@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include <string.h>
 
 struct s_entry_155760
 {
@@ -21,7 +22,7 @@ struct s_entry_155760
 	byte unknown110[0x140 - 0x110];
 };
 
-s_entry_155760 g_4e8c44[1];
+s_entry_155760 g_4e8c44[4];
 byte g_51ec10;
 long g_4e8c3c;
 
@@ -290,4 +291,316 @@ void function_155920(long local_index, bool force)
 		}
 		entry->word58 = mode;
 	}
+}
+
+struct s_unknown_78;
+extern s_unknown_78 *g_510c6c;
+
+// @retail 0x155a30
+void __stdcall function_155a30(byte value)
+{
+	byte const *value_reference = &value;
+	*g_4e8c34 = *value_reference;
+	for (long index = 0; index < 4; index++)
+	{
+		s_entry_155760 *entry = &g_4e8c44[index];
+		if (*value_reference)
+		{
+			entry->proc = function_16c840;
+			entry->value10c = 1.0f;
+			entry->flag108 = 0;
+		}
+		else
+		{
+			long unit_index;
+			short mode;
+			if (local_player_exists(index))
+				unit_index = ((s_camera_player *)g_4e8c24->data)[g_4e8c20->entries[index] & 0xffff].unit_index;
+			else
+				unit_index = NONE;
+			if (function_155810(unit_index, &mode) == 1)
+			{
+				s_camera_state_23cbb0 *state = (s_camera_state_23cbb0 *)&entry->value10;
+				state->value10 = 0;
+				state->value11 = 0;
+				state->value12 = 0;
+				state->value13 = 0;
+				state->value16 = 0;
+				state->value18 = NONE;
+				state->value1c = NONE;
+				state->value24 = 0.0f;
+				state->value20 = 0.0f;
+				state->value28 = 1.0f;
+				state->value14 = 0;
+				function_155dd0(index, function_23cbb0, false);
+			}
+			else
+			{
+				entry->value10 = 0.0f;
+				entry->value14 = 0.0f;
+				function_155dd0(index, function_23c110, false);
+			}
+			entry->word58 = mode;
+		}
+		((byte *)g_510c6c)[0] = *value_reference;
+		((byte *)g_510c6c)[1] = 1;
+	}
+}
+
+struct s_view_state;
+struct s_observer_state;
+void function_23cea0(s_view_state *state, long local_index);
+void function_23da00(s_observer_state *observer, long local_index, long target);
+
+// @retail 0x155d80
+void function_155d80(long local_index, bool force)
+{
+    s_entry_155760 *entry = &g_4e8c44[local_index];
+    if (force || entry->proc != function_23d090)
+    {
+        function_23cea0((s_view_state *)&entry->value10, local_index);
+        function_155dd0(local_index, function_23d090, false);
+    }
+}
+
+// @retail 0x155c60
+void function_155c60(long local_index, bool reset)
+{
+    s_entry_155760 *entry = &g_4e8c44[local_index];
+    if (reset)
+    {
+        entry->value10 = 0.0f;
+        entry->value14 = 0.0f;
+        function_155dd0(local_index, function_23c110, false);
+    }
+    else
+    {
+        long player_index = NONE;
+        if (local_index != NONE)
+            player_index = g_4e8c20->entries[local_index];
+        s_camera_player *player = &((s_camera_player *)g_4e8c24->data)[player_index & 0xffff];
+        bool observer = player->unit_index == NONE;
+        if (g_4e6948->state != 2)
+            observer = observer && !(((byte *)player)[2] & 8);
+        if (!*g_4e8c34 && g_510c54->scale > 0.0f)
+        {
+            function_155920(local_index, false);
+            if (observer)
+            {
+                if (entry->proc != function_23de50)
+                {
+                    function_23da00((s_observer_state *)&entry->value10, local_index, NONE);
+                    function_155dd0(local_index, function_23de50, true);
+                }
+            }
+            else if (entry->proc == function_23de50)
+                function_155920(local_index, true);
+        }
+    }
+}
+
+// @retail 0x155b60
+void function_155b60(long unit_index)
+{
+    byte *unit = (byte *)function_badc0(unit_index, 3);
+    long owner = unit ? *(long *)(unit + 0x13c) : NONE;
+    if (owner != NONE)
+    {
+        unit = (byte *)function_badc0(unit_index, 3);
+        long player_index = NONE;
+        if (unit)
+            player_index = *(long *)(unit + 0x13c);
+        s_camera_player *player = &((s_camera_player *)g_4e8c24->data)[player_index & 0xffff];
+        long local_index = *(short *)((byte *)player + 0x28);
+        if (local_index != NONE)
+        {
+            s_entry_155760 *entry = &g_4e8c44[local_index];
+            s_observer_state *state = (s_observer_state *)&entry->value10;
+            function_23da00(state, local_index, NONE);
+            *(real *)((byte *)state + 0x38) = 2.0f;
+            g_4e8c44[local_index].proc = function_23de50;
+            g_4e8c44[local_index].value10c = 1.0f;
+            g_4e8c44[local_index].flag108 = 0;
+            if (g_4e0350)
+            {
+                s_camera_defaults *defaults = ((s_camera_globals_view *)g_4e034c)->defaults;
+                real value;
+                if ((void *)function_23de50 == (void *)function_23cbb0)
+                    value = defaults->value10;
+                else if ((void *)function_23de50 == (void *)function_23c110)
+                    value = defaults->value0c;
+                else
+                    value = defaults->value08;
+                if (value != g_45dbd8)
+                    g_4e8c44[local_index].value = value;
+            }
+        }
+    }
+}
+
+extern dword g_4e8c38[0x143];
+bool g_4e8c40;
+dword g_47fca0[4][8] =
+{
+    { 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0x3f800000, 0, 0, 0 }
+};
+
+struct s_camera_slot_155380
+{
+    dword value;
+    real current;
+    real target;
+};
+
+// @retail 0x155380
+void function_155380(void)
+{
+    memset(g_4e8c38, 0, sizeof(g_4e8c38));
+    g_4e8c3c = 0;
+    g_4e8c40 = 0;
+    for (long index = 0; index < 4; index++)
+    {
+        s_entry_155760 *entry = &g_4e8c44[index];
+        if (!entry->unknown00[0])
+        {
+            ((byte *)entry)[0x54] = 0;
+            *(long *)((byte *)entry + 0x50) = 0;
+            entry->value = 0.0f;
+            switch (g_4e8c3c)
+            {
+            case 0:
+            case 1:
+            case 4:
+                entry->value10 = 0.0f;
+                entry->value14 = 0.0f;
+                function_155dd0(index, function_23c110, false);
+                break;
+            case 2:
+                function_23cea0((s_view_state *)&entry->value10, index);
+                function_155dd0(index, function_23d090, false);
+                break;
+            case 3:
+                break;
+            }
+            s_camera_slot_155380 *slot = (s_camera_slot_155380 *)((byte *)entry + 0x110);
+            for (long i = 0; i < 4; i++)
+            {
+                slot[i].value = g_47fca0[i][0];
+                slot[i].target = 0.0f;
+                slot[i].current = 0.0f;
+            }
+            entry->unknown00[0] = 1;
+        }
+    }
+    *(word *)((byte *)g_510c6c + 2) = 0;
+    *(long *)((byte *)g_510c6c + 0x3c) = NONE;
+}
+
+struct s_observer_command
+{
+    dword flags;
+    byte unknown004[0x88 - 0x4];
+    real unknown88;
+    byte unknown8c[0x94 - 0x8c];
+    vector3f unknown94;
+    vector3f unknowna0;
+};
+
+struct s_camera_update_input
+{
+    long local_index;
+    long unknown04;
+    real elapsed;
+    byte unknown0c[0x2c - 0xc];
+};
+
+__declspec(noinline) void function_16f190(long user_index, s_observer_command *command);
+
+// @retail 0x1554b0
+void function_1554b0(real elapsed)
+{
+    *(real *)g_4e8c38 = elapsed;
+    for (long index = 0; index < 4; index++)
+    {
+        s_entry_155760 *entry = &g_4e8c44[index];
+        if (index != NONE && g_4e8c20->entries[index] != NONE)
+        {
+            s_camera_update_input input;
+            memset(&input, 0, sizeof(input));
+            ((byte *)entry)[0x55] = 0;
+            ((byte *)entry)[0x56] = 0;
+            input.local_index = index;
+            input.elapsed = *(real *)g_4e8c38;
+            switch (g_4e8c3c)
+            {
+            case 0:
+            case 1:
+                function_155c60(index, g_4e8c40);
+                break;
+            case 2:
+                function_155d80(index, g_4e8c40);
+                break;
+            case 3:
+                break;
+            case 4:
+                if (g_4e8c40)
+                {
+                    entry->value10 = 0.0f;
+                    entry->value14 = 0.0f;
+                    entry->proc = function_23c110;
+                    entry->value10c = 1.0f;
+                    entry->flag108 = 0;
+                }
+                break;
+            }
+            s_observer_command command;
+            g_4e8c40 = 0;
+            memset(&command, 0, sizeof(command));
+            if (entry->proc)
+            {
+                if (entry->proc == function_16c840)
+                {
+                    long first = NONE;
+                    for (long user = 0; user < 4; user++)
+                    {
+                        if (g_4e8c20->entries[user] != NONE)
+                        {
+                            first = user;
+                            break;
+                        }
+                    }
+                    if (index != first) goto command_ready;
+                }
+                ((void (__stdcall *)(void *, void *, s_observer_command *))entry->proc)(&entry->value10, &input, &command);
+            }
+        command_ready:
+            s_observer_command *stored = (s_observer_command *)((byte *)entry + 0x5c);
+            if (command.flags & 1)
+            {
+                if (entry->value != 0.0f)
+                {
+                    if (entry->value < 0.2f && entry->proc == function_23c110)
+                    {
+                        entry->value = 0.0f;
+                        command.unknown94.i = 0.0f;
+                        command.unknown8c[0] = 3;
+                        command.unknowna0.i = 0.0f;
+                        command.unknown8c[3] = 3;
+                    }
+                    else if (!(command.unknown88 > entry->value))
+                        command.unknown88 = entry->value;
+                    real remaining = entry->value - elapsed;
+                    if (remaining < 0.0f) remaining = 0.0f;
+                    entry->value = remaining;
+                }
+                *stored = command;
+            }
+            else
+                stored->flags &= ~1;
+            function_16f190(index, stored);
+        }
+    }
 }

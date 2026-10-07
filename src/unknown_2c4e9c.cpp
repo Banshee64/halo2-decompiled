@@ -4062,3 +4062,38 @@ void c_multiplayer_settings_edit_list::v20(c_class_1a2c81 *widget, long index)
 		value->function_253b1a(string_handle);
 	}
 }
+
+char *function_148d73();
+long map_location_progress_get(char const *map_name);
+void function_28950();
+
+// @retail 0x2c52af
+void c_level_select_screen::v2()
+{
+    if (*(long *)((byte *)this + 0x610) == 0)
+    {
+        char *map_name = function_148d73();
+        if (map_name && map_location_progress_get(map_name) == 1)
+            function_163890(map_name, 0);
+    }
+    c_class_1a2c81::v2();
+    function_28950();
+}
+
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+void function_1906b4();
+void __stdcall function_18f1c0(long reason);
+
+// @retail 0x2c55c4
+bool __stdcall function_2c55c4(long unused)
+{
+    network_session_manager_leave_session_a(true);
+    network_session_manager_leave_session_b(true);
+    if (!function_148044(5, 4, 0xb))
+    {
+        function_1906b4();
+        function_18f1c0(0);
+    }
+    return true;
+}

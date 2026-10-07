@@ -627,7 +627,8 @@ struct s_ai_prop_273d30
 	byte unknown0c[0x14 - 0xc];
 	long next_prop_index;
 	long first_member_index;
-	byte unknown1c[0xc4 - 0x1c];
+	long actor_index;
+	byte unknown20[0xc4 - 0x20];
 };
 
 struct s_ai_prop_member_273d30
@@ -794,6 +795,28 @@ struct s_actor_274140
 
 void function_1e3400(long actor_index, long squad_index);
 bool function_2052d0(long squad_index, long squad_group_index);
+
+// @retail 0x272c40
+bool function_272c40(long ai_index, long squad_index)
+{
+	bool result = false;
+	switch (ai_index_get_type(ai_index))
+	{
+	case _ai_index_type_squad:
+		result = squad_index == (ai_index & 0xffff);
+		break;
+	case _ai_index_type_squad_group:
+		result = function_2052d0(squad_index, ai_index & 0xffff);
+		break;
+	case _ai_index_type_actor:
+		result = false;
+		break;
+	case _ai_index_type_starting_location:
+		result = false;
+		break;
+	}
+	return result;
+}
 void function_201ad0(long squad_index, long vehicle_index);
 void function_2011f0(long squad_index);
 void function_201df0(void);
@@ -2725,5 +2748,98 @@ void function_276cc0(real a, real b, real c)
 		script->flagd0 = true;
 		script->indexb0 = NONE;
 		script->valuebc = c * c;
+	}
+}
+
+__forceinline bool squad_in_ai_273ac0(long ai_index, long squad_index)
+{
+	bool result = false;
+	switch (ai_index_get_type(ai_index))
+	{
+	case _ai_index_type_squad: result = squad_index == (ai_index & 0xffff); break;
+	case _ai_index_type_squad_group: result = function_2052d0(squad_index, ai_index & 0xffff); break;
+	case _ai_index_type_actor: result = false; break;
+	case _ai_index_type_starting_location: result = false; break;
+	}
+	return result;
+}
+
+// @retail 0x273ac0
+void __stdcall function_273ac0(long ai_index, long target_ai_index)
+{
+	dword clump_bits[1];
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+	clump_bits[0] = 0;
+	ai_actor_iterator_new(ai_index, &iterator);
+	while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+	{
+		long clump_index = actor->clump_object_index;
+		if (clump_index == NONE)
+			continue;
+		clump_index &= 0xffff;
+		if (bit_vector_test(clump_bits, clump_index))
+			continue;
+		bit_vector_set(clump_bits, clump_index, true);
+		long prop_index = ((s_ai_clump_273d30 *)g_502420->data)[clump_index].first_prop_index;
+		while (prop_index != NONE)
+		{
+			s_ai_prop_273d30 *prop = &((s_ai_prop_273d30 *)g_50241c->data)[prop_index & 0xffff];
+			long target_actor_index = prop->actor_index;
+			if (target_actor_index != NONE)
+			{
+				bool target_matches = false;
+				switch (ai_index_get_type(target_ai_index))
+				{
+				case _ai_index_type_squad:
+				case _ai_index_type_squad_group:
+				{
+					long squad_index = actor_datum_get(target_actor_index)->squad_index;
+					if (squad_index != NONE)
+						target_matches = function_272c40(target_ai_index, squad_index);
+					break;
+				}
+				case _ai_index_type_actor:
+				case _ai_index_type_starting_location:
+					target_matches = target_actor_index == function_272b70(target_ai_index);
+					break;
+				}
+				if (target_matches)
+				{
+					long member_index = prop->first_member_index;
+					while (member_index != NONE)
+					{
+						s_ai_prop_member_273d30 *member = &((s_ai_prop_member_273d30 *)g_502418->data)[member_index & 0xffff];
+						long actor_index = member->actor_index;
+						bool matches = false;
+						switch (ai_index_get_type(ai_index))
+						{
+						case _ai_index_type_squad:
+						case _ai_index_type_squad_group:
+						{
+							long squad_index = actor_datum_get(actor_index)->squad_index;
+							if (squad_index != NONE)
+							{
+								matches = squad_in_ai_273ac0(ai_index, squad_index);
+							}
+							break;
+						}
+						case _ai_index_type_actor:
+						case _ai_index_type_starting_location:
+							matches = actor_index == function_272b70(ai_index);
+							break;
+						}
+						if (matches)
+						{
+							s_ai_prop_member_273d30 *update = &((s_ai_prop_member_273d30 *)g_502418->data)[member_index & 0xffff];
+							update->state = 3;
+							update->timer = (short)ai_seconds_to_ticks_round(5.0f);
+						}
+						member_index = member->next_member_index;
+					}
+				}
+			}
+			prop_index = prop->next_prop_index;
+		}
 	}
 }
