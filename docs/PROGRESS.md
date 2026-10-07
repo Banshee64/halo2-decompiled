@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6661 functions match
+
+```
+matched 6661 of 11318 game functions (725450 of 2784283 bytes, 26.06%)
+```
+
+6661 new matches, none lost:
+- Codex lane D round 26: 0x5d5a0, 0x687b0, 0x68e20, 0x693a0, 0x82b30 and 0x843f0.
+
 ## 2026-10-06: 6655 functions match
 
 ```
