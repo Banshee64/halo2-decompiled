@@ -8957,7 +8957,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0024f0fc,1157,game,size,ebp packed,,,0022a664,,todo
 0024f590,281,game,speed,a16 pad,,,002bb130,src/unknown_24f590.cpp,matched
 0024f6b0,242,game,speed,a16 pad,,,00030bf0,src/unknown_24f6b0.cpp,todo
-0024f7b0,147,game,speed,a16 pad,,,0024f590 0024f6b0,src/unknown_24f7b0.cpp,todo
+0024f7b0,147,game,speed,a16 pad,,,0024f590 0024f6b0,src/unknown_24f7b0.cpp,matched
 0024f850,37,game,speed,a16 pad,,,0018e2b0,src/unknown_24f850.cpp,matched
 0024f880,64,game,speed,a16 pad,,,,src/unknown_24f850.cpp,matched
 0024f8c0,6,game,unknown,a16,,,,src/unknown_24f8c0.cpp,matched
