@@ -746,30 +746,41 @@ inline dword const *c_animation_channel_graph_mask(c_animation_channel const *ch
 	return mask;
 }
 
+PRIVATE __forceinline dword const *function_1c7101(c_animation_channel const *arg_0)
+{
+	dword const *local_0 = NULL;
+	if (arg_0->flags & 0x800)
+		local_0 = graph_tag_get(arg_0->graph_tag_index)->node_mask5c;
+	else if (arg_0->flags & 0x400)
+		local_0 = graph_tag_get(arg_0->graph_tag_index)->node_mask7c;
+	return local_0;
+}
+
 // @retail 0x1c7100
 void c_animation_channel::sample_aiming(real yaw, real pitch, real weight, dword const *node_mask, long node_count,
 	real_quaternion_transform *transforms)
 {
+	dword const *const *local_0 = &node_mask;
 	if (animation_id.index != NONE)
 	{
 		s_aiming_screen const *screen = (s_aiming_screen const *)function_1daf30(graph_tag_get(graph_tag_index), animation_id);
 
 		if (screen)
 		{
-			dword const *graph_mask = c_animation_channel_graph_mask(this);
+			dword const *graph_mask = function_1c7101(this);
 			dword const *mask = NULL;
 			s_graph_inheritance *inheritance;
 
-			if (graph_mask || node_mask)
+			if (graph_mask || *local_0)
 			{
-				mask = node_masks_combine(graph_mask, node_mask);
+				mask = node_masks_combine(graph_mask, *local_0);
 			}
 			inheritance = NULL;
 			if (animation_id.index != NONE && animation_id.graph_index != NONE)
 			{
-				inheritance = function_1daff0(graph_tag_get(graph_tag_index), animation_id);
+				inheritance = function_1daff0(graph_tag_get(*(volatile long const *)&graph_tag_index), animation_id);
 			}
-			function_279e40(screen, graph_tag_get(graph_tag_index), animation_id, node_count, yaw, pitch, weight,
+			function_279e40(screen, graph_tag_get(*(volatile long const *)&graph_tag_index), animation_id, node_count, yaw, pitch, weight,
 				inheritance, mask, transforms);
 		}
 	}
