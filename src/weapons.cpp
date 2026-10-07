@@ -2491,14 +2491,14 @@ bool __stdcall function_fdd50(long weapon_index, long magazine_index)
 	short recharge = *(short *)((byte *)definition + 4);
 	if (recharge > 0 && magazine->rounds_loaded < definition->rounds_loaded_maximum)
 	{
-		short ticks_per_second = g_510c54->field_2_3;
+		short recharge_divisor = g_510c54->field_2_3;
 		short *fraction = (short *)((byte *)magazine + 0xa);
-		*fraction += recharge % ticks_per_second;
-		magazine->rounds_loaded += recharge / ticks_per_second;
-		if (*fraction >= ticks_per_second)
+		*fraction += recharge % recharge_divisor;
+		magazine->rounds_loaded += recharge / recharge_divisor;
+		if (*fraction >= recharge_divisor)
 		{
 			magazine->rounds_loaded++;
-			*fraction -= ticks_per_second;
+			*fraction -= recharge_divisor;
 		}
 		if (magazine->rounds_loaded > definition->rounds_loaded_maximum)
 			magazine->rounds_loaded = definition->rounds_loaded_maximum;
@@ -2574,9 +2574,9 @@ PRIVATE __forceinline real weapon_activity_value(long weapon_index, s_weapon *we
 	}
 	for (i = 0; i < definition->trigger_count; i++)
 	{
-		s_weapon_trigger_definition *trigger_definition = &definition->triggers[i];
-		real scale = *(real *)((byte *)trigger_definition + 0x28);
-		if (trigger_definition->value_1c > 0.0f)
+		s_weapon_trigger_definition *trigger_entry = &definition->triggers[i];
+		real scale = *(real *)((byte *)trigger_entry + 0x28);
+		if (trigger_entry->value_1c > 0.0f)
 		{
 			real value = function_102070(weapon_index, (short)i) * scale;
 			result = result > value ? result : value;
@@ -2894,7 +2894,7 @@ void __stdcall function_102fb0(long weapon_index, short barrel_index)
     s_weapon_barrel_definition *barrel_definition = &definition->barrels[*barrel_reference];
     s_weapon_barrel *barrel = &weapon->barrels[*barrel_reference];
     long unit_index = TEST_FIELD_BIT(weapon->in_inventory) ? weapon->unit_index : NONE;
-    long tag_index = NONE, unit_definition = NONE;
+    long tag_index = NONE, unit_tag_index = NONE;
     real scale_a = 0.0f, scale_b = 0.0f;
     bool fired = false, failure = false;
     long burst = 0;
@@ -2983,7 +2983,7 @@ void __stdcall function_102fb0(long weapon_index, short barrel_index)
                 scale_a = WEAPON_REAL_AT(weapon, 0x180) / WEAPON_REAL_AT(definition, 0x154);
         }
         tag_index = WEAPON_LONG_AT(entry, 8 + mode * 8);
-        unit_definition = WEAPON_LONG_AT(entry, 0x20 + mode * 8);
+        unit_tag_index = WEAPON_LONG_AT(entry, 0x20 + mode * 8);
     }
 
     if (fired)
@@ -3022,10 +3022,10 @@ void __stdcall function_102fb0(long weapon_index, short barrel_index)
             WEAPON_BYTE_AT(weapon, 0x16c) |= 1;
             function_bfc30(unit_index, WEAPON_SHORT_AT(barrel_definition, 0x36), true);
         }
-        if (unit_index != NONE && unit_definition != NONE)
+        if (unit_index != NONE && unit_tag_index != NONE)
         {
             long redirected = function_c7100(unit_index);
-            function_d03e0(redirected != NONE ? redirected : unit_index, unit_definition);
+            function_d03e0(redirected != NONE ? redirected : unit_index, unit_tag_index);
         }
         if (definition->reload_style == 3 && *barrel_reference == 1) WEAPON_BYTE_AT(weapon, 0x16c) |= 8;
         if (unit_index != NONE)
@@ -3227,18 +3227,18 @@ bool __stdcall function_fdfb0(long weapon_index)
     for (short i = 0; i < definition->trigger_count; ++i)
     {
         s_weapon_trigger *trigger = &weapon->triggers[i];
-        s_weapon_trigger_definition *trigger_definition = &definition->triggers[i];
+        s_weapon_trigger_definition *trigger_entry = &definition->triggers[i];
         if (trigger->timer > 0) { --trigger->timer; result = true; }
-        short input = WEAPON_SHORT_AT(trigger_definition, 4);
+        short input = WEAPON_SHORT_AT(trigger_entry, 4);
         bool down = !blocked && (pressed[input] || (signed char)WEAPON_BYTE_AT(trigger, 4) < 0);
         bool up = !blocked && released[input];
-        short primary = WEAPON_SHORT_AT(trigger_definition, 8), secondary = WEAPON_SHORT_AT(trigger_definition, 0xa);
+        short primary = WEAPON_SHORT_AT(trigger_entry, 8), secondary = WEAPON_SHORT_AT(trigger_entry, 0xa);
         long target;
         byte target_entry;
         switch (trigger->state)
         {
         case 0:
-            switch (trigger_definition->behavior)
+            switch (trigger_entry->behavior)
             {
             case 0:
                 if ((down || up) && primary != NONE && function_102540(weapon_index, primary, false))
@@ -3263,7 +3263,7 @@ bool __stdcall function_fdfb0(long weapon_index)
                     {
                         if (up)
                         {
-                            if (WEAPON_SHORT_AT(trigger_definition, 0x18) == 1 && function_103a90(weapon_index, i))
+                            if (WEAPON_SHORT_AT(trigger_entry, 0x18) == 1 && function_103a90(weapon_index, i))
                             { function_103ce0(weapon_index, i); trigger->flag6 = true; }
                         }
                         else
@@ -3275,7 +3275,7 @@ bool __stdcall function_fdfb0(long weapon_index)
                         if (press)
                         {
                             trigger->flag3 = true;
-                            switch (WEAPON_SHORT_AT(trigger_definition, 0x1a))
+                            switch (WEAPON_SHORT_AT(trigger_entry, 0x1a))
                             {
                             case 0: weapon_request_barrel(weapon_index, primary, true); break;
                             case 1: if (function_103a90(weapon_index, i)) function_103ce0(weapon_index, i); break;
@@ -3286,7 +3286,7 @@ bool __stdcall function_fdfb0(long weapon_index)
                         if (hold)
                         {
                             trigger->flag4 = true;
-                            switch (WEAPON_SHORT_AT(trigger_definition, 0x18))
+                            switch (WEAPON_SHORT_AT(trigger_entry, 0x18))
                             {
                             case 0: weapon_request_barrel(weapon_index, secondary, true); break;
                             case 1: if (function_103a90(weapon_index, i)) function_103ce0(weapon_index, i); break;
@@ -3630,11 +3630,11 @@ void __stdcall function_104150(long weapon_index, short barrel_index)
                 while (parent != NONE)
                 {
                     active_index = parent;
-                    byte *parent_object = (byte *)WEAPON_GET(parent);
-                    actor_index = WEAPON_LONG_AT(parent_object, 0x12c);
-                    player_index = WEAPON_LONG_AT(parent_object, 0x13c);
-                    aim = (s_entry_pair *)(parent_object + 0x1c8);
-                    parent = WEAPON_LONG_AT(parent_object, 0x24c);
+                    byte *parent_bytes = (byte *)WEAPON_GET(parent);
+                    actor_index = WEAPON_LONG_AT(parent_bytes, 0x12c);
+                    player_index = WEAPON_LONG_AT(parent_bytes, 0x13c);
+                    aim = (s_entry_pair *)(parent_bytes + 0x1c8);
+                    parent = WEAPON_LONG_AT(parent_bytes, 0x24c);
                 }
                 if (actor_index != NONE && WEAPON_SHORT_AT(g_4f55f0->data + (actor_index & 0xffff) * 0x888, 0x6fe) == 4)
                     use_aim = false;
@@ -3796,9 +3796,9 @@ void __stdcall function_104150(long weapon_index, short barrel_index)
                     if (network_projectile) function_a7870(index);
                     WEAPON_LONG_AT(projectile, 0x1a4) = weapon->definition_index;
                     function_fa100(index);
-                    byte *projectile_definition = g_4e3b44[WEAPON_LONG_AT(projectile, 0) & 0xffff].bytes;
+                    byte *projectile_tag_bytes = g_4e3b44[WEAPON_LONG_AT(projectile, 0) & 0xffff].bytes;
                     if (synchronize && firing_mode == 2 && (WEAPON_LONG_AT(projectile, 0x12c) & 0x800) &&
-                        (WEAPON_LONG_AT(projectile_definition, 0xbc) & 0x20) && (WEAPON_LONG_AT(projectile, 0x12c) & 0x2000))
+                        (WEAPON_LONG_AT(projectile_tag_bytes, 0xbc) & 0x20) && (WEAPON_LONG_AT(projectile, 0x12c) & 0x2000))
                     {
                         long parent_index = WEAPON_LONG_AT(projectile, 0x150);
                         if (WEAPON_LONG_AT(WEAPON_GET(parent_index), 0xd4) != NONE)

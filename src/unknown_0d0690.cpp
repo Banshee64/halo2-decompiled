@@ -482,7 +482,7 @@ struct s_surface_colour_group
 	byte unknown00[0x44];
 	s_surface_colour_resource *resources;
 	byte unknown48[0x54 - 0x48];
-	s_surface_colour_bucket *instance_buckets;
+	s_surface_colour_bucket *buckets_by_instance;
 	byte unknown58[0x64 - 0x58];
 	s_surface_colour_bucket *other_buckets;
 };
@@ -495,7 +495,7 @@ s_vertex_block *function_d35a0(long index, s_surface_colour_group *group, bool i
 	word *first_vertex;
 	if (instance)
 	{
-		bucket = &group->instance_buckets[index];
+		bucket = &group->buckets_by_instance[index];
 		first_vertex = bucket->first_vertices;
 	}
 	else
@@ -977,14 +977,14 @@ long function_d1850(long object_index, long value, s_effect_color_query *query)
                     bool use_sky = false;
                     if (type == 1)
                     {
-                        byte *unit_definition = g_4e3b44[OBJECT_FROM_INDEX(object_index)->tag_index & 0xffff].bytes;
-                        use_sky = ((1 << unit_definition[0x1f0]) & 0x28) != 0;
+                        byte *unit_tag_bytes = g_4e3b44[OBJECT_FROM_INDEX(object_index)->tag_index & 0xffff].bytes;
+                        use_sky = ((1 << unit_tag_bytes[0x1f0]) & 0x28) != 0;
                     }
                     else if (type == 0) use_sky = function_e5670(object_index) == 2;
                     else if (type == 0xc)
                     {
-                        byte *unit_definition = g_4e3b44[OBJECT_FROM_INDEX(object_index)->tag_index & 0xffff].bytes;
-                        use_sky = (bool)((*(dword *)(unit_definition + 0xd4) >> 4) & 1);
+                        byte *unit_tag_bytes = g_4e3b44[OBJECT_FROM_INDEX(object_index)->tag_index & 0xffff].bytes;
+                        use_sky = (bool)((*(dword *)(unit_tag_bytes + 0xd4) >> 4) & 1);
                     }
                     if (use_sky) failed = surface_status_failed(function_d1a30(object_index, point, (s_sky_surface_record *)query));
                 }
