@@ -1242,7 +1242,7 @@ struct s_match_globals;
 extern s_match_globals *g_4e0348;
 
 /* a random real between two bounds */
-PRIVATE inline real projectile_random_range(real lower, real upper)
+PRIVATE __forceinline real projectile_random_range(real lower, real upper)
 {
 	real random = function_x82e52f(&g_4e7408->unknown0, __FILE__, __LINE__);
 
@@ -2203,7 +2203,7 @@ void function_a85c0(long projectile_index, s_collision_result_1697c0 const *coll
 
 /* the effect parameters of a projectile's impact effects: its owner, and
    the object it hit */
-PRIVATE inline void projectile_impact_effect_parameters(s_effect_parameters *parameters, long projectile_index,
+PRIVATE __forceinline void projectile_impact_effect_parameters(s_effect_parameters *parameters, long projectile_index,
 	long tag_index, s_collision_result_1697c0 const *collision)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);

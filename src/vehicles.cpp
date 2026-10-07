@@ -2264,7 +2264,7 @@ quaternionf *function_141f60(matrix3x3 const *matrix, quaternionf *out);
 void function_11d790(quaternionf const *q, vector3f *axis, real *angle);
 
 /* a damping force against a speed, at most what stops it within a tick */
-PRIVATE inline real vehicle_friction(real speed, real friction, real scale)
+PRIVATE __forceinline real vehicle_friction(real speed, real friction, real scale)
 {
 	static real s_ticks = g_510c54->field_2_3 * 0.1f;
 	real direction = speed > 0.0f ? 1.0f : -1.0f;
