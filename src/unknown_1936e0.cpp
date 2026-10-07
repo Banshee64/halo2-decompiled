@@ -244,7 +244,7 @@ void function_193c00(s_built_variant *variant, long name_string, long descriptio
 
 /* fills one of the seven built-in variants */
 // @retail 0x193c70
-void function_193c70(long index, s_built_variant *variant)
+void function_193c70(s_built_variant *variant, long index)
 {
 	memset(variant, 0, sizeof(*variant));
 	switch (index)

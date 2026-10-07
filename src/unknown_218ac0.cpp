@@ -89,18 +89,35 @@ long sound_format_duration_to_bytes(long arg_da1d74, long encoding, long compres
 
 /* the duration in milliseconds of a permutation's samples, played at the
    pitch of its class and playback parameters */
+struct s_218b80
+{
+	byte field_0[0x18];
+	short field_18;
+	short field_1a;
+	byte field_1c[0x38 - 0x1c];
+};
+
+struct s_218b81
+{
+	byte field_0[8];
+	short field_8;
+	short field_a;
+	byte field_c[8];
+};
+
 // @retail 0x218b80
 real sound_permutation_duration(s_sound_definition const *definition, s_sound_pitch_range const *arg_58ecd0, long sample_count)
 {
+	s_sound_pitch_range const *const *local_0 = &arg_58ecd0;
 	s_sound_globals_permutations_view *globals = SOUND_GLOBALS_PERMUTATIONS;
-	long natural_pitch = SOUND_GLOBALS_DEFINITIONS->pitch_bounds[arg_58ecd0->bounds_index].unknown00;
-	short class_lower = globals->classes[definition->class_index].pitch_lower;
-	short class_upper = globals->classes[definition->class_index].pitch_upper;
-	short playback_lower = globals->playback_parameters[definition->playback_index].pitch_lower;
-	short playback_upper = globals->playback_parameters[definition->playback_index].pitch_upper;
-	long pitch = MIN(playback_lower, playback_upper) + MIN(class_upper, class_lower);
+	s_218b80 const *local_1 = (s_218b80 const *)&globals->classes[definition->class_index];
+	s_218b81 const *local_2 = (s_218b81 const *)&globals->playback_parameters[definition->playback_index];
+	long natural_pitch = SOUND_GLOBALS_DEFINITIONS->pitch_bounds[(*local_0)->bounds_index].unknown00;
+	long local_3 = local_1->field_1a;
+	long local_4 = local_2->field_a;
+	long pitch = (short)(local_1->field_18 <= local_3 ? local_1->field_18 : local_3) +
+		(short)(local_2->field_8 > local_4 ? local_4 : local_2->field_8);
 	real rate = sound_pitch_to_rate(natural_pitch);
-
 	return rate * g_44a06c[(char)definition->format] * g_44a060[(char)definition->type] * sample_count * 1000.0f /
 		(g_44a054[(char)definition->unknown03] * sound_pitch_to_rate(pitch));
 }

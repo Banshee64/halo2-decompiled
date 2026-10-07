@@ -5,6 +5,8 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 
+extern "C" void _ReadWriteBarrier(void);
+
 struct s_looping_sound
 {
 	short salt;
@@ -241,6 +243,7 @@ long __stdcall function_18ae50(long a, long b, real const *values)
 	return 0;
 }
 
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x188f90
 long looping_sound_new_attached(long tag_index, long object_index, short marker_index, long value)
 {
@@ -254,13 +257,15 @@ long looping_sound_new_attached(long tag_index, long object_index, short marker_
 			s_looping_sound *sound = looping_sound_get(datum_index);
 
 			sound->tag_index = tag_index;
+			_ReadWriteBarrier();
 			sound->value2 = 3;
 			sound->flags = 0;
-			sound->flags |= 0x100;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit8 = true;
 			if (object_index != NONE)
 			{
-				sound->type = 1;
-				sound->value14 = value;
+				*(char volatile *)&sound->type = 1;
+				*(long volatile *)&sound->value14 = value;
 				sound->value10 = object_index;
 				sound->value6 = marker_index;
 			}
@@ -276,6 +281,7 @@ long looping_sound_new_attached(long tag_index, long object_index, short marker_
 	}
 	return datum_index;
 }
+#pragma function(_ReadWriteBarrier)
 
 // @retail 0x18a5a0
 long function_18a5a0(long tag_index, long object_index, real value)
@@ -295,6 +301,7 @@ long function_18a5a0(long tag_index, long object_index, real value)
 	return datum_index;
 }
 
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x18a600
 long function_18a600(long tag_index, real value)
 {
@@ -310,15 +317,20 @@ long function_18a600(long tag_index, real value)
 
 			sound->type = 4;
 			sound->value2 = 3;
+			_ReadWriteBarrier();
 			sound->flags = 0;
-			sound->flags |= 0x100;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit8 = true;
 			sound->value8 = value;
 			sound->tag_index = tag_index;
 			sound->value6 = NONE;
-			sound->flags |= 1;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit0 = true;
 			if (definition->duration > 0.0f)
 			{
-				sound->value10 = g_510c54->game_time + float_to_int_nearest((real)g_510c54->field_2_3 * definition->duration);
+				s_game_time_globals *local_0 = g_510c54;
+				long local_1 = *(long const volatile *)&local_0->game_time;
+				sound->value10 = local_1 + float_to_int_nearest((real)g_510c54->field_2_3 * definition->duration);
 			}
 			else
 			{
@@ -328,7 +340,9 @@ long function_18a600(long tag_index, real value)
 	}
 	return datum_index;
 }
+#pragma function(_ReadWriteBarrier)
 
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x18a6c0
 long function_18a6c0(long tag_index, long value)
 {
@@ -344,17 +358,22 @@ long function_18a6c0(long tag_index, long value)
 			sound->type = 2;
 			sound->value2 = 3;
 			sound->value10 = value;
+			_ReadWriteBarrier();
 			sound->flags = 0;
-			sound->flags |= 0x100;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit8 = true;
 			sound->value8 = 0.0f;
 			sound->tag_index = tag_index;
 			sound->value6 = NONE;
-			sound->flags |= 1;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit0 = true;
 		}
 	}
 	return datum_index;
 }
+#pragma function(_ReadWriteBarrier)
 
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x18a750
 long function_18a750(long tag_index, long value)
 {
@@ -370,16 +389,20 @@ long function_18a750(long tag_index, long value)
 			sound->type = 3;
 			sound->value2 = 3;
 			sound->value10 = value;
+			_ReadWriteBarrier();
 			sound->flags = 0;
-			sound->flags |= 0x100;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit8 = true;
 			sound->value8 = 0.0f;
 			sound->tag_index = tag_index;
 			sound->value6 = NONE;
-			sound->flags |= 1;
+			_ReadWriteBarrier();
+			sound->flag_bits.bit0 = true;
 		}
 	}
 	return datum_index;
 }
+#pragma function(_ReadWriteBarrier)
 long __stdcall function_18d1c0(long tag_index);
 
 /* a copy of function_18d2e0 (unknown_18d290.cpp, built /Ob1), which retail

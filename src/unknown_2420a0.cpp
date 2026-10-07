@@ -2158,9 +2158,9 @@ void function_242ba0(long marker_index, long object_index, long player_index)
 
 #include "flexible_surface_calls.h"
 
-void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
-	point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
-	real arg_9, point3f const *arg_10, real arg_11);
+void function_19f680(long tag, long group, long pass, long variant, void *context,
+	point2f const *vertices, long count, point3f const *center, real radius,
+	real perimeter, point3f const *color, real height);
 struct s_sort_record;
 typedef bool (__stdcall *t_record_fill)(long, void *, long, long, long, void *, s_sort_record *);
 void function_41490(long tag, short group, short kind, real distance, t_record_fill fill,

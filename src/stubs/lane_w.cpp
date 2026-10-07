@@ -29,14 +29,18 @@ bool __stdcall function_25e50(void *context)
     return false;
 }
 
-// @stub 0x26880
-bool __stdcall function_26880(void *context)
-{
-    return false;
-}
-
 // @stub 0x26e50
 bool __stdcall function_26e50(void *context)
 {
     return false;
+}
+
+// @stub 0xd4cf0
+void __stdcall function_d4cf0(long object_index, short value)
+{
+}
+
+// @stub 0x52d40
+void function_52d40(long bitmap_index, unsigned char *shader, long count, bool mode)
+{
 }

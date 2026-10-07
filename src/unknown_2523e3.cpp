@@ -3,11 +3,13 @@
    0x45a490, screen 0x1e); its mode says what it signs them in for */
 
 #include "unknown_11c920.h"
+#include <string.h>
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 #include "unknown_24b5bc.h"
+#include "globals.h"
 
 long function_1480ff(long screen_id);
 
@@ -18,11 +20,117 @@ public:
 
 	/* A, B and start of the users signed in and not */
 	virtual bool v10(s_widget_event *event);
+	virtual void v3();
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
 	long mode;
 };
+
+struct s_player_profile { dword data[0x78]; };
+struct s_widget_view_2b0a;
+class c_class_2b0b5e;
+bool controller_is_connected(short index);
+void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
+long function_1249d0(short index);
+long function_190262(long index);
+void function_2b10a3(dword const *appearance, c_class_2b0b5e *widget, long type);
+void function_2b0a14(s_widget_view_2b0a *widget, short index);
+void function_22f042(s_widget_item *items, c_class_1a2c81 *widget, long count);
+
+// @retail 0x252554
+void c_4way_signin_screen::v3()
+{
+    set_user_flags(0xffff);
+    s_widget_item items[4];
+    long controller = 0;
+    do
+    {
+        bool connected = controller_is_connected((short)controller);
+        bool signed_in = connected && TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[controller].signed_in);
+        bool live = signed_in && TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[controller].live);
+        dword const *appearance = 0;
+        s_player_profile profile;
+        long profile_index;
+        if (signed_in)
+        {
+            player_slot_get_profile(controller, &profile, &profile_index);
+            appearance = &profile.data[0x46];
+            items[controller].flags |= 2;
+            memcpy(items[controller].value48, appearance, 16);
+            items[controller].flags |= 1;
+            items[controller].value4 = (long)&profile.data[2];
+        }
+        long name, connection, warning, live0, live1, live2, model0, model1, active_bitmap, missing_bitmap;
+        switch (controller)
+        {
+        case 0:
+            name=2; connection=22; warning=3; live0=10; live1=11; live2=12;
+            model0=0; model1=4; active_bitmap=3; missing_bitmap=7;
+            break;
+        case 1:
+            name=4; connection=23; warning=5; live0=13; live1=14; live2=15;
+            model0=1; model1=5; active_bitmap=4; missing_bitmap=8;
+            break;
+        case 2:
+            name=6; connection=24; warning=7; live0=16; live1=17; live2=18;
+            model0=2; model1=6; active_bitmap=5; missing_bitmap=9;
+            break;
+        default:
+            name=8; connection=25; warning=9; live0=19; live1=20; live2=21;
+            model0=3; model1=7; active_bitmap=6; missing_bitmap=10;
+            break;
+        }
+        set_child_value6e(6, (short)name, signed_in);
+        c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, (short)connection, false);
+        if (text)
+        {
+            if (connected && signed_in)
+                text->value6e = false;
+            else
+            {
+                text->value6e = true;
+                text->function_253b1a(connected ? 0xf00028a : 0x1100028b);
+            }
+        }
+        text = (c_text_widget_45a5e0 *)find_child(6, (short)warning, false);
+        if (text)
+        {
+            if (signed_in)
+            {
+                text->value6e = true;
+                text->function_253b1a(0x1300028c);
+            }
+            else
+                text->value6e = false;
+        }
+        set_child_value6e(6, (short)live0, signed_in);
+        set_child_value6e(6, (short)live1, live);
+        set_child_value6e(6, (short)live2, live);
+        c_class_1a2c81 *model = find_child(7, (short)model0, false);
+        if (model)
+            function_2b10a3(appearance, (c_class_2b0b5e *)model, 0);
+        model = find_child(7, (short)model1, false);
+        if (model)
+            function_2b10a3(appearance, (c_class_2b0b5e *)model, 1);
+        c_class_1a2c81 *bitmap = find_child(8, (short)active_bitmap, false);
+        if (bitmap)
+            bitmap->value6e = signed_in;
+        bitmap = find_child(8, (short)missing_bitmap, false);
+        if (bitmap)
+        {
+            bitmap->value6e = !signed_in;
+            if (!signed_in)
+            {
+                short frame = function_1249d0((short)controller) > 1 ? (short)(connected != 0) : (short)(connected ? 2 : 0);
+                function_2b0a14((s_widget_view_2b0a *)bitmap, frame);
+            }
+        }
+        controller = function_190262(controller);
+    } while (controller != NONE);
+    function_22f042(items, this, 4);
+    c_class_1a2c81::v3();
+}
 
 // @retail 0x2524cc
 c_4way_signin_screen::c_4way_signin_screen(long a, long b, word user_flags) :

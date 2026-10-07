@@ -59,10 +59,12 @@ struct s_saved_game_file_location;
 
 
 struct s_bitmap_data;
+struct D3DTexture;
 
 // @stub 0x12ce00
-void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
+D3DTexture *function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 {
+    return 0;
 }
 
 struct s_ai_trigger_condition;

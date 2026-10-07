@@ -36,9 +36,10 @@ public:
 // @retail 0x18f260
 long c_resource_lock::method0(long handle)
 {
-	s_key key = this->key;
 	long result = 0;
-	long retries;
+	long local_0 = this->key.b;
+	long local_1 = this->key.a;
+	long volatile retries;
 	__int64 start = read_tsc();
 
 	if (handle > 0 && g_4e6464->page_count > 0)
@@ -46,7 +47,7 @@ long c_resource_lock::method0(long handle)
 		retries = 0;
 		for (;;)
 		{
-			result = function_12d2f0(handle, 0, key.a, key.b);
+			result = function_12d2f0(handle, 0, *(long const volatile *)&local_1, *(long const volatile *)&local_0);
 			if (result != 0)
 			{
 				break;

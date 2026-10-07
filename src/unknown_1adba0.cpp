@@ -129,6 +129,19 @@ short __stdcall function_1adba0(long actor_index, s_slot *slot)
 
 /* ---- slot type 0x49 ---- */
 
+PRIVATE __forceinline s_prop_view_54 *function_1adc21(s_prop_node_view *arg_0)
+{
+    s_prop_view_54 *local_0 = NULL;
+    s_prop_node_view *local_1 = arg_0;
+    if (local_1->view_index != NONE)
+    {
+        byte *local_2 = g_502414->data + (local_1->view_index & 0xffff) * 0x124;
+        if (local_2)
+            local_0 = (s_prop_view_54 *)(local_2 + 0x70);
+    }
+    return local_0;
+}
+
 // @retail 0x1adc20
 short __stdcall function_1adc20(long actor_index, s_slot *slot)
 {
@@ -141,7 +154,7 @@ short __stdcall function_1adc20(long actor_index, s_slot *slot)
 		if (entry)
 		{
 			s_prop_datum_48 *prop = (s_prop_datum_48 *)prop_node_get(actor->prop_index);
-			s_prop_view_54 *view = (s_prop_view_54 *)function_25d700(actor->prop_index);
+			s_prop_view_54 *view = function_1adc21((s_prop_node_view *)prop);
 			if (view && prop->unknown27 > 0 && entry->unknown28 > view->unknown54)
 				result = 0x46;
 		}
@@ -247,14 +260,19 @@ short __stdcall function_1ade70(long actor_index, s_slot *slot, bool active)
 	short result;
 
 	if (ACTOR_VIEW_344(actor_get(actor_index))->unknown344 == NONE)
-		return g_46fbe4;
+	{
+		result = g_46fbe4;
+		goto local_0;
+	}
 	if (state->timer <= 0)
 	{
 		g_46eeb8[0x3b]->unknown8 = g_46f348;
 		result = 0x46;
-		return result;
+		goto local_0;
 	}
-	return g_46fbe8;
+	result = g_46fbe8;
+local_0:
+	return result;
 }
 
 // @retail 0x1aded0
