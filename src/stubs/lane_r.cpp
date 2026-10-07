@@ -17,9 +17,6 @@ struct s_effect_owner;
 struct s_effect_source;
 
 
-// @stub 0x3ddd0
-long __stdcall function_3ddd0(long object_index) { return NONE; }
-
 
 // @stub 0xd2bb0
 long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }

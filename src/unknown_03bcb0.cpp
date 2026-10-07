@@ -19,6 +19,35 @@ bool function_3bf00(byte const *state)
 	return true;
 }
 
+extern byte g_4670bc;
+extern byte g_485b48[0x1fc0];
+extern long g_4858b8;
+struct s_render_reset_state;
+void function_16b10(s_render_reset_state *state);
+void __stdcall function_352e0(long target, bool multiple);
+void function_14bc0(short index, short element, bool use_depth);
+byte g_509430;
+
+// @retail 0x3bea0
+bool function_3bea0(void)
+{
+    if (!g_509430)
+    {
+        g_4670bc = true;
+        function_16b10((s_render_reset_state *)g_485b48);
+        if (*(long *)((byte *)g_4e0348 + 0x214) > 0)
+        {
+            long target = g_4858b8;
+            function_352e0(22, true);
+            function_14bc0((short)target, 0, true);
+        }
+        g_509430 = true;
+        g_4670bc = true;
+        function_16b10((s_render_reset_state *)g_485b48);
+    }
+    return true;
+}
+
 #include <string.h>
 struct s_frustum_1648d0;
 struct s_camera_163db0;

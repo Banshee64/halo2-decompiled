@@ -121,7 +121,7 @@ void function_0204b0(long tag_index)
 }
 
 // @retail 0x1fd20
-void function_01fd20(void)
+s_timed_effect_globals *function_01fd20(s_timed_effect_globals *result)
 {
 	s_timed_effect_globals *globals = g_5093e0;
 
@@ -293,5 +293,7 @@ void function_01fd20(void)
 		}
 		globals->unknowna4 = fraction5;
 		globals->unknowna8 = globals->unknown174;
+		result = globals;
 	}
+	return result;
 }
