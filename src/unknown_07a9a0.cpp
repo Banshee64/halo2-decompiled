@@ -44,13 +44,6 @@ static __inline dword byte_swap_long(dword v)
 	return (((v & 0xff0000) | (v >> 16)) >> 8) | (((v << 16) | (v & 0xff00)) << 8);
 }
 
-// @retail 0x7a9a0
-void __stdcall function_07a9a0(long unused)
-{
-	g_4cf791 = false;
-	g_4cf792 = false;
-}
-
 // @retail 0x7a9b0
 bool function_07a9b0(void)
 {
