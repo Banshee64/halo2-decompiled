@@ -66,11 +66,14 @@ struct s_projectile
 		dword unknown3 : 1;
 		dword unknown4 : 1;
 		dword unknown5 : 1;
-		dword unknown6 : 2;
+		dword unknown6 : 1;
+		dword unknown7 : 1;
 		dword unknown8 : 1;
-		dword unknown9 : 2;
+		dword unknown9 : 1;
+		dword unknown10 : 1;
 		dword unknown11 : 1;
-		dword unknown12 : 2;
+		dword unknown12 : 1;
+		dword unknown13 : 1;
 		dword unknown14 : 1;
 		dword unknown15 : 1;
 		dword : 16;
@@ -118,7 +121,9 @@ struct s_projectile_definition
 		{
 			dword unknown0 : 1;
 			dword gravity : 1;
-			dword unknown2 : 3;
+			dword unknown2 : 1;
+			dword unknown3 : 1;
+			dword unknown4 : 1;
 			dword drifts : 1;
 			dword unknown6 : 1;
 			dword unknown7 : 1;
@@ -783,7 +788,7 @@ void function_fd560(long projectile_index, long object_index, long node_index, p
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
 
-	if (object_index != NONE && (definition->flags & 8))
+	if (object_index != NONE && TEST_FIELD_BIT(definition->flag_bits.unknown3))
 	{
 		short attached_count = 0;
 
@@ -791,7 +796,7 @@ void function_fd560(long projectile_index, long object_index, long node_index, p
 		{
 			s_projectile *child = PROJECTILE_GET(child_index);
 
-			if (child->tag_index == projectile->tag_index && !((*(dword *)&child->flags >> 6) & 1))
+			if (child->tag_index == projectile->tag_index && !TEST_FIELD_BIT(child->flags.unknown6))
 			{
 				child->unknown160 = 0.0f;
 				child->unknown158 = 0.0f;
@@ -825,9 +830,9 @@ void function_fd560(long projectile_index, long object_index, long node_index, p
 
 	real seconds = 0.0f;
 
-	if ((*(dword *)&projectile->flags >> 10) & 1)
+	if (TEST_FIELD_BIT(projectile->flags.unknown10))
 		seconds = *(real *)((byte *)definition + 0x150);
-	else if (definition->flags & 4)
+	else if (TEST_FIELD_BIT(definition->flag_bits.unknown2))
 		seconds = *(real *)((byte *)definition + 0xd8);
 
 	real ticks = g_510c54->field_2_3 * seconds;
