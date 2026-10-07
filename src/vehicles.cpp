@@ -279,10 +279,8 @@ void __stdcall function_ee9b0(long vehicle_index)
 	vehicle->unknown38c = (char)0xfe;
 	vehicle->unknown380 = 0.0f;
 	vehicle->gear = NONE;
-	vehicle->unknown398[0] = 0;
-	vehicle->unknown398[1] = 0;
-	vehicle->unknown390[0] = 0;
-	vehicle->unknown390[1] = 0;
+	memset(vehicle->unknown398, 0, sizeof(vehicle->unknown398));
+	memset(vehicle->unknown390, 0, sizeof(vehicle->unknown390));
 	vehicle->unknown3ac = 0;
 	vehicle->flags349 |= 1;
 	function_b9ef0(vehicle_index, &vehicle->unknown3d0);
@@ -309,26 +307,28 @@ bool __stdcall function_eeb80(long vehicle_index, void const *data, long unused)
 	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 	bool result = false;
 
-	if (*(long *)(g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes + 0x24) == NONE)
-		return result;
-	vehicle->unknown3a0 = NONE;
-	vehicle->unknown3a4 = NONE;
-	vehicle->unknown3a8 = 0;
-	vehicle->unknown3b0 = 0;
-	vehicle->unknown3b4 = 0;
-	function_ee9b0(vehicle_index);
-	if (definition[0x2ac] & 1)
-		function_b9b90(vehicle_index, true);
-	if (VEHICLE_GET(vehicle_index)->animation_state_offset != NONE)
+	if (*(long *)(g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes + 0x24) != NONE)
 	{
-		if (function_10f430(vehicle_index, 0x7000001, 0x7000101, 0x7000101, 0x700005c, 0.0f, 0, 0))
+		vehicle->unknown3a0 = NONE;
+		vehicle->unknown3a4 = NONE;
+		vehicle->unknown3a8 = 0;
+		vehicle->unknown3b0 = 0;
+		vehicle->unknown3b4 = 0;
+		function_ee9b0(vehicle_index);
+		if (definition[0x2ac] & 1)
+			function_b9b90(vehicle_index, true);
+		if (VEHICLE_GET(vehicle_index)->animation_state_offset != NONE)
 		{
-			vehicle_animation_state_get(vehicle)->channels_finish();
-			return true;
+			if (function_10f430(vehicle_index, 0x7000001, 0x7000101, 0x7000101, 0x700005c, 0.0f, 0, 0))
+			{
+				vehicle_animation_state_get(vehicle)->channels_finish();
+				return true;
+			}
+			function_10f430(vehicle_index, 0x7000001, 0x7000101, 0x7000101, 0x400000c, 0.0f, 0, 0);
 		}
-		function_10f430(vehicle_index, 0x7000001, 0x7000101, 0x7000101, 0x400000c, 0.0f, 0, 0);
+		result = true;
 	}
-	return true;
+	return result;
 }
 
 bool function_f42f0(long vehicle_index);

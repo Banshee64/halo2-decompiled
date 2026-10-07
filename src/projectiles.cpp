@@ -607,18 +607,19 @@ PRIVATE inline void projectile_effect_parameters_initialize(s_effect_parameters 
 	parameters->tag_index = NONE;
 	parameters->unknown18 = NONE;
 	parameters->object_index = NONE;
+	parameters->unknown34 = 0;
+	parameters->unknown38 = 0;
+	parameters->unknown3c = 0;
 	parameters->owner.unknown4 = NONE;
 	parameters->owner.unknown0 = NONE;
 	parameters->owner.unknown8 = NONE;
-	parameters->unknown34 = 0;
-	parameters->unknown38 = 0;
 	parameters->scale_a = 1.0f;
 	parameters->scale_b = 1.0f;
-	parameters->unknown3c = 0;
 	parameters->unknown30 = 0;
 	parameters->color_a = 0xff808080;
 	parameters->color_b = 0xff808080;
 	parameters->source = 0;
+	parameters->flags = 0;
 }
 
 /* pushes a projectile, and spins it at random by the push's strength */
@@ -698,8 +699,9 @@ void function_fcbc0(point3f const *point, vector3f const *normal, long definitio
 
 	projectile_effect_parameters_initialize(&parameters);
 	parameters.tag_index = effect_index;
-	parameters.markers = markers;
 	parameters.marker_count = 4;
+	parameters.markers = markers;
+	parameters.flags |= 4;
 	if (owner)
 		parameters.owner = *owner;
 	effect_new_from_parameters(&parameters);
@@ -1081,9 +1083,9 @@ void function_fcea0(long effects_index, point3f const *point, vector3f const *di
 	s_effect_owner const *owner, long index, vector3f const *normal)
 {
 	byte *effects = g_4e3b44[effects_index & 0xffff].bytes;
-	s_location location;
 	long sounds[3];
 	long effect_indices[3];
+	s_location location;
 	long i;
 
 	function_11bed0(&location, point);
