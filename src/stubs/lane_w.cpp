@@ -31,11 +31,6 @@ s_bit_vector_pool *function_1320f0(long, long, bool, long, unsigned char const *
 	return 0;
 }
 
-// @stub 0x133520
-void __stdcall function_133520(s_bit_vector_pool *)
-{
-}
-
 // @stub 0x133720
 void function_133720(s_bit_vector_pool *, bool)
 {
