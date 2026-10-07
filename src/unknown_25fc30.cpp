@@ -1283,10 +1283,15 @@ void __stdcall function_25f290(
 	}
 }
 
+PRIVATE __forceinline s_actor_view *function_25fb61(long arg_0)
+{
+	return (s_actor_view *)(g_4f55f0->data + (arg_0 & 0xffff) * sizeof(s_actor_view));
+}
+
 // @retail 0x25fb60
 bool __stdcall function_25fb60(long actor_index, s_type_967e20 *context, s_type_b36ac5 *position)
 {
-	s_actor_view *actor = actor_get(actor_index);
+	s_actor_view *actor = function_25fb61(actor_index);
 
 	if (context->unknown56 ||
 		(context->unknown5a && (!position || position->unknown58)) ||
@@ -1312,7 +1317,12 @@ bool __stdcall function_25fb60(long actor_index, s_type_967e20 *context, s_type_
 			}
 		}
 	}
-	return position ? position->unknown4c : true;
+	bool local_0 = true;
+	if (position)
+	{
+		local_0 = position->unknown4c;
+	}
+	return local_0;
 }
 
 // @retail 0x25fc30
@@ -1321,14 +1331,15 @@ bool __stdcall function_25fc30(
 	s_type_967e20 *context,
 	s_type_b36ac5 *position)
 {
+	bool local_0;
 	if (position)
 	{
 		if (!context->unknown11)
 		{
+			short x = 0;
+			long start = NONE;
 			s_game_time_globals *globals = g_510c54;
 			long time = globals->game_time;
-			long start = NONE;
-			short x = 0;
 			bool flag = true;
 
 			if (position->type == 0 && position->unknown18 < 6.f)
@@ -1357,14 +1368,11 @@ bool __stdcall function_25fc30(
 			if (position->unknown4c)
 			{
 				real a = 0.f;
+				real local_1 = 10.f;
+				real scaled = globals->field_2_3 * local_1;
 
-				if (start == NONE)
+				if (start != NONE)
 				{
-					a = 10.f;
-				}
-				else
-				{
-					real scaled = globals->field_2_3 * 10.f;
 					long rounded;
 
 					__asm
@@ -1373,14 +1381,21 @@ bool __stdcall function_25fc30(
 						fistp rounded
 					}
 
-					if (start + rounded < time)
+					if (start + rounded >= time)
 					{
-						a = 10.f;
+						if (start < time)
+						{
+							a = (time - start) * globals->rate;
+						}
 					}
-					else if (start < time)
+					else
 					{
-						a = (time - start) * globals->rate;
+						a = local_1;
 					}
+				}
+				else
+				{
+					a = local_1;
 				}
 				position->score += a;
 
@@ -1393,10 +1408,14 @@ bool __stdcall function_25fc30(
 			}
 		}
 
-		return position->unknown4c;
+		local_0 = position->unknown4c;
+	}
+	else
+	{
+		local_0 = false;
 	}
 
-	return false;
+	return local_0;
 }
 
 // @retail 0x25fd50

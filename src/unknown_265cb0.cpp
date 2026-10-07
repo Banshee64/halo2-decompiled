@@ -14,6 +14,9 @@
 #include "units.h"
 #include "unknown_2729b0.h"
 #include "data_array.h"
+#include "unknown_25d020.h"
+#include <string.h>
+
 
 point3f *function_b9dd0(long object_index, point3f *result);
 long function_1469f0(real seconds);
@@ -21,6 +24,7 @@ long function_1e4a90(long index);
 long function_25d810(long object_index, long actor_index, bool create);
 void function_118e10(long object_index, point3f *point);
 real function_20e190(long object_index);
+
 
 struct s_object_motion_view
 {
@@ -1011,6 +1015,7 @@ struct s_equipped_object_view
 };
 
 /* The held-object lookup rereads the pool's data field. */
+
 // @retail 0x2675f0
 bool function_2675f0(long object_index)
 {
@@ -1090,11 +1095,11 @@ void function_267c50(long actor_index)
 		else *(real *)(data + 0x3d4) = 0.0f;
 	}
 	long ticks;
-	if (*(real *)(data + 0x3d4) > *(real *)(data + 0x3d8))
-		ticks = round_tick_count((real)g_510c54->field_2_3 * 0.25f);
+	if (*(volatile real *)(data + 0x3d4) > *(volatile real *)(data + 0x3d8))
+		ticks = round_tick_count((real)*(volatile short *)&g_510c54->field_2_3 * 0.25f);
 	else
-		ticks = round_tick_count((real)g_510c54->field_2_3);
-	real difference = *(real *)(data + 0x3d4) - *(real *)(data + 0x3d8);
+		ticks = round_tick_count((real)*(volatile short *)&g_510c54->field_2_3);
+	real difference = *(volatile real *)(data + 0x3d4) - *(volatile real *)(data + 0x3d8);
 	volatile real decay = expf(-0.6931471824645996f / ticks);
 	real blend = 1.0f - decay;
 	*(real *)(data + 0x3d8) += difference * blend;
@@ -1706,4 +1711,18 @@ void function_266640(long actor_index)
 			*(short *)(data + 0x320) = 0;
 		}
 	}
+}
+
+struct s_actor_object_sample;
+bool function_28fa60(long perception_index, point3f const *point, s_actor_object_sample *sample);
+
+// @retail 0x2641c0
+bool __stdcall function_2641c0(long actor_index, s_2641c0 *sample, point3f const *point)
+{
+    point3f const *const *point_reference = &point;
+    s_actor_view *actor = actor_get(actor_index);
+    if (*((byte *)actor + 7) && *(long *)((byte *)actor + 0x1c) != NONE)
+        return function_28fa60(*(long *)((byte *)actor + 0x1c), *point_reference, (s_actor_object_sample *)sample);
+    memcpy(sample, (byte *)actor + 0x22c, sizeof(*sample));
+    return true;
 }

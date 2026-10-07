@@ -146,8 +146,6 @@ struct real_quaternion_transform;
 
 
 
-// @stub 0x260160
-bool function_260160(long actor_index, s_261d20_entry *entry, s_prop_search *search) { return false; }
 
 // @stub 0x290250
 void __stdcall function_290250(long tag_index, long ticks, long object_index, long node_index, real lower, real upper,

@@ -479,8 +479,12 @@ bool __stdcall function_24cedf(real *vertices, long parameter)
 		{
 			real *vertex = vertices + i * 5;
 
-			vertex[0] = vertex[0] + (vertex[0] - center_x) * scale * 0.5f;
-			vertex[1] = vertex[1] + (vertex[1] - center_y) * scale * 0.5f;
+			real local_0 = *(real const volatile *)vertex - center_x;
+			real local_1 = *(real const volatile *)(vertex + 1) - center_y;
+			real local_2 = vertex[0] + local_0 * scale * 0.5f;
+			real local_3 = vertex[1] + local_1 * scale * 0.5f;
+			vertex[0] = local_2;
+			vertex[1] = local_3;
 		}
 	}
 

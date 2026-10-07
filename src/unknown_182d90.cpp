@@ -66,7 +66,8 @@ real __stdcall function_182d90(c_extent_shape *shape, real radius,
 	{
 		s_extent_transform combined;
 		combined.compose(&local, (s_extent_transform *)data->vectors);
-		result = function_182d90(data->field_c.nested, radius, &combined, minimum, maximum);
+		c_extent_shape *local_1 = data->field_c.nested;
+		result = function_182d90(local_1, radius, &combined, minimum, maximum);
 	}
 	else if (shape->shape_kind() == 9)
 	{
