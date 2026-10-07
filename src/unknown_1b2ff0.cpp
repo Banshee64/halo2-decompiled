@@ -31,7 +31,10 @@ short __stdcall function_1b2ff0(long actor_index)
 	while (function_205010(&iterator) != NONE)
 	{
 		if (++count >= 2)
-			return 1;
+		{
+			result = 1;
+			break;
+		}
 	}
 	return result;
 }

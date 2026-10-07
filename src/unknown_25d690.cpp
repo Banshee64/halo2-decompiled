@@ -928,14 +928,15 @@ void function_25c860(long prop_ref_index)
 	datum->state = 3;
 	if (view && !tracked)
 	{
+		point3f const *local_0 = &state->position;
 		real ticks;
 		long rounded;
 
 		view->unknown90 = 0;
 		view->unknowna2 = true;
-		view->unknowna4 = state->position;
-		view->unknown8c = view->unknown06;
+		view->unknowna4 = *local_0;
 		view->unknown8a = datum->unknown27;
+		view->unknown8c = view->unknown06;
 		function_25c4e0(prop_ref_index);
 
 		ticks = g_510c54->field_2_3 * 30.f;
@@ -954,9 +955,7 @@ void function_25c860(long prop_ref_index)
 			point3f origin;
 
 			function_b9dd0(datum->object_index, &origin);
-			view->unknown94.i = origin.x - state->position.x;
-			view->unknown94.j = origin.y - state->position.y;
-			view->unknown94.k = origin.z - state->position.z;
+			vector3d_from_points3d(local_0, &origin, &view->unknown94);
 			function_30bf0(&view->unknown94);
 		}
 		else

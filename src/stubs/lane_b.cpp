@@ -115,9 +115,6 @@ void __stdcall function_1bcfd0(long actor_index, s_slot *slot) { }
 void __stdcall function_1bdad0(long actor_index, s_slot *slot, long index) { }
 
 
-// @stub 0x1be120
-void __stdcall function_1be120(long actor_index, s_slot *slot) { }
-
 
 
 
@@ -129,9 +126,6 @@ bool __stdcall function_20ba60(short type, long unit_index, long target_index, l
 
 // @stub 0x1fbac0
 void __stdcall function_1fbac0(long unknown, long unit_index, bool unknown2, long unknown3, s_1fbac0_event *event) { }
-
-// @stub 0x1f46f0
-bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, byte *scratch, bool unknown2) { return 0; }
 
 
 // @stub 0x1f8a70

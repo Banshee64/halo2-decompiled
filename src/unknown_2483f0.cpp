@@ -69,35 +69,43 @@ void function_2483b0(s_particle_emitter_datum *emitter)
 	emitter->first_particle_index = NONE;
 }
 
-/* appends an emitter to a chain */
+PRIVATE __forceinline void function_2483f1(s_particle_emitter_datum *arg_0, long *arg_1, long *arg_2, s_record_pool *arg_3)
+{
+	long local_0 = (arg_0->salt << 16) | (arg_0 - (s_particle_emitter_datum *)arg_3->data);
+	arg_0->next_index = NONE;
+	if (*arg_1 == NONE)
+		*arg_1 = local_0;
+	if (*arg_2 != NONE)
+		((s_particle_emitter_datum *)arg_3->data)[*arg_2 & 0xffff].next_index = local_0;
+	*arg_2 = local_0;
+}
+
+PRIVATE __forceinline void function_248d91(s_particle_location_datum *arg_0, long *arg_1, long *arg_2, s_record_pool *arg_3)
+{
+	long local_0 = (arg_0->salt << 16) | (arg_0 - (s_particle_location_datum *)arg_3->data);
+	arg_0->next_index = NONE;
+	if (*arg_1 == NONE)
+		*arg_1 = local_0;
+	if (*arg_2 != NONE)
+		((s_particle_location_datum *)arg_3->data)[*arg_2 & 0xffff].next_index = local_0;
+	*arg_2 = local_0;
+}
+
+#pragma inline_depth(1)
 // @retail 0x2483f0
 void function_2483f0(s_particle_emitter_datum *emitter, long *first_index, long *last_index)
 {
-	s_record_pool *data = g_51ec88;
-	long emitter_index = (emitter->salt << 16) | (emitter - (s_particle_emitter_datum *)data->data);
-
-	emitter->next_index = NONE;
-	if (*first_index == NONE)
-		*first_index = emitter_index;
-	if (*last_index != NONE)
-		((s_particle_emitter_datum *)data->data)[*last_index & 0xffff].next_index = emitter_index;
-	*last_index = emitter_index;
+	function_2483f1(emitter, first_index, last_index, g_51ec88);
 }
+#pragma inline_depth(255)
 
-/* appends a particle location to a chain */
+#pragma inline_depth(1)
 // @retail 0x248d90
 void function_248d90(s_particle_location_datum *particle_location, long *first_index, long *last_index)
 {
-	s_record_pool *data = g_51ec8c;
-	long location_index = (particle_location->salt << 16) | (particle_location - (s_particle_location_datum *)data->data);
-
-	particle_location->next_index = NONE;
-	if (*first_index == NONE)
-		*first_index = location_index;
-	if (*last_index != NONE)
-		((s_particle_location_datum *)data->data)[*last_index & 0xffff].next_index = location_index;
-	*last_index = location_index;
+	function_248d91(particle_location, first_index, last_index, g_51ec8c);
 }
+#pragma inline_depth(255)
 
 /* the frame a particle system is drawn in */
 struct s_particle_frame

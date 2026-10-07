@@ -3,9 +3,6 @@
 #include "unknown_11c920.h"
 #include "unknown_1cec30.h"
 
-// @stub 0x1fc210
-void __stdcall function_1fc210(long arg_0, long arg_1) { }
-
 class c_library_30c470
 {
 public:
