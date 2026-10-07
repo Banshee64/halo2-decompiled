@@ -248,6 +248,35 @@ extern void *g_4de2e4;
 extern void *g_4de2d4;
 extern void *g_4de2d8;
 
+struct s_cluster_partition
+{
+	long *cluster_first_data_references;
+	s_record_pool *data_references;
+	s_record_pool *cluster_references;
+};
+extern void *g_4de2e8;
+void function_1cadf0(s_cluster_partition *partition, long reference_index, long data_index,
+	long payload_size, void const *payload);
+
+// @retail 0xb8b70
+void function_b8b70(long object_index)
+{
+	struct s_header { word identifier; byte flags; byte type; dword unknown04; byte *object; };
+	s_header *header = &((s_header *)g_4e0300->data)[object_index & 0xffff];
+	byte *object = header->object;
+	if ((header->flags & 0x40) && (bool)((*(dword *)(object + 4) >> 9) & 1))
+	{
+		s_object_partition_record_ab record;
+		function_b88e0(object_index, &record);
+		// Copy the three partition pointers without taking a shared global's address.
+		s_cluster_partition partition;
+		partition.cluster_first_data_references = (long *)g_4de2e0;
+		partition.data_references = (s_record_pool *)g_4de2e4;
+		partition.cluster_references = (s_record_pool *)g_4de2e8;
+		function_1cadf0(&partition, *(long *)(object + 0x60), object_index, sizeof(record), &record);
+	}
+}
+
 struct s_partition_object_link_ab
 {
 	long salt;

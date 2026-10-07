@@ -17,8 +17,7 @@ void __stdcall function_beca0(long object_index) { }
 
 /* lane S's 0x102b90 calls it (it takes the weapon in eax in retail) */
 
-// @stub 0xfd910
-void function_fd910() { }
+
 
 
 // @stub 0xbc5e0

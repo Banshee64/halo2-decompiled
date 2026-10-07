@@ -66,10 +66,6 @@ struct s_network_message_session_query;
 
 /* outside lane J: the system link reply and the out-of-band session
    handlers (lane D's region) */
-// @stub 0xb2fc0
-void __stdcall function_0b2fc0(s_network_message_session_query const *message)
-{
-}
 
 
 class c_simulation_view;

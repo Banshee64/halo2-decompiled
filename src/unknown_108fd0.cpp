@@ -235,3 +235,52 @@ void function_109390(long object_index)
 		}
 	}
 }
+
+void function_b9b90(long object_index, bool disable);
+void function_b7360(long object_index);
+void function_e4c10(long object_index);
+
+// @retail 0x109400
+void __stdcall function_109400(long object_index)
+{
+    s_record_pool *pool = g_4e0300;
+    s_object *object = ((s_object_header *)pool->data)[object_index & 0xffff].object;
+    if (TEST_FIELD_BIT(g_4e3b44[object->tag_index & 0xffff].flags->flag6))
+    {
+        s_object_list_state *state = g_5107f0;
+        for (long i = 0; i < state->object_count; ++i)
+        {
+            if (state->object_indices[i] == object_index)
+            {
+                object->flags_c0 &= 0xf7;
+                state->object_indices[i] = state->object_indices[state->object_count - 1];
+                --state->object_count;
+                long index = NONE;
+                while ((index = data_next_absolute_index_inlined(pool, index + 1)) != NONE)
+                {
+                    byte *header = pool->data + pool->size * index;
+                    long attached_index = (*(short *)header << 16) | index;
+                    byte *attached = (byte *)((s_object_header *)g_4e0300->data)[attached_index & 0xffff].object;
+                    if ((header[2] & 1) && !(header[2] & 0x10) &&
+                        ((*(word *)(attached + 0xc0) >> 1) & 1 || (*(word *)(attached + 0xc0) >> 2) & 1) &&
+                        *(long *)(attached + 0xb8) == object_index)
+                    {
+                        long type_mask = 1 << header[3];
+                        if (type_mask & 0x1c)
+                        {
+                            function_b9b90(attached_index, false);
+                            function_b7360(attached_index);
+                        }
+                        else if (type_mask & 1)
+                        {
+                            function_e4c10(attached_index);
+                            function_b9b90(attached_index, false);
+                            function_b7360(attached_index);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+}

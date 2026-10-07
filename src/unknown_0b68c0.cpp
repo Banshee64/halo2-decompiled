@@ -415,3 +415,67 @@ s_object_lifecycle_ab g_4411a4 =
       function_b6bb0, function_b6c50, 0, 0 },
     function_b6df0
 };
+
+
+bool object_or_parent_hidden(long object_index);
+bool function_b9d20(long object_index);
+void __stdcall function_bef30(long object_index, long remove, long add, long siblings, long own_flags);
+void function_b8b70(long object_index);
+void function_bf090(long object_index);
+void __stdcall function_10a250(long object_index);
+void function_15b220(long object_index, long index);
+void __stdcall function_109400(long object_index);
+void function_bb950(long object_index, bool add, long delta);
+void function_a7a60(long object_index);
+void function_10ace0(long object_index);
+
+void function_1ca130(long unit_index, long value, long priority);
+
+// @retail 0xbfc30
+void function_bfc30(long unit_index, long value, bool active)
+{
+    bool const *active_reference = &active;
+    if (unit_index != NONE)
+    {
+        struct s_header { word identifier; byte flags; byte type; dword unknown04; byte *object; };
+        s_header *header = &((s_header *)g_4e0300->data)[unit_index & 0xffff];
+        long type_mask = 1;
+        if ((type_mask << header->type) & 3)
+            function_1ca130(unit_index, value, *active_reference);
+    }
+    if (value == 2)
+        *(long *)((byte *)g_4de2f4 + 0x14) = g_510c54->game_time;
+}
+
+struct s_remove_object_header
+{
+    word identifier;
+    byte flags;
+    byte type;
+    dword unknown04;
+    byte *object;
+};
+
+// @retail 0xb8540
+void __stdcall function_b8540(long object_index)
+{
+    long const *index_reference = &object_index;
+    s_remove_object_header *header = &((s_remove_object_header *)g_4e0300->data)[*index_reference & 0xffff];
+    byte *object = header->object;
+    if (!object_or_parent_hidden(*index_reference) && function_b9d20(*index_reference))
+        function_bef30(*index_reference, 1, 0, 0, 0);
+    header->flags |= 0x10;
+    function_b8b70(*index_reference);
+    if ((1 << header->type) & 0x40)
+        function_10a250(*index_reference);
+    function_bf090(*index_reference);
+    object[0xab] = 0xff;
+    *(word *)(object + 0xa8) = 0xffff;
+    *(long *)(object + 0xa4) = NONE;
+    if ((signed char)object[0xaf] != -1)
+        function_15b220(*index_reference, (signed char)object[0xaf]);
+    function_109400(*index_reference);
+    function_bb950(*index_reference, false, NONE);
+    function_a7a60(*index_reference);
+    function_10ace0(*index_reference);
+}

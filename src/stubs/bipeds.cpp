@@ -31,8 +31,6 @@ void __stdcall function_e57e0(long arg_159e6d) { }
 // @stub 0x1ed340
 void __stdcall function_1ed340(void *physics, long arg_159e6d) { }
 
-// @stub 0x1696d0
-bool function_1696d0(long flags, s_biped_ground_collision *collision, long object_index, point3f const *point, vector3f const *vector, long a, long b) { return 0; }
 
 
 

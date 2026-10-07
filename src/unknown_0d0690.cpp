@@ -7,6 +7,118 @@
 #include "unknown_0259d0.h"
 #include "globals.h"
 #include "unknown_0d0690.h"
+#include "geometry_cache.h"
+
+struct s_collision_result_1697c0;
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
+    long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+color3f *function_131c20(color3f const *a, color3f const *b, dword flags, real t, color3f *result);
+dword __cdecl pack_color3f(color3f const *color);
+extern bool g_4b9ee9;
+extern long g_4b9eec;
+
+struct s_sky_surface_record
+{
+    vector3f direction;
+    dword color0;
+    dword color1;
+};
+
+PRIVATE __forceinline long sky_surface_tag(short index)
+{
+    byte *scenario = (byte *)g_4e0350;
+    long result = NONE;
+    if (index >= 0)
+    {
+        long count = *(long *)(scenario + 8);
+        if (index < count)
+            result = *(long *)(*(byte **)(scenario + 0xc) + index * 8 + 4);
+    }
+    return result;
+}
+
+real function_30bf0(vector3f *vector);
+
+// @retail 0xd1a30
+long __stdcall function_d1a30(long ignore_object_index, point3f const *point, s_sky_surface_record *record)
+{
+    byte collision[0x5c];
+    *(short *)(collision + 0x24) = NONE;
+    long result = 2;
+    if (g_4b9ee9 && g_4b9eec != NONE)
+    {
+        long index = g_4b9eec;
+        long sky_index = sky_surface_tag((short)index);
+        if (sky_index != NONE)
+        {
+            byte *sky = g_4e3b44[sky_index & 0xffff].bytes;
+            if (sky != NULL)
+            {
+                vector3f direction = *g_4687a4;
+                color3f color = *(color3f *)g_468718;
+                real strength = 0.0f;
+                long count = *(long *)(sky + 0x78);
+                if (count > 0)
+                {
+                    byte *lights = *(byte **)(sky + 0x7c);
+                    for (long i = 0; i < count; ++i)
+                    {
+                        byte *light = lights + i * 0x34;
+                        if (*(long *)(light + 0x2c) > 0)
+                        {
+                            byte *entry = *(byte **)(light + 0x30);
+                            real yaw = *(real *)(light + 0xc);
+                            real pitch = *(real *)(light + 0x10);
+                            real cosine = (real)cos(pitch);
+                            direction.i += (real)cos(yaw) * cosine;
+                            direction.j += (real)sin(yaw) * cosine;
+                            direction.k += (real)sin(pitch);
+                            if (i == 0)
+                            {
+                                color = *(color3f *)(entry + 4);
+                                strength = *(real *)(entry + 0x10);
+                            }
+                            else if (*(real *)(entry + 0x10) > 0.0f)
+                            {
+                                real blend = 1.0f - strength / *(real *)(entry + 0x10) / ((real)i + 2.0f);
+                                if (blend < 0.0f) blend = 0.0f;
+                                else if (blend > 1.0f) blend = 1.0f;
+                                function_131c20(&color, (color3f *)(entry + 4), 0, blend, &color);
+                                strength += *(real *)(entry + 0x10);
+                            }
+                        }
+                    }
+                    function_30bf0(&direction);
+                    vector3f ray;
+                    ray.i = direction.i * 100.0f;
+                    ray.j = direction.j * 100.0f;
+                    ray.k = direction.k * 100.0f;
+                    bool hit = function_1697c0(0x10000001, point, &ray, ignore_object_index, NONE,
+                        (s_collision_result_1697c0 *)collision);
+                    if (!hit || *(short *)(collision + 0x5a) != NONE)
+                        color = *(color3f *)(sky + 0x34);
+                }
+                else
+                {
+                    color = *(color3f *)(sky + 0x34);
+                    direction.i = direction.j = direction.k = -1.0f;
+                    function_30bf0(&direction);
+                }
+                record->direction = direction;
+                record->color0 = 0xff555555;
+                if (color.red < 0.0f) color.red = 0.0f;
+                else if (color.red > 1.0f) color.red = 1.0f;
+                if (color.green < 0.0f) color.green = 0.0f;
+                else if (color.green > 1.0f) color.green = 1.0f;
+                if (color.blue < 0.0f) color.blue = 0.0f;
+                else if (color.blue > 1.0f) color.blue = 1.0f;
+                record->color1 = pack_color3f(&color);
+                result = 0;
+            }
+        }
+    }
+    return result;
+}
 
 color3f *unpack_color3f(dword pixel, color3f *color);
 
@@ -338,6 +450,131 @@ struct s_rgb24
 	byte r, g, b;
 };
 
+struct s_surface_colour_bucket
+{
+	word unknown00;
+	word resource_index;
+	byte unknown04[4];
+	word *first_vertices;
+};
+
+struct s_surface_colour_resource
+{
+	byte flags;
+	byte unknown01[0xc - 1];
+	s_geometry_block_info block;
+	byte unknown30[4];
+	struct s_surface_colour_runtime *runtime;
+};
+
+struct s_surface_colour_runtime
+{
+	long count;
+	struct s_surface_colour_data
+	{
+		byte unknown00[0x20];
+		s_vertex_block block;
+	} *data;
+};
+
+struct s_surface_colour_group
+{
+	byte unknown00[0x44];
+	s_surface_colour_resource *resources;
+	byte unknown48[0x54 - 0x48];
+	s_surface_colour_bucket *instance_buckets;
+	byte unknown58[0x64 - 0x58];
+	s_surface_colour_bucket *other_buckets;
+};
+
+// @retail 0xd35a0
+s_vertex_block *function_d35a0(long index, s_surface_colour_group *group, bool instance, long vertex_index)
+{
+	s_vertex_block *result = NULL;
+	s_surface_colour_bucket *bucket;
+	word *first_vertex;
+	if (instance)
+	{
+		bucket = &group->instance_buckets[index];
+		first_vertex = bucket->first_vertices;
+	}
+	else
+	{
+		bucket = &group->other_buckets[index];
+		first_vertex = &bucket->first_vertices[vertex_index];
+	}
+	s_surface_colour_resource *resource = &group->resources[bucket->resource_index];
+	if ((resource->flags & 2) && function_12de70(&resource->block, 3))
+	{
+		result = &resource->runtime->data->block;
+		byte type = result->type;
+		long offset = *first_vertex;
+		if (type == 0x2e)
+			offset *= 4;
+		else
+			offset *= 3;
+		result->offset4 = offset;
+		result->offset = offset;
+	}
+	return result;
+}
+
+struct s_structure_lightmap_triangle
+{
+	long cluster_index;
+	long instance_index;
+	byte unknown08[0x18 - 0x08];
+	long unknown18;
+	byte unknown1c[4];
+	long part_index;
+	long part_offset;
+	long lightmap_part_index;
+	byte unknown2c[4];
+	real u;
+	real v;
+};
+
+struct s_surface_geometry_resource
+{
+	byte unknown00[0x28];
+	s_geometry_block_info block;
+	byte unknown4c[4];
+	s_mesh *sections;
+};
+
+struct s_16e290_resource;
+long function_16e290(s_16e290_resource *resource);
+
+// @retail 0xd1d70
+bool function_d1d70(s_structure_lightmap_triangle const *triangle, s_mesh **out)
+{
+	bool result = false;
+	byte *bsp = (byte *)g_4e0348;
+	if (triangle->instance_index != NONE)
+	{
+		byte *instances = *(byte **)(bsp + 0x144);
+		short definition_index = *(short *)(instances + triangle->instance_index * 0x58 + 0x34);
+		byte *definitions = *(byte **)(bsp + 0x13c);
+		s_surface_geometry_resource *resource = (s_surface_geometry_resource *)(definitions + definition_index * 0xc8);
+		if (function_12de70(&resource->block, 3))
+		{
+			*out = resource->sections;
+			return true;
+		}
+	}
+	else if (*(long const *)triangle->unknown08 == NONE)
+	{
+		byte *clusters = *(byte **)(bsp + 0xa0);
+		s_surface_geometry_resource *resource = (s_surface_geometry_resource *)(clusters + triangle->cluster_index * 0xb0);
+		if (function_12de70(&resource->block, 3))
+		{
+			result = true;
+			*out = (s_mesh *)function_16e290((s_16e290_resource *)resource);
+		}
+	}
+	return result;
+}
+
 #define MESH_BLOCK_UV_FLOAT 0x18
 #define MESH_BLOCK_UV_A 0x1e
 #define MESH_BLOCK_UV_B 0x1f
@@ -633,4 +870,349 @@ void function_d0620(long object_index, s_object_child_iterator *iterator)
 	iterator->root = object_index;
 	iterator->current = object_index;
 	iterator->next = object->first_child;
+}
+
+struct s_effect_color_query
+{
+	real unknown00;
+	real unknown04;
+	real unknown08;
+	dword color_a;
+	dword color_b;
+};
+
+long __stdcall function_d2a50(long flags, long object_index, long value, s_effect_color_query *query,
+    long unused, point3f const *point);
+long function_e5670(long unit_index);
+
+bool function_14af40(bool value, point3f const *point, vector3f const *vector, long object_index,
+    bool a, void *surface, point3f *hit_point);
+long __stdcall function_d1e10(void const *surface, s_effect_color_query *query, long flags, long value);
+bool function_14b120(void *source, void *surface);
+
+PRIVATE vector3f const g_4406e4 = { 0.0f, 0.0f, -10.0f };
+PRIVATE vector3f const g_4406f0[5] =
+{
+    { -10.0f, 0.0f, 0.0f }, { 10.0f, 0.0f, 0.0f },
+    { 0.0f, -10.0f, 0.0f }, { 0.0f, 10.0f, 0.0f }, { 0.0f, 0.0f, -40.0f }
+};
+
+// @retail 0xd2a50
+long __stdcall function_d2a50(long flags, long object_index, long value, s_effect_color_query *query,
+    long supplied_direction, point3f const *point)
+{
+    long result = 2;
+    vector3f const *directions;
+    long count;
+    if (flags & 1) { directions = g_4406f0; count = 5; }
+    else
+    {
+        directions = (flags & 4) ? (vector3f const *)supplied_direction : &g_4406e4;
+        count = 1;
+    }
+    if (g_4e0344 && g_4e0344->count > 0 && g_4e0348)
+    {
+        byte *bsp = (byte *)g_4e0344->locations;
+        if (*(long *)(bsp + 0x1c) != NONE && *(long *)(bsp + 4) == *(long *)((byte *)g_4e0348 + 8))
+        {
+            for (long i = 0; i < count; ++i)
+            {
+                if (result != 2) break;
+                point3f start, hit_point;
+                byte surface[0x38];
+                start.x = point->x - directions[i].i * 0.0010000000474974513f;
+                start.y = point->y - directions[i].j * 0.0010000000474974513f;
+                start.z = point->z - directions[i].k * 0.0010000000474974513f;
+                if (function_14af40((bool)value, &start, &directions[i], object_index, true, surface, &hit_point))
+                    result = function_d1e10(surface, query, flags, value);
+            }
+        }
+    }
+    return result;
+}
+
+// @retail 0xd2bb0
+long function_d2bb0(void *source, s_effect_color_query *query)
+{
+    byte surface[0x38];
+    s_effect_color_query **query_reference = &query;
+    long result = 2;
+    if (function_14b120(source, surface))
+        result = function_d1e10(surface, *query_reference, 0, 0);
+    return result;
+}
+
+PRIVATE __forceinline bool surface_status_failed(long status)
+{
+    return status == 1 || status == 2 || status == 3;
+}
+
+// @retail 0xd1850
+long function_d1850(long object_index, long value, s_effect_color_query *query)
+{
+    bool failed = false;
+    if (g_4e0344 && g_4e0344->count > 0 && g_4e0348)
+    {
+        byte *bsp = (byte *)g_4e0344->locations;
+        if (*(long *)(bsp + 0x1c) != NONE && *(long *)(bsp + 4) == *(long *)((byte *)g_4e0348 + 8))
+        {
+            s_object *object = OBJECT_FROM_INDEX(object_index);
+            byte *definition = g_4e3b44[object->tag_index & 0xffff].bytes;
+            long flags = 0;
+            if ((bool)((*(dword *)((byte *)object + 4) >> 13) & 1)) flags = 1;
+            if ((bool)((definition[2] >> 1) & 1)) flags |= 1;
+            point3f *point = (point3f *)((byte *)object + 0x30);
+            long status = function_d2a50(flags, object_index, value, query, 0, point);
+            if (surface_status_failed(status))
+            {
+                failed = true;
+                if (flags & 1)
+                {
+                    status = function_d2a50(flags & ~1, object_index, value, query, 0, point);
+                    if (surface_status_failed(status)) failed = true;
+                }
+                if (status != 3)
+                {
+                    short type = *(short *)definition;
+                    bool use_sky = false;
+                    if (type == 1)
+                    {
+                        byte *unit_definition = g_4e3b44[OBJECT_FROM_INDEX(object_index)->tag_index & 0xffff].bytes;
+                        use_sky = ((1 << unit_definition[0x1f0]) & 0x28) != 0;
+                    }
+                    else if (type == 0) use_sky = function_e5670(object_index) == 2;
+                    else if (type == 0xc)
+                    {
+                        byte *unit_definition = g_4e3b44[OBJECT_FROM_INDEX(object_index)->tag_index & 0xffff].bytes;
+                        use_sky = (bool)((*(dword *)(unit_definition + 0xd4) >> 4) & 1);
+                    }
+                    if (use_sky) failed = surface_status_failed(function_d1a30(object_index, point, (s_sky_surface_record *)query));
+                }
+            }
+        }
+    }
+    return failed ? 0 : 1;
+}
+
+struct s_lighting_record
+{
+	color3f color0;
+	vector3f direction0;
+	real length;
+	real value1c;
+	color3f color1;
+	vector3f direction1;
+	color3f color2;
+	vector3f direction2;
+	dword unknown50;
+};
+
+struct s_tag_data
+{
+	long size;
+	byte *address;
+};
+
+struct s_lighting_parameters
+{
+	dword flags;
+	real bias;
+	color3f lower1;
+	color3f upper1;
+	real angle1;
+	s_tag_data scale1;
+	color3f lower2;
+	color3f upper2;
+	color3f lower_base;
+	color3f upper_base;
+	real angle2;
+	s_tag_data scale2;
+	color3f lower0;
+	color3f upper0;
+	s_tag_data scale0;
+	s_tag_data value1c;
+};
+
+struct s_lighting_parameter_block
+{
+	long count;
+	s_lighting_parameters *entries;
+};
+
+void function_117c80(vector3f const *input, vector3f *output, real angle);
+real function_13b390(void const *function, real input, real range);
+
+PRIVATE __forceinline real lighting_pin(real value, real lower, real upper)
+{
+	return value < lower ? lower : value > upper ? upper : value;
+}
+
+PRIVATE __forceinline void lighting_pin_color(color3f const *input, color3f const *lower, color3f const *upper, color3f *out)
+{
+	out->red = lighting_pin(input->red, lower->red, upper->red);
+	out->green = lighting_pin(input->green, lower->green, upper->green);
+	out->blue = lighting_pin(input->blue, lower->blue, upper->blue);
+}
+
+PRIVATE __forceinline real lighting_function(s_tag_data const *function, real input)
+{
+	real value = function_13b390(function, input, 1.0f);
+	byte *header = function->address;
+	if (!(header[1] & 0xf0))
+	{
+		real lower = *(real *)(header + 4);
+		real upper = *(real *)(header + 8);
+		value = lighting_pin(value, 0.0f, 1.0f);
+		value = (upper - lower) * value + lower;
+	}
+	return value;
+}
+
+PRIVATE __forceinline void lighting_negate(vector3f *vector)
+{
+	vector->i = 0.0f - vector->i;
+	vector->j = 0.0f - vector->j;
+	vector->k = 0.0f - vector->k;
+}
+
+PRIVATE __forceinline void lighting_rotate(vector3f const *input, real angle, vector3f *out)
+{
+	real sine = (real)sin(angle);
+	real cosine = (real)cos(angle);
+	vector3f axis = *g_4687b0;
+	real projection = (axis.k * input->k + axis.j * input->j + axis.i * input->i) * (1.0f - cosine);
+	out->i = input->i * cosine + axis.i * projection - (axis.k * input->j - axis.j * input->k) * sine;
+	out->j = input->j * cosine + axis.j * projection - (axis.i * input->k - axis.k * input->i) * sine;
+	out->k = input->k * cosine + axis.k * projection - (axis.j * input->i - axis.i * input->j) * sine;
+}
+
+// @retail 0xd37f0
+bool function_d37f0(s_lighting_parameter_block *block, long type, s_effect_color_query const *query,
+	s_lighting_record *record, color3f const *base, color3f const *lightmap)
+{
+	s_lighting_parameters *parameters = NULL;
+	dword mask = (1 << (type + 1)) | 1;
+	for (long i = 0; i < block->count; i++)
+	{
+		if (block->entries[i].flags & mask)
+			parameters = &block->entries[i];
+	}
+	if (!parameters)
+		return false;
+	vector3f normal = *(vector3f const *)query;
+	real length = (real)sqrt(normal.i * normal.i + normal.j * normal.j + normal.k * normal.k);
+	record->length = length;
+	normalize_inline(&normal);
+	color3f adjusted;
+	adjusted.red = lightmap->red + parameters->bias;
+	adjusted.green = lightmap->green + parameters->bias;
+	adjusted.blue = lightmap->blue + parameters->bias;
+	lighting_pin_color(&adjusted, &parameters->lower1, &parameters->upper1, &record->color1);
+	function_117c80(&normal, &record->direction1, parameters->angle1 * 0.01745329238474369f);
+	lighting_negate(&record->direction1);
+	color3f limited_base;
+	color3f limited_lightmap;
+	lighting_pin_color(base, &parameters->lower_base, &parameters->upper_base, &limited_base);
+	lighting_pin_color(&adjusted, &parameters->lower2, &parameters->upper2, &limited_lightmap);
+	real square = length * length;
+	record->color2.red = ((limited_base.red * limited_lightmap.red) * square) * 2.0f + record->color1.red * (1.0f - square);
+	record->color2.green = ((limited_base.green * limited_lightmap.green) * square) * 2.0f + record->color1.green * (1.0f - square);
+	record->color2.blue = ((limited_base.blue * limited_lightmap.blue) * square) * 2.0f + record->color1.blue * (1.0f - square);
+	vector3f turned = record->direction1;
+	lighting_negate(&turned);
+	lighting_rotate(&turned, parameters->angle2 * 0.01745329238474369f, &record->direction2);
+	lighting_pin_color(&adjusted, &parameters->lower0, &parameters->upper0, &record->color0);
+	record->direction0 = normal;
+	lighting_negate(&record->direction0);
+	if (record->direction0.k > -0.75f)
+	{
+		record->direction0.k = lighting_pin(record->direction0.k, -1.0f, -0.75f);
+		normalize_inline(&record->direction0);
+	}
+	real luminance = 2.0f * (0.11f * lightmap->blue + 0.59f * lightmap->green + 0.3f * lightmap->red);
+	record->value1c = lighting_pin(lighting_function(&parameters->value1c, luminance), 0.0f, 1.0f);
+	real scale1 = lighting_function(&parameters->scale1, length);
+	real scale2 = lighting_function(&parameters->scale2, length);
+	record->color1.red *= scale1;
+	record->color1.green *= scale1;
+	record->color1.blue *= scale1;
+	record->color2.red *= scale2;
+	record->color2.green *= scale2;
+	record->color2.blue *= scale2;
+	luminance = 0.114f * adjusted.blue + 0.587f * adjusted.green + 0.299f * adjusted.red;
+	real scale0 = (lighting_function(&parameters->scale0, luminance) * (1.0f - (0.1f * length + 0.6f))) * 1.4f;
+	record->color0.red *= scale0;
+	record->color0.green *= scale0;
+	record->color0.blue *= scale0;
+	return true;
+}
+
+real g_467484 = 15.0f;
+real g_467494 = 5.0f;
+real function_30bf0(vector3f *vector);
+
+// @retail 0xd4080
+void function_d4080(s_effect_color_query const *query, long type, s_lighting_record *record, bool flag)
+{
+	(void)&flag;
+	vector3f normal = *(vector3f const *)query;
+	real length = (real)sqrt(normal.i * normal.i + normal.j * normal.j + normal.k * normal.k);
+	bool mobile = type >= 0 && type <= 2;
+	record->length = normalize_inline(&normal);
+	color3f base, lightmap;
+	unpack_color3f(query->color_a, &base);
+	unpack_color3f(query->color_b, &lightmap);
+	long tag_index = *(long *)((byte *)g_4e0350 + 0x33c);
+	if (tag_index == NONE)
+		tag_index = *(long *)((byte *)g_4e034c + 0x184);
+	s_lighting_parameter_block *block = (s_lighting_parameter_block *)g_4e3b44[tag_index & 0xffff].bytes;
+	if (!block || !function_d37f0(block, type, query, record, &base, &lightmap))
+	{
+		record->color1 = lightmap;
+		function_117c80(&normal, &record->direction1, g_467484);
+		lighting_negate(&record->direction1);
+		color3f limited;
+		limited.red = base.red < 0.25 ? 0.25f : base.red > 0.75 ? 0.75f : base.red;
+		limited.green = base.green < 0.25 ? 0.25f : base.green > 0.75 ? 0.75f : base.green;
+		limited.blue = base.blue < 0.25 ? 0.25f : base.blue > 0.75 ? 0.75f : base.blue;
+		color3f reflected;
+		reflected.red = lighting_pin((lightmap.red * limited.red) * 2.0f, 0.0f, 1.0f);
+		reflected.green = lighting_pin((lightmap.green * limited.green) * 2.0f, 0.0f, 1.0f);
+		reflected.blue = lighting_pin((lightmap.blue * limited.blue) * 2.0f, 0.0f, 1.0f);
+		if (!(reflected.red > 0.0f)) reflected.red = 0.0f;
+		if (!(reflected.green > 0.0f)) reflected.green = 0.0f;
+		if (!(reflected.blue > 0.0f)) reflected.blue = 0.0f;
+		real square = length * length;
+		record->color2.red = (1.0f - square) * lightmap.red + square * reflected.red;
+		record->color2.green = (1.0f - square) * lightmap.green + square * reflected.green;
+		record->color2.blue = (1.0f - square) * lightmap.blue + square * reflected.blue;
+		vector3f turned = record->direction1;
+		lighting_negate(&turned);
+		lighting_rotate(&turned, g_467494 * 0.01745329238474369f, &record->direction2);
+		record->color0 = lightmap;
+		record->direction0.i = 0.0f - normal.i;
+		record->direction0.j = 0.0f - normal.j;
+		record->direction0.k = 0.0f - 2.0f * normal.k;
+		function_30bf0(&record->direction0);
+		real k = mobile ? 1.18f : 0.75f;
+		real luminance = 0.114f * lightmap.blue + 0.587f * lightmap.green + 0.299f * lightmap.red;
+		real scale0 = (1.0f - (0.1f * length + 0.6f)) * ((k - 0.7f) * luminance + 0.7f);
+		real scale1 = 0.05f * length + 0.4f;
+		real scale2 = 0.4f - 0.05f * length;
+		record->color0.red *= scale0;
+		record->color0.green *= scale0;
+		record->color0.blue *= scale0;
+		record->color1.red *= scale1;
+		record->color1.green *= scale1;
+		record->color1.blue *= scale1;
+		record->color2.red *= scale2;
+		record->color2.green *= scale2;
+		record->color2.blue *= scale2;
+		record->value1c = 1.0f;
+	}
+	color3f lower = { 0.0f, 0.0f, 0.0f };
+	color3f upper = { 1.0f, 1.0f, 1.0f };
+	lighting_pin_color(&record->color1, &lower, &upper, &record->color1);
+	lighting_pin_color(&record->color2, &lower, &upper, &record->color2);
+	lighting_pin_color(&record->color0, &lower, &upper, &record->color0);
 }

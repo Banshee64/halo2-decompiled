@@ -29,15 +29,7 @@ void function_07a840(void)
 
 
 
-// @stub 0xb2ea0
-void function_b2ea0(void)
-{
-}
 
-// @stub 0xb3200
-void function_b3200(void)
-{
-}
 
 
 // @stub 0x80390

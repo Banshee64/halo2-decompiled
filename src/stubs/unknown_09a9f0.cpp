@@ -39,10 +39,6 @@ void function_a7180(long a, long b)
 {
 }
 
-// @stub 0xb8540
-void __stdcall function_b8540(long a)
-{
-}
 
 
 // @stub 0xa73b0
