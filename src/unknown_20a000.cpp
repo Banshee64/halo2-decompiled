@@ -75,7 +75,8 @@ int __stdcall function_20a100(script_value v)
 // @retail 0x20a110
 script_value __stdcall function_20a110(script_value v)
 {
-	v.s = (short)v.w;
+	volatile short *local_0 = &v.s;
+	*local_0 = (short)v.w;
 	return v;
 }
 
