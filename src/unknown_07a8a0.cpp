@@ -61,7 +61,9 @@ bool transport_security_create_key(long local, long index, bool online)
 	{
 		kid.ab[0] = (kid.ab[0] & 0xf) | (online ? XNET_XNKID_ONLINE_PEER : XNET_XNKID_SYSTEM_LINK);
 	}
-	return transport_security_register_key(index, local, true, &kid, &key) != 0;
+	if (transport_security_register_key(index, local, true, &kid, &key))
+		return true;
+	return false;
 }
 
 // @retail 0x7adf0

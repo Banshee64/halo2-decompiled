@@ -63,7 +63,7 @@ void function_71e00(c_session_state *arg_0)
 			{
 				if (local_0->player_mask & (1 << local_8))
 				{
-					long local_13 = local_0->current_member;
+					long local_13 = *(const volatile long *)&local_0->current_member;
 					if (local_0->players[local_8].member_index == local_13)
 					{
 						local_5[local_4] = *(const s_71e00 *)&local_0->players[local_8].user_id;
