@@ -4223,9 +4223,9 @@ struct s_e5980_definition
 };
 
 // @retail 0xe5980
-long function_e5980(long biped_index)
+long function_e5980(long arg_159e6d_3)
 {
-	s_biped *biped = BIPED_GET(biped_index);
+	s_biped *biped = BIPED_GET(arg_159e6d_3);
 	s_e5980_object_flags *flags =
 		(s_e5980_object_flags *)&biped->flags_10a;
 
