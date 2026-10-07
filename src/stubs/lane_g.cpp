@@ -45,8 +45,9 @@ void __stdcall function_215367(long player, long profile_index, void *data, long
 struct s_bitmap_view;
 
 // @stub 0x12360
-void function_12360(s_bitmap_view *bitmap, real priority)
+void *function_12360(s_bitmap_view *bitmap, real priority)
 {
+	return 0;
 }
 
 

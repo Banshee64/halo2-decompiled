@@ -29,7 +29,7 @@ struct s_bitmap_group_view
 	s_bitmap_view *bitmaps;
 };
 
-void function_12360(s_bitmap_view *bitmap, real priority);
+void *function_12360(s_bitmap_view *bitmap, real priority);
 
 /* loads every bitmap of a bitmap tag (retail's copy of 0x23625d) */
 static __forceinline void bitmap_tag_load(long tag_index)

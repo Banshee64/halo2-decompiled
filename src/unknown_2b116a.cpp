@@ -5546,7 +5546,7 @@ c_class_1473c9 *__stdcall function_2b19dc(s_screen_parameters *parameters)
 
 struct s_bitmap_view;
 struct s_predicted_resource_block;
-void function_12360(s_bitmap_view *bitmap, real priority);
+void *function_12360(s_bitmap_view *bitmap, real priority);
 bool function_16e5e0(s_predicted_resource_block const *block, short mode);
 
 // @retail 0x2b1179

@@ -51,5 +51,3 @@ void function_211060(long unknown0, void *physics, s_location *location, long un
 // @stub 0x43890
 void function_43890(void) { }
 
-// @stub 0x23aad0
-void __stdcall function_23aad0(long a, long b, long c) { }

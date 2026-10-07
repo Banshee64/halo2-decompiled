@@ -9,6 +9,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <wchar.h>
+#include <math.h>
+#include "globals.h"
+#include "unknown_030290.h"
 
 #pragma intrinsic(memset)
 #include <xtl.h>
@@ -86,6 +89,7 @@ public:
 	c_virtual_keyboard_screen(long a, long b, word user_flags);
 
 	virtual void v3();
+	virtual void v4(long screen_bounds);
 	virtual bool v10(s_widget_event *event);
 	/* builds the screen around its keys */
 	virtual void v18(void *parameters);
@@ -1156,7 +1160,7 @@ void c_virtual_keyboard_screen::update_string()
 bool gamertag_valid(word *string)
 {
 	bool result = true;
-	short i = 0;
+	long i = 0;
 
 	if (!string[0] || string[0] == ' ' || !wcschr(g_459c80, string[0]))
 	{
@@ -1164,9 +1168,9 @@ bool gamertag_valid(word *string)
 	}
 	else
 	{
-		for (; i < 0x10; i++)
+		for (; (short)i < 0x10; i++)
 		{
-			word *character = &string[i];
+			word *character = &string[(short)i];
 
 			if (!*character)
 			{
@@ -1174,31 +1178,42 @@ bool gamertag_valid(word *string)
 			}
 			if (!result)
 			{
-				return result;
+				goto done;
 			}
 			if (*character != ' ' && !wcschr(g_459c80, *character) && !wcschr(g_459ad0, *character))
 			{
 				result = false;
 			}
-			else if (iswspace(*character) && (short)(i + 1) < 0x10 && iswspace(string[(short)(i + 1)]))
-			{
-				result = false;
-			}
 			else
 			{
+				if (iswspace(*character))
+				{
+					if ((short)(i + 1) >= 0x10)
+						goto next_character;
+					if (iswspace(string[(short)(i + 1)]))
+					{
+						result = false;
+						goto next_character;
+					}
+				}
 				short next = i + 1;
 
-				if (next < 0x10 && iswspace(*character) && !string[next])
+				if (next < 0x10)
 				{
-					result = false;
+					word current = *character;
+					if (iswspace(current) && !string[next])
+						result = false;
 				}
 			}
+next_character:
+			;
 		}
 		if (result)
 		{
-			result = i < 0x10;
+			result = (short)i < 0x10;
 		}
 	}
+done:
 	return result;
 }
 
@@ -1437,4 +1452,64 @@ bool finish_friend_gamertag(c_virtual_keyboard_screen *keyboard)
 		parameters.load(&parameters);
 	}
 	return true;
+}
+
+struct s_type_7ba8e9;
+s_type_7ba8e9 *function_236235(short frame_index, short sequence_index);
+extern dword g_54d5b8;
+
+/* Draws the text selection and the keyboard cursor. */
+// @retail 0x237c04
+void c_virtual_keyboard_screen::v4(long screen_bounds)
+{
+	short_rectangle2d const *screen = (short_rectangle2d const *)screen_bounds;
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+	update_string();
+	if (text && string && (dword)text->animation.end_time <= g_54d5b8 && !ANIMATION_FLAG(text->animation, 1))
+	{
+		if (editing && string[0])
+		{
+			byte *settings = *(long *)((byte *)g_4e034c + 0x108) ? *(byte **)((byte *)g_4e034c + 0x10c) : 0;
+			long tag_index = *(long *)(settings + 0x64);
+			s_sprite_element *sprite = *(s_sprite_element **)(g_4e3b44[tag_index & 0xffff].bytes + 0x48);
+			sprite = (s_sprite_element *)((byte *)sprite + 0x74);
+			short_rectangle2d selected;
+			text->function_253ab4(screen, &selected);
+			s_float_rect from, to;
+			from.y0 = 0.0f;
+			from.x0 = 0.0f;
+			from.x1 = sprite->width;
+			from.y1 = sprite->height;
+			to.x0 = selected.left;
+			to.x1 = selected.right;
+			to.y0 = selected.top;
+			to.y1 = selected.bottom;
+			function_235e5e(sprite, &from, &to, 0xffffffff, 1, 0);
+		}
+		s_sprite_element *cursor = (s_sprite_element *)function_236235(0, 0);
+		if (cursor)
+		{
+			real fade = (real)((cos(g_54d5b8 * 0.003f) + 1.0f) * 0.5f);
+			fade *= animation.scale;
+			fade *= 255.0f;
+			long alpha;
+			__asm
+			{
+				fld fade
+				fistp alpha
+			}
+			s_float_rect from, to;
+			from.y0 = 0.0f;
+			from.x0 = 0.0f;
+			from.x1 = cursor->width;
+			from.y1 = cursor->height;
+			short_rectangle2d position;
+			text->function_253a73(screen, (end - string), &position);
+			to.x0 = position.left;
+			to.x1 = position.right;
+			to.y0 = position.top;
+			to.y1 = position.bottom;
+			function_235e5e(cursor, &from, &to, ((dword)alpha << 24) | 0xffffff, 0, 0);
+		}
+	}
 }

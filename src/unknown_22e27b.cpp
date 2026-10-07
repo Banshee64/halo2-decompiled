@@ -1395,3 +1395,230 @@ void function_22d108(c_class_22cc8e *text, short_rectangle2d const *bounds,
     short length = (short)wcslen((wchar_t *)text->function_22f52e());
     function_22d13d(text, bounds, depth, screen, length, &ink_bounds, output);
 }
+
+// @retail 0x253a73
+void c_text_widget_45a5e0::function_253a73(short_rectangle2d const *screen, long character_index, short_rectangle2d *output)
+{
+    real depth = get_depth();
+    short_rectangle2d bounds;
+    get_bounds((s_widget_bounds *)&bounds);
+    function_22d0e3(function_22f52e(), &bounds, depth, screen, (short)character_index, output);
+}
+
+// @retail 0x253ab4
+void c_text_widget_45a5e0::function_253ab4(short_rectangle2d const *screen, short_rectangle2d *output)
+{
+    real depth = get_depth();
+    short_rectangle2d bounds;
+    get_bounds((s_widget_bounds *)&bounds);
+    function_22d108(function_22f52e(), &bounds, depth, screen, output);
+}
+
+struct s_text_cursor_settings
+{
+	byte unknown00[0x48];
+	short delay;
+	word character;
+};
+
+struct s_type_954545;
+s_type_954545 *function_148350(void);
+word *unicode_string_upper(word *string, long maximum_count);
+void function_13eb20(short count, short const *tab_stops);
+void function_13ec70(color4f const *color);
+void function_13ed50(color4f const *color);
+bool function_13ee20(word const *string, long font);
+void function_235d69(short_rectangle2d const *rectangle, real depth,
+	short_rectangle2d const *screen, color4f const *color);
+
+class c_1fa50
+{
+public:
+	void function_1fa50(short_rectangle2d const *bounds, void const *clip,
+		void const *option, long flags, real scale, long count, void const *data) const;
+};
+
+byte g_51ec04;
+
+/* Draws widget text with cursor progression, projection and tab stops. */
+// @retail 0x22cd48
+void function_22cd48(c_class_22cc8e *text, short_rectangle2d const *bounds,
+	short_rectangle2d const *clip, real depth, real alpha, short_rectangle2d const *screen)
+{
+	(void)&bounds;
+	(void)&clip;
+	(void)&depth;
+	(void)&alpha;
+	(void)&screen;
+	word *string = text->function_22f52e();
+	if (string && *string && bounds->right - bounds->left && bounds->bottom - bounds->top)
+	{
+		word buffer[0x400];
+		{
+		s_text_cursor_settings *settings = (s_text_cursor_settings *)function_148350();
+		word cursor_character = settings ? settings->character : 0xdb;
+		unicode_string_copy(buffer, string, 0x400);
+		if (text->cursor >= 0)
+		{
+			dword time = g_54d5b8;
+			long cursor = 0x3fe;
+			if (text->cursor <= (short)cursor)
+				cursor = text->cursor;
+			buffer[(short)cursor] = cursor_character;
+			buffer[(short)cursor + 1] = 0;
+			text->cursor = (short)cursor;
+			if (!text->value40)
+			{
+				text->value40 = time;
+			}
+			else
+			{
+				long delay = settings ? settings->delay : 50;
+				if (time - text->value40 >= (dword)delay)
+				{
+					text->value40 = time;
+					text->cursor = cursor + 1;
+					if (text->cursor == text->length)
+						text->cursor = NONE;
+				}
+			}
+		}
+		}
+		function_22d2ee(buffer, 0x400);
+		if (text->value14 & 1)
+			alpha *= (real)((cos(g_54d5b8 * 0.003f) + 1.0f) * 0.5f);
+		if (text->value14 & 2)
+			unicode_string_upper(buffer, 0x400);
+		function_13ed90(text->value04);
+		long flags = *(volatile short *)&text->value16;
+		long justification = *(volatile long *)&text->value1c;
+		long style = *(volatile long *)&text->value18;
+		g_4e73a0.style = style;
+		g_4e73a0.justification = justification;
+		g_4e73a0.flags = flags;
+		{
+			color4f color;
+			color4f shadow;
+			color.alpha = alpha;
+			*(color3f *)&color.red = text->color;
+			shadow.alpha = text->value14 & 4 ? 0.0f : alpha;
+			shadow.blue = 0.0f;
+			shadow.green = 0.0f;
+			shadow.red = 0.0f;
+			function_13ec70(&color);
+			function_13ed50(&shadow);
+		}
+		point3f first, last;
+		first.x = bounds->left;
+		first.y = bounds->top;
+		first.z = depth;
+		last.x = bounds->right;
+		last.y = bounds->bottom;
+		last.z = depth;
+		function_2360c3(screen, &first);
+		function_2360c3(screen, &last);
+		short_rectangle2d projected;
+		projected.left = (short)first.x;
+		projected.top = (short)first.y;
+		projected.right = (short)last.x;
+		projected.bottom = (short)last.y;
+		short_rectangle2d projected_clip;
+		if (clip)
+		{
+			first.x = clip->left;
+			first.y = clip->top;
+			first.z = depth;
+			last.x = clip->right;
+			last.y = clip->bottom;
+			last.z = depth;
+			function_2360c3(screen, &first);
+			function_2360c3(screen, &last);
+			projected_clip.left = (short)first.x;
+			projected_clip.top = (short)first.y;
+			projected_clip.right = (short)last.x;
+			projected_clip.bottom = (short)last.y;
+		}
+		else
+		{
+			projected_clip = projected;
+		}
+		short tab_stops[8];
+		if (text->value38 > 0)
+		{
+			for (long i = 0; i < text->value38; i++)
+				tab_stops[i] = ((short *)text->unknown28)[i] + projected.left;
+			function_13eb20((short)text->value38, tab_stops);
+		}
+		else
+		{
+			function_13eb20(0, 0);
+		}
+		real scale = (last.x - first.x) * text->value20 / (real)(bounds->right - bounds->left);
+		if (function_13ee20(buffer, g_4e73a0.font))
+			((c_1fa50 const *)buffer)->function_1fa50(&projected, &projected_clip, 0, 0, scale, 0, 0);
+	}
+	if (g_51ec04)
+	{
+		color4f outline = { alpha, 1.0f, 1.0f, 1.0f };
+		function_235d69(bounds, depth, screen, &outline);
+	}
+	function_13eb20(0, 0);
+}
+
+// @retail 0x253b65
+void __stdcall function_253b65(c_class_1a2c81 *widget, long string_handle)
+{
+    if (string_handle != NONE)
+    {
+        c_class_1473c9 *screen = widget->get_screen();
+        if (screen)
+        {
+            word buffer[0x100];
+            buffer[0] = 0;
+            ((c_widget *)screen)->function_230134(string_handle, buffer);
+            if (function_13ee20(buffer, widget->function_22f52e()->value04))
+                widget->function_22f52e()->set_text(buffer);
+        }
+    }
+}
+
+extern point3f *g_468720;
+extern color4f *g_4686dc;
+void unicode_string_snprintf(word *buffer, long maximum_count, word const *format, ...);
+
+// @retail 0x2538f5
+void c_text_widget_45a5e0::v4(long screen_bounds)
+{
+    short_rectangle2d const *screen = (short_rectangle2d const *)screen_bounds;
+    real alpha = animation.scale;
+    real depth = get_depth();
+    byte debug = g_54d598.unknown05[2];
+    short x, y;
+    function_2363d4(screen, &x, &y);
+    short_rectangle2d rectangle;
+    get_bounds((s_widget_bounds *)&rectangle);
+    color3f saved = function_22f52e()->color;
+    color3f widget_color = color;
+    color3f tinted;
+    tinted.red = widget_color.red * saved.red;
+    tinted.green = widget_color.green * saved.green;
+    tinted.blue = widget_color.blue * saved.blue;
+    c_class_22cc8e *text = function_22f52e();
+    rectangle.left += x;
+    rectangle.right += x;
+    rectangle.top += y;
+    rectangle.bottom += y;
+    text->color = tinted;
+    if (!debug)
+        function_22cd48(function_22f52e(), &rectangle, &rectangle, depth, alpha, screen);
+    function_22f52e()->color = saved;
+    if (debug)
+    {
+        c_user_interface_text_buffer_32 label;
+        word buffer[16];
+        unicode_string_snprintf(buffer, 16, (word const *)L"%d", value0a);
+        label.setup(buffer, 0, (color3f const *)g_468720, 0, NONE, 0, NONE);
+        function_22cd48(&label, &rectangle, &rectangle, depth, alpha, screen);
+        function_235d69(&rectangle, depth, screen, g_4686dc);
+    }
+}
