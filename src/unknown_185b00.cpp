@@ -307,32 +307,39 @@ extern real g_54e854;
 real function_c8880(long unit_index, short field_240); /* unknown_0c8880.cpp */
 
 /* the field of view of a player's unit at its zoom level */
+struct s_187131
+{
+	real field_0;
+	real field_4;
+};
+
 // @retail 0x187130
 real function_187130(long player_index)
 {
 	s_player_control_entry *entry = function_x523cb6(player_index);
-	real result = g_54e854;
+	s_187131 local_0;
+	local_0.field_4 = g_54e854;
 
 	if (entry->unit_index != NONE)
 	{
 		short field_240 = entry->value2e;
 		s_player_control_unit *unit = PLAYER_CONTROL_UNIT(entry->unit_index);
-		real field_of_view = ((s_player_control_fov_definition *)g_4e3b44[unit->definition_index & 0xffff].data)->field_of_view;
+		local_0.field_0 = ((s_player_control_fov_definition *)g_4e3b44[unit->definition_index & 0xffff].data)->field_of_view;
 		real magnification;
 
-		result = field_of_view;
+		local_0.field_4 = local_0.field_0;
 		magnification = function_c8880(entry->unit_index, field_240);
 		if (magnification != 1.0f)
 		{
-			real zoomed = field_of_view / magnification;
+			real zoomed = local_0.field_0 / magnification;
 
 			if (zoomed > 0.031415928f && 3.1101768f > zoomed)
 			{
-				result = zoomed;
+				local_0.field_4 = zoomed;
 			}
 		}
 	}
-	return result;
+	return local_0.field_4;
 }
 
 // @retail 0x185b00
@@ -392,6 +399,7 @@ real function_187420(long player_index)
 long function_187450(long player_index)
 {
 	s_player_control_entry *entry = &player_control_globals()->entries[player_index];
+	__assume(entry != NULL);
 	long datum_index = entry->aim.player_index;
 	long result = NONE;
 
