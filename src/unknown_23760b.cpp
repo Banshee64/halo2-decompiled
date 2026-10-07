@@ -612,6 +612,7 @@ char c_virtual_keyboard_screen::move_focus(long direction)
 // @retail 0x237f2a
 bool c_virtual_keyboard_screen::v10(s_widget_event *event)
 {
+	bool result;
 	if (event->type == 1 || event->type == 2 || event->type == 3 || event->type == 4)
 	{
 		char key = move_focus(event->type);
@@ -620,28 +621,41 @@ bool c_virtual_keyboard_screen::v10(s_widget_event *event)
 		switch (key)
 		{
 		case 0x29:
-			string_ids = TEST_FIELD_BIT(key_flags & 1) ? g_44a900 : g_44a840;
-			function_238de7(this, string_ids, k_keyboard_key_count);
+			string_ids = g_44a840;
+			if (key_flags & 1)
+				string_ids = g_44a900;
 			break;
 		case 0x2a:
-			string_ids = TEST_FIELD_BIT(key_flags & 2) ? g_44a900 : g_44a540;
-			function_238de7(this, string_ids, k_keyboard_key_count);
+			if (key_flags & 2)
+				goto shifted_labels;
+			string_ids = g_44a540;
 			break;
 		case 0x2b:
-			string_ids = TEST_FIELD_BIT(key_flags & 4) ? g_44a900 : g_44a600;
-			function_238de7(this, string_ids, k_keyboard_key_count);
+			if (key_flags & 4)
+				goto shifted_labels;
+			string_ids = g_44a600;
 			break;
 		case 0x2c:
-			string_ids = TEST_FIELD_BIT(key_flags & 8) ? g_44a900 : g_44a780;
-			function_238de7(this, string_ids, k_keyboard_key_count);
+			if (key_flags & 8)
+				goto shifted_labels;
+			string_ids = g_44a780;
 			break;
+		default:
+			goto labels_done;
 		}
+		goto replace_labels;
+shifted_labels:
+		string_ids = g_44a900;
+replace_labels:
+		function_238de7(this, string_ids, k_keyboard_key_count);
+labels_done:
 		if (g_44a9f8[type].flags & 0xa && (key == 0x2b || key == 0x2c))
 		{
 			key = move_focus(event->type);
 		}
 		v7(&keys[key]);
-		return true;
+		result = true;
+		goto done;
 	}
 	else if (event->type == 5)
 	{
@@ -655,35 +669,42 @@ bool c_virtual_keyboard_screen::v10(s_widget_event *event)
 		else if (event->param == 6)
 		{
 			move_cursor(-1);
-			return true;
+			goto action_done;
 		}
 		else if (event->param == 7)
 		{
 			move_cursor(1);
-			return true;
+			goto action_done;
 		}
 		else if (event->param == 2)
 		{
 			backspace();
-			return true;
+			goto action_done;
 		}
 		else if (event->param == 14 || event->param == 15)
 		{
 			toggle_shift();
-			return true;
+			goto action_done;
 		}
 		else if (event->param == 5)
 		{
 			insert(' ');
-			return true;
+			goto action_done;
 		}
 		else if (event->param == 12)
 		{
 			press_key(_keyboard_key_done);
-			return true;
+			goto action_done;
 		}
+		goto fallback;
+action_done:
+		result = true;
+		goto done;
 	}
-	return c_class_1473c9::v10(event);
+fallback:
+	result = c_class_1473c9::v10(event);
+done:
+	return result;
 }
 
 /* the checks of the type's string: 0 when it passes, 1 when it fails the
