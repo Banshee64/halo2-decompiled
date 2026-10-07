@@ -67,8 +67,8 @@ bool g_4e64b8;
 bool g_4e64b9;
 bool g_4e64ba;
 point3f g_4e64bc;
-real g_4e6738;
-real g_4e673c;
+extern real g_4e6738;
+extern real g_4e673c;
 
 static __forceinline real function_12e5e1(real arg_0)
 {
@@ -78,8 +78,9 @@ static __forceinline real function_12e5e1(real arg_0)
 }
 
 // @retail 0x12e5e0
-void function_12e5e0(long arg_1, s_12e5e0 *arg_0, point3f const *arg_2, vector3f const *arg_3, byte arg_4, bool arg_5)
+void function_12e5e0(byte *arg_6, long arg_1, point3f const *arg_2, vector3f const *arg_3, byte arg_4, bool arg_5)
 {
+	s_12e5e0 *arg_0 = (s_12e5e0 *)arg_6;
 	memset(arg_0, 0, sizeof(*arg_0));
 	arg_0->field_10 = arg_4;
 	arg_0->field_6c = NONE;
