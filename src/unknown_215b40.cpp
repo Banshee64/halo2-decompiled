@@ -717,3 +717,24 @@ bool __stdcall function_217520(long file_index, void const *header, long header_
     }
     return result;
 }
+
+bool function_216240(long arg_0, void *arg_1, long arg_2, wchar_t *arg_3);
+
+// @retail 0x212ec0
+bool function_212ec0(s_game_variant *arg_0, long arg_1)
+{
+    long const *local_0 = &arg_1;
+    bool local_1 = true;
+    if (*local_0 != NONE)
+    {
+        function_19d650(arg_0);
+        union
+        {
+            s_game_variant field_0;
+            unsigned __int64 field_8[0x130 / 8];
+        } local_2;
+        local_2.field_0 = *arg_0;
+        local_1 = function_216240(*local_0, &local_2.field_0, sizeof(local_2), arg_0->name);
+    }
+    return local_1;
+}
