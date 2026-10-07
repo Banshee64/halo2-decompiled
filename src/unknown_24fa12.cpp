@@ -136,11 +136,10 @@ void function_24ff61(c_class_1a2c81 *screen, bool selected, s_session_player_vie
 			string_handle = selected ? 0x2700021b : 0x2000021a;
 		else
 		{
-			byte active = (byte)function_251364(player);
 			if (selected)
-				string_handle = active ? 0x25000217 : 0x26000216;
+				string_handle = (byte)function_251364(player) ? 0x25000217 : 0x26000216;
 			else
-				string_handle = active ? 0x1d000219 : 0x1e000218;
+				string_handle = (byte)function_251364(player) ? 0x1d000219 : 0x1e000218;
 		}
 		text->function_253b1a(string_handle);
 	}

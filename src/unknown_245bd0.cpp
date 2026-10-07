@@ -714,8 +714,11 @@ void function_2477b0(
 			function_142da0(object->unknowna8, object->unknownac, 0.f, &rotation);
 			function_142eb0(&rotation, &frame->rotation, &frame->rotation);
 		}
-		frame->position.x += offset.i;
-		frame->position.y += offset.j;
-		frame->position.z += offset.k;
+		real local_0 = offset.i + frame->position.x;
+		real local_1 = offset.j + frame->position.y;
+		real local_2 = offset.k + frame->position.z;
+		frame->position.x = local_0;
+		frame->position.y = local_1;
+		frame->position.z = local_2;
 	}
 }
