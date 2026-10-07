@@ -221,6 +221,7 @@ void function_247950(s_particle_system_datum *arg_2, s_particle_spawn_definition
 		vector3f field_18;
 		s_collision_result_1697c0 field_24;
 		s_placement field_70;
+		real field_98;
 	} local_23;
 	volatile bool local_18;
 	long local_0 = arg_2->effect_index;
@@ -243,15 +244,14 @@ void function_247950(s_particle_system_datum *arg_2, s_particle_spawn_definition
 		local_2->field_02 |= 4;
 		local_2->field_02_13 = (_random(&g_4e7408->seed, 0, 0) * 5) >> 16;
 		local_2->field_08 = 0.f;
-		real local_4;
-		function_248076(&g_4e7408->seed, local_4);
-		local_2->field_14 = (word)real_truncate(local_4 * 65535.f);
-		function_248076(&g_4e7408->seed, local_4);
-		local_2->field_16 = (word)real_truncate(local_4 * 65535.f);
-		function_248076(&g_4e7408->seed, local_4);
-		local_2->field_18 = (word)real_truncate(local_4 * 65535.f);
-		function_248076(&g_4e7408->seed, local_4);
-		local_2->field_1a = (word)real_truncate(local_4 * 65535.f);
+		function_248076(&g_4e7408->seed, local_23.field_98);
+		local_2->field_14 = (word)real_truncate(local_23.field_98 * 65535.f);
+		function_248076(&g_4e7408->seed, local_23.field_98);
+		local_2->field_16 = (word)real_truncate(local_23.field_98 * 65535.f);
+		function_248076(&g_4e7408->seed, local_23.field_98);
+		local_2->field_18 = (word)real_truncate(local_23.field_98 * 65535.f);
+		function_248076(&g_4e7408->seed, local_23.field_98);
+		local_2->field_1a = (word)real_truncate(local_23.field_98 * 65535.f);
 		local_2->field_10 = arg_2->unknown04;
 		if (arg_0->field_50 != local_2)
 		{
