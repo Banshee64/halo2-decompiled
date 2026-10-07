@@ -163,6 +163,10 @@ bool c_helper_a::v7()
 				if (game->l18 != 0)
 					result = true;
 			}
+			else
+			{
+				volatile long local_0 = mode;
+			}
 		}
 	}
 	return result;
