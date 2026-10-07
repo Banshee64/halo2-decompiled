@@ -928,8 +928,10 @@ bool c_game_engine_statborg_entity_definition::v15(long a, dword *flags, long c,
 			mask |= 1 << (i + 16);
 		}
 	}
+	dword *volatile *local_0 = &flags;
+	dword *local_1 = *local_0;
 	result = mask != 0;
-	*flags = mask;
+	*local_1 = mask;
 	return result;
 }
 

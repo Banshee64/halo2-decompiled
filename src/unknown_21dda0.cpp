@@ -169,7 +169,7 @@ bool sound_classes_match(long class_a, long class_b)
 
 /* whether a playing sound can share a voice */
 // @retail 0x21e0b0
-bool sound_voice_matches(s_voice_playing_sound const *sound, s_sound_voice const *voice)
+long sound_voice_matches(s_voice_playing_sound const *sound, s_sound_voice const *voice)
 {
 	s_sound_source_callbacks const *source = voice->source;
 
@@ -179,7 +179,8 @@ bool sound_voice_matches(s_voice_playing_sound const *sound, s_sound_voice const
 	{
 		if (source)
 		{
-			if (voice->object_index != sound->object_index || !source->compare || !source->compare(sound->marker, voice->marker))
+			bool (__stdcall *local_0)(void const *, void const *) = source->compare;
+			if (voice->object_index != sound->object_index || !local_0 || !local_0(sound->marker, voice->marker))
 			{
 				return false;
 			}
@@ -260,7 +261,7 @@ long sound_voice_find_or_create(s_voice_playing_sound const *sound)
 	iterator.datum_index = NONE;
 	while ((voice = (s_sound_voice *)data_iterator_next_inlined(&iterator)) != NULL)
 	{
-		if (sound_voice_matches(sound, voice))
+		if ((byte)sound_voice_matches(sound, voice))
 		{
 			voice_index = iterator.datum_index;
 			break;

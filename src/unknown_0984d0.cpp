@@ -35,7 +35,8 @@ bool function_98620(c_handle_table_450cd0 *self, s_bitstream *stream, long index
 	stream_push_position(stream);
 	function_195720(stream, 1, 3);
 	function_b5650(handle, stream);
-	c_handle_owner *local_0 = self->table->owner;
+	s_handle_peers *local_2 = *(s_handle_peers *volatile *)&self->table;
+	c_handle_owner *local_0 = local_2->owner;
 	dword local_1 = self->entries[index].unknown04;
 	if (local_0->v0(handle, local_1, a3, stream, reserved_bits, &released) &&
 		(stream->size_in_bytes << 3) - stream->bit_position >= reserved_bits)
@@ -242,16 +243,105 @@ void c_handle_table_450cd0::v4(long a1, s_bitstream *stream)
 	node = 0;
 }
 
+struct s_handle_creation;
+bool function_991d0(c_handle_table_450cd0 *self, long handle, long size, void const *data);
+void replication_table_add_chain(long const *values, s_handle_peers *peers, long count, long const *handles, long const *others, s_handle_creation *blocks);
+long replication_table_get_chain(s_handle_peers *peers, long handle, long *handles);
+void replication_table_release(s_handle_peers *peers, long handle);
+void replication_table_release_chain(s_handle_peers *peers, long count, long const *handles);
+
+class c_98fb0
+{
+public:
+	virtual void v0() = 0;
+	virtual void v1() = 0;
+	virtual void v2() = 0;
+	virtual void v3() = 0;
+	virtual void v4() = 0;
+	virtual void v5() = 0;
+	virtual void v6() = 0;
+	virtual void v7(long arg_0, long arg_1, long arg_2, void *arg_3) = 0;
+};
+
 // @retail 0x98fb0
 void c_handle_table_450cd0::v6(s_request_450cd0 *a1)
 {
-	switch (a1->kind)
+	s_handle_block *local_0 = (s_handle_block *)a1;
+	long local_1 = local_0->index;
+	long local_2 = local_1 & 0x3ff;
+	switch (local_0->type)
 	{
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-		break;
+	case 1: goto local_3;
+	case 2: goto local_4;
+	case 3: goto local_3;
+	case 4: goto local_4;
+	case 5: goto local_5;
+	default: __assume(0);
 	}
+local_3:
+	{
+		bool local_6 = true;
+		long local_7 = 0;
+		if (local_0->info.count > 0)
+		{
+			long const *local_10 = (long const *)local_0->info.items;
+			byte const *local_11 = (byte const *)&local_0->data;
+			do
+			{
+				long const *local_12 = *(long const *volatile *)&local_10;
+				byte const *local_13 = *(byte const *volatile *)&local_11;
+				if (!function_991d0(this, local_12[0], local_12[4], local_13))
+					local_6 = false;
+				local_11 += 0x10;
+				local_7++;
+				local_10++;
+			} while (local_7 < local_0->info.count);
+		}
+		if (!local_6)
+			return;
+		if (local_0->info.count == 1)
+		{
+			long local_17 = local_0->info.c[0];
+			long local_18 = local_0->info.b[0];
+			long local_19 = local_0->count;
+			s_handle_peers *local_14 = table;
+			local_14->peers[local_2].flags = 1;
+			local_14->peers[local_2].unknown01 = (byte)((dword)local_1 >> 28);
+			local_14->peers[local_2].mask = 0;
+			local_14->owner->v2(local_1, local_18, local_17, local_19, &local_0->data);
+		}
+		else
+			replication_table_add_chain((long const *)local_0->info.b, table, local_0->info.count, (long const *)local_0->info.items, (long const *)local_0->info.c, (s_handle_creation *)&local_0->data);
+		for (long local_7 = 0; local_7 < local_0->info.count; local_7++)
+			function_99690(this, local_0->info.items[local_7], 3);
+		return;
+	}
+local_4:
+	{
+		if (entries[local_2].state && entries[local_2].handle == local_1 && entries[local_2].state == 3)
+		{
+			if (local_0->type == 2)
+			{
+				if (!(table->peers[local_2].flags & 0x18))
+				{
+					function_99690(this, local_1, 0);
+					replication_table_release(table, local_1);
+				}
+			}
+			else if (table->peers[local_2].flags & 8)
+			{
+				long local_8[4];
+				long local_9 = replication_table_get_chain(table, local_1, local_8);
+				if (local_9 == local_0->info.count && memcmp(local_0->info.items, local_8, local_9 * sizeof(long)) == 0)
+				{
+					for (long local_7 = 0; local_7 < local_0->info.count; local_7++)
+						function_99690(this, local_0->info.items[local_7], 0);
+					replication_table_release_chain(table, local_0->info.count, (long const *)local_0->info.items);
+				}
+			}
+		}
+		return;
+	}
+local_5:
+	((c_98fb0 *)table->owner)->v7(local_1, local_0->info.c[0], local_0->count, &local_0->data);
 }

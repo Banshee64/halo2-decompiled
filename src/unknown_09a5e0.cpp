@@ -343,9 +343,9 @@ bool c_game_engine_player_entity_definition::v19(long a, short *b, long c, long 
 // @retail 0x9aff0
 bool c_game_engine_player_entity_definition::v20(s_entity_slot *entity, long b, long c, long d)
 {
-	bool result = false;
 	long id = entity->id;
 	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
+	bool result = false;
 	long index;
 
 	for (index = 0; index < 16; index++)
@@ -428,15 +428,19 @@ bool c_game_engine_player_entity_definition::v23(s_entity_slot *entity, long b, 
 bool c_game_engine_player_entity_definition::v24(s_entity_slot *entity)
 {
 	bool result = false;
-	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
+	s_mp_globals *local_0 = g_4e9ae8;
+	c_engine_peer *manager = g_55e4d0[*(volatile long *)&local_0->engine_index];
+	s_entity_slot *volatile *local_2 = &entity;
+	s_entity_slot *local_3 = *local_2;
+	long local_1 = local_3->id;
 	long index;
 
 	for (index = 0; index < 16; index++)
 	{
-		if (slot_of(manager, index) == entity->id)
+		if (slot_of(manager, index) == local_1)
 			break;
 	}
-	if (index != 16 && entity->id == slot_of(manager, index))
+	if (index != 16 && local_1 == slot_of(manager, index))
 	{
 		g_4e9ae8->slots[(short)index] = NONE;
 		result = true;
@@ -1616,7 +1620,7 @@ bool c_breakable_surface_group_entity_definition::v23(s_entity_slot *entity, lon
 				long bit = g_4eca80[index].b;
 				if (bsp != NONE || bit != bsp)
 				{
-					if (function_184000(bit, bsp) && *g_4ed280)
+					if ((byte)function_184000(bit, bsp) && *g_4ed280)
 					{
 						dword *bits = (dword *)function_183fc0(bsp);
 						bits[bit >> 5] &= ~(1 << (bit & 31));
