@@ -114,8 +114,8 @@ void obstacle_list_group(s_obstacle_list *arg_0, real arg_1);
 void __stdcall function_2c0d60(long arg_0, long arg_1, bool arg_2, s_path_settings const *arg_3,
 	s_obstacle_list *arg_4, long arg_5, point3f const *arg_6, real arg_7, vector3f const *arg_8,
 	long arg_9, long arg_10);
-real __stdcall function_1f99d0(long arg_0, long arg_1, s_path_location const *arg_2, bool arg_3,
-	point3f const *arg_4, vector3f const *arg_5, s_obstacle_list const *arg_6);
+real function_1f99d0(long arg_0, long arg_1, short arg_2, point2f const *arg_3,
+	point2f const *arg_4, point2f const *arg_5, s_obstacle_list const *arg_6);
 real function_1f9e70(long arg_0, long arg_1, point2f const *arg_2, vector2f const *arg_3,
 	vector2f const *arg_4, vector2f const *arg_5, vector2f const *arg_6, real arg_7, bool arg_8);
 real function_11cd20(vector2f const *arg_0, vector2f const *arg_1);
@@ -297,8 +297,9 @@ void function_29cbb0(long arg_0, long arg_1, vector3f const *arg_2, vector3f *ar
 		}
 		real local_26 = 0.0f;
 		if (local_4 && local_17 == 1)
-			local_26 = function_1f99d0(arg_0, arg_1, (s_path_location *)(local_0 + 0x548 + *(char *)(local_0 + 0x53a) * 0x1c),
-				!local_5, &local_7, &local_14, local_22);
+			local_26 = function_1f99d0(arg_0, arg_1, (short)!local_5,
+				(point2f const *)(local_0 + 0x548 + *(char *)(local_0 + 0x53a) * 0x1c),
+				(point2f const *)&local_7, (point2f const *)&local_14, local_22);
 		function_29c860(arg_0, arg_1, (point2f *)&local_8, (point2f *)&local_11, local_26, &local_11);
 		real local_27 = 1.0f;
 		if (local_17 == 0)

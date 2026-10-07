@@ -52,8 +52,6 @@ void __stdcall function_1aff10(long actor_index, s_slot *slot) { }
 
 /* callbacks of the region, referenced by the handlers */
 
-// @stub 0x1b0020
-void __stdcall function_1b0020(long actor_index, s_slot *slot) { }
 
 // @stub 0x1b0110
 void __stdcall function_1b0110(long actor_index, s_slot *slot) { }
@@ -82,15 +80,11 @@ bool __stdcall function_1b3a80(long actor_index, s_slot *slot) { return 0; }
 void __stdcall function_1b3c60(long actor_index, s_slot *slot) { }
 
 
-// @stub 0x1b4560
-short __stdcall function_1b4560(long actor_index, s_slot *slot) { return 0; }
 
 
 // @stub 0x1b47b0
 void __stdcall function_1b47b0(long actor_index, s_slot *slot) { }
 
-// @stub 0x1b54d0
-short __stdcall function_1b54d0(long actor_index, s_slot *slot) { return 0; }
 
 
 
@@ -99,8 +93,6 @@ void __stdcall function_1b69e0(long actor_index, long prop_index) { }
 
 
 
-// @stub 0x1b8070
-void __stdcall function_1b8070(long actor_index, s_slot *slot) { }
 
 // @stub 0x1b85a0
 void __stdcall function_1b85a0(long actor_index, s_slot *slot) { }
@@ -108,8 +100,6 @@ void __stdcall function_1b85a0(long actor_index, s_slot *slot) { }
 // @stub 0x1b99d0
 short __stdcall function_1b99d0(long actor_index, s_slot *slot) { return 0; }
 
-// @stub 0x1ba090
-void __stdcall function_1ba090(long actor_index, s_slot *slot) { }
 
 // @stub 0x1ba5c0
 void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index) { }

@@ -64,7 +64,13 @@ bool __stdcall function_1c15c0(long actor_index, s_slot *slot)
 	s_slot_15 *state = (s_slot_15 *)slot;
 	s_actor_view *actor = actor_get(actor_index);
 
-	actor_reset_state(actor_index);
+	*(bool volatile *)&actor->unknown50c = false;
+	*(long volatile *)&actor->unknown5ac = NONE;
+	actor->unknown5b0 = NONE;
+	actor->unknown5b4 = 0;
+	actor->unknown5b6 = 0;
+	actor->unknown4ac = 0;
+	actor->unknown504 = 0;
 	state->unknown10 = false;
 	state->prop_index = actor->prop_index;
 	actor->unknown354 = true;

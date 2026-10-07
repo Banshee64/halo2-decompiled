@@ -848,3 +848,210 @@ real function_1f9e70(long actor_index, long object_index, point2f const *positio
     scale = scale > following_scale ? following_scale : scale;
     return scale * velocity_scale * speed_scale;
 }
+
+
+#include "object_markers.h"
+#include "unknown_1f9240.h"
+bool function_26f2d0(s_path_settings const *settings, point3f const *start, point3f const *end);
+bool function_26f360(s_path_settings const *settings, point3f const *start, point3f const *end);
+bool function_26fe90(long actor_index, long object_index, real distance, s_object_marker *out, point3f *point);
+bool function_26f990(long actor_index, long object_index, real distance, s_object_marker *out, point3f *point);
+
+// @retail 0x1f7c70
+bool __stdcall function_1f7c70(long actor_index, short type, bool allow_jump, vector3f *direction_out, short *type_out, vector3f *movement_out)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    long object_index = actor->unknown5ac;
+    bool result = false;
+    byte *character = (byte *)function_1e4a50(actor->unknown054);
+    bool failed = false;
+    transform4x3f animation;
+    s_object_marker marker;
+    point3f target;
+    real minimum;
+    switch (type)
+    {
+    case 5:
+        if (!function_10f9b0(actor->unknown018, 0x5000534, 0x5000049, 3, &animation, false) ||
+            !function_26fe90(actor_index, object_index, *(real *)(character + 4), &marker, &target))
+            goto failed;
+        minimum = 0.8660253882408142f;
+        break;
+    case 3:
+        if (!function_10f9b0(actor->unknown018, 0x5000281, 0x5000049, 3, &animation, false) ||
+            !function_26f990(actor_index, object_index, *(real *)(character + 4), &marker, &target))
+            goto failed;
+        minimum = 0.95f;
+        break;
+    default:
+        goto failed;
+    }
+    {
+        vector3f direction;
+        direction.i = target.x - actor->position.x;
+        direction.j = target.y - actor->position.y;
+        direction.k = 0.0f;
+        real distance = function_30bf0(&direction);
+        if (distance > 0.0f && animation.position.x * -1.3f > distance && dot3f(&actor->unknown290, &direction) > 0.0f)
+        {
+            if (fabs(dot3f(&marker.matrix.left, &direction)) < minimum)
+                goto failed;
+            if (dot3f(&actor->unknown290, &direction) > 0.99f)
+            {
+                result = false;
+                function_1f9450(actor_index, object_index);
+                s_path_settings settings;
+                function_1f9240(actor_index, &settings);
+                s_unit_request request;
+                bool can_move = false;
+                switch (type)
+                {
+                case 5:
+                    if (function_26f2d0(&settings, &actor->position, &target))
+                    {
+                        request.type = 0x2b;
+                        can_move = true;
+                    }
+                    break;
+                case 3:
+                    if (function_26f360(&settings, &actor->position, &target))
+                    {
+                        request.type = 0x2a;
+                        can_move = true;
+                    }
+                    break;
+                }
+                if (can_move)
+                {
+                    *(vector3f *)((byte *)&request + 0x10) = direction;
+                    *(point3f *)((byte *)&request + 4) = target;
+                    result = function_e6900(actor->unknown018, &request);
+                    if (result)
+                    {
+                        actor->unknown5ac = NONE;
+                        actor->unknown5b0 = NONE;
+                        goto completed;
+                    }
+                }
+                if (allow_jump && function_1f8160(actor_index, 0, &target, true))
+                {
+                    actor->unknown5ac = NONE;
+                    actor->unknown5b0 = NONE;
+                }
+                if (!result) failed = true;
+            }
+            else
+            {
+                *direction_out = direction;
+                *type_out = 0;
+                *movement_out = *g_4687a4;
+                *((bool *)actor + 0x6d2) = true;
+                *((bool *)actor + 0x6d1) = false;
+                actor->unknown5d0 = false;
+            }
+completed:
+            result = true;
+            if (failed) goto failed;
+        }
+        return result;
+    }
+failed:
+    *movement_out = *g_4687a4;
+    actor = actor_get(actor_index);
+    *(long *)((byte *)actor + 0x300) = object_index;
+    *(short *)((byte *)actor + 0x304) = g_510c54->field_2_3 * 5;
+    return result;
+}
+
+
+struct s_pathfinding_data;
+struct s_obstacle_list;
+struct s_path_location;
+struct s_avoidance_trace
+{
+    real distance;
+    long sector;
+    long edge;
+    short obstacle;
+    short group;
+};
+bool __stdcall function_26ccb0(s_pathfinding_data const *pathfinding, s_obstacle_list const *obstacles,
+    short ignored_obstacle, point2f const *origin, long sector, long target_sector, point2f const *direction,
+    real radius, real distance, bool first, bool stop_at_goal, bool ignore_flagged,
+    s_path_location const *location, s_avoidance_trace *trace);
+real normalize2d(point2f *v);
+
+PRIVATE inline real movement_normalize2d(point2f *v)
+{
+    real length = (real)sqrt(v->x * v->x + v->y * v->y);
+    if (!(fabs(length) < 0.0001f))
+    {
+        real inverse = 1.0f / length;
+        v->x *= inverse;
+        v->y *= inverse;
+        return length;
+    }
+    return 0.0f;
+}
+
+// @retail 0x1f99d0
+real function_1f99d0(long actor_index, long object_index, short type, point2f const *target,
+    point2f const *origin, point2f const *facing, s_obstacle_list const *obstacles)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    byte *entry = (byte *)function_1e5450(actor_index, object_get(object_index)->tag_index);
+    real result = 0.0f;
+    real radius = *(real *)(entry + 0x28);
+    point2f direction = { target->x - origin->x, target->y - origin->y };
+    movement_normalize2d(&direction);
+    point2f side = { 0.0f - direction.y, direction.x };
+    bool left = facing->y * side.y + facing->x * side.x > 0.0f;
+    point2f center;
+    if (type == 0)
+    {
+        point2f perpendicular = { 0.0f - facing->y, facing->x };
+        real signed_radius = left ? radius : 0.0f - radius;
+        center.x = target->x + perpendicular.x * signed_radius;
+        center.y = target->y + perpendicular.y * signed_radius;
+    }
+    else if (type == 1)
+    {
+        point2f difference = { direction.x - facing->x, direction.y - facing->y };
+        normalize2d(&difference);
+        center.x = target->x + difference.x * (0.0f - radius);
+        center.y = target->y + difference.y * (0.0f - radius);
+    }
+    else return result;
+    real side_radius = left ? 0.0f - radius : radius;
+    center.x += side.x * side_radius;
+    center.y += side.y * side_radius;
+    real lateral = center.y * side.y + center.x * side.x - (origin->y * side.y + origin->x * side.x);
+    real forward = center.y * direction.y + center.x * direction.x - (origin->x * direction.x + origin->y * direction.y);
+    if (forward > radius * 0.11f)
+    {
+        real fraction = forward > radius * 1.3f ? 1.0f : (forward - radius * 0.11f) / (radius * 1.189999938f);
+        real offset = (fraction * 1.5f - 1.0f) * lateral;
+        point2f desired = { center.x + offset * side.x - origin->x, center.y + offset * side.y - origin->y };
+        real distance = movement_normalize2d(&desired);
+        vector3f local_direction = { desired.x, desired.y, 0.0f };
+        point3f local_origin = { origin->x, origin->y, actor->position.z };
+        function_210770(actor->unknown27c.point.output_index, &local_direction, &local_direction);
+        function_210690(actor->unknown27c.point.output_index, &local_origin, &local_origin);
+        long sector = *(long *)((byte *)actor + 0x28c);
+        if (sector != NONE)
+        {
+            byte *structure = (byte *)g_4e0348;
+            s_pathfinding_data *pathfinding = *(long *)(structure + 0xc4) > 0 ? *(s_pathfinding_data **)(structure + 0xc8) : 0;
+            s_avoidance_trace trace;
+            if (function_26ccb0(pathfinding, obstacles, NONE, (point2f *)&local_origin, sector, NONE,
+                (point2f *)&local_direction, *(real *)(entry + 0x14), distance, false, false, false, 0, &trace))
+                return result;
+        }
+        real cosine = desired.x * direction.x + desired.y * direction.y;
+        cosine = cosine > 1.0f ? 1.0f : cosine;
+        cosine = cosine < -1.0f ? -1.0f : (cosine > 1.0f ? 1.0f : cosine);
+        result = (real)acos(cosine);
+        if (left) result = 0.0f - result;
+    }
+    return result;
+}

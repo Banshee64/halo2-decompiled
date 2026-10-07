@@ -205,20 +205,17 @@ c_type_709360 *s_animation_state::current_animation_get(c_type_709360 *result)
 
 	if (g_46fbf5 && channel_valid(&channels[2]))
 	{
-		*result = channels[2].animation_id;
+		none = channels[2].animation_id;
 	}
 	else if (g_46fbf4 && channel_valid(&channels[1]) && unknown80 >= 0.9999f)
 	{
-		*result = channels[1].animation_id;
+		none = channels[1].animation_id;
 	}
 	else if (channel_valid(&channels[0]))
 	{
-		*result = channels[0].animation_id;
+		none = channels[0].animation_id;
 	}
-	else
-	{
-		*result = none;
-	}
+	*result = none;
 	return result;
 }
 
@@ -1345,7 +1342,7 @@ c_type_709360 s_animation_state::animation_get(long set, long weapon_class, long
 
 	if (animation_lookup(&names, &found, unknown70, weapon_class, weapon_type, set, 0, &animation_id))
 	{
-		return animation_id;
+		none = animation_id;
 	}
 	return none;
 }

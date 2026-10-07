@@ -21,6 +21,8 @@ struct s_1fb7e0_object_header
 
 void __stdcall function_1fbac0(long unknown, long unit_index, bool unknown2, long unknown3, s_1fbac0_event *event);
 
+__declspec(noinline) bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown);
+
 // @retail 0x1fb7e0
 bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown)
 {

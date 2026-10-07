@@ -442,38 +442,7 @@ c_shape_owner::~c_shape_owner()
 
 #include "unknown_1efac0.h"
 
-struct c_shape_counted_base : c_a
-{
-	c_shape_counted_base() { unknown06 = 1; }
-};
-
-struct s_shape_four_values
-{
-	volatile real x, y, z, w;
-};
-
-struct c_shape_global_owner : c_shape_counted_base
-{
-	long field_8;
-	long field_c;
-	s_shape_four_values center;
-	s_shape_four_values extent;
-	c_shape_global_owner();
-	virtual ~c_shape_global_owner();
- virtual void v5() {}
- virtual void v6() {}
- virtual void v7() {}
- virtual void v8() {}
- virtual void v9() {}
- virtual void v10() {}
- virtual void v11() {}
- virtual void v12() {}
- virtual void *make_shape(dword key, void *storage);
-	void operator delete(void *block)
-	{
-		g_480118->allocate((long)block, ((c_shape_global_owner *)block)->flags, 0x22);
-	}
-};
+#include "unknown_1c3b70.h"
 
 c_shape_global_owner *g_51e9d0;
 

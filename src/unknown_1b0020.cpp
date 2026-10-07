@@ -178,3 +178,27 @@ void function_1b0540(long actor_index, s_follow_search_state *state)
 	state->flag3 = false;
 	ai_scratch_buffer_release(scratch);
 }
+
+
+bool function_114b60(short entry_index, short fallback_index, long unit_index, long priority, void const *extra);
+
+// @retail 0x1b0020
+void __stdcall function_1b0020(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    ++*(long *)((byte *)slot + 0x18);
+    if (*(short *)((byte *)slot + 0xc) > 0)
+        --*(short *)((byte *)slot + 0xc);
+    long unit_index = actor->unknown018;
+    byte *unit = (byte *)object_get(unit_index);
+    if (*(short *)(unit + *(short *)(unit + 0x342) + 0xc) <= 0)
+    {
+        if (*(short *)((byte *)slot + 0x22) > 0)
+            --*(short *)((byte *)slot + 0x22);
+        else
+        {
+            function_114b60(NONE, 0xc, unit_index, 0xd, 0);
+            *(short *)((byte *)slot + 0x22) = (short)real_to_long(slot_random_range(0.5f, 1.5f) * g_510c54->field_2_3);
+        }
+    }
+}

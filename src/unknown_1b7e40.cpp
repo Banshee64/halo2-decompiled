@@ -20,7 +20,7 @@ struct s_slot_12
 
 short __stdcall function_1b7e40(long actor_index);
 short __stdcall function_1b81c0(long actor_index, s_slot *slot, bool active);
-void __stdcall function_1b8070(long actor_index, s_slot *slot);
+long __stdcall function_1b8070(long actor_index, s_slot *slot);
 bool __stdcall function_1b82d0(long actor_index, s_slot *slot, long index);
 struct s_invite_data;
 short __stdcall function_1b83b0(long actor_index, long leader_index, s_slot *slot, s_invite_data *data);
@@ -212,6 +212,71 @@ s_slot_handler_2x g_47e898 =
 		},
 		(t_slot_proc)joint_update, joint_activate, joint_deactivate
 	},
-	function_1b8070, 0, (t_slot_release)function_1b82d0, function_1b8360, function_1b8370, (t_slot_proc4)function_1b83b0,
+	(t_slot_proc)function_1b8070, 0, (t_slot_release)function_1b82d0, function_1b8360, function_1b8370, (t_slot_proc4)function_1b83b0,
 	1, 10, 1.0f, 0
 };
+
+
+void function_26ee40(s_joint_behavior_state *behavior);
+void function_267770(long prop_index, long actor_index);
+
+// @retail 0x1b8070
+long __stdcall function_1b8070(long actor_index, s_slot *slot)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    s_slot_entry_iterator iterator;
+    iterator.actor_index = actor_index;
+    iterator.reference.unknown2 = 0x12;
+    iterator.reference.unknown0 = NONE;
+    s_slot_memory_entry *entry;
+    s_slot_12 *state = (s_slot_12 *)slot;
+    long joint_index = NONE;
+    while ((entry = function_26f0c0(&iterator)) != NULL)
+    {
+        if (function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+        {
+            joint_index = entry->unknown4;
+            break;
+        }
+    }
+    if (joint_index == NONE)
+    {
+        joint_index = function_26e940(actor_index);
+        if (joint_index != NONE)
+        {
+            state->unknown0c = true;
+            state->element_index = joint_index;
+        }
+    }
+    if (joint_index != NONE)
+    {
+        s_502424_element *element = element_502424_get(joint_index);
+        if (state->unknown0c)
+        {
+            element->target.unknown0 = prop_node_get(actor->prop_index)->object_index;
+            state->unknown1c = actor->prop_index;
+        }
+        else
+        {
+            long prop_index = function_25d810(element->target.unknown0, actor_index, false);
+            if (prop_index == NONE)
+            {
+                if (joint_index != NONE)
+                    function_26ee40((s_joint_behavior_state *)slot);
+                return NONE;
+            }
+            state->unknown1c = prop_index;
+            if (prop_index != actor->prop_index)
+                function_267770(prop_index, actor_index);
+        }
+        real time = (real)g_510c54->field_2_3 * 10.0f;
+        long ticks;
+        __asm
+        {
+            fld time
+            fistp ticks
+        }
+        state->unknown20 = ticks;
+    }
+    return joint_index;
+}

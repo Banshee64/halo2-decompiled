@@ -27,8 +27,6 @@ void function_10ca80(long object_index, long a) { }
 // @stub 0x10cec0
 void function_10cec0(long unit_index, long weapon_index, long parent_marker_name, long marker_name) { }
 
-// @stub 0x1c9c80
-void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real unknown2cc, long a, bool b) { }
 
 /* outside the unit range */
 
