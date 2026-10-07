@@ -200,9 +200,20 @@ short __stdcall function_1c10a0(long actor_index)
 // @retail 0x1c10f0
 bool __stdcall function_1c10f0(long actor_index, s_slot *slot)
 {
-	s_slot_82 *state = (s_slot_82 *)slot;
+	long local_3 = *(volatile long const *)&actor_index;
+	s_record_pool const volatile *local_4 = g_4f55f0;
+	byte *local_0 = local_4->data;
+	s_slot *local_1 = *(s_slot *volatile const *)&slot;
+	s_actor_view *local_2 = (s_actor_view *)(local_0 + (local_3 & 0xffff) * sizeof(s_actor_view));
+	s_slot_82 *state = (s_slot_82 *)local_1;
 
-	actor_reset_state(actor_index);
+	local_2->unknown50c = false;
+	local_2->unknown5ac = NONE;
+	local_2->unknown5b0 = NONE;
+	local_2->unknown5b4 = 0;
+	local_2->unknown5b6 = 0;
+	local_2->unknown4ac = 0;
+	local_2->unknown504 = 0;
 	state->unknown0c = false;
 	state->unknown10 = NONE;
 	state->unknown38 = 0;
