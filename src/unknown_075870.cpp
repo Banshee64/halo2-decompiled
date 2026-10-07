@@ -1318,9 +1318,11 @@ void function_79850(s_network_observer *observer, long index)
 	real rate = network_observer_rate_for_size(observer, budget, channel->has_callback, channel->callback_inactive);
 	long delay = channel->baseline_delay;
 	long intervals = real_truncate(delay * rate * 0.001f) + 1;
-	long candidate = (intervals + 1) * (delay * budget / (intervals * 8000));
-	long limited_burst = *(long *)((byte *)observer->configuration + 0xe0);
-	if (candidate > limited_burst) limited_burst = candidate;
+	long local_0 = intervals + 1;
+	long local_1 = delay * budget / (intervals * 8000);
+	long limited_burst = local_0 * local_1;
+	long local_2 = *(volatile long *)((byte *)observer->configuration + 0xe0);
+	limited_burst = local_2 > limited_burst ? local_2 : limited_burst;
 	if (burst > limited_burst) burst = limited_burst;
 	function_79600(observer, index, budget, burst, rate);
 	channel->loss_penalty += *(long *)((byte *)observer->configuration + 0x184);
@@ -1842,7 +1844,8 @@ void function_79660(s_network_observer *observer, long index, long bytes, long d
 	long const *index_reference = &index;
 	long const *stream_delay_reference = &stream_delay;
 	s_observer_bandwidth_channel *channel = (s_observer_bandwidth_channel *)&(*observer_reference)->channels[*index_reference];
-	channel->received_bytes = bytes + channel->received_bytes;
+	long local_0 = *(volatile long *)&channel->received_bytes;
+	channel->received_bytes = bytes + local_0;
 	channel->stream_delay = *stream_delay_reference;
 	long interval = 0;
 	long last = channel->sample_time;
