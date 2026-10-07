@@ -27,21 +27,8 @@ void __stdcall function_2c52e7(char const *map_name)
 struct s_widget_quad_2b11;
 struct s_float_rect;
 
-// @stub 0x22cd48
-void c_class_22cc8e::draw(short_rectangle2d const *bounds, short_rectangle2d const *clip,
-    real depth, real alpha, short_rectangle2d const *frame)
-{
-}
-
 // @stub 0x22a664
 void function_22a664(s_widget_quad_2b11 const *quad, s_float_rect const *coordinates,
     long tag_index, long sequence, long resource_index)
-{
-}
-
-struct s_type_7ba8e9;
-// @stub 0x235f31
-void function_235f31(s_type_7ba8e9 *bitmap, s_float_rect const *rectangle,
-    real const *coordinates, dword color, long mode)
 {
 }

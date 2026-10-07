@@ -205,6 +205,8 @@ void unicode_string_snprintf(word *buffer, long maximum_count, word const *forma
 void function_235d69(short_rectangle2d const *rectangle, real depth,
     short_rectangle2d const *screen, color4f const *color);
 s_float_rect *function_22ea81(c_class_1a2c81 *widget, s_float_rect *rect, short_rectangle2d const *frame);
+void function_22cd48(c_class_22cc8e *text, short_rectangle2d const *bounds,
+    short_rectangle2d const *clip, real depth, real alpha, short_rectangle2d const *screen);
 
 bool g_54d59f;
 color3f const *g_46873c;
@@ -244,7 +246,7 @@ void __stdcall function_2b07e2(c_class_2b01eb *widget, long frame)
             outline.right += x;
             outline.top += y;
             outline.bottom += y;
-            text.draw((short_rectangle2d const *)&outline, (short_rectangle2d const *)&outline,
+            function_22cd48(&text, (short_rectangle2d const *)&outline, (short_rectangle2d const *)&outline,
                 depth, widget->animation.scale, (short_rectangle2d const *)frame);
             function_235d69((short_rectangle2d const *)&outline, depth, (short_rectangle2d const *)frame, g_4686f8);
         }
@@ -263,8 +265,7 @@ void c_class_2b01eb::v4(long frame)
 	}
 }
 
-void function_235f31(s_type_7ba8e9 *bitmap, s_float_rect const *rectangle,
-    real const *coordinates, dword color, long mode);
+void function_235f31(s_sprite_element *element, s_float_rect const *from, point2f const *split, dword color, short mode);
 s_type_7ba8e9 *function_2b0b19(s_widget_view_2b0a *widget);
 
 PRIVATE __forceinline long bitmap_channel_round_2b(real value)
@@ -312,7 +313,7 @@ void __stdcall function_2b0565(c_class_2b01eb *widget, long frame)
         }
         else
         {
-            function_235f31(bitmap, &rectangle, (real const *)((byte *)widget + 0x7c), color, mode);
+            function_235f31((s_sprite_element *)bitmap, &rectangle, (point2f const *)((byte *)widget + 0x7c), color, (short)mode);
         }
     }
     if (show_label)
@@ -323,7 +324,7 @@ void __stdcall function_2b0565(c_class_2b01eb *widget, long frame)
         unicode_string_snprintf(label, 16, (word const *)L"%d", widget->value0a);
         text.setup(label, 0, g_46873c, 0, NONE, 0, NONE);
         s_widget_bounds outline = widget->bounds;
-        text.draw((short_rectangle2d const *)&outline, (short_rectangle2d const *)&outline,
+        function_22cd48(&text, (short_rectangle2d const *)&outline, (short_rectangle2d const *)&outline,
             depth, alpha, (short_rectangle2d const *)frame);
         outline.left += x;
         outline.right += x;
