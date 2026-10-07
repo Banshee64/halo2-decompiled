@@ -355,17 +355,27 @@ struct s_object_256790_view
 	byte unknown10a : 5;
 };
 
+PRIVATE __forceinline s_prop_datum *function_256791(long arg_0)
+{
+	return (s_prop_datum *)(g_502418->data + (arg_0 & 0xffff) * sizeof(s_prop_datum));
+}
+
+PRIVATE __forceinline bool function_256792(s_object_256790_view *arg_0)
+{
+	return TEST_FIELD_BIT(arg_0->bit2);
+}
+
 // @retail 0x256790
 bool function_256790(long prop_ref_index)
 {
-	s_prop_datum *prop = prop_ref_get(prop_ref_index);
 	bool result = false;
+	s_prop_datum *prop = function_256791(prop_ref_index);
 
 	if (prop->state >= 1 && prop->state <= 2 && prop->type == 7)
 	{
 		s_object_256790_view *object = (s_object_256790_view *)object_get(prop->object_index);
 
-		if (TEST_FIELD_BIT(object->bit2) && !object->type &&
+		if (function_256792(object) && !object->type &&
 			(!(object->flags19 & 1) || !(object->flags19 & 2)))
 		{
 			result = true;
