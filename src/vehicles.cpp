@@ -3577,7 +3577,7 @@ real __stdcall function_f78b0(real value, real maximum)
 }
 
 /* the larger of two magnitudes */
-PRIVATE inline real vehicle_larger(real a, real b)
+PRIVATE __forceinline real vehicle_larger(real a, real b)
 {
 	real magnitude_a = (real)fabs(a);
 	real magnitude_b = (real)fabs(b);
@@ -3591,6 +3591,7 @@ PRIVATE inline real vehicle_larger(real a, real b)
 // @retail 0xf78e0
 real __stdcall function_f78e0(long vehicle_index, long limit)
 {
+	long const *reference = &limit;
 	byte *definition = VEHICLE_DEFINITION_GET(VEHICLE_GET(vehicle_index));
 
 	switch (limit)
@@ -3614,8 +3615,9 @@ real __stdcall function_f78e0(long vehicle_index, long limit)
 	case 8:
 		return vehicle_larger(*(real *)(definition + 0x204) * 0.017453292f,
 			*(real *)(definition + 0x208) * 0.017453292f);
+	default:
+		__assume(0);
 	}
-	return 0.0f;
 }
 
 bool __stdcall function_f8070(long bit, word const *flags);
@@ -3855,7 +3857,7 @@ bool __stdcall function_f8070(long bit, word const *flags)
 }
 
 /* the units of up to 16 players on foot and their centers */
-PRIVATE inline long vehicle_players_on_foot(long *unit_indices, point3f *centers)
+PRIVATE __forceinline long vehicle_players_on_foot(long *unit_indices, point3f *centers)
 {
 	s_record_pool_iterator iterator;
 	byte *player;
