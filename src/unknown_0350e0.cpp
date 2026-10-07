@@ -4,6 +4,104 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
+#include <math.h>
+
+
+struct s_frame_offset
+{
+    point3f position;
+    vector3f forward;
+    vector3f up;
+};
+extern s_frame_offset g_485618;
+matrix3x3 g_467104 = {
+    { 1.0f, 0.0f, 0.0f },
+    { 0.0f, 1.0f, 0.0f },
+    { 0.0f, 0.0f, 1.0f }
+};
+
+PRIVATE __forceinline void rotation_from_axis(vector3f const *axis, double angle, matrix3x3 *matrix)
+{
+    real sine = (real)sin(angle);
+    real cosine = (real)cos(angle);
+    real xx = axis->i * axis->i;
+    real yy = axis->j * axis->j;
+    real zz = axis->k * axis->k;
+    real inverse = 1.0f - cosine;
+    real xy = inverse * axis->j * axis->i;
+    real xz = inverse * axis->k * axis->i;
+    real yz = inverse * axis->k * axis->j;
+    matrix->forward.i = (1.0f - xx) * cosine + xx;
+    matrix->forward.j = xy + axis->k * sine;
+    matrix->forward.k = xz - axis->j * sine;
+    matrix->left.i = xy - axis->k * sine;
+    matrix->left.j = (1.0f - yy) * cosine + yy;
+    matrix->left.k = yz + axis->i * sine;
+    matrix->up.i = xz + axis->j * sine;
+    matrix->up.j = yz - axis->i * sine;
+    matrix->up.k = (1.0f - zz) * cosine + zz;
+}
+
+PRIVATE __forceinline vector3f rotate_axis_vector(matrix3x3 const *matrix, vector3f const *vector)
+{
+    vector3f result;
+    result.i = matrix->up.i * vector->k + matrix->left.i * vector->j + matrix->forward.i * vector->i;
+    result.j = matrix->up.j * vector->k + matrix->left.j * vector->j + matrix->forward.j * vector->i;
+    result.k = matrix->up.k * vector->k + matrix->left.k * vector->j + matrix->forward.k * vector->i;
+    return result;
+}
+
+// @retail 0x39e50
+void __stdcall function_39e50(real step)
+{
+    vector3f axis0 = g_485618.forward;
+    vector3f axis1 = g_485618.up;
+    matrix3x3 first, second;
+    rotation_from_axis(&axis0, (double)step * 0.5f, &first);
+    rotation_from_axis(&axis1, (double)step * 0.30000001192092896f, &second);
+    vector3f forward = g_467104.forward;
+    vector3f left = g_467104.left;
+    vector3f up = g_467104.up;
+    forward = rotate_axis_vector(&first, &forward);
+    left = rotate_axis_vector(&first, &left);
+    up = rotate_axis_vector(&first, &up);
+    g_467104.forward = forward;
+    g_467104.left = left;
+    g_467104.up = up;
+    forward = rotate_axis_vector(&second, &forward);
+    left = rotate_axis_vector(&second, &left);
+    up = rotate_axis_vector(&second, &up);
+    g_467104.forward = forward;
+    g_467104.left = left;
+    g_467104.up = up;
+}
+
+struct s_frustum_1648d0;
+struct s_camera_163db0;
+bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+real function_30bf0(vector3f *vector);
+
+void function_36f50(byte *state);
+bool function_39a80(byte *state);
+
+struct s_motion_state_groups
+{
+	long count;
+	byte *entries;
+	long large_count;
+	byte *large_entries;
+};
+
+// @retail 0x39880
+inline void function_39880(s_motion_state_groups *state)
+{
+	long i;
+	for (i = 0; i < state->large_count; ++i)
+		function_36f50(state->large_entries + i * 0x3a8);
+	for (i = 0; i < state->count; ++i)
+		function_39a80(state->entries + i * 0x8c);
+}
 
 real g_4670e4 = 0.85f;
 
@@ -1535,6 +1633,37 @@ struct s_octree_output
 };
 s_octree_output g_4c5700[256];
 
+void function_3f970(byte const *tree, short index, plane3f const *planes, real const *bounds, point3f const *center, real radius);
+real g_525930;
+
+// @retail 0x3f830
+void __stdcall function_3f830(byte const *tree, point3f const *center)
+{
+    byte *context = (byte *)g_547f88.context;
+    box3f original = *(box3f *)(context + 0xf4);
+    box3f bounds = original;
+    real radius = g_525930;
+    real lower = center->x - radius;
+    if (lower > original.x0) bounds.x0 = lower;
+    real upper = center->x + radius;
+    if (original.x1 > upper) bounds.x1 = upper;
+    lower = center->y - radius;
+    if (lower > original.y0) bounds.y0 = lower;
+    upper = radius + center->y;
+    if (original.y1 > upper) bounds.y1 = upper;
+    lower = center->z - radius;
+    if (lower > original.z0) bounds.z0 = lower;
+    upper = center->z + radius;
+    if (original.z1 > upper) bounds.z1 = upper;
+    g_509438 = NULL;
+    if (*(long const *)(tree + 0x20) > 0)
+    {
+        real tree_radius = (real)*(long const *)(tree + 0xc) * 8.0f * 0.5f;
+        function_3f970(tree, 0, (plane3f *)(context + 0x10c), (real *)&bounds,
+            (point3f const *)tree, tree_radius);
+    }
+}
+
 // @retail 0x3f970
 void function_3f970(byte const *tree, short index, plane3f const *planes, real const *bounds, point3f const *center, real radius)
 {
@@ -1728,6 +1857,60 @@ struct s_cached_input_list
     long count;
 };
 
+struct s_masked_list;
+extern s_masked_list *g_547f98;
+struct s_light_shape_ab;
+bool function_31590(long index, s_light_shape_ab *shape);
+bool function_3e9c0(long object_index);
+extern s_record_pool *g_4e030c;
+void function_4a7c0(s_cached_input_list *state, s_cached_input const *inputs, long count);
+long __stdcall function_4ac30(s_cached_input_list *state, s_cached_input *output, long limit, real step);
+s_cached_input_list g_5234e8[4];
+real g_4b9e20, g_4b9e2c, g_4b9e38, g_4b9e44, g_4b9ed0;
+
+// @retail 0x31910
+long __stdcall function_31910(s_cached_input *output)
+{
+    long count = 0;
+    long view = g_4b9ed4 < 0 ? 0 : g_4b9ed4 > 3 ? 3 : g_4b9ed4;
+    byte *list = (byte *)g_547f98;
+    long total = *(short *)(list + 4);
+    for (long i = 0; i < total; ++i)
+    {
+        long index = (*(long **)(list + 0xc))[(short)i];
+        byte shape[0x7c];
+        if (index != NONE && function_31590(index, (s_light_shape_ab *)shape) && count < 128)
+        {
+            byte *entry = g_4e030c->data + (index & 0xffff) * 0x110;
+            byte *definition = g_4e3b44[*(long *)(entry + 4) & 0xffff].bytes;
+            long object = *(long *)(entry + 0x4c);
+            long parent = function_baf80(object);
+            point3f position = *(point3f *)(entry + 0x18);
+            real radius = *(real *)(entry + 0x24);
+            s_cached_input *result = &output[count];
+            result->data[1] = index;
+            result->data[2] = parent;
+            result->data[3] = *(dword *)(entry + 0x100);
+            real depth = position.z * g_4b9e38 + position.x * g_4b9e20 + position.y * g_4b9e2c + g_4b9e44;
+            if (depth < 0.0f) depth = 0.0f - depth;
+            if (!(depth > 0.1f)) depth = 0.1f;
+            real score = (g_4b9ed0 / depth) * radius * 2.0f;
+            *(real *)&result->data[4] = score;
+            bool object_flag = false;
+            if (object != NONE)
+                object_flag = g_4e0300->data[(object & 0xffff) * 12 + 3] == 2;
+            ((byte *)result)[2] = object_flag;
+            ((byte *)result)[0] = function_3e9c0(parent);
+            ((byte *)result)[1] = (byte)((*(dword *)definition >> 5) & 1);
+            ((byte *)result)[3] = (byte)((*(dword *)definition >> 20) & 1);
+            ++count;
+        }
+    }
+    s_cached_input_list *state = &g_5234e8[view];
+    function_4a7c0(state, output, count);
+    return function_4ac30(state, output, 3, 0.01f);
+}
+
 // @retail 0x4a7c0
 void function_4a7c0(s_cached_input_list *state, s_cached_input const *inputs, long count)
 {
@@ -1880,3 +2063,140 @@ long __stdcall function_4ac30(s_cached_input_list *state, s_cached_input *output
 	}
 	return state->count;
 }
+
+extern real g_485640;
+short g_485600;
+
+PRIVATE __forceinline real motion_random_step(real value, real step)
+{
+    double random = (double)random_next(&g_4e7408->seed) * (1.0f / 65535.0f);
+    real next = (real)((random + random - 1.0f) * step + value);
+    return next < -1.0f ? -1.0f : next > 1.0f ? 1.0f : next;
+}
+
+PRIVATE __forceinline point2f motion_project_point(point3f const *point)
+{
+    real x = point->x, y = point->y, z = point->z;
+    if (g_48568c[0] != 1.0f)
+    {
+        x *= g_48568c[0];
+        y *= g_48568c[0];
+        z *= g_48568c[0];
+    }
+    point2f result;
+    result.x = g_48568c[7] * z + g_48568c[4] * y + g_48568c[1] * x + g_48568c[10];
+    result.y = g_48568c[8] * z + g_48568c[5] * y + g_48568c[2] * x + g_48568c[11];
+    return result;
+}
+
+// @retail 0x37260
+bool __stdcall function_37260(byte *state, real step, byte const *parameters)
+{
+    byte *view = state + g_485600 * 0xb8;
+    *(real *)(view + 0x14c) = g_4670fc;
+    dword flags = *(dword *)(state + 0x94);
+    bool cycle = (flags & 1) != 0;
+    bool scale_size = (flags & 4) != 0;
+    point3f previous = *(point3f *)(view + 0x110);
+    *(point3f *)(view + 0x110) = g_485618.position;
+    real dz = g_485618.position.z - previous.z;
+    real dy = g_485618.position.y - previous.y;
+    real dx = g_485618.position.x - previous.x;
+    real delta = g_485618.forward.k * dz + g_485618.forward.j * dy + g_485618.forward.i * dx;
+    real range = *(real *)(state + 0x7c) - *(real *)(state + 0x78);
+    if (flags & 2)
+    {
+        *(real *)(state + 0x18) = 0.25f;
+        *(real *)(state + 0x1c) = 0.5f;
+        *(real *)(state + 0x20) = 0.75f;
+    }
+    if (cycle)
+    {
+        real phase = delta / range + *(real *)(view + 0x140);
+        phase -= (real)(long)phase;
+        *(real *)(view + 0x140) = phase;
+        if (phase < 0.0f) *(real *)(view + 0x140) = phase + 1.0f;
+    }
+    long i = 0;
+    do
+    {
+        real phase = *(real *)(state + 0x18 + i * 4);
+        if (cycle)
+        {
+            if (*(real *)(view + 0x140) > phase) phase += 1.0f;
+            phase -= *(real *)(view + 0x140);
+            *(real *)(view + 0x104 + i * 4) = phase;
+            real centered = phase * 2.0f - 1.0f;
+            *(real *)(view + 0xec + i * 4) = (1.0f - centered * centered) * *(real *)(state + 0x88 + i * 4);
+        }
+        else
+        {
+            *(real *)(view + 0x104 + i * 4) = phase;
+            *(real *)(view + 0xec + i * 4) = *(real *)(state + 0x88 + i * 4);
+        }
+        real distance = phase * range + *(real *)(state + 0x78);
+        real radius = (real)(tan((double)g_485640 * 0.5f) * distance);
+        point3f old = *(point3f *)(view + 0xc8 + i * 12);
+        real x = 0.0f, y = 0.0f, z = 0.0f - distance;
+        if (g_48568c[13] != 1.0f)
+        {
+            x *= g_48568c[13];
+            y *= g_48568c[13];
+            z *= g_48568c[13];
+        }
+        point3f *position = (point3f *)(view + 0xc8 + i * 12);
+        position->x = g_48568c[20] * z + g_48568c[17] * y + g_48568c[14] * x + g_48568c[23];
+        position->y = g_48568c[21] * z + g_48568c[18] * y + g_48568c[15] * x + g_48568c[24];
+        position->z = g_48568c[22] * z + g_48568c[19] * y + g_48568c[16] * x + g_48568c[25];
+        real random_step = *(real const *)(parameters + 0xa8);
+        real *random = (real *)(view + 0x150 + i * 12);
+        random[2] = motion_random_step(random[2], random_step);
+        random[0] = motion_random_step(random[0], random_step);
+        random[1] = motion_random_step(random[1], random_step);
+        real vx = *(real const *)(parameters + 0x90) * random[0] + *(real const *)(parameters + 0x30);
+        real vy = *(real const *)(parameters + 0x94) * random[1] + *(real const *)(parameters + 0x34);
+        real vz = *(real const *)(parameters + 0x98) * random[2] + *(real const *)(parameters + 0x38) - *(real const *)(parameters + 0x9c);
+        real divisor = *(real *)(state + 0xbc + i * 4);
+        if (divisor > 0.0001f)
+        {
+            real inverse = 1.0f / divisor;
+            vx *= inverse;
+            vy *= inverse;
+            vz *= inverse;
+        }
+        vector3f *velocity = (vector3f *)(state + 0x24 + i * 12);
+        velocity->i += vx;
+        velocity->j += vy;
+        velocity->k += vz;
+        double magnitude = sqrt((double)velocity->k * velocity->k + (double)velocity->i * velocity->i + (double)velocity->j * velocity->j);
+        real maximum = *(real *)(view + 0x174 + i * 4);
+        if (magnitude > maximum)
+        {
+            real norm = (real)sqrt((double)velocity->k * velocity->k + (double)velocity->i * velocity->i + (double)velocity->j * velocity->j);
+            if (!(fabs(norm) < 0.0001f))
+            {
+                real inverse = 1.0f / norm;
+                velocity->i *= inverse;
+                velocity->j *= inverse;
+                velocity->k *= inverse;
+            }
+            velocity->i *= maximum;
+            velocity->j *= maximum;
+            velocity->k *= maximum;
+        }
+        real size = *(real *)(state + 0x48 + i * 4);
+        *(real *)(view + 0x134 + i * 4) = scale_size ? size * radius : size;
+        point3f moved;
+        moved.x = step * velocity->i + old.x;
+        moved.y = step * velocity->j + old.y;
+        moved.z = step * velocity->k + old.z;
+        point2f a = motion_project_point(&moved);
+        point2f b = motion_project_point(position);
+        real *offset = (real *)(view + 0x11c + i * 8);
+        offset[0] = b.x - a.x + offset[0];
+        offset[1] = (0.0f - b.y) - (0.0f - a.y) + offset[1];
+        ++i;
+    } while (i < 3);
+    return true;
+}
+

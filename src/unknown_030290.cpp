@@ -277,6 +277,7 @@ long function_30830(point3f const *a, s_camera const *camera, vector3f const *d,
 }
 
 /* inline, as Bungie's header math was: the out-of-line copy then gives its callers no register summary, so they assume edx is clobbered across the call, as retail's 360 callers do */
+__declspec(noinline) real function_30bf0(vector3f *v);
 // @retail 0x30bf0
 inline real function_30bf0(vector3f *v)
 {
