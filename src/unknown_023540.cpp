@@ -2156,7 +2156,7 @@ dword __cdecl function_131fc0(real alpha);
 
 // @retail 0x2a8d0
 void __stdcall function_2a8d0(long tag, long bitmap_index, real const *source,
-    real const *destination, long vertical_offset, color3f const *color,
+    real const *destination, long arg_af5a49, color3f const *color,
     real strength, bool blend, bool inverse, bool alternate_target,
     bool screen_target, bool simple, bool preserve_alpha)
 {
@@ -2239,8 +2239,8 @@ void __stdcall function_2a8d0(long tag, long bitmap_index, real const *source,
     real default_destination[4];
     default_destination[0] = 320.0f - width * 0.5f;
     default_destination[1] = 320.0f + width * 0.5f;
-    default_destination[2] = 240.0f - height * 0.5f + vertical_offset;
-    default_destination[3] = vertical_offset + height * 0.5f + 240.0f;
+    default_destination[2] = 240.0f - height * 0.5f + arg_af5a49;
+    default_destination[3] = arg_af5a49 + height * 0.5f + 240.0f;
     if (!source) source = default_source;
     if (!destination) destination = default_destination;
     D3DDevice_Begin(D3DPT_QUADLIST);
