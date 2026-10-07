@@ -64,25 +64,14 @@ void function_248970(s_particle_location_datum *arg_0, bool arg_5, real arg_1, s
 		local_20->field_1c = 0.f;
 		for (long local_3 = 0; local_3 < *(short *)((byte *)g_4e8c20 + 8); ++local_3)
 		{
-			point3f local_4;
-			real local_5;
+			s_player_state const *local_6 = 0;
 			if (local_3 != NONE && g_4686c4 != NONE)
-			{
-				local_4.x = g_4e9bd4[local_3].state.position.x;
-				local_4.y = g_4e9bd4[local_3].state.position.y;
-				local_4.z = g_4e9bd4[local_3].state.position.z;
-				local_5 = g_4e9bd4[local_3].state.radius;
-			}
-			else
-			{
-				s_player_state const *local_6 = 0;
-				local_4 = local_6->position;
-				local_5 = local_6->radius;
-			}
-			double local_7 = (double)local_20->field_10.x - local_4.x;
-			double local_8 = (double)local_20->field_10.y - local_4.y;
-			double local_9 = (double)local_20->field_10.z - local_4.z;
-			real local_10 = (real)(sqrt(local_9 * local_9 + local_8 * local_8 + local_7 * local_7) * local_5);
+				local_6 = (s_player_state const *)((byte const *)(g_4e9bd4 + local_3) + 0xb8);
+			double local_7 = (double)local_20->field_10.x - local_6->position.x;
+			double local_8 = (double)local_20->field_10.y - local_6->position.y;
+			double local_9 = (double)local_20->field_10.z - local_6->position.z;
+			double local_4 = sqrt(local_9 * local_9 + local_8 * local_8 + local_7 * local_7);
+			real local_10 = (real)(local_4 * local_6->radius);
 			real local_11 = 0.f;
 			if (g_510c50 && ((byte *)g_510c50)[5])
 				local_11 = 1.f;

@@ -984,7 +984,7 @@ void c_game_engine_markers::v6(long player_index)
 {
 	s_player_view *player = ctf_player_get(player_index);
 
-	if (ctf_options()->mode != 4 && player->team != NONE)
+	if (ctf_options()->mode != 4 && *(volatile char const *)&player->team != NONE)
 	{
 		s_event event;
 
@@ -1632,8 +1632,8 @@ void function_243250(long player_index)
 		s_event event;
 
 		game_engine_event_initialize_inline(&event, ctf_options()->engine_type == 9 ? 10 : 3, 6);
-		event.a = player_index;
 		event.cause_team = g_51ec80->l1f4;
+		event.a = player_index;
 		game_engine_event_send_inline(&event);
 	}
 }
