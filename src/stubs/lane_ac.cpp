@@ -21,10 +21,3 @@ void __stdcall function_2c0d60(long arg_0, long arg_1, bool arg_2, s_path_settin
 	long arg_9, long arg_10)
 {
 }
-
-// @stub 0x1f99d0
-real __stdcall function_1f99d0(long arg_0, long arg_1, s_path_location const *arg_2, bool arg_3,
-	point3f const *arg_4, vector3f const *arg_5, s_obstacle_list const *arg_6)
-{
-	return 0.0f;
-}
