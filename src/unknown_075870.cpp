@@ -1169,7 +1169,8 @@ void network_observer_channel_probe(s_network_observer *observer, long channel_i
 	if (handle != NONE && qos_is_complete(handle))
 	{
 		s_qos_result *result = &channel->field_x31a738;
-		if (qos_target_result(handle, result, 0))
+		s_qos_result *const *local_0 = &result;
+		if (qos_target_result(handle, *local_0, 0))
 		{
 			channel->flags |= 0x10;
 			channel->field_x31a738.data = NULL;
@@ -1570,6 +1571,7 @@ long function_795b0(s_network_observer *observer, long index)
 // @retail 0x79de0
 bool function_79de0(s_network_observer *observer, long index, bool *exhausted_out)
 {
+	long budget_limit = 0;
 	s_observer_bandwidth_channel *channel = (s_observer_bandwidth_channel *)&observer->channels[index];
 	bool exhausted = false;
 	bool changed = false;
@@ -1577,7 +1579,7 @@ bool function_79de0(s_network_observer *observer, long index, bool *exhausted_ou
 	long step = *(long *)((byte *)observer->configuration + 0x18c);
 	if (increase <= step) step = increase;
 	long cap = *(long *)((byte *)observer->configuration + 0x150);
-	long budget_limit = channel->budget + step;
+	budget_limit = channel->budget + step;
 	if (budget_limit > cap) budget_limit = cap;
 	bool can_raise_budget = budget_limit > channel->budget;
 	real amount = 0.0f;
@@ -1636,8 +1638,8 @@ bool function_79de0(s_network_observer *observer, long index, bool *exhausted_ou
 				function_795b0(observer, index);
 				long received = function_79560(observer, index);
 				channel->probe_pending = true;
-				channel->saved_burst = channel->burst;
 				channel->saved_budget = channel->budget;
+				channel->saved_burst = channel->burst;
 				channel->saved_rate = channel->rate;
 				channel->probe_delay = channel->smoothed_delay;
 				channel->probe_received_rate = received;

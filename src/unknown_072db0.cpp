@@ -299,13 +299,18 @@ void c_helper_a::v1()
 bool online_match_session_get_info(long task_index, s_online_match_session_info *info);
 bool transport_security_register_key(long index, long local, bool host, const XNKID *kid, const XNKEY *key);
 
+struct s_72f00
+{
+	unsigned __int64 field_0 : 64;
+};
+
 // @retail 0x72f00
 void function_72f00(c_helper_a *helper)
 {
 	if (helper->lc != NONE && online_match_session_get_info(helper->lc, &helper->info))
 	{
 		const s_long_pair *id = (const s_long_pair *)&helper->info.session_id;
-		if ((id->a | id->b) != 0 && *(long *)&helper->info.key != 0)
+		if (((const s_72f00 *)id)->field_0 != 0 && *(long *)&helper->info.key != 0)
 		{
 			helper->ba = true;
 			helper->b30 = true;
