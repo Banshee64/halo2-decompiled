@@ -342,6 +342,17 @@ void function_28c9e0()
 	}
 }
 
+PRIVATE __forceinline void function_28cb72(vector3f const *arg_0, real arg_1, vector3f *arg_2)
+{
+    vector3f local_0;
+    *(dword *)&local_0.i = *(volatile dword *)&arg_0->i;
+    *(dword *)&local_0.j = *(volatile dword *)&arg_0->j;
+    *(dword *)&local_0.k = *(volatile dword *)&arg_0->k;
+    arg_2->i = (local_0.i - arg_2->i) * arg_1 + arg_2->i;
+    arg_2->j = (local_0.j - arg_2->j) * arg_1 + arg_2->j;
+    arg_2->k = (local_0.k - arg_2->k) * arg_1 + arg_2->k;
+}
+
 // @retail 0x28cb70
 void function_28cb70()
 {
@@ -370,16 +381,19 @@ void function_28cb70()
 		}
 	}
 
-	destination = &g_5044c0->vector;
 	_mm_prefetch((char *)(vectors + low), _MM_HINT_T0);
 	vector = vectors + low;
+	destination = &g_5044c0->vector;
 	*destination = *vector;
 	keys += low;
 
 	if (low + 1 < count)
 	{
-		real x = g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
-		real difference = (real)(keys[1] - keys[0]);
+		long local_0 = keys[0];
+		long local_1 = keys[1];
+		real x = (real)(long)g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
+		x -= (real)local_0;
+		real difference = (real)(local_1 - local_0);
 		real reciprocal;
 		real weight;
 
@@ -389,15 +403,14 @@ void function_28cb70()
 			movss reciprocal, xmm0
 		}
 
-		weight = reciprocal * (x - keys[0]);
-		vector3f next;
-
-		vector++;
-		next = *vector;
-		destination->i = (next.i - destination->i) * weight + destination->i;
-		destination->j = (next.j - destination->j) * weight + destination->j;
-		destination->k = (next.k - destination->k) * weight + destination->k;
+		weight = reciprocal * x;
+		function_28cb72(++vector, weight, destination);
 	}
+}
+
+PRIVATE __forceinline void function_28cccf(real arg_0, real arg_1, real arg_2, real arg_3, real *arg_4)
+{
+    *arg_4 = (arg_1 - arg_0) * (arg_2 * arg_3) + arg_0;
 }
 
 // @retail 0x28ccc0
@@ -436,8 +449,11 @@ void function_28ccc0()
 
 	if (low + 1 < count)
 	{
-		real x = g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
-		real difference = (real)(keys[1] - keys[0]);
+		long local_0 = keys[0];
+		long local_1 = keys[1];
+		real x = (real)(long)g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
+		x -= (real)local_0;
+		real difference = (real)(local_1 - local_0);
 		real reciprocal;
 		real weight;
 
@@ -447,10 +463,10 @@ void function_28ccc0()
 			movss reciprocal, xmm0
 		}
 
-		weight = reciprocal * (x - keys[0]);
+		weight = reciprocal * x;
 		dword bits_next = scale[1];
 		real next = *(real *)&bits_next;
 
-		result->scale = (next - result->scale) * weight + result->scale;
+		function_28cccf(result->scale, next, reciprocal, x, &result->scale);
 	}
 }
