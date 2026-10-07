@@ -614,3 +614,181 @@ void function_235d69(short_rectangle2d const *rectangle, real depth,
     function_1ed70(color, points, 5);
     function_1ee50();
 }
+
+struct s_texture_rect
+{
+	real left, top, right, bottom;
+};
+
+struct s_interface_draw_vertex
+{
+	point2f position;
+	point2f texture;
+	dword color;
+};
+
+struct s_interface_draw_request
+{
+	dword flags;
+	byte unknown04[8];
+	s_bitmap_view *bitmap;
+	byte unknown10[0x18];
+	real scale28;
+	real scale2c;
+	byte unknown30[0x10];
+	real scale40;
+	real scale44;
+	byte unknown48[0x4c];
+	short mode;
+	byte unknown96[2];
+};
+
+void __stdcall function_52040(void const *request, void const *vertices);
+
+/* Draws a textured rectangle through the shared rendering request. */
+// @retail 0x23675a
+void function_23675a(s_bitmap_view *bitmap, s_texture_rect const *texture, dword color, short mode, s_float_rect const *bounds)
+{
+	(void)&bitmap;
+	(void)&texture;
+	(void)&color;
+	(void)&mode;
+	point2f corners[4];
+	real height = bounds->y1 - bounds->y0;
+	real width = bounds->x1 - bounds->x0;
+	corners[0].x = bounds->x0;
+	corners[0].y = bounds->y0;
+	corners[1].x = bounds->x0 + width;
+	corners[1].y = bounds->y0;
+	corners[2].x = bounds->x0 + width;
+	corners[2].y = bounds->y0 + height;
+	corners[3].x = bounds->x0;
+	corners[3].y = bounds->y0 + height;
+	s_interface_draw_vertex vertices[4];
+	for (long i = 0; i < 4; i++)
+	{
+		vertices[i].color = color;
+		vertices[i].texture.x = i % 3 ? texture->right : texture->left;
+		vertices[i].texture.y = i > 1 ? texture->bottom : texture->top;
+		vertices[i].position = corners[i];
+	}
+	s_interface_draw_request request;
+	memset(&request, 0, sizeof(request));
+	request.mode = mode;
+	request.scale44 = 1.0f;
+	request.scale40 = 1.0f;
+	request.scale2c = 1.0f;
+	request.scale28 = 1.0f;
+	request.bitmap = bitmap;
+	if (function_12360(bitmap, 0.0f))
+	{
+		function_52040(&request, vertices);
+	}
+}
+
+/* Scales texture coordinates to the sprite and optionally clips them. */
+// @retail 0x235e5e
+void function_235e5e(s_sprite_element *element, s_float_rect *from, s_float_rect *to, dword color, long clamp, long mode)
+{
+	(void)&to;
+	(void)&color;
+	(void)&clamp;
+	(void)&mode;
+	real width = element->width;
+	real height = element->height;
+	real draw_width = from->x1 - from->x0;
+	real draw_height = from->y1 - from->y0;
+	s_texture_rect texture;
+	texture.top = 0.0f;
+	texture.left = 0.0f;
+	texture.right = draw_width / (1.0f > width ? 1.0f : width);
+	texture.bottom = draw_height / (1.0f > height ? 1.0f : height);
+	if ((byte)clamp)
+	{
+		if (*(volatile real *)&texture.right > 1.0f)
+			texture.right = 1.0f;
+		if (texture.bottom > 1.0f)
+			texture.bottom = 1.0f;
+	}
+	if (((byte *)element)[0xe] & 0x10)
+	{
+		texture.right = width * *(volatile real *)&texture.right;
+		texture.left = width * texture.left;
+		texture.top = height * texture.top;
+		texture.bottom = height * texture.bottom;
+	}
+	function_23675a((s_bitmap_view *)element, &texture, color, (short)mode, to);
+}
+
+/* Draws the four portions of a rectangle around its split point. */
+// @retail 0x235f31
+void function_235f31(s_sprite_element *element, s_float_rect const *from, point2f const *split, dword color, short mode)
+{
+	(void)&color;
+	(void)&mode;
+	s_float_rect bounds;
+	s_texture_rect texture;
+	long i = 0;
+	do
+	{
+		switch (i)
+		{
+		case 0:
+			bounds.x0 = from->x0;
+			bounds.x1 = (from->x1 - from->x0) * split->x + from->x0;
+			bounds.y0 = from->y0;
+			bounds.y1 = (from->y1 - from->y0) * split->y + from->y0;
+			texture.left = 1.0f - split->x;
+			texture.top = 1.0f - split->y;
+			texture.right = 1.0f;
+			texture.bottom = 1.0f;
+			break;
+		case 1:
+			bounds.x0 = (from->x1 - from->x0) * split->x + from->x0;
+			bounds.x1 = from->x1;
+			bounds.y0 = from->y0;
+			bounds.y1 = (from->y1 - from->y0) * split->y + from->y0;
+			texture.left = 0.0f;
+			texture.top = 1.0f - split->y;
+			texture.right = 1.0f - split->x;
+			texture.bottom = 1.0f;
+			break;
+		case 2:
+			bounds.x0 = from->x0;
+			bounds.x1 = (from->x1 - from->x0) * split->x + from->x0;
+			bounds.y0 = (from->y1 - from->y0) * split->y + from->y0;
+			bounds.y1 = from->y1;
+			texture.left = 1.0f - split->x;
+			texture.top = 0.0f;
+			texture.right = 1.0f;
+			texture.bottom = 1.0f - split->y;
+			break;
+		case 3:
+			bounds.x0 = (from->x1 - from->x0) * split->x + from->x0;
+			bounds.x1 = from->x1;
+			bounds.y0 = (from->y1 - from->y0) * split->y + from->y0;
+			bounds.y1 = from->y1;
+			texture.left = 0.0f;
+			texture.top = 0.0f;
+			texture.right = 1.0f - split->x;
+			texture.bottom = 1.0f - split->y;
+			break;
+		default:
+			__assume(0);
+		}
+		if (bounds.x1 - bounds.x0 >= 1.0f && bounds.y1 - bounds.y0 >= 1.0f)
+		{
+			if (((byte *)element)[0xe] & 0x10)
+			{
+				real width = element->width;
+				real height = element->height;
+				texture.left = width * texture.left;
+				texture.right = width * texture.right;
+				texture.top = height * texture.top;
+				texture.bottom = height * texture.bottom;
+			}
+			function_23675a((s_bitmap_view *)element, &texture, color, mode, &bounds);
+		}
+		i++;
+	} while (i < 4);
+}

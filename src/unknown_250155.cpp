@@ -14,6 +14,7 @@
 #include "unknown_24b5bc.h"
 #include "unknown_2b116a.h"
 #include "unknown_07f720.h"
+#include "globals.h"
 
 #pragma intrinsic(memset, memcpy)
 
@@ -21,6 +22,131 @@ bool function_1999b3(void);
 long function_19a161(void);
 
 #include "unknown_24fa12.h"
+
+struct s_session_screen_state;
+long function_24fa23(s_session_screen_state const *screen);
+bool function_592f0(void);
+bool function_19a902(void);
+bool network_session_interface_local_machine_is_host(void);
+
+// @retail 0x250dae
+void function_250dae(c_screen_24fd74 *screen)
+{
+    if (ANIMATION_FLAG(screen->animation, 1))
+        return;
+    bool connected = function_592f0();
+    bool enabled = function_592f0() && !(byte)function_24fa23((s_session_screen_state *)screen) &&
+        !function_19a902() && network_session_interface_local_machine_is_host();
+    c_class_1a2c81 *text = 0;
+    switch (screen->mode)
+    {
+    case 0:
+    case 2:
+        text = screen->find_child(6, 45, false);
+        break;
+    case 1:
+        text = screen->find_child(6, 40, false);
+        break;
+    }
+    if (connected)
+    {
+        screen->button0.value6e = true;
+        screen->button1.value6e = true;
+        if (text) text->value6e = false;
+    }
+    else
+    {
+        screen->button0.value6e = false;
+        screen->button1.value6e = false;
+        if (text) text->value6e = true;
+    }
+    if (enabled != screen->value810)
+    {
+        if (function_592f0())
+        {
+            if (enabled)
+            {
+                if (screen->value811)
+                    screen->v7(&screen->button0);
+                else
+                    screen->v7(&screen->button1);
+            }
+            else
+            {
+                screen->value811 = screen->button0.is_in_window();
+                screen->function_22ecb4_2(true);
+            }
+        }
+        else
+            screen->function_22ecb4_2(true);
+        screen->value810 = enabled;
+    }
+}
+
+struct s_reference_list;
+struct s_indexed_block;
+struct s_indexed_entry;
+s_reference_list *function_236a3a(long id);
+s_indexed_entry *function_236aa9(s_indexed_block *block, long id);
+long function_2374f0(void *base, long index);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+dword function_217b70(word const *text);
+
+struct s_setting_reference_list_view
+{
+    long id;
+    byte unknown04[4];
+    long count;
+    struct s_reference { long group; long index; } *references;
+};
+
+struct s_setting_definition_view
+{
+    long field_index;
+    byte unknown04[8];
+    long string_list;
+    long title;
+};
+
+// @retail 0x25092c
+void function_25092c(s_game_variant *variant, long index, c_class_1a2c81 *widget, word const *separator, word *buffer)
+{
+    word title[0x100];
+    word value[0x100];
+    title[0] = 0;
+    value[0] = 0;
+    long group;
+    switch (*(long *)((byte *)variant + 0x44))
+    {
+    case 1: group = 22; break;
+    case 2: group = 23; break;
+    case 3: group = 24; break;
+    case 4: group = 25; break;
+    case 7: group = 28; break;
+    case 8: group = 29; break;
+    case 9: group = 30; break;
+    default: group = NONE; break;
+    }
+    s_setting_reference_list_view *list = (s_setting_reference_list_view *)function_236a3a(group);
+    if (list && index >= 0 && index < list->count)
+    {
+        s_setting_reference_list_view::s_reference const *reference = &list->references[index];
+        if (reference->index != NONE)
+        {
+            s_setting_definition_view *definition = (s_setting_definition_view *)g_4e3b44[reference->index & 0xffff].bytes;
+            s_indexed_entry *option = function_236aa9((s_indexed_block *)definition, function_2374f0(variant, definition->field_index));
+            function_1a0180(definition->string_list, definition->title, title);
+            if (option)
+                function_1a0180(definition->string_list, *(long *)((byte *)option + 8), value);
+        }
+    }
+    if (widget && (long)function_217b70(title) > 0)
+    {
+        function_1630e0(buffer, (word const *)L"%s%s%s", title, separator, value);
+        widget->function_22f52e()->set_text(buffer);
+        widget->value6e = true;
+    }
+}
 
 /* shows the network connection's state in the mode's text */
 // @retail 0x250155
@@ -117,6 +243,7 @@ public:
 	c_matchmaking_screen(long a, long b, word user_flags);
 
 	virtual bool v10(s_widget_event *event);
+	virtual void v3();
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
@@ -1003,6 +1130,65 @@ long function_251364(s_session_player_view *player)
 		return 1;
 	}
 	return 0;
+}
+
+struct s_name_buffer;
+bool __stdcall function_8ca70(long mode, s_name_buffer *output);
+void function_08cc20(s_name_buffer *buffer, wchar_t const *name);
+bool function_199dc9(long a, long b, long c);
+long function_75890(long time);
+
+// @retail 0x251f8d
+void function_251f8d(c_matchmaking_screen *screen)
+{
+    long maximum = 0;
+    long player_count = 0;
+    long unused;
+    bool capacity = function_199dc9((long)&player_count, (long)&unused, (long)&maximum);
+    c_text_widget_45a5e0 *title = (c_text_widget_45a5e0 *)screen->find_child(6, 2, false);
+    c_text_widget_45a5e0 *status = (c_text_widget_45a5e0 *)screen->find_child(6, 5, false);
+    c_text_widget_45a5e0 *message = (c_text_widget_45a5e0 *)screen->find_child(6, 7, false);
+    if (title)
+        title->function_253b1a(screen->get_title());
+    if (function_75890(screen->value61c) > 15000)
+    {
+        screen->value620 = false;
+        screen->value61c = function_75870();
+    }
+    if (!screen->value620)
+    {
+        word buffer[0x100];
+        buffer[0] = 0;
+        if (function_8ca70(1, (s_name_buffer *)buffer))
+            function_08cc20((s_name_buffer *)&screen->value1222, (wchar_t const *)buffer);
+        screen->value620 = true;
+    }
+    if (message && (long)function_217b70((word *)&screen->value1222) > 0)
+        message->function_22f52e()->set_text((word *)&screen->value1222);
+    if (status)
+    {
+        if (capacity)
+        {
+            if (player_count >= maximum)
+            {
+                status->function_253b1a(0x11000762);
+                status->value6e = true;
+            }
+            else
+            {
+                word buffer[0x100];
+                word format[0x100];
+                buffer[0] = 0;
+                format[0] = 0;
+                ((c_widget *)screen)->function_230134(0xe000761, format);
+                function_1630e0(buffer, format, maximum - player_count);
+                status->function_22f52e()->set_text(buffer);
+                status->value6e = true;
+            }
+        }
+        else
+            status->value6e = false;
+    }
 }
 
 // @retail 0x25142f
@@ -2744,4 +2930,139 @@ bitmap_shown:
 	}
 	list.searching = !(ANIMATION_FLAG(animation, 1) || network_session_manager_session_unready() || network_session_manager_is_joining());
 	c_class_1a2c81::v3();
+}
+
+long function_230195(s_screen_definition *definition, long block_index, long index);
+bool function_19a107(void);
+
+// @retail 0x2501c0
+void function_2501c0(c_screen_24fd74 *screen, s_game_variant *variant)
+{
+    short indices[5];
+    long extra;
+    long i;
+    switch (screen->mode)
+    {
+    case 0:
+        for (i=0; i<5; ++i) indices[i]=(short)(i+6);
+        extra=47;
+        break;
+    case 1:
+        memset(indices, 0xff, sizeof(indices));
+        extra=42;
+        break;
+    case 2:
+        for (i=0; i<5; ++i) indices[i]=(short)(i+6);
+        extra=47;
+        break;
+    default:
+        memset(indices, 0xff, sizeof(indices));
+        extra=NONE;
+        break;
+    }
+    c_class_1a2c81 *settings[5];
+    for (i=0; i<5; ++i)
+        settings[i]=screen->find_text(indices[i]);
+    c_class_1a2c81 *title=screen->find_child(6, 3, false);
+    c_text_widget_45a5e0 *caption=(c_text_widget_45a5e0 *)screen->find_child(6, 4, false);
+    c_class_1a2c81 *bitmap=screen->find_child(8, 4, false);
+    c_class_1a2c81 *extra_text=screen->find_text((short)extra);
+    if (variant)
+    {
+        s_screen_definition *definition=function_22f871(screen);
+        if (title) title->value6e=true;
+        if (caption) caption->function_253b1a(0xf0001df);
+        function_250a43((byte *)variant, bitmap);
+        if (definition)
+        {
+            word separator[0x100];
+            separator[0]=0;
+            if (definition->string_list_index!=NONE)
+                function_1a0180(definition->string_list_index, function_230195(definition, 0, 0), separator);
+            for (i=0; i<5; ++i)
+                function_25092c(variant, i, settings[i], separator, screen->text[i].text);
+        }
+    }
+    if (extra_text) extra_text->value6e=g_51ec08>0;
+}
+
+// @retail 0x251d84
+void function_251d84(c_matchmaking_screen *screen)
+{
+    byte *variant=network_session_interface_get_data_4db0();
+    c_class_1a2c81 *title=screen->find_child(6, 2, false);
+    c_class_1a2c81 *teams=screen->find_child(6, 13, false);
+    c_class_1a2c81 *setting0=screen->find_child(6, 6, false);
+    c_class_1a2c81 *setting1=screen->find_child(6, 7, false);
+    c_class_1a2c81 *setting2=screen->find_child(6, 8, false);
+    c_class_1a2c81 *setting3=screen->find_child(6, 9, false);
+    c_class_1a2c81 *setting4=screen->find_child(6, 10, false);
+    c_class_1a2c81 *setting5=screen->find_child(6, 11, false);
+    c_text_widget_45a5e0 *caption=(c_text_widget_45a5e0 *)screen->find_child(6, 4, false);
+    c_class_1a2c81 *bitmap=screen->find_child(8, 12, false);
+    if (caption) caption->function_253b1a(0xf0001df);
+    if (function_19a107())
+    {
+        word buffer[0x100];
+        buffer[0]=0;
+        function_251c91(screen, buffer);
+        teams->function_22f52e()->set_text(buffer);
+    }
+    if (variant && setting5)
+    {
+        s_screen_definition *definition=function_22f871(screen);
+        function_250a43(variant, bitmap);
+        if (definition)
+        {
+            word separator[0x100];
+            separator[0]=0;
+            if (definition->string_list_index!=NONE)
+                function_1a0180(definition->string_list_index, function_230195(definition, 0, 0), separator);
+            function_25092c((s_game_variant *)variant, 0, setting0, separator, screen->texts[0].text);
+            function_25092c((s_game_variant *)variant, 1, setting1, separator, screen->texts[1].text);
+            function_25092c((s_game_variant *)variant, 2, setting2, separator, screen->texts[2].text);
+            function_25092c((s_game_variant *)variant, 3, setting3, separator, screen->texts[3].text);
+            function_25092c((s_game_variant *)variant, 4, setting4, separator, screen->texts[4].text);
+            function_25092c((s_game_variant *)variant, 5, setting5, separator, screen->texts[5].text);
+        }
+    }
+    if (title) title->value6e=network_session_manager_get_value49ac()!=NONE;
+    function_2520ff(screen);
+}
+
+void function_148523(void);
+
+// @retail 0x251b39
+void c_matchmaking_screen::v3()
+{
+    if (!ANIMATION_FLAG(animation, 1))
+    {
+        long state=function_25142f();
+        if (value618!=state)
+        {
+            long delta=state;
+            function_230427((short *)&delta);
+            value610=function_199d7c();
+            value618=state;
+            value614=function_75870();
+            if (value618>=1)
+                function_148523();
+            if (state==3)
+                function_236299(12);
+            function_22ecb4_2(true);
+        }
+        switch (state)
+        {
+        case 0: function_251c68(this); break;
+        case 1: function_251f8d(this); break;
+        case 2: break;
+        case 3: function_251d84(this); break;
+        }
+        if (!function_6c7e0() || !player_slot_count_active())
+        {
+            value610=1;
+            function_25217b(this, 0);
+        }
+    }
+    c_class_1a2c81::v3();
 }

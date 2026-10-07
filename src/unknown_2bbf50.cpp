@@ -73,13 +73,13 @@ void c_game_engine_45c6d8::v28(long a)
 
 		event.type = 2;
 		event.subtype = 0;
-		event.a = a;
 		event.cause_player_index = NONE;
 		event.cause_team = NONE;
 		event.effect_player_index = NONE;
 		event.effect_team = NONE;
 		event.f = 0;
 		event.g = NONE;
+		event.a = a;
 		function_a7c50(&event);
 		function_19eb30(&event);
 	}

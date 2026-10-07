@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6904 functions match
+
+```
+matched 6904 of 11318 game functions (762636 of 2784283 bytes, 27.39%)
+```
+
+6904 new matches, none lost:
+- Merge batch r23: UI-screens rounds 10 and 11 (+3).
+
+## 2026-10-07: 6901 functions match
+
+```
+matched 6901 of 11318 game functions (762446 of 2784283 bytes, 27.38%)
+```
+
+6901 new matches, none lost:
+- Merge batch r21: UI-core rounds 11 to 13 (+9: the main menu and window-manager initialisers, two text-widget helpers and lobby/settings screen code).
+
 ## 2026-10-07: 6892 functions match
 
 ```

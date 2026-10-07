@@ -13,9 +13,5 @@ void function_1fa30(word const *text, short_rectangle2d *bounds) { }
 class c_class_2b0b5e;
 
 #include "flexible_surface_calls.h"
-// @stub 0x19f680
-void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
-	point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
-	real arg_9, point3f const *arg_10, real arg_11) { }
 
 struct s_bsp3d;
