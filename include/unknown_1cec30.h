@@ -410,7 +410,7 @@ struct s_havok_component
 	char unknown19;
 	bool unknown1a;
 	bool unknown1b;
-	bool unknown1c;
+	signed char unknown1c;
 	byte unknown1d[3];
 	long unknown20;
 	byte unknown24[0x30 - 0x24];

@@ -94,3 +94,64 @@ bool function_1debd0(dword const *arg_1, s_bsp3d const *arg_0, short arg_2, long
  } while (local_5 != local_4);
  return true;
 }
+
+struct s_1dea01
+{
+ byte field_0;
+ byte field_1;
+ word field_2;
+};
+struct s_1dea02
+{
+ short field_0;
+ short field_2;
+};
+struct s_1dea00
+{
+ byte field_0[0xc];
+ plane3f *field_c;
+ long field_10;
+ s_1dea01 *field_14;
+ long field_18;
+ s_1dea02 *field_1c;
+};
+struct s_296520_tree;
+long function_296520(s_296520_tree *tree, long index, point2f const *point);
+
+// @retail 0x1dea00
+long function_1dea00(s_bsp3d const *arg_0, long arg_1, point3f const *arg_6,
+ vector3f const *arg_7, short arg_2, dword const *arg_3, long arg_4, real arg_5, bool arg_8)
+{
+ (void)&arg_2; (void)&arg_3; (void)&arg_4; (void)&arg_5; (void)&arg_8;
+ s_1dea00 const *local_0 = (s_1dea00 const *)arg_0;
+ s_1dea01 const *local_1 = &local_0->field_14[arg_1];
+ long local_2 = local_1->field_2;
+ long local_3 = local_2 + local_1->field_1;
+ for (; local_2 < local_3; ++local_2)
+ {
+  s_1dea02 const *local_4 = &local_0->field_1c[local_2];
+  long local_15 = local_4->field_0;
+  if ((local_15 & 0x7fff) == arg_4)
+  {
+   plane3f const *local_5 = &local_0->field_c[arg_4];
+   real local_6 = (real)fabs(local_5->i);
+   real local_7 = (real)fabs(local_5->j);
+   real local_8 = (real)fabs(local_5->k);
+   short local_9;
+   if (local_8 >= local_7 && local_8 >= local_6) local_9 = 2;
+   else if (local_7 >= local_6) local_9 = 1;
+   else local_9 = 0;
+   bool local_10 = (((real const *)local_5)[local_9] > 0.0f) != (bool)((local_15 >> 15) & 1);
+   point3f local_11;
+   local_11.x = arg_7->i * arg_5 + arg_6->x;
+   local_11.y = arg_7->j * arg_5 + arg_6->y;
+   local_11.z = arg_7->k * arg_5 + arg_6->z;
+   short const *local_12 = g_440b94[local_9 * 2 + local_10];
+   point2f local_13 = { ((real *)&local_11)[local_12[0]], ((real *)&local_11)[local_12[1]] };
+   long local_14 = function_296520((s_296520_tree *)((byte *)arg_0 + 0x20), local_4->field_2, &local_13);
+   if (!arg_8 || function_1debd0(arg_3, arg_0, arg_2, local_14, local_9, local_10, &local_13))
+    return local_14;
+  }
+ }
+ return NONE;
+}
