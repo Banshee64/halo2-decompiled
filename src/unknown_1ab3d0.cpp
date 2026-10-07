@@ -199,10 +199,11 @@ short __stdcall function_1ab690(long actor_index, s_slot *slot, bool active)
 			return result;
 		return g_46fbe4;
 	}
-	state->timer--;
-	if (state->timer > 0)
-		return result;
-	return g_46fbe4;
+	short local_0 = state->timer - 1;
+	*(volatile short *)&state->timer = local_0;
+	if (local_0 <= 0)
+		return g_46fbe4;
+	return result;
 }
 
 // @retail 0x1ab880
