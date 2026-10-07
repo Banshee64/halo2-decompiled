@@ -2002,7 +2002,7 @@ struct s_simulation_input_69110
 {
  dword unknown00[2];
  dword player_mask;
- s_player_action player_actions[16];
+ s_player_action field_c_10[16];
  dword actor_mask;
  long actor_indices[16];
  dword actor_states[16][0x1f];
@@ -2017,7 +2017,7 @@ void __stdcall function_69110(c_class_6a600 *world, s_simulation_input_69110 *in
  {
   s_simulation_world_player *player = &world->players[i];
   if (player->player_index != NONE &&
-   function_84990((s_simulation_controller *)player, &input->player_actions[i]))
+   function_84990((s_simulation_controller *)player, &input->field_c_10[i]))
    input->player_mask |= 1 << i;
  }
  for (long j = 0; j < 16; j++)

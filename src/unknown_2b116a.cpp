@@ -5637,9 +5637,9 @@ void c_load_progress_screen::v3()
             {
                 s_widget_bounds rectangle;
                 bitmap->get_bounds(&rectangle);
-                short bitmap_width = rectangle.right - rectangle.left;
+                short local_62a74a = rectangle.right - rectangle.left;
                 rectangle.left = (short)(width * g_509334) - width / 2;
-                rectangle.right = rectangle.left + bitmap_width;
+                rectangle.right = rectangle.left + local_62a74a;
                 bitmap->bounds = rectangle;
             }
         }
