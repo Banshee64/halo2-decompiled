@@ -383,17 +383,17 @@ void function_2b9b10(s_particle_properties_2ba const *definition, void const *or
             change.j *= maximum_change;
             change.k *= maximum_change;
         }
-        vector3f old_velocity = particle->velocity;
-        scale_particle_vector_2b(0.75f, &old_velocity);
+        vector3f local_c01284 = particle->velocity;
+        scale_particle_vector_2b(0.75f, &local_c01284);
         particle->velocity.i += change.i;
         particle->velocity.j += change.j;
         particle->velocity.k += change.k;
         particle->velocity.i *= 0.25f;
         particle->velocity.j *= 0.25f;
         particle->velocity.k *= 0.25f;
-        particle->velocity.i += old_velocity.i;
-        particle->velocity.j += old_velocity.j;
-        particle->velocity.k += old_velocity.k;
+        particle->velocity.i += local_c01284.i;
+        particle->velocity.j += local_c01284.j;
+        particle->velocity.k += local_c01284.k;
         squared = particle->velocity.k * particle->velocity.k + particle->velocity.j * particle->velocity.j + particle->velocity.i * particle->velocity.i;
         if (squared > maximum_speed * maximum_speed)
         {
