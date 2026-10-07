@@ -350,8 +350,9 @@ void c_game_engine_45c878::v40()
             s_state_2bd0 *state = (s_state_2bd0 *)g_51ecc8;
             if (--state->time_to_move <= 0)
             {
-                ((s_state_2bd0 *)g_51ecc8)->time_to_move = *(short *)((byte *)g_4e6948 + 0x230) * g_510c54->field_2_3;
-                long next = function_2bd0b0(state->hill_index);
+                /* Keep the timer store before the following state read. */
+                *(volatile long *)&state->time_to_move = *(short *)((byte *)g_4e6948 + 0x230) * g_510c54->field_2_3;
+                long next = function_2bd0b0(*(volatile long *)&state->hill_index);
                 if (next == NONE)
                     goto changed;
                 for (;;)

@@ -684,7 +684,7 @@ void c_custom_game_profile_screen::update_variant_info()
             c_class_1a2c81 *name = find_child(6, 3, false);
             c_class_1a2c81 *description = find_child(6, 4, false);
             bool is_saved = false;
-            if (entry->variant != NONE && ((entry->variant >> 21) & 1))
+            if (entry->variant != NONE && (bool)(((dword)entry->variant >> 21) & 1))
                 is_saved = true;
             if (saved) saved->value6e = is_saved;
             if (bitmap) bitmap->value6e = false;
