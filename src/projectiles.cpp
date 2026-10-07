@@ -1565,7 +1565,7 @@ void __stdcall function_fc330(long projectile_index, bool detach_contrail, real 
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 
-	if ((*(dword *)&projectile->flags >> 12) & 1)
+	if (TEST_FIELD_BIT((*(dword *)&projectile->flags >> 12) & 1))
 		return;
 
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
@@ -1577,18 +1577,18 @@ void __stdcall function_fc330(long projectile_index, bool detach_contrail, real 
 	long parent_index = *(long *)((byte *)projectile + 0x14);
 
 	*(dword *)&projectile->flags |= 0x1000;
-	if ((definition->flags & 8) && !((*(dword *)&projectile->flags >> 6) & 1) && parent_index != NONE)
+	if ((definition->flags & 8) && !(TEST_FIELD_BIT((*(dword *)&projectile->flags >> 6) & 1)) && parent_index != NONE)
 	{
 		byte *parent = (byte *)PROJECTILE_GET(parent_index);
 		long stuck_count = 0;
 
-		if (!((*(byte *)(parent + 0x10a) >> 2) & 1))
+		if (!(TEST_FIELD_BIT((*(byte *)(parent + 0x10a) >> 2) & 1)))
 		{
 			for (long child_index = *(long *)(parent + 0x10); child_index != NONE; )
 			{
 				s_projectile *child = PROJECTILE_GET(child_index);
 
-				if (child->tag_index == projectile->tag_index && !((*(dword *)&child->flags >> 6) & 1))
+				if (child->tag_index == projectile->tag_index && !(TEST_FIELD_BIT((*(dword *)&child->flags >> 6) & 1)))
 					stuck_count++;
 				child_index = *(long *)((byte *)child + 0xc);
 			}
@@ -1605,7 +1605,7 @@ void __stdcall function_fc330(long projectile_index, bool detach_contrail, real 
 			{
 				s_projectile *child = PROJECTILE_GET(child_index);
 
-				if (child->tag_index == projectile->tag_index && !((*(dword *)&child->flags >> 6) & 1))
+				if (child->tag_index == projectile->tag_index && !(TEST_FIELD_BIT((*(dword *)&child->flags >> 6) & 1)))
 				{
 					if ((short)stuck_count <= *(short *)(definition_bytes + 0xe6))
 					{
@@ -1673,7 +1673,7 @@ void __stdcall function_fc330(long projectile_index, bool detach_contrail, real 
 	{
 		long damage_index;
 
-		if ((*(dword *)&projectile->flags >> 10) & 1)
+		if (TEST_FIELD_BIT((*(dword *)&projectile->flags >> 10) & 1))
 			damage_index = *(long *)(definition_bytes + 0x160);
 		else if (attached)
 			damage_index = *(long *)(definition_bytes + 0x130);
@@ -1744,7 +1744,7 @@ void __stdcall function_fc330(long projectile_index, bool detach_contrail, real 
 	owner.unknown4 = *(long *)((byte *)current + 0xc8);
 	owner.unknown0 = *(long *)((byte *)current + 0xc4);
 	owner.unknown8 = *(short *)((byte *)current + 0xc2);
-	if (material_index != NONE && !((*(dword *)&projectile->flags >> 9) & 1))
+	if (material_index != NONE && !(TEST_FIELD_BIT((*(dword *)&projectile->flags >> 9) & 1)))
 	{
 		*(dword *)&projectile->flags |= 0x200;
 		effect_flags = 4;
@@ -1767,7 +1767,7 @@ void __stdcall function_fc330(long projectile_index, bool detach_contrail, real 
 
 		if (attached)
 			area_index = *(long *)(definition_bytes + 0x11c);
-		else if ((*(dword *)&projectile->flags >> 10) & 1)
+		else if (TEST_FIELD_BIT((*(dword *)&projectile->flags >> 10) & 1))
 			area_index = *(long *)(definition_bytes + 0x158);
 		else
 			area_index = *(long *)(definition_bytes + 0x104);
@@ -2252,7 +2252,7 @@ void function_faa60(vector3f *velocity, long projectile_index, s_collision_resul
 
 	real damage_scale = projectile->unknown188;
 
-	if ((definition->flags >> 4) & 1)
+	if (TEST_FIELD_BIT((definition->flags >> 4) & 1))
 	{
 		vector3f offset;
 
@@ -2266,7 +2266,7 @@ void function_faa60(vector3f *velocity, long projectile_index, s_collision_resul
 	long mode = g_4e6948->mode;
 
 	if (mode >= 4 && mode <= 5 && collision_count == 1 && collision->type == 4 &&
-		TEST_FIELD_BIT(definition->flag_bits.drifts) && !((*(dword *)&projectile->flags >> 13) & 1) &&
+		TEST_FIELD_BIT(definition->flag_bits.drifts) && !(TEST_FIELD_BIT((*(dword *)&projectile->flags >> 13) & 1)) &&
 		collision->object_index != NONE && PROJECTILE_GET(collision->object_index)->unknownd4 != NONE)
 	{
 		*(long *)((byte *)projectile + 0x150) = collision->object_index;
@@ -2287,7 +2287,7 @@ void function_faa60(vector3f *velocity, long projectile_index, s_collision_resul
 				byte *object = (byte *)PROJECTILE_GET(object_index);
 				real vitality = *(real *)(object + 0xf0);
 
-				if (vitality > 0.0f && !((object[0x10a] >> 2) & 1) && *(long *)((byte *)projectile + 0xc8) != object_index)
+				if (vitality > 0.0f && !(TEST_FIELD_BIT((object[0x10a] >> 2) & 1)) && *(long *)((byte *)projectile + 0xc8) != object_index)
 				{
 					long model_index = *(long *)(g_4e3b44[*(long *)object & 0xffff].bytes + 0x38);
 

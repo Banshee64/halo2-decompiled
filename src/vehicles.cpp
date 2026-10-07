@@ -2233,11 +2233,11 @@ void __stdcall function_f1f80(long vehicle_index, s_vehicle_physics_state *state
 		{
 			contact->unknown83 = true;
 		}
-		if ((flags >> 2) & 1)
+		if (TEST_FIELD_BIT((flags >> 2) & 1))
 		{
 			vehicle_contact_steer(state, contact, sine, cosine);
 		}
-		else if ((flags >> 3) & 1)
+		else if (TEST_FIELD_BIT((flags >> 3) & 1))
 		{
 			vehicle_contact_steer(state, contact, 0.0f - sine, cosine);
 		}
@@ -2253,7 +2253,7 @@ void __stdcall function_f1f80(long vehicle_index, s_vehicle_physics_state *state
 	real spin = torque * dt;
 
 	vehicle->unknown360 = vehicle_wheel_spin_wrap(vehicle->unknown360 + spin, *(real *)(definition + 0x20c));
-	if (!((vehicle->flags348 >> 5) & 1))
+	if (!(TEST_FIELD_BIT((vehicle->flags348 >> 5) & 1)))
 	{
 		vehicle->unknown364 = vehicle_wheel_spin_wrap(vehicle->unknown364 + spin, *(real *)(definition + 0x20c));
 	}
@@ -2292,7 +2292,7 @@ void __stdcall function_f2360(long vehicle_index, s_vehicle_physics_state *state
 	vector3f angular_velocity;
 	vector3f const *facing = &vehicle->local_velocity;
 
-	if ((vehicle->flags348 >> 4) & 1)
+	if (TEST_FIELD_BIT((vehicle->flags348 >> 4) & 1))
 	{
 		boost = function_d1210(vehicle_index) * (*(real *)(definition + 0x1d0) - 1.0f) + 1.0f;
 	}
@@ -2302,7 +2302,7 @@ void __stdcall function_f2360(long vehicle_index, s_vehicle_physics_state *state
 	}
 	maximum_speed = *(real *)(definition + 0x1f4) * boost;
 	function_ba1d0(vehicle_index, &linear_velocity, &angular_velocity);
-	if ((vehicle->flags_134 >> 23) & 1)
+	if (TEST_FIELD_BIT((vehicle->flags_134 >> 23) & 1))
 	{
 		vehicle->unknown1b8 = -1.0f;
 	}
@@ -2570,7 +2570,7 @@ void __stdcall function_f3010(long vehicle_index, s_vehicle_physics_state *state
 			word flags = *(word *)&vehicle->flags348;
 			real boost = 1.0f;
 
-			if ((flags >> 4) & 1)
+			if (TEST_FIELD_BIT((flags >> 4) & 1))
 			{
 				boost = function_d1210(vehicle_index) * (*(real *)(definition + 0x1d0) - 1.0f) + 1.0f;
 			}
@@ -2604,7 +2604,7 @@ void __stdcall function_f3010(long vehicle_index, s_vehicle_physics_state *state
 
 			real target_speed = side_speed_maximum * side_weight + forward_speed_maximum * forward_weight;
 
-			if ((flags >> 3) & 1)
+			if (TEST_FIELD_BIT((flags >> 3) & 1))
 			{
 				target_speed *= 0.8f;
 			}
@@ -2783,7 +2783,7 @@ void __stdcall function_f3010(long vehicle_index, s_vehicle_physics_state *state
 			torque.j += (left.j * pitch_torque + zero.j + vehicle->forward.j * roll_torque) * airborne;
 			torque.k += (left.k * pitch_torque + zero.k + vehicle->forward.k * roll_torque) * airborne;
 		}
-		if ((vehicle->flags348 >> 3) & 1)
+		if (TEST_FIELD_BIT((vehicle->flags348 >> 3) & 1))
 		{
 			real speed = (vehicle->forward.j * linear_velocity.j + vehicle->forward.k * linear_velocity.k +
 				linear_velocity.i * vehicle->forward.i) / *(real *)(definition + 0x1f4);
@@ -4114,7 +4114,7 @@ void __stdcall function_f4800(long vehicle_index, s_vehicle_physics_state *state
 	real climb = PIN((real)fabs(pitch), 0.0f, 0.58904862f) * dive * g_4678d8 * 1.6976527f + 1.0f;
 	real boost = 1.0f;
 
-	if ((vehicle->flags348 >> 4) & 1)
+	if (TEST_FIELD_BIT((vehicle->flags348 >> 4) & 1))
 	{
 		boost = function_d1210(vehicle_index) * (*(real *)(definition + 0x1d0) - 1.0f) + 1.0f;
 	}
@@ -4130,8 +4130,8 @@ void __stdcall function_f4800(long vehicle_index, s_vehicle_physics_state *state
 	target.i = vehicle->forward.i * speed;
 	target.j = vehicle->forward.j * speed;
 	target.k = vehicle->forward.k * speed;
-	boosting = (vehicle->flags348 >> 4) & 1;
-	if (boosting && !flipping && !((vehicle->flags348 >> 3) & 1))
+	boosting = TEST_FIELD_BIT((vehicle->flags348 >> 4) & 1);
+	if (boosting && !flipping && !(TEST_FIELD_BIT((vehicle->flags348 >> 3) & 1)))
 	{
 		throttle = 1.0f;
 	}
@@ -4287,7 +4287,7 @@ void __stdcall function_f4800(long vehicle_index, s_vehicle_physics_state *state
 			desired.up = *g_4687a8;
 		}
 	}
-	if ((vehicle->flags_134 >> 1) & 1)
+	if (TEST_FIELD_BIT((vehicle->flags_134 >> 1) & 1))
 	{
 		s_vehicle *driver = VEHICLE_GET(vehicle_index);
 
