@@ -82,12 +82,20 @@ PRIVATE __forceinline void function_28c5d2(vector3f const *arg_0, vector3f const
 	arg_3->k = (arg_1->k - arg_0->k) * arg_2 + arg_0->k;
 }
 
+PRIVATE __forceinline vector3f *function_28c5d3(long arg_0, s_animation_data *const &arg_1)
+{
+	long local_0 = arg_1->vector_stride;
+	long local_1 = *(volatile long *)&arg_1->vector_offset;
+	return (vector3f *)(((byte *)arg_1 + local_0 * arg_0) + local_1);
+}
+
 // @retail 0x28c5d0
 void function_28c5d0()
 {
 	static vector3f vector_a;
 	static vector3f vector_b;
-	vector3f *vectors = function_28c5d1(g_sampling_settings.field_30, g_5044b8);
+	s_animation_data *local_0 = g_sampling_settings.field_30;
+	vector3f *vectors = function_28c5d3(g_5044b8, local_0);
 	real t = g_sampling_settings.frame_fraction;
 
 	vector_a = vectors[g_sampling_settings.frame_index];
@@ -186,7 +194,8 @@ void function_28c880()
 {
 	static vector3f vector_a;
 	static vector3f vector_b;
-	vector3f *vectors = function_28c5d1(g_sampling_settings.field_30, g_5044b8);
+	s_animation_data *local_0 = g_sampling_settings.field_30;
+	vector3f *vectors = function_28c5d3(g_5044b8, local_0);
 	real t = g_sampling_settings.frame_fraction;
 
 	vector_a = vectors[g_sampling_settings.frame_index];
