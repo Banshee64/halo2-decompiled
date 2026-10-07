@@ -7,10 +7,6 @@
 struct s_player_profile;
 struct s_controller_event;
 
-// @stub 0x18fcc4
-void __stdcall function_18fcc4(long controller, s_player_profile *profile, long profile_index)
-{
-}
 
 
 struct s_event;
