@@ -447,6 +447,7 @@ void c_session_state_start_match::enter(long a, long b, long c)
 	unknown18 = 0;
 }
 
+#pragma inline_depth(0)
 // @retail 0x72900
 void c_session_state_start_match::leave(long a)
 {
@@ -460,7 +461,12 @@ void c_session_state_start_match::leave(long a)
 	{
 		network_session_host_set_value49f8(s, mode);
 	}
+	else
+	{
+		volatile long local_0 = state;
+	}
 }
+#pragma inline_depth(255)
 
 /* ---- matchmaking ---- */
 
@@ -1420,14 +1426,16 @@ void function_72260(c_session_state_matchmaking *state)
 		state->mode = 4;
 }
 
+#pragma inline_depth(0)
 // @retail 0x72950
 void function_72950(c_class_58d20 *session)
 {
+	long seed = 0;
 	long current = session->state;
 	if (current == 5 || current == 6 || current == 7 || current == 8)
 	{
 		time_t now = time(NULL);
-		long seed = rand();
+		seed = rand();
 		seed ^= GetTickCount();
 		seed ^= (long)now;
 		session->set_value_4da8(seed);
@@ -1438,7 +1446,9 @@ void function_72950(c_class_58d20 *session)
 		volatile long unused = current;
 	}
 }
+#pragma inline_depth(255)
 
+#pragma inline_depth(0)
 // @retail 0x70b70
 void function_70b70(c_session_state_matchmaking *state)
 {
@@ -1452,15 +1462,16 @@ void function_70b70(c_session_state_matchmaking *state)
 				network_session_set_mode(session, 14);
 			if (session->member_count <= 1 ||
 				(session->type == 14 && function_70160(session) >= g_network_configuration.value1a8))
-				network_session_leave(session, false);
+				session->leave(false);
 		}
 		else
 		{
 			volatile long unused = current;
-			network_session_leave(session, false);
+			session->leave(false);
 		}
 	}
 }
+#pragma inline_depth(255)
 
 struct s_entry_c;
 struct s_161c90;

@@ -25,6 +25,8 @@ extern s_xnet_registry_entry g_4cf7d4[8];
 // @retail 0x7a920
 bool transport_security_register_key(long index, long local, bool host, const XNKID *kid, const XNKEY *key)
 {
+	const XNKID *const *local_0 = &kid;
+	const XNKID *local_1 = *local_0;
 	s_xnet_registry_entry *entry = &g_4cf7d4[index];
 
 	if (entry->valid && entry->valid)
@@ -32,9 +34,9 @@ bool transport_security_register_key(long index, long local, bool host, const XN
 		XNetUnregisterKey(&entry->kid);
 		entry->valid = false;
 	}
-	if (local || XNetRegisterKey(kid, key) == 0)
+	if (local || XNetRegisterKey(local_1, key) == 0)
 	{
-		entry->kid = *kid;
+		entry->kid = *local_1;
 		entry->key = *key;
 		entry->host = host;
 		entry->local = local;

@@ -291,7 +291,8 @@ bool network_observer_get_bandwidth(s_network_observer *observer, long *value4e0
 // @retail 0x769a0
 bool network_observer_channel_timed_out(s_network_observer *observer, long channel_index)
 {
-	s_network_observer_channel *channel = &observer->channels[channel_index];
+	s_network_observer *const *local_0 = &observer;
+	s_network_observer_channel *channel = &(*local_0)->channels[channel_index];
 	bool result = false;
 	if (channel->connection_index != NONE)
 	{
@@ -300,7 +301,9 @@ bool network_observer_channel_timed_out(s_network_observer *observer, long chann
 		{
 			long last = connection->timers[1].time;
 			long since = observer_time_get() - last;
-			long time = connection->state > 2 ? connection->timers[4].time : 0;
+			long time = 0;
+			if (connection->state > 2)
+				time = connection->timers[4].time;
 			long now = observer_time_get();
 			if (since < observer->configuration->timeout78 && now - time >= observer->configuration->timeout7c)
 				result = false;
