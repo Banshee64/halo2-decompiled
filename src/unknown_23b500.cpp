@@ -69,11 +69,15 @@ void function_23aea0()
 	g_5022f0 = g_4709f0;
 	globals->value4 = *(real *)(definition + 0x154);
 	globals->value0 = *(real *)(definition + 0x150);
-	for (long i = 0; i < 12; i++)
+	for (long i = 2; i < 14; i += 6)
 	{
-		g_502258[2 + i * 3] = *(dword *)(definition + 0x180 + i * 0x1c);
-		g_502258[3 + i * 3] = *(dword *)(definition + 0x184 + i * 0x1c);
-		g_502258[4 + i * 3] = *(dword *)(definition + 0x188 + i * 0x1c);
+		for (long j = 0; j < 6; j++)
+		{
+			long type = i + j;
+			g_502258[type * 3 - 4] = *(dword *)(definition + 0x148 + type * 0x1c);
+			g_502258[type * 3 - 3] = *(dword *)(definition + 0x14c + type * 0x1c);
+			g_502258[type * 3 - 2] = *(dword *)(definition + 0x150 + type * 0x1c);
+		}
 	}
 	if (scenario->count > 0)
 	{
