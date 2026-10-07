@@ -7,8 +7,6 @@
 void __stdcall function_15e360(point3f const *point) { }
 // @stub 0x1396c7
 void function_1396c7(long a, point2f *point) { }
-// @stub 0x1fa30
-void function_1fa30(word const *text, short_rectangle2d *bounds) { }
 
 class c_class_2b0b5e;
 
