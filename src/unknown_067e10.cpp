@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "unknown_123b30.h"
 #include "unknown_067e10.h"
+#include "unknown_08b110.h"
 #include "unknown_0662e0.h"
 #include "unknown_075870.h"
 #include "unknown_059ad0.h"
@@ -922,8 +923,45 @@ static inline long world_time_since(long time)
 byte g_4cf778;
 byte g_4cf779;
 
-/* not decompiled yet (src/stubs/lane_d.cpp) */
-void __stdcall function_693a0(c_class_6a600 *world);
+/* Reset the concrete member vtables before releasing the view storage. */
+inline c_vtable_450c94::~c_vtable_450c94() {}
+inline c_vtable_450d1c::~c_vtable_450d1c() {}
+inline c_handle_table_450cd0::~c_handle_table_450cd0() {}
+inline c_vtable_450cf4::~c_vtable_450cf4() {}
+
+struct s_flagged;
+extern s_flagged *g_4d87ec;
+extern s_flagged *g_4d87f0;
+void function_85880(c_simulation_view *view);
+
+// @retail 0x693a0
+void __stdcall function_693a0(c_class_6a600 *world)
+{
+ c_simulation_view *view;
+ s_view_iterator iterator;
+ iterator.mask = NONE;
+ iterator.index = 0;
+ while (world_next_view(world, &iterator, &view))
+ {
+  if (view)
+  {
+   if (view->type)
+   {
+    if (view->channel_index != NONE) function_85880(view);
+    if (view->world) view->detach();
+    view->type = 0;
+   }
+   c_replication_view_storage *storage = (c_replication_view_storage *)view->data;
+   long index = view->unknown04;
+   record_pool_release((s_record_pool *)g_4d87ec, index);
+   if (storage)
+   {
+    storage->~c_replication_view_storage();
+    record_pool_release((s_record_pool *)g_4d87f0, index);
+   }
+  }
+ }
+}
 
 /* the authority's player keys message (type 0x26) */
 struct s_simulation_player_keys_message
@@ -1677,4 +1715,237 @@ void function_684e0(byte *block)
   }
  }
  SIMULATION_WORLD->unknown28 = *(long *)block + 1;
+}
+
+struct c_entry_table
+{
+ void function_08a030();
+};
+
+struct s_world_disposal_state
+{
+ void *vtable;
+ bool initialized;
+ byte unknown05[3];
+ long unknown08;
+ byte *owner;
+ void *definitions;
+};
+
+// @retail 0x68e20
+void __stdcall function_68e20(c_class_6a600 *world)
+{
+ function_6b040(world);
+ while (world->view_count > 0)
+ {
+  c_simulation_view *view = world->views[world->view_count - 1];
+  if (view)
+  {
+   if (view->type)
+   {
+    if (view->channel_index != NONE) function_85880(view);
+    if (view->world) view->detach();
+    view->type = 0;
+   }
+   c_replication_view_storage *storage = (c_replication_view_storage *)view->data;
+   long index = view->unknown04;
+   record_pool_release((s_record_pool *)g_4d87ec, index);
+   if (storage)
+   {
+    storage->~c_replication_view_storage();
+    record_pool_release((s_record_pool *)g_4d87f0, index);
+   }
+  }
+ }
+ world->function_6a600();
+ world->function_6a6f0();
+ if (world->state == 4 || world->state == 5)
+ {
+  s_world_disposal_state *messages = (s_world_disposal_state *)((byte *)world->distribution + 0xa0ac);
+  *(long *)(messages->owner + 4) = 0;
+  messages->unknown08 = 0;
+  messages->owner = 0;
+  messages->definitions = 0;
+  messages->initialized = false;
+  s_world_disposal_state *entities = (s_world_disposal_state *)((byte *)world->distribution + 0x2098);
+  ((c_entry_table *)entities)->function_08a030();
+  *(long *)entities->owner = 0;
+  entities->initialized = false;
+  entities->unknown08 = 0;
+  entities->owner = 0;
+  entities->definitions = 0;
+ }
+ world->owner = 0;
+ world->distribution = 0;
+ world->state = 0;
+}
+
+extern bool g_4ed39c;
+extern long g_4cf784;
+void function_195e90(void);
+void function_68c00(s_simulation_world_owner *owner, void *definitions,
+ s_simulation_distribution *distribution, c_class_6a600 *world);
+
+// @retail 0x67f60
+void function_67f60(void)
+{
+ if (!g_4ed39c)
+ {
+  s_simulation_world_owner *watcher = (s_simulation_world_owner *)g_4cf780;
+  byte **link = (byte **)watcher->unknown08;
+  if (*link)
+  {
+   *(long *)(*link + 0x80) = 0;
+   *link = 0;
+  }
+  watcher->session = 0;
+  watcher->world = 0;
+  function_68e20((c_class_6a600 *)g_4cf77c);
+  function_195e90();
+ }
+}
+
+// @retail 0x6ae20
+bool function_6ae20(c_class_6a600 *world)
+{
+ long mode = world->state == 2 ? 2 : 4;
+ s_simulation_world_owner *owner = world->owner;
+ s_simulation_distribution *distribution = world->distribution;
+ long local = *(long *)((byte *)world + 0x14);
+ s_machine_address address = world->local_address;
+ byte preserve = world->unknown2f;
+ function_68e20(world);
+ if (g_510ca0) g_510ca0 = false;
+ g_4e6948->mode = mode;
+ g_4cf778 = false;
+ function_68c00(owner, (void *)g_4cf784, distribution, world);
+ world->local_address = address;
+ world->unknown0c = true;
+ *(long *)((byte *)world + 0x14) = local;
+ function_6a770(world);
+ if (preserve) world->unknown2f = true;
+ return true;
+}
+
+void function_89a20(s_handle_peers *peers);
+void function_d5560(bool skip_existing);
+void function_d5640(void);
+void function_185a30(void);
+void function_185630(void);
+void __stdcall function_162060(void *engine);
+void function_196470(void);
+void function_196780(void);
+
+// @retail 0x6aee0
+bool function_6aee0(c_class_6a600 *world)
+{
+ bool result = false;
+ switch (world->state)
+ {
+ case 3:
+  if (!world_receiving_join_data(world))
+ {
+  s_simulation_world_owner *owner = world->owner;
+  s_simulation_distribution *distribution = world->distribution;
+  long local = *(long *)((byte *)world + 0x14);
+  s_machine_address address = world->local_address;
+  byte preserve = world->unknown2f;
+  function_68e20(world);
+  *(volatile byte *)&g_4e6948->mode = 3;
+  function_68c00(owner, (void *)g_4cf784, distribution, world);
+  world->local_address = address;
+  world->unknown0c = true;
+  *(long *)((byte *)world + 0x14) = local;
+  function_6a770(world);
+  if (preserve) world->unknown2f = true;
+  g_4cf779 = false;
+  world_enter_substate_3(world, 0);
+  function_6b2a0(world);
+  result = true;
+ }
+  break;
+ case 5:
+ {
+  function_6b040(world);
+  world->state = 4;
+  g_4e6948->mode = 5;
+  function_89a20((s_handle_peers *)world->distribution);
+  function_6a770(world);
+  function_d5560(true);
+  function_d5640();
+  function_185a30();
+  function_185630();
+  void *engine = g_55e4d0[g_4e9ae8->engine_index];
+  if (engine) function_162060(engine);
+  if (g_55e4d0[g_4e9ae8->engine_index])
+  {
+   g_510ca0 = true;
+   g_510ca1 = false;
+   function_196470();
+   function_196780();
+  }
+  g_4cf779 = false;
+  result = true;
+ }
+  break;
+ default: __assume(0);
+ }
+ return result;
+}
+
+byte g_4cf77a;
+void simulation_world_reset_replication(c_class_6a600 *world);
+void function_18e700(void);
+
+// @retail 0x687b0
+void function_687b0(void)
+{
+ c_class_6a600 *world = (c_class_6a600 *)g_4cf77c;
+ g_4cf77a = true;
+ simulation_world_reset_replication(world);
+ function_18e700();
+ g_4cf779 = false;
+ g_4cf77a = false;
+}
+
+bool function_83220(s_simulation_world_owner *watcher);
+bool function_138860(void);
+bool function_138a10(void);
+bool function_138840(void);
+void __stdcall function_18f1c0(long value);
+
+// @retail 0x680f0
+void function_680f0(void)
+{
+ if (!g_4cf770 || g_4cf772 || !g_4e6948 || !g_4e6948->flag1120) goto done;
+ if (g_4cf771)
+ {
+  function_068750();
+  if (g_4cf772) goto done;
+ }
+ if (g_4cf779)
+ {
+  function_687b0();
+  if (g_4cf772) goto done;
+ }
+ if (!function_83220((s_simulation_world_owner *)g_4cf780)) function_068750();
+ if (g_4cf772) goto done;
+ function_68f30((c_class_6a600 *)g_4cf77c);
+ if (g_4cf772) goto done;
+ {
+  c_class_6a600 *world = (c_class_6a600 *)g_4cf77c;
+  if ((world->state == 3 || world->state == 5) && world->flag2c)
+  {
+   function_068750();
+   if (g_4cf772) goto done;
+  }
+ }
+ {
+  bool (*query_mode)(void) = function_138860;
+  bool (*query_pending)(void) = function_138a10;
+  bool (*query_network)(void) = function_138840;
+  if (query_mode() && query_pending() && !query_network()) function_18f1c0(6);
+ }
+done:
+ return;
 }

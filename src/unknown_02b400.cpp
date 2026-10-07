@@ -6,6 +6,23 @@
 #include <math.h>
 #include "globals.h"
 
+struct s_masked_list;
+typedef void (__stdcall *masked_list_proc)(long value, short mask);
+void masked_list_iterate(s_masked_list const *list, long mask, masked_list_proc proc);
+void __stdcall function_c3340(long light_index, long unused);
+void function_3eec0();
+s_masked_list *g_547f98;
+
+// @retail 0x2c340
+void function_2c340(bool enabled)
+{
+	if (enabled)
+	{
+		masked_list_iterate(g_547f98, 0xffff, (masked_list_proc)function_c3340);
+		function_3eec0();
+	}
+}
+
 struct s_2f800_source
 {
 	point3f position;
@@ -467,4 +484,3 @@ void function_2fd90(s_2f800_view const *view, box2f const *clip, byte *out)
     matrix[11] = -1.0f;
     matrix[14] = c;
 }
-

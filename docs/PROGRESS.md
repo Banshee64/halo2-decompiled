@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6666 functions match
+
+```
+matched 6666 of 11318 game functions (725899 of 2784283 bytes, 26.07%)
+```
+
+6666 new matches, none lost:
+- Codex lane W round 13: 0x2c340 and 0x3bf00, plus 0x11d790, 0x22a4b0 and 0x2901e0 once 0x30bf0 kept retail's call boundary.
+
+## 2026-10-06: 6661 functions match
+
+```
+matched 6661 of 11318 game functions (725450 of 2784283 bytes, 26.06%)
+```
+
+6661 new matches, none lost:
+- Codex lane D round 26: 0x5d5a0, 0x687b0, 0x68e20, 0x693a0, 0x82b30 and 0x843f0.
+
 ## 2026-10-06: 6655 functions match
 
 ```
