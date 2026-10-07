@@ -1949,3 +1949,237 @@ void function_680f0(void)
 done:
  return;
 }
+
+
+struct s_a0c4_object;
+extern s_a0c4_object *g_4d87e8;
+void simulation_watcher_reset(s_simulation_world_owner *watcher);
+void function_83000(s_simulation_world_owner *watcher);
+void function_195a40(void);
+
+// @retail 0x67ee0
+void function_67ee0(void)
+{
+ if (!g_4ed39c)
+ {
+  g_4cf771 = false;
+  g_4cf772 = false;
+  long mode = g_4e6948->mode;
+  s_simulation_distribution *distribution = 0;
+  if (mode >= 4 && mode <= 5)
+   distribution = (s_simulation_distribution *)g_4d87e8;
+  function_68c00((s_simulation_world_owner *)g_4cf780, (void *)g_4cf784,
+   distribution, (c_class_6a600 *)g_4cf77c);
+  s_simulation_world_owner *watcher = (s_simulation_world_owner *)g_4cf780;
+  watcher->world = (c_class_6a600 *)g_4cf77c;
+  watcher->session = 0;
+  *(long *)watcher->unknown08 = 0;
+  simulation_watcher_reset(watcher);
+  function_83000((s_simulation_world_owner *)g_4cf780);
+  function_195a40();
+  g_4cf778 = true;
+ }
+}
+
+
+struct s_player_object_motion
+{
+ long object_index;
+ point3f position;
+ vector3f forward;
+ vector3f up;
+ vector3f linear;
+ vector3f angular;
+};
+struct s_z_transform_state;
+bool function_ab9f0(const s_z_transform_state *state);
+void function_82980(s_player_object_motion *motion, long player_index);
+bool __stdcall function_84990(s_simulation_controller *controller, s_player_action *output);
+bool __stdcall function_8b660(s_simulation_world_actor *actor, long *index, s_unit_state_c6ef0 *state);
+c_simulation_view *function_6ad40(c_class_6a600 *world, const s_machine_address *address);
+
+struct s_simulation_input_69110
+{
+ dword unknown00[2];
+ dword player_mask;
+ s_player_action player_actions[16];
+ dword actor_mask;
+ long actor_indices[16];
+ dword actor_states[16][0x1f];
+};
+
+// @retail 0x69110
+void __stdcall function_69110(c_class_6a600 *world, s_simulation_input_69110 *input)
+{
+ input->player_mask = 0;
+ input->actor_mask = 0;
+ for (long i = 0; i < 16; i++)
+ {
+  s_simulation_world_player *player = &world->players[i];
+  if (player->player_index != NONE &&
+   function_84990((s_simulation_controller *)player, &input->player_actions[i]))
+   input->player_mask |= 1 << i;
+ }
+ for (long j = 0; j < 16; j++)
+ {
+  s_simulation_world_player *player = &world->players[j];
+  if (player->player_index != NONE && player->unknown08 == 4)
+  {
+   c_simulation_view *view = function_6ad40((c_class_6a600 *)player->unknown20,
+    (const s_machine_address *)player->unknown18);
+   if (view)
+   {
+    c_vtable_450c94 *source = (c_vtable_450c94 *)((byte *)view->data + 0x5098);
+    if (source)
+    {
+     dword bit = 1 << player->player_index;
+     if (source->mask71c & bit)
+     {
+      s_player_object_motion motion;
+      memcpy(&motion, &source->data720[player->player_index], sizeof(motion));
+      source->mask71c &= ~bit;
+      bool (*validate)(const s_z_transform_state *) = function_ab9f0;
+      if (validate((const s_z_transform_state *)&motion))
+       function_82980(&motion, player->unknown04);
+     }
+    }
+   }
+  }
+ }
+ for (long k = 0; k < 16; k++)
+ {
+  s_simulation_world_actor *actor = &world->actors[k];
+  if (actor->actor_index != NONE &&
+   function_8b660(actor, &input->actor_indices[k], (s_unit_state_c6ef0 *)input->actor_states[k]))
+   input->actor_mask |= 1 << k;
+ }
+}
+
+void __stdcall function_83610(s_simulation_world_owner *watcher, long *count, s_simulation_player_update *updates);
+
+// @retail 0x69260
+void function_69260(c_class_6a600 *world, s_simulation_block_data *block)
+{
+	byte *data = (byte *)block;
+	if (world->state != 3)
+	{
+		block->size = world->unknown28;
+		*(long *)(data + 0x4040) = g_510c54->game_time;
+		bool *valid = (bool *)(data + 0xdd0);
+		s_simulation_watcher_state *state = (s_simulation_watcher_state *)(data + 0xdd4);
+		*(dword *)(data + 0x4044) = g_4e7408->unknown0;
+		function_68350(state, valid);
+		function_83610((s_simulation_world_owner *)g_4cf780, (long *)(data + 0xe38), (s_simulation_player_update *)(data + 0xe3c));
+		bool active = function_68250();
+		*(bool *)(data + 4) = active;
+		if (active)
+		{
+			function_69110(world, (s_simulation_input_69110 *)block);
+			if (world->state != 3 && world->state != 5 && world->flag2e)
+			{
+				*(bool *)(data + 0x403c) = true;
+				world->flag2e = false;
+			}
+		}
+	}
+	else
+		function_6ac30(world, block);
+}
+
+// @retail 0x682e0
+void function_682e0(s_simulation_block_data *block)
+{
+	memset(block, 0, sizeof(*block));
+	function_69260(SIMULATION_WORLD, block);
+	c_class_6a600 *world = SIMULATION_WORLD;
+	if ((world->state == 3 || world->state == 5) &&
+		!((world->state == 3 || world->state == 5) && world->flag2c))
+	{
+		byte *data = (byte *)block;
+		if (block->size != world->unknown28 || *(long *)(data + 0x4040) != g_510c54->game_time ||
+			*(dword *)(data + 0x4044) != g_4e7408->unknown0)
+			world->flag2c = true;
+	}
+}
+
+struct s_object;
+struct s_simulation_player_identity;
+s_object *function_badc0(long object_index, dword type_mask);
+void function_c6de0(long object_index, void *control);
+void function_14c630(dword valid_mask, const s_machine_address *addresses);
+bool function_84f30(const s_simulation_player_identity *identity);
+bool function_84fb0(const s_simulation_player_update *update);
+bool simulation_player_remove_if_left(const s_simulation_player_identity *identity);
+bool __stdcall function_85140(const s_simulation_player_update *update);
+bool __stdcall function_854c0(const s_simulation_player_update *update);
+
+// @retail 0x683a0
+void __stdcall function_683a0(byte *block)
+{
+	s_simulation_input_69110 *input = (s_simulation_input_69110 *)block;
+	for (long i = 0; i < 16; i++)
+	{
+		if (input->actor_mask & (1 << i))
+		{
+			long index = input->actor_indices[i];
+			if (function_badc0(index, 3))
+				function_c6de0(index, input->actor_states[i]);
+		}
+	}
+	if (*(bool *)(block + 0xdd0))
+		function_14c630(*(dword *)(block + 0xdd4), (const s_machine_address *)(block + 0xdd8));
+	long count = *(long *)(block + 0xe38);
+	s_simulation_player_update *update = (s_simulation_player_update *)(block + 0xe3c);
+	for (long j = 0; j < count; j++, update++)
+	{
+		bool result;
+		switch (update->type)
+		{
+		case 0:
+			result = function_84f30((const s_simulation_player_identity *)update);
+			break;
+		case 1:
+			result = function_84fb0(update);
+			break;
+		case 2:
+			result = simulation_player_remove_if_left((const s_simulation_player_identity *)update);
+			break;
+		case 3:
+			result = function_85140(update);
+			break;
+		case 4:
+			result = function_854c0(update);
+			break;
+		default:
+			result = false;
+			break;
+		}
+		if (!result)
+		{
+			g_4cf771 = true;
+			break;
+		}
+	}
+	if (*(bool *)(block + 0x403c) &&
+		(SIMULATION_WORLD->state == 3 || SIMULATION_WORLD->state == 5))
+	{
+		for (long k = 0; k < 4; k++)
+			g_46e320[k](0);
+		g_46e320[4](0);
+	}
+}
+
+bool simulation_watcher_changed(s_simulation_world_owner *watcher);
+
+// @retail 0x681e0
+void function_681e0(void)
+{
+	s_simulation_block_data block;
+	if (g_4cf770 && g_4e6948 && g_4e6948->flag1120 && !g_4cf772 &&
+		simulation_watcher_changed((s_simulation_world_owner *)g_4cf780))
+	{
+		function_682e0(&block);
+		function_683a0((byte *)&block);
+		function_684e0((byte *)&block);
+	}
+}
