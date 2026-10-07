@@ -26,10 +26,11 @@ declared in the source; see [Existing declarations](#existing-declarations).
   have source and are excluded.
 - No row of the Active claims table (issue #9) covers the range, so it is open.
   This document makes no claim. @BrassMonkey71 has since matched `0xe5670`
-  (#115) and `0xe5240` (#119). Besides the bipeds and the unit actions, the
-  callers include lane Q's `0x1515e0` and `0x150400`, lane AB's `0xbf600` and
-  the vehicle update `0xefde0`.
-- Apart from `0xe5670` and `0xe5240`, no entry has an `@retail` marker.
+  (#115), `0xe5240` (#119) and `0xe58e0` (#125). Besides the bipeds and the
+  unit actions, the callers include lane Q's `0x1515e0` and `0x150400`, lane
+  AB's `0xbf600` and the vehicle update `0xefde0`.
+- Apart from `0xe5670`, `0xe5240` and `0xe58e0`, no entry has an `@retail`
+  marker.
 
 ## Conventions
 
