@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6617 functions match
+
+```
+matched 6617 of 11318 game functions (715693 of 2784283 bytes, 25.70%)
+```
+
+6617 new matches, none lost:
+- Codex lane R rounds 5 and 6: 16 effects and decals functions (0x1730a0 to 0x17d900), plus lane K's 0x22a060 through its callee 0x177260; also fixes the inverted colour-query test in 0x17b5d0 that @coldspear found.
+
 ## 2026-10-06: 6600 functions match
 
 ```

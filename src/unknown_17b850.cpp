@@ -227,29 +227,62 @@ void function_17b8a0(void)
 	g_4ea944->valid = false;
 }
 
+PRIVATE __forceinline long data_scan_17b8c0(s_record_pool *data, long index)
+{
+	if (index >= 0)
+	{
+		long count = data->high_water_index;
+		if (index < count)
+		{
+			dword const *bits = data->bitmap;
+			do
+			{
+				if (bits[index >> 5] & (1 << (index & 31)))
+					return index;
+				++index;
+			} while (index < count);
+		}
+	}
+	return NONE;
+}
+
+PRIVATE __forceinline s_contrail_datum *data_step_17b8c0(s_record_pool_iterator *iterator)
+{
+	s_record_pool *data = iterator->data;
+	long index = data_scan_17b8c0(data, iterator->index + 1);
+	if (index == NONE)
+		return 0;
+	s_contrail_datum *result = (s_contrail_datum *)(data->data + data->size * index);
+	iterator->index = index;
+	iterator->datum_index = (result->salt << 16) | index;
+	return result;
+}
+
 // @retail 0x17b8c0
 void contrails_delete_all(void)
 {
-	s_record_pool *array = g_4ea944;
-	long index = NONE;
+	struct
+	{
+		s_contrail_datum *current;
+		s_record_pool_iterator cursor;
+	} iterator;
+	iterator.cursor.data = g_4ea944;
+	iterator.cursor.index = NONE;
 
 	for (;;)
 	{
-		index = data_next_absolute_index_inlined(array, index + 1);
-		if (index == NONE)
+		iterator.current = data_step_17b8c0(&iterator.cursor);
+		if (!iterator.current)
 			break;
 
-		s_contrail_datum *contrail = (s_contrail_datum *)(array->data + array->size * index);
-		long contrail_index = (contrail->salt << 16) | index;
-
-		if (contrail->object_index != NONE)
+		if (iterator.current->object_index != NONE)
 		{
-			function_17c880(contrail_index);
+			function_17c880(iterator.cursor.datum_index);
 		}
 		else
 		{
-			function_17c880(contrail_index);
-			record_pool_release(array, contrail_index);
+			function_17c880(iterator.cursor.datum_index);
+			record_pool_release(iterator.cursor.data, iterator.cursor.datum_index);
 		}
 	}
 }
@@ -439,9 +472,13 @@ void function_17bc40(real dt)
 	}
 }
 
+__declspec(noinline) real function_17bef0(dword flags, real lower, real scale, real upper, byte bit);
+
 // @retail 0x17bef0
 real function_17bef0(dword flags, real lower, real scale, real upper, byte bit)
 {
+	byte const *bit_argument = &bit;
+	bit = *bit_argument;
 	real base = lower;
 
 	if (flags & (1 << bit))
@@ -449,7 +486,7 @@ real function_17bef0(dword flags, real lower, real scale, real upper, byte bit)
 
 	real range = upper - lower;
 
-	if (flags & (1 << (bit + 1)))
+	if (flags & (1 << (byte)(bit + 1)))
 		range = range * scale;
 	return base + range * ((real)_random(&g_4e7408->seed, __FILE__, __LINE__) * (1.f / 65535.f));
 }
@@ -498,17 +535,19 @@ short function_17c040(long contrail_index, real dt)
 
 	real interval = 1.0f / rate;
 
-	if (dt != 0.0f)
+	while (dt != 0.0f)
 	{
-		while (dt >= contrail->point_delay)
+		if (dt >= contrail->point_delay)
 		{
 			dt -= contrail->point_delay;
 			count++;
 			contrail->point_delay = interval;
-			if (dt == 0.0f)
-				return count;
 		}
-		contrail->point_delay -= dt;
+		else
+		{
+			contrail->point_delay -= dt;
+			break;
+		}
 	}
 	return count;
 }
