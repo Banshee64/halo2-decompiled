@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-06: 6600 functions match
+
+```
+matched 6600 of 11318 game functions (713625 of 2784283 bytes, 25.63%)
+```
+
+6600 new matches, none lost:
+- Codex lane B round 10: 0x1b3f60 and 0x1bbc00.
+
 ## 2026-10-06: 6598 functions match
 
 ```
