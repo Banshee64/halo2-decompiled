@@ -242,7 +242,7 @@ bool sound_effect_get_definition(long tag_index, long platform_playback, s_sound
 void sound_effect_attach(long effect_index, s_sound_play_state *state)
 {
 	s_sound_effect *effect = sound_effect_get(effect_index);
-
+	volatile long *local_0 = &state->effect_marker.link.effect_index;
 	state->source_data_size = sizeof(s_sound_effect_marker);
 	if (state->flags & 0x20)
 	{
@@ -253,10 +253,9 @@ void sound_effect_attach(long effect_index, s_sound_play_state *state)
 		effect->flags |= FLAG(_sound_effect_unmanaged_bit);
 		state->effect_marker.link.source = NULL;
 	}
-	state->effect_marker.link.effect_index = effect_index;
+	*local_0 = effect_index;
 	state->source = &g_44a1c0;
 	state->flags |= 0x20;
-
 	if (state->flags & 0x10)
 	{
 		effect->record_index = looping_sound_controller_find_and_reference(state->effect_index);
@@ -264,7 +263,6 @@ void sound_effect_attach(long effect_index, s_sound_play_state *state)
 	else
 	{
 		long key = effect_index | 0x4000;
-
 		effect->record_index = function_219a90(key);
 		if (effect->record_index != NONE)
 		{
@@ -488,12 +486,13 @@ bool __stdcall sound_effect_only_update(long object_index, long tag_index, s_sou
 {
 	long effect_index = sound_effect_marker(marker)->link.effect_index;
 	s_sound_effect *effect = (s_sound_effect *)datum_get_inlined(function_x39bdd5(), effect_index);
-
 	if (effect && !TEST_FIELD_BIT(effect->flag0))
 	{
+		volatile bool local_0 = true;
 		if (!TEST_FIELD_BIT(effect->flag4))
 		{
 			sound_effect_update_location(effect_index, location);
+			return local_0;
 		}
 		return true;
 	}
@@ -503,7 +502,8 @@ bool __stdcall sound_effect_only_update(long object_index, long tag_index, s_sou
 // @retail 0x21d9f0
 bool __stdcall sound_effect_source_update(long object_index, long tag_index, s_sound_marker const *marker, s_type_99c531 *location)
 {
-	long effect_index = sound_effect_marker(marker)->link.effect_index;
+	long const volatile *local_0 = &sound_effect_marker(marker)->link.effect_index;
+	long effect_index = *local_0;
 	bool result = !TEST_BIT(sound_effect_get(effect_index)->flags, _sound_effect_stopped_bit);
 
 	if (result)

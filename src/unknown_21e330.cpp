@@ -513,13 +513,13 @@ void function_21f960(dword size, dword const *buffer)
 		{
 			if (!(EFFECT_DATA(i)->flags & 2))
 			{
-				s_bit_iterator iterator;
+				struct { s_bit_iterator field_0; dword field_8; dword field_c; } local_2;
 
-				iterator.mask = EFFECT_DATA(i)->effect_mask;
-				iterator.index = NONE;
-				while (bit_iterator_next(&iterator))
+				local_2.field_0.mask = EFFECT_DATA(i)->effect_mask;
+				local_2.field_0.index = NONE;
+				while (bit_iterator_next(&local_2.field_0))
 				{
-					long effect_index = iterator.index;
+					long effect_index = local_2.field_0.index;
 
 					if (EFFECT_DATA(i)->flags & 1)
 					{
@@ -527,14 +527,15 @@ void function_21f960(dword size, dword const *buffer)
 					}
 					else
 					{
+						local_2.field_8 = EFFECT_DATA(i)->size;
+						local_2.field_c = EFFECT_DATA(i)->offset;
 						LPDSEFFECTIMAGEDESC description = g_510c90->description;
-						DSEFFECTMAP *map = &description->aEffectMaps[effect_index];
 
-						if ((dword)(EFFECT_DATA(i)->offset + EFFECT_DATA(i)->size) <= map->dwStateSize * 4 &&
-							memcmp(EFFECT_DATA(i)->data, (byte *)map->lpvStateSegment + EFFECT_DATA(i)->offset, EFFECT_DATA(i)->size) != 0)
+						if ((dword)(local_2.field_c + local_2.field_8) <= description->aEffectMaps[effect_index].dwStateSize * 4 &&
+							memcmp(EFFECT_DATA(i)->data, (byte *)description->aEffectMaps[effect_index].lpvStateSegment + local_2.field_c, local_2.field_8) != 0)
 						{
-							IDirectSound_SetEffectData(SOUND_DRIVER_GLOBALS->direct_sound, effect_index, EFFECT_DATA(i)->offset,
-								EFFECT_DATA(i)->data, EFFECT_DATA(i)->size, DSFX_IMMEDIATE);
+							IDirectSound_SetEffectData(SOUND_DRIVER_GLOBALS->direct_sound, effect_index, local_2.field_c,
+								EFFECT_DATA(i)->data, local_2.field_8, DSFX_IMMEDIATE);
 						}
 					}
 				}
