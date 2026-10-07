@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6963 functions match
+
+```
+matched 6963 of 11318 game functions (774630 of 2784283 bytes, 27.82%)
+```
+
+6963 new matches, none lost:
+- Merge batch r27: UI-core rounds 14 and 15 (+11), including the score-display group in a new src/unknown_23f260.cpp.
+
+## 2026-10-07: 6952 functions match
+
+```
+matched 6952 of 11318 game functions (772152 of 2784283 bytes, 27.73%)
+```
+
+6952 new matches, none lost:
+- Merge batch r26: lane W round 18 (+2) and the second machine's #193 to #195 (+5).
+
+## 2026-10-07: 6945 functions match
+
+```
+matched 6945 of 11318 game functions (771250 of 2784283 bytes, 27.70%)
+```
+
+6945 new matches, none lost:
+- Merge batch r25: the second machine's #180 to #192 (lanes K, Y, O, M, F, L, P and C; +33).
+
 ## 2026-10-07: 6912 functions match
 
 ```

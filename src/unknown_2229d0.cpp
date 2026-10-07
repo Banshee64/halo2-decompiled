@@ -145,7 +145,7 @@ void function_222a60(void)
 void rumble_clear_all(void)
 {
 	s_speed_table *data = g_502120;
-	short gamepad_index;
+	long gamepad_index;
 
 	memset(data, 0, sizeof(*data));
 	for (long i = 0; i < 4; i++)
@@ -245,18 +245,21 @@ s_rumble_state rumble_player_evaluate(
 void function_222a70(
 	real seconds)
 {
-	bool updated[4] = {false, false, false, false};
-	short gamepad_index;
+	bool updated[4];
+	memset(updated, 0, sizeof(updated));
+	long gamepad_index;
 
 	if (!g_509340 && !simulation_world_is_remote())
 	{
 		long i;
+		s_speed_table_entry *local_0 = g_502120->entries;
+		long const *local_1 = g_4e8c20->entries;
 
-		for (i = 0; i < 4; i++)
+		for (i = 0; i < 4; i++, local_0++, local_1++)
 		{
-			s_speed_table_entry *entry = &g_502120->entries[i];
+			s_speed_table_entry *entry = local_0;
 			s_rumble_state state = rumble_player_evaluate(entry);
-			long player_index = i != NONE ? g_4e8c20->entries[i] : NONE;
+			long player_index = i != NONE ? *local_1 : NONE;
 			long j;
 
 			for (j = 0; j < 8; j++)

@@ -1154,15 +1154,13 @@ bool s_animation_state::update(animation_event_callback callback, long user, lon
 	c_animation_channel *channel = channels;
 	long i;
 
-	for (i = 0; i < 3; i++, channel++)
+	for (i = 0; result; i++, channel++)
 	{
+		if (i >= 3)
+			break;
 		if (channel_valid(channel))
 		{
 			result &= channel_update(channel, callback, user);
-		}
-		if (!result)
-		{
-			break;
 		}
 	}
 	if (channel_valid(&channels[2]) && (channels[2].unknown11 & 0xa))
