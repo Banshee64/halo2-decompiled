@@ -465,6 +465,7 @@ void function_12e0c0(void)
 void function_12e150(long tag_index)
 {
 	D3DDevice_KickPushBuffer();
+	D3DDevice_IsBusy();
 	if (g_4e648c && g_4e648c->valid)
 	{
 		s_record_pool_iterator iterator;
