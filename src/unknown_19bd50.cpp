@@ -171,10 +171,10 @@ bool __stdcall function_19bfd0(s_content_item *item)
 {
 	s_type_acf665 file;
 	s_map_package package;
-	bool result = false;
 	package.flags = 0;
 	function_136710(&file, true, item->directory);
-	if (file.flags & 1)
+	bool result = false;
+	if ((byte)file.flags & 1)
 		function_1373c0(file.path);
 	function_137320(file.path, "patch.lvl");
 	*(byte *)&file.flags |= 1;
@@ -183,9 +183,9 @@ bool __stdcall function_19bfd0(s_content_item *item)
 		dword error;
 		if (function_136970(&file, 1, &error))
 		{
-			result = function_136ca0(&file, &package, 0x2d3fc, false);
+			bool read = function_136ca0(&file, &package, 0x2d3fc, false);
 			function_136bb0(&file);
-			if (result)
+			if (read)
 				return function_19be00(item, &package);
 		}
 	}
