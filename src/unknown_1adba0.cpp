@@ -6,6 +6,8 @@
 #include "slot_handler.h"
 #include "unknown_26e370.h"
 #include "ai_actor.h"
+#include "unknown_1f9240.h"
+#include <string.h>
 
 /* the state of a slot of type 0x47 (a joint behavior) */
 struct s_slot_47
@@ -389,3 +391,226 @@ s_slot_handler_0 g_47ddd0 =
 {
 	0x31, 0, 0, -2, 0, function_1ae3b0
 };
+
+struct s_1ae680
+{
+	byte field_0[0x7c8];
+	long field_7c8;
+};
+
+struct s_1ae681
+{
+	byte field_0[6];
+	short field_6;
+	byte field_8[0x24 - 8];
+	real field_24;
+	real field_28;
+};
+
+bool g_4f55e5;
+real function_259a0(dword *arg_0);
+real function_1c9ee0(real arg_0);
+void __stdcall function_26c2d0(long arg_0);
+bool function_255b10(long arg_0, s_type_c3b527 const *arg_1, long arg_2, bool arg_3);
+
+// @retail 0x1ae680
+short __stdcall function_1ae680(long arg_0, s_slot *arg_1)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	if (local_0->prop_index != NONE && !local_0->unknown225)
+	{
+		s_prop_node_view *local_1 = prop_node_get(local_0->prop_index);
+		if (local_1->unknown24 >= 1 && local_1->unknown24 <= 2 &&
+			prop_node_state(local_1)->unknown3c == NONE && !function_110ab0(local_0->unknown018))
+		{
+			s_1ae681 *local_2 = (s_1ae681 *)function_1e5380(arg_0);
+			if (g_4f55d0->unknown340 && local_2 && local_2->field_6 != NONE)
+			{
+				long local_3 = g_510c54->game_time;
+				real local_4 = function_1e9700(0x18) * local_2->field_28;
+				long local_5 = ((s_1ae680 *)local_0)->field_7c8;
+				if (local_5 == NONE || (g_4e6948->state == 1 && g_4f55e5) ||
+					(real)(local_3 - local_5) * g_510c54->rate >= local_4)
+				{
+					real local_6 = function_1c9ee0(function_1e9700(0x17) * local_2->field_24);
+					if (g_4e6948->state == 1 && g_4f55e5)
+						local_6 = 0.5f;
+					if (local_6 > function_259a0(&g_4e7408->unknown0) && local_0->unknown07c != NONE)
+					{
+						function_26c2d0(local_0->prop_index);
+						function_255b10(arg_0, &prop_node_state(local_1)->unknown48, local_0->prop_index, true);
+					}
+				}
+			}
+		}
+	}
+	return g_46fbe4;
+}
+
+struct s_1ae440
+{
+	byte field_0[0x1c];
+	vector3f field_1c;
+	byte field_28[0x48 - 0x28];
+	s_type_c3b527 field_48;
+};
+
+struct s_1ae441
+{
+	byte field_0[0x30];
+	real field_30;
+};
+
+// @retail 0x1ae440
+short __stdcall function_1ae440(long arg_0, s_slot *arg_1)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	if (local_0->prop_index != NONE && !function_110ab0(local_0->unknown018) && g_4f55d0->unknown340)
+	{
+		s_prop_node_view *local_1 = prop_node_get(local_0->prop_index);
+		s_prop_state_view *local_2 = prop_node_state(local_1);
+		if (local_1->unknown24 >= 1 && local_1->unknown24 <= 2 && local_2->unknown3c != NONE)
+		{
+			s_1ae681 *local_3 = (s_1ae681 *)function_1e5380(arg_0);
+			if (local_3 && local_3->field_6 != NONE)
+			{
+				real local_4 = function_1e9700(0x18) * local_3->field_28;
+				long local_5 = ((s_1ae680 *)local_0)->field_7c8;
+				if (local_5 == NONE || (g_4e6948->state == 1 && g_4f55e5) || (real)(g_510c54->game_time - local_5) * g_510c54->rate >= local_4)
+				{
+					real local_6 = function_1c9ee0(((s_1ae441 *)local_3)->field_30) * function_1e9700(0x17);
+					if (g_4e6948->state == 1 && g_4f55e5)
+						local_6 = 1.0f;
+					if (local_6 > function_259a0(&g_4e7408->unknown0) && local_0->unknown07c != NONE)
+					{
+						function_26c2d0(local_0->prop_index);
+						s_1ae440 *local_7 = (s_1ae440 *)local_2;
+						vector3f local_8;
+						function_210770(local_7->field_48.output_index, &local_7->field_1c, &local_8);
+						s_type_c3b527 local_9 = local_7->field_48;
+						local_9.point.x += local_8.i * 1.5f;
+						local_9.point.y += local_8.j * 1.5f;
+						local_9.point.z += local_8.k * 1.5f;
+						if (function_255b10(arg_0, &local_9, local_0->prop_index, false))
+							function_1fb7e0(arg_0, 0x1c, NULL, local_1->object_index, NONE);
+					}
+				}
+			}
+		}
+	}
+	return g_46fbe4;
+}
+
+
+struct s_1adff0
+{
+	short field_0;
+	short field_2;
+	short field_4;
+	bool field_6;
+	byte field_7;
+	s_type_c3b527 field_8;
+};
+
+struct s_1adff1
+{
+	byte field_0[4];
+	real field_4;
+};
+
+struct s_1adff2
+{
+	byte field_0[0x54];
+	bool field_54;
+	byte field_55[3];
+	s_type_c3b527 field_58;
+	long field_68;
+	real field_6c;
+};
+
+short __stdcall function_1afde0(long arg_0);
+bool function_270640(s_type_f17a25 *arg_0, s_type_c3b527 const *arg_1,
+	long arg_2, bool *arg_3, s_type_c3b527 *arg_4);
+bool function_2715a0(byte *arg_0);
+bool function_114b60(short arg_0, short arg_1, long arg_2, long arg_3, void const *arg_4);
+
+// @retail 0x1adff0
+short __stdcall function_1adff0(long arg_0, short arg_1, bool arg_2)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	short local_1 = g_46fbe4;
+	s_1adff0 *local_2 = (s_1adff0 *)((byte *)local_0 + 0x9c + arg_1 * 0x40);
+	local_0->unknown449 = true;
+	if (local_2->field_0 > 0)
+		local_2->field_0--;
+	if (local_2->field_2 > 0)
+		local_2->field_2--;
+	if (local_0->unknown040 && local_0->unknown344 != NONE)
+	{
+		s_1adff1 *local_3 = (s_1adff1 *)function_1e4a50(local_0->unknown054);
+		s_prop_node_view *local_4 = prop_node_get(local_0->unknown344);
+		s_prop_state_view *local_5 = prop_node_state(local_4);
+		local_2->field_6 = false;
+		if (local_4->unknown24 >= 1)
+			function_26c2d0(local_0->unknown344);
+		s_path_settings local_6;
+		function_1f9240(arg_0, &local_6);
+		long local_7 = local_5->unknown3c == NONE ? local_4->object_index : local_5->unknown3c;
+		s_path_source local_8;
+		memset(&local_8, 0, sizeof(local_8));
+		local_8.radius = local_3->field_4;
+		local_8.unknown04 = false;
+		local_8.object_index = local_7;
+		local_8.unknown0c = local_0->unknown018;
+		local_8.has_point = true;
+		*(s_type_c3b527 *)&local_8.point = local_5->unknown48;
+		local_8.unknown24 = *(long *)((byte *)local_5 + 0x44);
+		local_8.unknown4c = 0.0f;
+		byte *local_9 = ai_scratch_buffer_get();
+		function_271300((s_type_f17a25 *)local_9, NULL, &local_6, &local_8, 0);
+		function_26c180(arg_0);
+		s_1adff2 *local_10 = (s_1adff2 *)local_9;
+		local_10->field_54 = true;
+		local_10->field_58 = local_0->unknown27c.point;
+		local_10->field_68 = local_0->unknown27c.unknown10;
+		local_10->field_6c = 0.0f;
+		if (function_2715a0(local_9))
+		{
+			bool local_11;
+			local_2->field_6 = function_270640((s_type_f17a25 *)local_9,
+				&local_0->unknown27c.point, local_0->unknown27c.unknown10,
+				&local_11, &local_2->field_8);
+		}
+		ai_scratch_buffer_release(local_9);
+	}
+	if (local_2->field_6)
+	{
+		point3f local_12;
+		function_210850(&local_2->field_8, &local_12);
+		local_0->unknown41c = 3;
+		local_0->unknown420 = 3;
+		local_0->unknown424.point = local_12;
+	}
+	if (function_1afde0(arg_0) >= 3 && slot_type_enabled(0x3a))
+		local_1 = 0x3a;
+	else if (local_2->field_0 == 0)
+		local_1 = function_1a79e0(arg_0, arg_1, arg_2);
+	if (local_1 == g_46fbe4)
+	{
+		long local_13 = local_0->unknown018;
+		byte *local_14 = (byte *)ai_object_get(local_13);
+		short local_15 = *(short *)(local_14 + 0x342);
+		if (*(short *)(local_14 + local_15 + 0xc) > 0)
+			return 2;
+		if (local_2->field_4 > 0)
+		{
+			local_2->field_4--;
+			return 2;
+		}
+		function_114b60(NONE, 0xd, local_13, 0xd, NULL);
+		real local_16 = (AI_RANDOM_REAL() + 2.0f) * g_510c54->field_2_3;
+		local_2->field_4 = (short)real_to_long(local_16);
+		local_1 = 2;
+	}
+	return local_1;
+}
