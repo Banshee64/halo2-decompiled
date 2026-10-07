@@ -562,3 +562,91 @@ void function_3f660(transform4x3f const *matrix)
     if (restore)
         function_146b80();
 }
+
+struct s_28580_view
+{
+    byte field_00[0x44];
+    real previous_time;
+    byte field_48[0x20];
+    point2f direction;
+    point2f target_direction;
+    real speed;
+    real target_speed;
+    real changed_time;
+    real duration;
+};
+
+struct s_28580_definition
+{
+    byte field_00[0x2c];
+    real speed_low, speed_high;
+    real duration_low, duration_high;
+    real blend;
+    real turn;
+};
+
+long g_4b9a00;
+s_28580_view g_4b9a04[5];
+
+// @retail 0x28580
+void function_28580(long tag, real time, vector3f *out)
+{
+    s_28580_definition const *definition =
+        (s_28580_definition const *)g_4e3b44[tag & 0xffff].data;
+    s_28580_view *state = &g_4b9a04[g_4b9a00];
+    real delta = time - state->previous_time;
+    state->previous_time = time;
+    if (definition->speed_high > 0.0f)
+    {
+        real blend = definition->blend;
+        state->direction.x *= 1.0f - blend;
+        state->direction.y *= 1.0f - blend;
+        state->direction.x += state->target_direction.x * blend;
+        state->direction.y += state->target_direction.y * blend;
+        real magnitude = (real)sqrt(state->direction.x * state->direction.x +
+            state->direction.y * state->direction.y);
+        if (!(fabs(magnitude) < k_real_epsilon))
+        {
+            real inverse = 1.0f / magnitude;
+            state->direction.x *= inverse;
+            state->direction.y *= inverse;
+        }
+        else magnitude = 0.0f;
+        if (magnitude == 0.0f)
+        {
+            state->direction.x = 1.0f;
+            state->direction.y = 0.0f;
+        }
+        state->speed = (1.0f - definition->blend) * state->speed +
+            definition->blend * state->target_speed;
+        if (time - state->changed_time >= state->duration)
+        {
+            g_4e7408->seed = g_4e7408->seed * 1664525 + 1013904223;
+            double fraction = (double)(g_4e7408->seed >> 16) * (1.0f / 65535.0f);
+            real turn = (real)pow(fraction, 1.0 - definition->turn);
+            g_4e7408->seed = g_4e7408->seed * 1664525 + 1013904223;
+            real sign = (g_4e7408->seed & 0x80000000) ? -1.0f : 1.0f;
+            real cross_x = 0.0f - state->direction.y;
+            real cross_y = state->direction.x;
+            state->target_direction.x = (1.0f - turn) * state->direction.x + sign * turn * cross_x;
+            state->target_direction.y = (1.0f - turn) * state->direction.y + sign * turn * cross_y;
+            if (normalize2d(&state->target_direction) == 0.0f)
+            {
+                state->target_direction.x = 1.0f;
+                state->target_direction.y = 0.0f;
+            }
+            g_4e7408->seed = g_4e7408->seed * 1664525 + 1013904223;
+            double speed_fraction = (double)(g_4e7408->seed >> 16) * (1.0f / 65535.0f);
+            state->changed_time = time;
+            state->target_speed = (real)(definition->speed_low +
+                (definition->speed_high - definition->speed_low) * speed_fraction);
+            g_4e7408->seed = g_4e7408->seed * 1664525 + 1013904223;
+            double duration_fraction = (double)(g_4e7408->seed >> 16) * (1.0f / 65535.0f);
+            state->duration = (real)(definition->duration_low +
+                (definition->duration_high - definition->duration_low) * duration_fraction);
+        }
+    }
+    out->i = state->direction.x * state->speed * delta;
+    out->j = state->direction.y * state->speed * delta;
+    out->k = 0.0f;
+}
