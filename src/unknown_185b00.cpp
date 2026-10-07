@@ -400,8 +400,8 @@ long function_187450(long player_index)
 {
 	s_player_control_entry *entry = &player_control_globals()->entries[player_index];
 	__assume(entry != NULL);
-	long datum_index = entry->aim.player_index;
 	long result = NONE;
+	long datum_index = entry->aim.player_index;
 
 	if (datum_index != NONE)
 	{

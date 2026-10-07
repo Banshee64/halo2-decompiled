@@ -278,13 +278,16 @@ void __stdcall function_68090(dword flags)
 	}
 }
 
+static __forceinline void function_123b01(byte *arg_0)
+{
+	XPhysicalProtect(arg_0, 0x3be000, PAGE_READWRITE);
+	XPhysicalProtect(arg_0 + 0x3be000, 0x40000, PAGE_READWRITE | PAGE_WRITECOMBINE);
+}
+
 // @retail 0x123b00
 void __stdcall function_123b00(dword flags)
 {
-	byte *base = game_state_globals.base_address;
-
-	XPhysicalProtect(base, 0x3be000, PAGE_READWRITE);
-	XPhysicalProtect(base + 0x3be000, 0x40000, PAGE_READWRITE | PAGE_WRITECOMBINE);
+	function_123b01(game_state_globals.base_address);
 }
 
 // @retail 0x124620
