@@ -4237,3 +4237,56 @@ long function_e5980(long arg_159e6d_3)
 
 	return TEST_FIELD_BIT(definition->flag4) ? 2 : 1;
 }
+
+PRIVATE inline void transform_vector_e59e0(transform4x3f const *matrix, vector3f *vector)
+{
+	real x = vector->i;
+	real y = vector->j;
+	real z = vector->k;
+	if (matrix->scale != 1.0f)
+	{
+		x *= matrix->scale;
+		y *= matrix->scale;
+		z *= matrix->scale;
+	}
+	vector->i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+	vector->j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+	vector->k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
+}
+
+PRIVATE inline void transform_point_e59e0(transform4x3f const *matrix, point3f *point)
+{
+	real x = point->x;
+	real y = point->y;
+	real z = point->z;
+	if (matrix->scale != 1.0f)
+	{
+		x = matrix->scale * x;
+		y = matrix->scale * y;
+		z = matrix->scale * z;
+	}
+	point->x = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x + matrix->position.x;
+	point->y = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x + matrix->position.y;
+	point->z = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x + matrix->position.z;
+}
+
+// @retail 0xe59e0
+void function_e59e0(long arg_159e6d, vector3f *velocity, point3f *position)
+{
+	s_biped *biped = BIPED_GET(arg_159e6d);
+	s_animation_state *state =
+		(s_animation_state *)((byte *)biped + *(short *)((byte *)biped + 0x12a));
+	transform4x3f matrix;
+
+	function_ba160(arg_159e6d, &matrix);
+	if (state->velocity_get((vector3f *)position, velocity))
+	{
+		transform_point_e59e0(&matrix, position);
+		transform_vector_e59e0(&matrix, velocity);
+	}
+	else
+	{
+		*position = matrix.position;
+		*velocity = *g_4687a4;
+	}
+}
