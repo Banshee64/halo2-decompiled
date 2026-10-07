@@ -20,8 +20,10 @@ long sound_filter_frequency_coefficient(real frequency)
 		return 0;
 	}
 
-	frequency = logf(2.0f * sinf(frequency / 48000.0f * 3.14159265f)) * 5909.2788f;
-	return (long)frequency & 0xffff;
+	real local_0 = frequency / 48000.0f;
+	volatile real *local_1 = &frequency;
+	*local_1 = logf(2.0f * sinf(local_0 * 3.14159265f)) * 5909.2788f;
+	return (long)*local_1 & 0xffff;
 }
 
 // @retail 0x21e2d0

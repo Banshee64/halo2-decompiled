@@ -18,13 +18,15 @@ void __stdcall function_12d9f0(long stage)
 	{
 		switch (stage)
 		{
+		case 3:
+		case 5:
+			size = 0x700000;
+			break;
 		case 0:
 		case 1:
 		case 2:
+		case 4:
 			size = (stage > 1) ? 0x680000 : 0x700000;
-			break;
-		case 3:
-			size = 0x700000;
 			break;
 		default:
 			__assume(0);

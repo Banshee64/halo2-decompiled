@@ -14,7 +14,7 @@ static inline __int64 read_tsc(void)
 // @retail 0x223af0
 timing_counter *timing_counter_start(timing_counter *c)
 {
-	c->total = 0;
+	((volatile timing_counter *)c)->total = 0;
 	c->start = read_tsc();
 	c->stopped = false;
 	return c;
