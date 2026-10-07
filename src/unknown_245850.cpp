@@ -28,6 +28,7 @@ struct s_245850
 	short field_06;
 };
 
+#pragma inline_depth(0)
 // @retail 0x245850
 void function_245850(long arg_0, s_source_245400 const *arg_1,
 	transform4x3f const *arg_2, real arg_3, real arg_4,
@@ -66,6 +67,7 @@ void function_245850(long arg_0, s_source_245400 const *arg_1,
 	function_245270(arg_4, local_2, local_1, &local_3, arg_3, arg_5, arg_6, arg_0,
 		local_0->field_04, local_0->field_05, local_0->field_06, arg_7);
 }
+#pragma inline_depth(255)
 
 struct s_245aa0
 {

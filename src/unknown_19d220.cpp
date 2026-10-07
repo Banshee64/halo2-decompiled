@@ -28,8 +28,7 @@ struct s_multiplayer_globals
 /* fills a variant with the defaults of a variant type (0 slayer, 1 oddball,
    2 juggernaut, 3 king of the hill, 4 capture the flag, 5 assault,
    6 territories) */
-// @retail 0x19d220
-s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type)
+__forceinline s_game_variant *variant_defaults_initialize(s_game_variant *variant, long type)
 {
 	s_game_variant result;
 	long engine = 2;
@@ -190,6 +189,14 @@ s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type)
 	return variant;
 }
 
+__declspec(noinline) s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type);
+
+// @retail 0x19d220
+s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type)
+{
+	return variant_defaults_initialize(variant, type);
+}
+
 /* clamps every setting of a variant into its range; a variant that needed
    any change is replaced by the slayer defaults */
 // @retail 0x19d650
@@ -275,7 +282,7 @@ bool function_19d650(s_game_variant *variant)
 	}
 	if (memcmp(&original, variant, sizeof(original)) != 0)
 	{
-		function_19d220(variant, 0);
+		variant_defaults_initialize(variant, 0);
 		return false;
 	}
 	return true;

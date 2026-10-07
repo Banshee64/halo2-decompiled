@@ -8,9 +8,15 @@
 #include <string.h>
 
 #define ARENA (game_state_globals.arena)
-char g_5478bc[0x100];
+struct s_547844
+{
+	dword field_0;
+	byte field_4[0x74];
+	char field_78[0x100];
+};
+
+s_547844 g_547844;
 char g_450698[0x20];
-dword g_547844;
 
 PRIVATE void csstrncpy(char *destination, char const *source, long size)
 {
@@ -38,9 +44,9 @@ void arena_initialize_for_new_map(void)
 	memset(ARENA, 0, 0x1288);
 	ARENA->checksum = game_state_globals.allocation_size_checksum;
 	ARENA->base_address = (long)game_state_globals.base_address;
-	csstrncpy(ARENA->map_name, g_5478bc, sizeof(ARENA->map_name));
+	csstrncpy(ARENA->map_name, g_547844.field_78, sizeof(ARENA->map_name));
 	csstrncpy(ARENA->version, g_450698, sizeof(ARENA->version));
-	ARENA->unknown128 = g_547844;
+	ARENA->unknown128 = g_547844.field_0;
 	memcpy(ARENA->field_130_2, (byte *)g_4e6948 + 8, sizeof(ARENA->field_130_2));
 	game_state_globals.arena_flag = false;
 }
