@@ -955,10 +955,12 @@ void function_25c860(long prop_ref_index)
 // @retail 0x25d610
 bool function_25d610(s_prop_datum *datum)
 {
-	s_prop_type_entry *entry = &g_470f10[datum->type];
-	s_type_76cf92 *prop = prop_get(datum->prop_index);
-	short type = prop->unknown04;
 	bool result = false;
+	s_prop_type_entry *entry = &g_470f10[datum->type];
+	long local_0 = datum->prop_index & 0xffff;
+	s_type_76cf92 *local_1 = (s_type_76cf92 *)((s_record_pool volatile *)g_50241c)->data;
+	short type = local_1[local_0].unknown04;
+	s_type_76cf92 *prop = &local_1[local_0];
 
 	if (type != 1 || (entry->kind && (type != prop->unknown04 || entry->unknown8 >= 2 || prop->unknown25)))
 	{

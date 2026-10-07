@@ -66,7 +66,10 @@ s_slot_handler_2 g_47f790 =
 // @retail 0x2551c0
 short __stdcall function_2551c0(long actor_index)
 {
-	return (actor_get(actor_index)->unknown018 == NONE) ? 0 : 3;
+	short local_0 = 0;
+	s_actor_view *local_1 = actor_get(actor_index);
+	local_0 = local_1->unknown018 == NONE ? local_0 : 3;
+	return local_0;
 }
 
 // @retail 0x2551f0
