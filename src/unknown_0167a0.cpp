@@ -1048,3 +1048,85 @@ void __stdcall function_18ee0(byte *state)
     if (second_constant)
         D3DDevice_SetRenderState(D3DRS_PSFINALCOMBINERCONSTANT1, *(dword *)(state + 0x14d4));
 }
+
+// @retail 0x17420
+void function_17420(byte *state, long stage, long group, long pass, long variant)
+{
+    byte const *definition = *(byte **)(state + 0xc);
+    if (stage < *(long *)(definition + 0x1c))
+    {
+        byte const *stage_entry = *(byte **)(definition + 0x20) + stage * 6;
+        if ((*(dword const *)stage_entry & (1 << group)) &&
+            group < (*(word const *)(stage_entry + 4) >> 9))
+        {
+            word packed = ((word const *)*(byte **)(definition + 0x28))[
+                (*(word const *)(stage_entry + 4) & 0x1ff) + group];
+            if (pass < (packed >> 9))
+            {
+                packed = ((word const *)*(byte **)(definition + 0x30))[(packed & 0x1ff) + pass];
+                if (variant < (packed >> 9))
+                {
+                    word const *entry = (word const *)(*(byte **)(definition + 0x38) +
+                        ((packed & 0x1ff) + variant) * 10);
+                    function_176a0(state, entry + 3);
+                    function_17960(state, entry + 4);
+                    function_17b60(state, entry + 1);
+                    function_18560(state, entry + 2);
+                }
+            }
+        }
+    }
+}
+
+real function_336f0(long selector);
+void function_33980(long selector, vector3f *out);
+long function_34060(long mode, dword flags);
+
+// @retail 0x1ae70
+void function_1ae70(byte *state)
+{
+    *(dword *)(state + 0x58) = 0;
+    dword pending[5];
+    for (long mask = 0; mask < 5; ++mask)
+        pending[mask] = ((dword *)(state + 0x30))[mask] & ((dword *)(state + 0x44))[mask];
+    for (long base = 0; base < 64; base += 32)
+    {
+        dword remaining = pending[base >> 5];
+        while (remaining)
+        {
+            long bit;
+            __asm { bsf ecx, remaining }
+            __asm { mov bit, ecx }
+            long index = base + bit;
+            real value = function_336f0(index);
+            remaining &= ~(1 << bit);
+            ((real *)(state + 0x5c))[index] = value;
+            ((dword *)(state + 0x30))[index >> 5] &= ~(1 << (index & 31));
+        }
+    }
+    for (long base = 0; base < 64; base += 32)
+    {
+        dword remaining = pending[2 + (base >> 5)];
+        while (remaining)
+        {
+            long bit;
+            __asm { bsf ecx, remaining }
+            __asm { mov bit, ecx }
+            long index = base + bit;
+            function_33980(index, (vector3f *)(state + 0x108 + index * 12));
+            remaining &= ~(1 << bit);
+            ((dword *)(state + 0x38))[index >> 5] &= ~(1 << (index & 31));
+        }
+    }
+    dword remaining = pending[4];
+    while (remaining)
+    {
+        long bit;
+        __asm { bsf ecx, remaining }
+        __asm { mov bit, ecx }
+        ((long *)(state + 0x300))[bit] = function_34060(bit, *(dword *)(*(byte **)(state + 0x14) + 2));
+        remaining &= ~(1 << bit);
+        ((dword *)(state + 0x40))[bit >> 5] &= ~(1 << (bit & 31));
+        ((dword *)(state + 0x58))[bit >> 5] |= 1 << (bit & 31);
+    }
+}
