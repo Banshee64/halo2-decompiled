@@ -2793,3 +2793,95 @@ void function_53610(void)
 		}
 	}
 }
+
+
+static inline long voice_packet_clamp_count(byte count, long minimum, long maximum)
+{
+ if (count < minimum) return minimum;
+ if (count > maximum) return maximum;
+ return count;
+}
+
+// @retail 0x55e10
+long __stdcall function_55e10(s_voice_channel *channel, byte *data, long size, bool relay)
+{
+ if (voice_packet_clamp_count(data[1], 1, 16) != data[1])
+  return NONE;
+ byte *packet = data + 2;
+ size -= 2;
+ long consumed = 2;
+ long packet_size = relay ? 13 : 11;
+ for (long i = 0; i < data[1]; i++)
+ {
+  if (size < packet_size) return NONE;
+  if (relay)
+  {
+   long member = voice_get_current_member();
+   if (member == NONE || packet[0] >= 2) return NONE;
+   word members = *(word *)(packet + 1);
+   if (!members) return NONE;
+   if (members & (1 << member))
+   {
+    if (voice_has_remote_talker(channel->index))
+    {
+     function_56df0(&g_527104.settings, channel->index, packet[0]);
+     voice_submit_incoming_packet(channel->index, packet + 3, 10);
+    }
+    members &= ~(1 << member);
+   }
+   if (members)
+   {
+    s_voice_route route;
+    route.members = 0;
+    route.unknown02 = 0;
+    function_565c0(&g_527104, members, &route);
+    voice_channel_add_packet(channel, (const s_voice_packet_header *)&route,
+     packet + 3, 10, (const bool *)packet);
+   }
+  }
+  else
+  {
+   if (packet[0] >= 2) return NONE;
+   if (voice_available() && voice_xhv_has_remote_talker(&g_476fc8, channel->index))
+   {
+    function_56df0(&g_527104.settings, channel->index, packet[0]);
+    voice_submit_incoming_packet(channel->index, packet + 1, 10);
+   }
+  }
+  size -= packet_size;
+  consumed += packet_size;
+  packet += packet_size;
+ }
+ return consumed;
+}
+
+// @retail 0x564c0
+void function_564c0(s_voice_channels *channels, byte *data, long size)
+{
+ if (channels->initialized)
+ {
+  byte *packet = data + 2;
+  bool relay = (data[0] & 1) != 0;
+  size -= 2;
+  if (relay && !voice_current_member_is_unknown00()) return;
+  if (voice_packet_clamp_count(data[1], 1, 15) != data[1]) return;
+  for (long i = 0; i < data[1]; i++)
+  {
+   if (voice_packet_clamp_count(packet[0], 0, 15) != packet[0]) return;
+   if (voice_packet_clamp_count(packet[1], 1, 15) == packet[1])
+   {
+    long consumed = function_55e10(&channels->channels[packet[0]], packet, size, relay);
+    if (consumed <= 0) return;
+    size -= consumed;
+    packet += consumed;
+   }
+  }
+ }
+}
+
+// @retail 0x54810
+void __stdcall function_054810(void const *data, long size)
+{
+ if (voice_is_enabled())
+  function_564c0(&g_525a00, (byte *)data, size);
+}

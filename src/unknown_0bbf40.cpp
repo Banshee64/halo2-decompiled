@@ -7,6 +7,7 @@
 #include "object_iterator.h"
 #include "loop_allocator.h"
 #include "unknown_1cafc0.h"
+#include "object_queries.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -60,6 +61,47 @@ void function_bc150(long object_index, bool flag)
 	}
 }
 void function_b8b70(long object_index);
+
+struct s_slot_entry_list;
+struct s_bsp3d;
+extern s_slot_entry_list *g_4e0340;
+
+struct s_1de2c1
+{
+    long field_0;
+    long field_4[256];
+};
+struct s_1de2c2
+{
+    s_1de2c1 field_0;
+    s_1de2c1 field_404;
+    s_1de2c1 field_808;
+    s_1de2c1 field_c0c;
+};
+
+void function_11bed0(s_location *location, point3f const *point);
+void function_11be90(s_location *location, long leaf_index);
+bool function_1dde10(s_bsp3d const *bsp, short count, dword const *mask,
+    point3f const *centre, real radius, s_1de2c2 *hits);
+
+// @retail 0xbf510
+bool function_bf510(long object_index, s_location *location)
+{
+    (void)&object_index;
+    s_1de2c2 hits;
+    byte *object = (byte *)((s_object_header_0bbf40 *)g_4e0300->data)[object_index & 0xffff].object;
+    point3f const *centre = (point3f const *)(object + 0x40);
+    function_11bed0(location, centre);
+    if (location->cluster_index == NONE)
+    {
+        function_1dde10((s_bsp3d const *)g_4e0340, 0, 0, centre, *(real *)(object + 0x4c), &hits);
+        if (hits.field_c0c.field_0)
+            function_11be90(location, hits.field_c0c.field_4[0]);
+        else
+            function_11bed0(location, (point3f const *)(object + 0x64));
+    }
+    return location->cluster_index != NONE;
+}
 
 // @retail 0xbc100
 void function_bc100(long object_index, bool flag)
@@ -612,12 +654,18 @@ long function_baf80(long object_index);
 void function_b7360(long object_index);
 void __stdcall function_bc7b0(long object_index);
 
+struct s_header_flag7_ab
+{
+    byte : 7;
+    byte flag7 : 1;
+};
+
 // @retail 0xbba20
 void function_bba20(long object_index)
 {
 	s_object_header_0bbf40 *headers = (s_object_header_0bbf40 *)g_4e0300->data;
 	s_object_header_0bbf40 *header = &headers[object_index & 0xffff];
-	if (*((signed char *)header + 2) < 0)
+	if (TEST_FIELD_BIT(((s_header_flag7_ab *)((byte *)header + 2))->flag7))
 	{
 		object_index = function_baf80(object_index);
 		header = &headers[object_index & 0xffff];

@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "unknown_075870.h"
 #include "unknown_0662e0.h"
+#include "unknown_0259d0.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -28,11 +29,17 @@ extern long g_4cf96c;
 
 /* sorts the samples, drops the given fraction of them at each end and returns
    the mean of the rest */
+PRIVATE __forceinline void function_7f190(long *arg_0, const long *arg_1, long arg_2)
+{
+	memcpy(arg_0, arg_1, arg_2 * sizeof(long));
+}
+
+#pragma function(memcpy)
 // @retail 0x7f190
 long samples_trimmed_mean(const long *samples, long count)
 {
 	long sorted[128];
-	long trim = (long)(count * *g_4cf8e8);
+	long trim = real_truncate(count * *g_4cf8e8);
 	long used;
 	long total;
 	long i;
@@ -51,13 +58,12 @@ long samples_trimmed_mean(const long *samples, long count)
 				sorted[j] = sorted[j - 1];
 			}
 		}
-		used = i - 2 * trim;
+		used = i + (-trim) * 2;
 		memcpy(sorted, &sorted[trim], used * sizeof(long));
 	}
 	else
 	{
-		for (i = 0; i < count; i++)
-			sorted[i] = samples[i];
+		function_7f190(sorted, samples, count);
 		used = count;
 	}
 	total = 0;
@@ -65,6 +71,7 @@ long samples_trimmed_mean(const long *samples, long count)
 		total += sorted[i];
 	return total / used;
 }
+#pragma intrinsic(memcpy)
 
 // @retail 0x7f020
 void function_7f020(s_network_observer *observer, real *trim)

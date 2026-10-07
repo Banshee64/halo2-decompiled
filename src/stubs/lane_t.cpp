@@ -34,10 +34,7 @@ void __stdcall function_170fd0(long user_index)
 /* unowned */
 
 /* the loading screen's callees (loading.cpp) */
-// @stub 0x8df50
-void function_8df50(void)
-{
-}
+
 
 
 // @stub 0x2232a0

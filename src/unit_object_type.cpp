@@ -520,8 +520,8 @@ void function_1cf120(long component_index);
 void function_1d1540(s_havok_component *component);
 void function_b9b90(long object_index, bool disable);
 struct s_unit_move_result;
-bool function_1d48f0(s_havok_component *component, short rigid_body_index, long type, point3f const *target,
-	vector3f const *offset, s_unit_move_result *result, long a5, real radius, long a7, point3f const *root_point,
+bool function_1d48f0(point3f *arg_0, s_havok_component *component, long rigid_body_index, long type, point3f const *target,
+	vector3f const *offset, s_location *location, real a5, real radius, bool a7, point3f const *root_point,
 	long root_index);
 void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward, vector3f const *up);
 vector3f *function_11d000(vector3f const *v, vector3f *out);
@@ -4346,8 +4346,8 @@ bool __stdcall function_c5460(long object_index, long ignore_index, point3f cons
 			}
 			for (short attempt = 0; attempt < 3; attempt++)
 			{
-				if (function_1d48f0(component, rigid_body_index, header[3] ? 0xc : 9, &target, &offset, &move, a5,
-					radius, a7, root_point, root_index))
+				if (function_1d48f0(&move.position, component, rigid_body_index, header[3] ? 0xc : 9, &target, &offset, &move.location, *(real *)&a5,
+					radius, (bool)a7, root_point, root_index))
 				{
 					if (result)
 					{

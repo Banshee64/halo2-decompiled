@@ -2642,3 +2642,124 @@ void function_20cbd0(short group_index, s_audio_priority_table *table, long targ
     else
         *count = 0;
 }
+
+void __stdcall function_20d570(long arg_0, short arg_1, long arg_2, void *arg_3);
+void function_20fda0(long arg_0);
+
+// @retail 0x20fec0
+void function_20fec0(long arg_0, long arg_1)
+{
+    if (arg_1 != NONE)
+    {
+        byte *local_0 = *(byte **)(g_4e0300->data + (arg_0 & 0xffff) * 12 + 8);
+        long local_1 = (short)function_20f040(*(short *)(local_0 + 0x138));
+        s_node_owner *local_2 = (s_node_owner *)((byte *)g_4f939c + local_1 * 0x7dc);
+        byte *local_3 = g_4f9398->data + (arg_1 & 0xffff) * 0x54;
+        if (!local_3[0x41])
+        {
+            if (*(long *)(local_3 + 0x2c))
+                function_20d570(NONE, NONE, *(long *)(local_3 + 4), local_3 + 0x24);
+            function_20fda0(arg_1);
+            function_20fe20(local_2);
+        }
+        else
+        {
+            local_3[0x48] = true;
+            function_20fe20(local_2);
+        }
+    }
+}
+
+void function_114680(long arg_0, void const *arg_1);
+
+struct s_20fb30
+{
+    short field_0;
+    short field_2;
+    long field_4;
+    short field_8;
+    short field_a;
+    short field_c;
+    byte field_e[2];
+    long field_10;
+    byte field_14[0x1c];
+};
+
+// @retail 0x20fb30
+void function_20fb30(void)
+{
+    s_audio_priority_table *local_0 = audio_priority_table();
+    long local_1 = g_510c54->game_time;
+    long local_2 = 0;
+    long local_3 = 2;
+    do
+    {
+        s_node_owner *local_4 = (s_node_owner *)((byte *)g_4f939c + local_2);
+        for (long local_5 = local_4->first; local_5 != NONE; )
+        {
+            byte *local_6 = g_4f9398->data + (local_5 & 0xffff) * 0x54;
+            if (!local_6[0x48])
+            {
+                if (*(long *)(local_6 + 0x14) >= local_1)
+                    break;
+                if (!local_6[0x40])
+                {
+                    s_audio_priority_definition *local_7 = &local_0->entries[*(short *)(local_6 + 2)];
+                    bool local_8 = false;
+                    if (function_20f960(local_5, local_0, &local_8))
+                    {
+                        byte *local_9 = *(byte **)(g_4e0300->data + (*(long *)(local_6 + 4) & 0xffff) * 12 + 8);
+                        byte *local_10 = local_9 + *(short *)(local_9 + 0x342);
+                        short local_11 = *(short *)(local_6 + 0x22);
+                        if (TEST_FIELD_BIT(((s_audio_object_state *)local_9)->blocked) && local_11 != 15)
+                            goto local_18;
+                        short local_12 = *(short *)(local_10 + 0xc);
+                        if (local_12)
+                        {
+                            bool local_13;
+                            switch ((long)local_11)
+                            {
+                            case 12:
+                                if (local_12 >= 10 && !local_10[0x49])
+                                    goto local_18;
+                                local_13 = local_11 > local_12;
+                                break;
+                            case 13:
+                            case 14:
+                                local_13 = local_11 >= local_12;
+                                break;
+                            default:
+                                local_13 = local_11 > local_12;
+                                break;
+                            }
+                            if (!local_13)
+                                goto local_18;
+                        }
+                        s_20fb30 local_14;
+                        local_14.field_0 = *(short *)((byte *)local_7 + 0xa);
+                        local_14.field_2 = *(short *)(local_6 + 2);
+                        local_14.field_4 = *(long *)(local_6 + 8);
+                        local_14.field_8 = *(short *)(local_6 + 0x18);
+                        local_14.field_a = *(short *)(local_6 + 0x1a);
+                        local_14.field_10 = local_5;
+                        memcpy(local_14.field_14, local_6 + 0x24, sizeof(local_14.field_14));
+                        local_14.field_c = *(short *)(local_6 + 0x20);
+                        function_114680(*(long *)(local_6 + 4), &local_14);
+                        local_6[0x40] = true;
+                    }
+                    else
+                    {
+                        if (local_8)
+                            function_20d570(NONE, NONE, *(long *)(local_6 + 4), local_6 + 0x24);
+                        function_20fda0(local_5);
+                    }
+                }
+            }
+local_18:
+            local_5 = *(long *)(local_6 + 0x50);
+        }
+        function_20fe20(local_4);
+        local_2 += 0x7dc;
+    }
+    while (--local_3);
+}

@@ -15,7 +15,11 @@ struct s_082b70_object
 	long parent;
 	byte unknown018[0xaa - 0x18];
 	char type;
-	byte unknown0ab[0x212 - 0xab];
+	byte unknown0ab[0x10a - 0xab];
+	struct { word bit0 : 1; word bit1 : 1; word bit2 : 1; word unused : 13; } flags10a;
+	byte unknown10c[0x13c - 0x10c];
+	long controller;
+	byte unknown140[0x212 - 0x140];
 	char weapon_slots[2];
 	byte unknown214[4];
 	long weapons[4];
@@ -354,4 +358,82 @@ void function_825e0(const s_weapon_activity_result *input, s_player_action *acti
  if (source[0x30]) *(dword *)result |= 0x40000000; else *(dword *)result &= ~0x40000000;
  if (source[0x31]) *(dword *)result |= 0x80000000; else *(dword *)result &= ~0x80000000;
  result[0x58] = source[0x32];
+}
+
+
+struct s_unit_state_c6ef0;
+void function_c6ef0(s_unit_state_c6ef0 *state);
+long function_a58d0(long index);
+
+// @retail 0x82740
+void function_82740(const s_weapon_activity_result *input, s_unit_state_c6ef0 *state)
+{
+ function_c6ef0(state);
+ const byte *source = (const byte *)input;
+ byte *result = (byte *)state;
+ vector3f *direction = (vector3f *)(result + 0x34);
+ real pitch_cos = (real)cos(*(const real *)(source + 4));
+ direction->i = pitch_cos * (real)cos(*(const real *)source);
+ direction->j = pitch_cos * (real)sin(*(const real *)source);
+ direction->k = (real)sin(*(const real *)(source + 4));
+ *(vector3f *)(result + 0x28) = *direction;
+ *(vector3f *)(result + 0x40) = *direction;
+ *(long *)(result + 0x14) = *(const long *)(source + 8);
+ *(long *)(result + 0x18) = *(const long *)(source + 0xc);
+ *(real *)(result + 0x1c) = 0.0f;
+ if (source[0x10] & 1) *(dword *)(result + 0x10) |= 1; else *(dword *)(result + 0x10) &= ~1;
+ if (source[0x10] & 2) *(dword *)(result + 0x10) |= 2; else *(dword *)(result + 0x10) &= ~2;
+ if (source[0x10] & 4) *(dword *)(result + 0x10) |= 0x800; else *(dword *)(result + 0x10) &= ~0x800;
+ if (source[0x10] & 8) *(dword *)(result + 0x10) |= 0x4000; else *(dword *)(result + 0x10) &= ~0x4000;
+ *(long *)(result + 6) = *(const long *)(source + 0x12);
+ *(short *)(result + 0xc) = *(const short *)(source + 0x16);
+ if (source[0x18]) *(dword *)(result + 0x10) |= 0x40000; else *(dword *)(result + 0x10) &= ~0x40000;
+ if (source[0x19]) *(dword *)(result + 0x10) |= 0x80000; else *(dword *)(result + 0x10) &= ~0x80000;
+ if (source[0x1a]) *(dword *)(result + 0x10) |= 0x800000; else *(dword *)(result + 0x10) &= ~0x800000;
+ if (source[0x1b]) *(dword *)(result + 0x10) |= 0x1000000; else *(dword *)(result + 0x10) &= ~0x1000000;
+ if (input->relevance.first > 0.0f || input->relevance.second > 0.0f)
+ {
+  long index = input->relevance.object_index;
+  if (index != NONE)
+  {
+   long object = function_a58d0(index);
+   if (object != NONE)
+   {
+    *(long *)(result + 0x58) = object;
+    *(long *)(result + 0x5c) = input->relevance.identifier;
+    *(real *)(result + 0x74) = input->relevance.first;
+    *(real *)(result + 0x78) = input->relevance.second;
+   }
+  }
+ }
+}
+
+
+void __stdcall function_a9f70(long object_index, long mode, const point3f *position);
+void __fastcall function_aa260(const vector3f *linear, long object_index, long mode,
+ const point3f *position, const vector3f *forward, const vector3f *up, const vector3f *angular);
+
+// @retail 0x82980
+void function_82980(s_player_object_motion *motion, long player_index)
+{
+ long object_index = function_a58d0(motion->object_index);
+ if (object_index != NONE)
+ {
+  s_082b70_object *object = object_get_082b70(object_index);
+  if ((1 << object->type) & 3)
+  {
+   if (((object->controller == player_index && !TEST_FIELD_BIT(object->flags10a.bit2)) ||
+    (object->occupant != NONE && object_get_082b70(object->occupant)->controller == player_index)) &&
+    object->parent == NONE)
+   {
+    const vector3f *up = &motion->up;
+    const vector3f *forward = &motion->forward;
+    const vector3f *angular = &motion->angular;
+    const vector3f *linear = &motion->linear;
+    const point3f *position = &motion->position;
+    function_a9f70(object_index, 2, position);
+    function_aa260(linear, object_index, 2, position, forward, up, angular);
+   }
+  }
+ }
 }

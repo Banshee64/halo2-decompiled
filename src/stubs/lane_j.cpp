@@ -7,10 +7,7 @@ struct s_bitstream;
 struct s_network_connection;
 
 /* lane D's region */
-// @stub 0x54810
-void __stdcall function_054810(void const *data, long size)
-{
-}
+
 
 /* lane D's region: a view's baseline update (a c_simulation_view method) */
 class c_class_58d20;

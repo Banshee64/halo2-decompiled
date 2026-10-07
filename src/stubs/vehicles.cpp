@@ -6,8 +6,6 @@ struct s_havok_component;
 struct s_vehicle_physics_state;
 struct s_vehicle_ray;
 
-// @stub 0x1cfb90
-void function_1cfb90(transform4x3f const *matrix, void const *buffer) { }
 
 // @stub 0x205be0
 bool __stdcall function_205be0(s_vehicle_physics_state *state, long vehicle_index) { return 0; }

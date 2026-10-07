@@ -3,6 +3,9 @@
 #include "unknown_11c920.h"
 #include "unknown_1cec30.h"
 
+// @stub 0x1fc210
+void __stdcall function_1fc210(long arg_0, long arg_1) { }
+
 class c_library_30c470
 {
 public:
@@ -64,11 +67,6 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 
 
 
-// @stub 0x292e00
-void function_292e00(void) { }
-
-// @stub 0x292f60
-void function_292f60(void) { }
 /* the animation graph lookups (0x1d9000..0x1de000) */
 
 
@@ -530,3 +528,12 @@ void s_314450::function_314480(s_314320 const *arg_0) {}
 
 // @stub 0x1e2570
 void __stdcall function_1e2570(long arg_0, word arg_1, long arg_2, real arg_3, long arg_4) {}
+
+class c_30b080
+{
+public:
+ void function_30b080(__m128 const *arg_0);
+};
+
+// @stub 0x30b080
+void c_30b080::function_30b080(__m128 const *arg_0) { }

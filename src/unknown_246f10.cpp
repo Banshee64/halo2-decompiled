@@ -70,6 +70,7 @@ void function_247000(s_object_246eb0 const *particle, volatile long tag_index)
 void function_176a50(s_effect_parameters *parameters, long tag_index, long marker_count, s_effect_marker *markers, long mode);
 long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
 
+#pragma inline_depth(0)
 // @retail 0x246fa0
 void function_246fa0(s_object_246eb0 const *particle, s_particle_impact const *impact, long tag_index)
 {
@@ -83,6 +84,8 @@ void function_246fa0(s_object_246eb0 const *particle, s_particle_impact const *i
 	parameters.scale_b = scale;
 	effect_new_from_parameters(&parameters);
 }
+
+#pragma inline_depth(255)
 
 /* The particle definition's material-selection interface. */
 class c_particle_material_interface

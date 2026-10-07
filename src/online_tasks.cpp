@@ -763,3 +763,123 @@ bool function_6d080(long controller, s_channel_message *result)
 	}
 	return found;
 }
+
+#include "unknown_075870.h"
+
+extern s_network_observer *g_4cf8e4;
+extern bool g_4cf95c;
+void function_7f410(void);
+void transport_reset(void);
+long online_task_get_change_logon_status(s_type_9df9da *task);
+bool __stdcall function_6bff0(s_type_9df9da *task);
+
+static __forceinline void online_task_logon_failed(s_type_9df9da *task)
+{
+	task->flag_bits.finished = true;
+	task->flag_bits.failed = true;
+	if (task->result == 0 || task->result == 1)
+		task->result = 10;
+}
+
+// @retail 0x6c2a0
+bool function_6c2a0(s_type_9df9da *task, long task_index)
+{
+	if (!g_transport_globals.initialized || !g_transport_globals.started)
+		task->flag_bits.finished = true;
+	bool result = !task->flag_bits.finished;
+	if (result)
+	{
+		online_task_continue(task);
+		switch (online_task_get_logon_status(task_index))
+		{
+		case 0:
+			break;
+		case 1:
+			if (!task->flag_bits.running)
+			{
+				g_4cf8e4->flag4e00 = true;
+				g_4cf95c = true;
+				function_7f410();
+				transport_reset();
+				if (function_6bff0(task))
+					task->flag_bits.running = true;
+				else
+					online_task_logon_failed(task);
+			}
+			break;
+		default:
+			online_task_logon_failed(task);
+			result = false;
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x6c360
+bool function_6c360(s_type_9df9da *task)
+{
+	bool result = false;
+	switch (online_task_continue(task))
+	{
+	case (long)0x80151001:
+		task->result = 4;
+		task->flag_bits.finished = true;
+		task->flag_bits.failed = true;
+		break;
+	case (long)0x80151003:
+		task->flag_bits.finished = true;
+		task->flag_bits.failed = true;
+		task->result = 8;
+		break;
+	case (long)0x80151002:
+		task->flag_bits.finished = true;
+		task->flag_bits.failed = true;
+		task->result = 3;
+		break;
+	case (long)0x80151006:
+		task->flag_bits.finished = true;
+		task->flag_bits.failed = true;
+		task->result = 6;
+		break;
+	case (long)0x80151300:
+		{
+			long status = online_task_get_change_logon_status(task);
+			task->result = 10;
+			if (status == 2)
+			{
+				task->flag_bits.finished = true;
+				task->flag_bits.failed = true;
+				task->result = status;
+			}
+			else
+			{
+				task->flag_bits.finished = true;
+				task->flag_bits.failed = true;
+			}
+		}
+		break;
+	case 0:
+	case 0x1513f0:
+		task->result = 0;
+		return true;
+	case 0x1513f1:
+		task->flag_bits.finished = true;
+		task->result = 1;
+		if (function_6bff0(task))
+			return true;
+		else
+		{
+			task->flag_bits.failed = true;
+			if (task->result == 0 || task->result == 1)
+				task->result = 10;
+		}
+		break;
+	default:
+		task->flag_bits.finished = true;
+		task->flag_bits.failed = true;
+		task->result = 10;
+		break;
+	}
+	return result;
+}

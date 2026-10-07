@@ -1,15 +1,15 @@
 # Biped helpers (unknown_0e5040)
 
-Retail range covered: `0xe5040`–`0xe68b9`, except `0xe5280` and `0xe6800`.
-These are 21 inventory entries, 5,915 retail bytes, all `todo` with no source:
-the helpers that sit between the bipeds and the unit actions. Most set or read
-a biped's physics mode, measure and choose the targets of a biped's grab, or
-move a biped in an animation-driven mode; the rest play footsteps, push a
-vehicle, check a weapon swap, spawn on death, snap a direction and run a unit's
-action updates. **Analysis only:** this document adds no source, and nothing in
-it has been built or checked against retail with the original compiler. Names
-are provisional. The `function_<va>` form is primary; the descriptions are
-offered for whoever decompiles the range.
+Retail range covered: `0xe5040`–`0xe68b8`, except `0xe5280` and `0xe6800`.
+These are 21 inventory entries, 5,915 retail bytes, all `todo` with no source
+when this was written: the helpers that sit between the bipeds and the unit
+actions. Most set or read a biped's physics mode, measure and choose the
+targets of a biped's grab, or move a biped in an animation-driven mode; the
+rest play footsteps, push a vehicle, check a weapon swap, spawn on death, snap
+a direction and run a unit's action updates. **Analysis only:** this document
+adds no source, and nothing in it has been built or checked against retail with
+the original compiler. Names are provisional. The `function_<va>` form is
+primary; the descriptions are offered for whoever decompiles the range.
 
 It uses the names of `src/bipeds.cpp` (`s_biped`, `BIPED_GET` and the physics
 modes), `src/unknown_0a76b0.cpp` (the unit actions that call several of these
@@ -25,11 +25,12 @@ declared in the source; see [Existing declarations](#existing-declarations).
   `src/unknown_0e5280.cpp`) and `0xe6800` (`todo`, `src/unknown_0e6800.cpp`)
   have source and are excluded.
 - No row of the Active claims table (issue #9) covers the range, so it is open.
-  This document makes no claim. @BrassMonkey71 has claimed `0xe5670` (#115) and
-  `0xe5240` (#119); this document only describes them. Besides the bipeds and
-  the unit actions, the callers include lane Q's `0x1515e0` and `0x150400`,
-  lane AB's `0xbf600` and the vehicle update `0xefde0`.
-- No entry has an `@retail` marker.
+  This document makes no claim. @BrassMonkey71 has since matched `0xe5670`
+  (#115), `0xe5240` (#119) and `0xe58e0` (#125). Besides the bipeds and the
+  unit actions, the callers include lane Q's `0x1515e0` and `0x150400`, lane
+  AB's `0xbf600` and the vehicle update `0xefde0`.
+- Apart from `0xe5670`, `0xe5240` and `0xe58e0`, no entry has an `@retail`
+  marker.
 
 ## Conventions
 
@@ -305,13 +306,14 @@ a false result clears the bit. Types without an update keep their bit.
 ## Existing declarations
 
 Fourteen entries are declared where they are called, each with a `@stub`
-definition in the file named. All fourteen have retail's parameter count; where
-the declaration says `__stdcall` but retail takes registers, that is the LTCG
+definition in the file named, except `0xe5240`, which #119 has since defined in
+`src/unknown_0e5240.cpp`. All fourteen have retail's parameter count; where the
+declaration says `__stdcall` but retail takes registers, that is the LTCG
 convention, not a missing parameter.
 
 | Retail | Declared as | Where | What retail shows |
 | --- | --- | --- | --- |
-| `0xe5240` | `bool function_e5240(long arg_0);` | `src/unknown_1d8dd0.cpp`; `src/stubs/lane_c.cpp` | The object in `eax`, a bool in `al` |
+| `0xe5240` | `bool function_e5240(long arg_0);` | `src/unknown_1d8dd0.cpp`; `src/unknown_0e5240.cpp` | The object in `eax`, a bool in `al` |
 | `0xe5300` | `void function_e5300(long unit_index, long a);` | `src/unknown_0a76b0.cpp`; `src/stubs/unknown_0a76b0.cpp` | The biped in `eax` and `a` on the stack: 1 entering or boarding, 0 leaving |
 | `0xe5690` | `void __stdcall function_e5690(long unit_index, point3f const *point);` | `src/unknown_0a76b0.cpp`; `src/stubs/unknown_0a76b0.cpp` | The biped in `esi`, the point on the stack |
 | `0xe56f0` | `void __stdcall function_e56f0(long unit_index, point3f const *point);` | `src/unknown_0a76b0.cpp`; `src/stubs/unknown_0a76b0.cpp` | The same |
@@ -362,6 +364,6 @@ Three notes on the code around these functions:
   `0x45ddcc` (127.0); and in `.data`, the pointers `0x4687a4` to (0, 0, 0),
   `0x4687b0` to (0, 0, 1) and `0x4687bc` to (0, 0, −1).
 - No document covered the range before this one. Source line numbers are at
-  `b04f998`.
+  `0f22da1`.
 - No SDK or outside dataset was used. Names are the repository's own, or
   describe behaviour.
