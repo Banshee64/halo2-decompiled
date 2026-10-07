@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6981 functions match
+
+```
+matched 6981 of 11318 game functions (777464 of 2784283 bytes, 27.92%)
+```
+
+6981 new matches, none lost:
+- Merge batch r29: lane H rounds 3 and 4 (+7).
+
 ## 2026-10-07: 6974 functions match
 
 ```
