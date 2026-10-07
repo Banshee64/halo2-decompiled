@@ -3979,7 +3979,7 @@ bool __stdcall function_5d5a0(c_class_58d20 *session, const byte *update, byte *
   else
   {
    const byte *data = update + 0x1488;
-   if (!session->state || !data || memcmp(data + 4, &session->unknown1c, 8))
+   if (network_session_id_differs(session, (const s_parameters_part *)data))
    {
    output[0x1460] = true;
    memcpy(output + 0x1464, data, 0x44);
