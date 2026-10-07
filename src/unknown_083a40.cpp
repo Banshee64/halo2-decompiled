@@ -5,6 +5,7 @@
 #include "unknown_11c920.h"
 #include <string.h>
 #include "unknown_067e10.h"
+#include "unknown_08b110.h"
 #include "globals.h"
 #include "unknown_059ad0.h"
 #include "unknown_058ee0.h"
@@ -662,4 +663,205 @@ void __stdcall function_83370(void *watcher_, dword flags)
   watcher->unknown84 = false;
   simulation_watcher_rebuild_players(watcher);
  }
+}
+
+inline c_vtable_450c94::~c_vtable_450c94() {}
+inline c_vtable_450d1c::~c_vtable_450d1c() {}
+inline c_handle_table_450cd0::~c_handle_table_450cd0() {}
+inline c_vtable_450cf4::~c_vtable_450cf4() {}
+struct s_flagged;
+extern s_flagged *g_4d87ec;
+extern s_flagged *g_4d87f0;
+void function_85880(c_simulation_view *view);
+
+// @retail 0x843f0
+bool __stdcall function_843f0(s_simulation_world_owner *watcher, long current_member)
+{
+ c_simulation_view **view_address = (c_simulation_view **)&current_member;
+ dword present = 0;
+ s_view_iterator iterator;
+ iterator.mask = NONE;
+ iterator.index = 0;
+ while (world_next_view(watcher->world, &iterator, view_address))
+ {
+  c_simulation_view *view = *view_address;
+  if (view->failure_reason)
+  {
+   if (view->type)
+   {
+    if (view->channel_index != NONE) function_85880(view);
+    if (view->world) view->detach();
+    view->type = 0;
+   }
+   c_replication_view_storage *storage = (c_replication_view_storage *)view->data;
+   long index = view->unknown04;
+   record_pool_release((s_record_pool *)g_4d87ec, index);
+   if (storage)
+   {
+    storage->~c_replication_view_storage();
+    record_pool_release((s_record_pool *)g_4d87f0, index);
+   }
+  }
+  else present |= 1 << view->unknown1c;
+ }
+ if (watcher->world->unknown18 != 1)
+ {
+ c_class_58d20 *session = watcher->session;
+ long local = session->current_member;
+ for (long i = 0; i < session->member_count; i++)
+ {
+  if (i != local && !(present & (1 << i)))
+  {
+   long channel = NONE;
+   c_class_58d20 *current = watcher->session;
+   if (i >= 0 && i < current->member_count)
+   {
+    byte *entry = (byte *)current + 0x72dc + i * 20;
+    if (entry[1]) channel = *(long *)(entry + 4);
+   }
+   function_84630(channel, watcher, i, (const XNADDR *)&session->members[i]);
+  }
+ }
+ return true;
+ }
+ return false;
+}
+
+static inline long watcher_find_current_machine(dword mask, const s_machine_address *machines, s_machine_address address)
+{
+ for (long i = 0; i < 16; i++)
+  if ((mask & (1 << i)) && !memcmp(&machines[i], &address, sizeof(address))) return i;
+ return NONE;
+}
+void function_12d520(long address);
+
+// @retail 0x83f00
+bool __stdcall function_83f00(s_simulation_world_owner *watcher, long update, long count, long host, const s_session_member *members)
+{
+ if (watcher->unknown10 == update) return true;
+ dword mask = (1 << count) - 1;
+ s_machine_address machines[16];
+ memset(machines, 0, sizeof(machines));
+ for (long i = 0; i < count; i++) machines[i] = *(const s_machine_address *)((const byte *)&members[i] + 10);
+ c_class_6a600 *world = watcher->world;
+ long local = watcher_find_current_machine(mask, machines, world->local_address);
+ if (local == NONE) return false;
+ if (local != *(long *)((byte *)world + 0x14)) *(long *)((byte *)world + 0x14) = local;
+ c_simulation_view *view;
+ s_view_iterator iterator;
+ iterator.mask = NONE;
+ iterator.index = 0;
+ while (world_next_view(watcher->world, &iterator, &view))
+ {
+  long member = watcher_find_current_machine(mask, machines, view->address);
+  if (member == NONE)
+  {
+   if (view->type)
+   {
+    if (view->channel_index != NONE) function_85880(view);
+    if (view->world)
+    {
+     if (view->type == 2 && view->buffer)
+     {
+      view->unknown9c = 0;
+      view->unknowna0 = 0;
+      function_12d520((long)view->buffer);
+      view->buffer = 0;
+      view->unknown98 = 0;
+     }
+     view->world->views[view->world_index] = 0;
+     view->world->view_count--;
+     view->world_index = NONE;
+     view->world = 0;
+    }
+    view->type = 0;
+   }
+   c_replication_view_storage *storage = (c_replication_view_storage *)view->data;
+   long index = view->unknown04;
+   record_pool_release((s_record_pool *)g_4d87ec, index);
+   if (storage)
+   {
+    storage->~c_replication_view_storage();
+    record_pool_release((s_record_pool *)g_4d87f0, index);
+   }
+  }
+  else if (member != view->unknown1c) view->unknown1c = member;
+ }
+ if (watcher->world->state != 3 && watcher->world->state != 5)
+ {
+  for (long i = 0; i < 16; i++)
+  {
+   c_class_6a600 *world = watcher->world;
+   s_simulation_world_player *player = &world->players[i & 0xffff];
+   if (player->player_index != NONE && player->flag25 &&
+    watcher_find_current_machine(mask, machines, *(const s_machine_address *)world->players[i].unknown18) == NONE)
+   {
+    if (world->players[i].flag25) world->players[i].flag25 = false;
+    world->players[i].flag24 = true;
+   }
+  }
+ }
+ watcher->unknown10 = update;
+ watcher->unknown1c = mask;
+ watcher->unknown14 = host;
+ watcher->unknown20 = *(long *)((byte *)watcher->world + 0x14);
+ memcpy(watcher->unknown24, machines, sizeof(machines));
+ watcher->unknown84 = true;
+ watcher->unknownc30 = true;
+ return true;
+}
+
+struct s_network_session_membership;
+s_network_session_membership *function_5a680(c_class_58d20 *session, long *current_member, long *member_index);
+bool function_058d70(c_class_58d20 *session);
+bool function_058d90(c_class_58d20 *session);
+bool function_6ae20(c_class_6a600 *world);
+bool function_6aee0(c_class_6a600 *world);
+void function_6b310(c_class_6a600 *world);
+void function_6b350(c_class_6a600 *world);
+
+// @retail 0x83220
+bool function_83220(s_simulation_world_owner *watcher)
+{
+ bool result = true;
+ c_class_6a600 *world = watcher->world;
+ if (!world) goto failed;
+ if (world->state == 1) goto done;
+ if (!g_527330.initialized || (g_527330.state != 3 && g_527330.state != 8)) goto failed;
+ {
+  c_class_58d20 *session = watcher->session;
+  if (!session || !session->state) goto failed;
+  bool live;
+  if (session->function_058d20()) live = session->state == 5;
+  else live = function_058d70(session);
+  if (live)
+  {
+   result = session->function_058d20();
+   bool authority = function_67e10(world);
+   if (!result && authority)
+   {
+    if (!function_6ae20(world)) goto failed;
+   }
+   else if (result && !authority)
+   {
+    if (!function_6aee0(world)) goto failed;
+   }
+   if (function_058d90(watcher->session))
+   {
+    if (result) function_6b310(watcher->world);
+    else function_6b350(watcher->world);
+   }
+   long member_index, current_member;
+   s_watcher_membership *members = (s_watcher_membership *)function_5a680(watcher->session, &current_member, &member_index);
+   if (!function_83f00(watcher, watcher->session->update7618, members->count, members->host, members->members)) goto failed;
+   if (function_67e10(watcher->world)) result = function_843f0(watcher, current_member);
+   else result = function_84560(watcher);
+  }
+  else function_6b040(world);
+ }
+ goto done;
+failed:
+ result = false;
+done:
+ return result;
 }

@@ -2985,6 +2985,11 @@ bool __stdcall unit_action_vehicle_flip(long unit_index, s_unit_request *request
 	*(short *)(current + 0xc2) = owner.team;
 	return true;
 }
+// @retail 0xe5670
+long function_e5670(long unit_index)
+{
+	return *((byte *)UNIT_ACTION_UNIT_GET(unit_index) + 0x3dc);
+}
 
 void __stdcall function_b9a50(long unit_index);
 void __stdcall function_e56f0(long unit_index, point3f const *point);
