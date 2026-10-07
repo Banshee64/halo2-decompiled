@@ -31,10 +31,6 @@ void __stdcall function_bc070(real a, real b, real c, real d, real e)
 {
 }
 
-// @stub 0x29ffb0
-void __stdcall function_29ffb0(long object_index, short cutscene_flag_index, bool a, bool b)
-{
-}
 
 // @stub 0xbb670
 void __stdcall function_bb670(short name_index, bool flag)
@@ -46,10 +42,6 @@ void __stdcall function_1e1a00(long index, long value)
 {
 }
 
-// @stub 0x2736c0
-void __stdcall function_2736c0(long ai_index)
-{
-}
 
 
 // @stub 0x274470
@@ -99,12 +91,6 @@ struct s_ai_trigger_condition;
 
 // @stub 0x2912c0
 bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_group_index, bool *result)
-{
-	return false;
-}
-
-// @stub 0x290f60
-bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad_index)
 {
 	return false;
 }
@@ -163,9 +149,3 @@ void function_b73b0(long object_index)
 
 struct s_ai_scene;
 struct s_ai_scene_assignment;
-
-// @stub 0x2919e0
-void function_2919e0(s_ai_scene *scene, s_ai_scene_assignment *assignments, short *assignment_count, short maximum_count,
-	short role_index, short role_count, long ai_index, long ai_index2, long ai_index3)
-{
-}

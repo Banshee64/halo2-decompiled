@@ -187,9 +187,10 @@ void function_28c880()
 // @retail 0x28c960
 void function_28c960()
 {
+	s_animation_data *local_0 = g_sampling_settings.field_30;
+	long local_1 = local_0->rotation_stride * g_5044b4;
 	quaternionf *result = &g_5044c0->rotation;
-	quaternionf *quaternions = (quaternionf *)((byte *)g_sampling_settings.field_30 + g_sampling_settings.field_30->rotation_stride * g_5044b4 + 0x20);
-	short *a = (short *)quaternions + g_sampling_settings.frame_index * 4;
+	short *a = (short *)((byte *)local_0 + local_1 + 0x20) + g_sampling_settings.frame_index * 4;
 
 	__asm
 	{

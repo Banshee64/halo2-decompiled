@@ -2843,3 +2843,77 @@ void __stdcall function_273ac0(long ai_index, long target_ai_index)
 		}
 	}
 }
+
+void function_1e2a90(long arg_0);
+void __stdcall function_b8540(long arg_0);
+void __stdcall function_28e200(long arg_0);
+bool __stdcall function_beb30(long arg_0);
+
+struct s_2736c0
+{
+	byte field_0[0x3a0];
+	long field_3a0;
+	long field_3a4;
+};
+
+struct s_2736e0
+{
+	s_ai_squad_iterator field_0;
+	s_ai_actor_iterator field_20;
+};
+
+// @retail 0x2736c0
+void __stdcall function_2736c0(long arg_0)
+{
+	if (arg_0 != NONE)
+	{
+		s_2736e0 local_0;
+		s_actor_datum *local_1;
+		ai_actor_iterator_new(arg_0, &local_0.field_20);
+		while ((local_1 = ai_actor_iterator_next(&local_0.field_20)) != NULL)
+		{
+			if (local_0.field_20.actor_index == g_46fc80)
+				*((byte *)local_1 + 0xd) = true;
+			else
+			{
+				s_actor_datum *local_2 = actor_datum_get(local_0.field_20.actor_index);
+				long local_3 = local_2->unit_index;
+				long local_4 = local_2->perception_index;
+				function_1e2a90(local_0.field_20.actor_index);
+				if (local_3 != NONE)
+					function_b8540(local_3);
+				else if (local_4 != NONE)
+					function_28e200(local_4);
+			}
+		}
+		s_squad_datum *local_6;
+		ai_squad_iterator_new_inline(&local_0.field_0, arg_0);
+		while ((local_6 = ai_squad_iterator_next(&local_0.field_0)) != NULL)
+		{
+			long local_7 = local_6->first_vehicle_index;
+			long local_8 = NONE;
+			while (local_7 != NONE)
+			{
+				long local_11 = local_7;
+			s_object_header_view *local_9 = (s_object_header_view *)datum_get_inlined(g_4e0300, local_7);
+				if (!local_9 || !((1 << local_9->type) & 2))
+					break;
+				s_2736c0 *local_10 = (s_2736c0 *)local_9->object;
+				if (!local_10)
+					break;
+				local_7 = local_10->field_3a4;
+				if (!function_beb30(local_11))
+				{
+					local_10->field_3a0 = NONE;
+					function_b8540(local_11);
+				}
+				else
+				{
+					local_10->field_3a4 = local_8;
+					local_8 = local_11;
+				}
+			}
+			local_6->first_vehicle_index = local_8;
+		}
+	}
+}

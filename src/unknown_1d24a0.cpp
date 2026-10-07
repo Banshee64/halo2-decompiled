@@ -1,0 +1,333 @@
+#include "unknown_11c920.h"
+#include "unknown_1cec30.h"
+#include "unknown_1eb550.h"
+#include "object_markers.h"
+#include "unknown_1428b0.h"
+#include <math.h>
+// @flags /O2 /arch:SSE /Gr
+
+struct s_object;
+s_object *function_badc0(long arg_0, dword arg_1);
+word *function_def30(long arg_0);
+void function_119250(long arg_0);
+transform4x3f *function_ba160(long arg_0, transform4x3f *arg_1);
+real function_30bf0(vector3f *arg_0);
+real magnitude3d(vector3f const *arg_0);
+bool __stdcall function_a75d0(vector3f *arg_0, real arg_1);
+quaternionf *function_141f60(matrix3x3 const *arg_0, quaternionf *arg_1);
+matrix3x3 *function_142eb0(matrix3x3 const *arg_0, matrix3x3 const *arg_1, matrix3x3 *arg_2);
+void function_11d790(quaternionf const *arg_0, vector3f *arg_1, real *arg_2);
+void havok_component_rigid_body_matrix_get(long arg_0, s_havok_component *arg_1, transform4x3f *arg_2);
+void havok_component_rigid_body_angular_velocity_get(long arg_0, s_havok_component *arg_1, vector3f *arg_2);
+void havok_component_rigid_body_linear_velocity_get(long arg_0, s_havok_component *arg_1, vector3f *arg_2);
+real havok_component_rigid_body_mass_get(long arg_0, s_havok_component *arg_1);
+void havok_component_rigid_body_linear_velocity_change(long arg_0, s_havok_component *arg_1, vector3f const *arg_2);
+void havok_component_rigid_body_angular_velocity_set(long arg_0, s_havok_component *arg_1, vector3f const *arg_2);
+real function_1d2280(bool arg_0, bool arg_1, real arg_2, real arg_3, real arg_4, real arg_5, real arg_6, real arg_7, real arg_8, bool arg_9, real *arg_10);
+
+struct s_1d24a0
+{
+ signed char field_0;
+ signed char field_1;
+ byte field_2;
+ signed char field_3;
+ long field_4;
+};
+struct s_1d24a1
+{
+ dword field_0;
+ long field_4;
+ long field_8;
+ long field_c;
+ real field_10;
+ real field_14;
+ real field_18;
+ real field_1c;
+ real field_20;
+ real field_24;
+ real field_28;
+ real field_2c;
+ real field_30;
+ real field_34;
+ byte field_38[0x54-0x38];
+ real field_54;
+ real field_58;
+ real field_5c;
+ byte field_60[8];
+};
+PRIVATE __forceinline real function_1d24a1(vector3f const *arg_0, vector3f const *arg_1)
+{
+ return (real)((double)arg_0->k * arg_1->k + (double)arg_0->j * arg_1->j + (double)arg_0->i * arg_1->i);
+}
+PRIVATE __forceinline real function_1d24a6(vector3f const *arg_0, vector3f const *arg_1)
+{
+ return arg_0->i * arg_1->i + arg_0->j * arg_1->j + arg_0->k * arg_1->k;
+}
+PRIVATE __forceinline vector3f *function_1d24a2(vector3f const *arg_0, real arg_1, vector3f *arg_2)
+{
+ arg_2->i = arg_0->i * arg_1;
+ arg_2->j = arg_0->j * arg_1;
+ arg_2->k = arg_0->k * arg_1;
+ return arg_2;
+}
+PRIVATE __forceinline void function_1d24a3(vector3f *arg_0, vector3f const *arg_1)
+{
+ arg_0->i += arg_1->i;
+ arg_0->j += arg_1->j;
+ arg_0->k += arg_1->k;
+}
+PRIVATE __forceinline void function_1d24a4(vector3f *arg_0, vector3f const *arg_1)
+{
+ arg_0->i -= arg_1->i;
+ arg_0->j -= arg_1->j;
+ arg_0->k -= arg_1->k;
+}
+PRIVATE __forceinline long function_1d24a5(real arg_0)
+{
+ long local_0;
+ __asm
+ {
+  fld arg_0
+  fistp local_0
+ }
+ return local_0;
+}
+
+// @retail 0x1d24a0
+void __stdcall function_1d24a0(s_havok_component *arg_0, float arg_1)
+{
+ (void)&arg_0;
+ (void)&arg_1;
+ if (!(arg_0->unknown04 & 0x104000)) return;
+ bool local_0 = !(fabs(arg_1) < 0.0001f);
+ bool local_1 = local_0 && !(bool)((arg_0->unknown04 >> 13) & 1);
+ bool local_2 = false;
+ real local_3 = 0.0f;
+ if (arg_0->unknown94 && local_0)
+ {
+  byte *local_4 = (byte *)havok_object_get(arg_0->object_index);
+  byte *local_5 = g_4e3b44[*(long *)local_4 & 0xffff].bytes;
+  byte *local_6 = g_4e3b44[*(long *)(local_5 + 0x38) & 0xffff].bytes;
+  byte *local_7 = g_4e3b44[*(long *)(local_6 + 0x24) & 0xffff].bytes;
+  for (long local_8 = 0; local_8 < arg_0->unknown94->size; ++local_8)
+  {
+   s_havok_array08 *local_9 = arg_0->unknown94;
+   s_1d24a0 *local_10 = &((s_1d24a0 *)local_9->data)[local_8];
+   byte *local_11 = *(byte **)(local_7 + 0x44) + local_10->field_0 * 12;
+   s_1d24a1 *local_12 = &(*(s_1d24a1 **)(local_7 + 0x2c))[*(short *)(local_11 + 8)];
+   byte *local_13 = local_10->field_4 != NONE ? (byte *)function_badc0(local_10->field_4, (dword)-1) : NULL;
+   s_havok_component *local_14 = NULL;
+   if (local_10->field_4 != NONE && local_13 && *(long *)(local_13 + 0xb4) != NONE)
+    local_14 = havok_component_get(*(long *)(local_13 + 0xb4));
+   long local_15 = local_10->field_1;
+   long local_16 = local_14 ? (local_15 < 0 ? 0 : local_15 > local_14->rigid_bodies.size ? local_14->rigid_bodies.size : local_15) : NONE;
+   if (!local_14 || local_16 != local_15)
+   {
+    --local_9->size;
+    ((s_1d24a0 *)local_9->data)[local_8] = ((s_1d24a0 *)local_9->data)[local_9->size];
+    --local_8;
+    continue;
+   }
+   bool local_17 = (bool)((local_12->field_0 >> 2) & 1);
+   bool local_18 = (bool)((local_12->field_0 >> 1) & 1);
+   hkRigidBody *local_19 = arg_0->rigid_bodies.data[local_10->field_3].rigid_body;
+   bool local_20 = (!local_19->m_fixed && local_19->isActive().m_bool) || local_1;
+   bool local_21 = local_14->rigid_bodies.data[local_15].rigid_body->isActive().m_bool || local_20;
+   bool local_22 = (bool)((local_12->field_0 >> 25) & 1);
+   bool local_23 = (bool)((local_12->field_0 >> 26) & 1);
+   s_object_marker local_24;
+   if (!function_b8d30(arg_0->object_index, local_12->field_8, &local_24, 1, false))
+    function_ba160(arg_0->object_index, &local_24.matrix);
+   if (!local_21) continue;
+   vector3f local_25 = *g_4687a4;
+   byte *local_26 = g_4e0300->data + (local_14->object_index & 0xffff) * 12;
+   dword local_27 = 1 << local_26[3];
+   if (local_27 & 1) function_def30(local_14->object_index);
+   else if (local_27 & 0x1000) function_119250(local_14->object_index);
+   local_15 = local_10->field_1;
+   point3f const *local_76 = (point3f const *)((byte *)local_14->rigid_bodies.data[local_15].rigid_body->m_motion + 0x70);
+   point3f local_28;
+   local_28.x = local_76->x;
+   local_28.y = local_76->y;
+   local_28.z = local_76->z;
+   vector3f local_29;
+   vector3f local_30;
+   havok_component_rigid_body_angular_velocity_get(local_15, local_14, &local_29);
+   havok_component_rigid_body_linear_velocity_get(local_15, local_14, &local_30);
+   if (local_12->field_20 != 0.0f && local_12->field_24 != 0.0f)
+   {
+    vector3f local_75;
+    local_75.i = local_24.matrix.position.x - local_28.x;
+    local_75.j = local_24.matrix.position.y - local_28.y;
+    local_75.k = local_24.matrix.position.z - local_28.z;
+    vector3f local_31 = local_75;
+    real local_32 = function_30bf0(&local_31);
+    if (local_32 == 0.0f) local_31 = *g_4687b0;
+    real local_33 = function_1d24a1(&local_30, &local_31);
+    real local_34;
+    real local_35 = function_1d2280(true, local_18, havok_component_rigid_body_mass_get(local_15, local_14),
+     local_32, arg_1 * local_12->field_20, local_33, local_12->field_24, local_12->field_1c,
+     local_12->field_18, local_22, &local_34);
+    real local_36 = g_510c54->rate * local_12->field_20;
+    vector3f local_37;
+    function_1d24a2(&local_31, local_35, &local_37);
+    if (!local_17 && local_36 > local_35)
+    {
+     real local_38 = g_51e9c4->unknown0 * g_510c54->rate;
+     real local_39 = local_36 - local_35;
+     if (!(local_38 > local_39)) local_39 = local_38;
+     local_37.k += local_39;
+    }
+    if (local_32 - local_12->field_1c >= 0.0f)
+    {
+     vector3f local_40;
+     function_1d24a2(&local_31, local_33, &local_40);
+     local_40.i = local_30.i - local_40.i;
+     local_40.j = local_30.j - local_40.j;
+     local_40.k = local_30.k - local_40.k;
+     real local_41 = magnitude3d(&local_40);
+     if ((local_41 >= 0.0f ? local_41 : 0.0f-local_41) > 0.001f)
+     {
+      if (local_41 > local_36)
+      {
+       real local_42 = local_36 >= 0.0f ? local_36 : 0.0f-local_36;
+       function_1d24a2(&local_40, 1.0f - (local_41-local_42)/local_41, &local_40);
+      }
+      function_1d24a4(&local_37, &local_40);
+     }
+     if (!(local_3 > local_34)) local_3 = local_34;
+     local_2 = true;
+    }
+    function_1d24a3(&local_25, &local_37);
+   }
+   if (local_12->field_28 != 0.0f && local_12->field_2c != 0.0f)
+   {
+    vector3f local_43;
+    local_43.i = local_24.matrix.position.x - local_28.x;
+    local_43.j = local_24.matrix.position.y - local_28.y;
+    local_43.k = local_24.matrix.position.z - local_28.z;
+    real local_44 = function_1d24a6(&local_43, &local_24.matrix.forward);
+    vector3f local_45;
+    function_1d24a2(&local_24.matrix.forward, local_44, &local_45);
+    function_1d24a4(&local_43, &local_45);
+    real local_46 = function_30bf0(&local_43);
+    if (local_46 != 0.0f)
+    {
+     real local_47 = function_1d24a1(&local_43, &local_30);
+     real local_48;
+     real local_49 = function_1d2280(true, local_18, havok_component_rigid_body_mass_get(local_15, local_14),
+      local_46, local_12->field_28 * arg_1, local_47, local_12->field_2c, local_12->field_1c,
+      local_12->field_18, local_22, &local_48);
+     vector3f local_50;
+     function_1d24a2(&local_43, local_49, &local_50);
+     if (local_46 - local_12->field_1c >= 0.0f)
+     {
+      real local_51 = function_1d24a6(&local_30, &local_24.matrix.forward);
+      vector3f local_52;
+      function_1d24a2(&local_24.matrix.forward, local_51, &local_52);
+      local_52.i = local_30.i - local_52.i;
+      local_52.j = local_30.j - local_52.j;
+      local_52.k = local_30.k - local_52.k;
+      vector3f local_53;
+      function_1d24a2(&local_43, local_47, &local_53);
+      function_1d24a4(&local_52, &local_53);
+      real local_54 = magnitude3d(&local_52);
+      if ((local_54 >= 0.0f ? local_54 : 0.0f-local_54) > 0.001f)
+      {
+       if (local_54 > local_12->field_28 * g_510c54->rate)
+       {
+        real local_55 = local_12->field_28 >= 0.0f ? local_12->field_28 : 0.0f-local_12->field_28;
+        function_1d24a2(&local_52, 1.0f-(local_54-local_55*g_510c54->rate)/local_54, &local_52);
+       }
+       function_1d24a4(&local_50, &local_52);
+      }
+      if (!(local_3 > local_48)) local_3 = local_48;
+      local_2 = true;
+     }
+     function_1d24a3(&local_25, &local_50);
+    }
+   }
+   if (local_12->field_30 != 0.0f && local_12->field_34 != 0.0f)
+   {
+    real local_56;
+    real local_57 = function_1d2280(true, local_18, havok_component_rigid_body_mass_get(local_15, local_14),
+     10000.0f, local_12->field_30 * arg_1, function_1d24a6(&local_30, &local_24.matrix.forward),
+     local_12->field_34, local_12->field_1c, local_12->field_18, local_22, &local_56);
+    vector3f local_58;
+    function_1d24a2(&local_24.matrix.forward, local_57, &local_58);
+    function_1d24a3(&local_25, &local_58);
+    if (!(local_3 > local_56)) local_3 = local_56;
+    local_2 = true;
+   }
+   if (local_17) local_25.k += g_510c54->rate * g_51e9c4->unknown0;
+   havok_component_rigid_body_linear_velocity_change(local_15, local_14, &local_25);
+   if (!TEST_FIELD_BIT(local_14->flag1))
+   {
+    if (local_12->field_c != 0x7000001)
+     function_b8d30(arg_0->object_index, local_12->field_c, &local_24, 1, false);
+    vector3f local_59 = *g_4687a4;
+    if (local_12->field_58 != 0.0f && local_12->field_5c != 0.0f)
+    {
+     transform4x3f local_60;
+     havok_component_rigid_body_matrix_get(local_10->field_1, local_14, &local_60);
+     function_142b80(&local_60.rotation, &local_60.rotation);
+     matrix3x3 local_61;
+     quaternionf local_62;
+     function_141f60(function_142eb0(&local_24.matrix.rotation, &local_60.rotation, &local_61), &local_62);
+     vector3f local_63;
+     real local_64;
+     function_11d790(&local_62, &local_63, &local_64);
+     real local_65 = function_1d24a1(&local_63, &local_29);
+     real local_66;
+     real local_67 = function_1d2280(true, local_18, havok_component_rigid_body_mass_get(local_10->field_1, local_14),
+      local_64, local_12->field_58 * arg_1, local_65, local_12->field_5c, 0.0f,
+      local_12->field_54, local_23, &local_66);
+     function_1d24a2(&local_63, local_67, &local_59);
+     vector3f local_68;
+     function_1d24a2(&local_63, local_65, &local_68);
+     local_68.i = local_29.i - local_68.i;
+     local_68.j = local_29.j - local_68.j;
+     local_68.k = local_29.k - local_68.k;
+     function_a75d0(&local_68, g_510c54->rate * local_12->field_58);
+     local_59.i = local_68.i * -1.0f + local_59.i;
+     local_59.j = local_68.j * -1.0f + local_59.j;
+     local_59.k = local_68.k * -1.0f + local_59.k;
+     if (!(local_3 > local_66)) local_3 = local_66;
+     local_2 = true;
+    }
+    function_1d24a3(&local_29, &local_59);
+    havok_component_rigid_body_angular_velocity_set(local_10->field_1, local_14, &local_29);
+   }
+  }
+ }
+ if (arg_0->unknown94 && !arg_0->unknown94->size)
+ {
+  delete arg_0->unknown94;
+  arg_0->unknown94 = NULL;
+ }
+ long local_69 = function_1d24a5((real)g_510c54->field_2_3 * 0.5f);
+ long local_70 = function_1d24a5((real)g_510c54->field_2_3 * 0.5f);
+ long local_71 = ((byte *)arg_0)[0x1a];
+ long local_72 = ((byte *)arg_0)[0x1b];
+ if (local_2)
+ {
+  real local_73 = local_3 < 0.0f ? 0.0f : local_3 > 1.0f ? 1.0f : local_3;
+  long local_74 = (long)(local_73 * 255.0f);
+  if (local_74 != local_72)
+  {
+   if (local_74 > local_72) local_72 += local_70;
+   else local_72 -= local_70;
+   if (local_72 > local_74) local_72 = local_74;
+  }
+  local_71 += local_69;
+ }
+ else
+ {
+  local_71 -= local_69;
+  local_72 -= local_70;
+ }
+ ((byte *)arg_0)[0x1a] = (byte)(local_71 < 0 ? 0 : local_71 > 255 ? 255 : local_71);
+ ((byte *)arg_0)[0x1b] = (byte)(local_72 < 0 ? 0 : local_72 > 255 ? 255 : local_72);
+ if (local_0) arg_0->unknown04 |= 0x2000;
+ else arg_0->unknown04 &= ~0x2000;
+}

@@ -962,3 +962,52 @@ void __stdcall function_132220(s_bit_vector_pool *data)
 			function_133050(data, index, NONE, false, true);
 	}
 }
+
+struct s_132780
+{
+	long field_0;
+	long field_4[6];
+	long field_1c[6];
+	byte *field_34;
+};
+
+struct s_view;
+struct s_frustum_1648d0;
+struct s_clip_1648d0;
+struct s_projection_1648d0;
+bool function_1648d0(s_frustum_1648d0 const *source, s_view *view, s_clip_1648d0 const *clip, s_projection_1648d0 *result, bool make_hull);
+
+// @retail 0x132780
+bool function_132780(s_sort_context const *arg_1, s_sort_context const *arg_2, long arg_3, long arg_4, long arg_5, long arg_6, long arg_7, s_132780 *arg_8)
+{
+	(void)&arg_1;
+	(void)&arg_2;
+	(void)&arg_3;
+	(void)&arg_4;
+	(void)&arg_5;
+	s_sort_entry const *local_1 = &arg_1->entries[arg_1->order[arg_6]];
+	s_sort_entry const *local_2 = &arg_2->entries[arg_2->order[arg_3]];
+	bool local_3 = false;
+	for (long local_4 = 0; local_4 < ((short const *)local_2)[arg_7 + 1]; local_4++)
+	{
+		byte const *local_5 = (byte const *)arg_2 + 0x1974 + (((short const *)local_2)[arg_7 + 7] + local_4) * 0x108;
+		for (long local_6 = 0; local_6 < ((short const *)local_1)[arg_4 + 1]; local_6++)
+		{
+			byte const *local_7 = (byte const *)arg_1 + 0x1974 + (((short const *)local_1)[7] + local_6) * 0x108;
+			if (arg_8->field_0 >= arg_5)
+				return false;
+			byte *local_8 = arg_8->field_34 + arg_8->field_0 * 0x9c;
+			if (function_1648d0((s_frustum_1648d0 const *)local_7, (s_view *)((byte const *)arg_2 + 4 + *(long const *)local_5 * 0x1bc), (s_clip_1648d0 const *)local_5, (s_projection_1648d0 *)local_8, false))
+			{
+				long local_9 = arg_8->field_0++;
+				*(long *)(local_8 + 0x94) = ((short const *)local_2)[arg_7 + 7] + local_4;
+				*(long *)(local_8 + 0x98) = arg_7;
+				if (arg_8->field_1c[arg_7] == NONE)
+					arg_8->field_1c[arg_7] = local_9;
+				arg_8->field_4[arg_7]++;
+				local_3 = true;
+			}
+		}
+	}
+	return local_3;
+}

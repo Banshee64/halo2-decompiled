@@ -1,7 +1,7 @@
 #include "unknown_11c920.h"
 #include "unknown_1c3b20.h"
 #include <new>
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 
 class c_1d7390
 {

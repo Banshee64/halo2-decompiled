@@ -74,11 +74,6 @@ long __stdcall function_26d0e0(point3f const *arg_0, s_type_c3b527 *arg_1, long 
 	return 0;
 }
 
-// @stub 0x272af0
-short __stdcall function_272af0(s_match_globals *arg_0, point3f const *arg_1)
-{
-	return 0;
-}
 
 // @stub 0x1c8df0
 short __stdcall function_1c8df0(long arg_0, void const *arg_1, short arg_2, short arg_3,
