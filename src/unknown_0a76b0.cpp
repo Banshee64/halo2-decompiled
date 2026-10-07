@@ -1503,52 +1503,50 @@ bool __stdcall unit_action_pickup_weapon(long unit_index, s_unit_request *reques
 	bool result = false;
 	bool modes[4];
 
-	if (*(long *)((byte *)weapon + 0x154) != NONE)
-		return result;
-	if (!function_cd7b0(unit_index, pickup->weapon_index, modes))
-		return result;
-
-	switch (pickup->mode)
+	if (*(long *)((byte *)weapon + 0x154) == NONE && function_cd7b0(unit_index, pickup->weapon_index, modes))
 	{
-	case 0:
-	case 1:
-		if (!modes[0] || function_cbd50(unit_index, UNIT_ACTION_UNIT_GET(unit_index)->current_weapon_index) != NONE)
-			return result;
-		break;
-	case 3:
-		if (!modes[0])
-			return result;
-		break;
-	case 4:
-		if (!modes[2])
-			return result;
-		break;
-	case 5:
-		if (!modes[1])
-			return result;
-		break;
-	case 6:
-		if (!modes[3])
-			return result;
-		break;
-	default:
-		return result;
-	}
+		bool allowed;
 
-	function_e69c0(unit_index, 8);
-	function_e69c0(unit_index, 0x12);
-	function_e69c0(unit_index, 0);
-	function_e69c0(unit_index, 0xa);
-	function_e69c0(unit_index, 0x1b);
-	function_e69c0(unit_index, 0x16);
-	if (function_cd0c0(unit_index, pickup->weapon_index, pickup->mode))
-	{
-		long value = unit_get_player_index(unit_index) == NONE ? NONE :
-			unit_action_player_value28_get(unit_get_player_index(unit_index));
+		switch (pickup->mode)
+		{
+		case 0:
+		case 1:
+			allowed = modes[0] && function_cbd50(unit_index, UNIT_ACTION_UNIT_GET(unit_index)->current_weapon_index) == NONE;
+			break;
+		case 3:
+			allowed = modes[0];
+			break;
+		case 4:
+			allowed = modes[2];
+			break;
+		case 5:
+			allowed = modes[1];
+			break;
+		case 6:
+			allowed = modes[3];
+			break;
+		default:
+			allowed = false;
+			break;
+		}
+		if (allowed)
+		{
+			function_e69c0(unit_index, 8);
+			function_e69c0(unit_index, 0x12);
+			function_e69c0(unit_index, 0);
+			function_e69c0(unit_index, 0xa);
+			function_e69c0(unit_index, 0x1b);
+			function_e69c0(unit_index, 0x16);
+			if (function_cd0c0(unit_index, pickup->weapon_index, pickup->mode))
+			{
+				long value = unit_get_player_index(unit_index) == NONE ? NONE :
+					unit_action_player_value28_get(unit_get_player_index(unit_index));
 
-		function_191fab(weapon->definition_index, value);
-		function_c86e0(unit_index, 0);
-		result = true;
+				function_191fab(weapon->definition_index, value);
+				function_c86e0(unit_index, 0);
+				result = true;
+			}
+		}
 	}
 	return result;
 }

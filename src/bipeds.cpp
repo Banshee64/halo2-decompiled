@@ -1932,7 +1932,7 @@ void function_e0e00(long arg_159e6d)
 	{
 		s_havok_component *component = havok_component_get(biped->havok_component_index);
 
-		if ((component->unknown04 >> 11) & 1)
+		if ((bool)((component->unknown04 >> 11) & 1))
 		{
 			real scales[4];
 			real scale;
@@ -2997,6 +2997,7 @@ real function_1e20b0(long actor_index);
 // @retail 0xe2fa0
 void __stdcall function_e2fa0(long arg_159e6d, long object_index, void *unused)
 {
+	void *const *reference = &unused;
 	s_biped *biped = BIPED_GET(arg_159e6d);
 	char ticks = (char)biped->unknown398;
 
@@ -3476,6 +3477,7 @@ bool __stdcall function_e3c90(long arg_159e6d, long *names, s_biped_physics_outp
 // @retail 0xe4330
 void function_e4330(long arg_159e6d, real height)
 {
+	real fall = height;
 	s_biped *biped = BIPED_GET(arg_159e6d);
 	byte *definition = BIPED_DEFINITION_GET(biped);
 	real soft = *(real *)(definition + 0x204);
@@ -3484,26 +3486,20 @@ void function_e4330(long arg_159e6d, real height)
 	real range;
 	real time;
 	short kind;
+	bool forced = (bool)((biped->flags_348 >> 6) & 1);
+	bool const *forced_reference = &forced;
 
-	if ((biped->flags_348 >> 6) & 1)
+	if (!forced)
 	{
-		height = maximum;
-		range = maximum - hard;
-		time = *(real *)(definition + 0x200);
-		*(byte *)&biped->flags_348 &= ~0x40;
-		kind = 1;
-	}
-	else
-	{
-		if (soft > height)
+		if (soft > fall)
 		{
 			return;
 		}
-		if (hard > height)
+		if (hard > fall)
 		{
 			range = hard - soft;
 			time = *(real *)(definition + 0x1fc);
-			height -= soft;
+			fall -= soft;
 			kind = 0;
 		}
 		else
@@ -3513,9 +3509,17 @@ void function_e4330(long arg_159e6d, real height)
 			kind = 1;
 		}
 	}
+	else
+	{
+		fall = maximum;
+		range = maximum - hard;
+		time = *(real *)(definition + 0x200);
+		*(byte *)&biped->flags_348 &= ~0x40;
+		kind = 1;
+	}
 	if (range > 0.0f)
 	{
-		long ticks = vehicle_round_ticks(time * PIN(height / range, 0.0f, 1.0f) * g_510c54->field_2_3);
+		long ticks = vehicle_round_ticks(time * PIN(fall / range, 0.0f, 1.0f) * g_510c54->field_2_3);
 
 		if (ticks > 0)
 		{
@@ -3617,25 +3621,25 @@ bool function_e4680(long arg_159e6d)
 	{
 		biped->unknown39c++;
 	}
-	if (!jumping)
-	{
-		biped->unknown39e = 0;
-		return false;
-	}
+	if (jumping)
 	{
 		long delay = vehicle_round_ticks(g_510c54->field_2_3 * 0.3f);
 
-		if ((biped->unknown13c == NONE || (char)biped->unknown39e >= delay) &&
+		if ((biped->unknown13c == NONE || (char)biped->unknown39e < delay) &&
 			biped->unknown39c * g_510c54->rate > 0.16f && !function_e4050(arg_159e6d) && biped->unknown34c != 1 &&
 			function_e4770(arg_159e6d))
 		{
 			biped->unknown39e = (byte)delay;
 			jumped = true;
 		}
+		if ((char)biped->unknown39e < 0x7f)
+		{
+			biped->unknown39e++;
+		}
 	}
-	if ((char)biped->unknown39e < 0x7f)
+	else
 	{
-		biped->unknown39e++;
+		biped->unknown39e = 0;
 	}
 	return jumped;
 }
