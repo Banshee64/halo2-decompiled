@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include "unknown_1eb550.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -178,6 +179,36 @@ struct s_particle_properties_2ba
     dword input_mask;
 };
 
+struct s_particle_cache_2ba
+{
+    real values[17];
+    dword valid;
+    void *current_system;
+    void *current_emitter;
+    s_particle_2b96 *current_particle;
+};
+
+struct s_particle_entry_group_2ba
+{
+    byte unknown00[8];
+    long mode;
+    long count;
+    s_particle_properties_2ba *entries;
+};
+
+void function_2b8da0(s_particle_properties_2ba const *definition, void *system,
+    long first, void const *origin, real scale, long mode);
+
+// @retail 0x2ba3a0
+void function_2ba3a0(s_particle_entry_group_2ba const *group, long first,
+    void *system, void const *origin, real scale)
+{
+    for (long i = 0; i < group->count; ++i)
+    {
+        function_2b8da0(&group->entries[i], system, first, origin, scale, group->mode);
+    }
+}
+
 // @retail 0x2ba100
 void function_2ba100(s_particle_properties_2ba const *definition, void *system, long first, real scale)
 {
@@ -306,46 +337,46 @@ void function_2b9b10(s_particle_properties_2ba const *definition, void const *or
 {
     s_particle_property_entry_2ba *properties = definition->properties;
     long next = first;
-    dword valid = 0;
-    void *current_system = 0;
-    void *current_emitter = 0;
-    s_particle_2b96 *current_particle = 0;
-    real values[17];
+    s_particle_cache_2ba cache;
+    cache.valid = 0;
+    cache.current_system = 0;
+    cache.current_emitter = 0;
+    cache.current_particle = 0;
     if (system)
     {
-        current_system = system;
-        valid = 0;
+        cache.current_system = system;
+        cache.valid = 0;
     }
     dword requested = definition->input_mask & 0x107f0;
-    function_173ba0(requested, current_system, current_emitter, current_particle, values);
-    valid |= requested;
+    function_173ba0(requested, cache.current_system, cache.current_emitter, cache.current_particle, cache.values);
+    cache.valid |= requested;
     while (next != NONE)
     {
         s_particle_2b96 *particle = &((s_particle_2b96 *)g_51ec84->data)[next & 0xffff];
-        if (particle != current_particle)
+        if (particle != cache.current_particle)
         {
-            current_particle = particle;
-            valid &= 0xffff07f0;
+            cache.current_particle = particle;
+            cache.valid &= 0xffff07f0;
         }
         requested = definition->input_mask & 0xf80f;
-        function_173ba0(requested & ~valid, current_system, current_emitter, current_particle, values);
-        valid |= requested;
+        function_173ba0(requested & ~cache.valid, cache.current_system, cache.current_emitter, cache.current_particle, cache.values);
+        cache.valid |= requested;
         next = particle->next;
         s_particle_2b96 *nearest = function_2b9670(particle, first);
-        real minimum_speed = function_246cd0(&properties[6].property, values);
-        real maximum_speed = function_246cd0(&properties[7].property, values);
-        real maximum_change = function_246cd0(&properties[8].property, values);
+        real minimum_speed = function_246cd0(&properties[6].property, cache.values);
+        real maximum_speed = function_246cd0(&properties[7].property, cache.values);
+        real maximum_change = function_246cd0(&properties[8].property, cache.values);
         vector3f change = { 0.0f, 0.0f, 0.0f };
         if (nearest)
         {
             function_2b9750(nearest, particle,
-                function_246cd0(&properties[0].property, values),
-                function_246cd0(&properties[1].property, values), &change);
+                function_246cd0(&properties[0].property, cache.values),
+                function_246cd0(&properties[1].property, cache.values), &change);
             function_2b98b0(particle, nearest,
-                function_246cd0(&properties[4].property, values), &change);
+                function_246cd0(&properties[4].property, cache.values), &change);
         }
-        real attraction_scale = function_246cd0(&properties[3].property, values);
-        real attraction_radius = function_246cd0(&properties[2].property, values);
+        real attraction_scale = function_246cd0(&properties[3].property, cache.values);
+        real attraction_radius = function_246cd0(&properties[2].property, cache.values);
         if (attraction_radius > 0.0f)
         {
             point3f const *center = (point3f const *)((byte const *)origin + 0x10);
@@ -367,7 +398,7 @@ void function_2b9b10(s_particle_properties_2ba const *definition, void const *or
             change.j += delta.j;
             change.k += delta.k;
         }
-        function_2b9a00(particle, function_246cd0(&properties[5].property, values), &change);
+        function_2b9a00(particle, function_246cd0(&properties[5].property, cache.values), &change);
         change.i *= scale;
         change.j *= scale;
         change.k *= scale;
@@ -409,5 +440,92 @@ void function_2b9b10(s_particle_properties_2ba const *definition, void const *or
             particle->velocity.j *= minimum_speed;
             particle->velocity.k *= minimum_speed;
         }
+    }
+}
+
+
+PRIVATE __declspec(noinline) void particle_damping_update_2b(s_particle_properties_2ba const *definition,
+    void *system, long first, real scale)
+{
+    dword remaining = definition->constant_mask;
+    s_particle_property_entry_2ba *properties = definition->properties;
+    long next = first;
+    dword valid = 0;
+    void *current_system = 0;
+    void *current_emitter = 0;
+    s_particle_2b96 *current_particle = 0;
+    real properties_values[3] = { 0.0f, 0.0f, 0.0f };
+    real values[17];
+    if (system)
+    {
+        current_system = system;
+        valid = 0;
+    }
+    dword requested = definition->input_mask & 0x107f0;
+    function_173ba0(requested, current_system, current_emitter, current_particle, values);
+    valid |= requested;
+    for (dword i = 0; i < 3 && remaining; ++i)
+    {
+        dword bit = 1 << i;
+        if (remaining & bit)
+        {
+            properties_values[i] = function_246cd0(&properties[i].property, values);
+            remaining &= ~bit;
+        }
+    }
+    while (next != NONE)
+    {
+        s_particle_2b96 *particle = &((s_particle_2b96 *)g_51ec84->data)[next & 0xffff];
+        next = particle->next;
+        if (!(*((byte *)particle + 2) & 9) && *(real *)((byte *)particle + 8) <= 1.0f)
+        {
+            if (particle != current_particle)
+            {
+                current_particle = particle;
+                valid &= 0xffff07f0;
+            }
+            requested = definition->input_mask & 0xf80f;
+            function_173ba0(requested & ~valid, current_system, current_emitter, current_particle, values);
+            valid |= requested;
+            for (dword j = 0; j < 3; ++j)
+            {
+                if (!(definition->constant_mask & (1 << j)))
+                    properties_values[j] = function_246cd0(&properties[j].property, values);
+            }
+            real linear = properties_values[1] * scale;
+            real angular = properties_values[2] * scale;
+            linear = linear < 0.0f ? 0.0f : (linear > 1.0f ? 1.0f : linear);
+            angular = angular < 0.0f ? 0.0f : (angular > 1.0f ? 1.0f : angular);
+            particle->velocity.k -= g_51e9c4->unknown0 * properties_values[0] * scale;
+            real linear_remaining = 1.0f - linear;
+            particle->velocity.i *= linear_remaining;
+            particle->velocity.j *= linear_remaining;
+            particle->velocity.k *= linear_remaining;
+            *(real *)((byte *)particle + 0x34) *= 1.0f - angular;
+        }
+    }
+}
+
+void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void *system,
+    long first, real scale, long mode);
+
+// @retail 0x2b8da0
+void function_2b8da0(s_particle_properties_2ba const *definition, void *system,
+    long first, void const *origin, real scale, long mode)
+{
+    switch (*(word const *)definition)
+    {
+    case 0:
+        particle_damping_update_2b(definition, system, first, scale);
+        break;
+    case 1:
+        function_2b9060(definition, system, first, scale, mode);
+        break;
+    case 2:
+        function_2b9b10(definition, origin, first, scale, system);
+        break;
+    case 3:
+        function_2ba100(definition, system, first, scale);
+        break;
     }
 }
