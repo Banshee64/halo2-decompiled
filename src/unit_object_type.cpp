@@ -7370,3 +7370,40 @@ impact:
 			(byte)unit_round(g_510c54->field_2_3 * 0.5f);
 	}
 }
+
+/* the unit object type's definition: its datum size and the callbacks it
+   dispatches to (only this file's callbacks are filled in) */
+struct s_unit_type_definition_view
+{
+	char const *name;
+	long group_tag;
+	short datum_size;
+	short unknown0a;
+	long unknown0c;
+	void *functions[29];
+	void *parent;
+	void *self;
+	byte unknown8c[0xc8 - 0x8c];
+};
+
+extern s_unit_type_definition_view g_4679b0;
+s_unit_type_definition_view g_4679b0 =
+{
+	"unit",
+	'unit',
+	0x348,
+	NONE,
+	NONE,
+	{
+		NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, (void *)function_c4410,
+		NULL, NULL, (void *)function_c4820, (void *)function_c4880,
+		(void *)function_c6b30, NULL, NULL, (void *)function_c6b90,
+		NULL, NULL, (void *)function_ced30, (void *)function_ceea0,
+		NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL,
+		NULL
+	},
+	NULL,
+	&g_4679b0
+};
