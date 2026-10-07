@@ -467,7 +467,7 @@ bool function_10f9b0(long unit_index, long state_name, long action_name, long a,
 int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
 void function_15e050(long object_index, short value);
 void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, real d, real e, long f);
-void object_get_damage_owner(long object_index, s_damage_owner *owner);
+void __stdcall object_get_damage_owner(long object_index, s_damage_owner *owner);
 void function_107370(long device_index, real value);
 void function_184060(long unknown3c, byte unknown59, s_type_1e6529 *data, long unknown50);
 void function_cafc0(long unit_index, point3f *position);
@@ -539,7 +539,7 @@ struct s_collision_result_1697c0;
 bool function_16a040(long flags, point3f const *point0, point3f const *point1, long ignore_object_index,
 	long ignore_unit_index, s_collision_result_1697c0 *result);
 void object_get_root_location(long object_index, s_location *location);
-long function_d6c80(s_type_1e6529 *data, long ignore_object_index);
+long __stdcall function_d6c80(s_type_1e6529 *data, long ignore_object_index);
 short *function_1886d0(long object_index, short *material_type);
 struct s_globals_element;
 s_globals_element *function_188690(short index);
@@ -606,7 +606,7 @@ long function_189060(long object_index, short value, real scale, point3f const *
 
 
 void function_d6660(s_type_1e6529 *data, long definition_index);
-void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
+void __stdcall function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
 	vector3f const *unknown14);
 
 struct s_sound_label_play
@@ -1542,7 +1542,7 @@ void __stdcall function_d1360(long unit_index, long seat_index, bool a, bool b)
 /* whether a biped faces along the direction: always while in animation
    0x6000084, else by the sign of its facing's dot product with it */
 // @retail 0xcc010
-bool function_cc010(long object_index, vector3f const *direction)
+bool __stdcall function_cc010(long object_index, vector3f const *direction)
 {
 	s_unit *unit = (s_unit *)function_badc0(object_index, 3);
 	bool result = false;
@@ -2021,8 +2021,12 @@ long __stdcall function_cbd80(long object_index, long *holder_index)
 {
 	s_unit *unit = UNIT_GET(object_index);
 	short index = unit->current_weapon_index;
-	long weapon_index = index != NONE ? unit->weapon_object_indices[index] : NONE;
+	long weapon_index = NONE;
 
+	if (index != NONE)
+	{
+		weapon_index = unit->weapon_object_indices[index];
+	}
 	if (weapon_index != NONE)
 	{
 		if (holder_index)

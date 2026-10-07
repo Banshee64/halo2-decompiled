@@ -765,8 +765,8 @@ struct s_table_holder;
 void function_e30c0(long arg_159e6d);
 bool function_1ec500(long arg_159e6d);
 void function_d6660(s_type_1e6529 *data, long definition_index);
-void object_get_damage_owner(long object_index, s_damage_owner *owner);
-void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
+void __stdcall object_get_damage_owner(long object_index, s_damage_owner *owner);
+void __stdcall function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
 	vector3f const *unknown14);
 void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
 void function_b7740(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity,

@@ -2921,7 +2921,7 @@ struct s_damage_owner
 };
 
 bool function_f5dc0(long object_index);
-void object_get_damage_owner(long object_index, s_damage_owner *owner);
+void __stdcall object_get_damage_owner(long object_index, s_damage_owner *owner);
 
 /* flips a vehicle back over (type 33): the way it rolls, from how far over
    it is and where the flipping unit stands */
@@ -3429,7 +3429,7 @@ struct s_type_1e6529
 
 struct s_small_index;
 void function_d6660(s_type_1e6529 *data, long definition_index);
-void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
+void __stdcall function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
 	vector3f const *unknown14);
 long function_baf80(long object_index);
 short function_0b67a0(const s_small_index *data);

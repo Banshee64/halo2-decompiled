@@ -948,7 +948,7 @@ void function_f6010(long vehicle_index);
 void __stdcall function_f6bd0(long vehicle_index, s_vehicle_physics_state *state);
 bool function_cc380(long object_index);
 void function_d6660(s_type_1e6529 *data, long definition_index);
-void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
+void __stdcall function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
 	vector3f const *unknown14);
 void __stdcall function_ba7f0(long object_index, long a, long b, long mask);
 bool function_113e40(long unit_index);

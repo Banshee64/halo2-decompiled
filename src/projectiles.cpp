@@ -1537,9 +1537,9 @@ struct s_type_1e6529
 };
 
 void function_d6660(s_type_1e6529 *data, long definition_index);
-void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
+void __stdcall function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
 	vector3f const *unknown14);
-long function_d6c80(s_type_1e6529 *data, long ignore_object_index);
+long __stdcall function_d6c80(s_type_1e6529 *data, long ignore_object_index);
 
 /* the down probe for a surface under a detonation (0x45326c) */
 vector3f const g_45326c[1] = { { 0.0f, 0.0f, -1.0f } };
