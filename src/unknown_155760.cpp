@@ -604,3 +604,18 @@ void function_1554b0(real elapsed)
         }
     }
 }
+
+void function_23bc90(long unit_index, point3f *position, vector3f *forward);
+void function_23ca20(long unit_index, point3f *position, vector3f *forward);
+
+// @retail 0x1557c0
+short function_1557c0(long unit_index, point3f *position, vector3f *forward)
+{
+    short mode;
+    short result = function_155810(unit_index, &mode);
+    if (result == 0)
+        function_23bc90(unit_index, position, forward);
+    else
+        function_23ca20(unit_index, position, forward);
+    return result;
+}

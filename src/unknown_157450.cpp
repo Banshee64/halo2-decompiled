@@ -10,6 +10,7 @@
 #include "input_record.h"
 #include "game_engine_events.h"
 #include "unknown_163110.h"
+#include "slot_handler.h"
 #include <string.h>
 #include <math.h>
 
@@ -4063,4 +4064,114 @@ bool function_15f3a0(long local_index, s_player_score_display *display)
     }
     else result = false;
     return result;
+}
+
+struct s_input_state
+{
+    byte unknown00[0x10];
+    byte values[0x38];
+};
+static __forceinline long real_to_long(real value);
+extern byte g_4e61b9;
+extern s_input_state g_4e61dc[3];
+extern s_input_state g_4e630c;
+bool function_162c50(long player_index, long *spectated_player_index);
+
+// @retail 0x15bb20
+void __stdcall function_15bb20(long player_index)
+{
+    long absolute_index = player_index & 0xffff;
+    s_engine_player *player = engine_player_get(player_index);
+    if (player->value194 > 0)
+        --player->value194;
+    if (g_4e6948->mode != 4 && player->unit_index != NONE && function_15b2f0() &&
+        g_510c54->game_time % g_510c54->field_2_3 == 0)
+        function_1967d0(absolute_index, 13, NONE, 1);
+
+    char *seat_timer = (char *)player + 0x1a6;
+    char *dead_timer = (char *)player + 0x1a7;
+    char *alive_timer = (char *)player + 0x1a8;
+    if (player->unit_index != NONE)
+    {
+        byte *unit = (byte *)engine_object_get(player->unit_index);
+        if (*(long *)(unit + 0x14) != NONE && *(short *)(unit + 0x1fc) != NONE)
+        {
+            if (*seat_timer == NONE)
+                *seat_timer = (char)(g_510c54->field_2_3 * 2);
+            else if (*seat_timer > 0)
+                --*seat_timer;
+        }
+        else
+            *seat_timer = NONE;
+        if (player->unit_index != NONE)
+        {
+            if (*dead_timer != NONE && g_4e6948->mode == 4)
+                ++*(short *)((byte *)player + 0x218);
+            *dead_timer = NONE;
+            if (*alive_timer == NONE)
+            {
+                *alive_timer = 0;
+                if (g_4e6948->mode != 4)
+                {
+                    *(long *)((byte *)player + 0x1b0) = NONE;
+                    function_a7840((short)player_index, 0x40);
+                }
+            }
+            else if (*alive_timer < 0x7f)
+                ++*alive_timer;
+        }
+    }
+    else
+    {
+        if (*dead_timer == NONE)
+            *dead_timer = (char)g_510c54->field_2_3;
+        else if (*dead_timer > 0)
+            --*dead_timer;
+        *alive_timer = NONE;
+    }
+
+    short user = *(short *)((byte *)player + 0x28);
+    long controller = *(long *)((byte *)player + 0x24);
+    if (user != NONE && controller != NONE)
+    {
+        bool has_input = g_4e61cc[(short)controller] != 0;
+        bool primary_input = has_input && g_4e61b9;
+        bool active = has_input && (primary_input ? g_4e630c.values[0xd] :
+            g_4e61dc[(short)controller].values[0xd]) != 0;
+        long ticks = g_510c54->field_2_3;
+        long minimum_time = ticks * 3;
+        if (function_15b2f0())
+            g_4e9af0.unknown04[0] = 0;
+        else
+        {
+            long elapsed = (long)g_4e9af0.unknown04[0] + 1;
+            g_4e9af0.unknown04[0] = (byte)(elapsed > ticks ? ticks : elapsed);
+        }
+
+        if ((active || g_4e9af0.unknown04[0] == ticks ||
+            (player->unit_index == NONE && player->value170 <= 1 && !(player->flags & 0x4000) &&
+                !function_15db30(player_index) && g_510c54->game_time > minimum_time && (player->flags & 1))) &&
+            !function_162c50(player_index, &player_index))
+        {
+                long maximum = real_to_long((real)g_510c54->field_2_3 * 0.25f);
+                user = *(short *)((byte *)player + 0x28);
+                long elapsed = (long)g_4e9af0.timers[user] + 1;
+                g_4e9af0.timers[user] = (byte)(elapsed > maximum ? maximum : elapsed);
+                if (has_input)
+                {
+                    short delta = primary_input ? (short &)g_4e630c.values[0x36] :
+                        (short &)g_4e61dc[(short)controller].values[0x36];
+                    real change = (real)(-delta);
+                    change *= 3.0518509447574615e-05f;
+                    change *= 240.0f / (real)g_510c54->field_2_3;
+                    (real &)g_4e9af0.unknown04[4 + user * 4] += change;
+                }
+        }
+        else
+        {
+            user = *(short *)((byte *)player + 0x28);
+            long remaining = (long)g_4e9af0.timers[user] - 1;
+            g_4e9af0.timers[user] = (byte)(remaining > 0 ? remaining : 0);
+        }
+    }
 }

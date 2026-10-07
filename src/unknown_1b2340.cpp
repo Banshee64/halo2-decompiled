@@ -2,6 +2,10 @@
 #include "unknown_11c920.h"
 #include "slot_handler.h"
 
+static __forceinline real slot_random(void);
+static __forceinline real slot_random_range(real lower, real upper);
+static __forceinline long real_to_long(real value);
+
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 /* slot type 0x24 */
@@ -161,4 +165,59 @@ done:
 			}
 		}
 	}
+}
+bool function_2601f0(long actor_index, s_type_c3b527 const *point, long sector, real radius, real path_distance);
+void function_25d420(long prop_ref_index, short type, long actor_index);
+void function_1f86a0(long actor_index);
+
+// @retail 0x1b23c0
+bool __stdcall function_1b23c0(long actor_index, s_slot *slot)
+{
+    volatile bool result = true;
+    s_actor_view *actor = actor_get(actor_index);
+    s_prop_node_view *node = prop_node_get(actor->prop_index);
+    s_prop_state_view *prop_state = prop_node_state(node);
+    s_prop_view_fields *view = prop_node_view(node);
+    real duration;
+    if (!view)
+        return false;
+    if (view->unknown70 == 0)
+    {
+        duration = 3.0f;
+        if (*(long *)((byte *)prop_state + 0x44) == NONE ||
+            !function_2601f0(actor_index, &prop_state->unknown48, *(long *)((byte *)prop_state + 0x44),
+                actor->unknown26c != NONE ? 6.0f : 3.0f, 0.0f))
+        {
+            function_25d420(actor->prop_index, 3, actor_index);
+            return false;
+        }
+    }
+    else
+    {
+        byte *character = (byte *)function_1e4db0(actor_index);
+        duration = character ? slot_random_range(*(real *)(character + 4), *(real *)(character + 8)) : 8.0f;
+        if (!function_2601f0(actor_index, &view->unknown78, *(long *)((byte *)view + 0x74),
+            actor->unknown26c != NONE ? 5.0f : 2.0f, 0.0f))
+            return false;
+    }
+    s_slot_24 *state = (s_slot_24 *)slot;
+    long ticks = real_to_long((real)g_510c54->field_2_3 * duration);
+    state->unknown16 = (short)ticks;
+    state->unknown18 = (short)ticks;
+    *(short *)((byte *)state + 0x14) = 0;
+    state->unknown0c = false;
+    *((bool *)state + 0xd) = false;
+    if (function_26ba60(node->unknown08, actor_index, actor->unknown07c))
+    {
+        if (view->unknown70 == 0)
+        {
+            byte *prop = g_50241c->data + (node->unknown08 & 0xffff) * 0xc4;
+            if (!prop[0x32])
+                prop[0x32] = function_1fb7e0(actor_index, 0x31, NULL, node->object_index, NONE);
+        }
+        else
+            function_1fb7e0(actor_index, 0x36, NULL, node->object_index, NONE);
+    }
+    function_1f86a0(actor_index);
+    return result;
 }

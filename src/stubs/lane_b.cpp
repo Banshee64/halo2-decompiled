@@ -12,9 +12,6 @@ struct s_262b40_result;
 struct s_261d20_entry;
 struct s_2605d0_request;
 
-// @stub 0x261d20
-short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long maximum_count, s_2605d0_request const *request) { return 0; }
-
 // @stub 0x261510
 void __stdcall function_261510(long actor_index, s_2605d0_request const *request) { }
 
@@ -60,9 +57,6 @@ void __stdcall function_1b0110(long actor_index, s_slot *slot) { }
 void __stdcall function_1b13b0(long actor_index, s_slot *slot, long index) { }
 
 
-// @stub 0x1b23c0
-bool __stdcall function_1b23c0(long actor_index, s_slot *slot) { return 0; }
-
 // @stub 0x1b2770
 void __stdcall function_1b2770(long actor_index, s_slot *slot) { }
 
@@ -92,8 +86,6 @@ void __stdcall function_1b47b0(long actor_index, s_slot *slot) { }
 
 
 
-// @stub 0x1b85a0
-void __stdcall function_1b85a0(long actor_index, s_slot *slot) { }
 
 // @stub 0x1b99d0
 short __stdcall function_1b99d0(long actor_index, s_slot *slot) { return 0; }
