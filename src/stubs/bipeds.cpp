@@ -34,8 +34,6 @@ void __stdcall function_1ed340(void *physics, long arg_159e6d) { }
 // @stub 0x1696d0
 bool function_1696d0(long flags, s_biped_ground_collision *collision, long object_index, point3f const *point, vector3f const *vector, long a, long b) { return 0; }
 
-// @stub 0x1d5120
-bool function_1d5120(s_havok_component *component, long rigid_body_index, long a, long b, real rate, char *result, char value) { return 0; }
 
 
 
@@ -49,8 +47,6 @@ bool function_e63b0(vector3f const *aim, bool flag) { return 0; }
 
 
 
-// @stub 0x1c9c00
-void function_1c9c00(long object_index) { }
 
 // @stub 0xe5790
 void function_e5790(long arg_159e6d) { }
@@ -59,8 +55,6 @@ void function_e5790(long arg_159e6d) { }
 void __stdcall function_1e55d0(s_biped_physics_move *move, void *physics, s_biped_physics_output *output) { }
 
 
-// @stub 0x1cdb00
-void __stdcall function_1cdb00(long arg_159e6d, vector3f const *control) { }
 
 // @stub 0x1c4a80
 void function_1c4a80(long object_index, long a, long b) { }

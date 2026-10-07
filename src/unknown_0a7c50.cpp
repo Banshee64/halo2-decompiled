@@ -177,9 +177,10 @@ void function_a9390(long index)
     long seat;
     if (function_a76b0(index, 0))
     {
-        objects[1] = *(long *)(object + 0x14);
+        long parent = *(long *)(object + 0x14);
         seat = *(short *)(object + 0x1fc);
         objects[0] = index;
+        objects[1] = parent;
         function_b5a70(NONE, 0xb, 2, (long)objects, sizeof(seat), &seat, g_4cee40);
     }
 }

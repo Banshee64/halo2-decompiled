@@ -1,7 +1,5 @@
 #include "unknown_11c920.h"
 
-// @stub 0x2122b0
-void function_2122b0(long arg_0) {}
 
 // @stub 0x205550
 void function_205550(void *arg_0) {}

@@ -5,6 +5,8 @@
 #include <math.h>
 #include <string.h>
 #include "object_iterator.h"
+#include "unit_requests.h"
+#include "unknown_11cc90.h"
 
 // @flags /O2 /Gr /arch:SSE
 
@@ -2055,4 +2057,673 @@ void function_204ca0(long actor_index)
                 *(short *)(actor + 0x2c) = g_510c54->field_2_3 * 3;
         }
     }
+}
+
+void function_291740(short arg_0, long arg_1);
+
+void function_202e30(short arg_0, long arg_1, byte arg_2);
+
+struct s_actor_options;
+void function_1e4570(long arg_0, s_actor_options const *arg_1);
+void function_26b290(long arg_0);
+
+// @retail 0x202e90
+void __stdcall function_202e90(long arg_0, long arg_1, long arg_2)
+{
+    long const *local_0 = &arg_0;
+    long const *local_1 = &arg_2;
+    long local_2 = g_510c54->game_time;
+    byte *local_3 = (byte *)squad_get(*local_0);
+    *(long *)(local_3 + 0x2c) = local_2;
+    *(short *)(local_3 + 0x62) = NONE;
+    *(short *)(local_3 + 0x64) = NONE;
+    local_3[0x60] = false;
+    if (*(short *)(local_3 + 0x2a) != (short)arg_1 ||
+        (byte)(((dword)local_3[2] & 0x40) >> 6) != (byte)*local_1)
+    {
+        byte *local_4 = NULL;
+        if ((short)arg_1 >= 0 && (short)arg_1 < *(long *)((byte *)g_4e0350 + 0x240))
+            local_4 = *(byte **)((byte *)g_4e0350 + 0x244) + (short)arg_1 * 0x7c;
+        *(short *)(local_3 + 0x2a) = (short)arg_1;
+        if ((byte)*local_1)
+            local_3[2] |= 0x40;
+        else
+            local_3[2] &= ~0x40;
+        *(long *)(local_3 + 0x80) = NONE;
+        s_squad_actor_iterator local_5;
+        if (g_4f55d0->active)
+        {
+            if (*local_0 == NONE)
+                local_5.next_actor_index = g_4f55d0->unknown14;
+            else
+                local_5.next_actor_index = squad_get(*local_0)->first_actor_index;
+        }
+        while (g_4f55d0->active && local_5.next_actor_index != NONE)
+        {
+            long local_6 = local_5.next_actor_index;
+            s_actor_datum *local_7 = actor_datum_get(local_6);
+            local_5.next_actor_index = local_7->next_actor_index;
+            function_1e4570(local_6, (s_actor_options const *)local_4);
+        }
+        if (local_4)
+        {
+            if (local_4[0x24] & 0x10)
+                function_204450((short)arg_1, *local_0);
+            function_291740((short)arg_1, *local_0 & 0xffff);
+            short local_8 = *(short *)(local_4 + 0x20);
+            if (local_8 == NONE)
+            {
+                for (long local_9 = 0; local_9 < 5; local_9++)
+                    ((s_flag_bits *)(local_3 + 0x84))->d[local_9] = NONE;
+            }
+            else if (local_8 >= 0 && local_8 < *(long *)((byte *)g_4e0350 + 0x150))
+            {
+                long local_10 = *(long *)(*(byte **)((byte *)g_4e0350 + 0x154) + local_8 * 8 + 4);
+                if (local_10 != NONE)
+                    *(s_flag_bits *)(local_3 + 0x84) = *(s_flag_bits *)(g_4e3b44[local_10 & 0xffff].bytes + 0x38);
+            }
+            if (*(short *)(local_4 + 0x28) > 0)
+            {
+                function_204d30(&local_5, *local_0);
+                long local_11 = NONE;
+                while (g_4f55d0->active && local_5.next_actor_index != NONE)
+                {
+                    s_actor_datum *local_12 = actor_datum_get(local_5.next_actor_index);
+                    local_5.next_actor_index = local_12->next_actor_index;
+                    long local_13 = local_12->clump_object_index;
+                    if (local_13 != NONE && local_13 != local_11)
+                    {
+                        byte *local_14 = g_502420->data + (local_13 & 0xffff) * 0x50;
+                        *(short *)(local_14 + 0x26) = 0;
+                        *(long *)(local_14 + 0x28) = 0;
+                        function_26b290(local_12->clump_object_index);
+                        local_11 = local_12->clump_object_index;
+                    }
+                }
+            }
+        }
+        else
+            *(s_flag_bits *)(local_3 + 0x84) = g_557c74;
+    }
+}
+
+void function_201520(short arg_0, word arg_1, long arg_2, long arg_3, long arg_4);
+
+struct s_200d80
+{
+    s_squad_datum *field_0;
+    s_record_pool_iterator field_4;
+    long field_10;
+};
+
+PRIVATE __forceinline s_squad_datum *function_200db0(s_squad_record_iterator *arg_0)
+{
+    s_squad_datum *local_0 = NULL;
+    if (g_4f55d0->active)
+    {
+        local_0 = (s_squad_datum *)data_iterator_next_inlined(&arg_0->records);
+        arg_0->squad_index = arg_0->records.datum_index & 0xffff;
+        arg_0->squad = local_0;
+    }
+    return local_0;
+}
+
+// @retail 0x200d80
+void function_200d80(void)
+{
+    s_squad_record_iterator local_0;
+    if (g_4f55d0->active)
+    {
+        local_0.records.data = g_51e9d8;
+        local_0.records.index = NONE;
+    }
+    while (function_200db0(&local_0))
+    {
+        long local_1 = local_0.squad_index;
+        dword local_2 = *(dword *)(*(byte **)((byte *)g_4e0350 + 0x164) + (word)local_1 * 0x74 + 0x20);
+        if ((bool)((local_2 >> 12) & 1))
+            function_201520(NONE, (word)local_1, NONE, 0, 0);
+    }
+}
+
+void __stdcall function_203120(long arg_0, long arg_1, long arg_2);
+
+// @retail 0x201100
+void __stdcall function_201100(long arg_0, dword *arg_1)
+{
+    long local_0 = arg_0;
+    (void)&arg_0;
+    dword *local_1;
+    (void)&arg_1;
+    byte *local_2 = *(byte **)((byte *)g_4e0350 + 0x15c) + (local_0 & 0xffff) * 0x24;
+    s_record_pool *local_10 = g_51e9dc;
+    byte *local_3 = local_10->data + (local_0 & 0xffff) * 0x38;
+    if (!local_3[0x23])
+    {
+        arg_0 = 1 << (local_0 & 0x1f);
+        volatile long const *local_4 = &arg_0;
+        local_1 = arg_1;
+        arg_1 += local_0 >> 5;
+        if (!(*arg_1 & *local_4))
+        {
+            long local_6 = *(short *)(local_2 + 0x20);
+            byte *local_7 = NULL;
+            local_3[0x23] = true;
+            if (local_6 != NONE)
+            {
+                local_7 = local_10->data + (local_6 & 0xffff) * 0x38;
+                if (!local_7[0x23])
+                    function_201100(local_6, local_1);
+            }
+            short local_8 = *(short *)(local_2 + 0x22);
+            if (local_8 >= 0 && local_8 < *(long *)((byte *)g_4e0350 + 0x240))
+                function_203120(local_0, local_8, true);
+            else if (*(short *)(local_3 + 0x14) != NONE && local_7 && local_7[0x23])
+            {
+                long local_9 = *(short *)(local_7 + 0x14);
+                if ((short)local_9 != NONE)
+                    function_203120(local_0, local_9, false);
+            }
+            *arg_1 |= *local_4;
+        }
+    }
+}
+
+// @retail 0x203120
+void __stdcall function_203120(long arg_0, long arg_1, long arg_2)
+{
+    long const *local_0 = &arg_0;
+    long const *local_1 = &arg_1;
+    long *local_2 = &arg_2;
+    byte *local_3 = (byte *)squad_group_get(*local_0);
+    if (!(byte)*local_2 && local_3[0x16] && *(short *)(local_3 + 0x14) != NONE)
+    {
+        byte *local_4 = *(byte **)((byte *)g_4e0350 + 0x244) + *(short *)(local_3 + 0x14) * 0x7c;
+        if (local_4)
+        {
+            *local_2 = local_4[0x24] & 1;
+            if ((byte)*local_2)
+                return;
+        }
+    }
+    function_202e30((short)*local_1, *local_0, (byte)*local_2);
+    for (long local_5 = *(long *)(local_3 + 4); local_5 != NONE; )
+    {
+        byte *local_6 = (byte *)squad_group_get(local_5);
+        if (local_6[0x23])
+            function_203120(local_5, *local_1, false);
+        local_5 = *(long *)(local_6 + 0xc);
+    }
+    for (long local_7 = *(long *)(local_3 + 8); local_7 != NONE; )
+    {
+        byte *local_8 = (byte *)squad_get(local_7);
+        if (local_8[2] & 4)
+        {
+            byte *local_9 = NULL;
+            short local_10 = *(short *)(local_8 + 0x2a);
+            if (local_10 != NONE)
+                local_9 = *(byte **)((byte *)g_4e0350 + 0x244) + local_10 * 0x7c;
+            if (!local_9 || !(local_9[0x24] & 1))
+                function_202e90(local_7, *local_1, false);
+        }
+        local_7 = *(short *)(local_8 + 0x74);
+    }
+}
+
+short function_290cd0(short arg_0, long arg_1, long arg_2, short *arg_3, short *arg_4);
+bool function_290e20(short arg_0, long arg_1, long arg_2);
+bool function_1fb8a0(long arg_0, short arg_1);
+
+// @retail 0x202be0
+void function_202be0(long arg_0, long arg_1)
+{
+    long const *local_0 = &arg_1;
+    byte *local_1 = (byte *)squad_get(*local_0);
+    if (arg_0 != NONE && (!(local_1[2] & 0x40) ||
+        *(short *)(local_1 + 0x2a) == NONE ||
+        !((*(byte **)((byte *)g_4e0350 + 0x244) + *(short *)(local_1 + 0x2a) * 0x7c)[0x24] & 1)))
+        function_202e90(*local_0, (short)arg_0, false);
+    else if ((local_1[2] & 0x40) && *(short *)(local_1 + 0x2a) != NONE)
+    {
+        long local_2 = NONE;
+        short local_3;
+        word local_4 = *(word *)(local_1 + 0x62);
+        if (local_4 != (word)NONE)
+        {
+            if (*(short *)(local_1 + 0x64) > 0)
+                goto local_16;
+            local_2 = *(short *)(local_1 + 0x66);
+        }
+        else
+        {
+            local_4 = function_290cd0(*(short *)(local_1 + 0x2a), *local_0, NONE, &local_3, (short *)&local_2);
+            if (local_4 == (word)NONE)
+                goto local_16;
+            if (local_3 > 0)
+            {
+                *(short *)(local_1 + 0x64) = local_3;
+                *(word *)(local_1 + 0x62) = local_4;
+                *(short *)(local_1 + 0x66) = (short)local_2;
+                goto local_16;
+            }
+        }
+        if (local_4 != (word)NONE)
+        {
+            function_202e90(*local_0, (short)local_4, true);
+            if ((short)local_2 != NONE)
+                function_1fb8a0(*local_0, (short)local_2);
+        }
+    }
+local_16:
+    if (*(short *)(local_1 + 0x62) == NONE && !local_1[0x60] && *(short *)(local_1 + 0x2a) != NONE)
+    {
+        byte *local_5 = *(byte **)((byte *)g_4e0350 + 0x244) + *(short *)(local_1 + 0x2a) * 0x7c;
+        if (local_5 && *(long *)(local_5 + 0x5c) > 0 && *(long *)(local_5 + 0x64) > 0)
+        {
+            byte *local_6 = *(byte **)(local_5 + 0x68);
+            long local_7 = 0;
+            short local_8;
+            if (*(short *)local_6 == 0)
+                local_8 = 1;
+            else
+                local_8 = *(short *)(local_6 + 4);
+            for (short local_9 = 0; local_9 < *(long *)(local_6 + 4); local_9++)
+            {
+                byte *local_10 = *(byte **)(local_6 + 8) + local_9 * 8;
+                word local_11 = *(word *)(local_10 + 4);
+                if (local_11 != (word)NONE &&
+                    function_290e20((short)local_11, *local_0, NONE) != (bool)(*(dword *)local_10 & 1))
+                {
+                    local_7++;
+                    if ((short)local_7 >= (short)local_8)
+                    {
+                        short local_12 = *(short *)(local_6 + 2);
+                        short local_13 = local_12 == 0 ? (short)NONE : (short)(local_12 + 0x6e);
+                        s_squad_actor_iterator local_14;
+                        local_1[0x60] = true;
+                        function_204d30(&local_14, *local_0);
+                        while (g_4f55d0->active && local_14.next_actor_index != NONE)
+                        {
+                            long local_15 = local_14.next_actor_index;
+                            local_14.next_actor_index = actor_datum_get(local_15)->next_actor_index;
+                            function_1e4570(local_15, (s_actor_options const *)local_5);
+                        }
+                        if (local_13 != NONE)
+                            function_1fb8a0(*local_0, local_13);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct s_1fb7e0_data;
+bool __stdcall function_20ba60(short arg_0, long arg_1, long arg_2, long arg_3, long arg_4, s_1fb7e0_data const *arg_5);
+
+// @retail 0x202a00
+void __stdcall function_202a00(long arg_0, long arg_1)
+{
+    long *local_0 = &arg_0;
+    long const *local_1 = &arg_1;
+    while (*local_0 != NONE)
+    {
+        long local_2 = NONE;
+        long local_3 = *local_0 & 0xffff;
+        byte *local_4 = g_51e9dc->data + local_3 * 0x38;
+        if (*local_1 != NONE && (!local_4[0x16] ||
+            *(short *)(local_4 + 0x14) == NONE ||
+            !((*(byte **)((byte *)g_4e0350 + 0x244) + *(short *)(local_4 + 0x14) * 0x7c)[0x24] & 1)))
+        {
+            *(short *)(local_4 + 0x14) = (short)*local_1;
+            local_4[0x16] = false;
+            *(long *)(local_4 + 0x18) = g_510c54->game_time;
+            *(short *)(local_4 + 0x1c) = NONE;
+            *(short *)(local_4 + 0x1e) = NONE;
+            if ((short)*local_1 != NONE)
+                function_291740((short)*local_1, local_3 | 0x40000000);
+            local_2 = *local_1;
+        }
+        else if (local_4[0x16] && *(short *)(local_4 + 0x14) != NONE)
+        {
+            long local_5 = NONE;
+            short local_6;
+            word local_7 = *(word *)(local_4 + 0x1c);
+            if (local_7 != (word)NONE)
+            {
+                if (*(short *)(local_4 + 0x1e) > 0)
+                    goto local_11;
+                local_5 = *(short *)(local_4 + 0x20);
+            }
+            else
+            {
+                local_7 = function_290cd0(*(short *)(local_4 + 0x14), NONE, *local_0, &local_6, (short *)&local_5);
+                if (local_7 == (word)NONE)
+                    goto local_11;
+                if (local_6 > 0)
+                {
+                    *(short *)(local_4 + 0x1e) = local_6;
+                    *(word *)(local_4 + 0x1c) = local_7;
+                    *(short *)(local_4 + 0x20) = (short)local_5;
+                    goto local_11;
+                }
+            }
+            if (local_7 != (word)NONE)
+            {
+                local_2 = (short)local_7;
+                function_202e30((short)local_2, *local_0, true);
+                if ((short)local_5 != NONE)
+                    function_20ba60((short)local_5, NONE, NONE, local_3 | 0x40000000, NONE, NULL);
+            }
+        }
+local_11:
+        if (*(long *)(local_4 + 4) != NONE)
+            function_202a00(*(long *)(local_4 + 4), local_2);
+        for (long local_8 = *(long *)(local_4 + 8); local_8 != NONE; )
+        {
+            byte *local_9 = (byte *)squad_get(local_8);
+            function_202be0(local_2, local_8);
+            local_8 = *(short *)(local_9 + 0x74);
+        }
+        *local_0 = *(long *)(local_4 + 0xc);
+    }
+}
+
+PRIVATE __forceinline byte *function_202752(s_record_pool_iterator *arg_0)
+{
+    byte *local_0 = NULL;
+    if (g_4f55d0->active)
+        local_0 = data_iterator_next_inlined(arg_0);
+    return local_0;
+}
+
+// @retail 0x202720
+void function_202720(void)
+{
+    s_group_record_iterator local_0;
+    s_200d80 local_1;
+    if (g_4f55d0->active)
+    {
+        local_0.records.data = g_51e9dc;
+        local_0.records.index = NONE;
+    }
+    while ((local_0.group = (s_squad_group_datum *)function_202752(&local_0.records)) != NULL)
+    {
+        if (*(short *)((byte *)local_0.group + 0x1e) > 0)
+        {
+            real local_2 = (real)g_510c54->field_2_3 * 2.0f;
+            long local_3;
+            __asm
+            {
+                fld local_2
+                fistp local_3
+            }
+            *(short *)((byte *)local_0.group + 0x1e) -= (short)local_3;
+        }
+    }
+    if (g_4f55d0->active)
+    {
+        local_1.field_4.data = g_51e9d8;
+        local_1.field_4.index = NONE;
+    }
+    while ((local_1.field_0 = (s_squad_datum *)function_202752(&local_1.field_4)) != NULL)
+    {
+        if (*(short *)((byte *)local_1.field_0 + 0x64) > 0)
+        {
+            real local_2 = (real)g_510c54->field_2_3 * 2.0f;
+            long local_3;
+            __asm
+            {
+                fld local_2
+                fistp local_3
+            }
+            *(short *)((byte *)local_1.field_0 + 0x64) -= (short)local_3;
+        }
+    }
+    if (g_4f55d0->active)
+    {
+        local_0.records.data = g_51e9dc;
+        local_0.records.index = NONE;
+    }
+    while ((local_0.group = (s_squad_group_datum *)function_202752(&local_0.records)) != NULL)
+    {
+        if (*(long *)((byte *)local_0.group + 0x10) == NONE)
+            function_202a00(local_0.records.datum_index, NONE);
+    }
+    if (g_4f55d0->active)
+    {
+        local_1.field_4.data = g_51e9d8;
+        local_1.field_4.index = NONE;
+    }
+    while ((local_1.field_0 = (s_squad_datum *)function_202752(&local_1.field_4)) != NULL)
+    {
+        if (*(long *)((byte *)local_1.field_0 + 0x6c) == NONE)
+            function_202be0(NONE, (word)local_1.field_4.datum_index);
+    }
+}
+
+// @retail 0x201c80
+void function_201c80(void)
+{
+    long local_0 = g_510c54->game_time;
+    volatile long local_7 = local_0;
+    long local_1;
+    long local_2;
+    long local_3;
+    real local_6 = (real)g_510c54->field_2_3;
+    __asm
+    {
+        fld local_6
+        fistp local_1
+    }
+    local_6 = (real)g_510c54->field_2_3 * 2.0f;
+    __asm
+    {
+        fld local_6
+        fistp local_2
+    }
+    local_6 = (real)g_510c54->field_2_3 * 0.5f;
+    __asm
+    {
+        fld local_6
+        fistp local_3
+    }
+    if (local_0 % local_1 == 0)
+    {
+        function_201df0();
+        function_201ea0();
+        function_202370();
+    }
+    if (local_0 % local_2 == 10)
+    {
+        function_2024c0();
+        function_202720();
+    }
+    s_squad_record_iterator local_4;
+    if (g_4f55d0->active)
+    {
+        local_4.records.data = g_51e9d8;
+        local_4.records.index = NONE;
+    }
+    while (function_200db0(&local_4))
+    {
+        long local_5 = (word)local_4.squad_index;
+        if (((word)local_5 + local_7) % local_3 == 0 && *(signed char *)((byte *)local_4.squad + 2) < 0)
+            function_203360(local_5);
+    }
+    function_201df0();
+}
+
+struct s_effect_owner;
+void function_b7930(void *arg_0, long arg_1, long arg_2, s_effect_owner const *arg_3);
+long function_b7b40(void *arg_0);
+void __stdcall function_a7870(long arg_0);
+void function_11dfb0(vector2f const *arg_0, vector3f *arg_1, vector3f *arg_2);
+long function_203780(long arg_0, short arg_1, short arg_2, bool arg_3);
+long function_201010(long arg_0, short arg_1, short arg_2, short *arg_3);
+void function_2011f0(long arg_0);
+
+// @retail 0x201520
+void function_201520(short arg_0, word arg_1, long arg_2, long arg_3, long arg_4)
+{
+    word const *local_0 = &arg_1;
+    long const *local_1 = &arg_2;
+    long const *local_2 = &arg_3;
+    long const *local_3 = &arg_4;
+    if (!g_4f55d0->active)
+        return;
+    byte *local_4 = (byte *)g_4e0350;
+    byte *local_5 = *(byte **)(local_4 + 0x164) + *local_0 * 0x74;
+    byte *local_6 = g_51e9d8->data + *local_0 * 0x98;
+    long local_7 = NONE;
+    bool local_8 = false;
+    if ((short)*local_1 != NONE)
+        arg_0 = 1;
+    byte *local_9 = NULL;
+    if (*(short *)(local_6 + 0x2a) != NONE)
+        local_9 = *(byte **)(local_4 + 0x244) + *(short *)(local_6 + 0x2a) * 0x7c;
+    if (arg_0 == NONE)
+    {
+        short local_10 = g_4e6948->state == 1 ? g_4e6948->difficulty : 1;
+        switch (local_10)
+        {
+        case 0: arg_0 = *(short *)(local_5 + 0x2c); break;
+        case 1: arg_0 = *(short *)(local_5 + 0x2c); break;
+        case 2: arg_0 = (short)((*(short *)(local_5 + 0x2c) + *(short *)(local_5 + 0x2e)) / 2); break;
+        case 3: arg_0 = *(short *)(local_5 + 0x2e); break;
+        }
+    }
+    dword local_11[1];
+    dword local_12[1];
+    memset(local_11, 0xff, ((*(long *)(local_5 + 0x48) + 31) >> 5) * sizeof(dword));
+    local_12[0] = 0;
+    if ((short)*local_1 == NONE)
+        function_201460(*local_0, local_12);
+    else if (!(byte)*local_2 && !function_201400(*local_0, (short)*local_1))
+        arg_0 = 0;
+    if (arg_0 > 0)
+    {
+        long local_13 = (word)arg_0;
+        do
+        {
+            short local_14 = (short)*local_1;
+            if (local_14 == NONE)
+                local_14 = function_2039d0((short)*local_0, local_11, local_12);
+            if (local_14 >= 0 && local_14 < *(long *)(local_5 + 0x48))
+            {
+                byte *local_15 = *(byte **)(local_5 + 0x4c) + local_14 * 0x64;
+                long local_16 = NONE;
+                word local_17 = *(word *)(local_15 + 0x3c);
+                if (local_17 != (word)NONE)
+                {
+                    local_16 = function_201330((short)local_17);
+                    if (!(byte)*local_2 && local_16 != NONE)
+                    {
+                        s_unit_request local_18;
+                        local_18.type = 0x32;
+                        *(word *)local_18.arguments = *local_0;
+                        *(short *)(local_18.arguments + 2) = local_14;
+                        if (function_e6900(local_16, &local_18))
+                            local_8 = true;
+                    }
+                }
+                if (!local_8)
+                {
+                    long local_19 = *(short *)(local_15 + 0x28);
+                    if (local_19 == NONE)
+                        local_19 = *(short *)(local_5 + 0x34);
+                    long local_20 = NONE;
+                    short local_21 = NONE;
+                    short local_22 = *(short *)(local_15 + 0x2a);
+                    if (local_19 != NONE && local_22 != 7)
+                    {
+                        local_20 = function_201010(local_7, (short)local_19, local_22, &local_21);
+                        if (local_20 == NONE)
+                        {
+                            byte local_23[0xc4];
+                            function_b7930(local_23, *(long *)(*(byte **)(local_4 + 0x7c) + local_19 * 0x28 + 4), NONE, NULL);
+                            function_210850((s_type_c3b527 const *)(local_15 + 4), (point3f *)(local_23 + 0x1c));
+                            function_11dfb0((vector2f const *)(local_15 + 0x14), (vector3f *)(local_23 + 0x28), (vector3f *)(local_23 + 0x34));
+                            long local_24 = *(long *)(local_15 + 0x34);
+                            if (!local_24)
+                                local_24 = *(long *)(local_5 + 0x44);
+                            if (local_24)
+                                *(long *)(local_23 + 0xc) = local_24;
+                            local_21 = NONE;
+                            local_20 = function_b7b40(local_23);
+                            if (local_20 != NONE)
+                            {
+                                byte *local_25 = *(byte **)(g_4e0300->data + (local_20 & 0xffff) * 12 + 8);
+                                *(long *)(local_25 + 0x3a0) = *local_0;
+                                *(long *)(local_25 + 0x3a4) = local_7;
+                                *(long *)(local_25 + 0x3a8) = *(long *)local_15;
+                                local_7 = local_20;
+                                if (!local_6[0x76])
+                                {
+                                    byte *local_26 = g_4e3b44[*(long *)local_25 & 0xffff].bytes;
+                                    if (*(short *)(local_26 + 0xc0))
+                                        local_6[0x76] = local_26[0xc0];
+                                }
+                                else
+                                    *(short *)(local_25 + 0x138) = (signed char)local_6[0x76];
+                                function_a7870(local_20);
+                                if (local_22 != 6)
+                                {
+                                    long local_27 = NONE;
+                                    local_21 = function_200ee0(local_20, local_22, &local_27, NULL);
+                                    if (local_21 != NONE)
+                                        local_20 = local_27;
+                                }
+                            }
+                        }
+                        if (local_20 != NONE && (*(dword *)(local_5 + 0x20) & 0x2000))
+                        {
+                            byte *local_28 = *(byte **)(g_4e0300->data + (local_20 & 0xffff) * 12 + 8);
+                            dword *local_29 = (dword *)(local_28 + 0x134);
+                            *local_29 |= 0x1000;
+                        }
+                    }
+                    if (local_22 != 6)
+                    {
+                        long local_30 = function_203780(local_16, local_14, (short)*local_0, (bool)*local_3);
+                        if (local_30 != NONE)
+                        {
+                            ++*(short *)(local_6 + 0x24);
+                            if (local_9)
+                                function_1e4570(local_30, (s_actor_options const *)local_9);
+                            if (local_20 != NONE && local_21 != NONE)
+                            {
+                                byte *local_31 = g_4f55f0->data + (local_30 & 0xffff) * 0x888;
+                                s_unit_request local_32;
+                                local_32.type = 0x1c;
+                                local_32.type1c.object_index = local_20;
+                                local_32.type1c.seat_index = local_21;
+                                local_32.type1c.unknowna = true;
+                                local_32.type1c.unknownb = false;
+                                if (function_e6900(*(long *)(local_31 + 0x18), &local_32))
+                                {
+                                    byte *local_33 = *(byte **)(g_4e0300->data + (local_20 & 0xffff) * 12 + 8);
+                                    *(short *)(local_33 + 0x138) = *(short *)(local_31 + 0x24);
+                                }
+                            }
+                            function_201b70(*local_0, local_14, local_30);
+                        }
+                    }
+                }
+            }
+        }
+        while (--local_13);
+        while (local_7 != NONE)
+        {
+            long local_34 = local_7;
+            byte *local_35 = *(byte **)(g_4e0300->data + (local_7 & 0xffff) * 12 + 8);
+            local_7 = *(long *)(local_35 + 0x3a4);
+            byte *local_36 = *(byte **)(g_4e0300->data + (local_34 & 0xffff) * 12 + 8);
+            *(long *)(local_36 + 0x3a4) = *(long *)(local_6 + 0x70);
+            *(long *)(local_6 + 0x70) = local_34;
+        }
+        if (local_8)
+            return;
+    }
+    function_2011f0(*local_0);
 }

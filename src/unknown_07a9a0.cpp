@@ -44,13 +44,6 @@ static __inline dword byte_swap_long(dword v)
 	return (((v & 0xff0000) | (v >> 16)) >> 8) | (((v << 16) | (v & 0xff00)) << 8);
 }
 
-// @retail 0x7a9a0
-void __stdcall function_07a9a0(long unused)
-{
-	g_4cf791 = false;
-	g_4cf792 = false;
-}
-
 // @retail 0x7a9b0
 bool function_07a9b0(void)
 {
@@ -337,16 +330,15 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 	if (packet->type)
 	{
 		stream_write_checked(stream, packet->flag0, 1);
-		const word *character = packet->name;
-		for (i = 0; i < 32; i++)
+		i = 0;
+		for (; i < 32; i++)
 		{
-			word c = *character;
+			word c = packet->name[i];
 			function_195720(stream, c, 16);
 			if (c == 0)
 			{
 				break;
 			}
-			character++;
 		}
 		stream_write_checked(stream, packet->field3 + 1, 7);
 		stream_write_checked(stream, packet->field48, 15);
@@ -403,7 +395,7 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 		case 4:
 			stream_write_checked(stream, packet->u.d[0], 5);
 			stream_write_checked(stream, packet->u.w[2], 16);
-			break;
+			return;
 		case 7:
 			stream_write_checked(stream, packet->u.d[0], 7);
 			STREAM_WRITE_RANGE(stream, packet->u.w[2], 2);
