@@ -742,6 +742,44 @@ struct s_visibility_bsp
 	s_visible_instance *instances;
 };
 
+extern real g_4b9e20, g_4b9e2c, g_4b9e38, g_4b9e44, g_4b9ed0;
+short function_2cbf0(long arg_1, byte arg_2, long arg_3, dword arg_4,
+    long arg_5, dword arg_6, long arg_7, byte *arg_8, short arg_9, byte arg_10,
+    void *arg_11, long arg_12, real arg_13, long arg_14, long arg_15,
+    bool arg_16, bool arg_17, bool arg_18, real arg_19, real arg_20,
+    real arg_21, byte arg_22, point3f const *arg_23, real arg_24);
+
+// @retail 0x133390
+void function_133390(s_bit_vector_pool const *arg_1)
+{
+	c_entry_list *local_1 = arg_1->lists[0];
+	for (long local_2 = 0; local_2 < local_1->count; local_2++)
+	{
+		dword local_3 = function_1332f0(arg_1, local_1->shorts_b[(short)local_2]);
+		long local_4 = local_1->longs_a[(short)local_2];
+		s_visible_cluster const *local_5 = &((s_visibility_bsp *)g_4e0348)->clusters[local_4];
+		point3f local_6;
+		local_6.x = (local_5->bounds[0][0] + local_5->bounds[0][1]) * 0.5f;
+		local_6.y = (local_5->bounds[1][0] + local_5->bounds[1][1]) * 0.5f;
+		local_6.z = (local_5->bounds[2][0] + local_5->bounds[2][1]) * 0.5f;
+		volatile real local_7 = local_5->bounds[0][1] - local_6.x;
+		volatile real local_8 = local_5->bounds[1][1] - local_6.y;
+		volatile real local_9 = local_5->bounds[2][1] - local_6.z;
+		real local_10 = (real)sqrt((double)local_7 * local_7 + (double)local_8 * local_8 + (double)local_9 * local_9);
+		real local_11 = local_6.z * g_4b9e38 + local_6.x * g_4b9e20 + local_6.y * g_4b9e2c + g_4b9e44;
+		if (!(local_11 >= 0.0f))
+			local_11 = 0.0f - local_11;
+		if (!(local_11 > 0.1f))
+			local_11 = 0.1f;
+		real local_12 = (g_4b9ed0 / local_11) * local_10 * 2.0f;
+		short local_13 = ((signed char const *)arg_1->indices)[(short)local_4];
+		function_2cbf0(local_4, 0, NONE, local_3 | 0x40, NONE, NONE, 0, NULL,
+			local_13, 0xff, NULL, NONE, local_12, NONE, NONE, false, false,
+			false, 0.0f, 0.0f, 0.0f, 0, g_468788, 0.0f);
+		local_1 = arg_1->lists[0];
+	}
+}
+
 __forceinline bool visibility_append(c_entry_list *list, long index, short flags, short entry)
 {
 	if ((word)list->count < list->maximum_count - 1)

@@ -17,9 +17,6 @@ struct s_effect_owner;
 struct s_effect_source;
 
 
-// @stub 0x3ddd0
-long __stdcall function_3ddd0(long object_index) { return NONE; }
-
 
 // @stub 0xd2bb0
 long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }
@@ -51,5 +48,3 @@ void function_211060(long unknown0, void *physics, s_location *location, long un
 // @stub 0x43890
 void function_43890(void) { }
 
-// @stub 0x23aad0
-void __stdcall function_23aad0(long a, long b, long c) { }

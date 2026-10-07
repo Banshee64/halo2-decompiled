@@ -27,12 +27,9 @@ struct s_unknown_13bf00
 
 s_unknown_13bf00 *g_510c50;
 
-PRIVATE void ids_clear(s_unknown_ids *ids)
+PRIVATE __forceinline void ids_clear(s_unknown_ids *ids)
 {
-	for (long i = 0; i < 4; i++)
-	{
-		ids->values[i] = NONE;
-	}
+	memset(ids, 0xff, sizeof(*ids));
 }
 
 // @retail 0x13bf00

@@ -245,7 +245,7 @@ extern long g_485898;
 long function_12d400(long type, long size, long user_data, long update, long release);
 
 // @retail 0x1dc40
-void function_1dc40(long index, long width, long height)
+bool function_1dc40(long index, long width, long height)
 {
     (void)&width;
     (void)&height;
@@ -254,7 +254,7 @@ void function_1dc40(long index, long width, long height)
     void *data = (void *)function_12d400((long)(bool)(byte)active + 1, size, index, 0, (long)function_1db90);
     if (data)
         XPhysicalProtect(data, size, PAGE_READWRITE | PAGE_WRITECOMBINE);
-    function_1df20(index, 3, width, height, false, true, 1, data);
+    return function_1df20(index, 3, width, height, false, true, 1, data);
 }
 
 struct s_unknown_13bf00;
@@ -359,4 +359,3 @@ initial_done:
     if (!function_1db10(15, 64, 64, 0, false)) return false;
     return true;
 }
-
