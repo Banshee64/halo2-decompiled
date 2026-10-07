@@ -932,7 +932,7 @@ void __stdcall function_1d24a0(s_havok_component *component, float position);
 void function_1d2460(s_havok_component *component);
 bool function_205510(void *buffer, void const *definition_physics, s_havok_component *component);
 transform4x3f *function_ba160(long object_index, transform4x3f *matrix);
-void function_1cfb90(s_havok_component *arg_0, transform4x3f const *arg_1, void const *arg_2);
+void function_1cfb90(s_havok_component *component, transform4x3f const *matrix, void const *buffer);
 bool __stdcall function_f6670(long vehicle_index, bool update);
 void function_ba3d0(long object_index);
 void function_f06c0(s_vehicle_physics_state *state);
