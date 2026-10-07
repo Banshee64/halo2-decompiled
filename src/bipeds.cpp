@@ -1871,8 +1871,8 @@ void function_e0070(long arg_159e6d, long vehicle_index)
 	}
 }
 
-bool function_1d5120(s_havok_component *component, long rigid_body_index, long a, long b, real rate, char *result,
-	char value);
+bool function_1d5120(s_havok_component *arg_0, long arg_1, long arg_2, long arg_3, real arg_4, long *arg_5,
+	long arg_6);
 void __stdcall function_1c3770(long object_index, dword flags);
 
 /* steps a dead biped's ragdoll settling (+0x3aa) toward rest */
@@ -1887,11 +1887,11 @@ void function_e0c70(long arg_159e6d)
 		s_havok_component *component = havok_component_get(biped->havok_component_index);
 		char body = *((char *)component + 0x18);
 		short rigid_body = body >= 0 && body < component->rigid_bodies.size ? body : NONE;
-		char settled;
+		long settled;
 
 		if (rigid_body != NONE &&
 			function_1d5120(component, rigid_body, 9, *(long *)(definition + 0x290) + 0x20, g_510c54->rate * 0.15f,
-				&settled, (char)biped->unknown3aa))
+				&settled, (long)(char)biped->unknown3aa))
 		{
 			biped->unknown3aa = settled;
 			*((byte *)&biped->flags_348 + 1) &= 0x9f;
@@ -2988,7 +2988,7 @@ void function_e4c10(long arg_159e6d)
 	}
 }
 
-void function_1c9c00(long object_index);
+void function_1c9c00(long arg_0, long arg_1);
 bool recorded_animation_playing(long object_index);
 real function_1e20b0(long actor_index);
 
@@ -3014,7 +3014,7 @@ void __stdcall function_e2fa0(long arg_159e6d, long object_index, void *unused)
 	}
 	if (object_index != NONE && function_badc0(object_index, NONE))
 	{
-		function_1c9c00(object_index);
+		function_1c9c00(object_index, arg_159e6d);
 		if (biped->unknown13c != NONE || recorded_animation_playing(arg_159e6d))
 		{
 			if (biped->unknown394 != object_index)
@@ -3926,7 +3926,7 @@ void matrix4x3_from_forward_and_up(transform4x3f *out, vector3f const *forward, 
 vector3f *function_1427f0(transform4x3f const *matrix, vector3f const *vector,
 	vector3f *out);
 bool __stdcall function_1cd8a0(s_animation_state *state, long arg_159e6d, vector3f const *velocity);
-void __stdcall function_1cdb00(long arg_159e6d, vector3f const *control);
+bool __stdcall function_1cdb00(s_animation_state *arg_0, long arg_1, vector3f const *arg_2);
 void function_e6f90(long unit_index);
 void __stdcall function_b87b0(long object_index);
 void function_1c4a80(long object_index, long a, long b);
@@ -4019,7 +4019,7 @@ bool __stdcall function_e24f0(long arg_159e6d, long *names, s_biped_physics_outp
 		}
 		else
 		{
-			function_1cdb00(arg_159e6d, &biped->control);
+			function_1cdb00(state, arg_159e6d, &biped->control);
 		}
 	}
 	if (move.flags & 4)
