@@ -59,7 +59,7 @@ PRIVATE inline s_unknown_225700 *unknown_225700_get(long player_index)
 	{
 		s_unknown_225700_player *player = unknown_225700_player_get(player_index);
 
-		if (player->gamepad_index != NONE)
+		if (((volatile s_unknown_225700_player *)player)->gamepad_index != NONE)
 			result = &g_502124;
 	}
 	return result;

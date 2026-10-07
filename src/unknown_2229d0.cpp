@@ -145,7 +145,7 @@ void function_222a60(void)
 void rumble_clear_all(void)
 {
 	s_speed_table *data = g_502120;
-	short gamepad_index;
+	long gamepad_index;
 
 	memset(data, 0, sizeof(*data));
 	for (long i = 0; i < 4; i++)
