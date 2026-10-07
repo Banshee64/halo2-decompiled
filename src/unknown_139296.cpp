@@ -595,7 +595,7 @@ real function_200891(s_interface_pulse const *pulse, bool rising)
 	if (rising)
 		result = fraction;
 	else
-		result = (double)fraction - (double)(real)0.5f;
+		result = fraction - 0.5f;
 	result *= 2.0f;
 	if (result < 0.0f)
 		result = 0.0f;
