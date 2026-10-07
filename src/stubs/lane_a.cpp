@@ -29,10 +29,6 @@ void __stdcall function_bb670(short name_index, bool flag)
 {
 }
 
-// @stub 0x1e1a00
-void __stdcall function_1e1a00(long index, long value)
-{
-}
 
 
 
@@ -73,11 +69,6 @@ struct s_ai_trigger_condition;
 
 
 
-// @stub 0x1e0160
-long __stdcall function_1e0160(long squad_index, long entry_index, long unit_index, bool flag)
-{
-	return NONE;
-}
 
 
 

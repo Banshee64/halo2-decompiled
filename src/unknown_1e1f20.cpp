@@ -112,6 +112,41 @@ void function_c6de0(long object_index, void *control);
 void function_118e80(long object_index, vector3f *forward);
 void __stdcall function_cbf60(long unit_index, bool active);
 
+// @retail 0x1e1250
+void function_1e1250(long actor_index)
+{
+	long const *index_reference = &actor_index;
+	s_actor_view *actor = actor_get(*index_reference);
+	long unit_index = actor->unknown018;
+	if (unit_index != NONE)
+	{
+		*(long *)((byte *)ai_object_get(unit_index) + 0x12c) = NONE;
+		actor->unknown018 = NONE;
+		function_cbf60(unit_index, false);
+	}
+}
+
+void __stdcall function_1e1a00(long actor_index, long value);
+
+// @retail 0x1e0d50
+void function_1e0d50(long actor_index, long unit_index)
+{
+	long const *unit_reference = &unit_index;
+	s_actor_view *actor = actor_get(actor_index);
+	s_ai_object *unit = ai_object_get(*unit_reference);
+	long old_actor = *(long *)((byte *)unit + 0x12c);
+	if (old_actor != actor_index)
+	{
+		if (old_actor != NONE)
+			function_1e1a00(old_actor, 0);
+		if (actor->unknown018 != NONE)
+			function_1e1250(actor_index);
+		actor->unknown018 = *unit_reference;
+		*(long *)((byte *)unit + 0x12c) = actor_index;
+		function_cbf60(*unit_reference, true);
+	}
+}
+
 struct s_actor_unit_state
 {
 	long name;
@@ -606,4 +641,468 @@ bool function_1e1500(long actor_index)
   }
  }
  return result;
+}
+
+extern void *g_5047f4;
+void function_258600(long actor_index);
+void function_2694d0(long clump_index, long actor_index);
+void record_pool_release(s_record_pool *pool, long index);
+void function_1e1740(long actor_index, long object_index);
+void function_26dc20(long actor_index);
+void function_28e160(long actor_index);
+
+// @retail 0x1e1a00
+void __stdcall function_1e1a00(long actor_index, long value)
+{
+	long const *index_reference = &actor_index;
+	long const *value_reference = &value;
+	s_actor_view *actor = actor_get(*index_reference);
+	for (short slot_index = 0; slot_index <= actor->current; ++slot_index)
+	{
+		t_slot_proc stop = g_46eeb8[actor->slots[slot_index].type]->stop;
+		if (stop)
+			stop(*index_reference, slot_index < 4 ? &actor->slots[slot_index] : NULL);
+	}
+	actor->current = NONE;
+	function_258600(*index_reference);
+	long memory_index = 0;
+	do
+	{
+		s_slot_memory_entry *memory = &actor->memory[memory_index];
+		if (memory->type != NONE)
+		{
+			byte *entry = g_502424->data + (memory->unknown4 & 0xffff) * 0xbc;
+			long slot = *(short *)((byte *)memory + 2);
+			*(long *)(entry + slot * 12 + 4) = NONE;
+			*(short *)(entry + slot * 12 + 8) = 1;
+			memory->type = NONE;
+		}
+	} while (++memory_index < 4);
+	if (*((byte *)actor + 0xa))
+		function_203fb0(*index_reference);
+	else
+		function_203ed0(*index_reference, (byte)*value_reference != 0);
+	if (actor->unknown07c != NONE)
+		function_2694d0(actor->unknown07c, *index_reference);
+	long prop_index = actor_get(*index_reference)->first_prop_index;
+	while (prop_index != NONE)
+	{
+		long current = prop_index;
+		byte *prop = g_502418->data + (current & 0xffff) * 0x3c;
+		prop_index = *(long *)(prop + 0x2c);
+		function_1e2150(*index_reference, current);
+		prop = g_502418->data + (current & 0xffff) * 0x3c;
+		long view_index = *(long *)(prop + 0x14);
+		if (view_index != NONE)
+			record_pool_release(g_502414, view_index);
+		record_pool_release(g_502418, current);
+	}
+	actor->first_prop_index = NONE;
+	long index = NONE;
+	while ((index = data_next_absolute_index_inlined(g_50241c, index + 1)) != NONE)
+	{
+		byte *prop = g_50241c->data + g_50241c->size * index;
+		if (!prop)
+			break;
+		if (*(long *)(prop + 0x1c) == *index_reference)
+			*(long *)(prop + 0x1c) = NONE;
+	}
+	s_actor_iterator iterator;
+	function_x66da2b(&iterator, false);
+	s_actor_view *other;
+	while ((other = (s_actor_view *)function_1e46c0(&iterator)) != NULL)
+	{
+		if (other != actor)
+			function_1e1740(iterator.actor_index, *index_reference);
+	}
+	function_2628f0(*index_reference, g_470fa0);
+	if (*(long *)((byte *)actor + 0x3f4) != NONE)
+		function_26dc20(*index_reference);
+	if (actor->unknown007)
+	{
+		if (*(long *)((byte *)actor + 0x1c) != NONE)
+			function_28e160(*index_reference);
+	}
+	else
+	{
+		if (actor->unknown018 != NONE)
+		{
+			byte *unit = (byte *)ai_object_get(actor->unknown018);
+			if (*(byte *)(unit + 0xaa) == 0)
+				*(long *)(unit + 0x3d8) = actor->unknown054;
+		}
+		function_1e1250(*index_reference);
+	}
+	long tag_index = actor_get(*index_reference)->unknown054;
+	byte *definition = NULL;
+	while (tag_index != NONE)
+	{
+		byte *tag = g_4e3b44[tag_index & 0xffff].bytes;
+		if (*(long *)(tag + 0x34) > 0)
+		{
+			definition = *(byte **)(tag + 0x38);
+			break;
+		}
+		tag_index = *(long *)(tag + 8);
+	}
+	if (definition && ((*(dword *)definition >> 3) & 1))
+	{
+		byte *counts = (byte *)g_5047f4;
+		--*(short *)(counts + 6);
+		if ((byte)*value_reference)
+		{
+			++*(short *)(counts + 8);
+			*(long *)(counts + 0xc) = g_510c54->game_time;
+		}
+		long i = 0;
+		do
+		{
+			if (*(long *)(counts + 0x18 + i * 4) == *index_reference)
+			{
+				*(long *)(counts + 0x18 + i * 4) = NONE;
+				*(short *)(counts + 0x12 + i * 2) = 0;
+			}
+		} while (++i < 3);
+	}
+	actor = actor_get(*index_reference);
+	if (actor->unknown009)
+	{
+		actor->unknown009 = false;
+		*(long *)((byte *)actor + 0x10) = g_510c54->game_time;
+		--*(short *)((byte *)g_4f55d0 + 0x36a);
+	}
+	record_pool_release(g_4f55f0, *index_reference);
+}
+
+long __stdcall function_1dfb90(long definition_index);
+void function_1e3b60(long actor_index);
+
+PRIVATE inline short actor_initial_team(short type)
+{
+	switch (type)
+	{
+	case 0: case 2: case 3: case 4: case 5: case 15: return 3;
+	case 1: case 16: case 17: case 18: return 7;
+	case 6: return 1;
+	case 7: case 8: return 2;
+	case 9: case 10: case 11: case 19: return 4;
+	case 12: case 13: return 5;
+	case 14: return NONE;
+	default: __assume(0);
+	}
+}
+
+// @retail 0x1e0160
+long __stdcall function_1e0160(long squad_index, long entry_index, long unit_index, bool flag)
+{
+	long result = NONE;
+	long resolved_squad = squad_index;
+	long const *unit_reference = &unit_index;
+	bool const *flag_reference = &flag;
+	byte *squad = NULL;
+	if (squad_index != NONE)
+		squad = g_51e9d8->data + (squad_index & 0xffff) * 0x98;
+	if (*unit_reference != NONE && entry_index != NONE)
+	{
+		long actor_index = function_1dfb90(entry_index);
+		if (actor_index != NONE)
+		{
+			s_actor_view *actor = actor_get(actor_index);
+			function_1e0d50(actor_index, *unit_reference);
+			if (squad_index == NONE)
+				function_203f60(actor_index);
+			else
+			{
+				if (!(squad_index & 0xffff0000))
+					resolved_squad = (*(short *)squad << 16) | (squad_index & 0xffff);
+				function_203d70(actor_index, (short)resolved_squad, false);
+			}
+			byte *unit = (byte *)ai_object_get(*unit_reference);
+			short team = 0;
+			if (resolved_squad != NONE)
+			{
+				byte *entry = *(byte **)((byte *)g_4e0350 + 0x164) + (resolved_squad & 0xffff) * 0x74;
+				if (entry)
+					team = *(short *)(entry + 0x24);
+			}
+			if (team == 0 && unit)
+			{
+				short unit_team = *(short *)(unit + 0x138);
+				if (unit_team != NONE && unit_team != 0)
+					team = unit_team;
+			}
+			if (team == 0)
+				team = actor_initial_team(actor->unknown004);
+			function_1e1150(actor_index, team);
+			if (squad && !squad[0x76] && actor->unknown024 != 0)
+				squad[0x76] = (byte)actor->unknown024;
+			actor->unknown084 = *flag_reference ? 0 : 3;
+			function_1e3b60(actor_index);
+			if (*(short *)((byte *)actor + 0x254) == NONE)
+			{
+				if (*(long *)((byte *)actor + 0x1c) != NONE)
+					function_28e160(actor_index);
+				function_1e1a00(actor_index, 0);
+			}
+			else
+				result = actor_index;
+		}
+	}
+	return result;
+}
+
+void __stdcall function_28e090(long actor_index, long perception_index);
+
+// @retail 0x1e02f0
+long __stdcall function_1e02f0(long squad_index, long entry_index, long unit_index, long perception_index, bool flag)
+{
+	long result = NONE;
+	long resolved_squad = squad_index;
+	long const *unit_reference = &unit_index;
+	long const *perception_reference = &perception_index;
+	bool const *flag_reference = &flag;
+	byte *squad = NULL;
+	if (squad_index != NONE)
+		squad = g_51e9d8->data + (squad_index & 0xffff) * 0x98;
+	if ((*unit_reference != NONE || *perception_reference != NONE) && entry_index != NONE)
+	{
+		long actor_index = function_1dfb90(entry_index);
+		if (actor_index != NONE)
+		{
+			s_actor_view *actor = actor_get(actor_index);
+			if (*unit_reference != NONE)
+				function_1e0d50(actor_index, *unit_reference);
+			else if (*perception_reference != NONE)
+				function_28e090(actor_index, *perception_reference);
+			if (squad_index == NONE)
+				function_203f60(actor_index);
+			else
+			{
+				if (!(squad_index & 0xffff0000))
+					resolved_squad = (*(short *)squad << 16) | (squad_index & 0xffff);
+				function_203d70(actor_index, (short)resolved_squad, false);
+			}
+			byte *unit = *unit_reference == NONE ? NULL : (byte *)ai_object_get(*unit_reference);
+			short team = 0;
+			if (resolved_squad != NONE)
+			{
+				byte *entry = *(byte **)((byte *)g_4e0350 + 0x164) + (resolved_squad & 0xffff) * 0x74;
+				if (entry)
+					team = *(short *)(entry + 0x24);
+			}
+			if (team == 0 && unit)
+			{
+				short unit_team = *(short *)(unit + 0x138);
+				if (unit_team != NONE && unit_team != 0)
+					team = unit_team;
+			}
+			if (team == 0)
+				team = actor_initial_team(actor->unknown004);
+			function_1e1150(actor_index, team);
+			if (squad && !squad[0x76] && actor->unknown024 != 0)
+				squad[0x76] = (byte)actor->unknown024;
+			actor->unknown084 = *flag_reference ? 0 : 3;
+			function_1e3b60(actor_index);
+			if (*(short *)((byte *)actor + 0x254) == NONE)
+			{
+				if (*(long *)((byte *)actor + 0x1c) != NONE)
+					function_28e160(actor_index);
+				function_1e1a00(actor_index, 0);
+			}
+			else
+				result = actor_index;
+		}
+	}
+	return result;
+}
+
+#include "unit_requests.h"
+
+bool g_4f55e8;
+void function_caf00(long unit_index);
+long function_1e4a10(long tag_index);
+void function_d5c90(long object_index, real *body_vitality, real *shield_vitality);
+bool function_1df5d0(short first, short second);
+bool function_1e11b0(long actor_index, bool active);
+bool function_114b60(short entry_index, short fallback_index, long unit_index, long priority, void const *extra);
+
+// @retail 0x1e0dc0
+long function_1e0dc0(short team, long unit_index, short request_value, short squad_index)
+{
+	const long *unit_reference = &unit_index;
+	const short *request_reference = &request_value;
+	const short *squad_reference = &squad_index;
+	byte *unit = (byte *)ai_object_get(*unit_reference);
+	function_caf00(*unit_reference);
+	real *limits = (real *)function_1e4a10(*(long *)(unit + 0x3d8));
+	if (limits)
+	{
+		short difficulty = g_4e6948->state == 1 ? g_4e6948->difficulty : 1;
+		real body, shield;
+		switch (difficulty)
+		{
+		case 3:
+			body = limits[3];
+			shield = limits[4];
+			if (body <= 0.0f && shield <= 0.0f)
+			{
+				body = limits[1];
+				shield = limits[2];
+			}
+			break;
+		case 2:
+			if (limits[3] > 0.0f || limits[4] > 0.0f)
+			{
+				body = (limits[1] + limits[3]) * 0.5f;
+				shield = (limits[4] + limits[2]) * 0.5f;
+			}
+			else
+			{
+				body = limits[1];
+				shield = limits[2];
+			}
+			break;
+		default:
+			body = limits[1];
+			shield = limits[2];
+			break;
+		}
+		if (g_4e6948->state == 1 && g_4f55e8)
+		{
+			body *= 2.0f;
+			shield *= 2.0f;
+		}
+		if (body > 0.0f || shield > 0.0f)
+			function_d5c90(*unit_reference, &body, &shield);
+	}
+	long definition_index;
+	short unit_team = *(short *)(unit + 0x138);
+	if (*(long *)(unit + 0x3d8) != NONE &&
+		(unit_team == team || function_1df5d0(unit_team, team)))
+		definition_index = *(long *)(unit + 0x3d8);
+	else
+		definition_index = *(long *)(g_4e3b44[*(long *)unit & 0xffff].bytes + 0x304);
+	long result = NONE;
+	if (definition_index != NONE)
+	{
+		result = function_1e0160(*squad_reference, definition_index, *unit_reference, false);
+		if (result != NONE)
+		{
+			if (*squad_reference == NONE)
+				function_1e11b0(result, true);
+			s_unit_request request;
+			request.type = 0x31;
+			*(short *)(request.arguments + 0) = g_510c54->field_2_3 * 3;
+			*(short *)(request.arguments + 2) = *request_reference;
+			if (function_e6900(*unit_reference, &request))
+				function_114b60(0x15, NONE, actor_get(result)->unknown018, 0xd, NULL);
+		}
+	}
+	return result;
+}
+
+extern bool g_4f55e5;
+bool g_4f55e0;
+real function_259a0(dword *seed);
+long function_1469f0(real seconds);
+void *function_1e53e0(long character_index, short key);
+long function_cbd50(long unit_index, short weapon_index);
+void __stdcall function_c6f80(long unit_index, long ticks, long flags);
+void function_101a10(long weapon_index, real fraction);
+void function_1018b0(long weapon_index, short const *rounds);
+
+// @retail 0x1e2a90
+void function_1e2a90(long actor_index)
+{
+	long const *index_reference = &actor_index;
+	s_actor_view *actor = actor_get(*index_reference);
+	byte *actor_bytes = (byte *)actor;
+	byte *weapon_options = NULL;
+	long weapon_index = function_1e1f20(*index_reference);
+	if (weapon_index != NONE)
+		weapon_options = (byte *)function_1e5280(*index_reference,
+			ai_object_get(weapon_index)->definition_index);
+	if (*(short *)(actor_bytes + 0x84) == 4 && *(short *)(actor_bytes + 0x86) >= 3 &&
+		actor->unknown018 != NONE)
+	{
+		byte *unit = (byte *)ai_object_get(actor->unknown018);
+		if ((unit[0x134] & 1) && *(signed char *)(unit + 0x1f5) > 0 &&
+			(function_cbd50(actor->unknown018, *(signed char *)(unit + 0x212)) != NONE ||
+			function_cbd50(actor->unknown018, *(signed char *)(unit + 0x213)) != NONE))
+		{
+			real probability = 0.1f;
+			if (weapon_options)
+			{
+				real value = *(real *)(weapon_options + 0x58);
+				probability = value < 0.1f ? 0.1f : (value > 0.6f ? 0.6f : value);
+			}
+			if (actor_bytes[0x225] || (*(short *)(actor_bytes + 0x722) > 0 &&
+				*(real *)(actor_bytes + 0x764) < 3.0f))
+			{
+				real increased = probability * 4.0f;
+				if (increased > 0.6f) increased = 0.6f;
+				if (probability <= increased) probability = increased;
+			}
+			if (probability > function_259a0(&g_4e7408->unknown0))
+			{
+				real delay;
+				if (weapon_options && *(real *)(weapon_options + 0x5c) != 0.0f)
+				{
+					real value = *(real *)(weapon_options + 0x5c);
+					delay = value < 0.8f ? 0.8f : (value > 1.3f ? 1.3f : value);
+				}
+				else
+					delay = function_259d0(&g_4e7408->unknown0, NULL, 0, 0.8f, 1.3f);
+				long ticks = function_1469f0(delay);
+				function_c6f80(actor->unknown018, (short)ticks, 0x210000);
+				unit[0x1f5] = (byte)ticks;
+			}
+		}
+	}
+	if (actor->unknown018 != NONE)
+	{
+		byte *unit = (byte *)ai_object_get(actor->unknown018);
+		byte *grenade_options = (byte *)function_1e53e0(actor->unknown054,
+			*(signed char *)(unit + 0x23c));
+		long weapons[2];
+		weapons[0] = unit_get_current_weapon(actor->unknown018);
+		weapons[1] = secondary_weapon_get(actor->unknown018);
+		if (!(g_4e6948->state == 1 && g_4f55e5) &&
+			(!*((byte *)g_4f55d0 + 0x340) || (grenade_options &&
+			*(real *)(grenade_options + 0x38) > function_x82e52f(&g_4e7408->unknown0, NULL, 0))))
+			*(short *)(unit + 0x23e) = 0;
+		if (weapon_options)
+		{
+			long i = 0;
+			do
+			{
+				if (weapons[i] != NONE)
+				{
+					real lower = *(real *)(weapon_options + 0x8c);
+					real upper = *(real *)(weapon_options + 0x90);
+					if (lower > 0.0f || upper > 0.0f)
+					{
+						real fraction = lower + (upper - lower) *
+							function_x82e52f(&g_4e7408->unknown0, NULL, 0);
+						if (g_4e6948->state == 1 && g_4f55e0) fraction *= 0.5f;
+						function_101a10(weapons[i], fraction);
+					}
+					short minimum = *(short *)(weapon_options + 0x94);
+					short maximum = *(short *)(weapon_options + 0x96);
+					if (minimum > 0 || maximum > 0)
+					{
+						dword random = _random(&g_4e7408->unknown0, NULL, 0);
+						long range = (short)(maximum + 1) - minimum;
+						short rounds[2] = { (short)(((random * range) >> 16) + minimum), 0 };
+						if (g_4e6948->state == 1 && g_4f55e0)
+							rounds[0] = (short)(rounds[0] * 0.5f);
+						function_1018b0(weapons[i], rounds);
+					}
+				}
+			} while (++i < 2);
+		}
+	}
+	if (actor->unknown07c != NONE)
+		++*(short *)(g_502420->data + (actor->unknown07c & 0xffff) * 0x50 + 0x3e);
+	function_1e1a00(*index_reference, 1);
 }
