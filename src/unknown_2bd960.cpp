@@ -1691,7 +1691,7 @@ bool c_engine_peer_b::q2(dword mask, long unused, s_settings_2c0 *settings)
 #include "flexible_surface_calls.h"
 struct s_sort_record;
 typedef bool (__stdcall *t_record_fill_2be)(long, void *, long, long, long, void *, s_sort_record *);
-void function_41490(long tag, short group, word kind, real distance, t_record_fill_2be fill,
+void function_41490(long tag, short group, short kind, real distance, t_record_fill_2be fill,
     dword value, void (__stdcall *callback)(void *), void *context, point3f const *position);
 void __stdcall function_2be5d0(long, long, long, long, long, long, void *);
 

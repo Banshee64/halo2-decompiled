@@ -32,10 +32,16 @@ s_slot_handler_2 g_47f808 =
 	0, 0, 0
 };
 
+PRIVATE __forceinline s_actor_view *function_256071(long arg_0)
+{
+	return (s_actor_view *)(g_4f55f0->data + (arg_0 & 0xffff) * sizeof(s_actor_view));
+}
+
 // @retail 0x256070
 short __stdcall function_256070(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
+	s_actor_view *actor = function_256071(actor_index);
 
 	if (actor->unknown07c != NONE)
 	{
@@ -45,11 +51,11 @@ short __stdcall function_256070(long actor_index)
 
 		while (member_index != NONE)
 		{
-			s_actor_view *member = actor_get(member_index);
+			s_actor_view *member = function_256071(member_index);
 			long current_index = member_index;
 			member_index = member->next_index;
 
-			if (member->unknown004 == actor->unknown004)
+			if (member->unknown004 == *(volatile short *)&actor->unknown004)
 			{
 				count++;
 				if (function_1a6fe0(current_index, 0x1b) != NONE)
@@ -61,12 +67,11 @@ short __stdcall function_256070(long actor_index)
 
 		if ((real)ready_count / (real)count > 0.6f)
 		{
-			return 3;
+			result = 3;
 		}
-		return 0;
 	}
 
-	return 0;
+	return result;
 }
 
 // @retail 0x256150

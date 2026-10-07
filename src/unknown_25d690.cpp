@@ -499,14 +499,16 @@ short function_25cca0(long prop_ref_index)
 	return result;
 }
 
+#pragma inline_depth(0)
 // @retail 0x25d420
 void function_25d420(long prop_ref_index, short type, long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
+	long const *local_0 = &actor_index;
+	s_actor_view *actor = (s_actor_view *)(g_4f55f0->data + (*local_0 & 0xffff) * sizeof(s_actor_view));
 
 	if (prop_ref_index != NONE)
 	{
-		s_prop_datum *datum = prop_ref_get(prop_ref_index);
+		s_prop_datum *datum = (s_prop_datum *)(g_502418->data + (prop_ref_index & 0xffff) * sizeof(s_prop_datum));
 		s_type_f95cd3 *view = function_25d700(prop_ref_index);
 
 		if (view)
@@ -539,12 +541,14 @@ void function_25d420(long prop_ref_index, short type, long actor_index)
 
 				if (started)
 				{
-					prop_get(datum->prop_index)->unknown34 = true;
+					((s_type_76cf92 *)(g_50241c->data + (datum->prop_index & 0xffff) * sizeof(s_type_76cf92)))->unknown34 = true;
 				}
 			}
 		}
 	}
 }
+
+#pragma inline_depth(255)
 
 // @retail 0x25d510
 void function_25d510(long actor_index)

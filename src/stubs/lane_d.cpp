@@ -45,10 +45,6 @@ void function_b3200(void)
 {
 }
 
-// @stub 0x6b4a0
-void function_6b4a0(void)
-{
-}
 
 // @stub 0x80390
 void function_80390(void)
@@ -76,16 +72,22 @@ void __fastcall function_aa260(const vector3f *linear, long object_index, long m
 
 struct s_simulation_player_update;
 
-// @stub 0x85140
-bool __stdcall function_85140(const s_simulation_player_update *update)
+struct s_player_creation_record;
+
+// @stub 0x14bc00
+long __stdcall function_14bc00(long player_index, const s_player_creation_record *record)
 {
-	return false;
+	return -1;
 }
 
-// @stub 0x854c0
-bool __stdcall function_854c0(const s_simulation_player_update *update)
+// @stub 0x14bf80
+void __stdcall function_14bf80(long player_index, const s_player_creation_record *record)
 {
-	return false;
+}
+
+// @stub 0x14be90
+void __stdcall function_14be90(long player_index, const unsigned long *configuration)
+{
 }
 
 struct s_type_9df9da;
@@ -94,4 +96,13 @@ struct s_type_9df9da;
 bool __stdcall function_6bff0(s_type_9df9da *task)
 {
 	return false;
+}
+
+struct s_network_connection;
+struct s_bitstream;
+
+// @stub 0x88980
+void __stdcall function_88980(bool reliable, s_network_connection *connection, s_bitstream *stream,
+ bool pad, long extra_size, const void *extra, long *packet_size, long *stream_size, long *sent_extra_size)
+{
 }

@@ -280,3 +280,134 @@ void function_2b9a00(s_particle_2b96 const *particle, real distance, vector3f *r
         result->k += normal->k;
     }
 }
+
+PRIVATE __forceinline real particle_distance_estimate_2b(real squared)
+{
+    union { real value; long bits; } estimate;
+    estimate.value = squared;
+    estimate.bits = (estimate.bits >> 1) + 0x1fc00000;
+    return estimate.value;
+}
+
+PRIVATE __forceinline void normalize_particle_velocity_2b(vector3f *v)
+{
+    real squared = v->i * v->i + v->j * v->j + v->k * v->k;
+    if (squared != 0.0f)
+    {
+        real inverse = inverse_sqrt_2b96(squared);
+        v->i *= inverse;
+        v->j *= inverse;
+        v->k *= inverse;
+    }
+}
+
+// @retail 0x2b9b10
+void function_2b9b10(s_particle_properties_2ba const *definition, void const *origin, long first, real scale, void *system)
+{
+    s_particle_property_entry_2ba *properties = definition->properties;
+    long next = first;
+    dword valid = 0;
+    void *current_system = 0;
+    void *current_emitter = 0;
+    s_particle_2b96 *current_particle = 0;
+    real values[17];
+    if (system)
+    {
+        current_system = system;
+        valid = 0;
+    }
+    dword requested = definition->input_mask & 0x107f0;
+    function_173ba0(requested, current_system, current_emitter, current_particle, values);
+    valid |= requested;
+    while (next != NONE)
+    {
+        s_particle_2b96 *particle = &((s_particle_2b96 *)g_51ec84->data)[next & 0xffff];
+        if (particle != current_particle)
+        {
+            current_particle = particle;
+            valid &= 0xffff07f0;
+        }
+        requested = definition->input_mask & 0xf80f;
+        function_173ba0(requested & ~valid, current_system, current_emitter, current_particle, values);
+        valid |= requested;
+        next = particle->next;
+        s_particle_2b96 *nearest = function_2b9670(particle, first);
+        real minimum_speed = function_246cd0(&properties[6].property, values);
+        real maximum_speed = function_246cd0(&properties[7].property, values);
+        real maximum_change = function_246cd0(&properties[8].property, values);
+        vector3f change = { 0.0f, 0.0f, 0.0f };
+        if (nearest)
+        {
+            function_2b9750(nearest, particle,
+                function_246cd0(&properties[0].property, values),
+                function_246cd0(&properties[1].property, values), &change);
+            function_2b98b0(particle, nearest,
+                function_246cd0(&properties[4].property, values), &change);
+        }
+        real attraction_scale = function_246cd0(&properties[3].property, values);
+        real attraction_radius = function_246cd0(&properties[2].property, values);
+        if (attraction_radius > 0.0f)
+        {
+            point3f const *center = (point3f const *)((byte const *)origin + 0x10);
+            vector3f delta;
+            delta.i = center->x - particle->position.x;
+            delta.j = center->y - particle->position.y;
+            delta.k = center->z - particle->position.z;
+            real squared = delta.k * delta.k + delta.j * delta.j + delta.i * delta.i;
+            real amount = particle_distance_estimate_2b(squared) / attraction_radius * attraction_scale;
+            if (squared != 0.0f)
+            {
+                real inverse = inverse_sqrt_2b96(squared);
+                scale_particle_vector_2b(inverse, &delta);
+            }
+            delta.i *= amount;
+            delta.j *= amount;
+            delta.k *= amount;
+            change.i += delta.i;
+            change.j += delta.j;
+            change.k += delta.k;
+        }
+        function_2b9a00(particle, function_246cd0(&properties[5].property, values), &change);
+        change.i *= scale;
+        change.j *= scale;
+        change.k *= scale;
+        real squared = change.k * change.k + change.j * change.j + change.i * change.i;
+        if (particle_distance_estimate_2b(squared) > maximum_change)
+        {
+            if (squared != 0.0f)
+            {
+                real inverse = inverse_sqrt_2b96(squared);
+                scale_particle_vector_2b(inverse, &change);
+            }
+            change.i *= maximum_change;
+            change.j *= maximum_change;
+            change.k *= maximum_change;
+        }
+        vector3f local_c01284 = particle->velocity;
+        scale_particle_vector_2b(0.75f, &local_c01284);
+        particle->velocity.i += change.i;
+        particle->velocity.j += change.j;
+        particle->velocity.k += change.k;
+        particle->velocity.i *= 0.25f;
+        particle->velocity.j *= 0.25f;
+        particle->velocity.k *= 0.25f;
+        particle->velocity.i += local_c01284.i;
+        particle->velocity.j += local_c01284.j;
+        particle->velocity.k += local_c01284.k;
+        squared = particle->velocity.k * particle->velocity.k + particle->velocity.j * particle->velocity.j + particle->velocity.i * particle->velocity.i;
+        if (squared > maximum_speed * maximum_speed)
+        {
+            normalize_particle_velocity_2b(&particle->velocity);
+            particle->velocity.i *= maximum_speed;
+            particle->velocity.j *= maximum_speed;
+            particle->velocity.k *= maximum_speed;
+        }
+        else if (minimum_speed * minimum_speed > squared)
+        {
+            normalize_particle_velocity_2b(&particle->velocity);
+            particle->velocity.i *= minimum_speed;
+            particle->velocity.j *= minimum_speed;
+            particle->velocity.k *= minimum_speed;
+        }
+    }
+}

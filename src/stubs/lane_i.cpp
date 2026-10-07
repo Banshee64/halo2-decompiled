@@ -46,12 +46,6 @@ bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_1, long arg_
 struct s_2640c0;
 struct s_2641c0;
 
-// @stub 0x2641c0
-bool __stdcall function_2641c0(long arg_0, s_2641c0 *arg_1, point3f const *arg_2)
-{
-	return false;
-}
-
 // @stub 0x264330
 void __stdcall function_264330(long arg_0, long arg_1, s_2641c0 *arg_2, s_2640c0 *arg_3, bool arg_4)
 {
@@ -74,4 +68,10 @@ short __stdcall function_1c8df0(long arg_0, void const *arg_1, short arg_2, shor
 	point3f const *arg_4, long arg_5, bool arg_6, bool arg_7, bool arg_8, bool arg_9)
 {
 	return 0;
+}
+
+// @stub 0x269da0
+int __cdecl function_269da0(void const *a, void const *b)
+{
+    return 0;
 }

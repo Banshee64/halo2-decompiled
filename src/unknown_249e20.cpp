@@ -33,9 +33,9 @@ long function_249e60(long cluster_index, s_structure_bsp_view *bsp, long index)
 
 	if (bsp->audibility_count > 0)
 	{
+		long row = 2 * index;
 		dword *bits = bsp->audibility->bits;
 		long stride = (bsp->cluster_count + 31) >> 5;
-		long row = 2 * index;
 
 		if (bits[stride * row + (cluster_index >> 5)] & (1 << (cluster_index & 0x1f)))
 		{

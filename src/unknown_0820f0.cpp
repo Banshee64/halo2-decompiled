@@ -311,8 +311,8 @@ class c_connection_client
 {
 public:
 	virtual void v0() {}
-	virtual void v1() {}
-	virtual void v2() {}
+	virtual bool v1(long *reason) { return false; }
+	virtual bool v2(bool *reliable) { return false; }
 	virtual void v3() {}
 	virtual void v4() {}
 	virtual long read_packet(long *sequence, s_bitstream *stream) { return 0; }
@@ -327,6 +327,9 @@ public:
 	virtual void packet_received(long connection_id, long packet_size) {}
 	virtual void message_acknowledged(long connection_id, long size, long time) {}
 	virtual void message_lost(long connection_id, bool resent, bool late) {}
+	virtual void v4() {}
+	virtual bool build_packet(long connection_id, bool ordinary, bool priority, bool reliable,
+		bool *send_reliable, bool *pad, long *capacity, long *extra_size, long maximum_extra, void *extra) { return false; }
 };
 
 /* src/network_streams.cpp (lane J) */
@@ -871,3 +874,94 @@ void function_88980(bool reliable, s_network_connection *connection, s_bitstream
 }
 
 #endif
+
+void __stdcall function_88980(bool reliable, s_network_connection *connection, s_bitstream *stream,
+ bool pad, long extra_size, const void *extra, long *packet_size, long *stream_size, long *sent_extra_size);
+
+// @retail 0x883c0
+void __stdcall function_0883c0(s_network_connection *connection)
+{
+ if (connection->state == 3 && connection->initiator)
+  network_connection_update_handshake(connection);
+ if (connection->state == 4 && network_time_now() - connection->establish_time > connection->config->establish_timeout)
+  network_connection_close(connection, 7);
+ if (connection->state >= 4)
+ {
+  s_connection_client_iterator iterator;
+  connection_client_iterator_new(&iterator, 16);
+  while (network_connection_next_client(connection, &iterator))
+  {
+   long reason = 0;
+   if (iterator.client->v1(&reason))
+   {
+    network_connection_close(connection, reason);
+    break;
+   }
+  }
+ }
+ if (connection->state >= 4)
+ {
+  bool ordinary = false;
+  bool priority = false;
+  bool reliable = false;
+  s_connection_client_iterator iterator;
+  dword type = connection->callback && connection->callback->unknown31 ? 0 : 1;
+  connection_client_iterator_new(&iterator, type);
+  while (network_connection_next_client(connection, &iterator))
+  {
+   bool client_reliable = false;
+   if (iterator.client->v2(&client_reliable))
+   {
+    if (iterator.client_type & 32)
+     priority = true;
+    else
+     ordinary = true;
+    if (client_reliable)
+     reliable = true;
+   }
+  }
+  if (!(connection->flags & 8) && reliable)
+   reliable = false;
+  bool send_reliable;
+  bool pad;
+  long capacity;
+  long extra_size;
+  byte extra[0x200];
+  bool send;
+  if (connection->owner)
+   send = connection->owner->build_packet(connection->id, ordinary, priority, reliable,
+    &send_reliable, &pad, &capacity, &extra_size, sizeof(extra), extra);
+  else
+  {
+   send = ordinary || priority;
+   send_reliable = reliable;
+   pad = false;
+   capacity = 0x600;
+   extra_size = 0;
+  }
+  if (send)
+  {
+   byte payload[0x600];
+   s_bitstream stream;
+   stream.data = payload;
+   stream.size_in_bytes = capacity;
+   stream.unknown08 = 1;
+   stream.mode = 0;
+   stream.bit_position = 0;
+   stream.checkpoint_count = 0;
+   stream.error = false;
+   long packet_size;
+   long stream_size;
+   long sent_extra_size;
+   function_88980(send_reliable, connection, &stream, pad, extra_size,
+    extra_size > 0 ? extra : 0, &packet_size, &stream_size, &sent_extra_size);
+   network_connection_reset_timer(connection, 0);
+   if (send_reliable)
+    network_connection_reset_timer(connection, 1);
+   if (extra_size > 0)
+    network_connection_reset_timer(connection, 2);
+  }
+ }
+ if (connection->state >= 4)
+  network_connection_update_reliable_stream(connection);
+}
