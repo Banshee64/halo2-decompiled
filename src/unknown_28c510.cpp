@@ -68,19 +68,31 @@ void function_28c530()
 	}
 }
 
+PRIVATE __forceinline vector3f *function_28c5d1(s_animation_data *arg_0, long arg_1)
+{
+	long local_0 = arg_0->vector_stride;
+	long local_1 = *(volatile long *)&arg_0->vector_offset;
+	return (vector3f *)((byte *)arg_0 + (local_0 * arg_1 + local_1));
+}
+
+PRIVATE __forceinline void function_28c5d2(vector3f const *arg_0, vector3f const *arg_1, real arg_2, vector3f *arg_3)
+{
+	arg_3->i = (arg_1->i - arg_0->i) * arg_2 + arg_0->i;
+	arg_3->j = (arg_1->j - arg_0->j) * arg_2 + arg_0->j;
+	arg_3->k = (arg_1->k - arg_0->k) * arg_2 + arg_0->k;
+}
+
 // @retail 0x28c5d0
 void function_28c5d0()
 {
 	static vector3f vector_a;
 	static vector3f vector_b;
-	vector3f *vectors = (vector3f *)((byte *)g_sampling_settings.field_30 + (g_sampling_settings.field_30->vector_offset + g_sampling_settings.field_30->vector_stride * g_5044b8));
+	vector3f *vectors = function_28c5d1(g_sampling_settings.field_30, g_5044b8);
 	real t = g_sampling_settings.frame_fraction;
 
 	vector_a = vectors[g_sampling_settings.frame_index];
 	vector_b = vectors[g_sampling_settings.next_frame_index];
-	g_5044c0->vector.i = (vector_b.i - vector_a.i) * t + vector_a.i;
-	g_5044c0->vector.j = (vector_b.j - vector_a.j) * t + vector_a.j;
-	g_5044c0->vector.k = (vector_b.k - vector_a.k) * t + vector_a.k;
+	function_28c5d2(&vector_a, &vector_b, t, &g_5044c0->vector);
 }
 
 // @retail 0x28c6b0
@@ -174,14 +186,12 @@ void function_28c880()
 {
 	static vector3f vector_a;
 	static vector3f vector_b;
-	vector3f *vectors = (vector3f *)((byte *)g_sampling_settings.field_30 + (g_sampling_settings.field_30->vector_offset + g_sampling_settings.field_30->vector_stride * g_5044b8));
+	vector3f *vectors = function_28c5d1(g_sampling_settings.field_30, g_5044b8);
 	real t = g_sampling_settings.frame_fraction;
 
 	vector_a = vectors[g_sampling_settings.frame_index];
 	vector_b = vectors[g_sampling_settings.next_frame_index];
-	g_5044c0->vector.i = (vector_b.i - vector_a.i) * t + vector_a.i;
-	g_5044c0->vector.j = (vector_b.j - vector_a.j) * t + vector_a.j;
-	g_5044c0->vector.k = (vector_b.k - vector_a.k) * t + vector_a.k;
+	function_28c5d2(&vector_a, &vector_b, t, &g_5044c0->vector);
 }
 
 // @retail 0x28c960

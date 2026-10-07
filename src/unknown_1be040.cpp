@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "unknown_11c920.h"
 #include "slot_handler.h"
+#include "unknown_25d020.h"
 
 /* slot types 9 and 0x1d */
 
@@ -20,7 +21,7 @@ struct s_object_tag_view
 };
 
 bool __stdcall function_1be0b0(long actor_index, s_slot *slot);
-void __stdcall function_1be120(long actor_index, s_slot *slot);
+bool __stdcall function_1be120(long actor_index, s_slot *slot);
 void __stdcall function_1be370(long actor_index, s_slot *slot);
 void __stdcall function_1f4280(long actor_index);
 
@@ -50,6 +51,38 @@ short __stdcall function_1be0f0(long actor_index, s_slot *slot, bool active)
 
 	if (function_1be040(actor_index))
 		result = g_46fbe8;
+	return result;
+}
+
+point3f *function_b9dd0(long object_index, point3f *result);
+short __stdcall function_1c8df0(long object_index, void const *origin, short team, short type,
+	point3f const *point, long count, bool unknown, bool unknown2, bool unknown3, bool unknown4);
+
+// @retail 0x1be120
+bool __stdcall function_1be120(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = true;
+
+	if (actor->unknown040)
+	{
+		result = false;
+		if (actor->unknown5ac != NONE && actor->unknown5b0 == 6)
+		{
+			s_slot_09 *state = (s_slot_09 *)slot;
+			s_slot_object_view *object = object_get(actor->unknown5ac);
+			point3f position;
+			s_2641c0 origin;
+			function_b9dd0(actor->unknown5ac, &position);
+			state->unknown0c = false;
+			if (function_2641c0(actor_index, &origin, &position) &&
+				function_1c8df0(actor->unknown5ac, &position, *(short *)((byte *)object + 0x2c),
+					*(short *)((byte *)&origin + 0x28), (point3f const *)&origin, 1,
+					false, false, true, false) == 0)
+				state->unknown0c = true;
+			result = true;
+		}
+	}
 	return result;
 }
 
@@ -137,7 +170,7 @@ s_slot_handler_2 g_47ecb8 =
 		function_1be040, function_1be0f0, function_1be0b0, 0, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
-	function_1be120, slot_proc_nothing, function_1be1e0
+	(t_slot_proc)function_1be120, slot_proc_nothing, function_1be1e0
 };
 
 s_slot_handler_2 g_47ed08 =
