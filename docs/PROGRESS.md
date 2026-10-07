@@ -2,6 +2,51 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6945 functions match
+
+```
+matched 6945 of 11318 game functions (771250 of 2784283 bytes, 27.70%)
+```
+
+6945 new matches, none lost:
+- Merge batch r25: the second machine's #180 to #192 (lanes K, Y, O, M, F, L, P and C; +33).
+
+## 2026-10-07: 6912 functions match
+
+```
+matched 6912 of 11318 game functions (763805 of 2784283 bytes, 27.43%)
+```
+
+6912 new matches, none lost:
+- Merge batch r24: lane H rounds 1 and 2 (+8), the first Codex rounds in 0x190000-0x19ffff.
+
+## 2026-10-07: 6904 functions match
+
+```
+matched 6904 of 11318 game functions (762636 of 2784283 bytes, 27.39%)
+```
+
+6904 new matches, none lost:
+- Merge batch r23: UI-screens rounds 10 and 11 (+3).
+
+## 2026-10-07: 6901 functions match
+
+```
+matched 6901 of 11318 game functions (762446 of 2784283 bytes, 27.38%)
+```
+
+6901 new matches, none lost:
+- Merge batch r21: UI-core rounds 11 to 13 (+9: the main menu and window-manager initialisers, two text-widget helpers and lobby/settings screen code).
+
+## 2026-10-07: 6892 functions match
+
+```
+matched 6892 of 11318 game functions (760427 of 2784283 bytes, 27.31%)
+```
+
+6892 new matches, none lost:
+- Merge batch r20: the second machine's #169 to #179 (lanes AC, P, U, L, K, J, M and F; +51) and lane W rounds 16 and 17 (+6).
+
 ## 2026-10-07: 6835 functions match
 
 ```

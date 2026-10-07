@@ -247,6 +247,38 @@ void texture_cache_update_locks(void)
 	}
 }
 
+static __forceinline byte *function_12c531(s_record_pool_iterator *arg_0)
+{
+	s_record_pool *local_0 = arg_0->data;
+	long local_1 = arg_0->index + 1;
+	long local_2 = NONE;
+	if (local_1 >= 0)
+	{
+		for (; local_1 < *(long volatile *)&local_0->high_water_index; local_1++)
+		{
+			if (local_0->bitmap[local_1 >> 5] & (1 << (local_1 & 0x1f)))
+			{
+				local_2 = local_1;
+				break;
+			}
+		}
+	}
+	byte *local_3;
+	if (local_2 != NONE)
+	{
+		local_3 = local_0->data + local_0->size * local_2;
+		arg_0->index = local_2;
+		arg_0->datum_index = (*(short *)local_3 << 16) | local_2;
+	}
+	else
+	{
+		arg_0->index = local_0->maximum_count;
+		arg_0->datum_index = NONE;
+		local_3 = NULL;
+	}
+	return local_3;
+}
+
 // @retail 0x12c530
 void function_12c530(void)
 {
@@ -258,7 +290,7 @@ void function_12c530(void)
 		iterator.data = g_4e6454;
 		iterator.index = NONE;
 		iterator.datum_index = NONE;
-		while ((entry = (s_texture_cache_entry *)data_iterator_next_inlined(&iterator)) != NULL)
+		while ((entry = (s_texture_cache_entry *)function_12c531(&iterator)) != NULL)
 		{
 			if (entry->bitmap)
 			{
@@ -493,9 +525,9 @@ static __int64 read_tsc(void)
 /* 0x12c600 (xbox_texture_cache_update.cpp): the cache's per-frame update */
 void function_12c600(void);
 
-static inline long texture_cache_next_used_index(s_record_pool *data, long index)
+static __forceinline long texture_cache_next_used_index(s_record_pool *data, long index)
 {
-	if (index >= 0 && index < data->high_water_index)
+	if (index >= 0 && index < *(long volatile *)&data->high_water_index)
 	{
 		do
 		{
@@ -505,7 +537,7 @@ static inline long texture_cache_next_used_index(s_record_pool *data, long index
 			}
 			index++;
 		}
-		while (index < data->high_water_index);
+		while (index < *(long volatile *)&data->high_water_index);
 	}
 	return NONE;
 }
@@ -531,8 +563,9 @@ void function_12d0a0(void)
 		{
 			s_texture_cache_request *request = (s_texture_cache_request *)(data->data + data->size * index);
 
+			long local_0 = (request->salt << 16) | index;
 			request->bitmap->flags &= ~0x400;
-			record_pool_release(data, (request->salt << 16) | index);
+			record_pool_release(data, local_0);
 		}
 	}
 }
@@ -805,7 +838,7 @@ long function_12d400(long type, long size, long user_data, long update, long rel
 	long result = 0;
 	real timeout = 0.0f;
 	long maximum_pumps = 0;
-	long attempts = 5;
+	volatile long attempts = 5;
 	long pumps;
 
 	switch (type)
@@ -1050,7 +1083,7 @@ bool function_12cb80(s_bitmap_data *arg_0)
 }
 
 #include <xmmintrin.h>
-void function_12ce00(s_bitmap_data *arg_0, dword arg_1, real arg_2);
+D3DTexture *function_12ce00(s_bitmap_data *arg_0, dword arg_1, real arg_2);
 
 // @retail 0x12c450
 void function_12c450(void)

@@ -127,9 +127,9 @@ short __stdcall function_1a9c50(long actor_index, s_slot *slot)
 // @retail 0x1a9cf0
 short __stdcall function_1a9cf0(long actor_index, s_slot *slot, bool active)
 {
+	short result = g_46fbe8;
 	s_slot_10 *state = (s_slot_10 *)slot;
 	short type = state->next_type;
-	short result = g_46fbe8;
 
 	if (type >= 0 && type < k_slot_type_count)
 	{
@@ -140,11 +140,12 @@ short __stdcall function_1a9cf0(long actor_index, s_slot *slot, bool active)
 		{
 			result = type;
 			if (result != g_46fbe8)
-				return result;
+				goto local_0;
 		}
 	}
 	if (g_46eeb8[state->header.type]->unknown8 == g_46f348 || state->unknown12)
 		result = g_46fbe4;
+local_0:
 	return result;
 }
 
@@ -213,15 +214,19 @@ void __stdcall function_1aa6e0(long actor_index, s_slot *slot)
 
 	actor->unknown41c = 4;
 	actor->unknown420 = 2;
-	if (actor_function_50c(actor_index))
+	s_actor_view *local_0 = actor_get(actor_index);
+	if (local_0->unknown50c)
 	{
-		actor->unknown3e0 = 0;
-		actor->unknown44d = true;
+		if (local_0->unknown504 == 1)
+		{
+			actor->unknown3e0 = 0;
+			actor->unknown44d = true;
+		}
+		else
+			actor->unknown3e0 = 0;
 	}
 	else
-	{
 		actor->unknown3e0 = 0;
-	}
 }
 
 // @retail 0x1aa990
@@ -293,7 +298,10 @@ void __stdcall function_1ab300(long actor_index, s_slot *slot)
 		actor->unknown464 = true;
 		actor->unknown465 = true;
 		actor->unknown466 = true;
-		actor->unknown468 = state->unknown1c;
+		((dword *)&actor->unknown468)[0] = ((dword *)&state->unknown1c)[0];
+		((dword *)&actor->unknown468)[1] = ((dword *)&state->unknown1c)[1];
+		((dword *)&actor->unknown468)[2] = ((dword *)&state->unknown1c)[2];
+		((dword *)&actor->unknown468)[3] = ((dword *)&state->unknown1c)[3];
 		state->unknown17 = true;
 		state->unknown18 = false;
 		state->unknown1a = 0;

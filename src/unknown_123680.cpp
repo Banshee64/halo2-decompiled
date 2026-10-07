@@ -67,24 +67,57 @@ bool __stdcall function_1238b0(long block_index);
 long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority);
 bool function_120ce0(long job, long priority);
 
+static __forceinline byte *function_123681(s_record_pool_iterator *arg_0)
+{
+	s_record_pool *local_0 = arg_0->data;
+	long local_1 = arg_0->index + 1;
+	long local_2 = NONE;
+	if (local_1 >= 0)
+	{
+		for (; local_1 < *(long volatile *)&local_0->high_water_index; local_1++)
+		{
+			if (local_0->bitmap[local_1 >> 5] & (1 << (local_1 & 0x1f)))
+			{
+				local_2 = local_1;
+				break;
+			}
+		}
+	}
+	byte *local_3;
+	if (local_2 != NONE)
+	{
+		local_3 = local_0->data + local_0->size * local_2;
+		arg_0->index = local_2;
+		arg_0->datum_index = (*(short *)local_3 << 16) | local_2;
+	}
+	else
+	{
+		arg_0->index = local_0->maximum_count;
+		arg_0->datum_index = NONE;
+		local_3 = NULL;
+	}
+	return local_3;
+}
+
 // @retail 0x123680
 long function_123680(s_cache_resource *resource)
 {
 	long result = NONE;
-
 	if (resource->block_index == NONE)
 	{
-		s_record_pool_iterator iterator;
-		s_cache_request *request;
-
-		iterator.data = g_4e3b4c;
-		iterator.index = NONE;
-		iterator.datum_index = NONE;
-		while ((request = (s_cache_request *)data_iterator_next_inlined(&iterator)) != NULL)
+		struct
 		{
-			if (request->resource == resource)
+			s_cache_request *field_0;
+			s_record_pool_iterator field_4;
+		} local_0;
+		local_0.field_4.data = g_4e3b4c;
+		local_0.field_4.index = NONE;
+		local_0.field_4.datum_index = NONE;
+		while ((local_0.field_0 = (s_cache_request *)function_123681(&local_0.field_4)) != NULL)
+		{
+			if (resource == local_0.field_0->resource)
 			{
-				result = iterator.datum_index;
+				result = local_0.field_4.datum_index;
 				break;
 			}
 		}
@@ -247,8 +280,15 @@ void function_123430(void)
 {
 	if (g_510c20 && g_510c21)
 	{
-		g_4e3b54->state = 0;
-		physical_memory_new_frame(g_4e3b54);
+		s_physical_object *local_0 = g_4e3b54;
+		*(long volatile *)&local_0->state = 0;
+		long local_1 = *(long volatile *)&local_0->time;
+		if (local_1 == 0x7fffffff)
+			physical_memory_reset_time(local_0);
+		else
+			local_0->time = local_1 + 1;
+		for (long local_2 = 0; local_2 < 8; local_2++)
+			local_0->limits[local_2] = 0x7fffffff;
 		function_1239d0();
 		g_55e720++;
 	}
@@ -280,8 +320,11 @@ long function_1234a0(long type, s_cache_resource *resource, bool flush)
 // @retail 0x123550
 s_cache_load *function_123550(long priority, s_cache_resource *resource)
 {
+	long local_0 = resource->size;
+	s_physical_object *local_1 = g_4e3b54;
+	long local_2 = g_468810[priority].lifetime;
 	s_cache_load *result = NULL;
-	long block_index = function_13d370(g_4e3b54, resource->size, g_468810[priority].lifetime);
+	long block_index = function_13d370(local_1, local_0, local_2);
 
 	if (block_index != NONE)
 	{
@@ -297,6 +340,7 @@ s_cache_load *function_123550(long priority, s_cache_resource *resource)
 // @retail 0x1235b0
 void function_1235b0(s_cache_load *load, long name, long priority)
 {
+	long const *const local_1 = &name;
 	s_cache_resource *resource = load->resource;
 	s_physical_block *block;
 	void *buffer;
@@ -317,8 +361,10 @@ void function_1235b0(s_cache_load *load, long name, long priority)
 		long tag;
 	} volatile read;
 	read.priority = g_468810[priority].maximum_requests;
-	read.tag = resource->unknown00;
-	load->handle = function_213760(resource->unknown08, size, buffer, NULL, &load->done, 6, read.priority);
+	dword local_0 = resource->unknown08;
+	name = resource->unknown00;
+	read.tag = *local_1;
+	load->handle = function_213760(local_0, size, buffer, NULL, &load->done, 6, read.priority);
 	if (priority == 0)
 	{
 		function_1237a0(load);

@@ -173,8 +173,9 @@ void function_28cdb0()
 // @retail 0x28cf40
 void function_28cf40()
 {
+	long local_0 = g_5044b8;
 	s_animation_data *data = g_sampling_settings.field_30;
-	dword index = *(dword *)((byte *)data + data->translation_indices + g_5044b8 * 4);
+	dword index = *(dword *)((byte *)data + data->translation_indices + local_0 * 4);
 	long start = index >> 12;
 	long count = index & 0xfff;
 	byte *frames = (byte *)data + data->translation_frames + start;
@@ -203,10 +204,11 @@ void function_28cf40()
 		dword frame = *frames;
 		if (g_sampling_settings.frame_index != frame)
 		{
+			real local_1 = (real)(long)g_sampling_settings.frame_index - (real)(long)frame;
 			real denominator = (real)(long)(frames[1] - frame);
 			real reciprocal;
 			RECIPROCAL(reciprocal, denominator);
-			real t = reciprocal * ((real)(long)g_sampling_settings.frame_index - (real)(long)frame);
+			real t = reciprocal * local_1;
 			s_translation_key b = key[1];
 			translation->x += (b.x - translation->x) * t;
 			translation->y += (b.y - translation->y) * t;
