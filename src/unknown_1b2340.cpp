@@ -176,7 +176,7 @@ bool __stdcall function_1b23c0(long actor_index, s_slot *slot)
     volatile bool result = true;
     s_actor_view *actor = actor_get(actor_index);
     s_prop_node_view *node = prop_node_get(actor->prop_index);
-    s_prop_state_view *prop_state = prop_node_state(node);
+    s_prop_state_view *local_5cfb45 = prop_node_state(node);
     s_prop_view_fields *view = prop_node_view(node);
     real duration;
     if (!view)
@@ -184,8 +184,8 @@ bool __stdcall function_1b23c0(long actor_index, s_slot *slot)
     if (view->unknown70 == 0)
     {
         duration = 3.0f;
-        if (*(long *)((byte *)prop_state + 0x44) == NONE ||
-            !function_2601f0(actor_index, &prop_state->unknown48, *(long *)((byte *)prop_state + 0x44),
+        if (*(long *)((byte *)local_5cfb45 + 0x44) == NONE ||
+            !function_2601f0(actor_index, &local_5cfb45->unknown48, *(long *)((byte *)local_5cfb45 + 0x44),
                 actor->unknown26c != NONE ? 6.0f : 3.0f, 0.0f))
         {
             function_25d420(actor->prop_index, 3, actor_index);

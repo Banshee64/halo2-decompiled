@@ -87,8 +87,8 @@ long __stdcall function_156ed0(long tag, long unused1, long row, long column,
 	long element, long unused5, s_material_156b60 *material)
 {
 	long model = *material_reference_156b60(tag);
-	byte *model_definition = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
-	byte *tables = *(byte **)(model_definition + 0x5c);
+	byte *local_0f244f = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
+	byte *tables = *(byte **)(local_0f244f + 0x5c);
 	word *rows = *(word **)(tables + 4);
 	word *columns = *(word **)(tables + 0xc);
 	byte *elements = *(byte **)(tables + 0x14);
@@ -159,8 +159,8 @@ void __stdcall function_157020(byte *definition, point3f const *position, vector
 	real value, long row, long column, long element, long entry)
 {
 	long model = *material_reference_156b60(*(long *)(definition + 4));
-	byte *model_definition = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
-	byte *tables = *(byte **)(model_definition + 0x5c);
+	byte *local_0f244f = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
+	byte *tables = *(byte **)(local_0f244f + 0x5c);
 	word *rows = *(word **)(tables + 4);
 	word *columns = *(word **)(tables + 0xc);
 	byte *elements = *(byte **)(tables + 0x14);
@@ -211,8 +211,8 @@ void function_156b60(s_effect_beam *beam, real progress, transform4x3f const *ma
 	if (tag == NONE || g_4e92e0 >= 64)
 		return;
 	long model = *material_reference_156b60(tag);
-	byte *model_definition = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
-	byte *tables = *(byte **)(model_definition + 0x5c);
+	byte *local_0f244f = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
+	byte *tables = *(byte **)(local_0f244f + 0x5c);
 	dword flags = *(dword *)(*(byte **)(tables + 4) + 2);
 	s_render_entry_156b60 *entry = &g_4e92e8[g_4e92e0];
 	real yaw = render_curve_156b60((s_tag_data *)(definition + 0x2c), progress) * 0.01745329238474369f;

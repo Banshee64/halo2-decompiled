@@ -78,9 +78,9 @@ void function_a6430(long mask, long object_index, long state_address)
 		long count = 0;
 		if (model != NONE)
 		{
-			byte *model_definition = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
-			if (*(long *)(model_definition + 0x60) > 0)
-				count = *(long *)(*(byte **)(model_definition + 0x64) + 0xe0);
+			byte *local_0f244f = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
+			if (*(long *)(local_0f244f + 0x60) > 0)
+				count = *(long *)(*(byte **)(local_0f244f + 0x64) + 0xe0);
 		}
 		if (state[0x61] == count)
 		{

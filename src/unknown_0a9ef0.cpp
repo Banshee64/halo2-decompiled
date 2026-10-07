@@ -32,9 +32,9 @@ void function_aa260(long selection, vector3f const *linear, long object_index, l
 			{
 				transform4x3f current;
 				function_ba160(object_index, &current);
-				point3f desired_position = position ? *position : current.position;
-				vector3f desired_forward = forward ? *forward : current.forward;
-				vector3f desired_up = up ? *up : current.up;
+				point3f local_010335 = position ? *position : current.position;
+				vector3f local_de61cc = forward ? *forward : current.forward;
+				vector3f local_523673 = up ? *up : current.up;
 				vector3f desired_linear, desired_angular;
 				function_ba1d0(object_index, &desired_linear, &desired_angular);
 				if (change_linear)
@@ -60,7 +60,7 @@ void function_aa260(long selection, vector3f const *linear, long object_index, l
 					else desired_angular = *angular;
 				}
 				vector3f adjusted_linear, adjusted_angular;
-				function_aaca0(object_index, &desired_position, &desired_forward, &desired_up,
+				function_aaca0(object_index, &local_010335, &local_de61cc, &local_523673,
 					&desired_linear, &desired_angular, &adjusted_linear, &adjusted_angular);
 				if (change_linear)
 					function_aa9e0(object_index, NULL, &adjusted_linear);
