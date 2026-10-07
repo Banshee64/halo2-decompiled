@@ -764,6 +764,98 @@ PRIVATE __forceinline long rounded_shader_alpha(real value)
     return result;
 }
 
+const s_texture_stage_parameter g_467020[7] = {
+    { 75, 0, 0 }, { 75, 1, 0 }, { 61, 2, 2 }, { 77, 3, 1 },
+    { 78, 4, 1 }, { 157, 5, 1 }, { 138, 6, 0 }
+};
+
+// @retail 0x1a170
+void __stdcall function_1a170(byte *state, word const *range)
+{
+    if ((*range & 0xfe00) == 0) return;
+    byte const *entry = *(byte **)(*(byte **)(state + 0x20) + 0x3c) + (*range & 0x1ff) * 4;
+    for (long i = 0; i < (*range >> 9); ++i, entry += 4)
+    {
+        s_texture_stage_parameter const *parameter = &g_467020[entry[0]];
+        D3DRENDERSTATETYPE setting = (D3DRENDERSTATETYPE)parameter->state;
+        if (entry[1] == 1)
+        {
+            real value = ((real *)(state + 0x5c))[entry[3]];
+            switch (parameter->value_type)
+            {
+            case 0:
+                {
+                    dword alpha = (dword)rounded_shader_alpha(value) << 24;
+                    dword old;
+                    D3DDevice_GetRenderState(setting, &old);
+                    D3DDevice_SetRenderState(setting, (old & 0xffffff) | alpha);
+                }
+                break;
+            case 1: D3DDevice_SetRenderState(setting, *(dword *)&value); break;
+            case 2: D3DDevice_SetRenderState(setting, rounded_shader_integer(value)); break;
+            }
+        }
+        else
+        {
+            dword color = pack_color3f((color3f *)(state + 0x108) + entry[3]);
+            dword old;
+            D3DDevice_GetRenderState(setting, &old);
+            D3DDevice_SetRenderState(setting, (old & 0xff000000) | (color & 0xffffff));
+        }
+    }
+}
+
+// @retail 0x17b60
+void __stdcall function_17b60(byte *context, word const *range)
+{
+    if ((*range & 0xfe00) == 0) return;
+    byte *definition = *(byte **)(context + 0xc);
+    byte const *entry = *(byte **)(definition + 0x58) + (*range & 0x1ff) * 4;
+    for (long i = 0; i < (*range >> 9); ++i, entry += 4)
+    {
+        definition = *(byte **)(context + 0xc);
+        word selection = (*(word **)(definition + 0x50))[entry[3]];
+        short index = (*(short **)(definition + 0x48))[(selection & 0x1ff) * 2];
+        byte *parameter = *(byte **)(definition + 0x40) + index * 20;
+        s_1b230_function const *curve = (s_1b230_function *)(parameter + 12);
+        s_texture_stage_parameter const *setting = &g_467020[entry[0]];
+        D3DRENDERSTATETYPE type = (D3DRENDERSTATETYPE)setting->state;
+        if (entry[1] == 1)
+        {
+            real value = function_1b230(curve, *(long *)parameter, *(long *)(parameter + 4), *(real *)(parameter + 8));
+            byte *data = curve->data;
+            if (!(data[1] & 0xf0))
+            {
+                real low = *(real *)(data + 4), high = *(real *)(data + 8);
+                if (0.0f > value) value = 0.0f;
+                else if (value > 1.0f) value = 1.0f;
+                value = (high - low) * value + low;
+            }
+            switch (setting->value_type)
+            {
+            case 0:
+                {
+                    dword alpha = (dword)rounded_shader_alpha(value) << 24;
+                    dword previous;
+                    D3DDevice_GetRenderState(type, &previous);
+                    D3DDevice_SetRenderState(type, (previous & 0xffffff) | alpha);
+                }
+                break;
+            case 1: D3DDevice_SetRenderState(type, *(dword *)&value); break;
+            case 2: D3DDevice_SetRenderState(type, rounded_shader_integer(value)); break;
+            }
+        }
+        else
+        {
+            real value = function_1b230(curve, *(long *)parameter, *(long *)(parameter + 4), *(real *)(parameter + 8));
+            dword color = function_13bc00((s_tag_data const *)curve, value);
+            dword previous;
+            D3DDevice_GetRenderState(type, &previous);
+            D3DDevice_SetRenderState(type, (previous & 0xff000000) | (color & 0xffffff));
+        }
+    }
+}
+
 // @retail 0x1ab50
 void __stdcall function_1ab50(byte *state, word const *range)
 {

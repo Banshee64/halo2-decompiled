@@ -481,9 +481,6 @@ void __cdecl function_2fb9d0(s_1c3a40 *arg_0) {}
 // @stub 0x2daf00
 void __cdecl function_2daf00(s_1c3a40 *arg_0) {}
 
-// @stub 0xe5240
-bool function_e5240(long arg_0) { return false; }
-
 // @stub 0x3144b0
 s_1d1870 c_314710::function_3144b0(void *arg_0) { return s_1d1870(); }
 

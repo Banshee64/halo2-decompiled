@@ -16,7 +16,8 @@ struct s_widget_type
 	void *unknown14;
 	long (__stdcall *create)(long arg, long object_index);
 	void (__stdcall *dispose)(long handle);
-	byte unknown20[0x38 - 0x20];
+	void (__stdcall *field_20)(long object_index);
+	byte unknown24[0x38 - 0x24];
 };
 
 /* one widget attached to an object (12 bytes) */
@@ -113,6 +114,19 @@ void function_d48d0(void)
 	}
 
 	g_4e0320->valid = 0;
+}
+
+// @retail 0xd4db0
+void __stdcall function_d4db0(long object_index)
+{
+	long const *index_reference = &object_index;
+	s_widget_type *entry = g_467498;
+
+	for (long remaining = 3; remaining != 0; --remaining, ++entry)
+	{
+		if (entry->field_20)
+			entry->field_20(*index_reference);
+	}
 }
 
 // @retail 0xd4900
