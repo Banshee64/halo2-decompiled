@@ -4183,3 +4183,57 @@ bool __stdcall function_e24f0(long arg_159e6d, long *names, s_biped_physics_outp
 	}
 	return true;
 }
+
+struct s_e5980_object_flags
+{
+	word flag0 : 1;
+	word flag1 : 1;
+	word flag2 : 1;
+	word flag3 : 1;
+	word flag4 : 1;
+	word flag5 : 1;
+	word flag6 : 1;
+	word flag7 : 1;
+	word flag8 : 1;
+	word flag9 : 1;
+	word flag10 : 1;
+	word flag11 : 1;
+	word flag12 : 1;
+	word flag13 : 1;
+	word flag14 : 1;
+	word flag15 : 1;
+};
+
+struct s_e5980_definition
+{
+	byte unknown00[0x264];
+	union
+	{
+		byte flags_byte;
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword flag2 : 1;
+			dword flag3 : 1;
+			dword flag4 : 1;
+		};
+	};
+
+};
+
+// @retail 0xe5980
+long function_e5980(long biped_index)
+{
+	s_biped *biped = BIPED_GET(biped_index);
+	s_e5980_object_flags *flags =
+		(s_e5980_object_flags *)&biped->flags_10a;
+
+	if (TEST_FIELD_BIT(flags->flag2))
+		return 3;
+
+	s_e5980_definition *definition =
+		(s_e5980_definition *)BIPED_DEFINITION_GET(biped);
+
+	return TEST_FIELD_BIT(definition->flag4) ? 2 : 1;
+}
