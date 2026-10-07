@@ -523,8 +523,9 @@ void session_search_get_progress(s_session_search *search, long *first, long *la
 			long current = search->unknown20;
 			long previous = search->unknown1c;
 			end = current + 1;
-			start = previous;
-			if (previous == NONE)
+			if (previous != NONE)
+				start = previous;
+			else
 				start = current;
 		}
 		long result_count = 0;
@@ -919,4 +920,19 @@ bool function_90880(s_session_search *arg_0, long arg_1, long arg_2, long arg_3,
 		}
 	}
 	return arg_0->active;
+}
+
+// @retail 0x90840
+void function_90840(s_session_search *arg_0)
+{
+	if (arg_0->active)
+	{
+		function_902b0(arg_0);
+		function_905a0(arg_0, 0);
+		function_905a0(arg_0, 1);
+		session_search_score_and_sort(arg_0);
+		function_90420(arg_0, 0);
+		function_90420(arg_0, 1);
+		function_90f70(arg_0);
+	}
 }

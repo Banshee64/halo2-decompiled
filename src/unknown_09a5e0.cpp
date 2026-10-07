@@ -428,15 +428,19 @@ bool c_game_engine_player_entity_definition::v23(s_entity_slot *entity, long b, 
 bool c_game_engine_player_entity_definition::v24(s_entity_slot *entity)
 {
 	bool result = false;
-	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
+	s_mp_globals *local_0 = g_4e9ae8;
+	c_engine_peer *manager = g_55e4d0[*(volatile long *)&local_0->engine_index];
+	s_entity_slot *volatile *local_2 = &entity;
+	s_entity_slot *local_3 = *local_2;
+	long local_1 = local_3->id;
 	long index;
 
 	for (index = 0; index < 16; index++)
 	{
-		if (slot_of(manager, index) == entity->id)
+		if (slot_of(manager, index) == local_1)
 			break;
 	}
-	if (index != 16 && entity->id == slot_of(manager, index))
+	if (index != 16 && local_1 == slot_of(manager, index))
 	{
 		g_4e9ae8->slots[(short)index] = NONE;
 		result = true;

@@ -35,7 +35,8 @@ bool function_98620(c_handle_table_450cd0 *self, s_bitstream *stream, long index
 	stream_push_position(stream);
 	function_195720(stream, 1, 3);
 	function_b5650(handle, stream);
-	c_handle_owner *local_0 = self->table->owner;
+	s_handle_peers *local_2 = *(s_handle_peers *volatile *)&self->table;
+	c_handle_owner *local_0 = local_2->owner;
 	dword local_1 = self->entries[index].unknown04;
 	if (local_0->v0(handle, local_1, a3, stream, reserved_bits, &released) &&
 		(stream->size_in_bytes << 3) - stream->bit_position >= reserved_bits)
