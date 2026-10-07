@@ -8679,7 +8679,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00240140,28,game,speed,a16 pad,,,,src/unknown_2420a0.cpp,matched
 00240160,289,game,speed,a16 pad,,,00243b10 00243c00,src/unknown_2420a0.cpp,todo
 00240290,104,game,speed,a16 pad,,,000b58c0 00161eb0 002422d0 00243a80,src/unknown_2420a0.cpp,matched
-00240300,167,game,speed,a16 pad,,,000a7c50 0019eb30 00243250,src/unknown_2420a0.cpp,todo
+00240300,167,game,speed,a16 pad,,,000a7c50 0019eb30 00243250,src/unknown_2420a0.cpp,matched
 002403b0,912,game,speed,a16 pad,,,000a7810 000b9dd0 000cbd50 00101280 00138860 00138880 0015b2f0 0015e410 0015fe70 00197210 0019eb90 0019ebe0 00242660 00242ba0 00242e00 00242ef0 002430a0 00244680,,todo
 00240740,209,game,unknown,a16,,,0019f240,src/unknown_2420a0.cpp,todo
 00240820,1348,game,speed,a16 pad,,,000a7810 0014dde0 0014de10 0015e410 00162b90 001972a0 0019eb90 0019ebb0 0019ebe0 002007b3 00240740 00242510 00242660 00244300,,todo
@@ -8718,7 +8718,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00242ef0,429,game,speed,a16 pad,,,00158990,src/unknown_2420a0.cpp,todo
 002430a0,254,game,speed,a16 pad,,,0019eb90,src/unknown_2420a0.cpp,todo
 002431a0,165,game,speed,a16 pad,,,0015e410 00244300,src/unknown_2420a0.cpp,matched
-00243250,135,game,speed,a16 pad,,,000a7c50 0019eb30,src/unknown_2420a0.cpp,todo
+00243250,135,game,speed,a16 pad,,,000a7c50 0019eb30,src/unknown_2420a0.cpp,matched
 002432e0,151,game,speed,a16 pad,,,000b58c0 00157670 0015e4d0 002422d0 00243250 00243a80,src/unknown_2420a0.cpp,matched
 00243380,5,game,speed,a16 pad,,,002447f0,src/unknown_2420a0.cpp,matched
 00243390,110,game,speed,a16 pad,,,00161eb0,src/unknown_2420a0.cpp,matched
@@ -8903,7 +8903,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0024c75c,101,game,size,ebp packed,,,0016bae0 0022ee17 00253b1a,src/unknown_24c177.cpp,matched
 0024c7c1,35,game,size,packed,,,,src/unknown_24c7c1.cpp,matched
 0024c7e4,39,game,size,packed,,,,src/unknown_24c7c1.cpp,matched
-0024c80b,14,game,size,packed,,,,src/unknown_24c7c1.cpp,todo
+0024c80b,14,game,size,packed,,,,src/unknown_24c7c1.cpp,matched
 0024c819,16,game,size,packed,,,00123d40,src/unknown_24c819.cpp,matched
 0024c829,8,game,size,packed,,,0024cdaf,src/unknown_24c829.cpp,matched
 0024c831,71,game,size,packed,,,,src/unknown_24c7c1.cpp,matched
