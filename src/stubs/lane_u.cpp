@@ -7,8 +7,3 @@ long __stdcall function_1e0850(long arg_0, short arg_1, s_203780 const *arg_2, b
 {
     return NONE;
 }
-
-// @stub 0x28fe50
-void __stdcall function_28fe50(long arg_0)
-{
-}
