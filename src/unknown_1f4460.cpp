@@ -50,7 +50,7 @@ real function_30bf0(vector3f *vector);
 
 // @retail 0x1f4a20
 bool function_1f4a20(long actor_index, s_reference reference, s_1f4a20_entry const *entries,
-    bool alternate, s_type_c3b527 *point_out, vector3f *direction_out,
+    bool alternate, s_type_c3b527 *arg_26ef00, vector3f *direction_out,
     signed char *type_out, bool *available_out, s_1f4a20_source const *source)
 {
     bool result = false;
@@ -152,7 +152,7 @@ bool function_1f4a20(long actor_index, s_reference reference, s_1f4a20_entry con
     {
         actor->unknown4e8 = true;
         result = true;
-        *point_out = origin;
+        *arg_26ef00 = origin;
         *direction_out = direction;
         *type_out = type;
         function_2628f0(actor_index, reference);

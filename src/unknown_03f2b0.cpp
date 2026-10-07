@@ -1258,8 +1258,8 @@ short function_2cbf0(long geometry, byte category, long instance, dword flags,
     long object_tag = object ? *(long *)object : NONE;
     long kind = function_2d000(object_tag, entry->tag, (entry->flags >> 18) & 0x7ff);
     entry->unknown00 = (entry->unknown00 & 0x1fffffff) | ((dword)kind << 29);
-    bool is_instance = (bool)((entry->unknown00 >> 12) & 1);
-    if (!function_449e0((short)index, entry->tag == NONE, is_instance))
+    bool local_99c7da = (bool)((entry->unknown00 >> 12) & 1);
+    if (!function_449e0((short)index, entry->tag == NONE, local_99c7da))
     {
         --g_4c0b78.current;
         return NONE;
@@ -1269,7 +1269,7 @@ short function_2cbf0(long geometry, byte category, long instance, dword flags,
         ++g_4c0b78.previous;
     if (entry->unknown00 & 0x40)
     {
-        section = (byte *)function_44940((short)index, is_instance);
+        section = (byte *)function_44940((short)index, local_99c7da);
         *(void **)(entry->unknown10 + 4) = NULL;
         word bits = *(word *)(section + 0x24);
         if (bits > 0)
