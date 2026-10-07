@@ -313,3 +313,69 @@ s_slot_handler_2 g_47da30 =
 	},
 	(t_slot_proc)slot_start_true, 0, function_1a9760
 };
+
+#include "props.h"
+#include "unknown_26c380.h"
+
+struct s_1ae820
+{
+    byte field_0[0x120];
+    real field_120;
+};
+
+real normalize2d(point2f *v);
+long function_1e4990(long index);
+bool function_1f5390(point2f const *heading, long actor_index, real distance,
+    short *mode, real vertical_distance, bool *vertical_out, s_path_trace_result *trace);
+bool function_1f57a0(long actor_index, long name);
+bool function_1f57f0(long actor_index, long animation, long const *target);
+
+// @retail 0x1ae820
+bool function_1ae820(long arg_0)
+{
+    bool local_0 = false;
+    s_actor_view *local_1 = actor_get(arg_0);
+    if (local_1->unknown26c != NONE)
+        goto local_10;
+    if (local_1->unknown018 != NONE && function_110ab0(local_1->unknown018))
+        goto local_10;
+    if (local_1->prop_index == NONE || local_1->unknown264 || local_1->unknown018 == NONE)
+        goto local_10;
+    {
+        s_1ae820 *local_2 = (s_1ae820 *)g_4e3b44[ai_object_get(local_1->unknown018)->definition_index & 0xffff].bytes;
+        s_type_f95cd3 *local_3 = function_25d740((s_prop_node *)prop_node_get(local_1->prop_index));
+        if (!local_3 || !(local_2->field_120 > g_45dbd8))
+            goto local_10;
+        point3f const *local_4 = (point3f const *)((byte *)local_3 + 0x2c);
+        point2f local_5;
+        if (*(byte *)function_1e4990(local_1->unknown054) & 2)
+        {
+            if (!(local_1->unknown290.k * local_4->z + local_1->unknown290.j * local_4->y +
+                local_1->unknown290.i * local_4->x > 0.4f))
+                goto local_10;
+        }
+        else
+        {
+            local_5 = *(point2f const *)local_4;
+            if (normalize2d(&local_5) > g_45dbd8 &&
+                !(local_1->unknown290.j * local_5.y + local_1->unknown290.i * local_5.x > 0.4f))
+                goto local_10;
+        }
+        local_5 = *(point2f const *)local_4;
+        long local_6 = 4;
+        if (normalize2d(&local_5) == g_45dbd8)
+        {
+            local_5 = *(point2f const *)&local_1->unknown290;
+        }
+        bool local_7;
+        s_path_trace_result local_8;
+        if (function_1f5390(&local_5, arg_0, local_2->field_120, (short *)&local_6, 0.0f, &local_7, &local_8))
+        {
+            long local_9 = (short)local_6 == 1 ? 0x0b00002e : 0x0a00002d;
+            if (function_1f57a0(arg_0, local_9))
+                local_0 = function_1f57f0(arg_0, local_9, (long const *)&local_5);
+        }
+    }
+local_10:
+    return local_0;
+}

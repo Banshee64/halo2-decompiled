@@ -322,8 +322,8 @@ bool __stdcall function_1ac430(long actor_index, s_slot *slot)
 // @retail 0x1ac570
 short __stdcall function_1ac570(long actor_index, s_slot *slot, s_slot *next)
 {
-	s_slot_2c *state = (s_slot_2c *)slot;
 	short result = g_46fbe8;
+	s_slot_2c *state = (s_slot_2c *)slot;
 
 	if (state->unknown12)
 	{
@@ -339,8 +339,8 @@ short __stdcall function_1ac570(long actor_index, s_slot *slot, s_slot *next)
 		}
 		else
 		{
-			state->unknown39 = false;
-			return g_46fbe4;
+			*(volatile bool *)&state->unknown39 = false;
+			result = g_46fbe4;
 		}
 	}
 	return result;
