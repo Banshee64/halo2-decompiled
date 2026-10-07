@@ -60,3 +60,105 @@ wchar_t *ustrnzcatf(
 	va_end(arguments);
 	return buffer;
 }
+
+#include "globals.h"
+#include <string.h>
+
+struct s_grid_pair
+{
+	short x, y;
+};
+
+struct s_2f6b0_point
+{
+	short x, y;
+};
+
+struct short_rect
+{
+	short v0, v1, v2, v3;
+};
+
+struct short_rect_pair
+{
+	short_rect a, b;
+};
+
+struct s_2f800_source;
+struct s_2f800_size;
+struct s_2f800_view;
+
+struct s_223080
+{
+	long field_0, field_4, field_8;
+	byte field_c[0x74];
+	byte field_80[0x30];
+	short_rect field_b0, field_b8;
+	byte field_c0[0x34];
+};
+
+struct s_223081
+{
+	point3f field_0;
+	byte field_c[0x14];
+	vector3f field_20, field_2c;
+	byte field_38[0x1c];
+};
+
+extern vector3f *g_4687bc;
+extern short_rect_pair g_485a8a;
+extern long g_4e64a0;
+extern bool g_4e6098;
+
+long function_14a250(void);
+void function_2f600(long arg_0, long arg_1, s_grid_pair *arg_2);
+void function_2f640(long arg_0, s_grid_pair *arg_1, s_grid_pair const *arg_2,
+	long arg_3, long arg_4, s_grid_pair *arg_5);
+void function_2f6b0(s_2f6b0_point const *arg_0, s_2f6b0_point const *arg_1,
+	s_2f6b0_point const *arg_2, short_rect *arg_3, short_rect *arg_4);
+void function_2f800(s_2f800_source const *arg_0, s_2f800_size const *arg_1,
+	s_2f800_size const *arg_2, s_2f800_view *arg_3);
+void function_2c490(long arg_0);
+void function_3f450(long arg_0);
+
+// @retail 0x223080
+void function_223080(long arg_0, long arg_1, long arg_2, s_223080 *arg_3,
+	long arg_4, long arg_5, s_223081 const *arg_6)
+{
+	s_223081 local_0;
+	s_grid_pair local_1, local_2, local_3;
+	(void)&arg_3; (void)&arg_4; (void)&arg_5; (void)&arg_6;
+	arg_3->field_0 = arg_0;
+	arg_3->field_4 = arg_1;
+	arg_3->field_8 = arg_2;
+	if (!arg_0)
+	{
+		s_223081 const *local_4 = arg_6;
+		if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 3 && (byte)function_14a250())
+		{
+			local_0 = *arg_6;
+			local_0.field_0 = *g_468788;
+			local_0.field_20 = *g_4687bc;
+			local_0.field_2c = *g_4687a8;
+			local_4 = &local_0;
+		}
+		function_2f600(arg_4, arg_5, &local_1);
+		function_2f640(arg_1, &local_2, &local_1, arg_4, arg_5, &local_3);
+		function_2f6b0((s_2f6b0_point *)&local_3, (s_2f6b0_point *)&local_1,
+			(s_2f6b0_point *)&local_2, &arg_3->field_b0, &arg_3->field_b8);
+		function_2f800((s_2f800_source *)local_4, (s_2f800_size *)&local_2,
+			(s_2f800_size *)&local_1, (s_2f800_view *)arg_3->field_80);
+		function_2c490(arg_4);
+		if (g_4e64a0 <= 0)
+			g_4e6098 = false;
+		else if (g_4e6098)
+			function_3f450(*(short const *)((byte const *)arg_6 + 0x10));
+	}
+	else
+	{
+		arg_3->field_b0 = g_485a8a.a;
+		arg_3->field_b8 = g_485a8a.b;
+		function_2f800((s_2f800_source *)arg_6, 0, 0, (s_2f800_view *)arg_3->field_80);
+	}
+	memcpy(arg_3->field_c, arg_3->field_80, sizeof(arg_3->field_c));
+}
