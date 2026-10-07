@@ -33,6 +33,7 @@ public:
 	   dialog once */
 	virtual void v3();
 	virtual bool v10(s_widget_event *event);
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_main_menu_list list;
@@ -830,6 +831,32 @@ struct s_screen_press
 };
 
 extern bool g_54e7f8;
+
+void function_199a03(long mode);
+short player_slot_count_active(void);
+void function_148823();
+extern long g_54e7c0;
+extern long g_54e7c4;
+
+// @retail 0x230b32
+void c_main_menu_screen::v19()
+{
+	if (g_54e5d0.profile_index != NONE)
+		profile_edit_end();
+	function_199a03(NONE);
+	g_54e7c0 = NONE;
+	g_54e7c4 = NONE;
+	set_user_flags(function_1901fc());
+	c_class_1473c9::v19();
+	if (player_slot_count_active() != 1)
+	{
+		function_148823();
+		function_18f1c0(0);
+	}
+	if (g_510a14 >= 0 && g_510a14 < 5)
+		list.select_item((short)g_510a14);
+	g_54e7cd = false;
+}
 
 // @retail 0x230ba6
 void c_main_menu_screen::v3()

@@ -235,12 +235,13 @@ long function_1895f0(s_sound_position const *position, real scale, long tag_inde
 	request.marker = NULL;
 	request.source = NULL;
 	request.variant = NULL;
+	long local_0 = *(long const volatile *)&tag_index;
 	request.location.scale = scale;
 	request.location.audible = 1;
 	request.location.requested_audible = 1;
 	request.object_index = NONE;
 	request.platform_playback = NONE;
-	return function_189fe0(&request, tag_index);
+	return function_189fe0(&request, local_0);
 }
 
 struct s_sound_label_play
@@ -284,10 +285,11 @@ long function_1896c0(real scale, long tag_index)
 	request.marker = NULL;
 	request.source = NULL;
 	request.variant = NULL;
+	long local_0 = *(long const volatile *)&tag_index;
+	request.location.scale = scale;
 	request.object_index = NONE;
 	request.platform_playback = NONE;
-	request.location.scale = scale;
-	return function_189fe0(&request, tag_index);
+	return function_189fe0(&request, local_0);
 }
 
 extern s_sound_source_callbacks const g_444b7c;
@@ -304,11 +306,12 @@ long function_189710(real scale, long tag_index)
 	request.location.unknown08 = 0;
 	request.marker = NULL;
 	request.variant = NULL;
+	long local_0 = *(long const volatile *)&tag_index;
 	request.location.scale = scale;
 	request.object_index = NONE;
 	request.platform_playback = NONE;
 	request.source = &g_444b7c;
-	return function_189fe0(&request, tag_index);
+	return function_189fe0(&request, local_0);
 }
 
 // @retail 0x189760
@@ -336,6 +339,7 @@ long function_189340(long object_index, s_sound_source_callbacks const *source, 
 	s_sound_request request;
 
 	request.location.flags = 0;
+	audible = *(char const volatile *)&audible;
 	function_18d4f0(object_index, &audible, NULL);
 	request.location.audible = audible;
 	request.location.requested_audible = audible;

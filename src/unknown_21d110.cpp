@@ -214,26 +214,25 @@ static inline long sound_start(s_sound_play_state *state, long tag_index)
 bool sound_effect_get_definition(long tag_index, long platform_playback, s_sound_effect_definition **definition)
 {
 	bool result = false;
-	s_sound_effect_definition_block *playback = (s_sound_effect_definition_block *)function_18d090(tag_index, platform_playback);
+	long const *local_0 = &platform_playback;
+	s_sound_effect_definition_block *playback = (s_sound_effect_definition_block *)function_18d090(tag_index, *local_0);
 	s_sound_effect_definition_block *sound_class = (s_sound_effect_definition_block *)sound_get_class(tag_index);
 	s_sound_effect_definition_block *block = NULL;
-
 	if (playback && playback->count)
 	{
 		block = playback;
 	}
-	else if (platform_playback == NONE && sound_class && sound_class->count)
+	else if (*local_0 == NONE && sound_class && sound_class->count)
 	{
 		block = sound_class;
 	}
-
 	if (block && playback->count > 0)
 	{
 		s_sound_effect_definition *definitions = playback->definitions;
 		if (definitions)
 		{
+			result = definitions->count > 0;
 			*definition = definitions;
-			return definitions->count > 0;
 		}
 	}
 	return result;
@@ -354,9 +353,10 @@ void sound_effect_stop(long effect_index)
 {
 	s_sound_effect *effect = sound_effect_get(effect_index);
 
-	effect->flags |= FLAG(_sound_effect_unmanaged_bit) | FLAG(_sound_effect_stopped_bit);
+	effect->flag3 = true;
+	effect->flag4 = true;
 	function_21d630(effect_index, 2);
-	effect->flags |= FLAG(name_756383);
+	effect->flag0 = true;
 }
 
 // @retail 0x21d5a0
@@ -490,9 +490,9 @@ bool __stdcall sound_effect_only_update(long object_index, long tag_index, s_sou
 	long effect_index = sound_effect_marker(marker)->link.effect_index;
 	s_sound_effect *effect = (s_sound_effect *)datum_get_inlined(function_x39bdd5(), effect_index);
 
-	if (effect && !TEST_BIT(effect->flags, name_756383))
+	if (effect && !TEST_FIELD_BIT(effect->flag0))
 	{
-		if (!TEST_BIT(effect->flags, _sound_effect_stopped_bit))
+		if (!TEST_FIELD_BIT(effect->flag4))
 		{
 			sound_effect_update_location(effect_index, location);
 		}
@@ -561,21 +561,25 @@ void __stdcall sound_effect_source_stop(long object_index, long sound_index, lon
 		{
 			link->source->stop(object_index, sound_index, reason);
 		}
-		SET_BIT(effect->flags, _sound_effect_flag1_bit, reason != 2);
+		if (reason != 2)
+			effect->flag1 = true;
+		else
+			effect->flag1 = false;
 		sound_effect_stop(link->effect_index);
 	}
 }
 
+#pragma inline_depth(0)
 // @retail 0x21db30
 void __stdcall sound_effect_source_detach(long object_index, long sound_index)
 {
 	sound_effect_source_stop(object_index, sound_index, 1);
-
-	s_playing_sound *sound = playing_sound_get(sound_index);
+	s_playing_sound *sound = &((s_playing_sound *)g_4e637c->data)[sound_index & 0xffff];
 	s_sound_effect_link *link = &sound->marker.link;
 	sound->source = link->source;
 	memset(link, 0, sizeof(*link));
 }
+#pragma inline_depth(255)
 
 extern s_sound_source_callbacks const g_44a1c0 = { sound_effect_source_update, sound_effect_source_proc1, sound_effect_source_proc2, sound_effect_source_spatialize, sound_effect_source_stop, sound_effect_source_detach, NULL, NULL };
 extern s_sound_source_callbacks const g_44a1e0 = { sound_effect_only_update, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
