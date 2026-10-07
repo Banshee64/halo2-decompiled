@@ -278,6 +278,101 @@ void function_2962e0(s_record_pool *pool, long *head, long key, long size, void 
 	}
 }
 
+struct s_2959c0
+{
+	byte field_0[0x120];
+	long field_120;
+	real *field_124;
+};
+
+struct s_2959c1
+{
+	byte field_0[0xc8];
+	long field_c8;
+	s_2959c0 *field_cc;
+};
+
+bool function_114b60(short entry_index, short fallback_index, long unit_index, long priority, void const *extra);
+void function_295bd0(bool prefer_selected);
+
+__forceinline long function_295a34(real arg_0)
+{
+	long local_0;
+	__asm
+	{
+		fld arg_0
+		fistp local_0
+	}
+	return local_0;
+}
+
+// @retail 0x2959c0
+void function_2959c0()
+{
+	s_2959c1 *local_0 = (s_2959c1 *)g_4e034c;
+	long local_1 = g_510c54->game_time;
+	if (local_0->field_c8 > 0 && local_0->field_cc->field_120 > 0)
+	{
+		real *local_2 = local_0->field_cc->field_124;
+		s_295970_state *local_3 = (s_295970_state *)g_5047f4;
+		local_3->field02++;
+		if (local_3->field02 > 5000)
+			local_3->field02 = 5000;
+		if (local_3->field0c != NONE && local_1 - local_3->field0c > function_295a34(g_510c54->field_2_3 * 10.0f))
+		{
+			local_3->field0c = NONE;
+			local_3->field08 = 0;
+		}
+		long local_4 = 0;
+		do
+		{
+			if (local_3->counts[local_4] > 0 && --local_3->counts[local_4] == 0)
+			{
+				long local_5 = actor_get(local_3->indices[local_4])->unknown018;
+				if (local_5 != NONE)
+				{
+					function_114b60(NONE, local_3->field00 == 0 ? 0x10 : 0x11, local_5, 0xe, NULL);
+					local_3 = (s_295970_state *)g_5047f4;
+				}
+			}
+			local_4++;
+		} while (local_4 < 3);
+		short local_6;
+		switch (local_3->field00)
+		{
+		case 0:
+			if (local_3->field08 < 3)
+				break;
+			local_6 = 1;
+			function_295bd0(false);
+			goto local_7;
+		case 1:
+			if (local_3->field02 > function_295a34(g_510c54->field_2_3 * local_2[2]) ||
+				local_3->field04 > function_295a34(g_510c54->field_2_3 * local_2[1]) ||
+				(*(byte *)&local_3->field10 && local_3->field04 > function_295a34(g_510c54->field_2_3 * local_2[0])))
+			{
+				local_6 = 0;
+				function_295bd0(true);
+local_7:
+				local_3->field00 = local_6;
+				local_3->field02 = 0;
+				local_3->field08 = 0;
+				local_3->field04 = 0;
+			}
+			break;
+		}
+		if (*(byte *)&local_3->field10)
+			local_3->field04 = 0;
+		else
+		{
+			local_3->field04++;
+			if (local_3->field04 > 5000)
+				local_3->field04 = 5000;
+		}
+		*(byte *)&local_3->field10 = false;
+	}
+}
+
 // @retail 0x296330
 void function_296330(s_record_pool *pool, long *head, long key)
 {

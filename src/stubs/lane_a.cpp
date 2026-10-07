@@ -95,12 +95,6 @@ bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_gro
 	return false;
 }
 
-// @stub 0x290f60
-bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad_index)
-{
-	return false;
-}
-
 // @stub 0x202e90
 void __stdcall function_202e90(long squad_index, long index, long flag)
 {
@@ -155,9 +149,3 @@ void function_b73b0(long object_index)
 
 struct s_ai_scene;
 struct s_ai_scene_assignment;
-
-// @stub 0x2919e0
-void function_2919e0(s_ai_scene *scene, s_ai_scene_assignment *assignments, short *assignment_count, short maximum_count,
-	short role_index, short role_count, long ai_index, long ai_index2, long ai_index3)
-{
-}

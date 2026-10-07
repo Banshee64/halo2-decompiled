@@ -71,7 +71,7 @@ bool function_2907d0(long arg_0, short arg_1, transform4x3f const *arg_2, s_acto
 		local_0 = (*local_4)->position;
 		local_1 = (*local_4)->forward;
 	}
-	new (arg_3) s_actor_position_state;
+	arg_3->s_actor_position_state::s_actor_position_state();
 	arg_3->position = local_0;
 	arg_3->field10 = NONE;
 	arg_3->field14 = (real)atan2(local_1.j, local_1.i);
