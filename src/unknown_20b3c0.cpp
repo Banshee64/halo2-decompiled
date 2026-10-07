@@ -191,6 +191,7 @@ bool function_20b050(long definition_index, dword mask)
 	return result;
 }
 
+#pragma inline_depth(0)
 // @retail 0x20b5c0
 bool function_20b5c0(long definition_index)
 {
@@ -206,9 +207,10 @@ bool function_20b5c0(long definition_index)
 			{
 				long count = set->count;
 				long offset = count + (short)log2_ceiling_plus_one(count);
-				for (long i = 0; i < 5; i++)
+				long local_0 = bit_index + offset;
+				for (long i = 0; i < 5; i++, local_0++)
 				{
-					if (BIT_VECTOR_TEST(g_51e9ec, bit_index + offset + i))
+					if (BIT_VECTOR_TEST(g_51e9ec, local_0))
 					{
 						result = true;
 						break;
@@ -219,6 +221,8 @@ bool function_20b5c0(long definition_index)
 	}
 	return result;
 }
+#pragma inline_depth(255)
+
 
 
 struct s_tag_iterator

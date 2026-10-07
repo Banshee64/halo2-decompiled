@@ -22,3 +22,21 @@ void __cdecl function_2ddbd0(void *data, s_visibility_sphere_query const *query,
     s_visibility_query_list *second, s_visibility_query_list *first)
 {
 }
+
+// @stub 0x25e50
+bool __stdcall function_25e50(void *context)
+{
+    return false;
+}
+
+// @stub 0x26880
+bool __stdcall function_26880(void *context)
+{
+    return false;
+}
+
+// @stub 0x26e50
+bool __stdcall function_26e50(void *context)
+{
+    return false;
+}
