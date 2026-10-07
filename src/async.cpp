@@ -255,10 +255,15 @@ bool function_120ce0(long job, long priority)
 	return result;
 }
 
+static __forceinline bool function_120d51(bool volatile *arg_0)
+{
+	return *arg_0;
+}
+
 // @retail 0x120d50
 inline void function_120d50(bool volatile *done, bool idle)
 {
-	if (!*done)
+	if (!function_120d51(done))
 	{
 		while (!*done)
 		{

@@ -247,6 +247,38 @@ void texture_cache_update_locks(void)
 	}
 }
 
+static __forceinline byte *function_12c531(s_record_pool_iterator *arg_0)
+{
+	s_record_pool *local_0 = arg_0->data;
+	long local_1 = arg_0->index + 1;
+	long local_2 = NONE;
+	if (local_1 >= 0)
+	{
+		for (; local_1 < *(long volatile *)&local_0->high_water_index; local_1++)
+		{
+			if (local_0->bitmap[local_1 >> 5] & (1 << (local_1 & 0x1f)))
+			{
+				local_2 = local_1;
+				break;
+			}
+		}
+	}
+	byte *local_3;
+	if (local_2 != NONE)
+	{
+		local_3 = local_0->data + local_0->size * local_2;
+		arg_0->index = local_2;
+		arg_0->datum_index = (*(short *)local_3 << 16) | local_2;
+	}
+	else
+	{
+		arg_0->index = local_0->maximum_count;
+		arg_0->datum_index = NONE;
+		local_3 = NULL;
+	}
+	return local_3;
+}
+
 // @retail 0x12c530
 void function_12c530(void)
 {
@@ -258,7 +290,7 @@ void function_12c530(void)
 		iterator.data = g_4e6454;
 		iterator.index = NONE;
 		iterator.datum_index = NONE;
-		while ((entry = (s_texture_cache_entry *)data_iterator_next_inlined(&iterator)) != NULL)
+		while ((entry = (s_texture_cache_entry *)function_12c531(&iterator)) != NULL)
 		{
 			if (entry->bitmap)
 			{
