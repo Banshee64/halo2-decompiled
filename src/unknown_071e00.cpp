@@ -23,12 +23,11 @@ struct s_71e00
 	dword field_0[3];
 };
 
-PRIVATE inline bool function_5b1a0(c_class_58d20 *arg_0, s_session_snapshot *arg_1)
+PRIVATE inline bool function_5b1a0(c_class_58d20 *arg_0)
 {
 	bool local_0 = false;
 	if (arg_0->state > 2 && arg_0->state <= 8 && arg_0->flag5dd8)
 	{
-		memcpy(arg_1, arg_0->data5ddc, sizeof(arg_0->data5ddc));
 		local_0 = true;
 	}
 	return local_0;
@@ -40,17 +39,20 @@ void function_71e00(c_session_state *arg_0)
 	c_class_58d20 *local_0 = arg_0->owner->session_a;
 	c_class_58d20 *local_1 = arg_0->owner->session_b;
 	s_session_snapshot local_2;
-	if (local_0->state > 2 && local_0->state <= 8 && function_5b1a0(local_0, &local_2))
+	if (session_state_is_live(local_0) && function_5b1a0(local_0))
 	{
-		if (local_1->state)
+		long local_11 = local_1->state;
+		memcpy(&local_2, local_0->data5ddc, sizeof(local_0->data5ddc));
+		if (local_11)
 		{
 			const s_session_id *local_3 = NULL;
 			if (local_1->flag24)
 				local_3 = (const s_session_id *)&local_1->unknown1c;
 			if (memcmp(local_3, local_2.unknown04, sizeof(s_session_id)) != 0)
 				network_session_close(local_1);
+			if (local_1->state)
+				goto local_12;
 		}
-		if (!local_1->state)
 		{
 			long local_4 = 0;
 			s_71e00 local_5[4];
@@ -59,13 +61,16 @@ void function_71e00(c_session_state *arg_0)
 			long local_8 = 0;
 			do
 			{
-				if ((local_0->player_mask & (1 << local_8)) &&
-					local_0->players[local_8].member_index == local_0->current_member)
+				if (local_0->player_mask & (1 << local_8))
 				{
-					local_5[local_4] = *(const s_71e00 *)&local_0->players[local_8].user_id;
-					local_7[local_4] = NONE;
-					local_6[local_4] = NONE;
-					local_4++;
+					long local_13 = local_0->current_member;
+					if (local_0->players[local_8].member_index == local_13)
+					{
+						local_5[local_4] = *(const s_71e00 *)&local_0->players[local_8].user_id;
+						local_7[local_4] = NONE;
+						local_6[local_4] = NONE;
+						local_4++;
+					}
 				}
 				local_8++;
 			} while (local_8 < 16);
@@ -81,6 +86,7 @@ void function_71e00(c_session_state *arg_0)
 					local_5[0].field_0, local_7, local_6, false, 0, &local_10, NULL);
 			}
 		}
+	local_12:;
 	}
 }
 
