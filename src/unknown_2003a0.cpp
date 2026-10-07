@@ -1715,11 +1715,12 @@ void function_204450(long definition_index, long squad_index)
 
 bool function_1e11b0(long actor_index, bool active);
 
+#pragma inline_depth(0)
 // @retail 0x203bf0
 bool function_203bf0(long squad_index)
 {
     (void)&squad_index;
-    s_squad_datum *squad = squad_get(squad_index);
+    s_squad_datum *squad = (s_squad_datum *)g_51e9d8->data + (squad_index & 0xffff);
     if (*(short *)((byte *)squad + 0x7e) == g_4686c4)
     {
         if (!(((byte *)squad)[2] & 0x80))
@@ -1729,7 +1730,7 @@ bool function_203bf0(long squad_index)
             while (g_4f55d0->active && iterator.next_actor_index != NONE)
             {
                 long actor_index = iterator.next_actor_index;
-                s_actor_datum *actor = actor_datum_get(actor_index);
+                s_actor_datum *actor = (s_actor_datum *)g_4f55f0->data + (actor_index & 0xffff);
                 iterator.next_actor_index = actor->next_actor_index;
                 if (!function_1e11b0(actor_index, true))
                 {
@@ -1742,8 +1743,9 @@ bool function_203bf0(long squad_index)
         ((byte *)squad)[2] |= 0x80;
         *(long *)((byte *)squad + 0x78) = g_510c54->game_time;
     }
-    return (bool)((((byte *)squad)[2] & 0x80) >> 7);
+    return (bool)(((dword)((byte *)squad)[2] & 0x80) >> 7);
 }
+#pragma inline_depth(255)
 
 
 extern s_record_pool *g_5044c8;

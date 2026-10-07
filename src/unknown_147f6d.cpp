@@ -10,6 +10,7 @@
 
 #include "unknown_11c920.h"
 #include "screen_widgets.h"
+#include "unknown_030290.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
@@ -1470,4 +1471,210 @@ void function_1476c7()
     g_54d598.m122c = NONE;
     g_54d598.m1230 = NONE;
     memset(g_54d598.unknown1234 + 2, 0, 0x10);
+}
+
+
+struct s_13c051
+{
+    short field_0;
+    short field_2;
+    short field_4;
+    short field_6;
+};
+
+void function_13c050(s_13c051 const *bounds, dword color);
+
+// @retail 0x147cbc
+void function_147cbc(s_13c051 const *window, dword color)
+{
+    s_13c051 bounds = *window;
+    /* The color argument stays in its stack slot. */
+    dword const *color_reference = &color;
+    function_13c050(&bounds, *color_reference);
+}
+
+// @retail 0x147cdb
+void c_render_window::function_147cdb(dword color)
+{
+    s_13c051 bounds = *(s_13c051 const *)this;
+    short top = -bounds.field_0;
+    short left = -bounds.field_2;
+    bounds.field_0 += top;
+    bounds.field_4 += top;
+    bounds.field_2 += left;
+    bounds.field_6 += left;
+    function_13c050(&bounds, color);
+}
+
+void __stdcall function_215e60(long file_index);
+long function_217300(long file_index, long removed_index);
+void __stdcall function_18fb34(long index, s_player_profile_settings *settings, long profile_index);
+
+PRIVATE inline long next_controller_148b27(long index)
+{
+    long result = NONE;
+    if (index >= 0 && index < 3)
+        result = index + 1;
+    return result;
+}
+
+// @retail 0x148b27
+void __stdcall function_148b27(long index)
+{
+    function_215e60(index);
+    long controller = 0;
+    do
+    {
+        s_player_profile_settings profile;
+        long profile_index;
+        player_slot_get_profile(controller, (s_player_profile *)&profile, &profile_index);
+        if (profile_index != NONE)
+        {
+            /* Read the two local slots in the caller's order. */
+            long current_index = *(volatile long *)&profile_index;
+            long removed_index = *(volatile long *)&index;
+            long updated_index = function_217300(current_index, removed_index);
+            if (updated_index != profile_index)
+            {
+                function_18fb34(controller, &profile, updated_index);
+            }
+        }
+        controller = next_controller_148b27(controller);
+    } while (controller != NONE);
+}
+
+
+void function_2133a1();
+void function_199893();
+void function_149570();
+void function_18f62b();
+void function_199b08();
+bool function_223976();
+void function_223a21();
+bool function_14a224();
+struct s_main_menu_music;
+void main_menu_music_update(s_main_menu_music *music);
+
+// @retail 0x1479c3
+void __stdcall function_1479c3(real elapsed)
+{
+    g_54d5b8 += (long)(elapsed * 1000.f);
+    function_2133a1();
+    function_199893();
+    function_147f1e();
+    function_149570();
+    function_18f62b();
+    for (dword i = 0; i < 0x23; i++)
+    {
+        if (g_54d598.screens[i])
+        {
+            function_148148(g_54d598.screens[i]);
+        }
+    }
+    g_54d598.default_window.update();
+    for (long index = 0; index < 5; index++)
+    {
+        g_54d598.windows_5[index].update();
+        g_54d598.windows_3[index].update();
+        g_54d598.windows_1[index].update();
+        if (index == 4)
+        {
+            g_54d598.window_0.update();
+            g_54d598.window_4.update();
+            g_54d598.window_2.update();
+        }
+    }
+    function_199b08();
+    if (g_54d5a8 == 2 && g_4e0350 && !function_155f60() &&
+        !g_54d598.windows_1[4].current && !g_54d598.windows_1[4].next)
+    {
+        function_1483c3(0);
+    }
+    function_1482c4();
+    if (function_223976())
+    {
+        function_223a21();
+    }
+    main_menu_music_update((s_main_menu_music *)&g_54d598.m1248);
+    if (function_138800() && g_4e6948->state == 3 && function_14a224())
+    {
+        g_54e7fc = g_54d5b8;
+    }
+}
+
+
+void function_213484();
+void function_235d69(short_rectangle2d const *rectangle, real depth,
+    short_rectangle2d const *screen, color4f const *color);
+
+// @retail 0x147af1
+void function_147af1(long index, long fallback_index, c_render_window *window)
+{
+    long const *fallback_reference = &fallback_index;
+    c_render_window *const *window_reference = &window;
+    function_213484();
+    if (index == NONE && *fallback_reference != NONE)
+    {
+        index = *fallback_reference;
+    }
+    *(long *)g_54d598.unknown00 = index;
+    if (!function_155f60())
+    {
+        if (index >= 0 && index < 5)
+        {
+            if ((byte)function_146840() && function_147d13())
+            {
+                (*window_reference)->function_147cdb(0x7f000000);
+            }
+            if (index == 4)
+                g_54d598.default_window.c_window_channel::render((long)*window_reference);
+            g_54d598.windows_5[index].render((long)*window_reference);
+            if (index == 4)
+                g_54d598.window_4.render((long)*window_reference);
+            g_54d598.windows_3[index].render((long)*window_reference);
+            if (index == 4)
+                g_54d598.window_2.render((long)*window_reference);
+            g_54d598.windows_1[index].render((long)*window_reference);
+            if (index == 4)
+                g_54d598.window_0.c_window_channel::render((long)*window_reference);
+        }
+        if (index == 4)
+        {
+            dword elapsed = g_54d5b8 - g_54d598.m28;
+            dword color;
+            if (elapsed <= 3000)
+                color = 0xff000000;
+            else if (elapsed <= 4000)
+            {
+                dword fade_time = elapsed - 3000;
+                if (fade_time > 1000)
+                    fade_time = 1000;
+                real fade = (1.f - (real)fade_time * 0.001f) * 255.f;
+                long alpha;
+                __asm { fld fade }
+                __asm { fistp alpha }
+                color = (dword)alpha << 24;
+            }
+            else
+                color = 0;
+            if (function_138800() && (g_4e6948->state == 1 || g_4e6948->state == 2))
+                color = 0;
+            if (color)
+                (*window_reference)->function_147cdb(color);
+            if (g_54d598.unknown05[0])
+            {
+                color4f outline;
+                short_rectangle2d bounds;
+                outline.alpha = 1.f;
+                outline.red = 0.f;
+                outline.green = 1.f;
+                outline.blue = 0.f;
+                bounds.left = 272;
+                bounds.right = -272;
+                bounds.top = 204;
+                bounds.bottom = -204;
+                function_235d69(&bounds, 0.f, (short_rectangle2d *)*window_reference, &outline);
+            }
+        }
+    }
 }

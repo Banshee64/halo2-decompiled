@@ -42,8 +42,9 @@ void function_209850(long thread_index); /* unknown_209520.cpp */
 // @retail 0x209580
 short function_209580(long thread_index)
 {
-	s_hs_due_thread *thread = (s_hs_due_thread *)(g_4f9384->data + (thread_index & 0xffff) * sizeof(s_hs_due_thread));
 	short result = 2;
+	s_record_pool *local_0 = g_4f9384;
+	s_hs_due_thread *thread = (s_hs_due_thread *)(local_0->data + (thread_index & 0xffff) * sizeof(s_hs_due_thread));
 
 	if (thread->sleep_until == -3)
 	{

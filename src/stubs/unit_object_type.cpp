@@ -62,8 +62,6 @@ bool function_10ff40(long unit_index, long type, short side, short value, bool *
 	return false;
 }
 
-// @stub 0x1e2a90
-void function_1e2a90(long actor_index) { }
 
 
 /* in the biped range (PR #28 writes it) */

@@ -504,3 +504,192 @@ void function_1e4390(long actor_index)
 			function_690d0((c_class_6a600 *)g_4cf77c, unit->simulation_index, (const dword *)&state);
 	}
 }
+
+#include "object_markers.h"
+
+struct s_actor_object_sample
+{
+	point3f point;
+	point3f center;
+	vector3f direction;
+	dword location[2];
+	vector3f velocity;
+};
+
+long function_1e4990(long index);
+void function_1e3a00(long object_index, s_actor_object_sample *sample);
+void function_28f8d0(long index);
+long function_baf40(long object_index);
+long __stdcall function_cbd80(long object_index, long *holder_index);
+void *function_1e5280(long actor_index, long key);
+void function_118e80(long object_index, vector3f *forward);
+real normalize2d(point2f *vector);
+real function_267370(long object_index);
+
+// @retail 0x1e3b60
+void function_1e3b60(long actor_index)
+{
+	(void)&actor_index;
+	s_actor_moving *actor = actor_moving_get(actor_index);
+	byte *actor_bytes = (byte *)actor;
+	if (actor->unknown007)
+	{
+		function_28f8d0(*(long *)(actor_bytes + 0x1c));
+	}
+	else
+	{
+		byte *movement = (byte *)function_1e4990(actor->tag_index);
+		byte *object = (byte *)moving_object_get(actor->unit_index);
+		long parent_index = *(long *)(object + 0x14);
+		byte *parent = parent_index == NONE ? NULL : (byte *)moving_object_get(parent_index);
+		short type = *(signed char *)(object + 0xaa);
+		function_1e3a00(actor->unit_index, (s_actor_object_sample *)(actor_bytes + 0x22c));
+		s_object_marker marker;
+		function_b8d30(actor->unit_index, 0x40000bd, &marker, 1, false);
+		point3f point = marker.matrix.position;
+		bool below_plane = false;
+		short plane_index = *(short *)(actor_bytes + 0x254);
+		if (plane_index != NONE)
+		{
+			byte *globals = (byte *)g_4e0348;
+			byte plane_key = *(*(byte **)(globals + 0xa0) + plane_index * 0xb0 + 0x70);
+			if (plane_key != 0xff)
+			{
+				byte *entry = *(byte **)(globals + 0x68) + (plane_key & 0x7f) * 24;
+				if (*(short *)(entry + 2) != NONE)
+				{
+					if (!(plane_key & 0x80))
+						below_plane = true;
+					else
+					{
+						plane3f *plane = (plane3f *)(entry + 4);
+						below_plane = plane->i * point.x + plane->k * point.z + plane->j * point.y - plane->d < 0.0f;
+					}
+				}
+			}
+		}
+		actor_bytes[0x265] = below_plane;
+		actor->unknown229 = (movement[0] & 2) != 0 ||
+			(type == 0 && *((byte *)moving_object_get(actor->unit_index) + 0x3dc) == 2);
+		actor->unknown266 = false;
+		actor_bytes[0x267] = 0;
+		actor->unknown268 = false;
+		actor_bytes[0x269] = 0;
+		actor->unknown26c = NONE;
+		*(short *)(actor_bytes + 0x270) = 0;
+		actor->unknown274 = NONE;
+		long carrier = parent && *(byte *)(parent + 0xaa) == 1 ? parent_index :
+			*(byte *)(object + 0xaa) == 1 ? actor->unit_index : NONE;
+		if (carrier != NONE)
+		{
+			long root = function_baf40(carrier);
+			if (((s_moving_object_header *)g_4e0300->data)[root & 0xffff].type == 1)
+				carrier = root;
+			byte *carrier_object = (byte *)moving_object_get(carrier);
+			actor->unknown26c = carrier;
+			if (*(long *)(carrier_object + 0x248) == actor->unit_index)
+			{
+				byte *definition = g_4e3b44[*(long *)carrier_object & 0xffff].bytes;
+				if (*(short *)(definition + 0x1f0) != 6)
+				{
+					actor->unknown266 = true;
+					*(short *)(actor_bytes + 0x270) = 1;
+					dword flags = *(dword *)(definition + 0x1ec);
+					if (flags & 0x800)
+					{
+						if (flags & 0x1000)
+						{
+							actor->unknown229 = true;
+							*(short *)(actor_bytes + 0x270) = (flags & 0x2000) ? 2 : 4;
+						}
+						else if (flags & 0x2000)
+							*(short *)(actor_bytes + 0x270) = 3;
+						else
+						{
+							short mode = *(short *)(definition + 0x1f0);
+							if (mode == 0 || mode == 1 || mode == 2)
+								*(short *)(actor_bytes + 0x270) = 5;
+						}
+					}
+				}
+			}
+		}
+		parent_index = *(long *)(object + 0x14);
+		if (parent_index != NONE)
+		{
+			s_moving_object_header *header = &((s_moving_object_header *)g_4e0300->data)[parent_index & 0xffff];
+			if ((1 << header->type) & 3)
+			{
+				parent = header->object;
+				if (*(long *)(parent + 0x24c) == actor->unit_index)
+				{
+					long holder = NONE;
+					long held = function_cbd80(parent_index, &holder);
+					if (held != NONE && function_1e5280(actor_index, *(long *)moving_object_get(held)))
+					{
+						actor->unknown268 = true;
+						actor->unknown274 = holder;
+					}
+				}
+				short seat = *(short *)(object + 0x1fc);
+				if (!actor->unknown268 && !actor->unknown266 && seat != NONE)
+				{
+					byte *definition = g_4e3b44[*(long *)parent & 0xffff].bytes;
+					actor_bytes[0x269] = (byte)((*(dword *)(*(byte **)(definition + 0x1cc) + seat * 0xb0) >> 11) & 1);
+				}
+			}
+		}
+		if (*(long *)(object + 0x14) != NONE)
+			actor_bytes[0x267] = !actor->unknown266;
+		if (function_26c120(actor_index))
+		{
+			actor->unknown28c = NONE;
+			actor_bytes[0x278] = 0;
+		}
+		actor->unknown264 = false;
+		if (*(byte *)(object + 0xaa) == 0 && actor->unknown26c == NONE)
+		{
+			byte *unit = (byte *)moving_object_get(actor->unit_index);
+			if (*(signed char *)(unit + 0x399) * g_510c54->rate >= 0.2f &&
+				*(short *)(unit + *(short *)(unit + 0x346) + 0x36) == 0)
+				actor->unknown264 = true;
+		}
+		function_118e80(actor->unknown266 ? actor->unknown26c : actor->unit_index, &actor->unknown290);
+		if (!actor->unknown229)
+		{
+			if (normalize2d((point2f *)&actor->unknown290) > 0.0f)
+				actor->unknown290.k = 0.0f;
+			else
+				actor->unknown290 = *g_4687a8;
+		}
+		if (actor->unknown268)
+		{
+			long held_index = actor->unknown274;
+			s_moving_object_header *header = &((s_moving_object_header *)g_4e0300->data)[held_index & 0xffff];
+			byte *held = header->object;
+			if (header->type == 1 && (*(dword *)(g_4e3b44[*(long *)held & 0xffff].bytes + 0x1ec) & 0x100))
+				function_118e80(held_index, (vector3f *)(actor_bytes + 0x29c));
+			else
+				*(vector3f *)(actor_bytes + 0x29c) = *(vector3f *)(held + 0x168);
+		}
+		else
+			*(vector3f *)(actor_bytes + 0x29c) = *(vector3f *)(object + 0x168);
+		vector3f *up = (vector3f *)(actor_bytes + 0x2a8);
+		*up = *(vector3f *)(object + 0x18c);
+		vector3f *left = (vector3f *)(actor_bytes + 0x2b4);
+		left->i = up->k * g_4687b0->j - g_4687b0->k * up->j;
+		left->j = g_4687b0->k * up->i - g_4687b0->i * up->k;
+		left->k = g_4687b0->i * up->j - up->i * g_4687b0->j;
+		function_30bf0(left);
+		vector3f *forward = (vector3f *)(actor_bytes + 0x2c0);
+		forward->i = up->j * left->k - left->j * up->k;
+		forward->j = left->i * up->k - up->i * left->k;
+		forward->k = left->j * up->i - up->j * left->i;
+		*(long *)(actor_bytes + 0x2d0) = *(long *)(object + 0xec);
+		*(long *)(actor_bytes + 0x2d4) = *(long *)(object + 0xf0);
+		*(long *)(actor_bytes + 0x2d8) = *(long *)(object + 0x100);
+		*(long *)(actor_bytes + 0x2dc) = *(long *)(object + 0xfc);
+	}
+	*(real *)(actor_bytes + 0x2cc) = function_267370(actor->unit_index);
+	actor_bytes[0x2e0] = 0;
+}

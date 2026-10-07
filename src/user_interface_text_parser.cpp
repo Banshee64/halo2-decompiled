@@ -897,6 +897,16 @@ void __stdcall parse_animating_thumbstick(long string_handle, word *buffer)
 	parse_copy(buffer, character);
 }
 
+PRIVATE __forceinline long selected_button_22dcbc(s_button_layout const *layout, char index)
+{
+	long result = 7;
+	if (index != NONE)
+		result = layout->buttons[index];
+	else if (layout->buttons[7] == 7)
+		result = 6;
+	return result;
+}
+
 // @retail 0x22dcbc
 void __stdcall parse_button(long string_handle, word *buffer)
 {
@@ -963,26 +973,20 @@ void __stdcall parse_button(long string_handle, word *buffer)
 	if (player_index != NONE)
 	{
 		s_player_view *player = &((s_player_view *)g_4e8c24->data)[player_index & 0xffff];
-		long input_user = player->input_user;
+		s_player_view *const *player_reference = &player;
+		long input_user = (*player_reference)->input_user;
 
 		if (input_user != NONE)
 		{
 			s_button_layout layout;
-			long button;
+			long button = 7;
 			word thumbstick[k_parse_buffer_length];
 
 			thumbstick[0] = 0;
 			character[1] = 0;
 			layout = ((s_button_layout *)g_51ea18)[input_user];
 			character[0] = '?';
-			if (index == NONE)
-			{
-				button = layout.buttons[7] == 7 ? 6 : 7;
-			}
-			else
-			{
-				button = layout.buttons[index];
-			}
+			button = selected_button_22dcbc(&layout, index);
 			switch (button)
 			{
 			case 0:
