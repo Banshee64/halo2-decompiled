@@ -197,7 +197,9 @@ void function_197160(long player_index, long other_player_index, long code)
 {
 	if (g_510ca0 && !g_510ca1)
 	{
-		s_result_event event = { 1 };
+		s_result_event event;
+		memset((byte *)&event + 1, 0, sizeof(event) - 1);
+		event.type = 1;
 
 		event.player_index = (byte)player_index;
 		event.other_player_index = (byte)other_player_index;
@@ -213,7 +215,9 @@ void function_197210(long player_index, long value14, long value10)
 {
 	if (g_510ca0 && !g_510ca1)
 	{
-		s_result_event event = { 3 };
+		s_result_event event;
+		memset((byte *)&event + 1, 0, sizeof(event) - 1);
+		event.type = 3;
 
 		event.player_index = (byte)player_index;
 		event.other_player_index = 0xff;
@@ -234,7 +238,9 @@ void function_1972a0(long player_index, long value14, long value10)
 
 		if (g_510ca8 - now > 3)
 		{
-			s_result_event event = { 2 };
+			s_result_event event;
+			memset((byte *)&event + 1, 0, sizeof(event) - 1);
+			event.type = 2;
 
 			event.player_index = (byte)player_index;
 			event.other_player_index = 0xff;

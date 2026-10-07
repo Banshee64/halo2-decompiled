@@ -187,6 +187,7 @@ s_loop_block *loop_allocate_in_gap(s_loop_allocator *loop, long size, char const
 {
 	s_loop_allocator *const *loop_reference = &loop;
 	s_loop_block *block = (*loop_reference)->first;
+	s_loop_block *local_0 = NULL;
 	s_loop_block *next = NULL;
 
 	if (block)
@@ -200,14 +201,16 @@ s_loop_block *loop_allocate_in_gap(s_loop_allocator *loop, long size, char const
 				byte *address = loop_block_get_address(loop, block) + block->size;
 				if (address + size <= next_address)
 				{
-					return loop_block_insert(loop, address, size, file, line, block, next);
+					local_0 = loop_block_insert(loop, address, size, file, line, block, next);
+				goto local_1;
 				}
 			}
 			block = next;
 		} while (next);
-		return NULL;
+		goto local_1;
 	}
-	return next;
+	local_1:
+	return local_0;
 }
 
 // @retail 0x18e2b0

@@ -7,8 +7,17 @@
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
 #include "globals.h"
+#include "unknown_030290.h"
 
 bool function_13ee20(word const *text, long font);
+extern color3f *g_468724;
+static color4f button_outline_color = { 1.0f, 0.0f, 0.0f, 1.0f };
+color4f *g_4686e0 = &button_outline_color;
+void unicode_string_snprintf(word *buffer, long maximum_count, word const *format, ...);
+void function_22cd48(c_class_22cc8e *text, short_rectangle2d const *bounds,
+    short_rectangle2d const *clip, real depth, real alpha, short_rectangle2d const *screen);
+void function_235d69(short_rectangle2d const *rectangle, real depth,
+    short_rectangle2d const *screen, color4f const *color);
 
 /* a bitmap tag: its bitmaps */
 struct s_bitmap_group_view_2541
@@ -150,6 +159,64 @@ s_button_block *function_253cc8(c_class_19b8b1 *button)
 		}
 	}
 	return result;
+}
+
+// @retail 0x253ea8
+void c_class_19b8b1::v4(long screen_rect_address)
+{
+    short_rectangle2d const *screen = (short_rectangle2d const *)screen_rect_address;
+    s_button_block *definition = function_253cc8(this);
+    real alpha = animation.scale;
+    real depth = get_depth();
+    byte debug = g_54d598.unknown05[2];
+    short x, y;
+    function_2363d4(screen, &x, &y);
+    short_rectangle2d rectangle;
+    get_bounds((s_widget_bounds *)&rectangle);
+    rectangle.left += x;
+    rectangle.right += x;
+    rectangle.top += y;
+    rectangle.bottom += y;
+    if (definition && definition->bitmap_tag_index != NONE)
+    {
+        short frame = (short)v17();
+        byte *tag = g_4e3b44[definition->bitmap_tag_index & 0xffff].bytes;
+        s_sprite_element *element = (s_sprite_element *)(*(byte **)(tag + 0x48) + frame * 0x74);
+        real fade = alpha * 255.0f;
+        long opacity;
+        __asm
+        {
+            fld fade
+            fistp opacity
+        }
+        s_float_rect from, to;
+        real width = element->width;
+        real height = element->height;
+        from.y0 = 0.0f;
+        from.x0 = 0.0f;
+        from.x1 = width;
+        from.y1 = height;
+        get_real_bounds((box2f *)&to);
+        real px = *(short *)definition->unknown2c + to.x0;
+        real py = to.y0 - *(short *)(definition->unknown2c + 2);
+        to.x0 = x + px;
+        to.x1 = x + (width + px);
+        to.y0 = y + py;
+        to.y1 = y + (py - height);
+        function_23618e(&to, depth, screen);
+        function_235e5e(element, &from, &to, ((dword)opacity << 24) | 0xffffff, 1, 0);
+    }
+    if (debug)
+    {
+        c_user_interface_text_buffer_32 label;
+        word buffer[16];
+        unicode_string_snprintf(buffer, 16, (word const *)L"%d", value0a);
+        label.setup(buffer, 0, g_468724, 0, NONE, 0, NONE);
+        function_22cd48(&label, &rectangle, &rectangle, depth, alpha, screen);
+        function_235d69(&rectangle, depth, screen, g_4686e0);
+    }
+    else
+        function_22cd48(function_22f52e(), &rectangle, &rectangle, depth, alpha, screen);
 }
 
 /* shows the button as its definition describes it */

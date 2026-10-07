@@ -351,17 +351,21 @@ void function_12dc10(void)
 	if (pending_blocks->valid && async_globals.tasks_added <= 25)
 	{
 		long requests = function_12dba0();
-		s_record_pool_iterator iterator;
-		s_pending_block *pending;
-
-		iterator.data = pending_blocks;
-		iterator.index = NONE;
-		iterator.datum_index = NONE;
-		while ((pending = (s_pending_block *)data_iterator_next_calling(&iterator)) != NULL && requests < 5)
+		struct
 		{
-			function_12de70(pending->block, 6);
-			pending->block->flags &= ~4;
-			record_pool_release(g_4e6490, iterator.datum_index);
+			s_pending_block *field_0;
+			s_record_pool_iterator field_4;
+		} local_0;
+
+		local_0.field_4.data = pending_blocks;
+		local_0.field_4.index = NONE;
+		local_0.field_4.datum_index = NONE;
+		while ((local_0.field_0 = (s_pending_block *)data_iterator_next_calling(&local_0.field_4)) != NULL && requests < 5)
+		{
+			function_12de70(local_0.field_0->block, 6);
+			byte *local_1 = &local_0.field_0->block->flags;
+			*local_1 &= ~4;
+			record_pool_release(g_4e6490, local_0.field_4.datum_index);
 			requests++;
 		}
 	}
@@ -528,16 +532,18 @@ void __stdcall function_12e290(long block_index)
 	{
 		s_physical_block *physical_block = physical_block_get(block_index);
 
-		if (physical_block->time == physical_object_get()->time)
+		long *local_0 = &physical_block->time;
+		if (*local_0 == physical_object_get()->time)
 		{
-			physical_block->time = physical_object_get()->time - 1;
+			*local_0 = physical_object_get()->time - 1;
 		}
 		while (geometry_cache_block_busy(block_index))
 		{
 			async_globals.tasks_added = function_120bf0();
-			if (cache_block->block->runtime_linked)
+			s_geometry_block_info *local_1 = cache_block->block;
+			if (local_1->runtime_linked)
 			{
-				fixup_group_release_resources((s_fixup_group *)cache_block->block, (byte *)(physical_block_get(block_index)->offset << physical_object_get()->page_shift) + g_4e6494);
+				fixup_group_release_resources((s_fixup_group *)local_1, (byte *)(physical_block_get(block_index)->offset << physical_object_get()->page_shift) + g_4e6494);
 			}
 		}
 		if (cache_block->block->runtime_linked)

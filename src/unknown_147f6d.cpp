@@ -1678,3 +1678,57 @@ void function_147af1(long index, long fallback_index, c_render_window *window)
         }
     }
 }
+
+struct s_scenario_ui_type
+{
+    byte unknown00[0x10];
+    short type;
+};
+
+struct s_ui_initial_selection
+{
+    byte unknown00[0x11c];
+    long selection;
+};
+
+struct s_ui_initial_screen
+{
+    byte unknown00[0x14];
+    long tag_index;
+};
+
+void function_2157c0(long selection);
+void __stdcall function_149f88(void *screen);
+void function_14a08f();
+extern bool g_4ee4e0;
+
+// @retail 0x14784e
+void function_14784e()
+{
+    s_scenario_ui_type *scenario = (s_scenario_ui_type *)g_4e0350;
+    if (!g_54d598.m0c)
+        function_148893(NULL, 1);
+    long type = scenario ? *(volatile short *)&scenario->type : NONE;
+    g_54d5a8 = (char)type;
+    g_54d598.m28 = g_54d5b8;
+    g_54d598.default_window.c_window_channel_45997c::v2();
+    for (long i = 0; i < 5; i++)
+    {
+        ((c_window_channel *)&g_54d598.windows_5[i])->v2();
+        ((c_window_channel *)&g_54d598.windows_3[i])->v2();
+        ((c_window_channel *)&g_54d598.windows_1[i])->v2();
+    }
+    if (g_54d5a8 == 2)
+    {
+        s_ui_initial_selection *globals = (s_ui_initial_selection *)function_148350();
+        if (globals)
+            function_2157c0(globals->selection);
+        s_ui_initial_screen *screen = (s_ui_initial_screen *)function_1482e8();
+        if (screen && screen->tag_index != NONE)
+            function_149f88(g_4e3b44[screen->tag_index & 0xffff].bytes);
+    }
+    g_4ee4e0 = false;
+    g_4ee4c4.session_booted = false;
+    function_14a08f();
+    g_54e7fc = 0;
+}

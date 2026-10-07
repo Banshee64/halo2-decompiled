@@ -7,13 +7,44 @@
 
 #define PIN(n, floor, ceiling) ((n) < (floor) ? (floor) : ((n) > (ceiling) ? (ceiling) : (n)))
 
+const real g_45dc40 = -8388608.0f;
+const real g_45dc3c = 8388607.0f;
+
+PRIVATE __forceinline double function_2221e9(real arg_0)
+{
+	__asm
+	{
+		fld arg_0
+		fmul g_45dc40
+	}
+}
+
+PRIVATE __forceinline double function_222229(real arg_0)
+{
+	__asm
+	{
+		fld arg_0
+		fmul g_45dc3c
+	}
+}
+
 // @retail 0x2221d0
 long function_2221d0(real value)
 {
-	value = PIN(value, -1.0f, 1.0f);
-	if (value < 0.0f)
+	if (value < -1.0f)
 	{
-		return 0x1000000 - (long)(value * -8388608.0);
+		value = -1.0f;
+local_0:
+		return 0x1000000 - (long)function_2221e9(value);
 	}
-	return (long)(value * 8388607.0);
+	if (value > 1.0f)
+	{
+		value = 1.0f;
+		return (long)function_222229(value);
+	}
+	if (value >= 0.0f)
+	{
+		return (long)function_222229(value);
+	}
+	goto local_0;
 }
