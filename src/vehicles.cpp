@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* VEHICLES.CPP: vehicles
 
 The vehicle object type's callbacks (its definition at 0x467b40) and the
@@ -1927,7 +1927,7 @@ short __stdcall function_f1740(long vehicle_index, real throttle_input)
 	return gear;
 }
 
-long function_f5d70(long vehicle_index);
+bool function_f5d70(long vehicle_index);
 
 /* runs the vehicle's engine for a tick: its load follows the throttle, a
    new gear engages after a delay (at once when it changes direction), the
@@ -3096,16 +3096,17 @@ void function_f5bf0(long vehicle_index)
 			function_ba1d0(vehicle_index, &velocity, NULL);
 			if (function_30bf0(&velocity) > 1.0f)
 			{
+				vector3f const *forward = &vehicle->forward;
+
 				if (0.0f > vehicle->throttle)
 				{
-					if (vehicle->forward.i * velocity.i + vehicle->forward.k * velocity.k +
-						vehicle->forward.j * velocity.j > 0.0f)
+					if (forward->i * velocity.i + forward->k * velocity.k + forward->j * velocity.j > 0.0f)
 					{
 						goto braking;
 					}
 				}
-				else if (vehicle->throttle > 0.0f && 0.0f > velocity.i * vehicle->forward.i +
-					velocity.j * vehicle->forward.j + velocity.k * vehicle->forward.k)
+				else if (vehicle->throttle > 0.0f &&
+					0.0f > velocity.i * forward->i + forward->k * velocity.k + forward->j * velocity.j)
 				{
 					goto braking;
 				}
@@ -3145,15 +3146,11 @@ bool __stdcall function_f5d10(long vehicle_index, long bit, bool set)
 
 /* whether the vehicle is braking: briefly, or while the brake is held */
 // @retail 0xf5d70
-long function_f5d70(long vehicle_index)
+bool function_f5d70(long vehicle_index)
 {
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 
-	if (vehicle->unknown384 && (0.5f > vehicle->unknown384 * g_510c54->rate || (vehicle->control_flags & 2)))
-	{
-		return true;
-	}
-	return false;
+	return vehicle->unknown384 && (0.5f > vehicle->unknown384 * g_510c54->rate || (vehicle->control_flags & 2));
 }
 
 /* how firmly the vehicle's parking brake holds, from the ticks it has sat
@@ -3192,8 +3189,9 @@ void function_f5ee0(long vehicle_index)
 	}
 	else
 	{
-		pushed = vehicle->throttle * vehicle->throttle + vehicle->steering * vehicle->steering +
-			vehicle->unknown1b8 * vehicle->unknown1b8 > 0.001f * 0.001f;
+		vector3f const *input = (vector3f const *)&vehicle->throttle;
+
+		pushed = input->i * input->i + input->j * input->j + input->k * input->k > 0.001f * 0.001f;
 	}
 	if ((!pushed || function_f5d70(vehicle_index)) &&
 		vehicle->unknown38e != (1 << *(long *)(definition + 0x2f0)) - 1 &&
@@ -4020,16 +4018,16 @@ void function_f7ed0(long vehicle_index, vector3f *impulse)
 				}
 				if (empty > seat_count >> 1)
 				{
-					real dot = vehicle->up.k * impulse->k + vehicle->up.j * impulse->j +
-						impulse->i * vehicle->up.i;
+					vector3f const *up = &vehicle->up;
+					real dot = up->i * impulse->i + up->j * impulse->j + up->k * impulse->k;
 
 					if (0.0f > dot)
 					{
 						vector3f into;
 
-						into.i = vehicle->up.i * dot;
-						into.j = vehicle->up.j * dot;
-						into.k = vehicle->up.k * dot;
+						into.i = up->i * dot;
+						into.j = up->j * dot;
+						into.k = up->k * dot;
 						impulse->i = (impulse->i - into.i) * 0.45f + into.i;
 						impulse->j = (impulse->j - into.j) * 0.45f + into.j;
 						impulse->k = (impulse->k - into.k) * 0.45f + into.k;
