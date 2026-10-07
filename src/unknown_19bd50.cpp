@@ -99,10 +99,12 @@ struct s_content_item
 
 struct s_entry_c;
 struct s_bitmap_data;
+struct s_bitmap_view;
+struct D3DTexture;
 struct s_level_path { char string[0x104]; };
 s_entry_c *function_19c5f0(long map_id);
-void *function_1cfb0(s_bitmap_data *bitmap);
-byte *function_1d5e0(s_bitmap_data *bitmap, long level, long *stride);
+D3DTexture *function_1cfb0(s_bitmap_view *bitmap);
+void *function_1d5e0(s_bitmap_view *bitmap, bool wait, long *pitch);
 bool function_12cb80(s_bitmap_data *bitmap);
 char *level_path_print(s_level_path *path, char const *format, ...);
 s_type_acf665 *function_136710(s_type_acf665 *file, bool replace, const char *name);
@@ -136,10 +138,10 @@ bool __stdcall function_19be00(s_content_item *item, s_map_package *package)
 			entry->bitmap_tag_index = bitmap_tag_index;
 			entry->tag_index = tag_index;
 			s_bitmap_data *bitmap = *(s_bitmap_data **)(g_4e3b44[bitmap_tag_index & 0xffff].bytes + 0x48);
-			function_1cfb0(bitmap);
+			function_1cfb0((s_bitmap_view *)bitmap);
 			function_12cb80(bitmap);
 			long stride;
-			byte *pixels = function_1d5e0(bitmap, 0, &stride);
+			byte *pixels = (byte *)function_1d5e0((s_bitmap_view *)bitmap, false, &stride);
 			if (pixels)
 			{
 				for (long row = 0; row < 207; row++)
@@ -147,7 +149,7 @@ bool __stdcall function_19be00(s_content_item *item, s_map_package *package)
 					memcpy(pixels, package->images[row], sizeof(package->images[row]));
 					pixels += stride;
 				}
-				function_1cfb0(bitmap);
+				function_1cfb0((s_bitmap_view *)bitmap);
 			}
 			s_level_path path;
 			path.string[0] = 0;

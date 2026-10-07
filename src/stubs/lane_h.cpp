@@ -5,8 +5,6 @@
 #include <xonline.h>
 
 struct s_player_profile;
-struct s_marker_pair;
-struct s_bitmap_data;
 struct s_shapes;
 union point3f;
 struct s_controller_event;
@@ -60,18 +58,6 @@ long function_59570(void)
 // @stub 0xb3e90
 void __stdcall function_b3e90(unsigned char *results)
 {
-}
-
-// @stub 0x1cfb0
-void *function_1cfb0(s_bitmap_data *bitmap)
-{
-	return 0;
-}
-
-// @stub 0x1d5e0
-unsigned char *function_1d5e0(s_bitmap_data *bitmap, long level, long *stride)
-{
-	return 0;
 }
 
 // @stub 0x16a440
