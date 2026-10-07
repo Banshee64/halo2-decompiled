@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6945 functions match
+
+```
+matched 6945 of 11318 game functions (771250 of 2784283 bytes, 27.70%)
+```
+
+6945 new matches, none lost:
+- Merge batch r25: the second machine's #180 to #192 (lanes K, Y, O, M, F, L, P and C; +33).
+
 ## 2026-10-07: 6912 functions match
 
 ```
