@@ -128,12 +128,45 @@ public:
 	c_callback_277820 reference;
 	virtual bool test(s_278a70_body *first, s_278a70_body *second);
 	virtual void event0(void *event) {}
-	virtual void event1(void *event) {}
+	virtual void event1(void *arg_0);
 	virtual void event2(void *event) {}
 	virtual void slot1(hkEntity *entity);
 	virtual void slot2(hkEntity *entity);
 
 };
+
+struct s_278030
+{
+	byte field_0[8];
+	hkEntity *field_8;
+	hkEntity *field_c;
+	hkEntity *field_10;
+};
+
+void function_1d05d0(hkEntity const *arg_0, hkEntity const *arg_1,
+	s_havok_component *arg_2, short const *arg_3);
+
+// @retail 0x278030
+void c_interface_277890::event1(void *arg_0)
+{
+	s_278030 *local_0 = (s_278030 *)arg_0;
+	hkEntity *local_1 = local_0->field_8;
+	hkEntity *local_2 = local_0->field_c;
+	long local_3 = havok_entity_property_get(local_1, 0x2001);
+	long local_4 = havok_entity_property_get(local_2, 0x2001);
+	if (local_0->field_10 == local_1)
+	{
+		s_havok_component *local_5 = havok_component_get(local_3);
+		if (*(byte *)((byte *)local_5 + 4) & 1)
+			function_1d05d0(local_1, local_2, local_5, (short const *)local_0);
+	}
+	else
+	{
+		s_havok_component *local_6 = havok_component_get(local_4);
+		if (*(byte *)((byte *)local_6 + 4) & 1)
+			function_1d05d0(local_2, local_1, local_6, (short const *)local_0);
+	}
+}
 
 // @retail 0x277890 deleting c_interface_277890
 

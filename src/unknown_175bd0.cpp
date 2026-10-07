@@ -294,8 +294,10 @@ static inline void effect_parameters_initialize_inline(s_effect_parameters *para
 	parameters->tag_index = NONE;
 	parameters->unknown18 = NONE;
 	parameters->object_index = NONE;
-	effect_owner_set_none(&parameters->owner);
+	parameters->owner.unknown4 = NONE;
+	parameters->owner.unknown0 = NONE;
 	parameters->unknown34 = 0;
+	parameters->owner.unknown8 = NONE;
 	parameters->unknown38 = 0;
 	parameters->scale_a = 1.0f;
 	parameters->scale_b = 1.0f;
@@ -316,10 +318,10 @@ long function_1785c0(s_effect_object_marker const *marker, s_effect_datum *effec
 transform4x3f *function_178bc0(s_effect_location_datum *location, s_effect_datum *effect, transform4x3f *matrix, bool field_b4);
 void function_178c80(real scale, s_effect_datum *effect, s_particle_system_datum *particle_system, s_effect_particle_system_definition *definition, real unknown, bool field_b4);
 bool function_178020(short placement, point3f const *point, s_location const *location);
-bool function_17b270(short const *values, s_effect_datum *effect, long mode);
+__declspec(noinline) bool function_17b270(short const *values, s_effect_datum *effect, long mode);
 void function_17af30(transform4x3f *matrix, s_effect_datum *effect, bool field_b4, short node_index);
 void function_177260(long effect_index, bool flag);
-bool function_1794a0(long object_index, long other_object_index);
+__declspec(noinline) bool function_1794a0(long object_index, long other_object_index);
 void function_179020(long effect_index, real scale, real unknown);
 long function_179190(s_effect_datum *effect);
 bool function_1792b0(long effect_index, real dt);
@@ -332,7 +334,7 @@ void function_178360(long effect_index, short unknown18, long object_index, long
 bool function_1789f0(s_effect_datum *effect);
 void function_17b5d0(s_effect_datum *effect, long object_index, s_effect_parameters *parameters, bool search);
 void function_177310(long effect_index);
-void function_179850(long effect_index, real value);
+__declspec(noinline) void function_179850(long effect_index, real value);
 void function_1771a0(s_effect_datum *effect);
 void function_1773a0(long effect_index);
 void function_177460(s_effect_datum *effect);
@@ -343,7 +345,7 @@ bool function_178060(void);
 void function_178ad0(s_effect_datum *effect);
 void function_1782a0(long effect_index, short event_index);
 void function_17add0(s_effect_datum *effect);
-s_effect_location_datum *__stdcall effect_location_next(s_effect_datum *effect, long *location_index, short mode);
+__declspec(noinline) s_effect_location_datum *__stdcall effect_location_next(s_effect_datum *effect, long *location_index, short mode);
 void function_176a50(s_effect_parameters *parameters, long tag_index, long marker_count, s_effect_marker *markers, long mode);
 s_effect_marker *function_176330(s_effect_marker *markers, point3f const *point);
 
@@ -500,18 +502,54 @@ void effects_dispose_from_old_map(void)
 	g_4ea938->valid = false;
 }
 
+PRIVATE __forceinline long data_scan_175cb0(s_record_pool *data, long index)
+{
+	if (index >= 0)
+	{
+		long count = data->high_water_index;
+		if (index < count)
+		{
+			dword const *bits = data->bitmap;
+			do
+			{
+				if (bits[index >> 5] & (1 << (index & 31)))
+					return index;
+				++index;
+			} while (index < count);
+		}
+	}
+	return NONE;
+}
+
+PRIVATE __forceinline s_effect_datum *data_step_175cb0(s_record_pool_iterator *iterator)
+{
+	s_record_pool *data = iterator->data;
+	long index = data_scan_175cb0(data, iterator->index + 1);
+	if (index == NONE)
+		return 0;
+	s_effect_datum *result = (s_effect_datum *)(data->data + data->size * index);
+	iterator->index = index;
+	iterator->datum_index = (result->salt << 16) | index;
+	return result;
+}
+
 // @retail 0x175cb0
 void effects_delete_all(void)
 {
-	s_record_pool *array = g_4ea93c;
-	long index = NONE;
+	struct
+	{
+		s_effect_datum *current;
+		s_record_pool_iterator cursor;
+	} iterator;
+	iterator.cursor.data = g_4ea93c;
+	iterator.cursor.index = NONE;
 
 	for (;;)
 	{
-		index = data_next_absolute_index_inlined(array, index + 1);
-		if (index == NONE)
+		iterator.current = data_step_175cb0(&iterator.cursor);
+		if (!iterator.current)
 			break;
-		function_1774f0(data_datum_index(array, index));
+		function_1774f0(iterator.cursor.datum_index);
 	}
 	function_x3bc618();
 	function_x496c75();
@@ -575,14 +613,12 @@ void effect_parameters_initialize(s_effect_parameters *parameters)
 // @retail 0x175f50
 bool function_175f50(long object_index)
 {
-	s_effect_object *object = (s_effect_object *)function_badc0(object_index, 1);
 	bool result = false;
+	s_effect_object *object = (s_effect_object *)function_badc0(object_index, 1);
 
 	if (object && TEST_FIELD_BIT(object->flag10a_2))
 	{
-		if (object->unknown2e0 != NONE && object->unknown2e0 + g_510c54->field_2_3 < g_510c54->game_time)
-			return true;
-		return false;
+		result = object->unknown2e0 != NONE && object->unknown2e0 + g_510c54->field_2_3 < g_510c54->game_time;
 	}
 	return result;
 }
@@ -670,6 +706,8 @@ void function_176a50(s_effect_parameters *parameters, long tag_index, long marke
 // @retail 0x177260
 void function_177260(long effect_index, bool flag)
 {
+	bool const *flag_reference = &flag;
+	flag = *flag_reference;
 	s_effect_datum *effect = effect_try_and_get(effect_index);
 
 	if (effect)
@@ -678,7 +716,10 @@ void function_177260(long effect_index, bool flag)
 		function_1771a0(effect);
 		if (TEST_FIELD_BIT(effect->flag1))
 		{
-			effect->flag4 = flag;
+			if (flag)
+				effect->flag4 = true;
+			else
+				effect->flag4 = false;
 			effect->flag2 = true;
 		}
 		else
@@ -838,11 +879,13 @@ bool function_177610(long effect_index)
 			}
 			effect->flag2 = true;
 			effect->flag6 = true;
-			return false;
+			result = false;
 		}
 	}
 	return result;
 }
+
+__declspec(noinline) dword *function_177c20(long tag_index);
 
 // @retail 0x177c20
 dword *function_177c20(long tag_index)
@@ -1132,6 +1175,8 @@ done:
 	return location;
 }
 
+__declspec(noinline) void function_17aec0(transform4x3f *matrix, s_effect_datum *effect, short node_index);
+
 // @retail 0x17aec0
 void function_17aec0(transform4x3f *matrix, s_effect_datum *effect, short node_index)
 {
@@ -1153,6 +1198,8 @@ void function_17af30(transform4x3f *matrix, s_effect_datum *effect, bool field_b
 	else
 		function_17aec0(matrix, effect, node_index);
 }
+
+__declspec(noinline) void function_17af80(long effect_index, long particle_system_index);
 
 // @retail 0x17af80
 void function_17af80(long effect_index, long particle_system_index)
@@ -1180,16 +1227,20 @@ bool function_17afd0(long effect_index, long value)
 	return result;
 }
 
+PRIVATE __forceinline byte effect_placement_allowed_17b270(s_effect_datum const *effect, short placement)
+{
+	if (TEST_FIELD_BIT(effect->flag5))
+		return placement != 1;
+	return placement != 2;
+}
+
 // @retail 0x17b270
 bool function_17b270(short const *values, s_effect_datum *effect, long mode)
 {
-	bool result = TEST_FIELD_BIT(effect->flag5) ? values[8] != 1 : values[8] != 2;
-
-	if (*(short *)&g_4e8c20->unknown00[8] == 1 && result)
+	bool result = effect_placement_allowed_17b270(effect, values[8]) != 0;
+	if (*(short *)&g_4e8c20->unknown00[8] == 1)
 	{
-		short value = values[9];
-
-		if ((value != 2 || mode == 0) && (value != 1 || mode == 1))
+		if (result && (values[9] != 2 || mode == 0) && (values[9] != 1 || mode == 1))
 			return true;
 		return false;
 	}
@@ -1402,9 +1453,9 @@ void function_176870(long object_index, s_effect_owner const *owner, long marker
 	s_effect_object_marker object_markers[1];
 
 	effect_parameters_initialize_inline(&parameters);
-	parameters.tag_index = tag_index;
 	parameters.attached = true;
 	parameters.flag2 = true;
+	parameters.tag_index = tag_index;
 	if (owner)
 		parameters.owner = *owner;
 	parameters.object_index = object_index;
@@ -1432,12 +1483,12 @@ void function_176970(s_effect_owner const *owner, real scale_a, long tag_index, 
 		parameters.owner = *owner;
 	parameters.object_index = object_index;
 	parameters.unknown18 = unknown18;
-	parameters.marker_count = marker_count;
-	parameters.markers = markers;
-	parameters.scale_a = scale_a;
-	parameters.scale_b = scale_b;
 	parameters.origin = origin;
 	parameters.direction = direction;
+	parameters.marker_count = marker_count;
+	parameters.scale_a = scale_a;
+	parameters.scale_b = scale_b;
+	parameters.markers = markers;
 	if (flag1)
 		parameters.flags = 7;
 	effect_new_from_parameters(&parameters);
@@ -1478,19 +1529,25 @@ void function_176b60(long marker_count, s_effect_marker *markers, long mode, s_e
 // @retail 0x178020
 bool function_178020(short placement, point3f const *point, s_location const *location)
 {
+	bool result;
 	switch (placement)
 	{
 	case 0:
-		return true;
+		result = true;
+		break;
 	case 1:
-		return !function_11c120(location, point, 0);
+		result = !function_11c120(location, point, 0);
+		break;
 	case 2:
-		return function_11c120(location, point, 0);
+		result = function_11c120(location, point, 0);
+		break;
 	case 3:
-		return false;
+		result = false;
+		break;
 	default:
 		__assume(0);
 	}
+	return result;
 }
 
 /* the markers an effect is started at (function_178360) */
@@ -2464,6 +2521,8 @@ void __stdcall function_17a380(s_effect_datum *effect)
 // @retail 0x177040
 long __stdcall function_177040(long particle_system_index, long effect_index)
 {
+	long const *effect_index_argument = &effect_index;
+	effect_index = *effect_index_argument;
 	s_particle_system_datum *particle_system = DATUM(g_510c74, s_particle_system_datum, particle_system_index);
 	s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
 	long next_index = particle_system->next_index;
@@ -2730,7 +2789,8 @@ void function_176e40(void)
 
 	while (effect_index != NONE)
 	{
-		function_179850(effect_index, dt);
+		if (!function_1794e0(effect_index) && !function_179730(effect_index) && !function_179810(effect_index))
+			function_1792b0(effect_index, dt);
 		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
 	}
 }
@@ -2977,6 +3037,8 @@ bool function_17b160(long effect_index, long tag_index)
 // @retail 0x17b5d0
 void function_17b5d0(s_effect_datum *effect, long object_index, s_effect_parameters *parameters, bool search)
 {
+	s_effect_parameters *const *parameters_reference = &parameters;
+	parameters = *parameters_reference;
 	bool found = false;
 
 	if (parameters && TEST_FIELD_BIT(parameters->colors_set))
@@ -3011,7 +3073,7 @@ void function_17b5d0(s_effect_datum *effect, long object_index, s_effect_paramet
 		query.unknown08 = -1.0f;
 		query.color_a = 0xff404040;
 		query.color_b = 0xff404040;
-		if (!parameters || !parameters->source || !function_d2bb0(parameters->source, &query))
+		if (!parameters || !parameters->source || function_d2bb0(parameters->source, &query))
 		{
 			s_effect_location_datum *location = effect_location_next(effect, &location_index, 3);
 

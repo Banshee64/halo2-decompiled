@@ -37,7 +37,7 @@ table.
 | `0xd1630` | 80 | `eax` bitmap | texture | 1 | The same with flags 6 and bias 0 |
 | `0xd1680` | 80 | `eax` bitmap | texture | 2 + 0 | The same with flags 4 and bias 0 |
 | `0xd16d0` | 370 | `esi` triangle; stack: colour out, real out (`ret 8`) | bool | 1 | The lightmap colour at a structure triangle |
-| `0xd1850` | 469 | `edi` object; stack: bool, query out (`ret 8`) | long | 2 | The surface colour under an object's centre, falling back on the sky |
+| `0xd1850` | 469 | `edi` object; stack: bool, query out (`ret 8`) | bool | 2 | The surface colour under an object's centre, falling back on the sky |
 | `0xd1a30` | 821 | stack: object, point, query out (`ret 0xc`) | long | 0 + 1 | The sky's light direction and colour, as seen from a point |
 | `0xd1d70` | 155 | `edx` triangle; stack: section out (`ret 4`) | bool | 0 + 2 | The structure section a triangle belongs to, when it is resident |
 | `0xd1e10` | 3130 | stack: triangle, query out, flags, bool (`ret 0x10`) | long | 0 + 2 | Samples a triangle's base colour, lightmap colour and normal |
@@ -142,11 +142,13 @@ give. Otherwise the object field (`+8`) chooses the path.
    `function_0241c0` interpolates the three samples at u, v into a colour and
    returns a scaled vector (status 0), or the status is 1.
 3. `function_d33a0` gives the vertex colour and `function_d31c0` the normal.
-4. With both a table colour and a vertex colour, each is weighted by its
-   luminance (0.3, 0.59, 0.11). color_b is their pinned sum, and the vector is
-   the luminance-weighted sum of the two vectors, normalized and scaled by the
-   larger of their lengths. With only one of them, color_b and the vector are
-   that one's. With neither, they are 0 and (0, 0, 1).
+4. When both a table colour and a vertex colour are present and both luminances
+   (0.3, 0.59, 0.11) are above 0.0001 (`0x45dbdc`, tested at `0xd250f` and
+   `0xd2521`), color_b is their pinned sum, and the vector is the
+   luminance-weighted sum of the two vectors, normalized and scaled by the
+   larger of their lengths. When only one is present, or one of the two
+   luminances is not above 0.0001, color_b and the vector come from the other
+   one alone. With neither, they are 0 and (0, 0, 1).
 5. color_a is the part material's bitmap sampled by `0xd30d0` with flags 0, or
    `0xffc0c0d0`.
 

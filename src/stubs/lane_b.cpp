@@ -142,8 +142,6 @@ bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
 
 
 
-// @stub 0x29d6c0
-bool function_29d6c0(vector3f *vector, s_reference reference) { return 0; }
 
 
 

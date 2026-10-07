@@ -547,7 +547,7 @@ struct s_havok_component_owner_header
 
 void function_1d56a0(s_havok_component *component);
 void function_1d56f0(s_havok_component *component);
-bool __stdcall function_1d5940(s_havok_component *component, long a, long b, long c);
+signed char __stdcall function_1d5940(s_havok_component *component, long a, long b, long c);
 void function_1d6b80(s_havok_component *component);
 void function_1d6ca0(s_havok_component *component);
 void function_1c4b00(long object_index, void *a, void *b, long c);
@@ -2685,4 +2685,86 @@ void function_1cf520(s_1cf520 *arg_1, c_1cf520 *arg_0, bool arg_2, bool arg_3, l
    }
   }
  }
+}
+
+
+struct s_1d0771
+{
+ byte field_0[0x20];
+ word field_20;
+ byte field_22[0xe];
+};
+struct s_1d0772
+{
+ s_1d0771 *field_0;
+ long field_4;
+};
+struct s_1d0773
+{
+ void *field_0;
+ byte field_4[0x14];
+ long field_18;
+ long field_1c;
+ void *field_20;
+};
+struct s_1d0770
+{
+ c_1cf520 *field_0;
+ s_1d0773 *field_4;
+ void **field_8;
+ s_1d0772 **field_c;
+ void *field_10;
+};
+
+// @retail 0x1d0770
+void function_1d0770(s_1d0770 *arg_0, s_havok_component *arg_1, long arg_2,
+ long arg_3, long arg_4, long arg_5)
+{
+ (void)&arg_1; (void)&arg_2; (void)&arg_3; (void)&arg_4; (void)&arg_5;
+ for (long local_0 = 0; local_0 < (*arg_0->field_c)->field_4; ++local_0)
+ {
+  s_1d0771 *local_1 = &(*arg_0->field_c)->field_0[local_0];
+  for (long local_2 = 0; local_2 < arg_1->unknown88.size; ++local_2)
+  {
+   byte *local_3 = (byte *)&arg_1->unknown88.data[local_2];
+   if (*(word *)local_3 == local_1->field_20 && *(long *)(local_3 + 0x14) == arg_3 &&
+    arg_4 == *(signed char *)(local_3 + 0x45) && arg_5 == *(signed char *)(local_3 + 0x46) &&
+    arg_0->field_4->field_18 == 1 && arg_0->field_4->field_20)
+   {
+    struct { void *volatile field_0; bool field_4; } local_4;
+    local_4.field_4 = arg_0->field_4->field_20 != arg_0->field_10;
+    if (local_4.field_4) local_4.field_0 = arg_0->field_4->field_0;
+    else local_4.field_0 = *arg_0->field_8;
+    function_1cf520((s_1cf520 *)local_3, arg_0->field_0, false, local_4.field_4, arg_2, arg_4);
+   }
+  }
+ }
+}
+
+struct s_1d56a0
+{
+ byte field_0[8];
+ byte *field_8;
+};
+
+// @retail 0x1d56a0
+void function_1d56a0(s_havok_component *arg_0)
+{
+ byte *local_0 = ((s_1d56a0 *)g_4e0300->data)[arg_0->object_index & 0xffff].field_8;
+ arg_0->unknown1c = function_1d5940(arg_0, 0, 0, 1);
+ if (arg_0->unknown1c <= 1)
+  *(dword *)(local_0 + 0x12c) |= 1;
+ else
+  *(dword *)(local_0 + 0x12c) &= ~1;
+}
+
+void __stdcall function_1d6d00(s_havok_component *arg_0, void *arg_1, byte *arg_2,
+ long arg_3, long arg_4, long arg_5, bool arg_6);
+
+// @retail 0x1d6ca0
+void function_1d6ca0(s_havok_component *arg_0)
+{
+ byte *local_0 = ((s_1d56a0 *)g_4e0300->data)[arg_0->object_index & 0xffff].field_8;
+ function_1d6d00(arg_0, g_4e3b44[*(long *)local_0 & 0xffff].bytes + 0xd4,
+  local_0 + 0x17c, 0xf, 0xf, 0, local_0[0x17c] == 3);
 }

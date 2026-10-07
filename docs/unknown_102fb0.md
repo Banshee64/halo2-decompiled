@@ -53,7 +53,8 @@ Fields this function uses that `src/weapons.cpp` leaves unnamed:
 | weapon `+0x16c` bits 0 and 3 | a shot waiting for `0x104150`; set for barrel 1 when the definition's reload_style is 3 |
 | weapon barrel `+0x4` bits 2, 6 and 7 | bit 2 refuses a magazine shot; bits 6 and 7 mark a refused shot of a barrel with firing effects |
 | weapon barrel `+0x8`, `+0xa`, `+0xc` | the firing effects used (a mask), the current one, and the shots left on it |
-| weapon barrel `+0x18`, `+0x20` | set to 1.0 by a shot when barrel definition `+0xa0` is positive; the input of the kick's curve |
+| weapon barrel `+0x18` | set to 1.0 by a shot when barrel definition `+0xa0` is positive (`0x1035e9`) |
+| weapon barrel `+0x20` | the input of the kick's curve (`0x1037d3`); the update ramps it ([weapon type](unknown_0fd910.md)) |
 | weapon barrel `+0x24` | the float `0x102100` accumulates (s_object_link.accumulator); its whole part is the extra shots |
 | weapon barrel `+0x2c`, `+0x2e`, `+0x30` | the extra shots for `0x104150`, the marker turn, and the effect `0x1039a0` keeps |
 | weapon definition `+0x25c`, `+0x260` | the misfire start on heat, and its scale |
