@@ -544,3 +544,39 @@ bool function_28e4b0(long index, short type, long *object_index, point3f *positi
 	}
 	return result;
 }
+
+void function_119020(long arg_0, vector3f const *arg_1);
+
+// @retail 0x2901e0
+void function_2901e0(long arg_0, vector3f const *arg_1)
+{
+	long local_0 = perception_get(arg_0)->object_index;
+	while (local_0 != NONE)
+	{
+		s_object_ai_data *local_1 = object_ai_data_checked(handler_object_get(local_0));
+		function_119020(local_0, arg_1);
+		if (!local_1)
+			break;
+		local_0 = local_1->next_object_index;
+	}
+}
+
+// @retail 0x28fd00
+void function_28fd00(long arg_0)
+{
+	s_handler_object_view *local_0 = handler_object_get(arg_0);
+	if (local_0->type == 12)
+	{
+		s_object_ai_data *local_1 = object_ai_data_checked(local_0);
+		if (local_1 && local_1->index08 != NONE)
+		{
+			if (local_1->index50 != NONE)
+			{
+				long local_2 = *(long *)(g_502418->data + (local_1->index50 & 0xffff) * 0x3c + 8);
+				*(byte *)(g_50241c->data + (local_2 & 0xffff) * 0xc4 + 0x36) = false;
+				*(short *)local_1->unknown54 = NONE;
+			}
+			function_28e390(local_1->index08, arg_0, false, true);
+		}
+	}
+}
