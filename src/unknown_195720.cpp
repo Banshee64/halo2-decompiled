@@ -111,7 +111,7 @@ real function_1949b0(vector3f const *v, vector3f const *w)
 {
 	vector3f a, b;
 	function_194870(v, &a, &b);
-	return (real)atan2(b.i * w->i + b.j * w->j + b.k * w->k, a.i * w->i + a.k * w->k + a.j * w->j);
+	return (real)atan2(b.i * w->i + b.k * w->k + b.j * w->j, a.i * w->i + a.j * w->j + a.k * w->k);
 }
 
 // @retail 0x194a10
@@ -231,7 +231,10 @@ bool function_195560(vector3f const *a, vector3f const *b, vector3f const *up_a,
 		real angle_a = function_1949b0(a, up_a);
 		real angle_b = function_1949b0(a, up_b);
 		real difference = (real)fabs(angle_b - angle_a);
-		result = difference < 0.024736950173974037f || fabs(difference - k_two_pi) < 0.024736950173974037f;
+		if (difference < 0.024736950173974037f)
+			result = true;
+		else
+			result = fabs(difference - k_two_pi) < 0.024736950173974037f;
 	}
 	return result;
 }

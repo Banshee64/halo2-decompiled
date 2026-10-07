@@ -1491,7 +1491,7 @@ void function_1c5710(long object_index)
 }
 
 // @retail 0x1c5210
-bool function_1c5210(transform4x3f const *matrix, long excluded_component, void *shape, long filter)
+bool function_1c5210(transform4x3f const *matrix, void *shape, long excluded_component, long filter)
 {
     (void)&shape;
     (void)&excluded_component;

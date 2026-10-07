@@ -206,11 +206,16 @@ void sound_cache_new_frame(void)
 PRIVATE bool __stdcall sound_cache_entry_busy(long entry_index)
 {
 	s_sound_cache_entry *entry = SOUND_CACHE_ENTRY(entry_index);
-	bool busy = false;
-
-	if (entry->lock_count || entry->reference_count || !entry->loaded)
+	bool busy;
+	if (entry->lock_count || entry->reference_count)
 	{
 		busy = true;
+	}
+	else
+	{
+		busy = false;
+		if (!entry->loaded)
+			busy = true;
 	}
 	return busy;
 }

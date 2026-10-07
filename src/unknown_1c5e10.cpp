@@ -411,6 +411,17 @@ inline s_player_slot_profile *local_profile_slot_get(long index)
 	return slot;
 }
 
+PRIVATE __forceinline long function_1c5ca1(s_player_slot_profile const *arg_0, s_ppr_source *arg_1)
+{
+    long local_0 = NONE;
+    if (arg_0 && (arg_0->flags & 0x10))
+    {
+        *arg_1 = arg_0->profile;
+        local_0 = arg_0->unknown1f8;
+    }
+    return local_0;
+}
+
 // @retail 0x1c5ca0
 void packed_clc_write(s_clc_source const *source, s_packed_clc *packed)
 {
@@ -430,17 +441,12 @@ void packed_clc_write(s_clc_source const *source, s_packed_clc *packed)
 	{
 		s_player_slot_profile *slot = local_profile_slot_get(index);
 
-		if (slot && (slot->flags & 0x10))
-		{
-			s_ppr_source profile = slot->profile;
-
-			if (slot->unknown1f8 != NONE)
-			{
-				packed_ppr_write(&profile, &packed->profiles[index]);
-				continue;
-			}
-		}
-		packed_ppr_clear(&packed->profiles[index]);
+		s_ppr_source profile;
+		long local_0 = function_1c5ca1(slot, &profile);
+		if (local_0 == NONE)
+			packed_ppr_clear(&packed->profiles[index]);
+		else
+			packed_ppr_write(&profile, &packed->profiles[index]);
 	}
 	packed->end = 'eclc';
 }
