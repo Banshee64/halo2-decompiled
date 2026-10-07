@@ -6,11 +6,13 @@
 #include <xtl.h>
 #include "files.h"
 
+#pragma inline_depth(0)
 // @retail 0x136d50
 bool function_136d50(s_type_acf665 *file, dword position, dword size, bool silent, void *buffer)
 {
 	return function_136bf0(file, position, silent) && function_136ca0(file, buffer, size, silent);
 }
+#pragma inline_depth(255)
 
 // @retail 0x136d90
 bool function_136d90(s_type_acf665 *file, dword position, dword size, const void *buffer)

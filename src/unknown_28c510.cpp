@@ -240,7 +240,6 @@ void function_28c9e0()
 	short *quaternions = (short *)((byte *)data + data->unknown20 + start * 8);
 	long low = 0;
 	long high = count;
-	short *a;
 	quaternionf *result;
 
 	while (high > low + 1)
@@ -258,16 +257,16 @@ void function_28c9e0()
 	}
 
 	_mm_prefetch((char *)(quaternions + low * 4), _MM_HINT_T0);
-	a = quaternions + low * 4;
 	result = &g_5044c0->rotation;
 	keys += low;
 
 	if (low + 1 < count)
 	{
-		real x = g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
+		real x = (real)(long)g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
 		real weight_a = keys[1] - x;
 		real weight_b = x - keys[0];
-		short *b = a + 4;
+		short *b = quaternions + (low + 1) * 4;
+		short *a = quaternions + low * 4;
 
 		__asm
 		{
@@ -314,6 +313,7 @@ void function_28c9e0()
 	}
 	else
 	{
+		short *a = quaternions + low * 4;
 		__asm
 		{
 			mov ecx, a
