@@ -32,7 +32,7 @@ c_class_1473c9 *__stdcall function_2b72e6(s_screen_parameters *request);
 c_class_1473c9 *__stdcall function_2b7333(s_screen_parameters *request);
 bool function_23029a(c_class_1473c9 *screen);
 real function_230374(c_class_1473c9 *screen);
-void function_235756(real fade);
+__declspec(noinline) void function_235756(real fade);
 void function_2359ce(c_window_channel_459a34 *channel);
 void function_235abc(c_window_channel_459a34 *channel);
 c_class_1473c9 *__stdcall function_2b739a(s_screen_parameters *parameters);
@@ -141,8 +141,8 @@ void c_window_channel::update()
 void c_window_channel::render(long window)
 {
 	s_type_954545 *globals = function_148350();
-	real fade = 0.f;
 	bool fading = false;
+	real fade = 0.f;
 	short mode = g_54d5a8;
 
 	if (previous && function_23029a(previous))
@@ -162,7 +162,9 @@ void c_window_channel::render(long window)
 	}
 
 	bool tint = fading;
-	if (mode >= 0 && mode <= 1)
+	long widened_mode = mode;
+	long const *mode_reference = &widened_mode;
+	if (*mode_reference >= 0 && *mode_reference <= 1)
 	{
 		if (!tint && current)
 		{
@@ -991,4 +993,13 @@ void function_2353a5(c_class_1473c9 *screen, long window)
 		}
 		screen->v23((void *)window);
 	}
+}
+
+long function_211a0(long value, real alpha, real first, real second, long mode, long index, long flags, long option, long unused, real scale, real offset);
+
+// @retail 0x235756
+void function_235756(real fade)
+{
+	function_211a0(0, fade * 3.75f, 1.f, 1.f,
+		1, NONE, 0, 1, 0, 0.25f, 0.f);
 }

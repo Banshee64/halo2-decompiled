@@ -227,13 +227,10 @@ void __stdcall function_23d090(void *state, void *input, s_observer_command *com
 		if (!((byte *)input)[4])
 		{
 			function_16c840(0, (long)input, command);
+			s_director_camera const *start = 0;
 			if (g_4686c4 != NONE)
-			{
-				s_player_state snapshot = g_4e9bd4[0].state;
-				g_5022f8 = *(s_director_camera *)&snapshot;
-			}
-			else
-				g_5022f8 = *(s_director_camera *)0;
+				start = (s_director_camera const *)&g_4e9bd4[0].state;
+			g_5022f8 = *start;
 			goto finished;
 		}
 		s_view_state *kept = (s_view_state *)g_51ec28;
@@ -248,8 +245,9 @@ void __stdcall function_23d090(void *state, void *input, s_observer_command *com
 	g_44ab7c[g_51ec3c](state, input, command);
 	if (g_51ec10)
 	{
-		*(dword *)command |= 9;
+		dword flags = *(dword *)command | 9;
 		*(real *)((byte *)command + 0x88) = 0.f;
+		*(dword *)command = flags;
 	}
 	g_5022f8.position = *(point3f *)state;
 	g_5022f8.forward = *(vector3f *)((byte *)command + 0x2c);
@@ -425,10 +423,10 @@ PRIVATE inline real camera_random_23da00(real minimum, real maximum)
 // @retail 0x23da00
 void function_23da00(s_observer_state *observer, long local_index, long target)
 {
+	point3f const *position = 0;
 	if (local_index != NONE && g_4686c4 != NONE)
-		observer->position = g_4e9bd4[local_index].state.position;
-	else
-		observer->position = *(point3f *)0;
+		position = &g_4e9bd4[local_index].state.position;
+	observer->position = *position;
 	observer->field_of_view = g_54e854;
 	observer->distance = camera_random_23da00(2.f, 6.f);
 	observer->yaw = camera_random_23da00(0.f, 6.2831855f);

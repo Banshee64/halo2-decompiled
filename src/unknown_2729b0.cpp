@@ -80,7 +80,7 @@ void *function_272a00(long actor_index)
 	if (actor->unknown030 != NONE)
 	{
 		s_2729b0_swarm *swarm = (s_2729b0_swarm *)(g_51e9d8->data + (actor->unknown030 & 0xffff) * sizeof(s_2729b0_swarm));
-		short location_index = swarm->starting_location_index;
+		short location_index = *(volatile short *)&swarm->starting_location_index;
 		if (location_index != NONE)
 		{
 			s_2729b0_starting_location *location = (s_2729b0_starting_location *)(((s_2729b0_scenario_view *)g_4e0350)->starting_locations + location_index * 0x7c);
