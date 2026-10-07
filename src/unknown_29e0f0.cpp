@@ -8,7 +8,7 @@
 
 struct s_29de20 { short field_0; short field_2; short field_4; };
 struct s_29de21 { s_29de20 field_0[30]; short field_b4; };
-short function_29de20(s_29de21 *arg_0, short arg_1, point3f const *arg_2, long arg_3);
+short function_29de20(short arg_1, s_29de21 *arg_0, point3f const *arg_2, long arg_3);
 
 struct s_29e0f0 { long field_0; point3f *field_4; };
 struct s_29e0f1 { byte field_0[0x40]; long field_40; s_29e0f0 *field_44; };
@@ -155,7 +155,7 @@ bool __stdcall function_29e0f0(point3f const *arg_0, long arg_1, s_reference arg
                                 {
                                     point3f *local_34 = &local_22->field_4[local_28];
                                     real local_35 = function_29e3b1(local_34, arg_0) + function_29e3b1(local_30, local_34) + local_31;
-                                    if (local_3 > local_35 && function_29de20(arg_3, local_33, arg_0, arg_1) == 1)
+                                    if (local_3 > local_35 && function_29de20(local_33, arg_3, arg_0, arg_1) == 1)
                                     {
                                         local_3 = local_35;
                                         local_0 = (short)local_15;
