@@ -27,13 +27,11 @@ void function_118fe0(long arg_0, bool arg_1);
 // @retail 0x28e320
 bool function_28e320(long arg_0, long arg_1)
 {
+	bool local_2 = false;
 	byte *local_4 = g_5044c8->data;
 	long local_5 = (arg_0 & 0xffff) * sizeof(s_28e320);
 	s_28e320 *local_0 = (s_28e320 *)(local_4 + local_5);
-	long local_6 = arg_1 & 0xffff;
-	s_object_header_view *local_7 = (s_object_header_view *)g_4e0300->data;
-	s_handler_object_view *local_1 = (s_handler_object_view *)local_7[local_6].object;
-	bool local_2 = false;
+	s_handler_object_view *local_1 = handler_object_get(arg_1);
 	s_28e324 *local_3;
 	if (!local_1->flags134 && (local_3 = (s_28e324 *)((byte *)local_1 + local_1->ai_offset)) != NULL && local_3->field_8 == NONE)
 	{

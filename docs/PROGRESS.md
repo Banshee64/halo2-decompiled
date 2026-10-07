@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6790 functions match
+
+```
+matched 6790 of 11318 game functions (744337 of 2784283 bytes, 26.73%)
+```
+
+6790 new matches, none lost:
+- Merge batch r15: the second machine's #162 (lane AC round 12, +7) and Codex lane D round 29 (written source only).
+
+## 2026-10-07: 6783 functions match
+
+```
+matched 6783 of 11318 game functions (743501 of 2784283 bytes, 26.70%)
+```
+
+6783 new matches, none lost:
+- Merge batch r14: Codex lane B round 12 (+4) and the second machine's #161 (lane I round 6, +1).
+
+## 2026-10-07: 6778 functions match
+
+```
+matched 6778 of 11318 game functions (742632 of 2784283 bytes, 26.67%)
+```
+
+6778 new matches, none lost:
+- Merge batch r13: the second machine's #160 (lane C round 29, +11, unlocked by the caller fixes in #130) and #159 (lane O round 11, +1).
+
 ## 2026-10-07: 6766 functions match
 
 ```

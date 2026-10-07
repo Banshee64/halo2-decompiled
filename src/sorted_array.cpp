@@ -15,23 +15,24 @@ struct s_sorted_array
 // @retail 0x1dd560
 void *__stdcall function_1dd560(s_sorted_array *array, long key, long element_size)
 {
-	bool last = false;
+	s_sorted_array *local_0 = array;
+	array = NULL;
 	long lower = 0;
-	long upper = array->count - 1;
-	void *result = NULL;
+	long upper = local_0->count - 1;
+	bool last = false;
 
-	while (!result && !last && lower <= upper)
+	while (!array && !last && lower <= upper)
 	{
-		long middle = (lower + upper) >> 1;
-		long *element = (long *)(array->elements + middle * element_size);
-
 		last = lower == upper;
+		long middle = (lower + upper) >> 1;
+		long *element = (long *)(local_0->elements + middle * element_size);
+
 		if (*element == key)
-			result = element;
+			array = (s_sorted_array *)element;
 		else if (*element > key)
 			upper = middle - 1;
 		else if (*element < key)
 			lower = middle + 1;
 	}
-	return result;
+	return array;
 }

@@ -188,11 +188,12 @@ bool __stdcall function_1bf230(long actor_index, s_slot *slot)
 // @retail 0x1bf360
 void __stdcall function_1bf360(long actor_index, s_slot *slot)
 {
+	long prop_index = actor_get(actor_index)->prop_index;
 	s_actor_view *actor = actor_get(actor_index);
 
-	if (actor->prop_index != NONE)
+	if (prop_index != NONE)
 	{
-		short value = prop_node_get(actor->prop_index)->unknown24;
+		short value = prop_node_get(prop_index)->unknown24;
 
 		if (value >= 1 && value <= 2)
 		{

@@ -8,6 +8,7 @@
 #include "unknown_1f4460.h"
 #include "unknown_0259d0.h"
 #include "unknown_2626b0.h"
+#include <string.h>
 
 void function_1f86a0(long index);
 bool __stdcall function_1f8a70(long actor_index, long unknown);
@@ -201,6 +202,81 @@ bool function_1f4460(long actor_index, s_type_c3b527 const *point, long target_i
 		actor->unknown656 = 0;
 
 	return function_1f8a70(actor_index, 0);
+}
+
+// @retail 0x1f45c0
+bool function_1f45c0(long actor_index, s_type_c3b527 const *point, long target_index, bool unknown)
+{
+	bool result = true;
+	s_actor_view *actor = actor_get(actor_index);
+	function_2628f0(actor_index, g_470fa0);
+	if (actor->unknown4ac == 3 && !(function_210a30(point, &actor->unknown4b8) > 0.1f * 0.1f))
+	{
+		if (actor->unknown040 && !actor->unknown506)
+			result = function_1f8a70(actor_index, 0);
+	}
+	else
+	{
+		function_1f86a0(actor_index);
+		*(real volatile *)&actor->unknown4b0 = 0.0f;
+		*(real volatile *)&actor->unknown4b4 = 0.0f;
+		*(real volatile *)&actor->unknown4cc = 0.0f;
+		*(real volatile *)&actor->unknown4d0 = 0.0f;
+		*(short volatile *)&actor->unknown4ac = 0;
+		*(bool volatile *)&actor->unknown4ae = false;
+		actor->unknown4d4 = false;
+		actor->unknown4d5 = false;
+		actor->unknown4e8 = false;
+		actor->unknown4e4 = NONE;
+		actor->unknown4ac = 3;
+		actor->unknown4ae = unknown;
+		actor->unknown4b8 = *point;
+		actor->unknown4c8 = NONE;
+		actor->unknown4e4 = target_index;
+		actor->unknown656 = 0;
+		result = function_1f8a70(actor_index, 0);
+	}
+	return result;
+}
+
+// @retail 0x1f46f0
+bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, byte *scratch, bool unknown)
+{
+	bool result = true;
+	s_actor_view *actor = actor_get(actor_index);
+	if (actor->unknown4ac == type && *(long *)&actor->unknown4b8 == *(long *)&reference)
+	{
+		if (actor->unknown040 && !actor->unknown506)
+		{
+			long request = 0;
+			if (actor->unknown5b4 <= 0)
+				request = (long)scratch;
+			result = function_1f8a70(actor_index, request);
+		}
+	}
+	else
+	{
+		function_1f86a0(actor_index);
+		if (scratch)
+			memcpy((byte *)actor + 0x5b4, scratch + 0x70, 0x1c);
+		*(short volatile *)&actor->unknown4ac = 0;
+		*(bool volatile *)&actor->unknown4ae = false;
+		actor->unknown4d4 = false;
+		actor->unknown4d5 = false;
+		actor->unknown4e8 = false;
+		actor->unknown4b0 = 0.0f;
+		actor->unknown4b4 = 0.0f;
+		actor->unknown4cc = 0.0f;
+		actor->unknown4d0 = 0.0f;
+		actor->unknown4e4 = NONE;
+		actor->unknown4ac = type;
+		*(s_reference *)&actor->unknown4b8 = reference;
+		*((byte *)actor + 0x4bc) = false;
+		actor->unknown3f1 = false;
+		actor->unknown4ae = unknown;
+		result = function_1f8a70(actor_index, (long)scratch);
+	}
+	return result;
 }
 
 /* the parts of a unit or vehicle that set how fast its actor can stop */
