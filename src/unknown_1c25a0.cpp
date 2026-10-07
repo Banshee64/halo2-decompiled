@@ -176,7 +176,7 @@ struct s_velocity_object_header
 // @retail 0x1c4b00
 void function_1c4b00(long object_index, void *linear, void *angular, long force)
 {
-	long component_index = havok_object_get(object_index)->havok_component_index;
+	long component_index = *(volatile long const *)&havok_object_get(object_index)->havok_component_index;
 	if (component_index != NONE)
 	{
 		s_havok_component *component = havok_component_get(component_index);
@@ -772,7 +772,7 @@ void function_1c50c0(void)
 		hkSimulationIsland *island = g_51e9a4->m_islands[island_index];
 		long entity_count = island->m_entity_count;
 		long count = 0;
-		bool removed = false;
+		volatile bool removed = false;
 		long i;
 
 		for (i = 0; i < entity_count; i++)
@@ -790,10 +790,7 @@ void function_1c50c0(void)
 			g_51e9a4->removeSimulationIsland(island);
 			removed = true;
 		}
-		if (!removed)
-		{
-			island_index++;
-		}
+		island_index += !removed;
 	}
 }
 

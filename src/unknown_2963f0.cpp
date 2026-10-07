@@ -306,11 +306,18 @@ __forceinline long function_295a34(real arg_0)
 	return local_0;
 }
 
+#pragma inline_depth(0)
+PRIVATE __forceinline bool function_2959c1(short arg_0, short arg_1, long arg_2, long arg_3, void const *arg_4)
+{
+    return function_114b60(arg_0, arg_1, arg_2, arg_3, arg_4);
+}
+#pragma inline_depth(255)
+
 // @retail 0x2959c0
 void function_2959c0()
 {
 	s_2959c1 *local_0 = (s_2959c1 *)g_4e034c;
-	long local_1 = g_510c54->game_time;
+	long local_1 = *(volatile long *)&g_510c54->game_time;
 	if (local_0->field_c8 > 0 && local_0->field_cc->field_120 > 0)
 	{
 		real *local_2 = local_0->field_cc->field_124;
@@ -318,11 +325,16 @@ void function_2959c0()
 		local_3->field02++;
 		if (local_3->field02 > 5000)
 			local_3->field02 = 5000;
-		if (local_3->field0c != NONE && local_1 - local_3->field0c > function_295a34(g_510c54->field_2_3 * 10.0f))
-		{
-			local_3->field0c = NONE;
-			local_3->field08 = 0;
-		}
+		if (local_3->field0c != NONE)
+        {
+            long local_9 = function_295a34(g_510c54->field_2_3 * 10.0f);
+            if (local_1 - *(volatile long *)&local_3->field0c > local_9)
+            {
+                local_3->field0c = NONE;
+                local_3->field08 = 0;
+            }
+        }
+		volatile long local_8 = 3;
 		long local_4 = 0;
 		do
 		{
@@ -331,12 +343,16 @@ void function_2959c0()
 				long local_5 = actor_get(local_3->indices[local_4])->unknown018;
 				if (local_5 != NONE)
 				{
-					function_114b60(NONE, local_3->field00 == 0 ? 0x10 : 0x11, local_5, 0xe, NULL);
+					if (local_3->field00 == 0)
+						function_2959c1(NONE, 0x10, local_5, 0xe, NULL);
+					else
+						function_2959c1(NONE, 0x11, local_5, 0xe, NULL);
 					local_3 = (s_295970_state *)g_5047f4;
 				}
 			}
 			local_4++;
-		} while (local_4 < 3);
+			local_8--;
+		} while (local_8 != 0);
 		short local_6;
 		switch (local_3->field00)
 		{
