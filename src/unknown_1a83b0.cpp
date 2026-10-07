@@ -168,10 +168,11 @@ bool __stdcall function_1a9400(long actor_index, s_slot *slot)
 	}
 	return true;
 }
+#pragma inline_depth(0)
 // @retail 0x1a94b0
 void __stdcall function_1a94b0(long actor_index, s_slot *slot)
 {
-	s_actor_view *actor = actor_get(actor_index);
+	s_actor_view *actor = (s_actor_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_view));
 
 	if (actor->prop_index != NONE)
 	{
@@ -195,6 +196,7 @@ void __stdcall function_1a94b0(long actor_index, s_slot *slot)
 		actor->unknown420 = 2;
 	}
 }
+#pragma inline_depth(255)
 
 // @retail 0x1a9540
 short __stdcall function_1a9540(long actor_index)
