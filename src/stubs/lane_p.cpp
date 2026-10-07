@@ -7,3 +7,27 @@
 void __stdcall function_52040(void const *arg_1, void const *arg_2)
 {
 }
+
+struct transform4x3f;
+// @stub 0xbd610
+transform4x3f const *__stdcall function_bd610(long arg_1, byte const *arg_2, transform4x3f const *arg_3)
+{
+	return 0;
+}
+
+struct short_rectangle2d;
+class c_1fa50
+{
+public:
+	void function_1fa50(short_rectangle2d const *arg_1, void const *arg_2, void const *arg_3, long arg_4, real arg_5, long arg_6, void const *arg_7) const;
+};
+
+// @stub 0x1fa50
+void c_1fa50::function_1fa50(short_rectangle2d const *arg_1, void const *arg_2, void const *arg_3, long arg_4, real arg_5, long arg_6, void const *arg_7) const
+{
+}
+
+// @stub 0xf8190
+void function_f8190(void)
+{
+}
