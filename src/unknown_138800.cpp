@@ -246,30 +246,25 @@ void function_138a40(short point_index)
 // @retail 0x138ab0
 short function_138ab0()
 {
-	s_game_options_view *options = g_4e6948;
 	short result = NONE;
-
+	s_game_options_view *options = g_4e6948;
 	switch (options->value11fa)
 	{
 	case _focus_object:
 		if (function_badc0(options->value11fc, NONE))
 		{
-			long object_index = function_baf80(options->value11fc);
+			long object_index = function_baf80(*(volatile long const *)&options->value11fc);
 			s_object_location_view *object = ((s_object_header_location_view *)g_4e0300->data)[object_index & 0xffff].object;
 			if (TEST_FIELD_BIT(object->has_location) && object->location.cluster_index != NONE)
-			{
-				return object->location.cluster_index;
-			}
+				result = object->location.cluster_index;
 		}
 		else
-		{
 			options->value11fa = _focus_none;
-		}
 		break;
 	case _focus_cluster:
-		return options->cluster11fc;
+		result = options->cluster11fc;
+		break;
 	}
-
 	return result;
 }
 
