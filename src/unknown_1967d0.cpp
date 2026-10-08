@@ -56,21 +56,23 @@ void function_1968b0(long c, long a, long b, long value)
 		long maximum = g_46ddc0[b].maximum;
 		if (a != NONE)
 		{
-			long clamped = value;
-			if (clamped < minimum)
+			s_input_counter *counter = &g_511bf4.all[a * 0x1b5 + b];
+			long clamped;
+			if (value < minimum)
 				clamped = minimum;
-			else if (clamped > maximum)
-				clamped = maximum;
-			g_511bf4.all[a * 0x1b5 + b].value = clamped;
+			else
+				clamped = value > maximum ? maximum : value;
+			counter->value = clamped;
 		}
 		if (c != NONE)
 		{
-			long clamped = value;
-			if (clamped < minimum)
+			s_input_counter *counter = &g_511bf4.counters[0][c * 0x2d + b];
+			long clamped;
+			if (value < minimum)
 				clamped = minimum;
-			else if (clamped > maximum)
-				clamped = maximum;
-			g_511bf4.counters[0][c * 0x2d + b].value = clamped;
+			else
+				clamped = value > maximum ? maximum : value;
+			counter->value = clamped;
 		}
 	}
 }
