@@ -57,12 +57,6 @@ void function_22aa16(long arg_1, byte const *arg_2, byte const *arg_3, real cons
 
 struct s_133f70;
 union point3f;
-// @stub 0x4b5d0
-void function_4b5d0(long arg_1, long arg_2, bool arg_3, real arg_4, real arg_5,
-    s_133f70 *arg_6, point3f const *arg_7, bool arg_8)
-{
-}
-
 // @stub 0x13aa27
 void function_13aa27(long arg_1, byte const *arg_2, byte *arg_3, long arg_4, byte const *arg_5)
 {
