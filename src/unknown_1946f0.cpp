@@ -29,6 +29,22 @@ static __inline real normalize3d(vector3f *v)
 	return 0.f;
 }
 
+// Decode normalization uses the rounded local components in double products.
+static __forceinline real normalize_decoded_direction(vector3f *v)
+{
+	vector3f const volatile *stored = v;
+	real m = (real)sqrt((double)stored->i * stored->i + (double)stored->k * stored->k + (double)stored->j * stored->j);
+	if (!(fabs(m) < k_real_epsilon))
+	{
+		real inv = 1.f / m;
+		v->i = inv * v->i;
+		v->j = inv * v->j;
+		v->k = v->k * inv;
+		return m;
+	}
+	return 0.f;
+}
+
 // @retail 0x194830
 void function_194830(s_bitstream *stream, bool value)
 {
@@ -106,33 +122,35 @@ void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f cons
 // @retail 0x195070
 void function_195070(s_bitstream *stream, vector3f *out, real lo, real hi, long bits)
 {
-	if (function_1957d0(stream))
+	if (!function_1957d0(stream))
 	{
-		*out = *g_4687a4;
-		return;
-	}
-	long index = (long)function_1959c0(stream, k_direction_bits);
-	vector3f direction;
-	{
-		s_direction_face const *face = &g_475480[index >> 12];
-		real x = (real)(index & 0x3f) * (1.f / 63.f) * 2.f;
-		real y = (real)((index >> 6) & 0x3f) * (1.f / 63.f) * 2.f;
-		real z = 0.f;
-		if (face->scale != 1.f)
+		long index = (long)function_1959c0(stream, k_direction_bits);
+		vector3f direction;
 		{
-			x = face->scale * x;
-			y = face->scale * y;
-			z = face->scale * z;
+			s_direction_face const *face = &g_475480[index >> 12];
+			real x = (real)(index & 0x3f) * (1.f / 63.f);
+			real y = (real)((index >> 6) & 0x3f) * (1.f / 63.f);
+			x = x * 2.f;
+			y = y * 2.f;
+			real z = 0.f;
+			if (face->scale != 1.f)
+			{
+				x = face->scale * x;
+				y = face->scale * y;
+				z = face->scale * z;
+			}
+			direction.i = (double)face->axes[2].i * z + (double)face->axes[1].i * y + (double)face->axes[0].i * x + face->origin.i;
+			direction.j = (double)face->axes[2].j * z + (double)face->axes[1].j * y + (double)face->axes[0].j * x + face->origin.j;
+			direction.k = (double)face->axes[2].k * z + (double)face->axes[1].k * y + (double)face->axes[0].k * x + face->origin.k;
 		}
-		direction.i = z * face->axes[2].i + y * face->axes[1].i + x * face->axes[0].i + face->origin.i;
-		direction.j = z * face->axes[2].j + y * face->axes[1].j + x * face->axes[0].j + face->origin.j;
-		direction.k = z * face->axes[2].k + y * face->axes[1].k + x * face->axes[0].k + face->origin.k;
+		normalize_decoded_direction(&direction);
+		real magnitude = function_194ff0(stream, lo, hi, bits);
+		out->i = magnitude * direction.i;
+		out->j = magnitude * direction.j;
+		out->k = magnitude * direction.k;
 	}
-	normalize3d(&direction);
-	real magnitude = function_194ff0(stream, lo, hi, bits);
-	out->i = direction.i * magnitude;
-	out->j = direction.j * magnitude;
-	out->k = direction.k * magnitude;
+	else
+		*out = *g_4687a4;
 }
 
 // @retail 0x195370
