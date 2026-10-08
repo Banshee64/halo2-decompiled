@@ -68,8 +68,6 @@ bool function_10ff40(long unit_index, long type, short side, short value, bool *
 
 /* outside the unit range */
 
-// @stub 0x1c95d0
-void function_1c95d0(long unit_index, long attacker_index, short type, real amount) { }
 
 
 struct s_unit_melee_hit;

@@ -3,6 +3,23 @@
 #include "unknown_11c920.h"
 #include "unknown_1cec30.h"
 
+// @stub 0x211640
+void function_211640(long arg_0) {}
+
+// @stub 0x295e60
+void function_295e60(long arg_0) {}
+
+class c_1d1261
+{
+public:
+ hkBool function_30ca30(void *arg_0);
+ void function_30bd10(void *arg_0);
+};
+// @stub 0x30ca30
+hkBool c_1d1261::function_30ca30(void *arg_0) { return hkBool(); }
+// @stub 0x30bd10
+void c_1d1261::function_30bd10(void *arg_0) {}
+
 class c_2df9d0
 {
 public:
@@ -109,8 +126,6 @@ public:
 // @stub 0xa9ef0
 void c_278370::function_a9ef0(void *arg_0) {}
 
-// @stub 0x1c4260
-void function_1c4260() {}
 // @stub 0x2d8910
 void __cdecl function_2d8910(long arg_0) {}
 // @stub 0x2d8890
@@ -185,8 +200,6 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 /* the physics callees of the havok components */
 struct s_havok_component;
 
-// @stub 0x1d1260
-void function_1d1260(s_havok_component *component) { }
 
 // @stub 0x3126f0
 void hkRigidBody::setTransform(hkTransform const &transform) { }
