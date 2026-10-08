@@ -187,11 +187,11 @@ s_node_450d1c *function_89df0(s_owner_450d1c *owner)
 	s_node_450d1c *node = (s_node_450d1c *)handle_allocate(sizeof(s_node_450d1c));
 	if (node)
 	{
-		node->unknown04 = NONE;
-		node->timeout = NONE;
-		node->unknown00 = 0;
-		node->unknown10 = NONE;
-		node->unknown14 = NONE;
+		*(volatile long *)&node->unknown04 = NONE;
+		*(volatile long *)&node->timeout = NONE;
+		*(volatile long *)&node->unknown00 = 0;
+		*(volatile long *)&node->unknown10 = NONE;
+		*(volatile long *)&node->unknown14 = NONE;
 		node->data = 0;
 		node->size = 0;
 		node->active_mask = 0;

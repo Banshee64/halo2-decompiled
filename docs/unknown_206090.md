@@ -235,7 +235,7 @@ For point i, P is points[i] and pdef its definition. The index i is at
    state `+0x6c` × ramp, where n is the hit normal at `S+0x104`
    (`0x2064fd`–`0x20657e`).
 8. When P `+0xa0` is positive (`0x206584`), the wobble (`0x20658a`–`0x206614`):
-   phase = (q × 0.10000002 + 0.9) × game_time × rate × 0.3 + i × 42, computed
+   phase = (q × 0.100000024 + 0.9) × game_time × rate × 0.3 + i × 42, computed
    in x87, where q = (i + 1) / point_count is an integer division (`idiv` at
    `0x206590`), 1 for the last point and 0 for the others. With w =
    `function_17c900(8, phase)` (8 in `eax`; `0x2065cd`), F becomes F × (1 − P
@@ -486,7 +486,7 @@ type in `s_vehicle_contact_result` and flag2c in `s_query_batch_result`. Impact
   calls and jumps, `0F 80`–`8F` rel32 jumps and absolute dwords. The call at
   `0x205741` is the only reference to `0x206090`.
 - Constants are read from retail `.rdata`: `0x45df80` (0.31830987), `0x45dc68`
-  (0.1), `0x45dc70` (0.001), `0x45e5d0` (0.10000002), `0x45dc84` (0.9),
+  (0.1), `0x45dc70` (0.001), `0x45e5d0` (0.100000024), `0x45dc84` (0.9),
   `0x44ae90` (0.3), `0x45e3b0` (42.0), `0x45dd24` (0.55), `0x45de20` (0.45),
   `0x45dbdc` (0.0001), `0x45df78` (0.0625), `0x44541c` (16.0), `0x45dbbc`
   (0.5), `0x45dc18` (8.0), `0x45dc5c` (0.2), `0x45dff0` (1.3), `0x45dbc0`

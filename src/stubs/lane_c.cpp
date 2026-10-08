@@ -630,8 +630,6 @@ void s_314450::function_314450(s_314320 *arg_0) {}
 // @stub 0x314480
 void s_314450::function_314480(s_314320 const *arg_0) {}
 
-// @stub 0x1e2570
-void __stdcall function_1e2570(long arg_0, word arg_1, long arg_2, real arg_3, long arg_4) {}
 
 class c_30b080
 {

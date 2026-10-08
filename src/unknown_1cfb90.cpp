@@ -19,6 +19,15 @@ struct s_1cfb90
  __m128 field_70[2];
 };
 
+PRIVATE __forceinline void function_1cfb91(hkVector4 *arg_0, real const *arg_1)
+{
+ real *local_0 = (real *)&arg_0->m_quad;
+ local_0[0] = (*(real const volatile *)&arg_1[0] + arg_1[1]) * 0.5f;
+ local_0[1] = (*(real const volatile *)&arg_1[2] + arg_1[3]) * 0.5f;
+ local_0[2] = (*(real const volatile *)&arg_1[5] + arg_1[4]) * 0.5f;
+ local_0[3] = 0.0f;
+}
+
 // @retail 0x1cfb90
 void function_1cfb90(s_havok_component *arg_0, transform4x3f const *arg_1, void const *arg_2)
 {
@@ -26,8 +35,7 @@ void function_1cfb90(s_havok_component *arg_0, transform4x3f const *arg_1, void 
  {
   real const *local_0 = (real const *)arg_2;
   s_1cfb90 local_1;
-  local_1.field_20.set((local_0[0] + local_0[1]) * 0.5f, (local_0[2] + local_0[3]) * 0.5f,
-   (local_0[5] + local_0[4]) * 0.5f);
+  function_1cfb91(&local_1.field_20, local_0);
   local_1.field_0.set((local_0[1] - local_0[0]) * 0.5f, (local_0[3] - local_0[2]) * 0.5f,
    (local_0[5] - local_0[4]) * 0.5f);
   local_1.field_30.m_rotation.m_col0.set(arg_1->forward.i, arg_1->forward.j, arg_1->forward.k);

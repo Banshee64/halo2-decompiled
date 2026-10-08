@@ -116,3 +116,98 @@ void __stdcall function_23aad0(long previous_address, long current_address, long
 		}
 	}
 }
+
+struct s_vertex_bounds_23ac30
+{
+	real x0, x1, y0, y1, z0, z1;
+};
+
+struct s_vertex_buffer_23ac30
+{
+	byte format;
+	byte unknown01[7];
+	long offset;
+	byte const *data;
+};
+
+struct s_vertex_source_23ac30
+{
+	byte unknown00[0x3c];
+	s_vertex_buffer_23ac30 const *buffer;
+};
+
+struct s_vertex_with_node_23ac30
+{
+	point3f position;
+	byte node;
+	byte unknown0d[3];
+};
+
+struct s_packed_vertex_23ac30
+{
+	short x, y, z;
+};
+
+struct s_packed_vertex_with_node_23ac30
+{
+	short x, y, z;
+	byte node;
+	byte unknown07;
+};
+
+PRIVATE __forceinline void vertex_decode_ranges_23ac30(short x, short y, short z,
+	s_vertex_bounds_23ac30 const *bounds, vector3f const *range, point3f *point)
+{
+	point3f result;
+	result.x = (((real)x * 2.0f + 1.0f) * 0.000007629510946571827f + 0.5f) * range->i + bounds->x0;
+	result.y = (((real)y * 2.0f + 1.0f) * 0.000007629510946571827f + 0.5f) * range->j + bounds->y0;
+	result.z = (((real)z * 2.0f + 1.0f) * 0.000007629510946571827f + 0.5f) * range->k + bounds->z0;
+	*point = result;
+}
+
+PRIVATE __forceinline void vertex_decode_23ac30(short x, short y, short z,
+	s_vertex_bounds_23ac30 const *bounds, point3f *point)
+{
+	vector3f range = { bounds->x1 - bounds->x0, bounds->y1 - bounds->y0, bounds->z1 - bounds->z0 };
+	vertex_decode_ranges_23ac30(x, y, z, bounds, &range, point);
+}
+
+// @retail 0x23ac30
+void function_23ac30(s_vertex_source_23ac30 const *source, long index,
+	s_vertex_bounds_23ac30 const *bounds, point3f *point, long *node)
+{
+	long const *index_reference = &index;
+	s_vertex_buffer_23ac30 const *buffer = source->buffer;
+	switch (buffer->format)
+	{
+	case 1:
+		*point = ((point3f const *)(buffer->data + buffer->offset))[*index_reference];
+		if (node) *node = 0;
+		break;
+	case 2:
+		{
+			s_packed_vertex_23ac30 const *vertex = ((s_packed_vertex_23ac30 const *)(buffer->data + buffer->offset)) + *index_reference;
+			vertex_decode_23ac30(vertex->x, vertex->y, vertex->z, bounds, point);
+			if (node) *node = 0;
+		}
+		break;
+	case 3:
+		{
+			s_vertex_with_node_23ac30 const *vertex = ((s_vertex_with_node_23ac30 const *)(buffer->data + buffer->offset)) + *index_reference;
+			*point = vertex->position;
+			if (node) *node = vertex->node;
+		}
+		break;
+	case 4:
+		{
+			s_packed_vertex_with_node_23ac30 const *vertex = ((s_packed_vertex_with_node_23ac30 const *)(buffer->data + buffer->offset)) + *index_reference;
+			vertex_decode_23ac30(vertex->x, vertex->y, vertex->z, bounds, point);
+			if (node) *node = vertex->node;
+		}
+		break;
+	default:
+		*point = *g_468788;
+		if (node) *node = 0;
+		break;
+	}
+}
