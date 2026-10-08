@@ -210,24 +210,24 @@ void ascii_string_to_unicode(const char *source, word *destination, long maximum
 }
 
 // @retail 0x13fcd0
-bool unicode_ranges_contain(long range_count, word character, const unicode_range *ranges)
+bool unicode_ranges_contain(long range_count, utf32 character, const unicode_range *ranges)
 {
 	const unicode_range *const *ranges_reference = &ranges;
 	bool result = false;
 	long low = 0;
 	long high = range_count - 1;
-	word c = character;
+	long c = character.value;
 	const unicode_range *r = *ranges_reference;
 
 	while (low <= high)
 	{
 		long mid = (low + high) / 2;
 
-		if (c < r[mid].first)
+		if ((word)c < r[mid].first)
 		{
 			high = mid - 1;
 		}
-		else if (c > r[mid].last)
+		else if ((word)c > r[mid].last)
 		{
 			low = mid + 1;
 		}

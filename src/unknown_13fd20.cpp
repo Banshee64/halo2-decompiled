@@ -10,7 +10,7 @@ struct unicode_range
 	word last;
 };
 
-bool unicode_ranges_contain(long range_count, word character, const unicode_range *ranges);
+bool unicode_ranges_contain(long range_count, utf32 character, const unicode_range *ranges);
 bool function_13fd90(utf32 character);
 bool function_13fde0(utf32 character);
 bool function_140260(utf32 character);
@@ -43,7 +43,7 @@ bool function_13fd20(utf32 previous, utf32 character)
 	{
 		bool non_beginning = function_13fde0(character);
 		bool non_ending = function_140260(previous);
-		if ((unicode_ranges_contain(sizeof(g_4536cc) / sizeof(g_4536cc[0]), (word)previous.value, g_4536cc) ||
+		if ((unicode_ranges_contain(sizeof(g_4536cc) / sizeof(g_4536cc[0]), previous, g_4536cc) ||
 			function_13fd90(previous) || function_13fd90(character)) &&
 			!non_beginning && !non_ending)
 		{

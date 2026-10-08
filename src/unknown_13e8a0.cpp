@@ -3,6 +3,7 @@
    justification and tab stops */
 
 #include "unknown_11c920.h"
+#include "unknown_13eeb0.h"
 #include "unknown_0259d0.h"
 #include "globals.h"
 #include "font_loading.h"
@@ -200,7 +201,7 @@ void function_13edb0(long font, long style, long justification, dword flags, col
 
 #include "unknown_13fd90.h"
 
-bool font_cache_predict_character(long font_index, long character);
+bool font_cache_predict_character(s_13eeb1 font_index, s_13eeb1 character);
 long unicode_escape_character_lookup(word character, bool *found);
 bool function_13fd20(utf32 previous, utf32 character);
 
@@ -352,7 +353,9 @@ bool function_13eeb0(dword const *string, long font)
 			function_13f5a0(&iterator);
 			if (iterator.token == _text_token_character)
 			{
-				if (!font_cache_predict_character(font, iterator.character))
+				s_13eeb1 local_1 = { iterator.character };
+				s_13eeb1 local_2 = { font };
+				if (!font_cache_predict_character(local_2, local_1))
 				{
 					result = false;
 				}
