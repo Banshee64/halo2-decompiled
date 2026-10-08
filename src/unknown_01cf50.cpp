@@ -1,6 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "index_cache_storage.h"
 #include <xtl.h>
 #include <string.h>
 #include <math.h>
@@ -3278,14 +3279,6 @@ bool function_12420()
 
 
 
-struct s_44940_entry
-{
-    dword unknown00;
-    long tag;
-    dword unknown08;
-    dword flags;
-    byte unknown10[0x10];
-};
 extern s_44940_entry g_4ba138[850];
 extern byte g_485a75, g_485a76;
 void function_15370(short mode);
@@ -5592,15 +5585,7 @@ void function_46ea0(long tag, point3f const *position)
     } while (i < 16);
 }
 
-struct s_index_cache
-{
-	long index;
-	short count;
-	short unknown06;
-	long values[256];
-};
 
-extern s_index_cache g_4c6b00[8];
 extern long g_50943c, g_509440;
 struct s_2cb30_state
 {
@@ -5638,15 +5623,7 @@ void function_41040(short index, long part_index, long group, byte weight,
     s_render_part_context const *context, long material_override, bool force,
     dword and_mask, dword or_mask);
 void *function_449e0(short index, bool load, bool instance);
-extern s_44940_entry g_4c6700[32];
-struct s_first_index_cache_44ac0
-{
-    s_44940_entry entries[32];
-    long index;
-    short count;
-    short unknown406;
-};
-s_first_index_cache_44ac0 g_4c62f8;
+s_index_cache_storage g_4c62f8;
 bool function_460d0(dword const *mask, short index, long part_index);
 
 // @retail 0x44ac0
@@ -5668,20 +5645,14 @@ void __stdcall function_44ac0(long group, dword selection_mask, long level)
                 if (g_50943c < 32)
                     ((word *)g_4c6b00[7].values)[g_50943c++] = (word)index;
             }
-            else if (!g_509440)
+            else
             {
-                if (g_4c62f8.count < 32)
+                long count = g_4c62f8.records.blocks[g_509440].count;
+                if (count < 32)
                 {
-                    g_4c62f8.entries[g_4c62f8.count] = *entry;
-                    ++g_4c62f8.count;
+                    g_4c62f8.records.blocks[g_509440].entries[count] = *entry;
+                    ++g_4c62f8.records.blocks[g_509440].count;
                 }
-            }
-            else if (g_4c6b00[g_509440 - 1].count < 32)
-            {
-                s_44940_entry *entries = g_509440 == 1 ? g_4c6700 :
-                    (s_44940_entry *)g_4c6b00[g_509440 - 2].values;
-                entries[g_4c6b00[g_509440 - 1].count] = *entry;
-                ++g_4c6b00[g_509440 - 1].count;
             }
             continue;
         }

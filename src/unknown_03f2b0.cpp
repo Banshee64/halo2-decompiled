@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "index_cache_storage.h"
 #include "physical_memory.h"
 #include <string.h>
 #include <xtl.h>
@@ -237,15 +238,7 @@ void function_3f3f0(void)
 	}
 }
 
-struct s_index_cache
-{
-	long index;
-	short count;
-	short unknown06;
-	long values[256];
-};
 
-s_index_cache g_4c6b00[8];
 long g_50943c;
 long g_509440;
 
@@ -756,14 +749,6 @@ void function_2cb30(void)
 		g_4c0b78.current = g_4c0b78.previous;
 }
 
-struct s_44940_entry
-{
-	dword unknown00;
-	long tag;
-	dword unknown08;
-	dword flags;
-	byte unknown10[0x10];
-};
 
 s_44940_entry g_4ba138[850];
 
