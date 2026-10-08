@@ -1714,7 +1714,7 @@ void function_14ac0(void)
 long g_4858b8;
 
 // @retail 0x1d4b0
-void function_1d4b0(long format, bool alternate, bool *linear, long *result)
+void function_1d4b0(long format, bool alternate, long *result, bool *linear)
 {
 	*linear = false;
 	switch (format)
@@ -2788,7 +2788,7 @@ bool __stdcall function_1d2f0(D3DSurface *surface, byte *bitmap)
     *(short *)(bitmap + 0xa) = 0;
     bool linear;
     long format;
-    function_1d4b0(description.Format, false, &linear, &format);
+    function_1d4b0(description.Format, false, &format, &linear);
     if (format == NONE)
         return false;
     *(short *)(bitmap + 0xc) = (short)format;

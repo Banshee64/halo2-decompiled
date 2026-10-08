@@ -276,15 +276,22 @@ short function_101280(long index);
 // @retail 0xa8f10
 void function_a8f10(long index, long target, short value)
 {
-    long objects[2];
-    long data[2];
+    struct s_pair_message
+    {
+        long data[2];
+        long objects[2];
+        s_pair_message(long source, long target, short value)
+        {
+            objects[1] = target;
+            objects[0] = source;
+            data[0] = *(long *)(EVENT_OBJECT(source) + 0x210);
+            data[1] = value;
+        }
+    };
     if (function_a76b0(index, 1))
     {
-        objects[1] = target;
-        objects[0] = index;
-        data[0] = *(long *)(EVENT_OBJECT(index) + 0x210);
-        data[1] = value;
-        function_b5a70(NONE, 0x10, 2, (long)objects, sizeof(data), data, g_4ceea4);
+        s_pair_message message(index, target, value);
+        function_b5a70(NONE, 0x10, 2, (long)message.objects, sizeof(message.data), message.data, g_4ceea4);
     }
 }
 
