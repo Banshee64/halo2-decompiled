@@ -122,21 +122,14 @@ dword function_191660(long string_handle, long index)
 
 	if (index == NONE)
 	{
-		switch (string_handle)
-		{
-		case 0x1300012d:
-			result = 2;
-			break;
-		case 0x18000136:
-			result = 0x30;
-			break;
-		case 0x17000137:
-			result = 0xc0;
-			break;
-		case 0x11000138:
+		if (string_handle == 0x11000138)
 			result = 0xf0;
-			break;
-		}
+		else if (string_handle == 0x17000137)
+			result = 0xc0;
+		else if (string_handle == 0x18000136)
+			result = 0x30;
+		else if (string_handle == 0x1300012d)
+			result = 2;
 	}
 	else if (string_handle == 0x11000138)
 	{

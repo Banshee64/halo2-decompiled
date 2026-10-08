@@ -2075,7 +2075,7 @@ bool function_19a7e9(long controller, long value)
 		{
 			if (function_19a2ce(NULL) != 10)
 			{
-				return result;
+				goto done;
 			}
 			start = true;
 			mode = 1;
@@ -2085,6 +2085,7 @@ bool function_19a7e9(long controller, long value)
 			result = true;
 		}
 	}
+done:
 	return result;
 }
 /* the seconds of the host's countdown, while it runs */
@@ -2133,7 +2134,7 @@ long function_19a5fd(long state)
 			long state;
 			long value;
 		} entries[16];
-		long default_value;
+		volatile long default_value;
 	} table =
 	{
 		{
@@ -2157,13 +2158,19 @@ long function_19a5fd(long state)
 		0
 	};
 
+	long result;
 	for (dword i = 0; i < 16; i++)
 	{
 		if (table.entries[i].state == state)
-			return table.entries[i].value;
+		{
+			result = table.entries[i].value;
+			goto done;
+		}
 	}
 
-	return table.default_value;
+	result = table.default_value;
+done:
+	return result;
 }
 
 // @retail 0x199e7e

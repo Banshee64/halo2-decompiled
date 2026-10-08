@@ -76,33 +76,29 @@ void function_1947e0(s_bitstream *stream, dword value, long bits)
 	function_195720(stream, value, bits);
 }
 
+PRIVATE __forceinline void vector_basis_cross(vector3f const *v, vector3f const *axis, vector3f *out)
+{
+	real k = axis->j * v->i - v->j * axis->i;
+	real j = v->k * axis->i - v->i * axis->k;
+	real i = v->j * axis->k - axis->j * v->k;
+	out->i = i;
+	out->j = j;
+	out->k = k;
+}
+
 // @retail 0x194870
 real function_194870(vector3f const *v, vector3f *a, vector3f *b)
 {
 	vector3f const *r0 = g_4687a8;
-	vector3f const *r1 = g_4687ac;
 	real d0 = (real)fabs(r0->j * v->j + v->k * r0->k + v->i * r0->i);
+	vector3f const *r1 = g_4687ac;
 	real d1 = (real)fabs(r1->j * v->j + v->i * r1->i + r1->k * v->k);
-	real x, y, z;
 	if (d1 > d0)
-	{
-		x = v->j * r0->k - r0->j * v->k;
-		y = v->k * r0->i - v->i * r0->k;
-		z = r0->j * v->i - v->j * r0->i;
-	}
+		vector_basis_cross(v, r0, a);
 	else
-	{
-		x = v->j * r1->k - r1->j * v->k;
-		y = v->k * r1->i - v->i * r1->k;
-		z = r1->j * v->i - v->j * r1->i;
-	}
-	a->i = x;
-	a->j = y;
-	a->k = z;
+		vector_basis_cross(v, r1, a);
 	function_30bf0(a);
-	b->i = v->j * a->k - v->k * a->j;
-	b->j = v->k * a->i - v->i * a->k;
-	b->k = v->i * a->j - v->j * a->i;
+	vector_basis_cross(v, a, b);
 	return function_30bf0(b);
 }
 
@@ -202,10 +198,12 @@ void function_195240(s_bitstream *stream, vector3f *forward, vector3f *up)
 		function_24f6b0(function_1959c0(stream, k_direction_bits), forward);
 	long value = (long)function_1959c0(stream, 8);
 	real angle;
-	if (value != 0 && value < 254)
+	if (value == 0)
+		angle = -k_pi;
+	else if (value < 254)
 		angle = ((real)value * k_pi - (real)(254 - value) * k_pi) * (1.f / 254.f);
 	else
-		angle = -k_pi;
+		angle = k_pi;
 	function_194a10(forward, angle, up);
 }
 

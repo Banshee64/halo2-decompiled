@@ -8,6 +8,8 @@
 
 #define BYTE_SWAP_LONG(v) ((((v) & 0xff0000) | ((v) >> 16)) >> 8 | ((((v) << 16) | ((v) & 0xff00)) << 8))
 
+__declspec(noinline) dword function_199560(void *data, dword size);
+
 // @retail 0x199560
 dword function_199560(void *data, dword size)
 {
@@ -72,8 +74,8 @@ static __forceinline s_loop_allocator *compression_pool_allocate(long size)
 // @retail 0x199740
 bool __stdcall function_199740(byte *buffer, long size, byte *destination, long *decompressed_size)
 {
-    bool result = false;
     s_loop_allocator *pool = compression_pool_allocate(0x10000);
+    bool result = false;
     if (pool)
     {
         function_18e250(pool, 0xffb0, "zlib pool", NULL);

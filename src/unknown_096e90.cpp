@@ -237,7 +237,9 @@ long c_vtable_450d1c::v5(dword a1, s_bitstream *stream, long max_blocks, s_block
 // @retail 0x97690
 void c_vtable_450d1c::v6(s_block_450c94 *block)
 {
-	owner->manager->v1(block->unknown00, (dword *)&block->unknown08[0], block->count, (dword *)block->data);
+	s_block_450c94 *volatile *local_0 = &block;
+	s_block_450c94 *local_1 = *local_0;
+	owner->manager->v1(local_1->unknown00, (dword *)&local_1->unknown08[0], local_1->count, (dword *)local_1->data);
 }
 
 // @retail 0x976f0

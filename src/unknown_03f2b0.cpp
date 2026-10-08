@@ -6,6 +6,7 @@
 #include "physical_memory.h"
 #include <string.h>
 #include <xtl.h>
+#include "unknown_030290.h"
 
 void *g_509438;
 
@@ -72,7 +73,7 @@ c_allocator *function_46220(void)
 	return g_480118;
 }
 
-short g_4c1bd4;
+long g_4c1bd4;
 
 struct s_render_object_header
 {
@@ -721,7 +722,16 @@ struct s_2cb30_globals
 	long current;
 	long previous;
 	s_2cb30_state *state;
-	byte unknown0c[0x9b0 - 0xc];
+	union
+	{
+		byte unknown0c[0x9b0 - 0xc];
+		struct
+		{
+			byte weights[850];
+			byte material_indices[850];
+			long materials[192];
+		};
+	};
 	long count;
 	s_2cb30_entry entries[32];
 	long entry_count;
@@ -834,6 +844,46 @@ PRIVATE __forceinline byte *visible_entry_geometry(s_44940_entry *entry)
 	return *(byte **)(section + 0x50);
 }
 
+struct s_render_part_context;
+bool function_45ce0(short index, byte *out, short part, short transform_index);
+void function_41040(short index, long part_index, long group, byte weight,
+    s_render_part_context const *context, long material_override, bool force,
+    dword and_mask, dword or_mask);
+
+// @retail 0x44c90
+void __stdcall function_44c90(long group, dword selection_mask, long level,
+    dword and_mask, dword or_mask, dword fallback_and_mask, dword fallback_or_mask, bool force)
+{
+    long end = (word)(group ? g_4c0b78.current : g_4c0b78.previous);
+    long begin = group ? (word)g_4c0b78.previous : 0;
+    for (long index = begin; index < end; ++index)
+    {
+        s_44940_entry *entry = &g_4ba138[(short)index];
+        if (!((entry->unknown00 & selection_mask) & 0x1fffff) ||
+            ((entry->flags >> 4) & 0x1f) != level || !(entry->unknown00 & 1) || !entry->unknown10[0xa]) continue;
+        byte weight = g_4c0b78.weights[index];
+        byte material_index = g_4c0b78.material_indices[(short)index];
+        long material = material_index == 0xff ? NONE : g_4c0b78.materials[material_index];
+        byte *geometry = visible_entry_geometry(entry);
+        if (!geometry) continue;
+        if ((*(byte **)(entry->unknown10))[0x76] == 0xff)
+        {
+            and_mask = fallback_and_mask;
+            or_mask = fallback_or_mask;
+        }
+        for (long part = 0; part < *(long *)geometry; ++part)
+        {
+            byte context[0x2c];
+            if (function_45ce0((short)index, context, (short)part, (short)(entry->flags & 0xf)))
+            {
+                long selected = force || (entry->unknown00 & 0x8000) ? material : NONE;
+                function_41040((short)index, part, group, weight, (s_render_part_context *)context,
+                    selected, level != 31, and_mask, or_mask);
+            }
+        }
+    }
+}
+
 // @retail 0x458d0
 void function_458d0(short index, bool ranges, s_geometry_visibility_list const *first, s_geometry_visibility_list const *second)
 {
@@ -917,6 +967,155 @@ struct s_3d4f0_entry
 	transform4x3f transforms[64];
 };
 s_3d4f0_entry g_4c1bd8[4];
+
+#include "unknown_03bcb0.h"
+
+// @retail 0x3d600
+void function_3d600(void)
+{
+	for (long cache = 0; cache < g_4c1bd4; ++cache)
+	{
+		byte *definition = g_4e3b44[g_4c1bd8[cache].tag & 0xffff].bytes;
+		for (long section = 0; section < *(long *)(definition + 0x24); ++section)
+		{
+			byte *sections = *(byte **)(definition + 0x28);
+			function_12de70((s_geometry_block_info *)(sections + section * 0x5c + 0x38), 10);
+		}
+		for (long material = 0; material < *(long *)(definition + 0x60); ++material)
+		{
+			long tag = *(long *)(*(byte **)(definition + 0x64) + material * 0x20 + 0xc);
+			if (tag == NONE) continue;
+			byte *shader = *(byte **)(g_4e3b44[tag & 0xffff].bytes + 0x24);
+			for (long texture = 0; texture < *(long *)(shader + 4); ++texture)
+			{
+				long bitmap_tag = *(long *)(*(byte **)(shader + 8) + texture * 0xc);
+				if (bitmap_tag == NONE) continue;
+				byte *bitmap = g_4e3b44[bitmap_tag & 0xffff].bytes;
+				for (long index = 0; index < *(long *)(bitmap + 0x44); ++index)
+				{
+					s_bitmap_predict_view *image = (s_bitmap_predict_view *)(*(byte **)(bitmap + 0x48) + index * 0x74);
+					if (image) bitmap_predict_inline(image, 14);
+				}
+			}
+		}
+	}
+}
+
+struct s_planar_camera_source
+{
+	point3f origin;
+	vector3f normal;
+	vector3f horizontal;
+	byte unknown24[0x40 - 0x24];
+	real offset;
+	real depth;
+};
+struct s_planar_camera;
+struct s_timed_effect_globals;
+void function_441b0(s_planar_camera_source const *source, s_planar_camera *state, byte const *view);
+s_timed_effect_globals *function_01fd20(s_timed_effect_globals *result);
+s_bit_vector_pool *function_1320f0(long mode, long pass, bool enabled, long extra,
+	byte const *camera, byte const *plane, real distance, real bias, real offset, long identifier);
+void function_133390(s_bit_vector_pool const *data);
+void __stdcall function_133520(s_bit_vector_pool *data);
+void function_133720(s_bit_vector_pool *data, bool enabled);
+void function_44720(void);
+void function_2cb30(void);
+long g_4b9ee4;
+
+// @retail 0x2cbc0
+void __stdcall function_2cbc0(bool enabled)
+{
+	s_bit_vector_pool *current = (s_bit_vector_pool *)g_4c0b78.state;
+	function_2cb30();
+	function_133390(current);
+	function_133520(current);
+	function_133720(current, enabled);
+}
+
+// @retail 0x3f2c0
+void function_3f2c0(s_planar_camera_source const *source, byte const *view, long object_index, long identifier)
+{
+	byte camera[0x1bc];
+	real offset = 0.0f;
+	function_441b0(source, (s_planar_camera *)camera, view);
+	byte *effect = (byte *)function_01fd20(0);
+	bool enabled = false;
+	if (effect && effect[0x3c])
+	{
+		offset = *(real *)(effect + 0x40) - *(real *)(camera + 0x70);
+		enabled = true;
+	}
+	function_3d600();
+	s_bit_vector_pool *data = function_1320f0(0, 1, enabled, 0, camera,
+		camera + 0x60, 1024.0f, 0.0f, offset, g_4b9ee4);
+	if (object_index != NONE)
+	{
+		struct s_entry_list_view
+		{
+			long maximum;
+			word count;
+			short *shorts_b;
+			long *longs_a;
+			long *longs_c;
+			short *shorts_d;
+		};
+		s_entry_list_view *list = (s_entry_list_view *)data->lists[2];
+		bool found = false;
+		for (long i = 0; i < (short)list->count && !found; ++i)
+			found = list->longs_a[(short)i] == object_index;
+		if (!found && list->count < list->maximum - 1)
+		{
+			list->longs_a[list->count] = object_index;
+			list->shorts_b[list->count] = 0;
+			list->longs_c[list->count] = 0;
+			list->shorts_d[list->count] = NONE;
+			++list->count;
+		}
+	}
+	s_bit_vector_pool *current = (s_bit_vector_pool *)g_4c0b78.state;
+	function_2cb30();
+	function_133390(current);
+	function_133520(current);
+	function_133720(current, true);
+	function_44720();
+}
+
+extern vector3f g_4b9dac, g_4b9db8;
+extern byte g_4ba025;
+extern s_camera g_4b9e14;
+extern point3f g_4b9da0;
+real g_4b9de0, g_4b9de4;
+void __stdcall function_3f830(byte const *tree, point3f const *center);
+long function_155760(long index);
+void function_3f3f0(void);
+
+// @retail 0x2b990
+void function_2b990(long player_index)
+{
+	byte const *tree = *(byte **)((byte *)g_4e0348 + 0x238);
+	long object_index = NONE;
+	if (player_index != NONE)
+	{
+		long player = g_4e8c20->entries[player_index];
+		if (player != NONE && !function_155760(player_index))
+			object_index = *(long *)((byte *)g_4e8c24->data + (player & 0xffff) * 0x21c + 0x2c);
+	}
+	s_planar_camera_source source;
+	source.origin = g_4b9da0;
+	source.normal = g_4b9dac;
+	source.horizontal = g_4b9db8;
+	source.offset = g_4b9de0;
+	source.depth = g_4b9de4;
+	s_camera camera = g_4b9e14;
+	function_3f2c0(&source, (byte const *)&camera, object_index, g_4b9ee4);
+	function_3f3f0();
+	if (g_4ba025)
+	{
+		point3f center = g_4b9da0;
+		function_3f830(tree, &center);
+	}
+}
 
 // @retail 0x3d4f0
 void function_3d4f0(bool cached, short cache_index, long *flags,

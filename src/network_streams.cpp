@@ -910,7 +910,8 @@ long c_network_reliable_stream::function_965e0(long *sequence, long *size, long 
 				*size = message->size;
 				*time = message->unknown08;
 				message->flags |= 2;
-				return 4;
+				type = 4;
+				break;
 			}
 		}
 	}
