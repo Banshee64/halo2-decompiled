@@ -60,10 +60,6 @@ bool __stdcall function_16a440(unsigned long flags, point3f const *position, flo
 struct s_network_session_player;
 
 
-// @stub 0x1391ed
-void function_1391ed(void)
-{
-}
 
 typedef void *(__stdcall *block_allocate)(void *, long, long);
 typedef void (__stdcall *block_free)(void *, void *);
