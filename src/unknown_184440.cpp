@@ -109,7 +109,9 @@ bool function_23a220(point2f const *arg_0, short volatile arg_1, point2f const *
 
 __forceinline real function_184441(vector3f const *arg_0, point3f const *arg_1)
 {
-    return arg_0->k * arg_1->z + arg_0->j * arg_1->y + arg_0->i * arg_1->x;
+    vector3f const volatile *local_0 = arg_0;
+    point3f const volatile *local_1 = arg_1;
+    return local_0->k * local_1->z + local_0->j * local_1->y + local_0->i * local_1->x;
 }
 __forceinline real function_184442(vector3f *arg_0)
 {
@@ -155,6 +157,19 @@ __forceinline void function_184446(transform4x3f const *arg_0, plane3f *arg_1)
 __forceinline real function_184447(void)
 {
     return (real)random_next(&g_4e7408->seed) * 1.5259021893143654e-05f * 1.5f - 0.75f;
+}
+
+extern c_type_4e7709 g_479868;
+extern c_type_4e7709 g_479874;
+
+__forceinline bool function_184448(long arg_0)
+{
+    dword local_0 = *(dword *)((byte *)g_4e3b44 + (short)arg_0 * 0x10);
+    if (local_0 != 0x5052544d && local_0 != 0x70727433)
+        return false;
+    c_type_4e7709 &local_1 = local_0 == 0x5052544d ? g_479874 : g_479868;
+    local_1.initialize(arg_0);
+    return true;
 }
 
 #pragma inline_depth(1)
@@ -280,7 +295,7 @@ void __stdcall function_184440(long arg_0, long arg_1, s_18444a const *arg_2, lo
         for (long local_34 = 0; local_34 < local_11->field_14; local_34++)
         {
             s_effect_particle_system_definition *local_35 = &local_11->field_18[local_34];
-            if (local_35->tag_index == NONE || !function_137bd0(local_35->tag_index) || local_35->unknown30 <= 0)
+            if (local_35->tag_index == NONE || !function_184448(local_35->tag_index) || local_35->unknown30 <= 0)
                 continue;
             long local_36 = function_173fd0(local_35, NONE, local_9->field_34, (short)local_34, NONE);
             if (local_36 == NONE)
