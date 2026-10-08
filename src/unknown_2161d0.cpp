@@ -78,18 +78,22 @@ bool function_2162b0(long file_index, void *buffer, long size, s_saved_game_file
 	}
 	else
 	{
-		s_profile_file_location location;
-		char path[0x100];
-		location.name[0] = 0;
-		location.display_name[0] = 0;
-		path[0] = 0;
-		if (function_216800(&location, file_index) && location.language != -1)
+		struct
 		{
-			long type = location.type;
-			strncpy(path, location.name, sizeof(path));
-			path[sizeof(path) - 1] = 0;
-			function_122810(path, function_216b60(type));
-			result = saved_game_file_read_begin(buffer, size, false, task, path);
+			s_profile_file_location field_0;
+			byte field_40[4];
+			char field_44[0x100];
+		} local_0;
+		local_0.field_0.name[0] = 0;
+		local_0.field_0.display_name[0] = 0;
+		local_0.field_44[0] = 0;
+		if (function_216800(&local_0.field_0, file_index) && local_0.field_0.language != -1)
+		{
+			long type = local_0.field_0.type;
+			strncpy(local_0.field_44, local_0.field_0.name, sizeof(local_0.field_44));
+			local_0.field_44[sizeof(local_0.field_44) - 1] = 0;
+			function_122810(local_0.field_44, function_216b60(type));
+			result = saved_game_file_read_begin(buffer, size, false, task, local_0.field_44);
 		}
 	}
 	return result;
