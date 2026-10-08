@@ -2630,12 +2630,12 @@ void __stdcall function_2a2f0(volatile long tag, volatile real alpha)
             if (i < *(long *)(definition + 0x44))
             {
                 byte *bitmap = *(byte **)(definition + 0x48) + bitmap_offset;
-                real bitmap_width = (real)*(short *)(bitmap + 4);
+                real local_62a74a_2 = (real)*(short *)(bitmap + 4);
                 width = 1.0f;
-                if (!(bitmap_width < 1.0f)) width = bitmap_width;
-                real bitmap_height = (real)*(short *)(bitmap + 6);
+                if (!(local_62a74a_2 < 1.0f)) width = local_62a74a_2;
+                real local_98083a = (real)*(short *)(bitmap + 6);
                 height = 1.0f;
-                if (!(bitmap_height < 1.0f)) height = bitmap_height;
+                if (!(local_98083a < 1.0f)) height = local_98083a;
             }
             long count = *(long *)(definition + 0x44);
             byte *selected = NULL;

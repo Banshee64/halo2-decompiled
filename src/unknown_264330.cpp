@@ -375,12 +375,12 @@ void __stdcall function_263210(long actor_index)
 				tracking_state_initialize(&tracking->state);
 				prop_view_initialize(&tracking->view);
 				function_2640c0(reference->object_index, (s_object_motion_view *)&motion);
-				byte *actor_data = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+				byte *local_bbc190 = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
 				bool sampled = true;
-				if (actor_data[7] && *(long *)(actor_data + 0x1c) != NONE)
-					sampled = function_28fa60(*(long *)(actor_data + 0x1c), &motion.field_c, (s_actor_object_sample *)&sample);
+				if (local_bbc190[7] && *(long *)(local_bbc190 + 0x1c) != NONE)
+					sampled = function_28fa60(*(long *)(local_bbc190 + 0x1c), &motion.field_c, (s_actor_object_sample *)&sample);
 				else
-					memcpy(&sample, actor_data + 0x22c, sizeof(sample));
+					memcpy(&sample, local_bbc190 + 0x22c, sizeof(sample));
 				if (sampled)
 				{
 					function_264330(actor_index, index, &sample, &motion, false);

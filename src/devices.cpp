@@ -1262,18 +1262,18 @@ bool __stdcall function_106790(long volatile device_index)
 			}
 			else
 			{
-				real old_velocity = device->power_velocity;
+				real local_c01284_2 = device->power_velocity;
 				real previous = device->power;
-				if (fabs(old_velocity) > speed)
+				if (fabs(local_c01284_2) > speed)
 					device->power_velocity = increasing ? speed : 0.0f - speed;
 				bool reached = function_11eed0(&device->power_velocity, &device->power,
 					g_510c54->rate, (*(byte const *)(definition + 0xbc) & 1) != 0,
 					group->value, speed, acceleration, 0.0f, 1.0f);
 				if (reached)
 					function_107980(device_index, *(long const *)(definition + (increasing ? 0xf0 : 0xf8)));
-				else if (device->power_velocity != 0.0f && device->power_velocity * old_velocity <= 0.0f)
+				else if (device->power_velocity != 0.0f && device->power_velocity * local_c01284_2 <= 0.0f)
 					function_107980(device_index, *(long const *)(definition +
-						(device->power_velocity > old_velocity ? 0xe0 : 0xe8)));
+						(device->power_velocity > local_c01284_2 ? 0xe0 : 0xe8)));
 				if (previous != device->power || (device->flags & 0x80))
 				{
 					function_107520(device_index);
