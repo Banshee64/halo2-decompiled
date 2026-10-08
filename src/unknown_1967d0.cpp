@@ -1229,3 +1229,140 @@ void function_196780(void)
 		}
 	}
 }
+
+// The no-argument retail entry needs a single shared results object.
+// The current split globals do not hold its sixteen player records.
+// This core body remains disabled until that storage has one valid binding.
+#if 0
+#include "unknown_157450.h"
+
+struct s_results_record_195ed0
+{
+	byte active;
+	byte address_index;
+	byte unknown02[0xe];
+	byte appearance[0x90];
+	char rank;
+	byte unknowna1[3];
+};
+
+struct s_results_update_storage
+{
+	byte unknown000[0x12b];
+	byte teams;
+	byte unknown12c[0x370 - 0x12c];
+	s_flagged_value started;
+	s_flagged_value finished;
+	byte unknown380[4];
+	s_results_record_195ed0 players[16];
+	s_input_entry entries[16];
+	s_input_counters counters;
+	byte unknown4f84[0xdc24 - 0x4f84];
+	s_input_address addresses[16];
+};
+
+struct s_results_ranking_195ed0
+{
+	long players[16];
+	short teams[8];
+	char player_ranks[16];
+	char team_ranks[8];
+	short player_count;
+	short team_count;
+};
+
+void function_23f3e0(s_results_ranking_195ed0 *ranking, long mode, bool fallback);
+long function_1587f0(long team);
+void function_199460();
+struct s_network_observer;
+struct s_machine_address;
+struct s_session_machine_address;
+struct s_simulation_world_owner;
+long simulation_watcher_find_machine(s_simulation_world_owner const *watcher, s_machine_address const *address);
+long network_observer_find_channel_by_machine(s_network_observer *observer, s_session_machine_address const *address, long owner);
+
+// Core of retail 0x195ed0; the storage parameter is only an analysis binding.
+void refresh_results_195ed0(s_results_update_storage *results)
+{
+	if (g_510ca0 && !g_510cb1)
+	{
+		if (!g_511020.flag)
+			function_199460();
+		for (long team = 0; team < 16; ++team)
+		{
+			if (game_engine_team_is_active(team))
+			{
+				if (!results->entries[team].active)
+					results->entries[team].active = true;
+				if (!results->teams)
+					results->teams = true;
+			}
+		}
+		for (long index = 0; index < 16; ++index)
+		{
+			s_machine_player *player = machine_player_try_get(index);
+			if (player)
+			{
+				s_results_record_195ed0 *record = &results->players[index];
+				memcpy(record->appearance, (byte *)player + 0x44, sizeof(record->appearance));
+				record->address_index = 0xff;
+				long team = (signed char)record->appearance[0x7c];
+				if (results->teams && team != NONE && !results->entries[team].active)
+				{
+					results->entries[team].active = true;
+					results->entries[team].value = 0;
+					results->entries[team].unknown01 = 0xff;
+				}
+				word *flags = (word *)results->counters.groups[index];
+				*flags = (*flags & 0x8001) | 1;
+			}
+		}
+		if ((bool)((function_xaee93d()->flags >> 5) & 1))
+		{
+			s_results_ranking_195ed0 ranking;
+			function_23f3e0(&ranking, 1, false);
+			for (long rank = 0; rank < ranking.team_count; ++rank)
+			{
+				long team = ranking.teams[rank];
+				s_input_entry *entry = &results->entries[team];
+				entry->unknown01 = ranking.team_ranks[rank] / 2;
+				entry->value = (short)(function_1587f0(team) < 0 ? 0 :
+					function_1587f0(team) > 0x7fff ? 0x7fff : function_1587f0(team));
+			}
+			for (long rank = 0; rank < ranking.player_count; ++rank)
+			{
+				long player = ranking.players[rank] & 0xffff;
+				results->players[player].rank = ranking.player_ranks[rank] / 2;
+			}
+		}
+		function_199310((byte *)results);
+		for (long index = 0; index < 16; ++index)
+		{
+			s_input_address *address = &results->addresses[index];
+			if (address->data[6])
+			{
+				if (!memcmp(address->data, g_4cf7cc, 6))
+				{
+					address->data[8] = true;
+					address->data[7] = true;
+				}
+				else
+				{
+					address->data[8] = false;
+					s_network_observer *observer = *(s_network_observer **)((byte *)g_4cf780 + 8);
+					bool connected = false;
+					if (observer && simulation_watcher_find_machine((s_simulation_world_owner *)g_4cf780,
+						(s_machine_address const *)address->data) != NONE)
+					{
+						long channel = network_observer_find_channel_by_machine(observer,
+							(s_session_machine_address const *)address->data, 3);
+						if (channel != NONE && *(long *)((byte *)observer + channel * 0x528 + 0xa8) == 7)
+							connected = true;
+					}
+					address->data[7] = connected;
+				}
+			}
+		}
+	}
+}
+#endif

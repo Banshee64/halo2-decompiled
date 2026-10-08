@@ -6,6 +6,133 @@
 #include "unknown_0a58d0.h"
 #include "unknown_xa19f52.h"
 
+// The callers currently omit the stream and initial-state output arguments.
+// Keep these bodies disabled until those caller interfaces can be completed.
+#if 0
+void scenario_object_name_encode(long object_name, s_bitstream *stream);
+void *function_122c10(long group_tag, long tag_index);
+void function_11df60(vector3f const *rotation, vector3f *forward, vector3f *up);
+
+// Retail 0xa6660; the active stub remains in unknown_09a9f0.cpp.
+void function_a6660(s_entity_info const *info, s_bitstream *stream)
+{
+	scenario_object_name_encode(info->definition_index, stream);
+	stream_write_bit(stream, info->field0 != NONE);
+	if (info->field0 != NONE)
+		stream_write_checked(stream, info->field0, 13);
+	stream_write_checked(stream, (signed char)info->byte8 + 1, 7);
+	byte const *fields = (byte const *)info;
+	bool present = fields[0xc] || fields[0xd] || fields[0xe];
+	stream_write_bit(stream, present);
+	if (present)
+	{
+		stream_write_checked(stream, fields[0xc], 6);
+		stream_write_checked(stream, fields[0xd], 6);
+		stream_write_checked(stream, fields[0xe], 4);
+	}
+}
+
+struct s_z_initial_placement_type
+{
+	byte unknown00[0xa];
+	short placements_offset;
+	short palette_offset;
+	short placement_size;
+};
+
+struct s_z_initial_placement_block
+{
+	long count;
+	byte *data;
+};
+
+struct s_z_initial_placement
+{
+	byte unknown00[8];
+	point3f position;
+	vector3f rotation;
+	real scale;
+};
+
+struct s_z_initial_state
+{
+	point3f position;
+	vector3f forward;
+	vector3f up;
+	real scale;
+	byte unknown28[0x40 - 0x28];
+	real value40;
+	byte flag44;
+	byte unknown45[3];
+	real value48;
+	byte flag4c;
+	byte unknown4d[3];
+	byte value50;
+	byte unknown51[0x61 - 0x51];
+	byte value61;
+};
+
+// Retail 0xa5bd0; the active stub remains in unknown_09a9f0.cpp.
+bool function_a5bd0(s_entity_info const *info, s_z_initial_state *state)
+{
+	bool result = false;
+	if (function_122c10(0x6f626a65, info->definition_index))
+	{
+		byte *definition = g_4e3b44[info->definition_index & 0xffff].bytes;
+		state->position = *g_468788;
+		state->forward = *g_4687a8;
+		state->up = *g_4687b0;
+		state->scale = 1.0f;
+		if (info->field0 != NONE)
+		{
+			s_z_initial_placement_type *type = (s_z_initial_placement_type *)g_468630[*(short *)definition];
+			if (type->placements_offset != NONE && type->palette_offset != NONE)
+			{
+				s_z_initial_placement_block *block = (s_z_initial_placement_block *)(g_4e0350 + type->placements_offset);
+				long index = info->field0;
+				long clamped;
+				if (index < 0)
+					clamped = 0;
+				else if (index > block->count - 1)
+					clamped = block->count - 1;
+				else
+					clamped = index;
+				if (clamped == index)
+				{
+					s_z_initial_placement *placement = (s_z_initial_placement *)(block->data + index * type->placement_size);
+					state->position = placement->position;
+					function_11df60(&placement->rotation, &state->forward, &state->up);
+					state->scale = placement->scale > 0.0f ? placement->scale : 1.0f;
+				}
+			}
+		}
+		state->value50 = 1;
+		state->value61 = 0;
+		state->flag44 = true;
+		state->flag4c = true;
+		long model_index = *(long *)(definition + 0x38);
+		if (model_index != NONE)
+		{
+			byte *model = g_4e3b44[model_index & 0xffff].bytes;
+			if (*(long *)(model + 0x60) > 0)
+			{
+				byte *settings = *(byte **)(model + 0x64);
+				if (*(real *)(settings + 0x28) > 0.0f)
+					state->value40 = 1.0f;
+				if (*(real *)(settings + 0x8c) > 0.0f)
+					state->value48 = 1.0f;
+				state->value61 = settings[0xe0];
+			}
+			long value = *(long *)(model + 0x70);
+			if (value > 0)
+				state->value50 = (byte)value;
+		}
+		result = true;
+	}
+	return result;
+}
+#endif
+
 /* the entity an index stands for, or none when its salt is stale; retail
    has no copy of its own (LTCG inlines it everywhere), and inlining it from
    here keeps the null test after the identifier comparison that retail has */
