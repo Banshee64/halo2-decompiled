@@ -128,7 +128,7 @@ bool function_87ac0(s_bitstream *stream, s_simulation_player_update *update)
 	}
 	goto done;
 failed:
-	return false;
+	result = false;
 done:
 	return result;
 }

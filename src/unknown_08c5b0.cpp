@@ -84,8 +84,10 @@ static inline long bungienet_user_voice_setting(short kind)
 // @retail 0x8c5f0
 bool __stdcall bungienet_user_voice_apply(s_bungienet_user_request *request)
 {
+	s_bungienet_user_request *local_0 = request;
+	short local_1 = *(volatile short *)&local_0->kind;
 	long controller_index = request->controller_index;
-	long setting = bungienet_user_voice_setting(request->kind);
+	long setting = bungienet_user_voice_setting(local_1);
 	s_controller_voice_view *controller = controller_voice_view_get(controller_index);
 	long old_setting = controller->voice_setting;
 	bool changed = false;

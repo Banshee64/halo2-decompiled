@@ -158,6 +158,7 @@ inline void c_simulation_view::fail(long reason)
 	}
 }
 
+#pragma optimize("a", on)
 // @retail 0x86590
 inline void c_simulation_view::release_buffer(void)
 {
@@ -171,6 +172,7 @@ inline void c_simulation_view::release_buffer(void)
 		unknown98 = 0;
 	}
 }
+#pragma optimize("", on)
 
 /* the callback a buffer's owner calls when it goes away */
 // @retail 0x86aa0
@@ -437,7 +439,12 @@ bool c_simulation_view::has_pending_entity(void)
 bool c_simulation_view::function_85cb0(void)
 {
 	bool result = false;
-	if (type == 3 || type == 4)
+	if (type == 3)
+	{
+		if (!has_pending_entity())
+			result = true;
+	}
+	else if (type == 4)
 	{
 		if (!has_pending_entity())
 			result = true;
