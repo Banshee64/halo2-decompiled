@@ -699,8 +699,8 @@ void __stdcall looping_sound_track_notify(long looping_sound_index, long definit
 		if (sound)
 		{
 			s_looping_track_links const *tracking = (s_looping_track_links const *)arg_dc61a6;
-			s_type_06b94f *track = (s_type_06b94f *)sound->track_storage + tracking->track_index;
-			track->notify_completion();
+			byte *completed = &((s_type_06b94f *)sound->track_storage)[tracking->track_index].completed_count;
+			++*completed;
 		}
 	}
 }
@@ -1061,8 +1061,9 @@ struct s_looping_promotion_table
 };
 
 // @retail 0x21bd00
-void looping_sound_fade_out(real duration, long first_sound_index)
+void __stdcall looping_sound_fade_out(real duration, long first_sound_index)
 {
+	real const *reference = &duration;
 	if (first_sound_index != NONE)
 	{
 		long index = first_sound_index;
@@ -1074,7 +1075,7 @@ void looping_sound_fade_out(real duration, long first_sound_index)
 			s_tag_header *header = g_4e034c->header ? g_4e034c->header_alt : NULL;
 			s_looping_promotion_table *promotions = (s_looping_promotion_table *)g_4e3b44[header->datum_index & 0xffff].bytes;
 			s_looping_promotion *promotion = &promotions->entries[(short)(char)definition->unknown02[0]];
-			short curve = !(promotion->flags & 0x400);
+			bool curve = !(promotion->flags & 0x400);
 			playing->fade_gain_bits = function_12a810(index);
 			playing->fade_curve = curve;
 			playing->fade_start_time = (long)(duration * 1000.f);

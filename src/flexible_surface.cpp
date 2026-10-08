@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "data_array.h"
 #include "object_markers.h"
 #include "effects.h"
 #include <math.h>
@@ -41,6 +42,7 @@ struct s_surface_definition
 	long link_count;
 	s_surface_link *links;
 };
+struct s_surface_object_flags { byte unknown0[0x10a]; word bit0 : 1, bit1 : 1, bit2 : 1; };
 struct s_surface_object_header { short salt; byte flags, inactive; long unknown4; byte *object; };
 
 static inline s_surface_record *surface_record(long index)
@@ -95,17 +97,18 @@ void function_117080(long);
 // @retail 0x1168a0
 void __stdcall function_1168a0(real elapsed)
 {
-	long slot = function_16bc00(g_4e0338, 0);
-	long index = slot == NONE ? NONE : (*(short *)(g_4e0338->data + slot * g_4e0338->size) << 16) | slot;
+	s_record_pool *pool = g_4e0338;
+	long index = data_datum_index(pool, function_16bc00(pool, 0));
 	while (index != NONE)
 	{
-		surface_record(index)->unknown_c = 0.0f;
+		long slot = index & 0xffff;
+		((s_surface_record *)pool->data + slot)->unknown_c = 0.0f;
 		function_117790(index);
 		function_118140(index);
 		function_117510(index);
 		function_117080(index);
-		slot = data_next_absolute_index_inlined(g_4e0338, index == NONE ? 0 : (index & 0xffff) + 1);
-		index = slot == NONE ? NONE : (*(short *)(g_4e0338->data + slot * g_4e0338->size) << 16) | slot;
+		pool = g_4e0338;
+		index = data_datum_index(pool, data_find_index(pool, index == NONE ? 0 : slot + 1));
 	}
 }
 
@@ -140,7 +143,7 @@ void function_117080(long index)
 	{
 		s_surface_object_header *header = surface_object_header(object_index);
 		byte *object = header->object;
-		if (!header->inactive && (object[0x10a] & 4) &&
+		if (!header->inactive && TEST_FIELD_BIT(((s_surface_object_flags *)object)->bit2) &&
 			(real)(g_510c54->game_time - *(long *)(object + 0xbc)) * g_510c54->rate > 10.0f)
 			object_widget_delete(object_index, index);
 	}
@@ -149,6 +152,7 @@ void function_117080(long index)
 // @retail 0x117100
 bool function_117100(long index)
 {
+	bool result = true;
 	long object_index = surface_record(index)->object_index;
 	long root = NONE;
 	while (object_index != NONE)
@@ -157,10 +161,12 @@ bool function_117100(long index)
 		object_index = *(long *)(surface_object_header(object_index)->object + 0x14);
 	}
 	s_surface_object_header *header = surface_object_header(root);
-	bool result = true;
-	if (!header->inactive && g_4b9ed8 != NONE && function_155760(g_4b9ed8) == 0 &&
-		g_4e8c20->entries[g_4b9ed8] == *(long *)(header->object + 0x13c))
-		result = false;
+	if (!header->inactive && g_4b9ed8 != NONE && function_155760(g_4b9ed8) == 0)
+	{
+		byte *object = header->object;
+		if (g_4e8c20->entries[g_4b9ed8] == *(long *)(object + 0x13c))
+			result = false;
+	}
 	return result;
 }
 
