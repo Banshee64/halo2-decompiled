@@ -21,8 +21,9 @@ c_animation_channel::c_animation_channel()
 void c_animation_channel::reset()
 {
 	graph_tag_index = NONE;
-	animation_id.graph_index = NONE;
-	animation_id.index = NONE;
+	short *local_0 = (short *)&animation_id;
+	local_0[0] = NONE;
+	local_0[1] = NONE;
 	frame_position = 0.0f;
 	unknown10 = 0;
 	unknown11 = 0;
@@ -59,8 +60,9 @@ c_animation_channel *c_animation_channel::copy_from(c_animation_channel const *o
 void c_animation_channel::clear()
 {
 	graph_tag_index = NONE;
-	animation_id.graph_index = NONE;
-	animation_id.index = NONE;
+	short *local_0 = (short *)&animation_id;
+	local_0[0] = NONE;
+	local_0[1] = NONE;
 	frame_position = 0.0f;
 	unknown10 = 0;
 	unknown11 = 0;
@@ -83,7 +85,9 @@ bool c_animation_channel::set(long graph_tag_index, word flags, c_type_709360 an
 		this->animation_id.graph_index = NONE;
 		this->animation_id.index = NONE;
 		this->unknown10 = 0;
-		this->unknown11 = 0;
+		byte *local_0 = &this->unknown10;
+		local_0[0] = 0;
+		local_0[1] = 0;
 		this->unknown14 = 0;
 		this->unknown16 = 0;
 		this->unknown08 = unknown08;
@@ -180,7 +184,7 @@ bool c_animation_channel_frame_sample(c_animation_channel const *channel, real f
 		s_animation_data data;
 
 		c_animation_channel_data_get(channel, &data);
-		function_20ad40((s_anim_data *)&data, position, delta, frame_index);
+		function_20ad40((s_anim_data *)&data, delta, position, frame_index);
 		result = true;
 	}
 	return result;

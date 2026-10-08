@@ -22,12 +22,16 @@ short function_1a8080(short type, short slot, s_slot_owner_entry *entry)
 		{
 			short t = entry->slots[slot].type;
 			if (t == wanted || t == 4)
-				break;
+				goto local_0;
 			slot--;
 		}
+		slot = 0;
+		goto local_1;
+	local_0:
 		if (slot == -1)
 			slot = 0;
 	}
+local_1:
 	if (slot < 3)
 		result = slot + 1;
 	return result;

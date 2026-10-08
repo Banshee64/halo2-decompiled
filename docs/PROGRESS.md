@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7135 functions match
+
+```
+matched 7135 of 11318 game functions (802521 of 2784283 bytes, 28.82%)
+```
+
+26 new matches, none lost:
+- Merge batch r49: the second machine's lane K round 13 (#253, +1), lane M round 14 (#250, +5), lane P round 11 (#248, +5) and lane C round 39 (#251, +15, one of them 0x2a5250 as a side effect).
+- The deep lanes' complete drafts of large functions (rounds 1-3) are on main as work in progress; none matches exactly yet.
+
 ## 2026-10-08: 7109 functions match
 
 ```

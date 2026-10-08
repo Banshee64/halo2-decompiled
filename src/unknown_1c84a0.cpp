@@ -7,7 +7,7 @@
 void __stdcall function_1e2990(long arg_0, bool arg_1);
 
 // @retail 0x1c84a0
-void function_1c84a0(long arg_0, long arg_1)
+void function_1c84a0(long arg_0, bool arg_1)
 {
  if (g_4f55d0->active)
  {

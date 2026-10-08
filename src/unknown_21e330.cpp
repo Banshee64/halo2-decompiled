@@ -507,13 +507,13 @@ void function_21f960(dword size, dword const *buffer)
 {
 	if (buffer && size)
 	{
-		long count = (size - 4) >> 2;
+		struct { s_bit_iterator field_0; dword field_8; dword field_c; long field_10; } local_2;
+		local_2.field_10 = (size - 4) >> 2;
 
-		for (long i = 0; i < count; i += (EFFECT_DATA(i)->size + 0xf) >> 2)
+		for (long i = 0; i < local_2.field_10; i += (EFFECT_DATA(i)->size + 0xf) >> 2)
 		{
 			if (!(EFFECT_DATA(i)->flags & 2))
 			{
-				struct { s_bit_iterator field_0; dword field_8; dword field_c; } local_2;
 
 				local_2.field_0.mask = EFFECT_DATA(i)->effect_mask;
 				local_2.field_0.index = NONE;
@@ -969,6 +969,26 @@ extern "C" DWORD g_dwDirectSoundDeltaPanicCount;
 
 void function_1915f0(void);
 
+PRIVATE inline s_sound_stream *function_21ec01(s_sound_stream *arg_0)
+{
+	return arg_0;
+}
+
+PRIVATE inline s_sound_stream *function_21ec02(s_sound_stream *arg_0)
+{
+	return arg_0;
+}
+
+PRIVATE inline s_sound_stream *function_21ec03(s_sound_stream *arg_0)
+{
+	return arg_0;
+}
+
+PRIVATE inline s_sound_stream *function_21ec04(s_sound_stream *arg_0)
+{
+	return arg_0;
+}
+
 // @retail 0x21ec00
 void function_21ec00(void)
 {
@@ -1000,15 +1020,19 @@ void function_21ec00(void)
 
 		/* retail keeps a jump table here whose four cases are all empty;
 		   no source shape for it found yet */
-		switch (stream->state)
+		switch (((s_sound_stream const volatile *)stream)->state)
 		{
 		case 0:
+			stream = function_21ec01(stream);
 			break;
 		case 1:
+			stream = function_21ec02(stream);
 			break;
 		case 2:
+			stream = function_21ec03(stream);
 			break;
 		case 3:
+			stream = function_21ec04(stream);
 			break;
 		}
 	}

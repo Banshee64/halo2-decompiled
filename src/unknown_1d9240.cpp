@@ -141,34 +141,36 @@ real function_1d9370(s_1d9240 const *p)
 	if (p->count)
 	{
 		real count = (real)p->count;
-		real t;
 
 		if (!(count > 1.0f))
 		{
 			count = 1.0f;
 		}
-		t = (real)p->value / count;
+		result = (real)p->value / count;
 		switch (p->unknown02)
 		{
 		case 1:
-			t = function_10e8e0(t);
+			result = function_10e8e0(result);
 			break;
 		case 2:
-			t = function_1d9670(t);
+			result = function_1d9670(result);
 			break;
 		case 3:
-			t -= 1.0f;
-			t = 1.0f - t * t;
+			result -= 1.0f;
+			result = 1.0f - result * result;
 			break;
 		case 4:
 		{
-			real u = 1.0f - t;
+			real u = 1.0f - result;
 
-			t = 1.0f - u * u * u;
+			result = 1.0f - u * u * u;
 			break;
 		}
 		}
-		result = PIN(t, 0.0f, 1.0f);
+		if (0.0f > result)
+			result = 0.0f;
+		else if (result > 1.0f)
+			result = 1.0f;
 	}
 	return result;
 }

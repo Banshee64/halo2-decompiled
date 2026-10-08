@@ -143,10 +143,11 @@ long function_136600(short width, short height, short mipmap_index, short depth,
 }
 
 // @retail 0x1366d0
-long function_1366d0(short width, short height, short depth, short format, short alignment, short mipmap_count)
+long function_1366d0(short width, short height, short depth, short format, short alignment, long mipmap_count)
 {
+	long local_1 = *(long volatile *)&mipmap_count;
 	long total = 0;
-	for (short mipmap_index = 0; mipmap_index <= mipmap_count; mipmap_index++)
+	for (short mipmap_index = 0; mipmap_index <= (short)local_1; mipmap_index++)
 	{
 		total += function_136600(width, height, mipmap_index, depth, format, alignment);
 	}
@@ -203,10 +204,10 @@ s_type_7ba8e9 *function_1358e0(short width, short height, short mipmap_count, sh
 // @retail 0x135a30
 void *function_135a30(s_type_7ba8e9 const *bitmap, short mipmap_index, short x, short y)
 {
+	short width = bitmap->width;
+	long offset = 0;
 	short minimum = (bitmap->flags & 2) ? 4 : 1;
 	short height = bitmap->height;
-	long offset = 0;
-	short width = bitmap->width;
 	long bits = function_x48d32c(bitmap->format);
 
 	for (short i = 0; i < mipmap_index; i++)
@@ -223,8 +224,8 @@ void *function_135a30(s_type_7ba8e9 const *bitmap, short mipmap_index, short x, 
 // @retail 0x135af0
 void *function_135af0(s_type_7ba8e9 const *bitmap, short x, short y, short z, short mipmap_index)
 {
-	short minimum = (bitmap->flags & 2) ? 4 : 1;
 	short width = bitmap->width;
+	short minimum = (bitmap->flags & 2) ? 4 : 1;
 	short height = bitmap->height;
 	short depth = bitmap->depth;
 	long offset = 0;

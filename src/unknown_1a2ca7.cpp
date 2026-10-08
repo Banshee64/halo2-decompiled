@@ -1019,36 +1019,39 @@ void friends_list_update()
 		long i;
 
 		record_pool_release_all(g_global_4acf62.field_4_4);
-		for (i = 0; i < friend_count; i++)
+		if (friend_count > 0)
 		{
-			XONLINE_FRIEND *field_xb3bdcf = &online_friends[i];
-			s_friend *friend_ = (s_friend *)(g_global_4acf62.field_4_4->data + (record_pool_allocate(g_global_4acf62.field_4_4) & 0xffff) * sizeof(s_friend));
-			s_online_friend copy;
-			word name[16];
-
-			online_friend_copy(field_xb3bdcf, &copy);
-			friend_->unknown02 = (short)i;
-			friend_->xuid = *online_friend_get_xuid(field_xb3bdcf);
-			string_copy(friend_->gamertag, online_friend_get_gamertag(field_xb3bdcf), 16);
-			ascii_string_to_unicode(friend_->gamertag, friend_->name, NUMBEROF(friend_->name));
-			friend_->flags20 = copy.flags;
-			friend_->session_id = copy.session_id;
-			friend_->title_id = copy.title_id;
-			friend_->state_data_size = field_xb3bdcf->StateDataSize;
-			memcpy(friend_->state_data, field_xb3bdcf->StateData, sizeof(friend_->state_data));
-			if (!friend_details_get(&friend_->xuid, &friend_->details))
+			for (i = 0; i < friend_count; i++)
 			{
-				memset(&friend_->details, 0, sizeof(friend_->details));
-			}
-			else if (friend_name_get((XUID const *)&friend_->details, name))
-			{
-				word format[256];
-				word gamertag[48];
-
-				format[0] = 0;
-				ascii_string_to_unicode(friend_->gamertag, gamertag, NUMBEROF(gamertag));
-				function_23620d(0x220006bd, format);
-				unicode_string_snprintf(friend_->name, NUMBEROF(friend_->name), format, gamertag, name);
+				XONLINE_FRIEND *field_xb3bdcf = &online_friends[i];
+				s_friend *friend_ = (s_friend *)(g_global_4acf62.field_4_4->data + (record_pool_allocate(g_global_4acf62.field_4_4) & 0xffff) * sizeof(s_friend));
+				s_online_friend copy;
+				word name[16];
+	
+				online_friend_copy(field_xb3bdcf, &copy);
+				friend_->unknown02 = (short)i;
+				friend_->xuid = *online_friend_get_xuid(field_xb3bdcf);
+				string_copy(friend_->gamertag, online_friend_get_gamertag(field_xb3bdcf), 16);
+				ascii_string_to_unicode(friend_->gamertag, friend_->name, NUMBEROF(friend_->name));
+				friend_->flags20 = copy.flags;
+				friend_->session_id = copy.session_id;
+				friend_->title_id = copy.title_id;
+				friend_->state_data_size = field_xb3bdcf->StateDataSize;
+				memcpy(friend_->state_data, field_xb3bdcf->StateData, sizeof(friend_->state_data));
+				if (!friend_details_get(&friend_->xuid, &friend_->details))
+				{
+					memset(&friend_->details, 0, sizeof(friend_->details));
+				}
+				else if (friend_name_get((XUID const *)&friend_->details, name))
+				{
+					word format[256];
+					word gamertag[48];
+	
+					format[0] = 0;
+					ascii_string_to_unicode(friend_->gamertag, gamertag, NUMBEROF(gamertag));
+					function_23620d(0x220006bd, format);
+					unicode_string_snprintf(friend_->name, NUMBEROF(friend_->name), format, gamertag, name);
+				}
 			}
 		}
 		if (friend_count != previous_count)

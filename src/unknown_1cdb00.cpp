@@ -9,12 +9,12 @@ struct s_index_pair;
 extern bool g_46fbf4;
 bool function_0b6760(s_index_pair const *arg_0);
 void c_animation_channel_data_get(c_animation_channel const *arg_0, s_animation_data *arg_1);
-void function_20ab60(vector3f *arg_0, s_anim_data *arg_1, real *arg_2);
+void function_20ab60(s_anim_data *arg_1, vector3f *arg_0, real *arg_2);
 bool __stdcall function_1cd8a0(s_animation_state *arg_0, long arg_1, vector3f const *arg_2);
 
 PRIVATE __forceinline void function_1cdb01(s_anim_data *arg_0, vector3f *arg_1, real *arg_2)
 {
- function_20ab60(arg_1, arg_0, arg_2);
+ function_20ab60(arg_0, arg_1, arg_2);
 }
 
 // @retail 0x1cdb00

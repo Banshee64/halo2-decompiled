@@ -445,8 +445,9 @@ void s_animation_state::channels_finish()
 {
 	c_animation_channel *local_0 = &channels[2];
 	*(volatile long *)&local_0->graph_tag_index = NONE;
-	*(volatile short *)&local_0->animation_id.graph_index = NONE;
-	*(volatile short *)&local_0->animation_id.index = NONE;
+	volatile short *local_3 = (volatile short *)&local_0->animation_id;
+	local_3[0] = NONE;
+	local_3[1] = NONE;
 	long local_2 = 0;
 	*(volatile real *)&local_0->frame_position = 0.0f;
 	local_0->unknown10 = 0;
@@ -1269,7 +1270,7 @@ void s_animation_state::sample(long unused1, real weight, dword const *node_mask
 	{
 		channels[1].sample(weight, node_mask, node_count, transforms);
 	}
-	else if (g_46fbf4 && channel_valid(&channels[1]) && unknown80 > 0.0001f && unknown80 < 0.9999f)
+	else if (g_46fbf4 && channel_valid(&channels[1]) && !(0.0001f >= unknown80 || unknown80 >= 0.9999f))
 	{
 		real fraction = blend_fraction_get();
 
@@ -1703,7 +1704,7 @@ bool s_animation_state::play(c_type_709360 animation_id, word channel_flags)
 
 
 struct s_anim_data;
-void function_20ab60(vector3f *sum, s_anim_data *data, real *w);
+void function_20ab60(s_anim_data *data, vector3f *sum, real *w);
 void c_animation_channel_data_get(c_animation_channel const *channel, s_animation_data *data);
 real magnitude3d(vector3f const *vector);
 
@@ -1726,11 +1727,11 @@ bool __stdcall function_1cd8a0(s_animation_state *state, long object_index, vect
         real unused;
         c_animation_channel_data_get(primary, &data);
         real measured = magnitude3d(velocity);
-        function_20ab60(&movement, (s_anim_data *)&data, &unused);
+        function_20ab60((s_anim_data *)&data, &movement, &unused);
         real primary_speed = magnitude3d(&movement) * 30.0f;
         real rate = 1.0f;
         c_animation_channel_data_get(secondary, &data);
-        function_20ab60(&movement, (s_anim_data *)&data, &unused);
+        function_20ab60((s_anim_data *)&data, &movement, &unused);
         real secondary_speed = magnitude3d(&movement) * 30.0f;
         real weight = 0.0f;
         real difference = primary_speed - secondary_speed;
