@@ -570,7 +570,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0004f7e0,1592,game,unknown,a16,,,00014480 00014560 0001c590 0001c710 0001cf50 00030830 0003a5c0 00047ea0 000480a0 000484b0 0004fe20 000501e0 00320560 003f5b20 003f7330,,todo
 0004fe20,298,game,speed,a16 pad,,,00047930 003f5cf0 003fa3d0,src/unknown_01cf50.cpp,todo
 0004ff50,647,game,speed,a16 pad,,,00030830 00050650 0013bb90 00322bd8 00372d48,src/unknown_03f2b0.cpp,todo
-000501e0,1136,game,speed,a16 pad,,,00030bf0,,todo
+000501e0,1136,game,speed,a16 pad,,,00030bf0,src/unknown_0501e0.cpp,todo
 00050650,62,game,unknown,a16,,,00322bd8,src/clamped_arccosine.cpp,matched
 00050690,332,game,speed,a16 pad,,,,src/unknown_050690.cpp,matched
 000507e0,235,game,speed,a16 pad ebp,,,00050690 00321099,src/unknown_050690.cpp,todo
@@ -629,7 +629,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00054810,55,game,unknown,a16,,,000564c0,src/network_voice.cpp,matched
 00054850,54,game,speed,a16 pad,,,00056160,src/network_voice.cpp,matched
 00054890,252,game,speed,a16 pad,,,00053bb0 00053be0 00053de0 000549d0 00054d20 00055960 00056590,src/network_voice.cpp,matched
-00054990,56,game,speed,a16 pad,,,00056220,src/network_voice.cpp,near
+00054990,56,game,speed,a16 pad,,,00056220,src/network_voice.cpp,matched
 000549d0,70,game,speed,a16 pad,,,00054a20,src/network_voice.cpp,matched
 00054a20,79,game,speed,a16 pad,,,00053c30,src/network_voice.cpp,matched
 00054a70,76,game,speed,a16 pad,,,00053c30,src/network_voice.cpp,matched
@@ -1156,7 +1156,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0006c830,19,game,speed,a16 pad,,,,src/unknown_06b590.cpp,matched
 0006c850,88,game,speed,a16 pad,,,,src/unknown_06b590.cpp,matched
 0006c8b0,533,game,speed,a16 pad ebp,,,0006b640 0006b6f0 0006b730 0006b910 0006c7a0 0006d220 003a0641 003a065b,src/unknown_06b590.cpp,todo
-0006cad0,137,game,speed,a16 pad,,,000598f0 0005a520 0006d270 0019989d 0019b527,src/network_session_client.cpp,todo
+0006cad0,137,game,speed,a16 pad,,,000598f0 0005a520 0006d270 0019989d 0019b527,src/network_session_client.cpp,matched
 0006cb60,171,game,speed,a16 pad,,,0006b950 0007f410 0008e0f0 00190da5,src/unknown_06b590.cpp,todo
 0006cc10,317,game,speed,a16 pad ebp,,,0006b640 0006b730 0006b800 0006cb60 0006d220 00190d0a 003a065b,src/unknown_06b590.cpp,todo
 0006cd50,380,game,speed,a16 pad,,,0006b910 0008d7c0 003a0650,src/online_tasks.cpp,todo

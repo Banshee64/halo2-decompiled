@@ -1207,14 +1207,17 @@ long voice_channels_get_bandwidth(s_voice_channels *channels, long player)
 	long total = 0;
 	if (channels->initialized && voice_channels_have_player(channels, player))
 	{
-		bool is_unknown00 = voice_get_unknown00() == player;
+		long local_0 = voice_get_unknown00();
+		bool is_unknown00 = local_0 == player;
 		total = 2;
-		for (long i = 0; i < 16; i++)
+		long i = 0;
+		do
 		{
 			s_voice_channel *channel = &channels->channels[i];
 			if (voice_channel_has_player(channel, player))
 				total += channel->values[player] * (is_unknown00 ? 13 : 11) + 2;
-		}
+			i++;
+		} while (i < 16);
 	}
 	return total;
 }
