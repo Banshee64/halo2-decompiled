@@ -157,6 +157,7 @@ __forceinline real function_184447(void)
     return (real)random_next(&g_4e7408->seed) * 1.5259021893143654e-05f * 1.5f - 0.75f;
 }
 
+#pragma inline_depth(1)
 // @retail 0x184440
 void __stdcall function_184440(long arg_0, long arg_1, s_18444a const *arg_2, long arg_3)
 {
@@ -196,12 +197,13 @@ void __stdcall function_184440(long arg_0, long arg_1, s_18444a const *arg_2, lo
         local_3[local_12].lo = FLT_MAX;
         local_3[local_12].hi = -FLT_MAX;
     }
-    short local_13 = 1;
+    long local_13 = 1;
     local_0[0] = arg_3;
-    for (short local_14 = 0; local_14 < local_13; local_14++)
+    for (long local_14 = 0; (short)local_14 < (short)local_13; )
     {
-        long local_15 = local_0[local_14];
+        long local_15 = local_0[(short)local_14++];
         s_184440 *local_16 = &local_6->field_2c[local_15];
+        real_bounds local_33[2] = { { FLT_MAX, -FLT_MAX }, { FLT_MAX, -FLT_MAX } };
         plane3f local_17 = local_6->field_c[local_16->field_0 & 0x7fff];
         if (local_16->field_0 & 0x8000)
         {
@@ -234,11 +236,11 @@ void __stdcall function_184440(long arg_0, long arg_1, s_18444a const *arg_2, lo
             local_27++;
             long local_30 = local_28->field_8[!local_29];
             short local_31 = 0;
-            while (local_31 < local_13 && local_0[local_31] != local_30)
+            while (local_31 < (short)local_13 && local_0[local_31] != local_30)
                 local_31++;
-            if (local_31 == local_13 && local_30 != NONE &&
+            if (local_31 == (short)local_13 && local_30 != NONE &&
                 local_6->field_2c[local_30].field_5 == arg_1 && local_6->field_2c[local_30].field_6 == local_7)
-                local_0[local_13++] = local_30;
+                local_0[(short)local_13++] = local_30;
             local_26 = local_28->field_4[local_29];
         } while (local_26 != local_25);
         point3f local_28;
@@ -260,7 +262,6 @@ void __stdcall function_184440(long arg_0, long arg_1, s_18444a const *arg_2, lo
         local_30.k = local_29.j * local_17.i - local_17.j * local_29.i;
         real local_31 = function_184441(&local_29, &local_28);
         real local_32 = function_184441(&local_30, &local_28);
-        real_bounds local_33[2] = { { FLT_MAX, -FLT_MAX }, { FLT_MAX, -FLT_MAX } };
         for (short local_34 = 0; local_34 < local_27; local_34++)
         {
             real local_35 = function_184441(&local_29, &local_1[local_34]) - local_31;
@@ -362,3 +363,4 @@ void __stdcall function_184440(long arg_0, long arg_1, s_18444a const *arg_2, lo
         function_1895f0(&local_14, 1.0f, local_11->field_10);
     }
 }
+#pragma inline_depth(255)

@@ -331,7 +331,9 @@ void __stdcall function_186ab0(long arg_0, real arg_1, real arg_2, s_player_acti
     local_4->field_10 = local_1->field_1c;
     local_4->field_14 = local_1->field_20;
     local_4->field_18 = local_1->field_24;
-    function_186ab8((s_186ab8 *)local_4->field_28, (s_186ab8 const *)local_1->field_6c);
+    s_186ab8 const *local_11 = (s_186ab8 const *)local_1->field_6c;
+    s_186ab8 *local_12 = (s_186ab8 *)local_4->field_28;
+    *local_12 = *local_11;
     memcpy(local_4->field_34, local_1->field_44, sizeof(local_4->field_34));
 }
 #pragma inline_depth(255)
