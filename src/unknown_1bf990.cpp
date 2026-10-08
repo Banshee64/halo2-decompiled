@@ -255,3 +255,107 @@ bool __stdcall function_1bfb10(long actor_index, s_slot *slot)
     }
     return result;
 }
+
+struct s_1bff80
+{
+    point3f field_0;
+    vector3f field_c;
+    real field_18;
+    bool field_1c;
+    bool field_1d;
+    bool field_1e;
+};
+struct s_seat_approach_result;
+bool function_1baae0(long arg_0, long arg_1, short arg_2, bool arg_3,
+    bool arg_4, bool arg_5, s_seat_approach_result *arg_6);
+bool __stdcall function_1badc0(point3f const *arg_2, long arg_1, long arg_0,
+    s_type_c3b527 *arg_3, long *arg_4, bool arg_5, bool *arg_6);
+bool function_1f45c0(long arg_0, s_type_c3b527 const *arg_1, long arg_2, bool arg_3);
+
+// @retail 0x1bff80
+bool __stdcall function_1bff80(long arg_0, s_slot *arg_1)
+{
+    s_actor_view *local_0 = actor_get(arg_0);
+    s_slot_vehicle_board *local_1 = (s_slot_vehicle_board *)arg_1;
+    long local_2 = local_0->unknown018;
+    s_slot_object_view *local_3 = object_get(local_2);
+    s_slot_object_view *local_4 = object_get(prop_node_get(local_0->prop_index)->object_index);
+    bool local_5 = true;
+    if (local_1->boarding)
+    {
+        if (local_3->parent_index == local_1->vehicle_index &&
+            local_3->unknown1fc == local_1->vehicle_seat_index)
+        {
+            bool local_6 = local_4->parent_index == local_1->vehicle_index &&
+                local_4->unknown1fc == local_1->seat_index;
+            long local_7;
+            long local_8;
+            if (function_10f630(local_2, &local_7, &local_8))
+            {
+                if (local_8 != 0x400000c)
+                    return local_5;
+                if (!local_1->requested)
+                {
+                    function_e68c0(0x1f, local_2);
+                    local_1->requested = true;
+                    return local_5;
+                }
+                if (!local_6)
+                    return local_5;
+                s_unit_request local_9;
+                local_9.type = 0x1a;
+                local_9.type1a.unknown4 = 0;
+                local_9.type1a.unknown6 = false;
+                if (function_e6900(local_2, &local_9))
+                    return local_5;
+            }
+            return false;
+        }
+    }
+    else if (local_0->unknown26c == NONE)
+    {
+        s_1bff80 local_10;
+        if (function_1baae0(arg_0, local_1->vehicle_index, local_1->vehicle_seat_index,
+            false, true, local_1->unknown1a, (s_seat_approach_result *)&local_10))
+        {
+            if (local_10.field_1c && local_10.field_1d)
+            {
+                s_unit_request local_11;
+                local_11.type = 0x1c;
+                local_11.type1c.object_index = local_1->vehicle_index;
+                local_11.type1c.seat_index = local_1->vehicle_seat_index;
+                local_11.type1c.unknowna = false;
+                local_11.type1c.unknownb = false;
+                return function_e6900(local_0->unknown018, &local_11);
+            }
+            if (local_0->unknown040)
+            {
+                bool local_12;
+                s_type_c3b527 local_13;
+                long local_14;
+                bool local_15 = function_1badc0(&local_10.field_0, local_1->vehicle_index, arg_0,
+                    &local_13, &local_14, local_1->unknown1a, &local_12);
+                if (local_15)
+                {
+                    long local_16 = local_12 ? NONE : local_1->vehicle_index;
+                    if (local_1->unknown1a)
+                        local_15 = function_1f45c0(arg_0, &local_13, local_16, false);
+                    else
+                        local_15 = function_1f4460(arg_0, &local_13, local_14, local_16, false);
+                }
+                if (!local_15 && (local_0->unknown229 || *(short *)((byte *)local_0 + 0x5b4) >= 0x20))
+                    local_5 = false;
+            }
+            real local_17 = local_10.field_0.x - local_0->position.x;
+            real local_18 = local_10.field_0.y - local_0->position.y;
+            if ((real)sqrt(local_17 * local_17 + local_18 * local_18) < 1.5f)
+            {
+                local_1->unknown1b = true;
+                local_1->unknown1c = *(point3f *)&local_10.field_c;
+            }
+            else
+                local_1->unknown1b = false;
+        }
+    }
+    return local_5;
+}

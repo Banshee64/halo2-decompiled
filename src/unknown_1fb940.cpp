@@ -227,7 +227,7 @@ void function_1fbff0(long actor_index, long source_index, long object_index, lon
 	}
 }
 
-bool function_1df820(short team_a, short team_b, short incident_type);
+bool __stdcall function_1df820(volatile short team_a, volatile short team_b, short incident_type);
 point3f *function_b9dd0(long object_index, point3f *result);
 long function_baf80(long object_index);
 

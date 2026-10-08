@@ -1237,29 +1237,28 @@ bool function_1f9580(long actor_index, s_reference reference)
     (void)&reference;
     s_actor_moving *actor = actor_moving_get(actor_index);
     s_type_c3b527 *target = (s_type_c3b527 *)function_262b40(reference);
-    volatile bool result = false;
+    bool result = false;
     if (target && (*(word *)((byte *)target + 0xe) & 0x20) && actor->unit_index != NONE)
     {
         point3f origin, destination;
         function_caf90(actor->unit_index, &origin);
         function_210850(target, &destination);
-        real x = origin.x - destination.x;
-        real y = origin.y - destination.y;
-        real z = origin.z - destination.z;
-        real distance_squared = y*y + z*z + x*x;
+        vector3f local_0;
+        vector3d_from_points3d(&destination, &origin, &local_0);
+        real distance_squared = local_0.k * local_0.k + local_0.j * local_0.j + local_0.i * local_0.i;
         if (distance_squared < 12.25f)
         {
             vector3f facing;
             function_29d6c0(&facing, reference);
-            point2f direction = { facing.i, facing.j };
+            point2f direction;
+            direction.x = facing.i;
+            direction.y = facing.j;
             if (normalize2d(&direction) > 0.0f &&
                 (origin.y - destination.y) * direction.y +
                 (origin.x - destination.x) * direction.x > 1.2f && actor->unit_index != NONE)
             {
                 vector3f ray;
-                ray.i = destination.x - origin.x;
-                ray.j = destination.y - origin.y;
-                ray.k = destination.z - origin.z;
+                vector3d_from_points3d(&origin, &destination, &ray);
                 s_obstacle_collision collision;
                 collision.material = NONE;
                 if (!function_1697c0(0x1808c2d, &origin, &ray, function_baf80(actor->unit_index),

@@ -51,8 +51,6 @@ bool __stdcall function_1f4810(long actor_index, long prop_index, real distance,
 // @stub 0x1b0110
 void __stdcall function_1b0110(long actor_index, s_slot *slot) { }
 
-// @stub 0x1b13b0
-void __stdcall function_1b13b0(long actor_index, s_slot *slot, long index) { }
 
 
 // @stub 0x1b2770
@@ -89,8 +87,6 @@ void __stdcall function_1b47b0(long actor_index, s_slot *slot) { }
 short __stdcall function_1b99d0(long actor_index, s_slot *slot) { return 0; }
 
 
-// @stub 0x1ba5c0
-void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index) { }
 
 
 
@@ -124,5 +120,3 @@ bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
 
 
 
-// @stub 0x1bff80
-bool __stdcall function_1bff80(long actor_index, s_slot *slot) { return 0; }
