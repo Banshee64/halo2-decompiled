@@ -317,25 +317,3 @@ bool __stdcall function_d4bc0(long tag, long context, long pass, long stage,
 	return result;
 }
 
-// @retail 0xd4cf0
-void function_d4cf0(long object_index, short group, dword flags)
-{
-	s_widget_object_header *header = (s_widget_object_header *)(g_4e0300->data + (object_index & 0xffff) * 12);
-	s_widget_object *object = (s_widget_object *)header->object;
-	long index = object->widget_head;
-	while (index != NONE)
-	{
-		s_widget *widget = (s_widget *)(g_4e0320->data + (index & 0xffff) * 12);
-		s_widget_type *type = &g_467498[widget->type];
-		if ((group != 2 || (flags & 0x2000)) && (group != 1 || (flags & 0x1000)))
-		{
-			if (type->tag_index)
-				function_41490(type->tag_index, group, (short)type->get_kind(widget->handle),
-					640.0f, (t_record_fill)function_d4bc0, NONE, type->callback, (void *)widget->handle,
-					(point3f *)((byte *)object + 0x30));
-			if (type->draw)
-				type->draw(group, widget->handle);
-		}
-		index = widget->next;
-	}
-}
