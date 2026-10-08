@@ -1,4 +1,5 @@
 #include "unknown_11c920.h"
+#include <stdlib.h>
 #include "globals.h"
 #include "unknown_1fb7e0.h"
 #include "unknown_25d020.h"
@@ -242,4 +243,330 @@ void __stdcall function_264330(long actor_index, long prop_ref_index, s_2641c0 *
 		function_265290(actor_index, prop_ref_index);
 	if (prop[0x25]) function_264940(actor_index, prop_ref_index);
 	if (view) *(real *)((byte *)view + 0x3c) = function_265d30(actor_index, prop_ref_index);
+}
+
+extern long g_4de2fc;
+extern bool g_4de2f8;
+extern long g_4de300[0x800];
+int __cdecl function_2631f0(void const *first, void const *second);
+void function_25c780(long actor_index, long prop_ref_index);
+bool function_25db60();
+void prop_view_initialize(s_type_f95cd3 *view);
+struct s_actor_object_sample;
+bool function_28fa60(long perception_index, point3f const *point, s_actor_object_sample *sample);
+struct s_object_motion_view;
+void function_2640c0(long object_index, s_object_motion_view *result);
+
+struct s_tracking_candidate
+{
+	long index;
+	short priority;
+};
+
+PRIVATE inline void tracking_state_initialize(s_type_5cfb45 *state)
+{
+	state->unknown40 = NONE;
+	state->unknown00 = NONE;
+	state->unknown3c = NONE;
+	state->unknown66 = false;
+	state->unknown62 = false;
+	state->unknown5e = false;
+	state->unknown64 = false;
+	state->unknown61 = false;
+	state->unknown5f = false;
+	state->unknown60 = true;
+	state->unknown63 = false;
+	state->unknown69 = false;
+	state->unknown65 = false;
+	state->unknown67 = false;
+	state->unknown48 = *g_468788;
+	state->unknown54 = NONE;
+	state->unknown44 = NONE;
+	state->unknown58 = false;
+}
+
+// @retail 0x263210
+void __stdcall function_263210(long actor_index)
+{
+	s_actor_prop_view *initial_actor = actor_prop_view_get(actor_index);
+	long next_index = initial_actor->first_prop_index;
+	short count = 0;
+	short active_count = 0;
+	short current = 0;
+	bool reclaimed = false;
+	s_tracking_candidate candidates[50];
+	s_2640c0 motion;
+	s_2641c0 sample;
+	s_actor_prop_view *volatile actor = initial_actor;
+	++g_4de2fc;
+	g_4de2f8 = true;
+	long *tracked = initial_actor->tracked_prop_indices;
+	long slots_remaining = 8;
+	do
+	{
+		long index = *tracked;
+		if (index != NONE)
+		{
+			s_prop_datum *reference = (s_prop_datum *)datum_get_inlined(g_502418, index);
+			if (reference && reference->tracking_index != NONE)
+			{
+				long absolute_index = reference->object_index & 0xffff;
+				if (g_4de300[absolute_index] != g_4de2fc)
+					g_4de300[absolute_index] = g_4de2fc;
+				short priority = *(short *)((byte *)prop_get(reference->prop_index) + 0xc);
+				reference->unknown1a = priority;
+				if (priority > 0 && g_470f10[reference->type].unknown8 == 2)
+				{
+					candidates[count].index = index;
+					candidates[count].priority = priority;
+					count++;
+				}
+				else
+					function_25c780(actor_index, index);
+			}
+			else
+				*tracked = NONE;
+		}
+		tracked++;
+	}
+	while (--slots_remaining);
+	while (next_index != NONE)
+	{
+		long index = next_index;
+		s_prop_datum *reference = prop_ref_get(index);
+		next_index = reference->next_index;
+		if (reference->state >= 1)
+		{
+			long absolute_index = reference->object_index & 0xffff;
+			if (g_4de300[absolute_index] != g_4de2fc)
+			{
+				g_4de300[absolute_index] = g_4de2fc;
+				short priority = *(short *)((byte *)prop_get(reference->prop_index) + 0xc);
+				reference->unknown1a = priority;
+				if (g_470f10[reference->type].unknown8 == 2 && count < 50)
+				{
+					candidates[count].index = index;
+					candidates[count].priority = priority;
+					count++;
+				}
+			}
+		}
+	}
+	g_4de2f8 = false;
+	if (count > 8)
+		qsort(candidates, count, sizeof(s_tracking_candidate), function_2631f0);
+	s_record_pool *tracking_pool = g_502414;
+	while (current < count && active_count < 8)
+	{
+		long index = candidates[current].index;
+		s_prop_datum *reference = prop_ref_get(index);
+		if (reference->tracking_index == NONE)
+		{
+			reference->tracking_index = record_pool_allocate(tracking_pool);
+			if (reference->tracking_index == NONE && !reclaimed)
+			{
+				if (function_25db60())
+					reference->tracking_index = record_pool_allocate(tracking_pool);
+				reclaimed = true;
+			}
+			if (reference->tracking_index != NONE)
+			{
+				s_type_e5ff81 *tracking = (s_type_e5ff81 *)(tracking_pool->data + (reference->tracking_index & 0xffff) * sizeof(s_type_e5ff81));
+				tracking_state_initialize(&tracking->state);
+				prop_view_initialize(&tracking->view);
+				function_2640c0(reference->object_index, (s_object_motion_view *)&motion);
+				byte *actor_data = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+				bool sampled = true;
+				if (actor_data[7] && *(long *)(actor_data + 0x1c) != NONE)
+					sampled = function_28fa60(*(long *)(actor_data + 0x1c), &motion.field_c, (s_actor_object_sample *)&sample);
+				else
+					memcpy(&sample, actor_data + 0x22c, sizeof(sample));
+				if (sampled)
+				{
+					function_264330(actor_index, index, &sample, &motion, false);
+					tracking_pool = g_502414;
+				}
+			}
+		}
+		if (reference->tracking_index != NONE)
+			actor->tracked_prop_indices[active_count++] = index;
+		current++;
+	}
+	if (active_count < 8)
+		memset(&actor->tracked_prop_indices[active_count], 0xff, (word)(8 - active_count) * sizeof(long));
+	for (; current < count; current++)
+	{
+		long index = candidates[current].index;
+		s_prop_datum *reference = prop_ref_get(index);
+		if (reference->tracking_index != NONE)
+		{
+			if (reference->tracking_index != NONE)
+				function_25c780(actor_index, index);
+			reference->state = 0;
+			reference->unknown10 = 0.0f;
+		}
+	}
+}
+
+long function_baf40(long object_index);
+short __stdcall function_1c8df0(long object_index, point3f const *target, short target_cell, short source_cell,
+	void const *source, long mode, bool narrow, bool attached, bool alternate, long *hit_object);
+long function_25c9d0(long actor_index, long prop_ref_index, bool player, long sight,
+	void *point, byte *sample, long reported);
+long function_25cb60(long actor_index, long object_index, short type, void *sample,
+	void *point, long location, long sight);
+short function_25cca0(long prop_ref_index);
+short function_263810(long actor_index, point3f const *origin, point3f const *point,
+	point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range);
+void function_26bfa0(long object_index, long *location_index, s_location_view *location);
+real function_296600(long actor_index, long prop_ref_index);
+
+// @retail 0x264b50
+void __stdcall function_264b50(long actor_index, long prop_ref_index, s_2641c0 *sample, s_2640c0 *motion)
+{
+	s_type_f95cd3 *view = NULL;
+	byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+	byte *volatile saved_actor = actor;
+	if (!actor[9])
+		return;
+	byte *squad = NULL;
+	if (*(long *)(actor + 0x30) != NONE)
+		squad = g_51e9d8->data + (*(long *)(actor + 0x30) & 0xffff) * 0x98;
+	s_prop_datum *reference = prop_ref_get(prop_ref_index);
+	if (reference->tracking_index != NONE)
+	{
+		s_type_e5ff81 *tracking = tracking_get(reference->tracking_index);
+		if (tracking)
+			view = &tracking->view;
+	}
+	byte *prop = (byte *)prop_get(reference->prop_index);
+	long time = g_510c54->game_time;
+	byte *object = *(byte **)(g_4e0300->data + (reference->object_index & 0xffff) * 12 + 8);
+	bool suppressed = (squad && (squad[2] & 1)) || *(short *)(actor + 0x84) == 1 || actor[0x228];
+	bool current = *(long *)(actor + 0x338) == prop_ref_index;
+	byte *unit = object[0xaa] == 0 ? object : NULL;
+	if (*(short *)(actor + 4) == 15 && *(long *)(actor + 0x26c) != NONE)
+	{
+		byte *parent = *(byte **)(g_4e0300->data + (*(long *)(actor + 0x26c) & 0xffff) * 12 + 8);
+		long other_unit = *(long *)(parent + 0x248);
+		s_type_f95cd3 *other_view = NULL;
+		bool copied = false;
+		if (other_unit != NONE && other_unit != *(long *)(actor + 0x18))
+		{
+			byte *other = *(byte **)(g_4e0300->data + (other_unit & 0xffff) * 12 + 8);
+			long other_actor = *(long *)(other + 0x12c);
+			if (other_actor != NONE)
+			{
+				long other_index = function_25d810(reference->object_index, other_actor, false);
+				if (other_index != NONE)
+				{
+					s_prop_datum *other_reference = prop_ref_get(other_index);
+					other_view = function_25d740((s_prop_node *)other_reference);
+					reference->unknown26 = other_reference->unknown26;
+					reference->unknown27 = other_reference->unknown27;
+					copied = true;
+				}
+			}
+		}
+		if (!copied)
+		{
+			reference->unknown27 = 0;
+			reference->unknown26 = 0;
+		}
+		if (view)
+		{
+			if (other_view)
+			{
+				view->unknown06 = other_view->unknown06;
+				*(short *)((byte *)view + 2) = *(short *)((byte *)other_view + 2);
+				*(short *)((byte *)view + 4) = *(short *)((byte *)other_view + 4);
+				view->unknown8a = other_view->unknown8a;
+				view->unknown8c = other_view->unknown8c;
+			}
+			else
+			{
+				view->unknown06 = 4;
+				view->unknown8c = 4;
+				*(short *)((byte *)view + 4) = 0;
+				*(short *)((byte *)view + 2) = 0;
+				view->unknown8a = 0;
+			}
+		}
+	}
+	else
+	{
+		long root = function_baf40(unit && *(long *)(unit + 0x14) != NONE ? *(long *)(unit + 0x14) : reference->object_index);
+		long mode = prop[0x25] && prop[0x23] ? 2 : 0;
+		bool alternate = !current;
+		short sight = function_1c8df0(root, &motion->field_0, *(short *)((byte *)motion + 0x28),
+			*(short *)((byte *)sample + 0x28), sample, mode, false,
+			*(long *)(actor + 0x26c) != NONE, alternate, current ? (long *)(actor + 0x348) : NULL);
+		actor = saved_actor;
+		if (*(long *)(actor + 0x7c) != NONE && prop[0x25] && 25.0f > reference->unknown28 &&
+			(sight == 0 || sight == 1))
+			function_268c60(*(long *)(actor + 0x7c));
+		if (view)
+			view->unknown06 = (short)sight;
+		if (!prop[0x26] && !suppressed)
+		{
+			short priority = (short)function_25c9d0(actor_index, prop_ref_index, prop[0x25] != 0, sight,
+				&motion->field_c, (byte *)sample, (long)&suppressed);
+			if (reference->state >= 3 && view)
+			{
+				s_type_5cfb45 *state = function_25d690(reference);
+				if (!view->unknown88)
+				{
+					long other_mode = prop[0x25] && prop[0x23] ? 2 : 0;
+					short other_sight = function_1c8df0(root, (point3f const *)((byte *)state + 0x30), *(short *)((byte *)state + 0x2c),
+						*(short *)((byte *)sample + 0x28), sample, other_mode, false,
+						*(long *)(actor + 0x26c) != NONE, alternate, current ? (long *)(actor + 0x348) : NULL);
+					view->unknown8c = (short)other_sight;
+					view->unknown8a = function_263810(actor_index, (point3f const *)sample, (point3f const *)((byte *)state + 0x30),
+						NULL, 2, (short)other_sight, true, NULL);
+				}
+				else
+				{
+					view->unknown8a = 3;
+					if (current)
+						*(long *)(actor + 0x348) = NONE;
+				}
+			}
+			short object_priority = (short)function_25cb60(actor_index, reference->object_index, reference->unknown1c,
+				sample, &motion->field_c, (long)&motion->field_24, sight);
+			short extra_priority = function_25cca0(prop_ref_index);
+			reference->unknown27 = (char)priority;
+			if (view)
+			{
+				*(short *)((byte *)view + 2) = (short)object_priority;
+				*(short *)((byte *)view + 4) = (short)extra_priority;
+			}
+			short combined = object_priority > extra_priority ? object_priority : extra_priority;
+			reference->unknown26 = (char)(priority > combined ? priority : combined);
+			if (reference->unknown26 == 1 && reference->state >= 1)
+				reference->unknown26 = 2;
+		}
+		else
+		{
+			reference->unknown27 = 0;
+			reference->unknown26 = 0;
+			if (view)
+			{
+				*(short *)((byte *)view + 4) = 0;
+				*(short *)((byte *)view + 2) = 0;
+			}
+		}
+	}
+	if (view)
+	{
+		if (reference->unknown26 >= 2)
+			*(long *)((byte *)view + 0xc) = time;
+		if (reference->unknown27 > 0)
+		{
+			function_26bfa0(reference->object_index, NULL, (s_location_view *)((byte *)view + 0x18));
+			view->unknown10 = time;
+		}
+		*(real *)((byte *)view + 0x3c) = function_265d30(actor_index, prop_ref_index);
+		*(real *)((byte *)view + 0x40) = function_296600(actor_index, prop_ref_index);
+	}
+	function_25d690(reference)->unknown64 = true;
 }
