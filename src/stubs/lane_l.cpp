@@ -18,9 +18,6 @@ struct s_voice_position_batch;
 // @stub 0x59940
 void function_59940(void) { }
 
-// @stub 0x223240
-void function_223240(void) { }
-
 // @stub 0x137c20
 void function_137c20(void) { }
 
