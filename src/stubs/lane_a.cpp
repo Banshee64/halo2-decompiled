@@ -42,10 +42,6 @@ void __stdcall function_189cd0(long sound_index, long object_index, real scale, 
 
 
 
-// @stub 0x13c250
-void __stdcall function_13c250(long object_index, long a, long b)
-{
-}
 
 
 

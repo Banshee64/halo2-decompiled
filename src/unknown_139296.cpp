@@ -1151,14 +1151,20 @@ void function_13b285(void);
 long players_first_active_local_player(void);
 long function_14de10(long arg_1);
 
+__forceinline long function_13a839(long const *arg_1)
+{
+    return *(long const volatile *)arg_1;
+}
+
 // @retail 0x13a838
 void __stdcall function_13a838(long arg_1)
 {
-    byte *local_1 = (byte *)g_510c4c + arg_1 * 0x6c;
+    long local_13 = function_13a839(&arg_1);
+    byte *local_1 = (byte *)g_510c4c + local_13 * 0x6c;
     byte local_2[0x270];
-    function_2003dc(arg_1);
-    function_13992a(local_2, arg_1);
-    function_13a720(arg_1, (s_13a720_status const *)local_2);
+    function_2003dc(local_13);
+    function_13992a(local_2, local_13);
+    function_13a720(local_13, (s_13a720_status const *)local_2);
     if (local_2[0x130])
     {
         real local_3 = local_2[0x133] ? 1.0f : 0.0f;
@@ -1178,9 +1184,9 @@ void __stdcall function_13a838(long arg_1)
         }
     }
     long local_6 = NONE;
-    if (function_14ddc0(arg_1))
+    if (function_14ddc0(local_13))
     {
-        long local_7 = function_14de70(arg_1);
+        long local_7 = function_14de70(local_13);
         local_6 = *(long *)(g_4e8c24->data + (local_7 & 0xffff) * 0x21c + 0x2c);
     }
     if (local_6 != NONE)
@@ -1213,10 +1219,10 @@ void __stdcall function_13a838(long arg_1)
     }
     long local_12 = *(long *)(local_2 + 0xc);
     if (local_12 != NONE)
-        function_13aa27(arg_1, local_2 + 0x88, local_1 + 0x18, local_12, local_2);
+        function_13aa27(local_13, local_2 + 0x88, local_1 + 0x18, local_12, local_2);
     local_12 = *(long *)(local_2 + 0x10);
     if (local_12 != NONE)
-        function_13aa27(arg_1, local_2 + 0xc0, local_1 + 0x20, local_12, local_2);
+        function_13aa27(local_13, local_2 + 0xc0, local_1 + 0x20, local_12, local_2);
 }
 
 // @retail 0x1391ed

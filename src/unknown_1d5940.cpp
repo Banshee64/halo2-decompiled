@@ -1,0 +1,129 @@
+#include "unknown_11c920.h"
+#include "unknown_1cec30.h"
+#include <string.h>
+// @flags /O2 /arch:SSE /Gr
+
+struct s_type_1a7926;
+struct s_section_lists;
+struct s_physics_model_owner;
+struct s_physics_body_groups;
+struct s_1d7300;
+struct s_1d5bf0
+{
+ s_1d7300 *field_0;
+ char field_4[64];
+ long field_44;
+ bool field_48;
+};
+struct s_1d5941
+{
+ byte field_0[0x48];
+ byte *field_48;
+ byte *field_4c;
+ transform4x3f *field_50;
+};
+struct s_1d5942
+{
+ short field_0;
+ byte field_2[0x1a - 2];
+ short field_1a;
+ byte field_1c[0x90 - 0x1c];
+};
+struct s_1d5943
+{
+ byte field_0[0x38];
+ long field_38;
+ s_1d5942 *field_3c;
+ byte field_40[0xc8 - 0x40];
+ long field_c8;
+ byte *field_cc;
+};
+struct s_1d5944
+{
+ long field_0;
+ struct { char field_0[64]; long field_40; } field_4[257];
+};
+
+bool function_20a9a0(long arg_0, s_type_1a7926 *arg_1);
+s_section_lists *function_181a80(s_section_lists *arg_0, long arg_1, bool arg_2);
+bool function_1d5bf0(s_havok_component *arg_0, s_physics_model_owner *arg_1, char const *arg_2,
+ bool arg_3, long arg_4, long *arg_5, dword *arg_6, s_physics_body_groups *arg_7, s_1d5bf0 *arg_8);
+void __cdecl function_2d9160(void *arg_0, long arg_1, long arg_2);
+void function_1d0080(hkRigidBody *arg_0, s_havok_component *arg_1, byte const *arg_2, long arg_3, bool arg_4);
+void function_1d6ad0(s_havok_component *arg_0, s_physics_model_owner *arg_1);
+
+#pragma inline_depth(0)
+// @retail 0x1d5940
+signed char __stdcall function_1d5940(s_havok_component *arg_0, long arg_1, long arg_2, long arg_3)
+{
+ (void)&arg_0; (void)&arg_1; (void)&arg_2; (void)&arg_3;
+ long local_0 = 0;
+ long local_1;
+ dword local_2[8];
+ s_1d5941 local_3;
+ char local_4[64];
+ s_1d5bf0 local_5[32];
+ s_1d5944 local_6;
+ byte *local_7 = (byte *)g_4e0300->data + (arg_0->object_index & 0xffff) * 12;
+ if (!(local_7[2] & 1) && !((1 << local_7[3]) & 0x80))
+  *(byte *)&arg_1 = 1;
+ if (function_20a9a0(arg_0->object_index, (s_type_1a7926 *)&local_3))
+ {
+  function_181a80((s_section_lists *)&local_6, arg_0->object_index, false);
+  s_1d5943 *local_8 = (s_1d5943 *)local_3.field_48;
+  memset(local_2, 0, sizeof(local_2));
+  for (long local_9 = 0; local_9 < local_8->field_38; ++local_9)
+  {
+   s_1d5942 *local_10 = &local_8->field_3c[local_9];
+   long local_11;
+   switch (local_10->field_1a)
+   {
+   case 0: local_11 = 2; break;
+   case 1: local_11 = 3; break;
+   case 2: local_11 = 4; break;
+   case 3: local_11 = 5; break;
+   case 4: local_11 = 6; break;
+   case 5: local_11 = 7; break;
+   default: __assume(0);
+   }
+   if ((byte)arg_1)
+    local_11 = 7;
+   if ((byte)arg_2 && local_11 != 7 &&
+       (local_10->field_0 == NONE || !(local_8->field_cc[local_10->field_0 * 12 + 4] & 1)))
+    local_11 = 6;
+   local_4[local_9] = (char)local_11;
+  }
+  long local_12 = 0;
+  local_1 = 0;
+  if (function_1d5bf0(arg_0, (s_physics_model_owner *)&local_3, local_4, (byte)arg_3 != 0,
+       NONE, &local_1, local_2, (s_physics_body_groups *)&local_6, &local_5[local_12]))
+   local_12 = 1;
+  if (local_1 >= 0)
+   local_0 = local_1;
+  for (long local_13 = 0; local_13 < ((s_1d5943 *)local_3.field_48)->field_c8; ++local_13)
+  {
+   if (!(local_2[local_13 >> 5] & (1 << (local_13 & 31))))
+   {
+    local_1 = 0;
+    if (function_1d5bf0(arg_0, (s_physics_model_owner *)&local_3, local_4, (byte)arg_3 != 0,
+         local_13, &local_1, local_2, (s_physics_body_groups *)&local_6, &local_5[local_12]))
+     ++local_12;
+    if (local_0 <= local_1)
+     local_0 = local_1;
+   }
+  }
+  if (local_12 > 0)
+  {
+   if ((arg_0->rigid_bodies.capacity_and_flags & 0x7fffffff) < local_12)
+    function_2d9160(&arg_0->rigid_bodies, local_12, 0x60);
+   for (long local_14 = 0; local_14 < local_12; ++local_14)
+    function_1d0080((hkRigidBody *)local_5[local_14].field_0, arg_0,
+     (byte const *)local_5[local_14].field_4, local_5[local_14].field_44, local_5[local_14].field_48);
+  }
+  function_1d6ad0(arg_0, (s_physics_model_owner *)&local_3);
+  arg_0->unknown04 |= 0x800;
+ }
+ return (signed char)local_0;
+}
+
+#pragma inline_depth(255)

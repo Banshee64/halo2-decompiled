@@ -4175,3 +4175,165 @@ void __stdcall function_15bb20(long player_index)
         }
     }
 }
+
+long function_23f360(long mode, long team);
+long function_23f260(long mode, long player_index, long value);
+
+PRIVATE __forceinline long sweep_rank_mode()
+{
+    long mode;
+    if (g_4e6948->flag1128)
+        mode = 1;
+    else
+        mode = 0;
+    return mode;
+}
+
+// @retail 0x158e90
+long function_158e90(long team)
+{
+    return function_23f360(sweep_rank_mode(), team) / 2;
+}
+
+PRIVATE __forceinline bool sweep_team_active(long team)
+{
+    bool result = false;
+    if (g_55e4d0[g_4e9ae8->engine_index])
+    {
+        byte teams = ((byte *)g_4e6948)[0x184] & 1;
+        volatile byte observed_teams = teams;
+        if (teams && team >= 0 && team < 8)
+            result = (function_xaee93d()->team_mask & (1 << team)) != 0;
+    }
+    return result;
+}
+
+// @retail 0x158eb0
+bool function_158eb0()
+{
+    bool result = true;
+    for (long team = 0; team < 8; ++team)
+    {
+        if (sweep_team_active(team) && function_158e90(team) > 0)
+        {
+            result = false;
+            break;
+        }
+    }
+    return result;
+}
+
+// @retail 0x158f50
+bool function_158f50()
+{
+    long count = 0;
+    bool result = true;
+    s_engine_player_iterator iterator;
+    iterator.data = g_4e8c24;
+    iterator.absolute_index = NONE;
+    iterator.index = NONE;
+    while (function_19f240((long *)&iterator))
+    {
+        ++count;
+        if (function_23f260(sweep_rank_mode(), iterator.index, NONE) / 2 > 0)
+        {
+            result = false;
+            break;
+        }
+    }
+    if (count == 1)
+        result = false;
+    return result;
+}
+
+void __stdcall function_19ef40(long unit_index, long *first_count, long *second_count);
+
+// @retail 0x15e970
+void function_15e970(long unit_index)
+{
+    byte *unit = (byte *)engine_object_get(unit_index);
+    long first_limit, second_limit;
+    first_limit = second_limit = (function_xaee93d()->flags & 8) ? 1 : 2;
+    long first_count = first_limit;
+    long second_count = 0;
+    function_19ef40(unit_index, &first_count, &second_count);
+    if (!((bool)((*(dword *)((byte *)g_4e6948 + 0x184) >> 11) & 1)))
+        first_count = second_count = 0;
+    switch (*(char *)((byte *)g_4e6948 + 0x210))
+    {
+    case 15:
+    case 17:
+        second_count += first_count;
+        first_count = 0;
+        break;
+    case 16:
+        first_count += second_count;
+        second_count = 0;
+        break;
+    }
+    if (first_count > first_limit) first_count = first_limit;
+    if (second_count > second_limit) second_count = second_limit;
+    unit[0x23e] = (byte)first_count;
+    unit[0x23f] = (byte)second_count;
+    long simulation_index = engine_object_get(unit_index)->simulation_index;
+    if (simulation_index != NONE)
+        function_b58c0(simulation_index, 0x400000);
+}
+
+#include "font_loading.h"
+#include "unknown_030290.h"
+extern short_rectangle2d g_4b9dd8;
+extern short g_4b9dd0, g_4b9dd2;
+extern long g_4ba04c;
+extern real g_4e69c0[4];
+extern point3f *g_468718;
+void function_13edb0(long font, long style, long justification, dword flags,
+    color4f const *color, color4f const *shadow);
+void function_13ec70(color4f const *color);
+void function_13e8a0();
+class c_1fa50
+{
+public:
+    void function_1fa50(short_rectangle2d const *bounds, void const *clip, void const *position,
+        long line_gap, real scale, long color, void const *shadow) const;
+};
+PRIVATE color3f const score_text_color = { 0.4588235318660736f, 0.729411780834198f, 1.0f };
+PRIVATE color3f const alternate_score_text_color = { 0.8078431487083435f, 0.5607843399047852f, 0.8705882430076599f };
+
+// @retail 0x15e530
+void __stdcall function_15e530(c_1fa50 const *text, real alpha, point2f const *point)
+{
+    (void)&text;
+    (void)&alpha;
+    (void)&point;
+    short_rectangle2d bounds = g_4b9dd8;
+    long font_index = (g_4ba04c <= 1) + 5;
+    s_font_header *font = font_get(g_4e28f4[font_index]);
+    long height = 10;
+    if (font)
+        height = font->leading_height + font->descending_height + font->ascending_height;
+    color3f const *rgb = &score_text_color;
+    if (g_4b9ed8 != NONE)
+    {
+        long player_index = g_4e8c20->entries[g_4b9ed8];
+        if (player_index != NONE)
+        {
+            char appearance = *((char *)engine_player_get(player_index) + 0x88);
+            if (appearance == 1 || appearance == 3)
+                rgb = &alternate_score_text_color;
+        }
+    }
+    real scale = (g_4b9ed8 >= 0 && g_4b9ed8 < 4) ? g_4e69c0[g_4b9ed8] : 1.0f;
+    color4f color = { scale * alpha, rgb->red, rgb->green, rgb->blue };
+    color4f shadow = { scale * alpha, g_468718->x, g_468718->y, g_468718->z };
+    real x = point->x - g_4b9dd2;
+    real y = point->y - g_4b9dd0;
+    bounds.left = (short)(x - 300.0f);
+    bounds.right = (short)(x + 300.0f);
+    bounds.top = (short)(y - (short)height);
+    bounds.bottom = (short)y;
+    function_13edb0(font_index, NONE, 2, 0, &color, &shadow);
+    function_13ec70(&color);
+    text->function_1fa50(&bounds, 0, 0, 0, 1.0f, 0, 0);
+    function_13e8a0();
+}

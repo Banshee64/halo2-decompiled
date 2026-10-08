@@ -100,8 +100,6 @@ void function_268510() {}
 // @stub 0x1e2f50
 void function_1e2f50() {}
 
-// @stub 0x1d3fc0
-void __stdcall function_1d3fc0(long arg_0) {}
 // @stub 0x1e2990
 void __stdcall function_1e2990(long arg_0, bool arg_1) {}
 
@@ -209,8 +207,6 @@ void hkRigidBody::setTransform(hkTransform const &transform) { }
 
 
 
-// @stub 0x26d100
-long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point) { return 0; }
 
 /* callees of the physics code (unknown_1c25a0.cpp, unknown_1cec30.cpp) */
 
@@ -223,11 +219,7 @@ hkBool hkWorld::removeEntity(hkEntity *entity) { return hkBool(); }
 
 
 
-// @stub 0x1d56f0
-void function_1d56f0(s_havok_component *component) { }
 
-// @stub 0x1d5940
-signed char __stdcall function_1d5940(s_havok_component *component, long a, long b, long c) { return 0; }
 
 
 
@@ -649,3 +641,13 @@ public:
 
 // @stub 0x30b080
 void c_30b080::function_30b080(__m128 const *arg_0) { }
+
+struct s_physics_model_owner;
+// @stub 0x1d6ad0
+void function_1d6ad0(s_havok_component *arg_0, s_physics_model_owner *arg_1) {}
+
+
+
+
+// @stub 0x1d56f0
+void function_1d56f0(s_havok_component *arg_0) {}

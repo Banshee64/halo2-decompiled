@@ -40,3 +40,41 @@ bool function_15eaf0()
 
 	return result;
 }
+
+struct s_score_display
+{
+    long players[16];
+    short teams[8];
+    char player_ranks[16];
+    char team_ranks[8];
+    short player_count;
+    short team_count;
+};
+
+void function_23f3e0(s_score_display *display, long mode, bool fallback);
+
+PRIVATE __forceinline byte sweep_score_teams()
+{
+    byte result = 0;
+    if (g_55e4d0[g_4e9ae8->engine_index])
+    {
+        result = ((byte *)g_4e6948)[0x184] & 1;
+        volatile byte observed_teams = result;
+    }
+    return result;
+}
+
+// @retail 0x15b330
+long function_15b330(bool teams)
+{
+    s_score_display display;
+    function_23f3e0(&display, 0, false);
+    if (sweep_score_teams())
+    {
+        if (display.team_ranks[0] == 0)
+            return display.teams[0];
+    }
+    else if (display.player_ranks[0] == 0)
+        return display.players[0];
+    return NONE;
+}

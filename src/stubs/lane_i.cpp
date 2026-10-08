@@ -47,10 +47,6 @@ void __stdcall function_26c2d0(long arg_0)
 {
 }
 
-// @stub 0x26d0e0
-long __stdcall function_26d0e0(point3f const *arg_0, s_type_c3b527 *arg_1, long arg_2)
-{
-	return 0;
-}
+
 
 
