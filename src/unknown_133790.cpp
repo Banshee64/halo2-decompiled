@@ -130,9 +130,8 @@ void function_134240(s_bit_vector_pool *arg_1);
 dword function_1332f0(s_bit_vector_pool const *arg_1, word arg_2);
 void function_133f70(s_133f70 const *arg_1, bool arg_2);
 void function_4baf0(long arg_1, real arg_2, byte *arg_3, byte *arg_4);
-void function_4b5d0(long, long, real, byte *, byte *, bool, real, bool);
-typedef void (*t_function_4b5d0_133790)(long arg_1, long arg_2, bool arg_3, real arg_4, real arg_5,
-    s_133f70 *arg_6, point3f const *arg_7, bool arg_8);
+void function_4b5d0(bool force, long override, long object_index, real distance, real priority,
+    byte *output, byte *unused, bool project_nodes);
 void function_133ab0(s_bit_vector_pool *arg_1, s_133f70 *arg_2, bool arg_3, bool arg_4, bool arg_5);
 bool function_133790(s_bit_vector_pool *arg_1, short arg_2, bool arg_3, long *arg_4, long arg_5, bool arg_6);
 
@@ -199,8 +198,8 @@ bool function_133790(s_bit_vector_pool *arg_1, short arg_2, bool arg_3, long *ar
         local_5.field_1be = local_2->field_14[arg_2];
     }
     else local_5.field_1b0 = 1;
-    ((t_function_4b5d0_133790)function_4b5d0)(local_3, arg_1->mode, local_1, *(real *)local_5.field_1b8,
-        local_5.field_1b4, &local_5, &local_5.field_194, local_10);
+    function_4b5d0(local_1, arg_1->mode, local_3, *(real *)local_5.field_1b8,
+        local_5.field_1b4, (byte *)&local_5, (byte *)&local_5.field_194, local_10);
     local_5.field_1b0 |= 0x208;
     if (arg_3)
     {
@@ -317,8 +316,8 @@ void function_133ab0(s_bit_vector_pool *arg_1, s_133f70 *arg_2, bool arg_3, bool
             }
             local_8.field_1be = NONE;
             local_8.field_1b0 = (local_8.field_1b0 & ~0x40) | 1;
-            ((t_function_4b5d0_133790)function_4b5d0)(local_7, arg_1->mode, arg_5, *(real *)local_8.field_1b8,
-                local_8.field_1b4, &local_8, &local_8.field_194, (bool)local_8.field_1a4[4]);
+            function_4b5d0(arg_5, arg_1->mode, local_7, *(real *)local_8.field_1b8,
+                local_8.field_1b4, (byte *)&local_8, (byte *)&local_8.field_194, (bool)local_8.field_1a4[4]);
             function_133ab0(arg_1, &local_8, true, arg_4, arg_5);
             local_7 = ((s_133792 *)g_4e0300->data)[local_7 & 0xffff].field_8->field_c;
         }
