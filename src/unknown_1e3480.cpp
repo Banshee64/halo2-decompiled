@@ -34,8 +34,8 @@ struct s_actor_creature
 // @retail 0x1e3480
 long function_1e3480(long object_index)
 {
-	s_actor_object *object = ((s_actor_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	long result = NONE;
+	s_actor_object *object = ((s_actor_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 
 	if ((1 << object->type) & 3)
 	{
