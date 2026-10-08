@@ -113,7 +113,6 @@ void __stdcall function_1bdad0(long actor_index, s_slot *slot, long index) { }
 struct s_1fb7e0_data;
 struct s_1fbac0_event;
 
-
 // @stub 0x1fbac0
 void __stdcall function_1fbac0(long unknown, long unit_index, bool unknown2, long unknown3, s_1fbac0_event *event) { }
 

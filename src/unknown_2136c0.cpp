@@ -26,7 +26,7 @@ struct s_cache_copy_request
 struct s_cache_copy_progress
 {
     long completed;
-    volatile dword total;
+    dword total;
 };
 
 struct s_copy_header_view;

@@ -98,7 +98,6 @@ void function_1c84a0(long a, long b)
 
 
 
-
 // @stub 0xb73b0
 void function_b73b0(long object_index)
 {

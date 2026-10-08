@@ -24,7 +24,6 @@ bool __stdcall function_bc1d0(long object_index, point3f *point) { return 0; }
 
 
 
-
 // @stub 0xe5930
 void function_e5930(long unit_index) { }
 

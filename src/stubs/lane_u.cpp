@@ -11,11 +11,6 @@ long function_20f2d0(long arg_0, short arg_1, long arg_2, long arg_3, long arg_4
     return NONE;
 }
 
-// @stub 0x28fc50
-void function_28fc50(long arg_0, long arg_1)
-{
-}
-
 // @stub 0x1a0680
 bool function_1a0680(long arg_0, s_player_profile *arg_1, s_saved_game_file_task *arg_2)
 {
