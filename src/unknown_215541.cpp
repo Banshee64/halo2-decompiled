@@ -97,7 +97,7 @@ struct s_storage_request
 	long result;
 	byte unknown008[0x10c - 8];
 	char controller;
-	bool option;
+	byte option;
 	byte unknown10e[2];
 	dword started;
 	byte unknown114[0x2f4 - 0x114];
@@ -141,7 +141,7 @@ void __stdcall function_2155dc(void *context)
 }
 
 // @retail 0x2154cd
-void function_2154cd(s_storage_request *request, long controller, long title)
+void function_2154cd(long controller, s_storage_request *request, long title)
 {
 	(void)&title;
 	request->controller = (char)controller;
@@ -155,7 +155,7 @@ void function_2154cd(s_storage_request *request, long controller, long title)
 }
 
 // @retail 0x215454
-s_storage_request *__stdcall function_215454(c_slots_215541 *slots, bool option)
+s_storage_request *__stdcall function_215454(c_slots_215541 *slots, byte option)
 {
 	(void)&slots;
 	(void)&option;

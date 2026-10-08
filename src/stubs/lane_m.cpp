@@ -49,9 +49,3 @@ void __stdcall function_1acda0(long actor_index, s_slot *slot)
 void __stdcall function_1af810(long actor_index, s_slot *slot)
 {
 }
-
-// @stub 0x216240
-bool function_216240(long file_index, void *buffer, long size, wchar_t *name)
-{
-	return false;
-}
