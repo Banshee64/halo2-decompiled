@@ -1632,52 +1632,53 @@ PRIVATE inline bool unit_action_channel_valid(c_animation_channel const *channel
 
 /* plays a pausing animation on a unit (and its child units), then stops
    it, or holds or releases its channels */
-PRIVATE inline bool unit_action_pause(long unit_index, s_unit_request *request, long name)
+PRIVATE __forceinline bool unit_action_pause(long unit_index, s_unit_request *request, long name)
 {
 	bool result = false;
 
-	if (!function_e92e0(unit_index, name))
-		return result;
-
-	result = true;
-	if (*((byte *)request + 4) == 1)
+	if (function_e92e0(unit_index, name))
 	{
-		s_animation_state *state = unit_action_state_get(unit_index);
-
-		if (state->unknown7c == name)
-			state->channels_finish();
-		for (long child_index = *(long *)((byte *)UNIT_ACTION_UNIT_GET(unit_index) + 0x10); child_index != NONE; )
+		result = true;
+		if (*((byte *)request + 4) == 1)
 		{
-			s_animation_state *child_state = unit_action_state_get(child_index);
+			s_animation_state *state = unit_action_state_get(unit_index);
 
-			if (child_state->unknown7c == name)
-				child_state->channels_finish();
-			child_index = *(long *)((byte *)UNIT_ACTION_UNIT_GET(child_index) + 0xc);
+			if (state->unknown7c == name)
+				state->channels_finish();
+			for (long child_index = *(long *)((byte *)UNIT_ACTION_UNIT_GET(unit_index) + 0x10); child_index != NONE; )
+			{
+				s_animation_state *child_state = unit_action_state_get(child_index);
+
+				if (child_state->unknown7c == name)
+					child_state->channels_finish();
+				child_index = *(long *)((byte *)UNIT_ACTION_UNIT_GET(child_index) + 0xc);
+			}
 		}
-		return result;
-	}
-
-	s_animation_state *state = unit_action_state_get(unit_index);
-
-	if (*((byte *)request + 5) == 1)
-	{
-		if (unit_action_channel_valid(&state->channels[2]) && TEST_FIELD_BIT(state->channels[2].flag0))
-			state->channels[2].unknown11 |= 1;
-		if (unit_action_channel_valid(&state->channels[0]) && TEST_FIELD_BIT(state->channels[0].flag0))
-			state->channels[0].unknown11 |= 1;
-		if (unit_action_channel_valid(&state->channels[1]) && TEST_FIELD_BIT(state->channels[1].flag0))
-			state->channels[1].unknown11 |= 1;
-	}
-	else
-	{
-		if (unit_action_channel_valid(&state->channels[2]) && TEST_FIELD_BIT(state->channels[2].flag0))
-			state->channels[2].unknown11 &= ~1;
-		if (!unit_action_channel_valid(&state->channels[2]))
+		else
 		{
-			if (unit_action_channel_valid(&state->channels[0]) && TEST_FIELD_BIT(state->channels[0].flag0))
-				state->channels[0].unknown11 &= ~1;
-			if (unit_action_channel_valid(&state->channels[1]) && TEST_FIELD_BIT(state->channels[1].flag0))
-				state->channels[1].unknown11 &= ~1;
+			s_animation_state *state = unit_action_state_get(unit_index);
+
+			if (*((byte *)request + 5) == 1)
+			{
+				if (unit_action_channel_valid(&state->channels[2]) && TEST_FIELD_BIT(state->channels[2].flag0))
+					state->channels[2].unknown11 |= 1;
+				if (unit_action_channel_valid(&state->channels[0]) && TEST_FIELD_BIT(state->channels[0].flag0))
+					state->channels[0].unknown11 |= 1;
+				if (unit_action_channel_valid(&state->channels[1]) && TEST_FIELD_BIT(state->channels[1].flag0))
+					state->channels[1].unknown11 |= 1;
+			}
+			else
+			{
+				if (unit_action_channel_valid(&state->channels[2]) && TEST_FIELD_BIT(state->channels[2].flag0))
+					state->channels[2].unknown11 &= ~1;
+				if (!unit_action_channel_valid(&state->channels[2]))
+				{
+					if (unit_action_channel_valid(&state->channels[0]) && TEST_FIELD_BIT(state->channels[0].flag0))
+						state->channels[0].unknown11 &= ~1;
+					if (unit_action_channel_valid(&state->channels[1]) && TEST_FIELD_BIT(state->channels[1].flag0))
+						state->channels[1].unknown11 &= ~1;
+				}
+			}
 		}
 	}
 	return result;
