@@ -44,8 +44,6 @@ struct s_186ab2;
 void __stdcall function_1a4900(long arg_0, s_186ab2 *arg_1, vector3f *arg_2) { }
 
 struct s_cluster_query;
-// @stub 0xd47d0
-bool __stdcall function_d47d0(s_cluster_query const *arg_0, color3f *arg_1) { return false; }
 
 class c_18f4bb
 {

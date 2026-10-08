@@ -3,8 +3,6 @@
 
 struct s_effect_color_query;
 
-// @stub 0xd1e10
-long __stdcall function_d1e10(void const *surface, s_effect_color_query *query, long flags, long value) { return 0; }
 
 // @stub 0x14af40
 bool function_14af40(bool value, point3f const *point, vector3f const *vector, long object_index,
