@@ -3027,7 +3027,13 @@ void __stdcall function_db210(s_type_1e6529 const *data, long vehicle_index)
 void function_d87e0(long list_index, bool can_take_damage)
 {
 	long reference_index;
-	long object_index = function_1dee50(list_index, &reference_index);
+	long object_index = list_index;
+
+	if (list_index != NONE)
+	{
+		reference_index = ((s_object_list_1dee50 *)g_4f55d8->data)[list_index & 0xffff].first_reference_index;
+		object_index = function_1dee80(&reference_index);
+	}
 
 	while (object_index != NONE)
 	{
