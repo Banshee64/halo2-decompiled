@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7062 functions match
+
+```
+matched 7062 of 11318 game functions (788532 of 2784283 bytes, 28.32%)
+```
+
+7062 new matches, none lost:
+- Merge batch r44: blocker lane BX1 (+1, 0xd47d0).
+
 ## 2026-10-08: 7061 functions match
 
 ```
