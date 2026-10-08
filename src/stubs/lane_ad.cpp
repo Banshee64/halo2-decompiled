@@ -13,9 +13,6 @@ bool function_14af40(bool value, point3f const *point, vector3f const *vector, l
 // @stub 0x14b120
 bool function_14b120(void *source, void *surface) { return false; }
 
-// @stub 0x1ca130
-void function_1ca130(long unit_index, long value, long priority) {}
-
 
 struct s_entry_pair;
 // @stub 0x1a4c00
