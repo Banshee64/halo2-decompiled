@@ -53,7 +53,7 @@ struct s_equipment_definition_view
 #define EQUIPMENT_GET(index) (((s_equipment_header_view *)g_4e0300->data)[(index) & 0xffff].object)
 #define EQUIPMENT_DEFINITION_GET(index) ((s_equipment_definition_view *)g_4e3b44[(index) & 0xffff].bytes)
 
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 long function_1896c0(real scale, long tag_index);
 
 // @retail 0xf8090

@@ -518,7 +518,7 @@ long havok_component_new(long object_index);
 void havok_component_delete(long component_index);
 void function_1cf120(long component_index);
 void function_1d1540(s_havok_component *component);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 struct s_unit_move_result;
 bool function_1d48f0(point3f *arg_0, s_havok_component *component, long rigid_body_index, long type, point3f const *target,
 	vector3f const *offset, s_location *location, real a5, real radius, bool a7, point3f const *root_point,
