@@ -236,7 +236,7 @@ void function_109390(long object_index)
 	}
 }
 
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_b7360(long object_index);
 void function_e4c10(long object_index);
 

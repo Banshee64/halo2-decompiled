@@ -14,6 +14,7 @@
 class c_item_type : public c_object_type_definition
 {
 public:
+	virtual void v31(long a, long b, long c, long d);
 	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, long b, long c, long d, s_bitstream *stream);
 	virtual long v27(long a, long b, long c, long d);
@@ -31,6 +32,7 @@ public:
 class c_projectile_type : public c_object_type_definition
 {
 public:
+	virtual void v31(long a, long b, long c, long d);
 	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, long b, long c, long d, s_bitstream *stream);
 	virtual bool v8(long a, long b);
@@ -49,6 +51,8 @@ public:
 class c_weapon_type : public c_object_type_definition
 {
 public:
+	virtual bool v16(long a, long b, long c);
+	virtual void v31(long a, long b, long c, long d);
 	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, long b, long c, long d, s_bitstream *stream);
 	virtual long v27(long a, long b, long c, long d);
@@ -64,6 +68,8 @@ public:
 class c_device_type : public c_object_type_definition
 {
 public:
+	virtual bool v16(long a, long b, long c);
+	virtual void v31(long a, long b, long c, long d);
 	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, long b, long c, long d, s_bitstream *stream);
 	virtual long v27(long a, long b, long c, long d);

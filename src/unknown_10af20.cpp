@@ -37,7 +37,7 @@ void function_b7680(long object_index, real scale, real seconds);
 void function_b7740(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity,
 	bool unknown);
 void function_1c4b00(long object_index, void *a, void *b, long c);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_b7360(long object_index);
 void function_bba20(long object_index);
 
