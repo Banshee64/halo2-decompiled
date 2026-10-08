@@ -178,7 +178,7 @@ void function_20ad40(s_anim_data *data, vector3f *a, vector3f *b, long index)
 	h = data->header;
 	if (h->unknown4 != 0)
 	{
-		p = data->base + (h->unknown2 + h->unknown6 + h->unknown1 + h->unknownc + h->unknown0);
+		p = *(byte * volatile *)&data->base + (h->unknown2 + h->unknown6 + h->unknown1 + h->unknownc + h->unknown0);
 		p += index * 12;
 		*a = *(vector3f *)p;
 		if (index + 1 < data->count)

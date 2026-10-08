@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 7026 functions match
+
+```
+matched 7026 of 11318 game functions (784516 of 2784283 bytes, 28.18%)
+```
+
+7026 new matches, none lost:
+- Merge batch r35: lane W round 20 (+1) and the second machine's #204 to #211 (lanes AC, U, C and F; +12).
+
+## 2026-10-07: 7013 functions match
+
+```
+matched 7013 of 11318 game functions (782562 of 2784283 bytes, 28.11%)
+```
+
+7013 new matches, none lost:
+- Merge batch r34: UI-core rounds 16 and 17 (+2).
+
+## 2026-10-07: 7011 functions match
+
+```
+matched 7011 of 11318 game functions (781916 of 2784283 bytes, 28.08%)
+```
+
+7011 new matches, none lost:
+- Merge batch r33: lane H rounds 5 and 6 (+7).
+
 ## 2026-10-07: 7004 functions match
 
 ```

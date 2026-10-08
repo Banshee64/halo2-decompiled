@@ -1,0 +1,410 @@
+// @flags /O2 /Oi /arch:SSE /Gr
+#include "unknown_11c920.h"
+#include "globals.h"
+#include "unknown_1cec30.h"
+#include "impacts.h"
+#include <math.h>
+
+#define MIN(arg_0, arg_1) ((arg_0) > (arg_1) ? (arg_1) : (arg_0))
+#define MAX(arg_0, arg_1) ((arg_0) > (arg_1) ? (arg_0) : (arg_1))
+#define PIN(arg_0, arg_1, arg_2) ((arg_0) < (arg_1) ? (arg_1) : ((arg_0) > (arg_2) ? (arg_2) : (arg_0)))
+
+struct s_vehicle_physics_state;
+struct s_vehicle_ray;
+struct s_vehicle_contact_result;
+struct s_query_batch_result;
+struct s_impact;
+struct s_unknown_1eb550;
+extern s_unknown_1eb550 *g_51e9c4;
+extern s_record_pool *g_51ebfc;
+extern s_record_pool *g_51ec00;
+extern vector3f *g_4687bc;
+
+void function_ba1d0(long arg_0, vector3f *arg_1, vector3f *arg_2);
+real function_17c900(short arg_0, real arg_1);
+bool function_182800(s_vehicle_ray *arg_0, long arg_1, void *arg_2);
+void __stdcall function_1821d0(long arg_0, real arg_1, s_query_batch_result *arg_2, long arg_3);
+void function_207ab0(long arg_0, s_vehicle_physics_state *arg_1, s_vehicle_contact_result const *arg_2);
+void havok_component_rigid_body_linear_velocity_change(long arg_0, s_havok_component *arg_1, vector3f const *arg_2);
+long function_2078f0(long const *arg_0, s_impact_data const *arg_1, vector3f const *arg_2, real arg_3, bool arg_4);
+void function_2079f0(long const *arg_0, long arg_1, bool arg_2);
+void impact_rigid_body_indices_get(s_impact const *arg_0, long arg_1, long *arg_2, long *arg_3);
+void function_2294a0(long arg_0, long arg_1, long arg_2, s_impact *arg_3);
+void impact_set_contact_from_component(s_impact *arg_0);
+
+struct s_206090
+{
+    long field_0;
+    byte *field_4;
+    transform4x3f field_8;
+    matrix3x3 field_3c;
+    vector3f field_60;
+    real field_6c;
+    real field_70;
+    vector3f field_74;
+    vector3f field_80;
+    real field_8c;
+    byte field_90[16 * 0xa8];
+    byte field_b10[16 * 0xd8];
+};
+
+struct s_206091
+{
+    point3f field_0;
+    vector3f field_c;
+    real field_18;
+    vector3f field_1c;
+};
+
+PRIVATE __forceinline real function_206091(vector3f const *arg_0, vector3f const *arg_1)
+{
+    return arg_0->k * arg_1->k + arg_0->j * arg_1->j + arg_0->i * arg_1->i;
+}
+
+PRIVATE __forceinline void function_206092(vector3f const *arg_0, vector3f const *arg_1, vector3f *arg_2)
+{
+    arg_2->k = arg_0->i * arg_1->j - arg_0->j * arg_1->i;
+    arg_2->j = arg_0->k * arg_1->i - arg_0->i * arg_1->k;
+    arg_2->i = arg_0->j * arg_1->k - arg_0->k * arg_1->j;
+}
+
+PRIVATE __forceinline real function_206093(vector3f const *arg_0)
+{
+    return (real)sqrt((double)arg_0->k * arg_0->k + (double)arg_0->j * arg_0->j + (double)arg_0->i * arg_0->i);
+}
+
+PRIVATE __forceinline real function_206094(vector3f *arg_0)
+{
+    real local_0 = function_206093(arg_0);
+    if (fabs(local_0) < 0.0001f)
+        return 0.0f;
+    real local_1 = 1.0f / local_0;
+    arg_0->i *= local_1;
+    arg_0->j *= local_1;
+    arg_0->k *= local_1;
+    return local_0;
+}
+
+PRIVATE __forceinline void function_206095(vector3f *arg_0, vector3f const *arg_1)
+{
+    arg_0->i += arg_1->i;
+    arg_0->j += arg_1->j;
+    arg_0->k += arg_1->k;
+}
+
+PRIVATE __forceinline void function_206096(vector3f const *arg_0, real arg_1, vector3f *arg_2)
+{
+    arg_2->i = arg_0->i * arg_1;
+    arg_2->j = arg_0->j * arg_1;
+    arg_2->k = arg_0->k * arg_1;
+}
+
+#pragma inline_depth(1)
+// @retail 0x206090
+bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, vector3f *arg_2)
+{
+    (void)&arg_0;
+    (void)&arg_1;
+    (void)&arg_2;
+    s_206090 *local_0 = (s_206090 *)arg_0;
+    byte *local_1 = local_0->field_4;
+    byte *local_2 = *(byte **)(g_4e0300->data + (local_0->field_0 & 0xffff) * 12 + 8);
+    s_havok_component *local_3 = havok_component_get(*(long *)(local_2 + 0xb4));
+    vector3f local_4, local_5;
+    function_ba1d0(local_0->field_0, &local_4, &local_5);
+    *arg_1 = *g_4687a4;
+    *arg_2 = *g_4687a4;
+    for (long local_6 = 0; local_6 < *(long *)(local_1 + 0x3c); local_6++)
+    {
+        byte *local_7 = local_0->field_90 + local_6 * 0xa8;
+        byte *local_8 = *(byte **)(local_1 + 0x40) + local_6 * 0x4c;
+        vector3f *local_9 = (vector3f *)(local_7 + 0x40);
+        vector3f *local_10 = (vector3f *)(local_7 + 0x4c);
+        local_9->i = *(real *)(local_7 + 0x34) - local_0->field_60.i;
+        local_9->j = *(real *)(local_7 + 0x38) - local_0->field_60.j;
+        local_9->k = *(real *)(local_7 + 0x3c) - local_0->field_60.k;
+        function_206092(&local_5, local_9, local_10);
+        function_206095(local_10, &local_4);
+        real local_11 = PIN(*(real *)(local_1 + 0x30) * local_0->field_8c * 0.31830987f, -1.0f, 1.0f);
+        if (local_0->field_74.i >= 0.0f)
+            local_11 = -local_11;
+        real local_12 = -(local_0->field_74.j * *(real *)(local_7 + 0x88));
+        real local_13 = local_11 * local_11 * (local_11 > 0.0f ? 1.0f : -1.0f) * *(real *)(local_7 + 0x88);
+        real local_14 = fabs(local_12) > fabs(local_13) ? local_12 : local_13;
+        real local_15 = local_14 > 0.0f ? PIN(local_14 - 0.1f, 0.0f, 1.0f) : PIN(local_14 + 0.1f, -1.0f, 0.0f);
+        real local_16 = *(real *)(local_1 + 0x2c) * local_15 + 1.0f;
+        real local_17 = local_16 * *(real *)(local_8 + 0x20);
+        real local_18 = local_16 * *(real *)(local_8 + 0x10);
+        s_206091 local_19;
+        local_19.field_0 = *(point3f *)(local_7 + 0x34);
+        function_206096(g_4687bc, local_17 + local_18, &local_19.field_c);
+        long local_20 = *(long *)(local_2 + 0xb4);
+        if (local_7[0x81] && local_20 != NONE)
+        {
+            s_havok_component *local_21 = havok_component_get(local_20);
+            if (TEST_FIELD_BIT(local_21->flag5) && local_21->unknown9c &&
+                function_182800((s_vehicle_ray *)&local_19, NONE, (void *)local_21->unknown9c))
+            {
+                real local_22 = (local_17 + local_18) * local_19.field_18 - local_17;
+                real local_23 = *(real *)(local_8 + 0x18);
+                real local_24 = *(real *)(local_8 + 0x1c);
+                real local_25;
+                real local_26 = *(real *)(local_7 + 0x24);
+                if (fabs(local_23 - local_24) < 0.001f)
+                    local_25 = local_26 > local_24 ? 1.0f : 0.0f;
+                else if (local_23 >= local_24)
+                    local_25 = (PIN(local_26, local_24, local_23) - local_24) / (local_23 - local_24);
+                else
+                    local_25 = (PIN(local_26, local_23, local_24) - local_24) / (local_23 - local_24);
+                real local_27 = local_22 > 0.0f ? 1.0f - local_22 / local_18 : 1.0f;
+                real local_28 = (*(real *)g_51e9c4 * local_27 * local_27 - *(real *)(local_8 + 0x14) * function_206091(local_10, &local_19.field_1c)) *
+                    *(real *)(local_7 + 0x9c) * *(real *)(local_8 + 8) * local_0->field_6c * local_25;
+                if (*(real *)(local_7 + 0xa0) > 0.0f)
+                {
+                    real local_29 = (real)(((double)((local_6 + 1) / *(long *)(local_1 + 0x3c)) * 0.10000002f + 0.9f) *
+                        g_510c54->game_time * g_510c54->rate * 0.3f + (double)local_6 * 42.0f);
+                    local_28 *= 1.0f - *(real *)(local_7 + 0xa0) * (function_17c900(8, local_29) * 0.55f + 0.45f);
+                }
+                vector3f local_30;
+                function_206096(&local_19.field_1c, local_28, &local_30);
+                function_206095((vector3f *)(local_7 + 0x90), &local_30);
+                local_7[0x80] = true;
+                *(real *)(local_7 + 0xa4) = local_27;
+            }
+        }
+        function_206095((vector3f *)(local_7 + 0x58), (vector3f *)(local_7 + 0x90));
+        function_206092(local_9, (vector3f *)(local_7 + 0x58), (vector3f *)(local_7 + 0x64));
+        function_206095(arg_1, (vector3f *)(local_7 + 0x58));
+        function_206095(arg_2, (vector3f *)(local_7 + 0x64));
+    }
+    long local_31 = 0, local_32 = 0, local_33 = 0;
+    bool local_34 = false;
+    long local_35[32];
+    byte local_36[16 * 0x3c];
+    for (long local_37 = 0; local_37 < 16; local_37++)
+        *(short *)(local_36 + local_37 * 0x3c + 8) = NONE;
+    if (*(long *)(local_1 + 0x44) > 0)
+        function_1821d0(*(long *)(local_2 + 0xb4), *(real *)(local_1 + 0x18), (s_query_batch_result *)local_36, *(long *)(local_1 + 0x44));
+    for (long local_38 = 0; local_38 < *(long *)(local_1 + 0x44); local_38++)
+    {
+        byte *local_39 = local_0->field_b10 + local_38 * 0xd8;
+        if (local_39[0xb3])
+        {
+            function_2079f0(&local_0->field_0, local_38, false);
+            continue;
+        }
+        byte *local_40 = *(byte **)(local_1 + 0x48) + local_38 * 0x4c;
+        bool local_41 = (bool)((*(dword *)(local_40 + 4) >> 1) & 1);
+        vector3f local_42 = *g_4687a4;
+        vector3f *local_43 = (vector3f *)(local_39 + 0x40);
+        vector3f *local_44 = (vector3f *)(local_39 + 0x4c);
+        local_43->i = *(real *)(local_39 + 0x34) - local_0->field_60.i;
+        local_43->j = *(real *)(local_39 + 0x38) - local_0->field_60.j;
+        local_43->k = *(real *)(local_39 + 0x3c) - local_0->field_60.k;
+        function_206092(&local_5, local_43, local_44);
+        function_206095(local_44, &local_4);
+        local_32++;
+        byte *local_45 = local_36 + local_38 * 0x3c;
+        function_207ab0(local_38, arg_0, (s_vehicle_contact_result *)local_45);
+        if (local_39[0x70])
+        {
+            local_44->i -= *(real *)(local_39 + 0x74);
+            local_44->j -= *(real *)(local_39 + 0x78);
+            local_44->k -= *(real *)(local_39 + 0x7c);
+            local_34 = true;
+        }
+        if (*(real *)(local_39 + 0x84) > 0.0001f)
+        {
+            vector3f *local_46 = (vector3f *)(local_39 + 0xa0);
+            real local_47 = function_206091(local_44, local_46);
+            *(real *)(local_39 + 0x88) = local_0->field_6c * (*(real *)g_51e9c4 / *(real *)(local_1 + 8) * *(real *)(local_39 + 0x84) - *(real *)(local_1 + 0xc) * local_47);
+            function_206096(local_46, *(real *)(local_39 + 0x88), (vector3f *)(local_39 + 0x94));
+            vector3f local_48 = *g_4687b0;
+            if (*(long *)(local_45 + 0x24) != NONE && *(real *)(local_39 + 0x88) > 0.0f)
+            {
+                s_havok_component *local_49 = havok_component_get(*(long *)(local_45 + 0x24));
+                long local_50 = *(long *)(local_45 + 0x28);
+                hkRigidBody *local_51 = local_49->rigid_bodies.data[local_50].rigid_body;
+                if (!local_51->m_fixed && local_51->m_motion->getType() != 6)
+                {
+                    real local_52 = MAX(1.0f, local_51->m_motion->getMass());
+                    real local_53 = PIN(local_52, local_0->field_6c * 0.0625f, local_0->field_6c * 16.0f);
+                    real local_54 = (local_46->k + 1.0f) * 0.5f / local_53 * *(real *)(local_39 + 0x88);
+                    local_54 *= local_54;
+                    local_54 = MIN(local_54, MAX(8.0f, g_510c54->field_2_3 * local_47));
+                    vector3f local_55;
+                    function_206096(local_46, -g_510c54->rate * local_54, &local_55);
+                    havok_component_rigid_body_linear_velocity_change(local_50, local_49, &local_55);
+                }
+            }
+            vector3f local_56 = *(vector3f *)(local_39 + 4);
+            real local_57 = function_206091(&local_56, local_46);
+            local_56.i -= local_46->i * local_57;
+            local_56.j -= local_46->j * local_57;
+            local_56.k -= local_46->k * local_57;
+            if (function_206094(&local_56) != 0.0f)
+            {
+                vector3f local_58 = *local_44;
+                real local_59 = function_206091(local_44, local_46);
+                local_58.i -= local_46->i * local_59;
+                local_58.j -= local_46->j * local_59;
+                local_58.k -= local_46->k * local_59;
+                vector3f local_60;
+                if (local_41)
+                {
+                    function_206096(&local_56, -*(real *)(local_39 + 0x8c), &local_60);
+                    function_206095(&local_60, &local_58);
+                }
+                else
+                {
+                    vector3f local_61;
+                    function_206096(&local_56, function_206091(&local_58, &local_56), &local_61);
+                    local_60.i = local_58.i - local_61.i;
+                    local_60.j = local_58.j - local_61.j;
+                    local_60.k = local_58.k - local_61.k;
+                    *(real *)(local_39 + 0x8c) = function_206093(&local_61) * (function_206091(&local_61, &local_56) > 0.0f ? 1.0f : -1.0f);
+                }
+                *(real *)(local_39 + 0x90) = function_206093(&local_60);
+                real local_62 = local_39[0x82] ? *(real *)(local_40 + 0x1c) : *(real *)(local_1 + 0x10);
+                real local_63 = local_39[0x82] ? *(real *)(local_40 + 0x20) : *(real *)(local_1 + 4);
+                real local_64 = local_39[0x82] ? *(real *)(local_40 + 0x24) : *(real *)(local_40 + 0x18);
+                vector3f local_65 = local_39[0x82] || local_39[0x83] ? local_58 : local_60;
+                real local_66 = function_206093(&local_65);
+                real local_67 = 1.0f - PIN((*(real *)(local_1 + 0x14) - local_46->k) / (*(real *)(local_1 + 0x14) - *(real *)(local_1 + 0x18)), 0.0f, 1.0f);
+                if (local_66 > local_64)
+                {
+                    function_206094(&local_65);
+                    real local_68 = (real)sqrt(local_62 * 0.9f);
+                    function_206096(&local_65, -(*(real *)(local_40 + 8) * local_68 * local_67 * *(real *)(local_39 + 0x88)), &local_42);
+                    local_39[0x81] = true;
+                }
+                else
+                {
+                    real local_69 = (real)sqrt(local_63 * 0.9f);
+                    function_206096(&local_65, -(local_69 * *(real *)(local_40 + 8) * g_510c54->rate * local_67 * *(real *)(local_39 + 0x88)), &local_42);
+                    local_31++;
+                }
+                local_48 = local_60;
+            }
+            local_39[0x80] = true;
+            if (*(real *)(local_40 + 0xc) > 0.0001f && local_46->k > *(real *)(local_1 + 0x18))
+            {
+                real local_70 = MAX(0.0f, *(real *)(local_39 + 0x90) - *(real *)(local_40 + 0x18));
+                if (function_206094(&local_48) == 0.0f)
+                    local_48 = *g_4687b0;
+                real local_71 = *(real *)(local_40 + 0xc) - *(real *)(local_39 + 0x84) - 0.0001f;
+                s_impact_data local_72;
+                local_72.unknown00 = false;
+                local_72.component_a = *(long *)(local_2 + 0xb4);
+                local_72.unknown08 = 0;
+                local_72.material_a.m_index = *(short *)(local_40 + 0x40);
+                local_72.component_b = NONE;
+                local_72.unknown14 = NONE;
+                local_72.material_b.m_index = *(short *)(local_39 + 0xb0);
+                local_72.position.x = *(real *)(local_39 + 0x34) - local_46->i * local_71;
+                local_72.position.y = *(real *)(local_39 + 0x38) - local_46->j * local_71;
+                local_72.position.z = *(real *)(local_39 + 0x3c) - local_46->k * local_71;
+                local_72.normal = *local_46;
+                local_72.type = local_38;
+                local_72.unknown38 = false;
+                local_72.shape.type = NONE;
+                local_72.shape.index = NONE;
+                bool local_73 = local_39[0x82] || local_39[0x83];
+                function_2078f0(&local_0->field_0, &local_72, &local_48, local_70, local_73);
+                local_72.unknown38 = true;
+                long local_74 = function_2078f0(&local_0->field_0, &local_72, &local_48, local_70, local_73);
+                if (local_74 != NONE)
+                {
+                    long local_75;
+                    for (local_75 = 0; local_75 < local_33; local_75++)
+                        if (local_35[local_75] == local_74)
+                            break;
+                    if (local_75 == local_33 && local_33 < 32)
+                        local_35[local_33++] = local_74;
+                }
+            }
+        }
+        else
+            function_2079f0(&local_0->field_0, local_38, false);
+        function_206095((vector3f *)(local_39 + 0x58), (vector3f *)(local_39 + 0x94));
+        function_206095((vector3f *)(local_39 + 0x58), &local_42);
+        function_206092(local_43, (vector3f *)(local_39 + 0x58), (vector3f *)(local_39 + 0x64));
+        function_206095(arg_1, (vector3f *)(local_39 + 0x58));
+        function_206095(arg_2, (vector3f *)(local_39 + 0x64));
+        if (local_41 && local_39[0x80])
+        {
+            vector3f *local_76 = (vector3f *)(local_39 + 4);
+            real local_77 = function_206091(local_76, &local_42);
+            vector3f local_78;
+            function_206096(local_76, local_77, &local_78);
+            if (local_77 > 0.0f)
+                local_0->field_70 -= function_206093(&local_78);
+            else
+                local_0->field_70 += function_206093(&local_78);
+        }
+    }
+    for (long local_79 = 0; ; local_79++)
+    {
+        long local_80 = local_3->unknown20;
+        byte *local_81 = local_80 == NONE ? NULL : g_51ec00->data + (local_80 & 0xffff) * 0x40;
+        long local_82 = local_81 ? *(short *)(local_81 + 2) : 0;
+        if (local_79 >= local_82)
+            break;
+        long local_83 = *(long *)(local_81 + 4 + local_79 * 4);
+        byte *local_84 = g_51ebfc->data + (local_83 & 0xffff) * 0xa0;
+        if (!local_84[0xe])
+            continue;
+        bool local_85 = false;
+        for (long local_86 = 0; local_86 < local_33; local_86++)
+        {
+            if (local_35[local_86] == local_83)
+            {
+                for (long local_87 = 0; local_87 < local_82; local_87++)
+                {
+                    long local_88 = *(long *)(local_81 + 4 + local_87 * 4);
+                    byte *local_89 = g_51ebfc->data + (local_88 & 0xffff) * 0xa0;
+                    if ((char)local_89[0xd] != NONE && !local_89[0xe] && *(short *)(local_89 + 0x2c) == *(short *)(local_84 + 0x2c) &&
+                        *(short *)(local_89 + 0x2e) == *(short *)(local_84 + 0x2e))
+                    {
+                        local_85 = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (local_85)
+            impact_set_contact_from_component((s_impact *)local_84);
+        else
+        {
+            while (*(short *)(local_84 + 8) > 0)
+            {
+                if (*(short *)(local_84 + 8) == 1 && (char)local_84[0x10] == 1)
+                {
+                    long local_90, local_91;
+                    impact_rigid_body_indices_get((s_impact *)local_84, local_83, &local_90, &local_91);
+                    real local_92 = *(real *)(local_84 + 0x14);
+                    if (!local_84[0x11] || local_92 > *(real *)(local_84 + 0x18))
+                    {
+                        real local_93 = g_510c54->field_2_3 * 0.2f;
+                        long local_94;
+                        __asm
+                        {
+                            fld local_93
+                            fistp local_94
+                        }
+                        if (*(long *)(local_84 + 0x94) == NONE || g_510c54->game_time - *(long *)(local_84 + 0x94) > local_94 ||
+                            local_92 > *(real *)(local_84 + 0x98) * 1.3f)
+                        {
+                            local_84[0x11] = true;
+                            *(real *)(local_84 + 0x18) = local_92;
+                        }
+                    }
+                    function_2294a0(local_83, local_90, local_91, (s_impact *)local_84);
+                }
+                (*(short *)(local_84 + 8))--;
+            }
+        }
+    }
+    return !local_34 && *(long *)(local_1 + 0x44) && local_31 > (local_32 >> 1) && local_0->field_8.up.k > *(real *)(local_1 + 0x18);
+}
+#pragma inline_depth(255)
