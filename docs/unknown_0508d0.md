@@ -408,9 +408,10 @@ Three notes on that source:
   (`0x1883e5`–`0x18841e`), and as the last argument of both `0x188130` calls
   (`0x188478`, `0x188488`). Its third slot, `element_index`, reaches only
   `0x1882d0` (`0x18849f`–`0x1884b3`). The source's body uses `element_index`
-  for the globals element (`src/unknown_187ec0.cpp:384`). Here the callers'
-  third slot is `g_47d8e0`, which is NONE, and the fourth is the dword at the
-  result's `+0x24`, whose low word is the hit material.
+  for the globals element (`src/unknown_187ec0.cpp:384`). The call here passes
+  `g_47d8e0`, which is NONE, in the third slot and the dword at the result's
+  `+0x24`, whose low word is the hit material, in the fourth;
+  `src/impacts.cpp:1325` passes `material_a` and `material_b` there.
 - `s_noise_point`'s `flags` (`src/unknown_050690.cpp:125`) holds a packed
   colour in this function, while `function_516d0` writes 0 there.
 - The slots of `s_noise_basis` are named forward, left and up, but here the
