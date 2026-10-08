@@ -1,5 +1,4 @@
-// stubs for the game functions outside 0x190000..0x19ffff that lane H's code
-// calls and that are not decompiled yet
+// Stubs for game functions called by lane H's code that are not decompiled yet.
 
 #include <xtl.h>
 #include <xonline.h>
@@ -88,4 +87,15 @@ long __stdcall function_2cb5b0(unsigned char *destination, long *destination_siz
 long __stdcall function_2cb510(unsigned char *destination, long *destination_size, unsigned char const *source, long source_size, long level, block_allocate allocate, block_free release, void *opaque)
 {
     return -1;
+}
+
+
+// @stub 0x13954b
+void function_13954b(void)
+{
+}
+
+// @stub 0x191fd8
+void function_191fd8(long player_index)
+{
 }

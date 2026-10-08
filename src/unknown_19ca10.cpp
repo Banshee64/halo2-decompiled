@@ -182,17 +182,17 @@ bool function_19cb90(s_marker_pair *pair, long player_index)
 	s_marker_player *player = (s_marker_player *)(g_4e8c24->data + (*player_reference & 0xffff) * sizeof(s_marker_player));
 	point3f destination = g_4e0350->marker_entries[pair->second].position;
 	point3f center;
-	real height;
 	real radius;
+	real height;
 	function_df5f0(player->unit_index, &center, &height, &radius);
-	real extent = radius * 0.5f + height;
+	real extent = height * 0.5f + radius;
 	point3f origin = destination;
 	origin.z += extent;
 	byte shapes_storage[0xb808];
 	if (!function_16a440(0x500038, &origin, extent, height, radius, player->unit_index, NONE, (s_shapes *)shapes_storage))
 		return false;
 	point3f point = destination;
-	point.z += height;
+	point.z += radius;
 	byte result_storage[0x30];
 	if (!function_245ef0((s_shapes *)shapes_storage, &point, (s_shape_result *)result_storage))
 		return false;
@@ -206,7 +206,7 @@ bool function_19cb90(s_marker_pair *pair, long player_index)
 			if (hit_player_index != NONE)
 			{
 				byte *other = g_4e8c24->data + (hit_player_index & 0xffff) * sizeof(s_marker_player);
-				other[2] |= 4;
+				((s_marker_player *)other)->flag2 = true;
 				function_a7840(*(short *)(object + 0x13c), 8);
 			}
 		}
@@ -225,9 +225,9 @@ void __stdcall function_19cf20(s_marker_pair *pair)
 	(void)&pair;
 	if (!pair->unknown08)
 	{
+		real closest_distance = g_45dc20;
 		point3f position = g_4e0350->marker_entries[pair->first].position;
 		real first_angle = *(real *)g_4e0350->marker_entries[pair->first].unknown0c;
-		real closest_distance = g_45dc20;
 		long closest_player = NONE;
 		s_marker_player_iterator iterator;
 		iterator.data = g_4e8c24;
@@ -253,7 +253,44 @@ void __stdcall function_19cf20(s_marker_pair *pair)
 			s_marker_player *player = (s_marker_player *)(g_4e8c24->data + (closest_player & 0xffff) * sizeof(s_marker_player));
 			if (!(*(word *)((byte *)player + 2) & 0x100))
 			{
-				if (function_19cb90(pair, closest_player))
+				if (!function_19cb90(pair, closest_player))
+				{
+					vector3f forward = *(vector3f *)&((s_marker_object_header *)g_4e0300->data)[player->unit_index & 0xffff].object->position;
+					point3f destination;
+					real second_angle;
+					marker_get_position_and_angle(pair->second, &destination, &second_angle);
+					player->flag8 = true;
+					s_event event;
+					event.type = 0;
+					event.subtype = 0x16;
+					event.a = closest_player;
+					event.cause_player_index = closest_player;
+					event.cause_team = NONE;
+					event.effect_player_index = NONE;
+					event.effect_team = NONE;
+					event.f = 0;
+					event.g = NONE;
+					function_19eb90(&event);
+					real angle = (real)atan2(forward.j, forward.i) + second_angle - first_angle;
+					forward.i = (real)cos(angle);
+					forward.j = (real)sin(angle);
+					forward.k = 0.0f;
+					function_30bf0(&forward);
+					function_b9a50(player->unit_index);
+					function_b75a0(player->unit_index, &destination, &forward, g_4687b0, NULL, false);
+					if (player->local_index != NONE)
+						function_1874b0(player->local_index, &forward);
+					s_marker_globals_definition *definition = (s_marker_globals_definition *)g_4e3b44[g_4e034c->index & 0xffff].bytes;
+					real delay = g_510c54->field_2_3 * definition->runtime->message->delay;
+					long ticks;
+					__asm
+					{
+						fld delay
+						fistp ticks
+					}
+					pair->unknown08 = ticks;
+				}
+				else
 				{
 					player = (s_marker_player *)(g_4e8c24->data + (closest_player & 0xffff) * sizeof(s_marker_player));
 					if (pair->unknown0c > 0)
@@ -267,40 +304,6 @@ void __stdcall function_19cf20(s_marker_pair *pair)
 					}
 					return;
 				}
-				vector3f forward = *(vector3f *)&((s_marker_object_header *)g_4e0300->data)[player->unit_index & 0xffff].object->position;
-				point3f destination;
-				real second_angle;
-				marker_get_position_and_angle(pair->second, &destination, &second_angle);
-				player->flag8 = true;
-				s_event event;
-				event.type = 0;
-				event.subtype = 0x16;
-				event.a = closest_player;
-				event.cause_player_index = closest_player;
-				event.cause_team = NONE;
-				event.effect_player_index = NONE;
-				event.effect_team = NONE;
-				event.f = 0;
-				event.g = NONE;
-				function_19eb90(&event);
-				real angle = (real)atan2(forward.j, forward.i) + second_angle - first_angle;
-				forward.i = (real)cos(angle);
-				forward.j = (real)sin(angle);
-				forward.k = 0.0f;
-				function_30bf0(&forward);
-				function_b9a50(player->unit_index);
-				function_b75a0(player->unit_index, &destination, &forward, g_4687b0, NULL, false);
-				if (player->local_index != NONE)
-					function_1874b0(player->local_index, &forward);
-				s_marker_globals_definition *definition = (s_marker_globals_definition *)g_4e3b44[g_4e034c->index & 0xffff].bytes;
-				real delay = g_510c54->field_2_3 * definition->runtime->message->delay;
-				long ticks;
-				__asm
-				{
-					fld delay
-					fistp ticks
-				}
-				pair->unknown08 = ticks;
 			}
 		}
 		pair->unknown0c = 0;
