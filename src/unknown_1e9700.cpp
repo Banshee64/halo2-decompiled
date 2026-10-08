@@ -364,3 +364,7 @@ void function_1ea880(long arg_1f407d, long player_index, s_object_values *table)
 			function_b58c0(g_4e9ae8->value28, 1 << index);
 	}
 }
+
+struct s_statborg;
+void function_1968b0(long team, long index, long counter, long value);
+

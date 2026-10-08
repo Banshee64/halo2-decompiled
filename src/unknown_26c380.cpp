@@ -528,3 +528,98 @@ bool function_26d290(point3f const *origin, point3f const *target, long sector_i
 	}
 	return result;
 }
+
+struct s_collision_result_1697c0;
+struct s_path_collision
+{
+    long type;
+    real fraction;
+    point3f point;
+    byte field_14[0x3c - 0x14];
+    long structure_index;
+    long object_index;
+    long field_44;
+    long node_index;
+    long field_4c;
+    long surface_index;
+    long field_54;
+};
+struct s_path_node_point
+{
+    point3f point;
+    short output_index;
+    short field_e;
+};
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
+    long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+long function_1fa3a0(long structure_index, long surface_index, long object_index,
+    long node_index, point3f const *point);
+short function_210310(long object_index, long a);
+bool function_210690(short output_index, point3f const *point, point3f *out);
+
+// @retail 0x26d100
+long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point)
+{
+    (void)&point;
+    point3f start;
+    start.x = up->i * 0.5f + point->x;
+    start.y = up->j * 0.5f + point->y;
+    start.z = up->k * 0.5f + point->z;
+    vector3f direction;
+    direction.i = up->i * -4.0f;
+    direction.j = up->j * -4.0f;
+    direction.k = up->k * -4.0f;
+    s_path_collision *hit = (s_path_collision *)collision;
+    s_path_node_point *output = (s_path_node_point *)unknown;
+    long result = NONE;
+    if (function_1697c0(0x84000d, &start, &direction, NONE, NONE, collision))
+    {
+        result = function_1fa3a0(hit->structure_index, hit->surface_index, hit->object_index,
+            hit->node_index, &start);
+        if (output)
+        {
+            if (hit->object_index == NONE)
+            {
+                output->point = hit->point;
+                output->output_index = NONE;
+            }
+            else
+            {
+                short index = function_210310(hit->object_index, hit->node_index);
+                if (index == NONE)
+                {
+                    output->point = hit->point;
+                    output->output_index = index;
+                }
+                else if (function_210690(index, &hit->point, &output->point))
+                    output->output_index = index;
+                else
+                {
+                    output->point = hit->point;
+                    output->output_index = NONE;
+                }
+            }
+        }
+    }
+    else if (output)
+    {
+        output->point = *point;
+        output->output_index = NONE;
+    }
+    return result;
+}
+
+struct s_downward_collision_result
+{
+    s_path_collision collision;
+    long field58;
+};
+
+// @retail 0x26d0e0
+long __stdcall function_26d0e0(point3f const *point, s_type_c3b527 *output, long unused)
+{
+    s_downward_collision_result collision;
+    *(short *)((byte *)&collision + 0x24) = NONE;
+    return function_26d100(g_4687b0, (s_collision_result_1697c0 *)&collision,
+        (long *)output, point);
+}

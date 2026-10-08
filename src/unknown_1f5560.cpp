@@ -1214,3 +1214,60 @@ real function_1f99d0(long actor_index, long object_index, short type, point2f co
     }
     return result;
 }
+
+struct s_collision_result_1697c0;
+struct s_obstacle_collision
+{
+    long type;
+    real fraction;
+    byte field_8[0x24 - 8];
+    short material;
+    byte field_26[0x5c - 0x26];
+};
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
+    long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+void function_caf90(long unit_index, point3f *position);
+bool function_29d6c0(vector3f *direction, s_reference reference);
+real normalize2d(point2f *vector);
+long function_baf80(long object_index);
+
+// @retail 0x1f9580
+bool function_1f9580(long actor_index, s_reference reference)
+{
+    (void)&reference;
+    s_actor_moving *actor = actor_moving_get(actor_index);
+    s_type_c3b527 *target = (s_type_c3b527 *)function_262b40(reference);
+    volatile bool result = false;
+    if (target && (*(word *)((byte *)target + 0xe) & 0x20) && actor->unit_index != NONE)
+    {
+        point3f origin, destination;
+        function_caf90(actor->unit_index, &origin);
+        function_210850(target, &destination);
+        real x = origin.x - destination.x;
+        real y = origin.y - destination.y;
+        real z = origin.z - destination.z;
+        real distance_squared = y*y + z*z + x*x;
+        if (distance_squared < 12.25f)
+        {
+            vector3f facing;
+            function_29d6c0(&facing, reference);
+            point2f direction = { facing.i, facing.j };
+            if (normalize2d(&direction) > 0.0f &&
+                (origin.y - destination.y) * direction.y +
+                (origin.x - destination.x) * direction.x > 1.2f && actor->unit_index != NONE)
+            {
+                vector3f ray;
+                ray.i = destination.x - origin.x;
+                ray.j = destination.y - origin.y;
+                ray.k = destination.z - origin.z;
+                s_obstacle_collision collision;
+                collision.material = NONE;
+                if (!function_1697c0(0x1808c2d, &origin, &ray, function_baf80(actor->unit_index),
+                    NONE, (s_collision_result_1697c0 *)&collision) || collision.fraction >= 1.0f ||
+                    (1.0f-collision.fraction)*(1.0f-collision.fraction)*distance_squared < 0.1f)
+                    result = true;
+            }
+        }
+    }
+    return result;
+}

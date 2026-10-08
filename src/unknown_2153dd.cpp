@@ -8,9 +8,9 @@ struct s_player_profile;
 struct s_player_profile_settings;
 struct s_storage_request;
 
-s_storage_request *__stdcall function_215454(c_slots_215541 *arg_0, bool arg_1);
+s_storage_request *__stdcall function_215454(c_slots_215541 *arg_0, byte arg_1);
 void __stdcall function_2154b4(void *arg_0);
-void function_2154cd(s_storage_request *arg_0, long arg_1, long arg_2);
+void function_2154cd(long arg_0, s_storage_request *arg_1, long arg_2);
 bool function_1a0660(long arg_0, s_player_profile *arg_1);
 bool function_1a0680(long arg_0, s_player_profile *arg_1, s_saved_game_file_task *arg_2);
 
@@ -25,7 +25,7 @@ void __stdcall function_2153dd(long arg_0, long arg_1, s_player_profile_settings
         if (function_1a0680(arg_1, local_1, (s_saved_game_file_task *)local_0))
         {
             if (!arg_3)
-                function_2154cd(local_0, arg_0, 0x15000715);
+                function_2154cd(arg_0, local_0, 0x15000715);
         }
         else if (!arg_3)
         {

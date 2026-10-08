@@ -1716,6 +1716,8 @@ void function_266640(long actor_index)
 struct s_actor_object_sample;
 bool function_28fa60(long perception_index, point3f const *point, s_actor_object_sample *sample);
 
+__declspec(noinline) bool __stdcall function_2641c0(long actor_index, s_2641c0 *sample, point3f const *point);
+
 // @retail 0x2641c0
 bool __stdcall function_2641c0(long actor_index, s_2641c0 *sample, point3f const *point)
 {
@@ -1725,4 +1727,13 @@ bool __stdcall function_2641c0(long actor_index, s_2641c0 *sample, point3f const
         return function_28fa60(*(long *)((byte *)actor + 0x1c), *point_reference, (s_actor_object_sample *)sample);
     memcpy(sample, (byte *)actor + 0x22c, sizeof(*sample));
     return true;
+}
+
+// @retail 0x264210
+void function_264210(long actor_index, long prop_ref_index)
+{
+    s_prop_datum *reference = (s_prop_datum *)(g_502418->data + (prop_ref_index & 0xffff) * 0x3c);
+    s_2641c0 context;
+    if (function_2641c0(actor_index, &context, &function_25d690(reference)->position))
+        function_264330(actor_index, prop_ref_index, &context, 0, true);
 }

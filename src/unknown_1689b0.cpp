@@ -1338,3 +1338,95 @@ void __stdcall function_16a280(long object_index, dword flags, point3f const *po
     }
     while (object_index != NONE);
 }
+
+extern long g_4e7c20[1024];
+struct s_shapes;
+struct s_shape_counts
+{
+    short count[3];
+};
+
+#include <xmmintrin.h>
+extern void *g_4de2e0;
+extern void *g_4de2e4;
+
+PRIVATE __forceinline long shape_cluster_next(long *next)
+{
+    if (*next != NONE)
+    {
+        s_record_pool *pool = (s_record_pool *)g_4de2e4;
+        byte *entry = pool->data + pool->size * (*next & 0xffff);
+        *next = *(long *)(entry + 8);
+        if (*next != NONE)
+            _mm_prefetch((char const *)(pool->data + pool->size * (*next & 0xffff)), _MM_HINT_T0);
+        return *(long *)(entry + 4);
+    }
+    return NONE;
+}
+
+// @retail 0x16a440
+bool __stdcall function_16a440(dword flags, point3f const *position, real extent, real height,
+    real radius, long ignore_object, long ignore_parent, s_shapes *shapes)
+{
+    s_shape_counts *counts = (s_shape_counts *)shapes;
+    *(long *)&counts->count[0] = 0;
+    counts->count[2] = 0;
+    long test_world = flags & 1;
+    if (test_world || (flags & 0xc))
+    {
+        s_1de2c2 hits;
+        extent += 0.0625f;
+        bool found = function_1dde10((s_bsp3d *)g_4e0340, 256,
+            (dword const *)(g_4ed280 + g_4686c4 * 32 + 1), position, extent, &hits);
+        if (found && test_world)
+            function_245aa0((s_245aa0 const *)&hits, (s_source_245400 const *)g_4e0340,
+                0, height, radius, NONE, NONE, (s_collection_245270 *)shapes);
+        if ((hits.field_c0c.field_0 > 0 && (flags & 4)) || (flags & 8))
+        {
+            ++g_4e7414;
+            g_4e7411 = true;
+            if (flags & 4) { ++g_4e7c1c; g_4e7c18 = true; }
+            if (flags & 8)
+            {
+                ++g_4de2fc;
+                g_4de2f8 = true;
+                if (!(flags & 0x1fff0)) flags |= 0x1fff0;
+            }
+            s_1697c0_bsp *bsp = (s_1697c0_bsp *)g_4e0348;
+            for (long leaf = 0; leaf < hits.field_c0c.field_0; ++leaf)
+            {
+                long cluster = collision_leaf_cluster(hits.field_c0c.field_4[leaf]);
+                if (g_4e7418[(short)cluster] == g_4e7414) continue;
+                g_4e7418[(short)cluster] = g_4e7414;
+                if (flags & 4)
+                {
+                    s_1697c0_cluster *entry = &bsp->clusters[cluster];
+                    for (long i = 0; i < entry->instance_count; ++i)
+                    {
+                        short instance = entry->instances[i];
+                        if (g_4e7c20[instance] == g_4e7c1c) continue;
+                        g_4e7c20[instance] = g_4e7c1c;
+                        function_16a0a0(instance, flags, position, extent, height, radius,
+                            (s_collection_245270 *)shapes);
+                    }
+                }
+                if (flags & 8)
+                {
+                    long next = ((long *)g_4de2e0)[(short)cluster];
+                    for (long object = shape_cluster_next(&next); object != NONE;
+                        object = shape_cluster_next(&next))
+                    {
+                        if (g_4de300[object & 0xffff] == g_4de2fc) continue;
+                        g_4de300[object & 0xffff] = g_4de2fc;
+                        function_16a280(object, flags, position, extent, height, radius,
+                            ignore_object, ignore_parent, (s_collection_245270 *)shapes);
+                    }
+                }
+            }
+            if (flags & 8) g_4de2f8 = false;
+            if (flags & 4) g_4e7c18 = false;
+            g_4e7411 = false;
+        }
+    }
+    return counts->count[0] != 0 || counts->count[1] != 0 || counts->count[2] != 0;
+}
