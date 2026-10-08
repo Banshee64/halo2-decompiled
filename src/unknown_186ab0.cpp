@@ -311,9 +311,9 @@ void __stdcall function_186ab0(long arg_0, real arg_1, real arg_2, s_player_acti
             {
                 local_1->field_10 = (real)atan2((double)local_5->field_16c, (double)local_5->field_168);
                 local_1->field_14 = (real)atan2((double)local_5->field_170,
-                    sqrt((double)local_5->field_168 * local_5->field_168 + (double)local_5->field_16c * local_5->field_16c));
-                local_1->field_10 = (real)fmod(local_1->field_10 + (double)6.2831854820251465f, 6.2831854820251465);
-                local_1->field_14 = (real)fmod(local_1->field_14 + (double)9.424777984619141f, 6.2831854820251465) - 3.1415927410125732f;
+                    sqrt((double)local_5->field_16c * local_5->field_16c + (double)local_5->field_168 * local_5->field_168));
+                local_1->field_10 = (real)fmod((double)(local_1->field_10 + 6.2831854820251465f), 6.2831854820251465);
+                local_1->field_14 = (real)fmod((double)(local_1->field_14 + 9.424777984619141f), 6.2831854820251465) - 3.1415927410125732f;
                 local_5->field_348 &= ~0x20;
             }
         }
