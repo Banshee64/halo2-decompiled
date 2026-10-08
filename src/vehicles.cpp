@@ -171,7 +171,14 @@ struct s_vehicle_word_flag_bits
 	word bit5 : 1;
 	word bit6 : 1;
 	word bit7 : 1;
-	word : 8;
+	word bit8 : 1;
+	word bit9 : 1;
+	word bit10 : 1;
+	word bit11 : 1;
+	word bit12 : 1;
+	word bit13 : 1;
+	word bit14 : 1;
+	word bit15 : 1;
 };
 
 /* a flags dword read as bits */
@@ -212,6 +219,8 @@ struct s_vehicle_flag_bits
 };
 
 #define VEHICLE_DEFINITION_FLAGS(definition) ((s_vehicle_flag_bits const *)((definition) + 0x1ec))
+#define VEHICLE_WORD_BITS(field) ((s_vehicle_word_flag_bits const *)&(field))
+#define VEHICLE_DWORD_BITS(field) ((s_vehicle_flag_bits const *)&(field))
 
 void __stdcall function_c42e0(long unit_index, void const *placement);
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
@@ -411,7 +420,8 @@ void function_eec90(long vehicle_index, real *steering)
 	real angle = (real)atan2(left_j * velocity->j + left_k * velocity->k + left_i * velocity->i,
 		velocity->k * forward->k + velocity->j * forward->j + forward->i * velocity->i);
 
-	if (((vehicle->flags348 >> 3) & 1) && !function_f42f0(vehicle_index) && !(function_d1210(vehicle_index) > 0.0f))
+	if (TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit3) &&
+		!function_f42f0(vehicle_index) && !(function_d1210(vehicle_index) > 0.0f))
 	{
 		function_2054b0(&vehicle->speed, (real const *)(definition + 0x1f4), 1.0f, dt, 0.0f);
 		function_2054b0(&vehicle->turn, (real const *)(definition + 0x22c), 1.0f, dt, 0.0f);
@@ -1009,7 +1019,7 @@ bool __stdcall function_efde0(long vehicle_index)
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 	bool stopped = function_f1320(vehicle_index);
-	bool changed = false;
+	volatile bool changed = false;
 	word flags_c0 = vehicle->flags_c0;
 	vector3f linear_velocity;
 
@@ -1677,7 +1687,7 @@ bool function_f12e0(long vehicle_index)
 bool function_f1320(long vehicle_index)
 {
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
-	bool flagged = TEST_FIELD_BIT(((s_vehicle_word_flag_bits const *)&vehicle->flags_10a)->bit2);
+	bool flagged = TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags_10a)->bit2);
 	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 	bool result = false;
 
@@ -2253,7 +2263,7 @@ void __stdcall function_f1f80(long vehicle_index, s_vehicle_physics_state *state
 	real spin = torque * dt;
 
 	vehicle->unknown360 = vehicle_wheel_spin_wrap(vehicle->unknown360 + spin, *(real *)(definition + 0x20c));
-	if (!(TEST_FIELD_BIT((vehicle->flags348 >> 5) & 1)))
+	if (!(TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit5)))
 	{
 		vehicle->unknown364 = vehicle_wheel_spin_wrap(vehicle->unknown364 + spin, *(real *)(definition + 0x20c));
 	}
@@ -2783,7 +2793,7 @@ void __stdcall function_f3010(long vehicle_index, s_vehicle_physics_state *state
 			torque.j += (left.j * pitch_torque + zero.j + vehicle->forward.j * roll_torque) * airborne;
 			torque.k += (left.k * pitch_torque + zero.k + vehicle->forward.k * roll_torque) * airborne;
 		}
-		if (TEST_FIELD_BIT((vehicle->flags348 >> 3) & 1))
+		if (TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit3))
 		{
 			real speed = (vehicle->forward.j * linear_velocity.j + vehicle->forward.k * linear_velocity.k +
 				linear_velocity.i * vehicle->forward.i) / *(real *)(definition + 0x1f4);
@@ -2966,7 +2976,7 @@ long function_f4360(long vehicle_index)
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 	long result = 0;
 
-	if (TEST_FIELD_BIT(((s_vehicle_word_flag_bits const *)&vehicle->flags348)->bit3) && !(vehicle->control_flags & 0x800))
+	if (TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit3) && !(vehicle->control_flags & 0x800))
 	{
 		real throttle = vehicle->throttle >= 0.0f ? vehicle->throttle : 0.0f - vehicle->throttle;
 		real steering = vehicle->steering >= 0.0f ? vehicle->steering : 0.0f - vehicle->steering;
@@ -3643,7 +3653,7 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 		break;
 	case 0x4000580:
 		if (function_f5d70(vehicle_index) || (vehicle->control_flags & 2) ||
-			TEST_FIELD_BIT(((s_vehicle_word_flag_bits const *)&vehicle->flags348)->bit5))
+			TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit5))
 		{
 			result = 1.0f;
 		}
@@ -3957,7 +3967,7 @@ bool __stdcall function_f7ca0(long *vehicle_index)
 					real dy = vehicle->center.y - centers[i].y;
 					real dz = vehicle->center.z - centers[i].z;
 
-					if (100.0f > dz * dz + dy * dy + dx * dx && ((vehicle->flags_10a >> 2) & 1))
+					if (100.0f > dz * dz + dy * dy + dx * dx && TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags_10a)->bit2))
 					{
 						long seat_count = (unsigned long)vehicle->unknown120 >> 3;
 						word const *seat = (word const *)((byte *)vehicle + vehicle->unknown122 + 4);
