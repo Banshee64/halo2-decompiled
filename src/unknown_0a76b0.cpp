@@ -1558,41 +1558,41 @@ bool __stdcall function_e9190(long unit_index, s_unit_request *request)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	long player_index = *(long *)((byte *)request + 4);
+	bool given = false;
 
-	if (unit->unknown13c != NONE)
-		return false;
-
-	long player_unit_index = *(long *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x2c);
-	long weapon_index = unit_action_weapon_get(UNIT_ACTION_UNIT_GET(unit_index), false);
-	long other_weapon_index = unit_action_weapon_get(UNIT_ACTION_UNIT_GET(player_unit_index), false);
-
-	if (weapon_index == NONE)
-		return false;
-
-	s_unit_request drop;
-
-	drop.type = 9;
-	*((bool *)&drop + 4) = true;
-	unit_action_drop_weapon(unit_index, &drop);
-
-	bool given = function_cd0c0(player_unit_index, weapon_index, 4);
-
-	if (!given)
+	if (unit->unknown13c == NONE)
 	{
-		function_cd0c0(unit_index, weapon_index, 3);
-		return given;
-	}
+		long player_unit_index = *(long *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x2c);
+		long weapon_index = unit_action_weapon_get(UNIT_ACTION_UNIT_GET(unit_index), false);
+		long other_weapon_index = unit_action_weapon_get(UNIT_ACTION_UNIT_GET(player_unit_index), false);
 
-	bool taken = false;
+		if (weapon_index != NONE)
+		{
+			s_unit_request drop;
 
-	if (other_weapon_index != NONE)
-		taken = function_cd0c0(unit_index, other_weapon_index, 3);
-	if (unit->unknown12c != NONE)
-	{
-		if (taken)
-			function_1ca260(unit->unknown12c, *(long *)((byte *)request + 4), weapon_index, other_weapon_index);
-		else
-			function_1ca260(unit->unknown12c, *(long *)((byte *)request + 4), weapon_index, NONE);
+			drop.type = 9;
+			*((bool *)&drop + 4) = true;
+			unit_action_drop_weapon(unit_index, &drop);
+			given = function_cd0c0(player_unit_index, weapon_index, 4);
+			if (given)
+			{
+				bool taken = false;
+
+				if (other_weapon_index != NONE)
+					taken = function_cd0c0(unit_index, other_weapon_index, 3);
+				if (unit->unknown12c != NONE)
+				{
+					if (taken)
+						function_1ca260(unit->unknown12c, *(long *)((byte *)request + 4), weapon_index, other_weapon_index);
+					else
+						function_1ca260(unit->unknown12c, *(long *)((byte *)request + 4), weapon_index, NONE);
+				}
+			}
+			else
+			{
+				function_cd0c0(unit_index, weapon_index, 3);
+			}
+		}
 	}
 	return given;
 }
