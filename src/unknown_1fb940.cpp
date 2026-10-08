@@ -237,7 +237,7 @@ void __stdcall function_1fbe00(long clump_index, long source_index, long object_
 {
 	s_502420_element *clump = element_502420_get(clump_index);
 	s_slot_object_view *object = object_get(object_index);
-	if (event->unknown00 == 0 && event->data.unknown00 == 1)
+	if (event->unknown00 == 0 && (event->data.unknown00 - 1) == 0)
 	{
 		function_1df820(*(short const *)((byte const *)event + 0xc),
 			*(short const *)((byte const *)event + 0xe),

@@ -235,7 +235,10 @@ bool function_1fe1e0(long actor_index, real blend, s_combat_blend_values *out)
 			else
 			{
 				s_combat_blend_values const *upper = &block->values[1];
-				out->field_0 = upper->field_0 * blend + lower->field_0 * (1.0f - blend);
+				real local_0 = *(real const volatile *)&upper->field_0;
+				local_0 *= blend;
+				local_0 += lower->field_0 * (1.0f - blend);
+				out->field_0 = local_0;
 				out->field_4 = lower->field_4 * (1.0f - blend) + upper->field_4 * blend;
 				out->field_8 = lower->field_8 * (1.0f - blend) + upper->field_8 * blend;
 				out->field_c = lower->field_c * (1.0f - blend) + upper->field_c * blend;
