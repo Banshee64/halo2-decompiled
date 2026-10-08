@@ -2580,7 +2580,7 @@ void __stdcall function_2a2f0(volatile long tag, volatile real alpha)
         g_4b82ec = 0; D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
         g_4b8448 = 0; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
         g_4b843c = 0; D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 0);
-        g_4b8438 = 0; D3DDevice_SetRenderState(D3DRS_ZENABLE, 0);
+        function_0222d0(D3DRS_ZENABLE, 0);
         g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
 #pragma inline_depth(0)
         memset(&g_484f68, 0, sizeof(g_484f68));
@@ -2637,7 +2637,8 @@ void __stdcall function_2a2f0(volatile long tag, volatile real alpha)
                 height = 1.0f;
                 if (!(local_98083a < 1.0f)) height = local_98083a;
             }
-            long count = *(long *)(definition + 0x44);
+            // Reload the count after the dimension writes.
+            long count = *(volatile long *)(definition + 0x44);
             byte *selected = NULL;
             if (count > 0)
             {

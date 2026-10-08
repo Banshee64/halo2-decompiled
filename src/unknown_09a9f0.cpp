@@ -547,7 +547,7 @@ long c_device_type::v27(long a, long b, long c, long d)
 }
 
 #include "unknown_1946f0.h"
-void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+void simulation_write_position(long bits, s_bitstream *stream, real const *position, bool keep_inside);
 void simulation_read_position(s_bitstream *stream, real *position, long bits);
 void scenario_object_name_encode(long object_name, s_bitstream *stream);
 
@@ -617,7 +617,7 @@ void c_projectile_impact_effect_event::v9(long a, void const *data, s_bitstream 
  z_write_impact_scale(stream, event->scale_a);
  z_write_impact_scale(stream, event->scale_b);
  function_194bc0(stream, &event->direction);
- simulation_write_position((real const *)&event->position, 12, stream, true);
+ simulation_write_position(12, stream, (real const *)&event->position, true);
  function_194bc0(stream, &event->normal);
  function_1955d0(stream, &event->field_30, 16);
 }
@@ -630,7 +630,7 @@ void c_projectile_object_impact_effect_event::v9(long a, void const *data, s_bit
  z_write_impact_scale(stream, event->scale_a);
  z_write_impact_scale(stream, event->scale_b);
  function_194bc0(stream, &event->direction);
- simulation_write_position((real const *)&event->position, 12, stream, true);
+ simulation_write_position(12, stream, (real const *)&event->position, true);
  function_194bc0(stream, &event->normal);
  function_1955d0(stream, &event->field_30, 16);
  stream_write_checked(stream, event->field_38, 8);

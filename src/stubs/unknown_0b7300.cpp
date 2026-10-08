@@ -16,5 +16,3 @@ void function_bf0f0(s_type_4f0dcc const *datum, long type, long index, s_scenari
 
 // @stub 0xc2d00
 void __stdcall function_c2d00(long light_index) { }
-// @stub 0xc3260
-void __stdcall function_c3260(long light_index, bool clear_object_flag) { }
