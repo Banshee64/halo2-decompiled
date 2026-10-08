@@ -5,10 +5,9 @@ struct s_203780;
 struct s_player_profile;
 struct s_20d0c0;
 
-// @stub 0x20f2d0
-long function_20f2d0(long arg_0, short arg_1, long arg_2, long arg_3, long arg_4, s_20d0c0 const *arg_5)
+// @stub 0x20b450
+void function_20b450(long arg_0, real arg_1)
 {
-    return NONE;
 }
 
 // @stub 0x1a0680

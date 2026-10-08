@@ -45,7 +45,7 @@ extern s_audio_queue *g_4f939c;
 
 long function_20f040(short arg_0);
 bool function_114b60(short arg_0, short arg_1, long arg_2, long arg_3, void const *arg_4);
-long function_20f2d0(long arg_0, short arg_1, long arg_2, long arg_3, long arg_4, s_20d0c0 const *arg_5);
+long function_20f2d0(short arg_1, long arg_0, long arg_2, long arg_3, long arg_4, s_20d0c0 const *arg_5);
 void function_20cbd0(short arg_0, s_audio_priority_table *arg_1, long arg_2,
     long arg_3, long arg_4, long arg_5, short arg_6,
     s_audio_selection *arg_7, short arg_8, short *arg_9);
@@ -69,10 +69,12 @@ PRIVATE __forceinline s_audio_priority_table *function_20cdc1(void)
     return local_0;
 }
 
+#pragma inline_depth(1)
 // @retail 0x20d0c0
 bool __stdcall function_20d0c0(s_audio_priority_table *arg_0, long arg_1, short arg_2,
     s_audio_selection const *arg_3, s_1fb7e0_data const *arg_4, long arg_5, long *arg_6)
 {
+    bool local_7 = false;
     s_audio_priority_table *const volatile *local_11 = &arg_0;
     long const volatile *local_12 = &arg_1;
     short const volatile *local_13 = &arg_2;
@@ -98,15 +100,20 @@ bool __stdcall function_20d0c0(s_audio_priority_table *arg_0, long arg_1, short 
         local_6.field_8 = *local_20;
     else
         local_6.field_8.unknown00 = 0;
-    bool local_7;
     if (*(short *)((byte *)local_5 + 0xa) >= 13)
+    {
         local_7 = function_114b60(local_18->type, NONE, local_1, 13, &local_6);
+        if (!local_7)
+            goto local_21;
+    }
     else
     {
-        long local_8 = function_20f2d0(local_18->tag_index, local_18->type, local_1, *local_12, *local_16, &local_6);
-        local_7 = local_8 != NONE;
-        if (local_7 && local_19)
+        long local_8 = function_20f2d0(local_18->type, local_18->tag_index, local_1, *local_12, *local_16, &local_6);
+        if (local_8 == NONE)
+            goto local_21;
+        if (local_19)
             *local_19 = local_8;
+        local_7 = true;
     }
     if (local_7)
     {
@@ -118,10 +125,11 @@ bool __stdcall function_20d0c0(s_audio_priority_table *arg_0, long arg_1, short 
             fistp local_10
         }
         *(long *)(local_4 + local_18->type * 4) = local_0 + local_10;
-        return true;
     }
-    return false;
+local_21:
+    return local_7;
 }
+#pragma inline_depth(255)
 
 // @retail 0x20ba60
 bool __stdcall function_20ba60(short arg_0, long arg_1, long arg_2, long arg_3, long arg_4, s_1fb7e0_data const *arg_5)
@@ -217,6 +225,7 @@ bool __stdcall function_20cdc0(long arg_0, long arg_1, long arg_2, s_audio_selec
         local_4 = *(short *)(local_8 + 8);
     }
     short local_12 = function_20f0a0((s_audio_weighted_entry *)local_6, (short)local_0);
+    bool local_16 = false;
     if (local_12 != NONE)
     {
         real local_13 = g_510c54->field_2_3 * 0.2f;
@@ -233,8 +242,8 @@ bool __stdcall function_20cdc0(long arg_0, long arg_1, long arg_2, s_audio_selec
                 *arg_3 = *local_15;
             if (arg_4)
                 *arg_4 = local_1;
-            return true;
+            local_16 = true;
         }
     }
-    return false;
+    return local_16;
 }
