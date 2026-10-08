@@ -42,9 +42,6 @@ void function_10b360(long object_index) { }
 /* in the biped range (PR #28 writes it) */
 
 /* outside the unit range */
-// @stub 0x1bbdf0
-void function_1bbdf0(long vehicle_index) { }
-
 struct s_havok_component;
 struct s_unit_move_result;
 

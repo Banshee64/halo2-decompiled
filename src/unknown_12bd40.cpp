@@ -58,6 +58,7 @@ struct s_12bbd0
 	long field_4[8];
 };
 
+#pragma inline_depth(0)
 // @retail 0x12bbd0
 void function_12bbd0(void)
 {
@@ -92,3 +93,4 @@ void function_12bbd0(void)
 	function_18f1c0(g_4e6948->state == 1 && *((byte *)g_4e6948 + 0x134) ? 3 : 0);
 	main_globals.quit_game = false;
 }
+#pragma inline_depth(255)

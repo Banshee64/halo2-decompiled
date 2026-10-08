@@ -351,23 +351,64 @@ void function_12dc10(void)
 	if (pending_blocks->valid && async_globals.tasks_added <= 25)
 	{
 		long requests = function_12dba0();
-		s_record_pool_iterator iterator;
-		s_pending_block *pending;
-
-		iterator.data = pending_blocks;
-		iterator.index = NONE;
-		iterator.datum_index = NONE;
-		while ((pending = (s_pending_block *)data_iterator_next_calling(&iterator)) != NULL && requests < 5)
+		struct
 		{
-			function_12de70(pending->block, 6);
-			pending->block->flags &= ~4;
-			record_pool_release(g_4e6490, iterator.datum_index);
+			s_pending_block *field_0;
+			s_record_pool_iterator field_4;
+		} local_0;
+
+		local_0.field_4.data = pending_blocks;
+		local_0.field_4.index = NONE;
+		local_0.field_4.datum_index = NONE;
+		while ((local_0.field_0 = (s_pending_block *)data_iterator_next_calling(&local_0.field_4)) != NULL && requests < 5)
+		{
+			function_12de70(local_0.field_0->block, 6);
+			byte *local_1 = &local_0.field_0->block->flags;
+			*local_1 &= ~4;
+			record_pool_release(g_4e6490, local_0.field_4.datum_index);
 			requests++;
 		}
 	}
 }
 
 /* forgets a block: its prediction and its memory */
+static __forceinline byte *function_12ddd1(s_record_pool_iterator *arg_0)
+{
+	s_record_pool *local_0 = arg_0->data;
+	long local_1 = arg_0->index + 1;
+	long local_2 = NONE;
+	if (local_1 >= 0)
+	{
+		for (; local_1 < *(long volatile *)&local_0->high_water_index; local_1++)
+		{
+			if (local_0->bitmap[local_1 >> 5] & (1 << (local_1 & 0x1f)))
+			{
+				local_2 = local_1;
+				break;
+			}
+		}
+	}
+	byte *local_3;
+	if (local_2 != NONE)
+	{
+		local_3 = local_0->data + local_0->size * local_2;
+		arg_0->index = local_2;
+		arg_0->datum_index = (*(short *)local_3 << 16) | local_2;
+	}
+	else
+	{
+		arg_0->index = local_0->maximum_count;
+		arg_0->datum_index = NONE;
+		local_3 = NULL;
+	}
+	return local_3;
+}
+
+static __forceinline void function_12ddd2(byte *arg_0)
+{
+	*arg_0 &= ~4;
+}
+
 // @retail 0x12ddd0
 void function_12ddd0(s_geometry_block_info *block)
 {
@@ -379,16 +420,16 @@ void function_12ddd0(s_geometry_block_info *block)
 		iterator.data = g_4e6490;
 		iterator.index = NONE;
 		iterator.datum_index = NONE;
-		while ((pending = (s_pending_block *)data_iterator_next_inlined(&iterator)) != NULL)
+		while ((pending = (s_pending_block *)function_12ddd1(&iterator)) != NULL)
 		{
-			if (pending->block == block)
+			if (block == pending->block)
 			{
 				record_pool_release(g_4e6490, iterator.datum_index);
 				break;
 			}
 		}
 	}
-	block->flags &= ~4;
+	function_12ddd2(&block->flags);
 	if (block->cache_block_index != NONE)
 	{
 		g_4e649c->block_delete(block->cache_block_index);
@@ -403,6 +444,7 @@ void function_12e0c0(void)
 	if (g_4e649c)
 	{
 		D3DDevice_KickPushBuffer();
+		D3DDevice_IsBusy();
 		physical_memory_flush(g_4e649c);
 		if (g_4e6490->valid)
 		{
@@ -414,7 +456,8 @@ void function_12e0c0(void)
 			iterator.datum_index = NONE;
 			while ((pending = (s_pending_block *)data_iterator_next_calling(&iterator)) != NULL)
 			{
-				pending->block->flags &= ~4;
+				byte *local_0 = &pending->block->flags;
+				*local_0 &= ~4;
 				record_pool_release(g_4e6490, iterator.datum_index);
 			}
 		}
@@ -426,6 +469,7 @@ void function_12e0c0(void)
 void function_12e150(long tag_index)
 {
 	D3DDevice_KickPushBuffer();
+	D3DDevice_IsBusy();
 	if (g_4e648c && g_4e648c->valid)
 	{
 		s_record_pool_iterator iterator;
@@ -488,16 +532,18 @@ void __stdcall function_12e290(long block_index)
 	{
 		s_physical_block *physical_block = physical_block_get(block_index);
 
-		if (physical_block->time == physical_object_get()->time)
+		long *local_0 = &physical_block->time;
+		if (*local_0 == physical_object_get()->time)
 		{
-			physical_block->time = physical_object_get()->time - 1;
+			*local_0 = physical_object_get()->time - 1;
 		}
 		while (geometry_cache_block_busy(block_index))
 		{
 			async_globals.tasks_added = function_120bf0();
-			if (cache_block->block->runtime_linked)
+			s_geometry_block_info *local_1 = cache_block->block;
+			if (local_1->runtime_linked)
 			{
-				fixup_group_release_resources((s_fixup_group *)cache_block->block, (byte *)(physical_block_get(block_index)->offset << physical_object_get()->page_shift) + g_4e6494);
+				fixup_group_release_resources((s_fixup_group *)local_1, (byte *)(physical_block_get(block_index)->offset << physical_object_get()->page_shift) + g_4e6494);
 			}
 		}
 		if (cache_block->block->runtime_linked)

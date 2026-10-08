@@ -578,6 +578,23 @@ PRIVATE s_color_bits *marker_color()
 	return (s_color_bits *)&color->red;
 }
 
+PRIVATE __forceinline s_color_bits *function_243ed1()
+{
+    color4f *local_0 = g_468c80;
+    if (g_4b9ed8 != NONE)
+    {
+        long local_1 = g_4e8c20->entries[g_4b9ed8];
+        if (local_1 != NONE)
+        {
+            s_player_view *local_2 = (s_player_view *)(g_4e8c24->data + (local_1 & 0xffff) * 0x21c);
+            if (local_2->type == 1 || local_2->type == 3)
+                local_0 = g_468c80 + 1;
+        }
+    }
+    return (s_color_bits *)&local_0->red;
+}
+
+#pragma inline_depth(1)
 // @retail 0x243ed0
 bool function_243ed0(s_marker_list *list, point3f const *position)
 {
@@ -589,18 +606,19 @@ bool function_243ed0(s_marker_list *list, point3f const *position)
 	list->r18 = 0.1f;
 	list->r1c = 0.0f;
 	list->l20 = NONE;
-	list->color24 = *marker_color();
-	list->color30 = *marker_color();
+	list->color24 = *function_243ed1();
+	list->color30 = *function_243ed1();
 	list->r3c = 1.0f;
 	list->r40 = 1.0f;
 	list->count = 1;
-	list->items[0].a = *marker_color();
-	list->items[0].b = *marker_color();
+	list->items[0].a = *function_243ed1();
+	list->items[0].b = *function_243ed1();
 	list->items[0].kind = 0;
 	list->items[0].r = 1.0f;
 	list->items[0].index = NONE;
 	return true;
 }
+#pragma inline_depth(255)
 
 // @retail 0x2440a0
 bool function_2440a0(s_marker_list *list, point3f const *point, long object_index)
@@ -1428,7 +1446,12 @@ void function_2422d0(long slot)
 	marker_index = function_2421d0(slot);
 	if (marker_index != NONE)
 	{
-		point3f point = *marker_position(marker_index);
+		point3f point;
+		point3f const *local_0 = marker_position(marker_index);
+		long local_1 = ((long const volatile *)local_0)[1];
+		*(long volatile *)&point.x = ((long const *)local_0)[0];
+		((long *)&point)[1] = local_1;
+		((long *)&point)[2] = ((long const volatile *)local_0)[2];
 		long object_index = function_242210(&point);
 
 		if (object_index != NONE)
@@ -1511,7 +1534,12 @@ long function_242510(long object_index)
 
 							if (marker_index != NONE)
 							{
-								point3f point = *marker_position(marker_index);
+								point3f point;
+								point3f const *local_0 = marker_position(marker_index);
+								*(long volatile *)&point.x = ((long const *)local_0)[0];
+								long local_1 = ((long const *)local_0)[1];
+								((long *)&point)[2] = ((long const *)local_0)[2];
+								((long *)&point)[1] = local_1;
 
 								if (distance_sq3f(&position, &point) < 0.09f)
 								{
@@ -1574,6 +1602,7 @@ long function_242ef0(point3f const *point, long team)
 	return result;
 }
 
+#pragma inline_depth(1)
 // @retail 0x2430a0
 void function_2430a0(long player_index, bool flag)
 {
@@ -1585,13 +1614,15 @@ void function_2430a0(long player_index, bool flag)
 		{
 			s_event event;
 
-			game_engine_event_initialize(&event, ctf_options()->engine_type == 9 ? 10 : 3, flag ? 13 : 7);
-			game_engine_event_set_cause_player(&event, player_index);
+			game_engine_event_initialize_inline(&event, ctf_options()->engine_type == 9 ? 10 : 3, flag ? 13 : 7);
+			event.cause_player_index = player_index;
+			event.cause_team = event_player_get(player_index)->team;
 			function_19eb90(&event);
 			g_51ec80->player_times[absolute_index] = ctf_real_to_long((real)g_510c54->field_2_3 * 4.0f) + g_510c54->game_time;
 		}
 	}
 }
+#pragma inline_depth(255)
 
 // @retail 0x2431a0
 void function_2431a0()
@@ -1809,6 +1840,14 @@ bool function_244680(long team, long unit_index)
 	return result;
 }
 
+PRIVATE __forceinline real function_2447f1(point3f const *arg_0, point3f const *arg_1)
+{
+	real local_0 = arg_1->z - arg_0->z;
+	real local_1 = arg_1->y - arg_0->y;
+	real local_2 = arg_1->x - arg_0->x;
+	return local_0 * local_0 + local_1 * local_1 + local_2 * local_2;
+}
+
 // @retail 0x2447f0
 bool function_2447f0()
 {
@@ -1830,7 +1869,7 @@ bool function_2447f0()
 					continue;
 				function_b9dd0(entry->object_index, &position);
 				marker = *marker_position(marker_index);
-				if (distance_sq3f(&position, &marker) <= 0.2f * 0.2f)
+				if (!(function_2447f1(&position, &marker) > 0.2f * 0.2f))
 					continue;
 			}
 
@@ -2119,9 +2158,9 @@ void function_242ba0(long marker_index, long object_index, long player_index)
 
 #include "flexible_surface_calls.h"
 
-void function_19f680(long arg_0, long arg_1, long arg_2, long arg_3, void *arg_4,
-	point2f const *arg_5, long arg_6, point3f const *arg_7, real arg_8,
-	real arg_9, point3f const *arg_10, real arg_11);
+void function_19f680(long tag, long group, long pass, long variant, void *context,
+	point2f const *vertices, long count, point3f const *center, real radius,
+	real perimeter, point3f const *color, real height);
 struct s_sort_record;
 typedef bool (__stdcall *t_record_fill)(long, void *, long, long, long, void *, s_sort_record *);
 void function_41490(long tag, short group, short kind, real distance, t_record_fill fill,

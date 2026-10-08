@@ -6,6 +6,7 @@
 #include "physical_memory.h"
 #include <string.h>
 #include <xtl.h>
+#include "unknown_030290.h"
 
 void *g_509438;
 
@@ -72,7 +73,7 @@ c_allocator *function_46220(void)
 	return g_480118;
 }
 
-short g_4c1bd4;
+long g_4c1bd4;
 
 struct s_render_object_header
 {
@@ -456,6 +457,57 @@ bool function_3e320(long tag, byte const *indices)
     return result;
 }
 
+struct s_decal_globals;
+extern s_decal_globals *g_4ea94c;
+extern long g_4ba038;
+bool g_4c8780;
+dword g_4c8784;
+long g_4c8788, g_4c878c;
+long g_4c8790;
+void function_144f0(long tag, short stage, short fallback, short fallback_index, short index, real priority);
+void function_1cf50(void);
+
+// @retail 0x44040
+void __stdcall function_44040(long cell, short mask)
+{
+    long handle = ((long *)g_4ea94c)[((short)g_4c8790 << 9) + (short)cell];
+    if (handle != NONE)
+    {
+        do
+        {
+            byte *entry = (byte *)g_4ea950->data + (handle & 0xffff) * 0x40;
+            byte *group = (byte *)g_4ea950->data + (*(long *)(entry + 0x38) & 0xffff) * 0x40;
+            if (*(short *)(group + 8) != (short)g_4ba038)
+            {
+                byte *definition = g_4e3b44[*(long *)(entry + 0x2c) & 0xffff].bytes;
+                *(short *)(group + 8) = (short)g_4ba038;
+                long tag = *(long *)(definition + 0x8c);
+                long bitmap = *(signed char *)(entry + 0x29);
+                if (g_4c878c != tag || g_4c8788 != bitmap)
+                {
+                    g_4c8788 = bitmap;
+                    g_4c878c = tag;
+                    function_144f0(tag, 0, 1, (short)bitmap, 0, 0.0f);
+                    function_1cf50();
+                }
+                dword color = *(dword *)(entry + 0x24);
+                if (g_4c8784 != color || g_4c8780)
+                {
+                    g_4c8784 = color;
+                    g_4c8780 = false;
+                    D3DDevice_SetVertexData4ub(10, (byte)(color >> 16), (byte)(color >> 8), (byte)color, (byte)(color >> 24));
+                    D3DDevice_SetVertexDataColor(11, 0);
+                }
+                s_physical_object *manager = (s_physical_object *)g_509448;
+                s_physical_block *block = (s_physical_block *)manager->blocks->data + (*(long *)(entry + 4) & 0xffff);
+                D3DDevice_DrawVertices(D3DPT_QUADLIST, ((dword)block->offset << manager->page_shift) >> 4, *(short *)(entry + 0x2a) * 4);
+            }
+            handle = *(long *)(entry + 0x34);
+        }
+        while (handle != NONE);
+    }
+}
+
 extern byte *g_4858c4;
 long g_485a2c, g_485a64, g_485a68;
 
@@ -670,7 +722,16 @@ struct s_2cb30_globals
 	long current;
 	long previous;
 	s_2cb30_state *state;
-	byte unknown0c[0x9b0 - 0xc];
+	union
+	{
+		byte unknown0c[0x9b0 - 0xc];
+		struct
+		{
+			byte weights[850];
+			byte material_indices[850];
+			long materials[192];
+		};
+	};
 	long count;
 	s_2cb30_entry entries[32];
 	long entry_count;
@@ -783,6 +844,46 @@ PRIVATE __forceinline byte *visible_entry_geometry(s_44940_entry *entry)
 	return *(byte **)(section + 0x50);
 }
 
+struct s_render_part_context;
+bool function_45ce0(short index, byte *out, short part, short transform_index);
+void function_41040(short index, long part_index, long group, byte weight,
+    s_render_part_context const *context, long material_override, bool force,
+    dword and_mask, dword or_mask);
+
+// @retail 0x44c90
+void __stdcall function_44c90(long group, dword selection_mask, long level,
+    dword and_mask, dword or_mask, dword fallback_and_mask, dword fallback_or_mask, bool force)
+{
+    long end = (word)(group ? g_4c0b78.current : g_4c0b78.previous);
+    long begin = group ? (word)g_4c0b78.previous : 0;
+    for (long index = begin; index < end; ++index)
+    {
+        s_44940_entry *entry = &g_4ba138[(short)index];
+        if (!((entry->unknown00 & selection_mask) & 0x1fffff) ||
+            ((entry->flags >> 4) & 0x1f) != level || !(entry->unknown00 & 1) || !entry->unknown10[0xa]) continue;
+        byte weight = g_4c0b78.weights[index];
+        byte material_index = g_4c0b78.material_indices[(short)index];
+        long material = material_index == 0xff ? NONE : g_4c0b78.materials[material_index];
+        byte *geometry = visible_entry_geometry(entry);
+        if (!geometry) continue;
+        if ((*(byte **)(entry->unknown10))[0x76] == 0xff)
+        {
+            and_mask = fallback_and_mask;
+            or_mask = fallback_or_mask;
+        }
+        for (long part = 0; part < *(long *)geometry; ++part)
+        {
+            byte context[0x2c];
+            if (function_45ce0((short)index, context, (short)part, (short)(entry->flags & 0xf)))
+            {
+                long selected = force || (entry->unknown00 & 0x8000) ? material : NONE;
+                function_41040((short)index, part, group, weight, (s_render_part_context *)context,
+                    selected, level != 31, and_mask, or_mask);
+            }
+        }
+    }
+}
+
 // @retail 0x458d0
 void function_458d0(short index, bool ranges, s_geometry_visibility_list const *first, s_geometry_visibility_list const *second)
 {
@@ -866,6 +967,155 @@ struct s_3d4f0_entry
 	transform4x3f transforms[64];
 };
 s_3d4f0_entry g_4c1bd8[4];
+
+#include "unknown_03bcb0.h"
+
+// @retail 0x3d600
+void function_3d600(void)
+{
+	for (long cache = 0; cache < g_4c1bd4; ++cache)
+	{
+		byte *definition = g_4e3b44[g_4c1bd8[cache].tag & 0xffff].bytes;
+		for (long section = 0; section < *(long *)(definition + 0x24); ++section)
+		{
+			byte *sections = *(byte **)(definition + 0x28);
+			function_12de70((s_geometry_block_info *)(sections + section * 0x5c + 0x38), 10);
+		}
+		for (long material = 0; material < *(long *)(definition + 0x60); ++material)
+		{
+			long tag = *(long *)(*(byte **)(definition + 0x64) + material * 0x20 + 0xc);
+			if (tag == NONE) continue;
+			byte *shader = *(byte **)(g_4e3b44[tag & 0xffff].bytes + 0x24);
+			for (long texture = 0; texture < *(long *)(shader + 4); ++texture)
+			{
+				long bitmap_tag = *(long *)(*(byte **)(shader + 8) + texture * 0xc);
+				if (bitmap_tag == NONE) continue;
+				byte *bitmap = g_4e3b44[bitmap_tag & 0xffff].bytes;
+				for (long index = 0; index < *(long *)(bitmap + 0x44); ++index)
+				{
+					s_bitmap_predict_view *image = (s_bitmap_predict_view *)(*(byte **)(bitmap + 0x48) + index * 0x74);
+					if (image) bitmap_predict_inline(image, 14);
+				}
+			}
+		}
+	}
+}
+
+struct s_planar_camera_source
+{
+	point3f origin;
+	vector3f normal;
+	vector3f horizontal;
+	byte unknown24[0x40 - 0x24];
+	real offset;
+	real depth;
+};
+struct s_planar_camera;
+struct s_timed_effect_globals;
+void function_441b0(s_planar_camera_source const *source, s_planar_camera *state, byte const *view);
+s_timed_effect_globals *function_01fd20(s_timed_effect_globals *result);
+s_bit_vector_pool *function_1320f0(long mode, long pass, bool enabled, long extra,
+	byte const *camera, byte const *plane, real distance, real bias, real offset, long identifier);
+void function_133390(s_bit_vector_pool const *data);
+void __stdcall function_133520(s_bit_vector_pool *data);
+void function_133720(s_bit_vector_pool *data, bool enabled);
+void function_44720(void);
+void function_2cb30(void);
+long g_4b9ee4;
+
+// @retail 0x2cbc0
+void __stdcall function_2cbc0(bool enabled)
+{
+	s_bit_vector_pool *current = (s_bit_vector_pool *)g_4c0b78.state;
+	function_2cb30();
+	function_133390(current);
+	function_133520(current);
+	function_133720(current, enabled);
+}
+
+// @retail 0x3f2c0
+void function_3f2c0(s_planar_camera_source const *source, byte const *view, long object_index, long identifier)
+{
+	byte camera[0x1bc];
+	real offset = 0.0f;
+	function_441b0(source, (s_planar_camera *)camera, view);
+	byte *effect = (byte *)function_01fd20(0);
+	bool enabled = false;
+	if (effect && effect[0x3c])
+	{
+		offset = *(real *)(effect + 0x40) - *(real *)(camera + 0x70);
+		enabled = true;
+	}
+	function_3d600();
+	s_bit_vector_pool *data = function_1320f0(0, 1, enabled, 0, camera,
+		camera + 0x60, 1024.0f, 0.0f, offset, g_4b9ee4);
+	if (object_index != NONE)
+	{
+		struct s_entry_list_view
+		{
+			long maximum;
+			word count;
+			short *shorts_b;
+			long *longs_a;
+			long *longs_c;
+			short *shorts_d;
+		};
+		s_entry_list_view *list = (s_entry_list_view *)data->lists[2];
+		bool found = false;
+		for (long i = 0; i < (short)list->count && !found; ++i)
+			found = list->longs_a[(short)i] == object_index;
+		if (!found && list->count < list->maximum - 1)
+		{
+			list->longs_a[list->count] = object_index;
+			list->shorts_b[list->count] = 0;
+			list->longs_c[list->count] = 0;
+			list->shorts_d[list->count] = NONE;
+			++list->count;
+		}
+	}
+	s_bit_vector_pool *current = (s_bit_vector_pool *)g_4c0b78.state;
+	function_2cb30();
+	function_133390(current);
+	function_133520(current);
+	function_133720(current, true);
+	function_44720();
+}
+
+extern vector3f g_4b9dac, g_4b9db8;
+extern byte g_4ba025;
+extern s_camera g_4b9e14;
+extern point3f g_4b9da0;
+real g_4b9de0, g_4b9de4;
+void __stdcall function_3f830(byte const *tree, point3f const *center);
+long function_155760(long index);
+void function_3f3f0(void);
+
+// @retail 0x2b990
+void function_2b990(long player_index)
+{
+	byte const *tree = *(byte **)((byte *)g_4e0348 + 0x238);
+	long object_index = NONE;
+	if (player_index != NONE)
+	{
+		long player = g_4e8c20->entries[player_index];
+		if (player != NONE && !function_155760(player_index))
+			object_index = *(long *)((byte *)g_4e8c24->data + (player & 0xffff) * 0x21c + 0x2c);
+	}
+	s_planar_camera_source source;
+	source.origin = g_4b9da0;
+	source.normal = g_4b9dac;
+	source.horizontal = g_4b9db8;
+	source.offset = g_4b9de0;
+	source.depth = g_4b9de4;
+	s_camera camera = g_4b9e14;
+	function_3f2c0(&source, (byte const *)&camera, object_index, g_4b9ee4);
+	function_3f3f0();
+	if (g_4ba025)
+	{
+		point3f center = g_4b9da0;
+		function_3f830(tree, &center);
+	}
+}
 
 // @retail 0x3d4f0
 void function_3d4f0(bool cached, short cache_index, long *flags,
@@ -1579,4 +1829,397 @@ void function_44720(void)
         }
         ++index;
     }
+}
+
+signed char *function_3d430(long object_index);
+void function_4c640(long object_index, signed char value);
+
+extern s_record_pool *g_509434;
+extern long g_4ba050;
+long __stdcall function_3ddd0(long object_index);
+extern long g_4c1bd0, g_4ba01c;
+extern bool g_4ba019;
+extern byte *g_485a80;
+bool object_or_parent_hidden(long object_index);
+bool __stdcall function_bab40(long object_index, long name, real *value);
+
+// @retail 0x4c450
+long function_4c450(long object_index, real distance, real const *definition, real *fraction)
+{
+    (void)&object_index;
+    real defaults[6] = { 10.0f, 8.0f, 6.0f, 4.0f, 2.0f, 0.0f };
+    real thresholds[6];
+    real upper;
+    *fraction = 0.9999f;
+    if (definition && definition[3] > 0.0f && definition[3] >= definition[4]
+        && definition[4] >= definition[5] && definition[5] >= definition[6]
+        && definition[6] >= definition[7] && definition[8] == 0.0f)
+    {
+        memcpy(thresholds, definition + 3, sizeof(thresholds));
+        upper = definition[0];
+    }
+    else
+    {
+        memcpy(thresholds, defaults, sizeof(thresholds));
+        upper = 0.0f;
+    }
+    long level = 0;
+    while (level < 6)
+    {
+        real lower = thresholds[level];
+        if (distance > lower || lower == 0.0f)
+        {
+            if (level != 0)
+                upper = thresholds[level - 1];
+            if (level != 0 || upper > lower)
+            {
+                real value = (upper - distance) / (upper - lower);
+                if (value < 0.0f) value = 0.0f;
+                else if (value > 0.9999f) value = 0.9999f;
+                *fraction = value;
+            }
+            else
+                *fraction = 0.9999f;
+            break;
+        }
+        ++level;
+    }
+    signed char previous = -1;
+    if (g_4ba050 >= 0 && g_4ba050 < 4)
+    {
+        byte *slot = NULL;
+        long cache = function_3ddd0(object_index);
+        if (cache != NONE)
+            slot = g_509434->data + (cache & 0xffff) * 0x100 + 0xbc;
+        previous = (signed char)slot[g_4ba050];
+    }
+    if (previous != -1)
+    {
+        long difference = previous - level;
+        long absolute = difference < 0 ? -difference : difference;
+        if (absolute == 1)
+        {
+            if (difference == absolute && *fraction < 0.8f)
+                ++level;
+            else if (difference == -1 && *fraction > 0.2f)
+                --level;
+        }
+    }
+    return level;
+}
+
+// @retail 0x4bcc0
+short function_4bcc0(byte *output, long object_index, real distance, long override,
+    bool *cached, bool force, signed char *level)
+{
+    (void)&object_index; (void)&distance; (void)&override;
+    (void)&cached; (void)&force; (void)&level;
+    short result = 0;
+    *(dword *)(output + 0x16c) = 0;
+    bool eligible = false;
+    bool current = false;
+    if (!object_or_parent_hidden(object_index))
+    {
+        eligible = true;
+        current = object_index == g_4c1bd0;
+    }
+    if (cached) *cached = current;
+    if (!eligible) return result;
+    byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+    byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+    if (force) *cached = false;
+    long model_index = *(long *)(definition + 0x38);
+    if (model_index == NONE) return 0;
+    byte *model = g_4e3b44[model_index & 0xffff].bytes;
+    result = function_3d3e0(object_index, *cached);
+    if (result > 0)
+    {
+        long geometry = *(long *)(model + 4);
+        if (!override && geometry != NONE)
+        {
+            byte *geometry_definition = g_4e3b44[geometry & 0xffff].bytes;
+            if (*(long *)(geometry_definition + 0x74) > 0 &&
+                function_12de70((s_geometry_block_info *)(*(byte **)(geometry_definition + 0x78) + 0x34), 3))
+                *(dword *)(output + 0x16c) |= 0x40;
+        }
+        *level = *cached ? 4 : -1;
+        if (!*cached)
+        {
+            byte *object_definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+            byte *level_definition = g_4e3b44[*(long *)(object_definition + 0x38) & 0xffff].bytes;
+            if (g_4ba019) distance *= 0.3f;
+            if ((bool)((*(dword *)(object + 4) >> 19) & 1))
+                *level = 5;
+            else
+            {
+                if ((bool)((object[0x10a] >> 2) & 1)) distance *= 1.7f;
+                real fraction;
+                *level = (signed char)function_4c450(object_index, distance, (real const *)(level_definition + 0x28), &fraction);
+                long maximum = (*(dword *)(output + 0x16c) & 0x40) ? 4 : g_4ba01c;
+                if (*level < 0) *level = 0;
+                else if (*level > maximum) *level = (signed char)maximum;
+            }
+        }
+        if (*level == -1)
+            result = 0;
+        else
+        {
+            bool transparent = false;
+            if (*(dword *)(model + 0x9c) & 1)
+            {
+                *(dword *)(output + 0x16c) |= 6;
+                *(long *)(output + 0x174) = *(long *)(g_485a80 + 0xd0);
+                *(real *)(output + 0x184) = 0.99f;
+                transparent = true;
+            }
+            else
+            {
+                byte *current_object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+                if (((1 << current_object[0xaa]) & 3) && *(real *)(current_object + 0x2b0) > 0.0f)
+                {
+                    *(dword *)(output + 0x16c) |= 2;
+                    *(long *)(output + 0x174) = *(long *)(g_485a80 + 0xd0);
+                    *(real *)(output + 0x184) = *(real *)(current_object + 0x2b0);
+                    transparent = true;
+                }
+            }
+            if (transparent)
+            {
+                bool flag2 = (bool)((*(dword *)(model + 0x9c) >> 2) & 1);
+                bool flag1 = (bool)((*(dword *)(model + 0x9c) >> 1) & 1);
+                if (*cached) { flag2 = true; flag1 = false; }
+                if (flag2) *(dword *)(output + 0x16c) |= 8;
+                else *(dword *)(output + 0x16c) &= ~8;
+                if (flag1) *(dword *)(output + 0x16c) |= 0x10;
+                else *(dword *)(output + 0x16c) &= ~0x10;
+            }
+            if (!override)
+            {
+                if (*(real *)(object + 0xf4) > 0.0f && *(long *)(model + 0x60) > 0)
+                {
+                    byte *materials = *(byte **)(model + 0x64);
+                    long tag = *(long *)(materials + (*cached ? 0x80 : 0x88));
+                    if (tag != NONE)
+                    {
+                        *(dword *)(output + 0x16c) |= 1;
+                        *(long *)(output + 0x170) = tag;
+                        *(real *)(output + 0x180) = *(real *)(object + 0xf0);
+                    }
+                }
+                if (*(real *)(object + 0xf0) > 1.0f && *(long *)(model + 0x60) > 0)
+                {
+                    byte *materials = *(byte **)(model + 0x64);
+                    long tag = *(long *)(materials + (*cached ? 0xec : 0xf4));
+                    if (tag != NONE)
+                    {
+                        *(dword *)(output + 0x16c) |= 0x20;
+                        *(long *)(output + 0x178) = tag;
+                        *(real *)(output + 0x188) = 1.0f - *(real *)(object + 0xf0);
+                    }
+                }
+                if (*(long *)(model + 0xf4) != NONE)
+                {
+                    real value = 0.0f;
+                    if (function_bab40(object_index, *(long *)(model + 0xf8), &value) && value > 0.0f)
+                    {
+                        *(dword *)(output + 0x16c) |= 0x80;
+                        *(long *)(output + 0x17c) = *(long *)(model + 0xf4);
+                        *(real *)(output + 0x18c) = value;
+                    }
+                }
+            }
+        }
+    }
+    function_4c0d0(object_index, output, result);
+    return result;
+}
+
+// @retail 0x4c190
+bool function_4c190(long *count, long object_index, bool defaults, long tag,
+    short *level, signed char fallback_level, signed char *sections, bool *fallback)
+{
+    (void)&object_index; (void)&defaults; (void)&tag;
+    (void)&level; (void)&fallback_level; (void)&sections; (void)&fallback;
+    byte *definition = g_4e3b44[tag & 0xffff].bytes;
+    byte zero[16];
+    byte const *wanted;
+    signed char *current;
+    if (!defaults)
+    {
+        byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+        *count = *(short *)(object + 0x118);
+        wanted = object + *(short *)(object + 0x11a);
+        *count = *count / 10;
+        current = function_3d430(object_index);
+    }
+    else
+    {
+        *(long *)(zero + 0) = 0;
+        *(long *)(zero + 4) = 0;
+        *(long *)(zero + 8) = 0;
+        *(long *)(zero + 12) = 0;
+        *count = *(long *)(definition + 0x1c);
+        current = (signed char *)zero;
+        wanted = zero;
+    }
+    bool result = function_4c2b0(tag, wanted, current, *level, true, sections, fallback);
+    if (!result && fallback_level != -1)
+    {
+        result = function_4c2b0(tag, wanted, current, fallback_level, false, sections, fallback);
+        if (result) *level = fallback_level;
+    }
+    else
+        function_4c640(object_index, (signed char)(byte)*level);
+    if (!result)
+        function_4c640(object_index, -1);
+    return result;
+}
+
+extern byte g_4670bc, g_485b48[];
+extern long g_4858b8;
+extern D3DPIXELSHADERDEF g_484f68;
+extern D3DResource *g_509444;
+extern byte g_51f0f0[0x2d8];
+struct s_render_reset_state;
+struct s_shader_cache;
+struct s_type_7ba8e9;
+void function_16b10(s_render_reset_state *state);
+s_type_7ba8e9 *function_137550(long tag, short bitmap);
+bool function_14390(short stage, s_type_7ba8e9 *bitmap, real priority);
+void function_14bc0(short target, short element, bool depth);
+void function_0222d0(D3DRENDERSTATETYPE state, dword value);
+bool function_1ccf0(D3DPIXELSHADERDEF const *program);
+dword function_1cc30(long index);
+void function_1c620(s_shader_cache *state, long a, long b, long c, byte const *descriptor);
+void __stdcall function_1c710(void *state);
+byte const g_43f7b9[6] = { 0x2d, 0, 2, 3, 0x10, 0xff };
+
+// @retail 0x43a40
+void __stdcall function_43a40(long mode)
+{
+    (void)&mode;
+    g_4c8790 = mode;
+    g_4c878c = NONE;
+    g_4c8788 = 0;
+    g_4c8784 = 0;
+    g_4c8780 = true;
+    g_4670bc = true;
+    function_16b10((s_render_reset_state *)g_485b48);
+    function_14bc0((short)g_4858b8, 0, true);
+    long tag = *(long *)(g_485a80 + 0x64);
+    if (tag != NONE)
+    {
+        s_type_7ba8e9 *bitmap = function_137550(tag, 1);
+        if (bitmap) function_14390(0, bitmap, 0.0f);
+    }
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, 3);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, 3);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, 2);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, 2);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 2);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    if (mode == 6)
+    {
+        function_0222d0(D3DRS_CULLMODE, 0);
+        function_0222d0(D3DRS_ZENABLE, 0);
+        function_0222d0(D3DRS_ZFUNC, 0x207);
+        function_0222d0(D3DRS_ZWRITEENABLE, 1);
+    }
+    else
+    {
+        function_0222d0(D3DRS_CULLMODE, 0x901);
+        function_0222d0(D3DRS_ZENABLE, 2);
+        function_0222d0(D3DRS_ZFUNC, 0x203);
+        function_0222d0(D3DRS_ZWRITEENABLE, 0);
+    }
+    function_0222d0(D3DRS_ZBIAS, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 0x11001;
+    switch (mode)
+    {
+    case 0:
+    case 1:
+        g_484f68.PSRGBInputs[0] = 0x8040000;
+        g_484f68.PSRGBOutputs[0] = 0xc0;
+        g_484f68.PSAlphaInputs[0] = 0x18140000;
+        g_484f68.PSAlphaOutputs[0] = 0xc0;
+        g_484f68.PSFinalCombinerInputsABCD = 0xf150000;
+        g_484f68.PSFinalCombinerInputsEFG = 0xc1c1c00;
+        break;
+    case 2:
+    case 3:
+        g_484f68.PSCombinerCount = 0x11002;
+        g_484f68.PSAlphaInputs[0] = 0x18140000;
+        g_484f68.PSAlphaOutputs[0] = 0xc0;
+        g_484f68.PSRGBInputs[1] = ((mode == 2 ? 0xa0 : 0x20) << 8) | 0x81c003c;
+        g_484f68.PSRGBOutputs[1] = 0xc00;
+        g_484f68.PSFinalCombinerInputsABCD = 0xc;
+        break;
+    case 4:
+        g_484f68.PSRGBInputs[0] = 0x8040000;
+        g_484f68.PSRGBOutputs[0] = 0xc0;
+        g_484f68.PSAlphaInputs[0] = 0x18140000;
+        g_484f68.PSAlphaOutputs[0] = 0xc0;
+        g_484f68.PSFinalCombinerInputsABCD = 0xc1c0000;
+        break;
+    case 5:
+        g_484f68.PSCombinerCount = 0x11002;
+        g_484f68.PSConstant0[0] = 0xff;
+        g_484f68.PSRGBInputs[0] = 0x8040501;
+        g_484f68.PSRGBOutputs[0] = 0xcd;
+        g_484f68.PSAlphaInputs[0] = 0x38140000;
+        g_484f68.PSAlphaOutputs[0] = 0xc0;
+        g_484f68.PSRGBInputs[1] = 0x182b200b;
+        g_484f68.PSRGBOutputs[1] = 0xd00;
+        g_484f68.PSAlphaInputs[1] = 0x1c0d0000;
+        g_484f68.PSAlphaOutputs[1] = 0xc0;
+        g_484f68.PSFinalCombinerInputsABCD = 0xf140000;
+        g_484f68.PSFinalCombinerInputsEFG = 0xc0d1c00;
+        break;
+    default:
+        g_484f68.PSTextureModes = 0;
+        g_484f68.PSConstant1[3] = 0xff0000;
+        g_484f68.PSFinalCombinerInputsABCD = 1;
+        break;
+    }
+    function_1ccf0(&g_484f68);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, (dword)mode <= 5);
+    if ((dword)mode <= 5)
+    {
+        function_0222d0(D3DRS_SRCBLEND, mode == 2 || mode == 3 ? 0x306 : 1);
+        function_0222d0(D3DRS_DESTBLEND, mode == 2 ? 0x300 : mode == 3 || mode == 4 ? 0 : 0x303);
+        function_0222d0(D3DRS_BLENDOP, mode == 4 ? 0x8008 : 0x8006);
+    }
+    function_0222d0(D3DRS_SOLIDOFFSETENABLE, mode != 6);
+    if (mode != 6)
+    {
+        real offset = -200.0f;
+        function_0222d0(D3DRS_POLYGONOFFSETZOFFSET, *(dword *)&offset);
+        function_0222d0(D3DRS_POLYGONOFFSETZSLOPESCALE, 0);
+    }
+    function_1cc30(3);
+    function_1c620((s_shader_cache *)g_51f0f0, (long)g_509444, 0, 16, g_43f7b9);
+    function_1c710(g_51f0f0);
+}
+
+struct s_masked_list;
+typedef void (__stdcall *masked_list_proc)(long value, short mask);
+s_masked_list *g_547f94;
+extern dword g_4b8340;
+void masked_list_iterate(s_masked_list const *list, long mask, masked_list_proc proc);
+
+// @retail 0x2c370
+void function_2c370(long mode)
+{
+    function_43a40(mode);
+    masked_list_iterate(g_547f94, 0xffff, function_44040);
+    g_4b8340 = 0;
+    D3DDevice_SetRenderState(D3DRS_SOLIDOFFSETENABLE, 0);
 }

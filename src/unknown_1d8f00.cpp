@@ -103,10 +103,21 @@ PRIVATE __forceinline bool marker_permutation_visible(byte const *region_permuta
 
 /* fills up to count markers of the group, each placed on its node's matrix;
    returns how many it filled */
-// @retail 0x1d8f50
-short function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
+PRIVATE __forceinline void function_1d8f51(transform4x3f *arg_0, point3f const *arg_1, quaternionf const *arg_2)
+{
+    function_141e10((matrix3x3 *)&arg_0->forward, arg_2);
+    arg_0->position.x = 0.0f;
+    arg_0->position.y = 0.0f;
+    arg_0->position.z = 0.0f;
+    arg_0->scale = 1.0f;
+    arg_0->position = *arg_1;
+}
+
+PRIVATE __forceinline long function_1d8f52(long marker_group_index, long render_model_index, byte const *region_permutations,
 	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, long count)
 {
+	s_object_marker **local_1 = &markers;
+	s_object_marker *local_2;
 	long result = 0;
 
 	if (marker_group_index != NONE)
@@ -114,40 +125,53 @@ short function_1d8f50(long marker_group_index, long render_model_index, byte con
 		s_render_model_marker_group *group = &render_model_view_get(render_model_index)->marker_groups[marker_group_index];
 		long i;
 
-		for (i = 0; i < group->marker_count; i++)
+		if (group->marker_count > 0)
 		{
-			s_render_model_marker *marker = &group->markers[i];
-
-			if (marker_permutation_visible(region_permutations, marker))
+			local_2 = *local_1;
+			for (i = 0; i < group->marker_count; i++)
 			{
-				s_object_marker *out;
-				long node_index;
+				s_render_model_marker *marker = &group->markers[i];
 
-				if (result >= count)
+				if (marker_permutation_visible(region_permutations, marker))
 				{
-					break;
-				}
-				node_index = marker->node_index;
-				out = markers++;
-				result++;
-				if (node_remapping)
-				{
-					node_index = node_remapping[node_index];
-				}
-				out->node_index = (short)node_index;
-				function_1421b0(&out->node_matrix, &marker->translation, &marker->rotation);
-				function_142a60(&field_50[out->node_index], &out->node_matrix, &out->matrix);
-				out->unknown6c = marker->scale;
-				if (mirrored)
-				{
-					out->matrix.left.i = 0.0f - out->matrix.left.i;
-					out->matrix.left.j = 0.0f - out->matrix.left.j;
-					out->matrix.left.k = 0.0f - out->matrix.left.k;
+					s_object_marker *out;
+					long node_index;
+
+					if (result >= count)
+					{
+						break;
+					}
+					node_index = marker->node_index;
+					out = local_2;
+					result++;
+					local_2++;
+					if (node_remapping)
+					{
+						node_index = node_remapping[node_index];
+					}
+					out->node_index = (short)node_index;
+					function_1d8f51(&out->node_matrix, &marker->translation, &marker->rotation);
+					function_142a60(&field_50[out->node_index], &out->node_matrix, &out->matrix);
+					out->unknown6c = marker->scale;
+					if (mirrored)
+					{
+						out->matrix.left.i = 0.0f - out->matrix.left.i;
+						out->matrix.left.j = 0.0f - out->matrix.left.j;
+						out->matrix.left.k = 0.0f - out->matrix.left.k;
+					}
 				}
 			}
 		}
 	}
 	return result;
+}
+
+// @retail 0x1d8f50
+short function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
+	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, long count)
+{
+	return (short)function_1d8f52(marker_group_index, render_model_index, region_permutations,
+		node_remapping, field_50, mirrored, markers, count);
 }
 
 /* function_1d8f50 for the group with the name */

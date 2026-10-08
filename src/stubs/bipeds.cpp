@@ -22,9 +22,6 @@ void function_1e5a60(s_biped_physics_result *result, s_biped_physics_input const
 // @stub 0xe5d50
 void __stdcall function_e5d50(long arg_159e6d, long target_index, vector3f *offset, point3f *point) { }
 
-// @stub 0xe59e0
-void function_e59e0(long arg_159e6d, vector3f *velocity, point3f *position) { }
-
 // @stub 0xe57e0
 void __stdcall function_e57e0(long arg_159e6d) { }
 

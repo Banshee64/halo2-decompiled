@@ -1178,18 +1178,27 @@ struct s_results_player
 
 point3f *function_b9dd0(long object_index, point3f *result);
 
+inline long results_player_unit(s_results_player const *player)
+{
+	long result = NONE;
+	if (player->unit_index != NONE)
+		result = player->unit_index;
+	else if (player->dead_unit_index != NONE)
+		result = player->dead_unit_index;
+	return result;
+}
+
+
+
 /* where a player's unit, or its dead unit, is. Retail passes position on the
    stack: reading it through its address keeps it there */
 // @retail 0x1994d0
 bool function_1994d0(long player_index, point3f *position)
 {
-	s_results_player *player = (s_results_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_results_player));
-	long unit_index = player->unit_index;
 	bool result = false;
+	s_results_player *player = (s_results_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_results_player));
+	long unit_index = results_player_unit(player);
 	point3f *const *position_reference = &position;
-
-	if (unit_index == NONE && player->dead_unit_index != NONE)
-		unit_index = player->dead_unit_index;
 
 	if (unit_index != NONE)
 	{

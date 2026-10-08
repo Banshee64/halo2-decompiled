@@ -1,10 +1,11 @@
-// stubs for the game functions outside 0x190000..0x19ffff that lane H's code
-// calls and that are not decompiled yet
+// Stubs for game functions called by lane H's code that are not decompiled yet.
 
 #include <xtl.h>
 #include <xonline.h>
 
 struct s_player_profile;
+struct s_shapes;
+union point3f;
 struct s_controller_event;
 
 
@@ -49,8 +50,9 @@ void __stdcall function_b3e90(unsigned char *results)
 {
 }
 
-// @stub 0x19bfd0
-bool __stdcall function_19bfd0(struct s_content_item *item)
+// @stub 0x16a440
+bool __stdcall function_16a440(unsigned long flags, point3f const *position, float extent, float height,
+	float radius, long ignore_object, long ignore_parent, s_shapes *shapes)
 {
 	return false;
 }
@@ -76,4 +78,15 @@ long __stdcall function_2cb5b0(unsigned char *destination, long *destination_siz
 long __stdcall function_2cb510(unsigned char *destination, long *destination_size, unsigned char const *source, long source_size, long level, block_allocate allocate, block_free release, void *opaque)
 {
     return -1;
+}
+
+
+// @stub 0x13954b
+void function_13954b(void)
+{
+}
+
+// @stub 0x191fd8
+void function_191fd8(long player_index)
+{
 }

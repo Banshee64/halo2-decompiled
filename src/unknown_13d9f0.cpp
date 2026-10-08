@@ -64,10 +64,10 @@ long function_13da30(s_13da30_owner const *owner)
 	if (owner && owner->tag_index != NONE)
 	{
 		s_13da30_block_header_view *block = (s_13da30_block_header_view *)((s_13da30_tag *)g_4e3b44[owner->tag_index & 0xffff].bytes)->block;
-		long index = *block->indices;
-		if (index != NONE)
+		result = *block->indices;
+		if (result != NONE)
 		{
-			result = block->elements[index].value;
+			result = block->elements[result].value;
 		}
 	}
 	return result;

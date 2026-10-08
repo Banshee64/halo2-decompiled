@@ -60,19 +60,9 @@ struct s_simulation_player_update;
 
 struct s_player_creation_record;
 
-// @stub 0x14bc00
-long __stdcall function_14bc00(long player_index, const s_player_creation_record *record)
-{
-	return -1;
-}
 
 // @stub 0x14bf80
 void __stdcall function_14bf80(long player_index, const s_player_creation_record *record)
-{
-}
-
-// @stub 0x14be90
-void __stdcall function_14be90(long player_index, const unsigned long *configuration)
 {
 }
 

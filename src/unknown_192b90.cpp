@@ -79,8 +79,9 @@ void function_192ce0(point3f const *direction, real *gains, bool linear)
 	for (i = 0; i < 4; i++)
 		values[i] = function_192b90(direction, i, linear);
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 3; i++)
 		gains[i] = values[i];
+	return (void)(gains[3] = values[3]);
 }
 
 // @retail 0x192d40

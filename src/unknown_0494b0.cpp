@@ -222,6 +222,23 @@ void function_47ea0(short stage, byte flags)
 	D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
 }
 
+extern byte *g_485a80;
+bool function_14560(long tag, short stage, short fallback, short fallback_index, short index);
+bool function_14480(long tag, short stage, short index);
+
+// @retail 0x47fd0
+bool function_47fd0(long tag, short stage, short fallback, byte flags)
+{
+    bool result;
+    if (tag != NONE)
+        result = function_14560(tag, stage, fallback, 0, 1);
+    else
+        result = function_14480(*(long *)(g_485a80 + 0x34), stage, fallback);
+    if (!result)
+        function_47ea0(stage, flags);
+    return result;
+}
+
 
 #include <math.h>
 extern IDirect3DBaseTexture8 *g_51f3c8[2][4];

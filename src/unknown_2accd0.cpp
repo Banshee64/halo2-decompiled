@@ -186,7 +186,7 @@ bool saved_game_file_read_begin(void *buffer, dword size, bool non_roamable, s_s
 }
 
 bool saved_game_file_copy_update(s_saved_game_file *file, long *error);
-void saved_game_file_get_path(char *path, const s_saved_game_file *file);
+void saved_game_file_get_path(const s_saved_game_file *file, char *path);
 
 /* a task copying a saved game file (kept in the status block in place of
    its path) to the hard disk, then writing it */
@@ -205,6 +205,7 @@ PRIVATE long __stdcall saved_game_file_copy_work(s_async_task *task, void *param
 
 	if (saved_game_file_copy_update(file, &error))
 	{
+		result = 1;
 		if (!error)
 		{
 			char path[0x100];
@@ -212,17 +213,16 @@ PRIVATE long __stdcall saved_game_file_copy_work(s_async_task *task, void *param
 
 			parameters->task->state = 4;
 			path[0] = 0;
-			saved_game_file_get_path(path, file);
+			saved_game_file_get_path(file, path);
 			function_x454397(&s_type_acf665);
 			function_x73bce5(&s_type_acf665, path);
 			saved_game_file_write(&s_type_acf665, parameters->buffer, parameters->size, parameters->non_roamable, parameters->task);
 		}
-		result = 1;
 	}
 	else if (error)
 	{
-		parameters->task->state = 0;
 		result = 1;
+		parameters->task->state = 0;
 	}
 	return result;
 }
@@ -259,15 +259,22 @@ void saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game
 	*file_location = *location;
 }
 
+__forceinline void saved_game_file_copy_display_name(wchar_t *destination, wchar_t const *source)
+{
+	wcsncpy(destination, source, 0x10);
+	destination[0x10] = 0;
+}
+
 // @retail 0x2acf80
 s_saved_game_file *saved_game_file_new_from_id(s_saved_game_file *file, long flags, const wchar_t *display_name, const s_saved_game_file_location *location, void *buffer, bool *done)
 {
+	const s_saved_game_file_location *const *location_reference = &location;
 	file->flags = flags;
-	file->location.name[0] = 0;
-	file->location.display_name[0] = 0;
-	wcsncpy(file->display_name, display_name, 0x10);
-	file->display_name[0x10] = 0;
-	file->id = *(const s_saved_game_file_id *)location;
+	s_saved_game_file_location *file_location = &file->location;
+	file_location->name[0] = 0;
+	file_location->display_name[0] = 0;
+	saved_game_file_copy_display_name(file->display_name, display_name);
+	file->id = *(const s_saved_game_file_id *)*location_reference;
 	file->done = done;
 	file->temporary = false;
 	file->source = INVALID_HANDLE_VALUE;
@@ -278,7 +285,7 @@ s_saved_game_file *saved_game_file_new_from_id(s_saved_game_file *file, long fla
 	file->copy_state = _saved_game_file_copy_create;
 	file->unknown7a = true;
 	file->buffer = buffer;
-	file->location = *location;
+	*file_location = **location_reference;
 	return file;
 }
 
@@ -376,7 +383,8 @@ bool file_copy_open(s_saved_game_file *copy, bool *exists)
 	if (copy->source == INVALID_HANDLE_VALUE)
 	{
 		*exists = false;
-		return true;
+		result = true;
+		goto done;
 	}
 
 	function_x91aa57(destination_path, copy->location.name, sizeof(destination_path));
@@ -391,7 +399,8 @@ bool file_copy_open(s_saved_game_file *copy, bool *exists)
 			if (GetLastError() == ERROR_SUCCESS && SetEndOfFile(copy->destination))
 			{
 				*exists = true;
-				return true;
+				result = true;
+				goto done;
 			}
 		}
 	}
@@ -406,6 +415,7 @@ bool file_copy_open(s_saved_game_file *copy, bool *exists)
 		CloseHandle(copy->destination);
 		copy->destination = INVALID_HANDLE_VALUE;
 	}
+done:
 	return result;
 }
 // @retail 0x2ad480
@@ -421,8 +431,7 @@ void saved_game_file_copy_finish(s_saved_game_file *file, bool succeeded)
 	{
 		function_216da0(name, type, file->location.display_name, file->location.language);
 		XDeleteSaveGame(root, name);
-		wcsncpy(file->location.display_name, file->display_name, 0x10);
-		file->location.display_name[0x10] = 0;
+		saved_game_file_copy_display_name(file->location.display_name, file->display_name);
 		file->location.language = (char)get_current_language();
 		function_2168b0(&file->location, file->flags);
 	}
@@ -543,7 +552,7 @@ inline void saved_game_file_build_path(char *path, const char *folder, long type
 }
 
 // @retail 0x2ad760
-void saved_game_file_get_path(char *path, const s_saved_game_file *file)
+void saved_game_file_get_path(const s_saved_game_file *file, char *path)
 {
 	if (file->temporary)
 	{
@@ -583,10 +592,12 @@ struct s_signed_file_read_parameters
 };
 #pragma pack(pop)
 
+__forceinline byte *job_thread_buffer_get(s_async_task *task, dword *size);
+
 // @retail 0x2ad7c0
 PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_read_parameters *parameters, long parameters_size)
 {
-	dword total = parameters->body_size + parameters->header_size + sizeof(XCALCSIG_SIGNATURE);
+	dword total = parameters->header_size + parameters->body_size + sizeof(XCALCSIG_SIGNATURE);
 	real total_size = (real)total;
 
 	parameters->task->state = 4;
@@ -627,10 +638,7 @@ PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_r
 				}
 				else
 				{
-					buffer = (byte *)g_5020c8.unknown04;
-					size = g_5020c8.unknown08;
-					g_5020c8.unknown00 = (dword)task;
-					g_5020d4 = g_5020c8.unknown04 != 0x4fa0c8;
+					buffer = job_thread_buffer_get(task, &size);
 					if (size > parameters->body_size - parameters->body_offset)
 					{
 						size = parameters->body_size - parameters->body_offset;
@@ -657,7 +665,7 @@ PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_r
 
 		default:
 		{
-			dword position = parameters->body_size + parameters->header_size;
+			dword position = parameters->header_size + parameters->body_size;
 			XCALCSIG_SIGNATURE stored;
 			XCALCSIG_SIGNATURE computed;
 			dword bytes;
@@ -667,7 +675,8 @@ PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_r
 			{
 				if (XCalculateSignatureEnd(parameters->signature_handle, &computed) == ERROR_SUCCESS)
 				{
-					parameters->task->succeeded = memcmp(&computed, &stored, sizeof(stored)) == 0;
+					s_saved_game_file_task *output = parameters->task;
+					output->succeeded = memcmp(&computed, &stored, sizeof(stored)) == 0;
 				}
 				parameters->signature_handle = INVALID_HANDLE_VALUE;
 			}
@@ -712,7 +721,7 @@ bool signed_file_read_begin(void *header, dword header_size, void *body, dword b
 }
 
 /* the job thread's scratch buffer, claimed by a task */
-inline byte *job_thread_buffer_get(s_async_task *task, dword *size)
+__forceinline byte *job_thread_buffer_get(s_async_task *task, dword *size)
 {
 	byte *buffer = (byte *)g_5020c8.unknown04;
 	g_5020d4 = buffer != (byte *)0x4fa0c8;

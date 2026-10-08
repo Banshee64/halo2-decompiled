@@ -71,13 +71,13 @@ void function_18e250(s_loop_allocator *loop, long size, const char *name, c_memo
 // @retail 0x18e1f0
 s_loop_allocator *function_18e1f0(c_memory_source *source, long size, const char *name)
 {
-	long allocation_size = size + 0x50;
 
 	if (!source)
 	{
 		source = (c_memory_source *)g_468758;
 	}
 
+	long allocation_size = size + 0x50;
 	s_loop_allocator *loop = (s_loop_allocator *)source->allocate(allocation_size);
 	if (loop)
 	{
@@ -187,6 +187,7 @@ s_loop_block *loop_allocate_in_gap(s_loop_allocator *loop, long size, char const
 {
 	s_loop_allocator *const *loop_reference = &loop;
 	s_loop_block *block = (*loop_reference)->first;
+	s_loop_block *local_0 = NULL;
 	s_loop_block *next = NULL;
 
 	if (block)
@@ -200,14 +201,16 @@ s_loop_block *loop_allocate_in_gap(s_loop_allocator *loop, long size, char const
 				byte *address = loop_block_get_address(loop, block) + block->size;
 				if (address + size <= next_address)
 				{
-					return loop_block_insert(loop, address, size, file, line, block, next);
+					local_0 = loop_block_insert(loop, address, size, file, line, block, next);
+				goto local_1;
 				}
 			}
 			block = next;
 		} while (next);
-		return NULL;
+		goto local_1;
 	}
-	return next;
+	local_1:
+	return local_0;
 }
 
 // @retail 0x18e2b0
@@ -275,6 +278,8 @@ void loop_free(s_loop_allocator *loop, void **pointer)
 // @retail 0x18e340
 bool loop_reallocate(s_loop_allocator *loop, void **pointer, long size, char const *file, long line)
 {
+	bool local_0 = false;
+	s_loop_allocator *const *local_2 = &loop;
 	s_loop_block *block = (s_loop_block *)*pointer - 1;
 	long block_size = loop_block_header_size(loop) + size;
 
@@ -303,7 +308,8 @@ bool loop_reallocate(s_loop_allocator *loop, void **pointer, long size, char con
 				header->time = GetTickCount();
 			}
 		}
-		return true;
+		local_0 = true;
+		goto local_1;
 	}
 
 	void *new_pointer;
@@ -311,11 +317,12 @@ bool loop_reallocate(s_loop_allocator *loop, void **pointer, long size, char con
 	{
 		memcpy(new_pointer, *pointer, block->size - loop_block_header_size(loop));
 		loop_free(loop, pointer);
-		((s_loop_block *)new_pointer - 1)->owner = loop->field3c ? NULL : pointer;
+		((s_loop_block *)new_pointer - 1)->owner = (*local_2)->field3c ? NULL : pointer;
 		*pointer = new_pointer;
-		return true;
+		local_0 = true;
 	}
-	return false;
+	local_1:
+	return local_0;
 }
 
 // @retail 0x18e470
