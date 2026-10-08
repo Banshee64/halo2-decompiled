@@ -54,6 +54,6 @@ static __forceinline void bitmap_predict_inline(s_bitmap_predict_view *bitmap, d
 	}
 }
 
-void function_3bcb0(s_bitmap_data *bitmap);
+D3DTexture *function_3bcb0(s_bitmap_data *bitmap);
 
 #endif
