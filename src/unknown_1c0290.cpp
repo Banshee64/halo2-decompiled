@@ -101,6 +101,14 @@ bool function_1c0290(long actor_index)
 	return result;
 }
 
+PRIVATE __forceinline real function_1c0301(point2f const *arg_0, point2f const *arg_1)
+{
+	real local_0 = arg_0->x - arg_1->x;
+	real local_1 = arg_0->y - arg_1->y;
+	local_0 *= local_0;
+	return (real)sqrt(local_0 + local_1 * local_1);
+}
+
 // @retail 0x1c0300
 short __stdcall function_1c0300(long actor_index)
 {
@@ -115,7 +123,7 @@ short __stdcall function_1c0300(long actor_index)
 
 		if ((prop->unknown3c != NONE || object_header_type(node->object_index) == 1) &&
 			(entry = (s_actor_tag_entry_1e4f90 *)function_1e4f90(actor_index)) != NULL &&
-			entry->unknown04 >= distance2d(&prop->position, (point2f *)&actor->position) &&
+			entry->unknown04 >= function_1c0301(&prop->position, (point2f *)&actor->position) &&
 			(actor->times[3] == NONE || game_ticks_to_seconds(g_510c54->game_time - actor->times[3]) > entry->unknown18) &&
 			function_1c9ee0(entry->unknown08) > function_259a0(&g_4e7408->unknown0))
 		{
