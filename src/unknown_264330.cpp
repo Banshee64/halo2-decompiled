@@ -288,8 +288,7 @@ PRIVATE inline void tracking_state_initialize(s_type_5cfb45 *state)
 // @retail 0x263210
 void __stdcall function_263210(long actor_index)
 {
-	s_actor_prop_view *initial_actor = actor_prop_view_get(actor_index);
-	long next_index = initial_actor->first_prop_index;
+	long next_index = actor_prop_view_get(actor_index)->first_prop_index;
 	short count = 0;
 	short active_count = 0;
 	short current = 0;
@@ -297,6 +296,7 @@ void __stdcall function_263210(long actor_index)
 	s_tracking_candidate candidates[50];
 	s_2640c0 motion;
 	s_2641c0 sample;
+	s_actor_prop_view *initial_actor = actor_prop_view_get(actor_index);
 	s_actor_prop_view *volatile actor = initial_actor;
 	++g_4de2fc;
 	g_4de2f8 = true;
