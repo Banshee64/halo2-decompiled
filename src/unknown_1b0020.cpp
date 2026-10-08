@@ -4,6 +4,7 @@
 #include "unknown_2626b0.h"
 #include "unknown_1e3920.h"
 #include "unknown_2605d0.h"
+#include "props.h"
 
 /* slot type 0x3a (its first callbacks, from 0x1afde0, precede the region) */
 
@@ -201,4 +202,44 @@ void __stdcall function_1b0020(long actor_index, s_slot *slot)
             *(short *)((byte *)slot + 0x22) = (short)real_to_long(slot_random_range(0.5f, 1.5f) * g_510c54->field_2_3);
         }
     }
+}
+
+short __stdcall function_272af0(s_match_globals *arg_0, point3f const *arg_1);
+void function_1e3b00(long arg_0, long arg_1, point3f const *arg_2,
+    void const *arg_3, void const *arg_4, point3f *arg_5);
+long function_baf40(long arg_0);
+short __stdcall function_1c8df0(long arg_0, point3f const *arg_4, short arg_3, short arg_2,
+    void const *arg_1, long arg_5, bool arg_6, bool arg_7, bool arg_8, long *arg_9);
+
+// @retail 0x1b0400
+bool function_1b0400(long arg_0, s_follow_search_state *arg_1)
+{
+    s_actor_view *local_0 = actor_get(arg_0);
+    bool local_1 = false;
+    if (local_0->unknown344 != NONE && !REFERENCE_EQUAL(arg_1->reference, g_470fa0))
+    {
+        s_262b40_result *local_2 = function_262b40(arg_1->reference);
+        if (local_2)
+        {
+            s_prop_node_view *local_3 = prop_node_get(local_0->unknown344);
+            s_type_5cfb45 *local_4 = function_25d690((s_prop_datum *)local_3);
+            point3f local_5;
+            point3f local_6;
+            function_210850((s_type_c3b527 const *)local_2, &local_5);
+            if (((s_type_c3b527 const *)local_2)->output_index != NONE)
+                function_272af0(g_4e0348, &local_5);
+            function_1e3b00(local_0->unknown018, 2, &local_5, NULL, NULL, &local_6);
+            long local_7 = local_3->object_index;
+            byte *local_8 = (byte *)object_get(local_7);
+            if (!local_8[0xaa] && *(long *)(local_8 + 0x14) != NONE)
+                local_7 = *(long *)(local_8 + 0x14);
+            local_7 = function_baf40(local_7);
+            short local_9 = function_1c8df0(local_7, (point3f const *)((byte *)local_4 + 0x30),
+                *(short *)((byte *)local_2 + 0x2c), *(short *)((byte *)local_2 + 0x12),
+                &local_6, 1, false, local_0->unknown26c != NONE, false, NULL);
+            if (local_3->unknown24 >= 1)
+                local_1 = local_9 == 0;
+        }
+    }
+    return local_1;
 }

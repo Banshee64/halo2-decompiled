@@ -37,11 +37,6 @@ bool function_29d7b0(s_pathfinding_data *pathfinding, s_type_d4fbfa *definition,
 /* command script procs of 0x258b60 (unknown_257d00.cpp) */
 struct s_cs_state;
 
-// @stub 0x1ffa30
-bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_1, long arg_2, bool arg_3)
-{
-	return false;
-}
 
 struct s_2640c0;
 struct s_2641c0;
