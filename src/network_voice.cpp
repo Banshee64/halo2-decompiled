@@ -2316,6 +2316,13 @@ void __stdcall function_57080(s_voice_player_values *values)
 	}
 }
 
+static __forceinline bool function_56790(dword arg_0, long arg_1)
+{
+	dword local_0 = arg_0;
+	dword local_1 = 1 << arg_1;
+	return (bool)(local_0 & local_1);
+}
+
 // @retail 0x56790
 void function_56790(long *capacity, dword *remaining, dword allowed, word *selected,
 	bool preserve_one, long excluded, bool *blocked)
@@ -2323,7 +2330,7 @@ void function_56790(long *capacity, dword *remaining, dword allowed, word *selec
 	for (long i = 0; i < 16; i++)
 	{
 		dword bit = 1 << i;
-		if ((bit & *remaining) && (allowed & bit) && *capacity > 0 &&
+		if (function_56790(*remaining, i) && (allowed & bit) && *capacity > 0 &&
 			(!preserve_one || excluded != i))
 		{
 			if (*capacity == 1 && preserve_one)
