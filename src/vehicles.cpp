@@ -754,7 +754,7 @@ bool function_ef870(long vehicle_index)
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 
-	if (((vehicle->flags348 >> 6) & 1) && vehicle->unknown34d &&
+	if (TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit6) && vehicle->unknown34d &&
 		(long)vehicle->unknown34e < vehicle_round((real)g_510c54->field_2_3 * 2.0f) &&
 		0.9f >= vehicle->up.k)
 	{
@@ -2302,7 +2302,7 @@ void __stdcall function_f2360(long vehicle_index, s_vehicle_physics_state *state
 	vector3f angular_velocity;
 	vector3f const *facing = &vehicle->local_velocity;
 
-	if (TEST_FIELD_BIT((vehicle->flags348 >> 4) & 1))
+	if (TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit4))
 	{
 		boost = function_d1210(vehicle_index) * (*(real *)(definition + 0x1d0) - 1.0f) + 1.0f;
 	}
@@ -2312,7 +2312,7 @@ void __stdcall function_f2360(long vehicle_index, s_vehicle_physics_state *state
 	}
 	maximum_speed = *(real *)(definition + 0x1f4) * boost;
 	function_ba1d0(vehicle_index, &linear_velocity, &angular_velocity);
-	if (TEST_FIELD_BIT((vehicle->flags_134 >> 23) & 1))
+	if (TEST_FIELD_BIT(VEHICLE_DWORD_BITS(vehicle->flags_134)->bit23))
 	{
 		vehicle->unknown1b8 = -1.0f;
 	}
@@ -4124,7 +4124,7 @@ void __stdcall function_f4800(long vehicle_index, s_vehicle_physics_state *state
 	real climb = PIN((real)fabs(pitch), 0.0f, 0.58904862f) * dive * g_4678d8 * 1.6976527f + 1.0f;
 	real boost = 1.0f;
 
-	if (TEST_FIELD_BIT((vehicle->flags348 >> 4) & 1))
+	if (TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit4))
 	{
 		boost = function_d1210(vehicle_index) * (*(real *)(definition + 0x1d0) - 1.0f) + 1.0f;
 	}
@@ -4140,8 +4140,8 @@ void __stdcall function_f4800(long vehicle_index, s_vehicle_physics_state *state
 	target.i = vehicle->forward.i * speed;
 	target.j = vehicle->forward.j * speed;
 	target.k = vehicle->forward.k * speed;
-	boosting = TEST_FIELD_BIT((vehicle->flags348 >> 4) & 1);
-	if (boosting && !flipping && !(TEST_FIELD_BIT((vehicle->flags348 >> 3) & 1)))
+	boosting = TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit4);
+	if (boosting && !flipping && !(TEST_FIELD_BIT(VEHICLE_WORD_BITS(vehicle->flags348)->bit3)))
 	{
 		throttle = 1.0f;
 	}
@@ -4297,7 +4297,7 @@ void __stdcall function_f4800(long vehicle_index, s_vehicle_physics_state *state
 			desired.up = *g_4687a8;
 		}
 	}
-	if (TEST_FIELD_BIT((vehicle->flags_134 >> 1) & 1))
+	if (TEST_FIELD_BIT(VEHICLE_DWORD_BITS(vehicle->flags_134)->bit1))
 	{
 		s_vehicle *driver = VEHICLE_GET(vehicle_index);
 
