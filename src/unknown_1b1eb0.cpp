@@ -21,6 +21,18 @@ struct s_slot_05
 
 bool __stdcall function_1b1f70(long actor_index, s_slot *slot);
 
+PRIVATE __forceinline void function_1b1eb2(long arg_0)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	*(bool volatile *)&local_0->unknown50c = false;
+	*(long volatile *)&local_0->unknown5ac = NONE;
+	*(short volatile *)&local_0->unknown5b0 = NONE;
+	*(short volatile *)&local_0->unknown5b4 = 0;
+	*(short volatile *)&local_0->unknown5b6 = 0;
+	*(short volatile *)&local_0->unknown4ac = 0;
+	*(short volatile *)&local_0->unknown504 = 0;
+}
+
 // @retail 0x1b1eb0
 bool __stdcall function_1b1eb0(long actor_index, s_slot *slot)
 {
@@ -31,7 +43,7 @@ bool __stdcall function_1b1eb0(long actor_index, s_slot *slot)
 		state->unknown10 = 3;
 	state->reference = actor->unknown418;
 	actor->unknown3f2 = false;
-	actor_reset_state(actor_index);
+	function_1b1eb2(actor_index);
 	return true;
 }
 
