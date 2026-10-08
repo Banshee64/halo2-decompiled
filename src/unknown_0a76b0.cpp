@@ -961,7 +961,7 @@ PRIVATE inline s_unit_action_grenade *unit_action_grenade_get(s_unit_action_unit
 }
 
 /* a unit's vehicle seat definition */
-PRIVATE inline byte *unit_action_seat_get(s_unit_action_unit *unit)
+PRIVATE __forceinline byte *unit_action_seat_get(s_unit_action_unit *unit)
 {
 	byte *parent_definition = g_4e3b44[UNIT_ACTION_UNIT_GET(unit->parent_object_index)->definition_index & 0xffff].bytes;
 
@@ -3115,7 +3115,7 @@ bool __stdcall function_ebaa0(long unit_index, s_unit_request *request)
 }
 
 /* a unit's facing in its seat (or its own when it has no parent) */
-PRIVATE inline void unit_action_seat_facing_get(s_unit_action_unit *unit, vector3f *facing)
+PRIVATE __forceinline void unit_action_seat_facing_get(s_unit_action_unit *unit, vector3f *facing)
 {
 	if (unit->parent_object_index == NONE)
 	{
