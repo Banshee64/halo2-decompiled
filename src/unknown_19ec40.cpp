@@ -32,13 +32,16 @@ long function_19ec40(
 	{
 		do
 		{
+			short key = *(short const volatile *)&key_a;
 			s_marker_entry *entry = &globals->marker_entries[i];
 
-			if (key_a == -1 || key_a == entry->key_a)
+			if (key == -1 || key == entry->key_a)
 			{
-				if (key_b == -1 || key_b == entry->key_b)
+				key = key_b;
+				if (key == -1 || key == entry->key_b)
 				{
-					if (key_c == -1 || key_c == entry->key_c)
+					key = key_c;
+					if (key == -1 || key == entry->key_c)
 					{
 						real distance_squared = 0.0f;
 

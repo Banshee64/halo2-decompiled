@@ -122,14 +122,23 @@ dword function_191660(long string_handle, long index)
 
 	if (index == NONE)
 	{
-		if (string_handle == 0x11000138)
+		if (string_handle != 0x11000138)
+		{
+			if (string_handle != 0x17000137)
+			{
+				if (string_handle != 0x18000136)
+				{
+					if (string_handle == 0x1300012d)
+						result = 2;
+				}
+				else
+					result = 0x30;
+			}
+			else
+				result = 0xc0;
+		}
+		else
 			result = 0xf0;
-		else if (string_handle == 0x17000137)
-			result = 0xc0;
-		else if (string_handle == 0x18000136)
-			result = 0x30;
-		else if (string_handle == 0x1300012d)
-			result = 2;
 	}
 	else if (string_handle == 0x11000138)
 	{
