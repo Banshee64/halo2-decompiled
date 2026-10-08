@@ -2,6 +2,9 @@
 /* UNKNOWN_1E3920.CPP: the radius within which an actor counts as arrived */
 
 #include "unknown_11c920.h"
+#include "unknown_1fb7e0.h"
+#include "props.h"
+#include "ai_actor.h"
 #include "globals.h"
 #include "slot_handler.h"
 #include "unknown_1e3920.h"
@@ -692,4 +695,136 @@ void function_1e3b60(long actor_index)
 	}
 	*(real *)(actor_bytes + 0x2cc) = function_267370(actor->unit_index);
 	actor_bytes[0x2e0] = 0;
+}
+
+struct s_actor_child_limit_view
+{
+	byte field_0[0xbc];
+	dword : 3;
+	dword limited : 1;
+	dword : 28;
+	byte field_c0[0xe6 - 0xc0];
+	short limit;
+};
+
+long function_25d810(long object_index, long actor_index, bool create);
+long function_25c3a0(long actor_index, long prop_ref_index, short mode);
+void function_264210(long actor_index, long prop_ref_index);
+void function_25b9f0(long actor_index, long prop_ref_index, vector3f const *direction);
+short ai_player_index_get(long player_index);
+void function_10e9f0(long object_index, short channel, real value, real time);
+bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e);
+
+// @retail 0x1e2570
+void __stdcall function_1e2570(long actor_index, word type, long object_index, real amount, long direction)
+{
+	long prop_ref_index = NONE;
+	if (object_index != NONE)
+	{
+		prop_ref_index = function_25d810(object_index, actor_index, true);
+		if (prop_ref_index != NONE)
+		{
+			s_prop_datum *reference = prop_ref_get(prop_ref_index);
+			if (reference->tracking_index == NONE && g_470f10[reference->type].unknown8 == 2)
+				function_25c3a0(actor_index, prop_ref_index, 3);
+			function_264210(actor_index, prop_ref_index);
+			s_type_f95cd3 *view = NULL;
+			if (reference->tracking_index != NONE)
+			{
+				s_type_e5ff81 *tracking = tracking_get(reference->tracking_index);
+				if (tracking)
+					view = &tracking->view;
+			}
+			s_type_76cf92 *prop = prop_get(reference->prop_index);
+			if (view)
+			{
+				if (prop->unknown25)
+					view->unknown58 = amount * 0.2f + view->unknown58;
+				else
+					view->unknown58 = amount + view->unknown58;
+				*(short *)((byte *)view + 0x28) = 0;
+				view->unknown2a = true;
+			}
+			*(real *)((byte *)prop + 0x2c) += amount > 1.0f ? 1.0f : amount;
+			if (reference->state < 1)
+				prop_ref_index = NONE;
+			if (prop->unknown25 && !prop->unknown23)
+			{
+				s_actor_view *actor = actor_get(actor_index);
+				if (actor->unknown26c != NONE)
+				{
+					long player_index = *(long *)((byte *)ai_object_get(object_index) + 0x13c);
+					if (player_index != NONE)
+					{
+						short player = ai_player_index_get(player_index);
+						if (player == actor->unknown31c || player == NONE)
+						{
+							actor->unknown31c = player;
+							real scaled_ticks = (real)g_510c54->field_2_3 * 0.6f;
+							long rounded_ticks;
+							__asm
+							{
+								fld scaled_ticks
+								fistp rounded_ticks
+							}
+							actor->unknown31e += (short)rounded_ticks;
+						}
+					}
+				}
+			}
+		}
+		function_25b9f0(actor_index, prop_ref_index, (vector3f const *)direction);
+	}
+	byte *actor = (byte *)actor_get(actor_index);
+	if (amount > 0.0f)
+	{
+		long time = g_510c54->game_time;
+		if (*(long *)(actor + 0x308) == NONE || time - *(long *)(actor + 0x308) > g_510c54->field_2_3)
+		{
+			if (*(long *)(actor + 0x18) != NONE)
+				function_20ba60(3, *(long *)(actor + 0x18), object_index, NONE, type, NULL);
+			*(long *)(actor + 0x308) = time;
+			*(real *)(actor + 0x318) = amount + *(real *)(actor + 0x318);
+		}
+		else
+			*(real *)(actor + 0x318) = amount + *(real *)(actor + 0x318);
+		if (*(long *)(actor + 0x18) != NONE)
+		{
+			actor = (byte *)actor_get(actor_index);
+			short ticks = g_510c54->field_2_3 * 2;
+			function_10e9f0(*(long *)(actor + 0x18), 12, 1.0f, 0.5f);
+			*(short *)(actor + 0x6ce) = ticks;
+		}
+	}
+	if (type == 11)
+	{
+		long unit_index = actor_get(actor_index)->unknown018;
+		if (unit_index != NONE)
+		{
+			long child_index = *(long *)((byte *)ai_object_get(unit_index) + 0x10);
+			s_actor_child_limit_view *first_definition = NULL;
+			short count = 0;
+			short limit = 50;
+			while (child_index != NONE)
+			{
+				byte *child = (byte *)ai_object_get(child_index);
+				if (child[0xaa] == 5)
+				{
+					s_actor_child_limit_view *definition = (s_actor_child_limit_view *)g_4e3b44[*(long *)child & 0xffff].bytes;
+					if (TEST_FIELD_BIT(definition->limited))
+					{
+						if (!first_definition)
+						{
+							limit = definition->limit;
+							first_definition = definition;
+						}
+						count++;
+					}
+				}
+				child_index = *(long *)(child + 0xc);
+			}
+			if (count >= limit)
+				function_1a8220(actor_index, 12, 1, 3, 1, NONE, 0);
+		}
+	}
 }
