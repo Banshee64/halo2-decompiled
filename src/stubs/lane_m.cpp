@@ -33,12 +33,6 @@ struct s_slot;
 
 
 
-// @stub 0x216240
-bool function_216240(long file_index, void *buffer, long size, wchar_t *name)
-{
-	return false;
-}
-
 #include "slot_handler.h"
 #include "unknown_0259a0.h"
 struct s_follow_search_state;
