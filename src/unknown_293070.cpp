@@ -219,22 +219,34 @@ s_flock_object *function_2955b0(s_flock_member_iterator *iterator)
 
 void __stdcall function_b8540(long object_index);
 
+PRIVATE __forceinline s_flock_object *function_2937a1(s_flock_member_iterator *arg_0)
+{
+	long local_0 = arg_0->next_object_index;
+	s_flock_object *local_1 = NULL;
+	arg_0->object_index = local_0;
+	if (local_0 != NONE)
+	{
+		local_1 = ((s_flock_object_header *)g_4e0300->data)[local_0 & 0xffff].object;
+		s_flock_member *local_2 = flock_object_get_member(local_1);
+		arg_0->next_object_index = local_2 ? local_2->next_object_index : NONE;
+	}
+	return local_1;
+}
+
 /* deletes a flock and every object of it */
 // @retail 0x2937a0
 void function_2937a0(long flock_index)
 {
-	long next_object_index = ((s_flock *)g_51ecb4->data)[flock_index & 0xffff].unknown04;
-	while (next_object_index != NONE)
+	s_flock_member_iterator local_0;
+	local_0.next_object_index = ((s_flock *)g_51ecb4->data)[flock_index & 0xffff].unknown04;
+	local_0.object_index = NONE;
+	s_flock_object *local_1;
+	while ((local_1 = function_2937a1(&local_0)) != NULL)
 	{
-		long object_index = next_object_index;
-		s_flock_object *object = ((s_flock_object_header *)g_4e0300->data)[object_index & 0xffff].object;
-		s_flock_member *member = flock_object_get_member(object);
-		next_object_index = member ? member->next_object_index : NONE;
-
-		member = flock_object_get_member(object);
-		if (member)
-			member->flock_index = NONE;
-		function_b8540(object_index);
+		s_flock_member *local_2 = flock_object_get_member(local_1);
+		if (local_2)
+			local_2->flock_index = NONE;
+		function_b8540(local_0.object_index);
 	}
 	record_pool_release(g_51ecb4, flock_index);
 }
