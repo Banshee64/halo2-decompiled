@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7041 functions match
+
+```
+matched 7041 of 11318 game functions (786455 of 2784283 bytes, 28.25%)
+```
+
+7041 new matches, none lost:
+- Merge batch r39: near-match polish round 3 (+1, 0x86b40).
+
 ## 2026-10-08: 7040 functions match
 
 ```
