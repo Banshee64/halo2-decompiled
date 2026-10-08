@@ -773,28 +773,28 @@ bool function_86800(dword capacity, c_simulation_view *view, dword source_size, 
  bool result = function_1995a0(game_state_globals.base_address, source_size, destination, &compressed_size, capacity, 9);
  if (result)
  {
-  long remaining = compressed_size;
   long offset = 0;
-  s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
   for (;;)
   {
    struct { short kind; short size; long offset; } header;
    memset(&header, 0, sizeof(header));
    header.kind = 1;
-   if (remaining > 0)
+   if (compressed_size > 0)
    {
-    header.size = (short)(remaining > 1024 ? 1024 : remaining);
+    header.size = (short)(compressed_size > 1024 ? 1024 : compressed_size);
+    s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
     header.offset = offset;
     if (view_buffer_write(buffer, sizeof(header), &header) == NONE ||
      view_buffer_write(buffer, header.size, destination + offset) == NONE)
      return false;
+    compressed_size -= header.size;
     offset += header.size;
-    remaining -= header.size;
     view->unknownac++;
    }
    else
    {
     header.size = 0;
+    s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
     header.offset = offset;
     if (view_buffer_write(buffer, sizeof(header), &header) == NONE)
      return false;
@@ -901,7 +901,9 @@ bool function_869a0(c_simulation_view *view, void *block)
 {
  byte encoded[0xffff];
  long encoded_size;
- volatile bool result = false;
+ bool result = false;
+ volatile bool local_0 = result;
+ c_simulation_view *const *local_1 = &view;
  if (function_685f0(block, &encoded_size, encoded, sizeof(encoded)))
  {
   struct { short kind; short size; long sequence; } header;
@@ -914,8 +916,9 @@ bool function_869a0(c_simulation_view *view, void *block)
    buffer->write(encoded_size, encoded) != NONE)
   {
    view->unknownac++;
-   return true;
+   result = true;
   }
+  else return local_0;
  }
  return result;
 }

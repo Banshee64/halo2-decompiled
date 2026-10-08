@@ -252,7 +252,8 @@ void session_state_joining_initialize(c_session_state_joining *state_, s_session
 void session_state_joining_check_target(c_session_state_joining *state_)
 {
 	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
-	long session_state = state->owner->session_c->state;
+	c_class_58d20 *local_0 = state->owner->session_c;
+	long session_state = *(volatile long *)&local_0->state;
 	if (session_state != 1)
 	{
 		if (session_state != 0)
