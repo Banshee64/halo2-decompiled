@@ -3637,7 +3637,6 @@ bool __stdcall function_f8070(long bit, word const *flags);
 bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *active)
 {
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
-	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 	bool forced = false;
 	real result = 0.0f;
 
@@ -3672,20 +3671,20 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 		goto done;
 	case 0x900000e:
 		result = function_f78b0((real)fabs(vehicle->steering_angle),
-			(real)fabs(*(real *)(definition + 0x204) * 0.017453292f));
+			(real)fabs(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x204) * 0.017453292f));
 		break;
 	case 0xa00000f:
 		result = function_f78b0((real)fabs(vehicle->steering_angle),
-			(real)fabs(*(real *)(definition + 0x208) * 0.017453292f));
+			(real)fabs(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x208) * 0.017453292f));
 		break;
 	case 0xa00001a:
-		result = function_f78b0((real)fabs(vehicle->turn), (real)fabs(*(real *)(definition + 0x22c)));
+		result = function_f78b0((real)fabs(vehicle->turn), (real)fabs(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x22c)));
 		break;
 	case 0xa000598:
-		result = function_f78b0(vehicle->unknown378, VEHICLE_MAX_ANGULAR_VELOCITY(definition));
+		result = function_f78b0(vehicle->unknown378, VEHICLE_MAX_ANGULAR_VELOCITY(VEHICLE_DEFINITION_GET(vehicle)));
 		break;
 	case 0xb00001b:
-		result = function_f78b0((real)fabs(vehicle->turn), (real)fabs(*(real *)(definition + 0x230)));
+		result = function_f78b0((real)fabs(vehicle->turn), (real)fabs(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x230)));
 		break;
 	case 0xb000587:
 		result = function_f78b0((real)fabs(vehicle->linear_velocity.k * vehicle->up.k +
@@ -3698,18 +3697,18 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 			goto done;
 		}
 		result = function_f78b0((real)fabs(vehicle->turn),
-			vehicle_larger(*(real *)(definition + 0x22c), *(real *)(definition + 0x230)));
-		result = (result + function_f78b0(vehicle->unknown378, VEHICLE_MAX_ANGULAR_VELOCITY(definition))) * 0.5f;
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x22c), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x230)));
+		result = (result + function_f78b0(vehicle->unknown378, VEHICLE_MAX_ANGULAR_VELOCITY(VEHICLE_DEFINITION_GET(vehicle)))) * 0.5f;
 		break;
 	case 0xc000582:
 		result = function_f78b0(magnitude3d(&vehicle->linear_velocity),
-			vehicle_larger(*(real *)(definition + 0x1f4), *(real *)(definition + 0x1f8)));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f4), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f8)));
 		break;
 	case 0xb000597:
 	case 0xc0005a5:
-		if (*(short *)(definition + 0x1f0) == 1 || *(short *)(definition + 0x1f0) == 0)
+		if (*(short *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f0) == 1 || *(short *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f0) == 0)
 		{
-			result = function_f78b0(vehicle->unknown378, VEHICLE_MAX_ANGULAR_VELOCITY(definition));
+			result = function_f78b0(vehicle->unknown378, VEHICLE_MAX_ANGULAR_VELOCITY(VEHICLE_DEFINITION_GET(vehicle)));
 		}
 		else
 		{
@@ -3736,7 +3735,7 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 		break;
 	case 0xd00057f:
 		result = function_f78b0((real)fabs(vehicle->steering_angle),
-			vehicle_larger(*(real *)(definition + 0x204) * 0.017453292f, *(real *)(definition + 0x208) * 0.017453292f));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x204) * 0.017453292f, *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x208) * 0.017453292f));
 		break;
 	case 0xd000586:
 	{
@@ -3754,12 +3753,12 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 		break;
 	case 0xe00057a:
 		result = function_f78b0((real)fabs(vehicle->speed),
-			vehicle_larger(*(real *)(definition + 0x1f4), *(real *)(definition + 0x1f8)));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f4), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f8)));
 		break;
 	case 0xe00057c:
 	{
 		real reverse = vehicle->speed > 0.0f ? 0.0f : vehicle->speed;
-		real maximum = (real)fabs(*(real *)(definition + 0x1f8));
+		real maximum = (real)fabs(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f8));
 
 		if ((real)fabs(maximum) > 0.001f)
 		{
@@ -3769,7 +3768,7 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 	}
 	case 0xe00057d:
 		result = function_f78b0((real)fabs(vehicle->turn),
-			vehicle_larger(*(real *)(definition + 0x22c), *(real *)(definition + 0x230)));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x22c), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x230)));
 		break;
 	case 0xe000583:
 		if (!(vehicle->object_flags & 0xc))
@@ -3777,7 +3776,7 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 			goto done;
 		}
 		result = function_f78b0(magnitude3d(&vehicle->linear_velocity),
-			vehicle_larger(*(real *)(definition + 0x1f4), *(real *)(definition + 0x1f8)));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f4), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f8)));
 		break;
 	case 0xf000584:
 		if (!(vehicle->unknown34f > 0))
@@ -3785,12 +3784,12 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 			goto done;
 		}
 		result = function_f78b0(magnitude3d(&vehicle->linear_velocity),
-			vehicle_larger(*(real *)(definition + 0x1f4), *(real *)(definition + 0x1f8)));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f4), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f8)));
 		break;
 	case 0x10000585:
 		result = function_f78b0((real)fabs(vehicle->forward.k * vehicle->linear_velocity.k +
 			vehicle->forward.j * vehicle->linear_velocity.j + vehicle->linear_velocity.i * vehicle->forward.i),
-			vehicle_larger(*(real *)(definition + 0x1f4), *(real *)(definition + 0x1f8)));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f4), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f8)));
 		break;
 	case 0x10000594:
 	{
@@ -3805,21 +3804,21 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 	case 0x1300057e:
 	{
 		real driven = function_f78b0((real)fabs(vehicle->speed),
-			vehicle_larger(*(real *)(definition + 0x1f4), *(real *)(definition + 0x1f8)));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f4), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x1f8)));
 		real turning = function_f78b0((real)fabs(vehicle->turn),
-			vehicle_larger(*(real *)(definition + 0x22c), *(real *)(definition + 0x230)));
+			vehicle_larger(*(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x22c), *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x230)));
 
 		result = driven > turning ? driven : turning;
 		break;
 	}
 	case 0x13000588:
-		result = function_f78b0(vehicle->unknown368, *(real *)(definition + 0x20c));
+		result = function_f78b0(vehicle->unknown368, *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x20c));
 		break;
 	case 0x1300058a:
 		result = function_f78b0((real)fabs(vehicle->speed - vehicle->steering_angle), function_f78e0(vehicle_index, 2));
 		break;
 	case 0x14000589:
-		result = function_f78b0(vehicle->unknown36c, *(real *)(definition + 0x20c));
+		result = function_f78b0(vehicle->unknown36c, *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x20c));
 		break;
 	case 0x1400058b:
 		result = function_f78b0((real)fabs(vehicle->steering_angle + vehicle->speed), function_f78e0(vehicle_index, 2));
@@ -3828,7 +3827,7 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 	case 0x1800058c:
 	case 0x1800058f:
 	case 0x1900058d:
-		result = function_f78b0(vehicle->unknown360, *(real *)(definition + 0x20c));
+		result = function_f78b0(vehicle->unknown360, *(real *)(VEHICLE_DEFINITION_GET(vehicle) + 0x20c));
 		break;
 	case 0x14000599:
 		result = function_f78b0(magnitude3d(&vehicle->linear_velocity), function_f78e0(vehicle_index, 0));
