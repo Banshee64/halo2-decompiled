@@ -46,19 +46,31 @@ wchar_t const *loading_text_get(void)
 // @retail 0x223720
 wchar_t *ustrnzcatf(
 	wchar_t *buffer,
-	long size,
 	wchar_t const *format,
 	...)
 {
-	long length = ustrnlen(buffer, size - 1);
-	long remaining = size - length;
+	wchar_t *local_0 = buffer;
+	unsigned long length = 0;
+	while (length < 62)
+	{
+		if (!buffer[length])
+			break;
+		if (!buffer[length + 1])
+		{
+			++length;
+			break;
+		}
+		length += 2;
+	}
+	long remaining = 63 - length;
+	wchar_t *local_1 = buffer + length;
 	va_list arguments;
 
 	va_start(arguments, format);
-	_vsnwprintf(buffer + length, remaining - 1, format, arguments);
-	buffer[length + remaining - 1] = 0;
+	_vsnwprintf(local_1, remaining - 1, format, arguments);
+	local_1[remaining - 1] = 0;
 	va_end(arguments);
-	return buffer;
+	return local_0;
 }
 
 #include "globals.h"
