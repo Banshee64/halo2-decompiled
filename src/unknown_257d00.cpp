@@ -1320,7 +1320,7 @@ bool function_1f86f0(long index);
 bool function_1f8720(long index);
 long function_e70e0(long unit_index);
 bool recorded_animation_playing(long object_index);
-bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_1, long arg_2, bool arg_3);
+bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_4, long arg_1, long arg_2, bool arg_3);
 struct s_slot_82;
 void function_1c1080(s_slot_82 *state, long reference);
 extern point2f *g_468778;
@@ -2010,7 +2010,7 @@ short __stdcall function_259430(long arg_0, long arg_1, s_cs_state *arg_2, long 
 			if (local_1->unknown99)
 				local_2->field_0 = function_e70e0(arg_1) ? g_510c54->field_2_3 : 0;
 			else if (!function_110ab0(arg_1) &&
-				function_1ffa30((s_type_c3b527 *)((byte *)local_1 + 0x9c), NONE, NONE, false))
+				function_1ffa30((s_type_c3b527 *)((byte *)local_1 + 0x9c), arg_0, NONE, NONE, false))
 				local_1->unknown99 = true;
 			local_3 = local_2->field_0 == 0;
 		}

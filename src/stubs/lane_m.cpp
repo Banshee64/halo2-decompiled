@@ -27,12 +27,6 @@ struct s_slot;
 #include "unknown_0259a0.h"
 struct s_follow_search_state;
 
-// @stub 0x1b0400
-bool function_1b0400(long arg_0, s_follow_search_state *arg_1)
-{
-    return false;
-}
-
 // @stub 0x2613d0
 bool function_2613d0(long arg_0, s_reference arg_1, s_prop_search *arg_2)
 {

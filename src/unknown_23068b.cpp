@@ -788,7 +788,7 @@ c_profile_edit_menu_screen::c_profile_edit_menu_screen(long a, long b, word user
 	value9b4 = false;
 }
 
-void function_19060a(long profile_index, long controller_index);
+void function_19060a(long controller_index, long profile_index);
 void function_14800c(long channel, long index);
 
 /* leaving the screen gives a new profile to the controller that made it and
@@ -812,7 +812,7 @@ bool c_profile_edit_menu_screen::v10(s_widget_event *event)
 				}
 				else
 				{
-					function_19060a(g_54e5d0.profile_index, controller);
+					function_19060a(controller, g_54e5d0.profile_index);
 				}
 			}
 			profile_edit_end();

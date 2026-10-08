@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7066 functions match
+
+```
+matched 7066 of 11318 game functions (789417 of 2784283 bytes, 28.35%)
+```
+
+7066 new matches, none lost:
+- Merge batch r46: the second machine's first rounds of lanes D (#225, +3) and B (#226, +1).
+
+## 2026-10-08: 7062 functions match
+
+```
+matched 7062 of 11318 game functions (788532 of 2784283 bytes, 28.32%)
+```
+
+7062 new matches, none lost:
+- Merge batch r44: blocker lane BX1 (+1, 0xd47d0).
+
+## 2026-10-08: 7061 functions match
+
+```
+matched 7061 of 11318 game functions (788448 of 2784283 bytes, 28.32%)
+```
+
+7061 new matches, none lost:
+- Merge batch r45: blocker lane BX2 (+1, 0x2b7abe). The full check also showed 0x12ba90 had stopped matching after #222's new 0x12b450 body; 0x12b450 is back to its stub, which restores 0x12ba90 and matches 0x12b690.
+
 ## 2026-10-08: 7059 functions match
 
 ```

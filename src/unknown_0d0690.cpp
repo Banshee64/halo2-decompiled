@@ -1216,3 +1216,426 @@ void function_d4080(s_effect_color_query const *query, long type, s_lighting_rec
 	lighting_pin_color(&record->color2, &lower, &upper, &record->color2);
 	lighting_pin_color(&record->color0, &lower, &upper, &record->color0);
 }
+
+#include "unknown_03bcb0.h"
+
+PRIVATE __forceinline D3DTexture *surface_bitmap_texture(s_bitmap_data *bitmap, dword flags, real bias)
+{
+    s_bitmap_predict_view *view = (s_bitmap_predict_view *)bitmap;
+    long frame = g_4e6488;
+    D3DTexture *texture;
+    if (view->last_frame > frame)
+        texture = view->texture;
+    else
+        texture = NULL;
+    if (!texture)
+    {
+        _mm_prefetch((char const *)&view->flags, _MM_HINT_T0);
+        _mm_prefetch((char const *)&view->data_offset, _MM_HINT_T0);
+        _mm_prefetch((char const *)&view->data_offset1, _MM_HINT_T0);
+        _mm_prefetch((char const *)&view->data_offset2, _MM_HINT_T0);
+        _mm_prefetch((char const *)view->texture, _MM_HINT_T0);
+        texture = texture_cache_bitmap_get_texture(bitmap, flags, bias);
+        if (!texture)
+            texture = function_12ce00(bitmap, flags, bias);
+    }
+    return texture;
+}
+
+// @retail 0xd15e0
+D3DTexture *function_d15e0(s_bitmap_data *bitmap, real bias)
+{
+    return surface_bitmap_texture(bitmap, 0, bias);
+}
+
+// @retail 0xd1630
+D3DTexture *function_d1630(s_bitmap_data *bitmap)
+{
+    return surface_bitmap_texture(bitmap, 6, 0.0f);
+}
+
+// @retail 0xd1680
+D3DTexture *function_d1680(s_bitmap_data *bitmap)
+{
+    return surface_bitmap_texture(bitmap, 4, 0.0f);
+}
+
+struct s_type_7ba8e9;
+struct s_bitmap_view;
+struct D3DSurface;
+s_type_7ba8e9 *function_137550(long group_index, short bitmap_index);
+D3DTexture *function_12360(s_bitmap_view *bitmap, real bias);
+D3DTexture *function_1cfb0(s_bitmap_view *bitmap);
+bool __stdcall function_1d2f0(D3DSurface *surface, byte *bitmap);
+dword function_1362b0(s_type_7ba8e9 const *bitmap, point2f const *uv, real detail);
+dword function_015cd0(long index, dword entry);
+
+// @retail 0xd2f90
+long function_d2f90(long flags, short bitmap_index, long palette_index, real u, real v, color3f *out)
+{
+    long result = 1;
+    byte temporary[0x74];
+    if (g_4e0344 && g_4e0344->count > 0)
+    {
+        long tag = *(long *)((byte *)g_4e0344->locations + 0x1c);
+        if (tag != NONE)
+        {
+            s_bitmap_data *bitmap = (s_bitmap_data *)function_137550(tag, bitmap_index);
+            if ((flags & 2) && bitmap && !function_d1680(bitmap))
+                function_1cfb0((s_bitmap_view *)bitmap);
+            if (bitmap)
+            {
+                if (!function_d15e0(bitmap, 0.0f))
+                {
+                    if (*(void **)((byte *)bitmap + 0x54))
+                        result = 0;
+                    else
+                        function_12360((s_bitmap_view *)bitmap, 0.0f);
+                }
+                else if (function_d1680(bitmap))
+                    result = 0;
+                else
+                {
+                    function_d1630(bitmap);
+                    if (function_1d2f0((D3DSurface *)function_d15e0(bitmap, 0.0f), temporary))
+                    {
+                        result = 3;
+                        bitmap = (s_bitmap_data *)temporary;
+                    }
+                    else
+                        bitmap = NULL;
+                }
+                if (result != 1 && bitmap)
+                {
+                    point2f uv = { u, v };
+                    dword pixel = function_1362b0((s_type_7ba8e9 const *)bitmap, &uv, 1.0f);
+                    if (*(short *)((byte *)bitmap + 0xc) == 0x12)
+                        pixel = function_015cd0(palette_index, pixel);
+                    unpack_color3f(pixel, out);
+                    return result;
+                }
+            }
+            out->blue = 0.0f;
+            out->green = 0.0f;
+            out->red = 0.0f;
+        }
+    }
+    return result;
+}
+
+// @retail 0xd30d0
+bool function_d30d0(long tag, long flags, real u, real v, color3f *out)
+{
+    bool result = true;
+    byte temporary[0x74];
+    s_bitmap_data *bitmap = NULL;
+    if (tag != NONE)
+    {
+        byte *definition = g_4e3b44[tag & 0xffff].bytes;
+        if (definition && *(long *)(definition + 0x44) > 0)
+            bitmap = *(s_bitmap_data **)(definition + 0x48);
+    }
+    if ((flags & 2) && bitmap && !function_d1680(bitmap))
+        function_1cfb0((s_bitmap_view *)bitmap);
+    if (bitmap)
+    {
+        if (!function_d15e0(bitmap, 0.0f))
+        {
+            if (*(void **)((byte *)bitmap + 0x54))
+                goto sample;
+            function_12360((s_bitmap_view *)bitmap, 0.0f);
+        }
+        else if (function_1d2f0((D3DSurface *)function_d15e0(bitmap, 0.0f), temporary))
+        {
+            bitmap = (s_bitmap_data *)temporary;
+            goto sample;
+        }
+    }
+    out->blue = 0.0f;
+    out->green = 0.0f;
+    out->red = 0.0f;
+    return false;
+sample:
+    point2f uv = { u, v };
+    unpack_color3f(function_1362b0((s_type_7ba8e9 const *)bitmap, &uv, 1.0f), out);
+    return result;
+}
+
+struct s_33a0b_default
+{
+    dword unknown0;
+    vector3f vector;
+};
+extern s_33a0b_default *g_4686d4;
+extern color3f *g_468714;
+
+// @retail 0xd16d0
+bool function_d16d0(s_structure_lightmap_triangle const *triangle, color3f *out, real *weight)
+{
+    volatile bool result = false;
+    if (*(long const *)triangle->unknown08 == NONE)
+    {
+        s_mesh *mesh = NULL;
+        if (function_d1d70(triangle, &mesh))
+        {
+            byte *bsp = (byte *)g_4e0344->locations;
+            long index = triangle->instance_index;
+            byte *entry;
+            if (index != NONE)
+                entry = *(byte **)(bsp + 0x4c) + index * 4;
+            else
+                entry = *(byte **)(bsp + 0x2c) + triangle->cluster_index * 4;
+            short bitmap_index = *(short *)entry;
+            long palette_index = (signed char)entry[2];
+            real u = 0.0f, v = 0.0f;
+            color3f color = *(color3f *)g_468714;
+            function_d2bf0(mesh, triangle->lightmap_part_index, triangle->u, triangle->v, &u, &v);
+            if (function_d2f90(0, bitmap_index, palette_index, u, v, &color) == 0)
+            {
+                *weight = *(real const *)&triangle->unknown18;
+                color.red = pin_real(color.red, 0.0f, 1.0f);
+                color.green = pin_real(color.green, 0.0f, 1.0f);
+                color.blue = pin_real(color.blue, 0.0f, 1.0f);
+                *out = color;
+                return true;
+            }
+        }
+    }
+    return result;
+}
+
+struct s_cluster_query;
+struct s_structure_collision_result;
+bool structure_get_lightmap_triangle(s_structure_collision_result const *query, s_structure_lightmap_triangle *triangle);
+
+// @retail 0xd47d0
+bool __stdcall function_d47d0(s_cluster_query const *query, color3f *out)
+{
+    s_structure_lightmap_triangle triangle;
+    *out = *(color3f *)&g_4686d4->vector;
+    if (g_4e0344 && structure_get_lightmap_triangle((s_structure_collision_result const *)query, &triangle))
+    {
+        real weight;
+        function_d16d0(&triangle, out, &weight);
+    }
+    return false;
+}
+
+struct s_sample_point
+{
+    real index;
+    real weight[4];
+};
+struct s_24490_definition;
+struct s_13da30_owner;
+bool function_0241c0(long key, long block, vector3f *scale_out, long index,
+    s_sample_point const *a, s_sample_point const *b, s_sample_point const *c,
+    real u, real v, vector3f *result);
+void *function_24490(long key, s_24490_definition *definition, long entry_key);
+real magnitude3d(vector3f const *vector);
+bool function_13d9f0(long type);
+long function_13da30(s_13da30_owner const *owner);
+extern color3f const *g_468734;
+extern color3f *g_46872c;
+
+PRIVATE __forceinline void surface_pin_color(color3f *color)
+{
+    color->red = pin_real(color->red, 0.0f, 1.0f);
+    color->green = pin_real(color->green, 0.0f, 1.0f);
+    color->blue = pin_real(color->blue, 0.0f, 1.0f);
+}
+
+PRIVATE __forceinline void surface_sample_unpack(short const *source, s_sample_point *point)
+{
+    point->index = (real)source[0];
+    point->weight[0] = dequantize16(source[1]);
+    point->weight[1] = dequantize16(source[2]);
+    point->weight[2] = dequantize16(source[3]);
+    point->weight[3] = dequantize16(source[4]);
+}
+
+// @retail 0xd1e10
+long __stdcall function_d1e10(void const *surface, s_effect_color_query *query, long flags, long value)
+{
+    s_structure_lightmap_triangle const *triangle = (s_structure_lightmap_triangle const *)surface;
+    long result = 2;
+    if (*(long const *)triangle->unknown08 == NONE)
+    {
+        s_mesh *mesh = NULL;
+        if (function_d1d70(triangle, &mesh))
+        {
+            byte *part = *(byte **)((byte *)mesh + 4) + triangle->part_index * 0x48;
+            if (function_13d9f0(*(word *)part))
+            {
+                if ((byte)value)
+                {
+                    query->unknown00 = 0.0f;
+                    query->unknown04 = 0.0f;
+                    query->unknown08 = -1.0f;
+                    query->color_a = 0xff404040;
+                    query->color_b = 0xff404040;
+                }
+                return 0;
+            }
+            byte *bsp = (byte *)g_4e0344->locations;
+            long index = triangle->instance_index;
+            bool per_vertex = index != NONE &&
+                *(word *)(*(byte **)((byte *)g_4e0348 + 0x144) + index * 0x58 + 0x56) != 0;
+            real u = 0.0f, v = 0.0f;
+            real base_u = 0.0f, base_v = 0.0f;
+            vector3f normal = *g_4687b0;
+            color3f base = *g_468734;
+            color3f lightmap = *g_46872c;
+            long material = function_13da30((s_13da30_owner const *)(
+                *(byte **)((byte *)g_4e0348 + 0xa8) + *(short *)(part + 4) * 0x20));
+            if (!per_vertex)
+            {
+                byte *entry = index != NONE ? *(byte **)(bsp + 0x4c) + index * 4 :
+                    *(byte **)(bsp + 0x2c) + triangle->cluster_index * 4;
+                function_d2bf0(mesh, triangle->lightmap_part_index, triangle->u, triangle->v, &u, &v);
+                result = function_d2f90(flags, *(short *)entry, (signed char)entry[2], u, v, &lightmap);
+            }
+            else
+            {
+                s_vertex_block *block = function_d35a0(index, (s_surface_colour_group *)bsp, true, NONE);
+                if (block)
+                {
+                    function_d3630(block, triangle->lightmap_part_index, mesh, triangle->u, triangle->v, &lightmap);
+                    result = 0;
+                }
+                else
+                    result = 1;
+            }
+            function_d2dc0(mesh, triangle->lightmap_part_index, triangle->u, triangle->v, &base_u, &base_v);
+            if (!function_d30d0(material, flags, base_u, base_v, &base))
+                base.red = base.green = base.blue = 0.5f;
+            function_d31c0(mesh, triangle->u, triangle->v, triangle->lightmap_part_index, &normal);
+            surface_pin_color(&base);
+            surface_pin_color(&lightmap);
+            query->color_a = pack_color3f(&base);
+            query->color_b = pack_color3f(&lightmap);
+            *(vector3f *)query = normal;
+        }
+    }
+    else
+    {
+        byte const *record = (byte const *)surface;
+        long section_index = *(long const *)(record + 0x14);
+        if (section_index == NONE)
+            return result;
+        byte *definition = g_4e3b44[*(long const *)(record + 0xc) & 0xffff].bytes;
+        s_mesh *mesh = *(s_mesh **)(*(byte **)(definition + 0x28) + section_index * 0x5c + 0x34);
+        word const *vertices = (word const *)((byte *)mesh->triangles + triangle->part_offset * 2);
+        bool dynamic_valid = false;
+        color3f dynamic_color;
+        vector3f dynamic_normal;
+        if (*(long *)(definition + 0x74) > 0)
+        {
+            byte *block = (byte *)function_24490(*(long const *)(record + 8),
+                *(s_24490_definition **)(definition + 0x78), section_index);
+            if (block)
+            {
+                byte *data = *(byte **)(block + 0xc) + *(long *)(block + 4);
+                s_sample_point points[3];
+                s_sample_point const *a, *b, *c;
+                if (block[0] == 0x39)
+                {
+                    surface_sample_unpack((short *)(data + vertices[0] * 10), &points[0]);
+                    surface_sample_unpack((short *)(data + vertices[1] * 10), &points[1]);
+                    surface_sample_unpack((short *)(data + vertices[2] * 10), &points[2]);
+                    a = &points[0]; b = &points[1]; c = &points[2];
+                }
+                else
+                {
+                    a = (s_sample_point *)(data + vertices[0] * 20);
+                    b = (s_sample_point *)(data + vertices[1] * 20);
+                    c = (s_sample_point *)(data + vertices[2] * 20);
+                }
+                dynamic_valid = function_0241c0(*(long const *)(record + 8), *(long const *)triangle->unknown2c,
+                    &dynamic_normal, *(long const *)(record + 0x1c), a, b, c, triangle->u, triangle->v,
+                    (vector3f *)&dynamic_color);
+            }
+            result = dynamic_valid ? 0 : 1;
+        }
+        color3f base;
+        vector3f normal;
+        bool base_valid = function_d33a0(mesh, triangle->lightmap_part_index, triangle->u, triangle->v, &base)
+            && function_d31c0(mesh, triangle->u, triangle->v, triangle->lightmap_part_index, &normal);
+        if (dynamic_valid && base_valid)
+        {
+            real dynamic_weight = dynamic_color.blue * 0.11f + dynamic_color.green * 0.59f + dynamic_color.red * 0.3f;
+            real base_weight = base.blue * 0.11f + base.green * 0.59f + base.red * 0.3f;
+            if (dynamic_weight > 0.0001f && base_weight > 0.0001f)
+            {
+                color3f combined;
+                combined.red = base.red + dynamic_color.red;
+                combined.green = base.green + dynamic_color.green;
+                combined.blue = base.blue + dynamic_color.blue;
+                surface_pin_color(&combined);
+                query->color_b = pack_color3f(&combined);
+                real base_length = magnitude3d(&normal);
+                if (base_length > 0.0001f)
+                {
+                    real scale = 1.0f / base_length;
+                    normal.i *= scale; normal.j *= scale; normal.k *= scale;
+                }
+                real dynamic_length = magnitude3d(&dynamic_normal);
+                if (dynamic_length > 0.0001f)
+                {
+                    real scale = 1.0f / dynamic_length;
+                    dynamic_normal.i *= scale; dynamic_normal.j *= scale; dynamic_normal.k *= scale;
+                }
+                vector3f *out = (vector3f *)query;
+                out->i = dynamic_normal.i * dynamic_weight + normal.i * base_weight;
+                out->j = dynamic_normal.j * dynamic_weight + normal.j * base_weight;
+                out->k = dynamic_normal.k * dynamic_weight + normal.k * base_weight;
+                function_30bf0(out);
+                real length = dynamic_length > base_length ? dynamic_length : base_length;
+                out->i *= length; out->j *= length; out->k *= length;
+            }
+            else if (dynamic_weight > 0.0001f)
+            {
+                surface_pin_color(&dynamic_color);
+                query->color_b = pack_color3f(&dynamic_color);
+                *(vector3f *)query = dynamic_normal;
+            }
+            else
+            {
+                surface_pin_color(&base);
+                query->color_b = pack_color3f(&base);
+                *(vector3f *)query = normal;
+            }
+        }
+        else if (dynamic_valid)
+        {
+            surface_pin_color(&dynamic_color);
+            query->color_b = pack_color3f(&dynamic_color);
+            *(vector3f *)query = dynamic_normal;
+        }
+        else if (base_valid)
+        {
+            surface_pin_color(&base);
+            query->color_b = pack_color3f(&base);
+            *(vector3f *)query = normal;
+        }
+        else
+        {
+            query->color_a = query->color_b = 0;
+            *(vector3f *)query = *g_4687b0;
+        }
+        real u, v;
+        function_d2dc0(mesh, triangle->lightmap_part_index, triangle->u, triangle->v, &u, &v);
+        byte *part = *(byte **)((byte *)mesh + 4) + triangle->part_index * 0x48;
+        long material = function_13da30((s_13da30_owner const *)(
+            *(byte **)(definition + 0x64) + *(short *)(part + 4) * 0x20));
+        color3f sampled;
+        if (function_d30d0(material, 0, u, v, &sampled))
+        {
+            surface_pin_color(&sampled);
+            query->color_a = pack_color3f(&sampled);
+        }
+        else
+            query->color_a = 0xffc0c0d0;
+    }
+    return result;
+}

@@ -26,3 +26,6 @@ void function_141c0(void) { }
 
 // @stub 0x8dd70
 void function_8dd70(void) { }
+
+// @stub 0x12b450
+void function_12b450(void) { }

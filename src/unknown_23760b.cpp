@@ -42,7 +42,7 @@ void function_120df0(long index, wchar_t const *name);
 void function_120e20(long controller_index, long *profile_index);
 long __stdcall function_1a03a0(long controller_index, word *name);
 bool function_1a0540(s_player_profile_settings *settings, long profile_index);
-void function_19060a(long profile_index, long controller_index);
+void function_19060a(long controller_index, long profile_index);
 long online_team_create(long controller_index, XONLINE_TEAM_PROPERTIES const *properties);
 void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
 class c_online_task_screen;
@@ -1308,7 +1308,7 @@ bool finish_profile_create_1(c_virtual_keyboard_screen *keyboard)
 	{
 		function_1a0540(&settings, profile_index);
 		profile_edit_begin(keyboard->get_controller_index(), &settings, profile_index);
-		function_19060a(profile_index, keyboard->get_controller_index());
+		function_19060a(keyboard->get_controller_index(), profile_index);
 	}
 	else
 	{
