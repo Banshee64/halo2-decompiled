@@ -153,9 +153,9 @@ bool c_object_type_definition::v15(long a, long b, long c, long d, s_bitstream *
 }
 
 // @retail 0xa3d10
-void c_object_type_definition::v16(long a, long b, long c)
+bool c_object_type_definition::v16(long a, long b, long c)
 {
-	function_a7180(a, b);
+	return function_a7180(a, b);
 }
 
 // @retail 0xa4870

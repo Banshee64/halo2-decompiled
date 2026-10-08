@@ -58,6 +58,7 @@ public:
 	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9(long a, void const *data, s_bitstream *stream);
 	virtual bool v10(long a, void *data, s_bitstream *stream);
+	virtual bool v11(long arg_0, long const *arg_1, long arg_2, void const *arg_3);
 };
 
 class c_unit_grenade_release_event_definition : public c_event_definition
@@ -133,6 +134,7 @@ public:
 	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9(long a, void const *data, s_bitstream *stream);
 	virtual bool v10(long a, void *data, s_bitstream *stream);
+	virtual bool v11(long arg_0, long const *arg_1, long arg_2, void const *arg_3);
 };
 
 class c_unit_enter_vehicle_event_definition : public c_event_definition
@@ -153,6 +155,7 @@ public:
 	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9(long a, void const *data, s_bitstream *stream);
 	virtual bool v10(long a, void *data, s_bitstream *stream);
+	virtual bool v11(long arg_0, long const *arg_1, long arg_2, void const *arg_3);
 };
 
 class c_damage_section_response_event_definition : public c_event_definition
@@ -163,6 +166,7 @@ public:
 	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9(long a, void const *data, s_bitstream *stream);
 	virtual bool v10(long a, void *data, s_bitstream *stream);
+	virtual bool v11(long arg_0, long const *arg_1, long arg_2, void const *arg_3);
 };
 
 class c_damage_aftermath_event_definition : public c_event_definition
@@ -173,6 +177,7 @@ public:
 	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9(long a, void const *data, s_bitstream *stream);
 	virtual bool v10(long a, void *data, s_bitstream *stream);
+	virtual bool v11(long arg_0, long const *arg_1, long arg_2, void const *arg_3);
 };
 
 class c_projectile_impact_effect_event : public c_event_definition

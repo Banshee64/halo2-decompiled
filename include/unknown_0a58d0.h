@@ -140,7 +140,7 @@ public:
 	virtual bool v13(long a, s_entity_info *info, s_bitstream *stream);
 	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, long b, long c, long d, s_bitstream *stream);
-	virtual void v16(long a, long b, long c);
+	virtual bool v16(long a, long b, long c);
 	virtual bool v17(long a, long b, long c);
 	virtual void v18(s_entity *entity, long b, s_entity_state *state);
 	virtual bool v19(long a, long b, long c, s_entity_data *data);
