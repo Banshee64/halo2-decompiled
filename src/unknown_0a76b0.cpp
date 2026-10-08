@@ -18,6 +18,10 @@ The handlers of the unit request table at 0x467564
 #include <math.h>
 #include <string.h>
 
+#ifndef NUMBEROF
+#define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
+#endif
+
 /* a unit's actions: a bit per request type being performed, after a header
    dword (the block at the offset in the unit at +0x346) */
 struct s_unit_actions
@@ -536,9 +540,18 @@ bool __stdcall function_e7280(long unit_index, s_unit_request *request)
 // @retail 0xe7320
 bool __stdcall function_e7320(long unit_index, long type)
 {
-	long weapon_index = unit_action_weapon_get(UNIT_ACTION_UNIT_GET(unit_index), type > 1);
+	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	bool result = false;
+	long weapon_index = NONE;
+	short index;
 	long slot_index;
+
+	if (type > 1)
+		index = unit->current_secondary_weapon_index;
+	else
+		index = unit->current_weapon_index;
+	if (index != NONE)
+		weapon_index = unit->weapon_object_indices[index];
 
 	switch (type)
 	{
@@ -1881,10 +1894,10 @@ s_animation const *first_person_weapon_animation_get(long weapon_index, long ani
 s_unit_action_melee_animation const *__stdcall function_e99a0(long weapon_index)
 {
 	long indices[4];
-	short count = 0;
+	long count = 0;
 	long i;
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < NUMBEROF(g_4407f4); i++)
 	{
 		if (first_person_weapon_animation_get(weapon_index, g_4407f4[i].first_person_name, NULL))
 			indices[count++] = i;
