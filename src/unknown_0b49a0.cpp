@@ -118,20 +118,24 @@ long function_0b4a90(s_entry_pair *out, const s_range_input *in)
 		out[3].b = 0;
 	}
 	out[3].a_high = 0;
-	for (i = 1; i < 8; i++)
+	i = 1;
+	long *value = (long *)&out[4].b;
+	do
 	{
 		if (in->has_count && in->count == i)
 		{
-			out[3 + i].a = 0;
-			out[3 + i].b = 1;
+			value[-2] = 0;
+			*(__int64 *)value = 1;
 		}
 		else
 		{
-			out[3 + i].a = 0xf00000;
-			out[3 + i].b = 0;
+			value[-2] = 0xf00000;
+			*(__int64 *)value = 0;
 		}
-		out[3 + i].a_high = 0;
-	}
+		value[-1] = 0;
+		value += 4;
+		++i;
+	} while (i < 8);
 	if (in->has_count && in->count >= 8)
 	{
 		out[11].a = 0;

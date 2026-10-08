@@ -185,6 +185,8 @@ short avoidance_add_node(s_avoidance_search *search, point2f const *point, bool 
 		direction.x = search->goal.x - point->x;
 		direction.y = search->goal.y - point->y;
 		distance = avoidance_normalize2d(&direction);
+		real direction_y = direction.y;
+		real direction_x = direction.x;
 		for (index = parent; index != NONE; index = node->parent)
 		{
 			node = &search->nodes[index];
@@ -201,12 +203,12 @@ short avoidance_add_node(s_avoidance_search *search, point2f const *point, bool 
 					{
 						s_avoidance_node *other = &search->nodes[sibling];
 
-						if (other->direction.y * direction.y + other->direction.x * direction.x > 0.0f)
+						if (other->direction.y * direction_y + other->direction.x * direction_x > 0.0f)
 						{
 							s_avoidance_node *from = &search->nodes[parent];
 
 							if (0.0f > (from->direction.y * other->direction.x - other->direction.y * from->direction.x) *
-								(direction.y * other->direction.x - other->direction.y * direction.x))
+								(direction_y * other->direction.x - other->direction.y * direction_x))
 							{
 								goto done;
 							}
@@ -242,11 +244,10 @@ short avoidance_add_node(s_avoidance_search *search, point2f const *point, bool 
 		node->distance = distance;
 		node->obstacle = obstacle;
 		node->side = side;
-		node->cost = distance + cost;
+		node->cost = node->distance + cost;
 		node->parent = parent;
 		node->marked = false;
-		node->children[0] = NONE;
-		node->children[1] = NONE;
+		*(long *)node->children = NONE;
 		if (reaches_goal_obstacle && search->best_distance > node->distance)
 		{
 			search->best_distance = node->distance;
