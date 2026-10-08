@@ -443,7 +443,7 @@ bool function_e7020(long unit_index, bool *alternate, long name)
 		long first;
 		long second;
 
-		if (function_10f630(unit_index, &first, &second) && second == 0x6000085 &&
+		if (function_10f630(unit_index, &first, &second) && first == 0x6000085 &&
 			(function_10f3b0(unit_index, 0x6000086, name) || function_10f340(unit_index, 0x6000086, name)))
 		{
 			*alternate = true;
