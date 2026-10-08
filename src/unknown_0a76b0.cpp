@@ -3605,18 +3605,22 @@ bool __stdcall function_ec9a0(long unit_index, s_unit_request *request)
 
 	if (*((bool *)request + 4))
 	{
-		if (!function_10f430(unit_index, 0x6000542, 0x7000101, 0x7000101, 0x400000c, 0.2f, 0, 0))
-			return result;
-		function_e5750(unit_index);
-		return true;
+		if (function_10f430(unit_index, 0x6000542, 0x7000101, 0x7000101, 0x400000c, 0.2f, 0, 0))
+		{
+			function_e5750(unit_index);
+			result = true;
+		}
 	}
+	else
+	{
+		point3f point;
+		vector3f facing;
 
-	point3f point;
-	vector3f facing;
-
-	function_b9dd0(unit_index, &point);
-	unit_action_seat_facing_get(UNIT_ACTION_UNIT_GET(unit_index), &facing);
-	return function_ee090(unit_index, 0x6000542, 3, 0x7000543, &point, &facing);
+		function_b9dd0(unit_index, &point);
+		unit_action_seat_facing_get(UNIT_ACTION_UNIT_GET(unit_index), &facing);
+		return function_ee090(unit_index, 0x6000542, 3, 0x7000543, &point, &facing);
+	}
+	return result;
 }
 
 void function_1e54d0(void *state, long a);
