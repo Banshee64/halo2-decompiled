@@ -22,6 +22,7 @@ void function_13e3e0(dword const *a, dword const *b, dword *destination, long bi
 long camera_scripting_cluster_get(void);
 
 #pragma inline_depth(0)
+#pragma optimize("s", on)
 // @retail 0x138b30
 void function_138b30(dword *arg_1, bool arg_2)
 {
@@ -68,4 +69,5 @@ void function_138b30(dword *arg_1, bool arg_2)
 		}
 	}
 }
+#pragma optimize("", on)
 #pragma inline_depth(255)
