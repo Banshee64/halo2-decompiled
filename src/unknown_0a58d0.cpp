@@ -975,10 +975,10 @@ void function_a9570(long index)
    function_a9640(index);
   else
   {
-   bool changed = false;
    s_z_copy_state state;
-   z_copy_state_clear(&state);
+   memset(&state, 0, sizeof(state));
    function_a9820((long *)&state, index);
+   bool changed = false;
    if (state.flags & 1)
    {
     function_a9a70(index, &state);

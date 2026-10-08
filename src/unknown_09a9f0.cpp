@@ -155,6 +155,7 @@ bool c_object_type_definition::v15(long a, long b, long c, long d, s_bitstream *
 // @retail 0xa3d10
 bool c_object_type_definition::v16(long a, long b, long c)
 {
+	c_object_type_definition *volatile definition = this;
 	return function_a7180(a, b);
 }
 
@@ -357,10 +358,11 @@ bool c_turret_entity_definition::v30(long index)
 // @retail 0xa3ae0
 void c_object_type_definition::v31(long a, long b, long c, long d)
 {
+	c_object_type_definition *volatile definition = this;
 	long index = b & 0x3ff;
 	if (index)
 	{
-		function_a6430(a, index, d);
+		function_a6430(index, a, d);
 	}
 }
 
@@ -998,4 +1000,158 @@ bool c_weapon_type::v14(long a1, long a2, long a3, long a4, long a5, long a6, lo
   }
  }
  return result;
+}
+
+
+// @retail 0xa03d0
+void c_item_type::v31(long a, long b, long c, long d)
+{
+ c_object_type_definition *volatile definition = this;
+ if (b & 0x400)
+  function_b9b90(a, *(bool const *)(d + 0x90));
+ long mask = b & 0x3ff;
+ if (mask)
+  function_a6430(mask, a, d);
+}
+
+// @retail 0xa0e10
+void c_projectile_type::v31(long a, long b, long c, long d)
+{
+ c_object_type_definition *volatile definition = this;
+ long mask = b & 0x3ff;
+ if (mask)
+  function_a6430(mask, a, d);
+ if (b & 0x400)
+  function_b9b90(a, *(bool const *)(d + 0x90));
+}
+
+
+// @retail 0xa27f0
+bool c_weapon_type::v16(long a, long b, long c)
+{
+ c_object_type_definition *volatile definition = this;
+ bool result = function_a7180(a, b) &&
+  fabs(*(real const *)(b + 0x9c) - *(real const *)(a + 0x9c)) < 0.007936508394777775f;
+ *(real *)(b + 0x9c) = 0.0f;
+ *(real *)(a + 0x9c) = 0.0f;
+ return result;
+}
+
+// @retail 0xa3f70
+void c_device_type::v31(long a, long b, long c, long d)
+{
+ c_object_type_definition *volatile definition = this;
+ long mask = b & 0x3ff;
+ if (mask)
+  function_a6430(mask, a, d);
+ if (b & 0xc00)
+  function_a3fd0(a, false, (bool)(((dword)b >> 10) & 1), *(real const *)(d + 0x90),
+   (bool)(((dword)b >> 11) & 1), *(real const *)(d + 0x94));
+}
+
+// @retail 0xa4410
+bool c_device_type::v16(long a, long b, long c)
+{
+ c_object_type_definition *volatile definition = this;
+ bool result = function_a7180(a, b) &&
+  fabs(*(real const *)(b + 0x90) - *(real const *)(a + 0x90)) < 6.103888154029846e-05f;
+ *(real *)(b + 0x90) = 0.0f;
+ *(real *)(a + 0x90) = 0.0f;
+ result = result &&
+  fabs(*(real const *)(b + 0x94) - *(real const *)(a + 0x94)) < 6.103888154029846e-05f;
+ *(real *)(b + 0x94) = 0.0f;
+ *(real *)(a + 0x94) = 0.0f;
+ return result;
+}
+
+
+void function_15e130(long object_index);
+void function_15e050(long object_index, short value);
+
+struct s_z_weapon_update_object
+{
+ long definition_index;
+ byte unknown004[0x16c - 4];
+ word flag0 : 1;
+ word flag1 : 1;
+ word flag2 : 1;
+ word flag3 : 1;
+ word flag4 : 1;
+ word flag5 : 1;
+ word flag6 : 1;
+ word flag7 : 1;
+ word flag8 : 1;
+ word flag9 : 1;
+ word flag10 : 1;
+ word flag11 : 1;
+ word flag12 : 1;
+ word flag13 : 1;
+ word flag14 : 1;
+ word flag15 : 1;
+ byte unknown16e[0x17e - 0x16e];
+ short field17e;
+ byte unknown180[4];
+ long field184;
+ byte unknown188[0x22a - 0x188];
+ short field22a;
+ short field22c;
+};
+
+// @retail 0xa2140
+void c_weapon_type::v31(long a, long b, long c, long d)
+{
+ c_object_type_definition *volatile definition = this;
+ long mask = b & 0x7ff;
+ s_z_weapon_update_object *object = (s_z_weapon_update_object *)OBJECT(a);
+ if (mask)
+ {
+  if (mask & 0x400)
+   function_b9b90(a, *(bool const *)(d + 0x90));
+  mask &= 0x3ff;
+  if (mask)
+   function_a6430(mask, a, d);
+ }
+ long state_mask = b & 0x800;
+ if (state_mask || (b & 0x1000))
+ {
+  byte *tag = *(byte **)((byte *)g_4e3b44 + (OBJECT(a)->definition_index & 0xffff) * 16 + 8);
+  if (*(short const *)(tag + 0x290))
+  {
+   if (state_mask)
+   {
+    if (*(byte const *)(d + 0x94) & 1) object->flag8 = true;
+    else object->flag8 = false;
+    if (*(byte const *)(d + 0x94) & 2) object->flag9 = true;
+    else object->flag9 = false;
+    if (*(byte const *)(d + 0x94) & 4) object->flag10 = true;
+    else object->flag10 = false;
+    if (*(byte const *)(d + 0x94) & 8) object->flag11 = true;
+    else object->flag11 = false;
+   }
+   if ((b & 0x1000) && object->field17e != *(short const *)(d + 0x96))
+   {
+    if (TEST_FIELD_BIT(object->flag6))
+     function_15e130(a);
+    word value = *(word const *)(d + 0x96);
+    if (value != 0xffff)
+     function_15e050(a, value);
+   }
+  }
+ }
+ if (b & 0x2000)
+ {
+  byte *tag = *(byte **)((byte *)g_4e3b44 + (object->definition_index & 0xffff) * 16 + 8);
+  object->field184 = *(long const *)(d + 0x9c);
+  if (*(long const *)(tag + 0x2c0) > 0)
+  {
+   byte *entry = *(byte **)(tag + 0x2c4);
+   short first = *(short const *)(d + 0x98);
+   short second = *(short const *)(d + 0x9a);
+   if (first <= *(short const *)(entry + 0xa) && second <= *(short const *)(entry + 0xc))
+   {
+    object->field22c = first;
+    object->field22a = *(short const *)(d + 0x9a);
+   }
+  }
+ }
 }
