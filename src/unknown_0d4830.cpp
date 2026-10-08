@@ -1,6 +1,28 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
+#include "effects.h"
+
+struct s_sort_record
+{
+	word index;
+	word key;
+	byte unknown04;
+	byte group;
+	word subkey;
+	word value08;
+	word unknown0a;
+	dword value0c;
+	dword value10;
+	dword unknown14;
+};
+
+typedef bool (__stdcall *t_record_fill)(long, void *, long, long, long, void *, s_sort_record *);
+typedef void (__stdcall *t_41490_callback)(void *);
+
+long function_15d70(long tag, long stage, long pass, bool first, bool second);
+void function_41490(long tag, short group, short kind, real distance, t_record_fill fill,
+	dword value, t_41490_callback callback, void *context, point3f const *position);
 
 // @flags /O2 /Gr
 
@@ -17,7 +39,11 @@ struct s_widget_type
 	long (__stdcall *create)(long arg, long object_index);
 	void (__stdcall *dispose)(long handle);
 	void (__stdcall *field_20)(long object_index);
-	byte unknown24[0x38 - 0x24];
+	long unknown24;
+	long tag_index;
+	t_41490_callback callback;
+	long (__stdcall *get_kind)(long handle);
+	void (__stdcall *draw)(short group, long handle);
 };
 
 /* one widget attached to an object (12 bytes) */
@@ -256,3 +282,38 @@ void object_widget_delete(long object_index, long handle)
 		}
 	}
 }
+
+// @retail 0xd4bc0
+bool __stdcall function_d4bc0(long tag, long context, long pass, long stage,
+	long entry, long handle, void *record)
+{
+	s_sort_record *out = (s_sort_record *)record;
+	out->group = 0;
+	out->value0c = NONE;
+	out->subkey = 0xffff;
+	out->unknown04 = function_15d70(tag, stage, pass, true, false);
+	if (stage == 3)
+		out->unknown04 = 2;
+	else if (stage == 10)
+		out->unknown04 = (bool)((g_4ba014 >> 4) & 1) && !(bool)((g_4ba014 >> 5) & 1) ? 0 : 1;
+	bool result = out->unknown04 != 0xff;
+	if (result)
+	{
+		long const *reference;
+		dword kind = *(dword *)g_4e3b44[(short)tag].unknown00;
+		if (kind == 0x5052544d || kind == 0x70727433)
+			reference = function_137bd0(tag)->function_x947334();
+		else
+			reference = *(long **)(g_4e3b44[tag & 0xffff].bytes + 0x24);
+		byte *groups = *(byte **)(g_4e3b44[*reference & 0xffff].bytes + 0x5c);
+		long group = *(word *)(*(byte **)(groups + 4) + pass * 10) & 0x1ff;
+		long first = (*(word **)(groups + 0xc))[group + stage] & 0x1ff;
+		long material = *(long *)(*(byte **)(groups + 0x14) + (first + entry) * 10 + 4);
+		byte *data = *(byte **)(*(byte **)(g_4e3b44[material & 0xffff].bytes + 0x20) + 4);
+		out->value10 = (dword)data;
+		out->value08 = 0;
+		out->unknown14 = 0;
+	}
+	return result;
+}
+

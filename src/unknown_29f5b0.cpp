@@ -834,7 +834,10 @@ void function_2a03d0(long list_index, bool flag)
 	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
-		function_bbec0(object_index, flag ? true : false);
+		if (flag)
+			function_bbec0(object_index, true);
+		else
+			function_bbec0(object_index, false);
 		object_index = function_x457076(&reference_index);
 	}
 }
@@ -1342,7 +1345,8 @@ void __stdcall function_2a0e40(short function_index, long thread_index, bool ini
 		bool inside = false;
 		if (object_index != NONE)
 		{
-			point3f *center = &object_get(object_index)->center;
+			s_object *object = object_get(object_index);
+			point3f *center = &object->center;
 			if (function_11c470(trigger_volume_index, center))
 				inside = true;
 		}
@@ -2168,7 +2172,11 @@ void __stdcall function_2a1e80(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		*(bool *)&result = function_d88f0(arguments[0], arguments[1]) > 0;
+		long marker_name = arguments[1];
+		long object_index = arguments[0];
+		short count = function_d88f0(object_index, marker_name);
+		bool found = count > 0;
+		*(byte *)&result = found;
 		function_209ae0(thread_index, result);
 	}
 }

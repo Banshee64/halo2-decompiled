@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "unknown_0259d0.h"
 #include <math.h>
+#include <string.h>
 
 #define k_real_epsilon 0.0001f
 
@@ -253,4 +254,41 @@ long function_a5e70(long object_index, long flags, long state_pointer)
 	}
 
 	return changed;
+}
+
+bool simulation_positions_close(long bits, real const *a, real const *b);
+bool function_195560(vector3f const *a, vector3f const *b, vector3f const *up_a, vector3f const *up_b);
+bool function_195370(vector3f const *a, vector3f const *b, real lo, real hi, long bits);
+
+// @retail 0xa7180
+bool function_a7180(long state_a, long state_b)
+{
+    s_object_state *a = (s_object_state *)state_a;
+    s_object_state *b = (s_object_state *)state_b;
+    bool result = simulation_positions_close(16, (real const *)&a->position, (real const *)&b->position);
+    b->position = *g_468788;
+    a->position = b->position;
+    result = result && function_195560(&a->up, &b->up, &a->forward, &b->forward);
+    b->forward = *g_4687a4;
+    a->forward = *g_4687a4;
+    b->up = *g_4687a4;
+    a->up = *g_4687a4;
+    result = result && fabs(b->scalar - a->scalar) < 0.07874015718698502f;
+    b->scalar = 0.0f;
+    a->scalar = 0.0f;
+    result = result && function_195370(&a->vector_a, &b->vector_a, 0.03f, 350.0f, 10);
+    b->vector_a = *g_4687a4;
+    a->vector_a = *g_4687a4;
+    result = result && function_195370(&a->vector_b, &b->vector_b, 0.03f, 30.0f, 8);
+    b->vector_b = *g_4687a4;
+    a->vector_b = *g_4687a4;
+    result = result && fabs(b->bounded_a - a->bounded_a) < 0.007874015718698502f;
+    b->bounded_a = 0.0f;
+    a->bounded_a = 0.0f;
+    result = result && fabs(b->bounded_b - a->bounded_b) < 0.011811023578047752f;
+    b->bounded_b = 0.0f;
+    a->bounded_b = 0.0f;
+    memset((byte *)a + 0x68, 0, 0x28);
+    memset((byte *)b + 0x68, 0, 0x28);
+    return result;
 }

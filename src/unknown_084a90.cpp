@@ -342,7 +342,7 @@ struct s_player_machine_table
  s_machine_address machines[16];
 };
 
-long __stdcall function_14bc00(long player_index, const s_player_creation_record *record);
+long function_14bc00(long player_index, const s_player_creation_record *record);
 void __stdcall function_14bf80(long player_index, const s_player_creation_record *record);
 
 static __forceinline long simulation_player_next_absolute_index(s_record_pool *data, long index)
