@@ -1858,7 +1858,7 @@ short __stdcall function_f1740(long vehicle_index, real throttle_input)
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 	byte *definition = VEHICLE_DEFINITION_GET(vehicle);
 	s_game_time_globals *time = g_510c54;
-	bool braking;
+	volatile bool braking;
 	char current = vehicle->gear;
 	short gear = current;
 
