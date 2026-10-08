@@ -474,6 +474,9 @@ bool function_1a8a10(point2f const *arg_0, long arg_1, short arg_2, real arg_3, 
             local_4.y = 0.0f - arg_0->x;
             break;
         case 2:
+            local_4.x = arg_0->x;
+            local_4.y = arg_0->y;
+            break;
         case 3:
             local_4.x = arg_0->x;
             local_4.y = arg_0->y;
@@ -488,7 +491,7 @@ bool function_1a8a10(point2f const *arg_0, long arg_1, short arg_2, real arg_3, 
         local_5[1] = 0.0f - local_10;
         local_5[2] = local_11;
         local_5[0] = local_10;
-        real local_6 = -0.5f;
+        volatile real local_6 = -0.5f;
         long local_7 = NONE;
         short local_8 = NONE;
         s_1a8a10 *local_9 = g_4453c0;
@@ -516,6 +519,9 @@ bool function_1a8a10(point2f const *arg_0, long arg_1, short arg_2, real arg_3, 
                 local_5[1] = local_4.x;
                 break;
             case 2:
+                local_5[0] = local_4.x;
+                local_5[1] = local_4.y;
+                break;
             case 3:
                 local_5[0] = local_4.x;
                 local_5[1] = local_4.y;
