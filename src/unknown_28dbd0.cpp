@@ -79,6 +79,7 @@ __forceinline s_object_ai_data *function_28dbd5(s_handler_object_view *arg_0)
 // @retail 0x28dbd0
 long function_28dbd0(long arg_0, long arg_1, long arg_2, s_28dab2 const *arg_3, bool arg_4)
 {
+	long local_1 = NONE;
 	s_28dbd3 const *local_4 = (s_28dbd3 const *)arg_3;
 	s_28dbd0 local_0;
 	function_b7930(&local_0, arg_2, NONE, NULL);
@@ -134,7 +135,7 @@ long function_28dbd0(long arg_0, long arg_1, long arg_2, s_28dab2 const *arg_3, 
 		*(long *)((byte *)&local_0 + 0xc) = function_1e06b0(arg_1);
 	local_0.field_b4 = 0;
 	local_0.field_b6 = 0xb0;
-	long local_1 = function_b7b40(&local_0);
+	local_1 = function_b7b40(&local_0);
 	if (local_1 != NONE)
 	{
 		s_handler_object_view *local_2 = handler_object_get(local_1);
@@ -145,11 +146,12 @@ long function_28dbd0(long arg_0, long arg_1, long arg_2, s_28dab2 const *arg_3, 
 			if (function_28e320(arg_0, local_1))
 			{
 				function_28f890(local_1, local_3);
-				return local_1;
+				goto local_6;
 			}
 		}
 		function_b8540(local_1);
 		local_1 = NONE;
 	}
+local_6:
 	return local_1;
 }
