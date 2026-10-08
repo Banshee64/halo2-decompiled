@@ -1275,10 +1275,10 @@ bool function_1f8660(long arg_0);
 // @retail 0x1ba5c0
 bool __stdcall function_1ba5c0(long arg_0, s_slot *arg_1, long arg_2)
 {
-    volatile bool local_4 = true;
     s_actor_view *local_0 = actor_get(arg_0);
     s_seat_selection *local_2 = (s_seat_selection *)((byte *)arg_1 + 0x1c);
     s_4c_element *local_3 = (s_4c_element *)arg_2;
+    volatile bool local_4 = true;
     if (local_2->object_index == NONE || local_3->object_index == NONE)
         return false;
     if (local_0->unknown26c != NONE || (local_2->flags & 2))
