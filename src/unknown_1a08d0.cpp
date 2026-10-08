@@ -398,18 +398,18 @@ long async_copy_position(
 {
 	if (bytes_copied)
 		*bytes_copied = 0;
-	s_async_task task;
+	volatile s_async_task task;
 
-	memset(&task, 0, sizeof(task));
+	memset((void *)&task, 0, sizeof(task));
 
-	task.copy_position.source = source;
-	task.copy_position.destination = destination;
+	task.copy_position.source.handle = source.handle;
+	task.copy_position.destination.handle = destination.handle;
+	task.copy_position.bytes_copied_out = bytes_copied;
 	task.copy_position.buffer = buffer;
 	task.copy_position.size = size;
-	task.copy_position.bytes_copied_out = bytes_copied;
 	task.copy_position.source_offset = source_offset;
 	task.copy_position.destination_offset = destination_offset;
-	return function_120ba0(priority, &task, category, async_copy_position_callback, done);
+	return function_120ba0(priority, (s_async_task *)&task, category, async_copy_position_callback, done);
 }
 
 // @retail 0x1a12c0
