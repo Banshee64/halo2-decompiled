@@ -109,7 +109,7 @@ bool function_e68c0(long type, long unit_index);
 void function_26def0(long actor_index, long owner_index = NONE);
 bool function_1f86f0(long index);
 short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next);
-void __stdcall function_1acda0(long actor_index, s_slot *slot);
+bool __stdcall function_1acda0(long actor_index, s_slot *slot);
 void __stdcall function_1ad130(long actor_index, s_slot *slot);
 bool __stdcall function_1ad6a0(long arg_0, s_slot *arg_1);
 void __stdcall function_1ada70(long actor_index, s_slot *slot);
@@ -652,7 +652,7 @@ s_slot_handler_2 g_47dc38 =
 		function_1ac3f0, (t_slot_evaluate)function_1ac570, function_1ac430, function_1ad400, NONE, {0},
 		0, 0, 0, function_1ad4a0, 0, 0, 0
 	},
-	function_1acda0, function_1acfd0, function_1ad130
+	(t_slot_proc)function_1acda0, function_1acfd0, function_1ad130
 };
 
 s_slot_handler_2 g_47dc88 =
@@ -1033,3 +1033,78 @@ bool __stdcall function_1acb50(long arg_0, s_slot *arg_1)
 	ai_scratch_buffer_release(local_10);
 	return local_16;
 }
+
+#include "unknown_0259a0.h"
+bool function_2613d0(long arg_0, s_reference arg_1, s_prop_search *arg_2);
+bool __stdcall function_1acb50(long arg_0, s_slot *arg_1);
+
+#pragma inline_depth(0)
+// @retail 0x1acda0
+bool __stdcall function_1acda0(long arg_0, s_slot *arg_1)
+{
+    s_actor_view *local_0 = (s_actor_view *)(g_4f55f0->data + (arg_0 & 0xffff) * sizeof(s_actor_view));
+    s_slot_2c *local_1 = (s_slot_2c *)arg_1;
+    volatile bool local_2 = true;
+    if (local_0->unknown007)
+        return false;
+    if (local_1->unknown12)
+    {
+        local_2 = false;
+        return local_2;
+    }
+    s_prop_node_view *local_3 = NULL;
+    if (local_0->prop_index != NONE)
+        local_3 = (s_prop_node_view *)(g_502418->data + (local_0->prop_index & 0xffff) * sizeof(s_prop_node_view));
+    if (local_1->unknown22 > 0 || !local_1->unknown0d && function_1f86f0(arg_0) && !local_1->unknown10)
+        function_265bb0(arg_0);
+    if (REFERENCE_EQUAL(local_0->unknown418, g_470fa0) ||
+        local_1->unknown10 && local_3 && local_1->unknown22 == 0 &&
+        !function_110ab0(local_0->unknown018) && function_1acd30(arg_0, (s_prop_datum_54 *)local_3))
+    {
+        local_1->unknown0d = true;
+        local_1->unknown10 = false;
+    }
+    if (!local_1->unknown0d)
+    {
+        if (((s_actor_view *)g_4f55f0->data)[arg_0 & 0xffff].unknown504 == 2)
+        {
+            if (!local_1->unknown10 &&
+                (!local_1->unknown25 || local_1->unknown3a && !function_110ab0(local_0->unknown018)))
+            {
+                if (local_3)
+                    function_1fb7e0(arg_0, 0x8a, NULL, local_3->object_index, NONE);
+                if (!local_1->unknown3b)
+                {
+                    function_e68c0(0, local_0->unknown018);
+                    local_1->unknown3b = true;
+                }
+                local_1->unknown10 = true;
+            }
+        }
+        else
+            local_1->unknown10 = false;
+    }
+    if (local_0->unknown040)
+    {
+        if (local_1->unknown0d)
+        {
+            local_2 = function_1acb50(arg_0, (s_slot *)((byte *)arg_1 + 0xc));
+            return local_2;
+        }
+        if (function_1f8660(arg_0) && !REFERENCE_EQUAL(local_0->unknown418, g_470fa0))
+        {
+            s_prop_search local_4;
+            memset(&local_4, 0, sizeof(local_4));
+            local_4.type = 2;
+            *(bool *)((byte *)&local_4 + 0x46) = true;
+            *(real *)((byte *)&local_4 + 0x48) = 10.0f;
+            *(real *)((byte *)&local_4 + 0x4c) = 3.0f;
+            *(bool *)((byte *)&local_4 + 0x15) = true;
+            *(bool *)((byte *)&local_4 + 0x61) = true;
+            if (!function_2613d0(arg_0, local_0->unknown418, &local_4))
+                local_1->unknown0d = true;
+        }
+    }
+    return local_2;
+}
+#pragma inline_depth(255)

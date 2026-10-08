@@ -49,7 +49,7 @@ bool function_1f8660(long index);
 void function_1f86a0(long index);
 bool function_1f4f40(long actor_index, vector3f const *facing, short unknown, s_type_c3b527 const *point, bool face_prop);
 short __stdcall function_1aec30(long actor_index, short level, bool active);
-void __stdcall function_1af810(long actor_index, s_slot *slot);
+bool __stdcall function_1af810(long actor_index, s_slot *slot);
 void __stdcall function_1afb30(long actor_index, s_slot *slot);
 void __stdcall function_1afcf0(long actor_index, s_slot *slot);
 
@@ -455,7 +455,7 @@ s_slot_handler_2 g_47de70 =
 		function_1aef40, function_1af0a0, function_1aefc0, 0, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
-	function_1af810, function_1afb30, function_1afcf0
+	(t_slot_proc)function_1af810, function_1afb30, function_1afcf0
 };
 
 struct s_bsp3d;

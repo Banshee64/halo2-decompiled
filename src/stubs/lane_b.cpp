@@ -40,8 +40,6 @@ bool __stdcall function_1f4810(long actor_index, long prop_index, real distance,
 /* outside the region: callbacks */
 
 
-// @stub 0x1aff10
-void __stdcall function_1aff10(long actor_index, s_slot *slot) { }
 
 
 
