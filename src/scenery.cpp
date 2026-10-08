@@ -327,7 +327,7 @@ extern long *g_51e9cc;
 struct c_shape_global_owner;
 extern c_shape_global_owner *g_51e9d0;
 void function_1c5710(long object_index);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_bba20(long object_index);
 void __stdcall function_bf600(long user, real frame, s_animation_frame_event const *event);
 

@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7040 functions match
+
+```
+matched 7040 of 11318 game functions (786342 of 2784283 bytes, 28.24%)
+```
+
+7040 new matches, none lost:
+- Merge batch r38: the second machine's #212 to #215 (lanes M, P, O and J; +5).
+
+## 2026-10-08: 7035 functions match
+
+```
+matched 7035 of 11318 game functions (785210 of 2784283 bytes, 28.20%)
+```
+
+7035 new matches, none lost:
+- Merge batch r37: lane Z rounds 11 to 13 (+8), after fixing 0xb9b90's calling convention and the base v16 return type.
+
 ## 2026-10-08: 7027 functions match
 
 ```

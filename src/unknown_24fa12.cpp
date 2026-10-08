@@ -1,5 +1,7 @@
 #include "unknown_24fa12.h"
 #include "unknown_11c920.h"
+#include <stdlib.h>
+#include <string.h>
 
 // @flags /O1 /Gr
 
@@ -275,3 +277,80 @@ void function_24ffc9(c_screen_24fd74 *arg_0, bool arg_1)
 			((byte *)local_5)[0x14] &= ~1;
 	}
 }
+
+
+byte *network_session_interface_get_data_4db0();
+word function_1901fc();
+long function_190262(long arg_0);
+bool function_19a951(long arg_0);
+long function_19aa17(long arg_0);
+bool function_251121();
+void function_250dae(c_screen_24fd74 *arg_0);
+void function_250332(c_class_1a2c81 *arg_0);
+void function_2503c0(c_class_1a2c81 *arg_0);
+struct s_game_variant;
+struct s_session_flags_view;
+void function_2501c0(c_screen_24fd74 *arg_0, s_game_variant *arg_1);
+void function_25042d(c_screen_24fd74 *arg_0, long arg_1, s_session_flags_view *arg_2,
+    long *arg_3, long *arg_4, long arg_5);
+void function_2507dc();
+
+#pragma intrinsic(memset)
+#pragma inline_depth(0)
+// @retail 0x24fd74
+void c_screen_24fd74::v3()
+{
+    long local_0 = function_19989d();
+    byte *local_1 = network_session_interface_get_data_4db0();
+    bool local_2 = function_592f0();
+    bool local_3 = function_199994();
+    if (local_1 && !*(long *)(local_1 + 0x44))
+        local_1 = 0;
+    if (value142e && function_251121())
+        value142e = false;
+    set_user_flags(function_1901fc());
+    *(short *)&user_flags = NONE;
+    if (!(byte)function_251364((s_session_player_view *)local_1))
+    {
+        for (long local_4 = 0; local_4 != NONE; local_4 = function_190262(local_4))
+        {
+            teams[local_4].valid = false;
+            teams[local_4].team = NONE;
+        }
+    }
+    long local_5[4];
+    for (long local_6 = 0; local_6 != NONE; local_6 = function_190262(local_6))
+        local_5[local_6] = function_19aa17(local_6);
+    long local_7 = 0;
+    long local_8[16];
+    memset(local_8, 0xff, sizeof(local_8));
+    for (long local_9 = 0; local_9 < 16; ++local_9)
+    {
+        if (function_19a951(local_9))
+            local_8[local_7++] = local_9;
+    }
+    if (!local_3 && local_1 && (local_1[0x48] & 1))
+        qsort(local_8, local_7, sizeof(long), function_24fd41);
+    function_250eb7();
+    update_countdown(local_2);
+    if (local_0 != NONE)
+    {
+        function_24ff0a(this);
+        function_250dae(this);
+        function_24ff61(this, local_2, (s_session_player_view *)local_1);
+        function_24ffc9(this, local_2);
+        function_250155();
+        if (local_3)
+            function_2503c0(this);
+        else
+            function_2501c0(this, (s_game_variant *)local_1);
+        function_250332(this);
+        function_2508a8();
+        function_25042d(this, local_0, (s_session_flags_view *)local_1, local_8, local_5, local_7);
+        function_2507dc();
+        show_session_state();
+    }
+    function_250f3a(local_1);
+    c_class_1a2c81::v3();
+}
+#pragma inline_depth(255)

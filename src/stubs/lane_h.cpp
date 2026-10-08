@@ -54,10 +54,6 @@ void __stdcall function_b3e90(unsigned char *results)
 struct s_network_session_player;
 
 
-// @stub 0x1391ed
-void function_1391ed(void)
-{
-}
 
 typedef void *(__stdcall *block_allocate)(void *, long, long);
 typedef void (__stdcall *block_free)(void *, void *);
