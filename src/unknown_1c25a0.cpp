@@ -930,14 +930,32 @@ bool function_a7670(long object_index);
 void __stdcall function_b8540(long object_index);
 void havok_object_detach(long object_index);
 
+PRIVATE __forceinline long function_1c3f31(hkEntity const *arg_0)
+{
+	long local_0;
+	long local_1;
+	for (local_1 = 0; local_1 < arg_0->m_property_count; local_1++)
+	{
+		if (arg_0->m_properties[local_1].m_key == HAVOK_PROPERTY_COMPONENT_INDEX)
+		{
+			local_0 = arg_0->m_properties[local_1].m_value.m_data;
+			goto local_2;
+		}
+	}
+	local_0 = 0;
+local_2:
+	return local_0;
+}
+
 // @retail 0x1c3f30
 long function_1c3f30(hkEntity *entity, long attempt, bool any_object, bool even_if_unknown, long excluded_component_index)
 {
+	long local_0 = function_1c3f31(entity);
 	long result = NONE;
 
-	if (havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX) != NONE)
+	if (local_0 != NONE)
 	{
-		long component_index = havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX);
+		long component_index = function_1c3f31(entity);
 
 		if (component_index != excluded_component_index)
 		{
@@ -946,9 +964,10 @@ long function_1c3f30(hkEntity *entity, long attempt, bool any_object, bool even_
 			if (!function_a7670(object_index) || even_if_unknown)
 			{
 				s_physics_object_header *header = physics_object_header_get(object_index);
+				bool local_1 = *(volatile bool const *)&any_object;
 				bool unknown = TEST_FIELD_BIT(((s_physics_object_flags_view *)header->object)->bit14);
 
-				if (any_object || (header->flags & 1))
+				if (local_1 || (header->flags & 1))
 				{
 					if (unknown)
 					{
@@ -956,9 +975,10 @@ long function_1c3f30(hkEntity *entity, long attempt, bool any_object, bool even_
 					}
 					else if ((1 << header->type) & 3)
 					{
-						if (attempt >= 2 && ((s_physics_object_flags_view *)header->object)->unknown13c == NONE)
+						if (attempt >= 2 && ((s_physics_object_flags_view *)*(s_physics_object *volatile const *)&header->object)->unknown13c == NONE)
 						{
-							return object_index;
+							result = object_index;
+							goto local_3;
 						}
 					}
 					else if (((1 << header->type) & 0x800) && attempt >= 1)
@@ -969,6 +989,7 @@ long function_1c3f30(hkEntity *entity, long attempt, bool any_object, bool even_
 			}
 		}
 	}
+local_3:
 	return result;
 }
 
@@ -977,9 +998,9 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 {
 	s_physics_world_view *world = (s_physics_world_view *)g_51e9a4;
 	s_simulation_island_array *islands = active ? &world->active_islands : &world->inactive_islands;
-	long best_priority = 0x80000000;
+	volatile long best_priority = 0x80000000;
 	long best_object_index = NONE;
-	bool result = false;
+	volatile bool result = false;
 	long island_index;
 	long i;
 

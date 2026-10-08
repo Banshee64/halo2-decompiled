@@ -17,7 +17,11 @@ struct s_player_configuration_cache_entry
 	short previous_other;
 	short next_other;
 	dword flags;
-	byte unknown64[4];
+	union
+	{
+		byte unknown64[4];
+		dword field_64;
+	};
 };
 
 s_player_configuration_cache_entry g_4cf98c[350];
@@ -148,32 +152,7 @@ void function_80940(s_cache_property_record *records, long record_capacity,
 		*buffer_count = buffers_used;
 }
 
-// @retail 0x80d70
-void function_80d70(s_cache_property_record *records, long count)
-{
-	long position;
-	for (long i = 0; i < count; i++)
-	{
-		s_cache_property_record *record = &records[i];
-		if (record->type == 0x61 && record->count == 4)
-		{
-			long index = function_7fc80(record->identity, &position);
-			if (index != NONE)
-			{
-				s_cache_property *properties = record->properties;
-				long valid = properties[0].type == 4 ? 1 : 0;
-				if (properties[1].type == 1)
-					valid++;
-				if (properties[2].type == 1)
-					valid++;
-				if (properties[3].type == 1)
-					valid++;
-				if (valid == 4)
-					g_4cf98c[index].flags &= ~1;
-			}
-		}
-	}
-}
+void function_80d70(s_cache_property_record *records, long count);
 
 // @retail 0x7fd10
 void function_7fd10(long index)
@@ -746,4 +725,31 @@ void function_80440(const s_cached_player_identity *identity, s_recent_player *p
   index = function_80330(identity, position);
  memcpy(player, &g_4cf98c[index].player, sizeof(*player));
  function_7fdf0(index);
+}
+
+bool g_510554;
+dword g_510558;
+bool function_7fb50(void);
+
+// @retail 0x80390
+void function_80390(void)
+{
+ if (g_51055c && g_510554)
+ {
+  dword local_0 = GetTickCount();
+  if (local_0 - g_510558 > 10000)
+  {
+   if (function_7fb50())
+    g_51055c = false;
+   g_510558 = local_0;
+  }
+ }
+ unsigned __int64 local_1 = 0;
+ GetSystemTimeAsFileTime((FILETIME *)&local_1);
+ dword local_2 = (dword)(local_1 / 3600000000ULL);
+ for (long local_3 = 0; local_3 < g_4cf978; ++local_3)
+ {
+  if (local_2 - g_4cf98c[local_3].field_64 > 72)
+   g_4cf98c[local_3].flags |= 2;
+ }
 }

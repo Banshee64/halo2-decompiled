@@ -125,10 +125,11 @@ void simulation_read_position(s_bitstream *stream, real *position, long bits)
 // @retail 0x86e90
 bool simulation_positions_close(long bits, real const *a, real const *b)
 {
+	s_world_bounds_view *local_0 = (s_world_bounds_view *)g_4e0348;
 	long quantized_a[3];
 	long quantized_b[3];
-	function_11f4f0(bits, a, world_bounds(), quantized_a);
-	function_11f4f0(bits, b, world_bounds(), quantized_b);
+	function_11f4f0(bits, a, local_0->bounds, quantized_a);
+	function_11f4f0(bits, b, local_0->bounds, quantized_b);
 	if (abs(quantized_a[0] - quantized_b[0]) > 1 || abs(quantized_a[1] - quantized_b[1]) > 1 || abs(quantized_a[2] - quantized_b[2]) > 1)
 		return false;
 	return true;

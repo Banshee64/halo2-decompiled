@@ -86,7 +86,7 @@ screen_load_proc c_dialog_choice_screen::get_load_proc()
 
 /* opens the "ok" dialog */
 // @retail 0x19b527
-void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed)
+void dialog_ok_show(long a, long dialog_id, long b, short user_flags, dialog_choice_callback chosen, dialog_closed_callback closed)
 {
 	s_screen_parameters parameters;
 	c_dialog_ok_screen *screen;

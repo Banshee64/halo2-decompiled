@@ -251,7 +251,7 @@ void __stdcall function_2084c0(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, 2, types, initialize);
 	if (arguments)
 	{
-		bool equal = memcmp(&arguments[0], &arguments[1], g_445710[type]) == 0;
+		bool equal = memcmp(&arguments[1], &arguments[0], g_445710[type]) == 0;
 		if (function_index == 14)
 			equal = !equal;
 		result.b = equal;
