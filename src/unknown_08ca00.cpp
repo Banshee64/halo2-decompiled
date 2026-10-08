@@ -100,7 +100,7 @@ struct s_name_list
 	s_name_buffer names[32];
 };
 
-void name_list_clear(s_name_list *list);
+s_name_list *name_list_clear(s_name_list *list);
 void function_08cc20(s_name_buffer *buffer, const wchar_t *name);
 bool function_1368f0(s_type_acf665 *file);
 
