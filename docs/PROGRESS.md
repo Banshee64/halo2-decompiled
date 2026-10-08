@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 7004 functions match
+
+```
+matched 7004 of 11318 game functions (780544 of 2784283 bytes, 28.03%)
+```
+
+7004 new matches, none lost:
+- Merge batch r32: the second machine's #203 (lane J round 7, +1) and #202 (lane L round 8, written code).
+
+## 2026-10-07: 7003 functions match
+
+```
+matched 7003 of 11318 game functions (780087 of 2784283 bytes, 28.02%)
+```
+
+7003 new matches, none lost:
+- Merge lane AD rounds 1 to 3 (+10): network message codecs, session search, surface queries and weapon object type, in documented gaps between finished ranges.
+
 ## 2026-10-07: 6993 functions match
 
 ```

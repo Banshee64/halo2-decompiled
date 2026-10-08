@@ -35,8 +35,6 @@ void function_10cec0(long unit_index, long weapon_index, long parent_marker_name
 /* in the biped range (PR #28 writes it) */
 
 /* outside the unit range */
-// @stub 0xff5f0
-bool __stdcall function_ff5f0(long weapon_index, long name, real *value, bool *active) { return false; }
 
 // @stub 0x10b360
 void function_10b360(long object_index) { }
@@ -77,4 +75,3 @@ void function_1c95d0(long unit_index, long attacker_index, short type, real amou
 struct s_unit_melee_hit;
 // @stub 0xa9260
 void function_a9260(long damage_index, s_unit_melee_hit const *hit) { }
-

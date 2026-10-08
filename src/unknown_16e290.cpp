@@ -72,6 +72,8 @@ struct s_16e290_resource
 	long value;
 };
 
+__declspec(noinline) long function_16e290(s_16e290_resource *resource);
+
 // @retail 0x16e290
 long function_16e290(s_16e290_resource *resource)
 {
