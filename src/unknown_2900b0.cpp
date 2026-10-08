@@ -12,7 +12,7 @@ bool function_fa1a0(real arg_0, real arg_1, point3f const *arg_2, point3f const 
 real function_30bf0(vector3f *arg_0);
 
 // @retail 0x2900b0
-void function_2900b0(long arg_0, point3f const *arg_1, real arg_2, real arg_3, vector3f *arg_4)
+bool function_2900b0(long arg_0, point3f const *arg_1, real arg_2, real arg_3, vector3f *arg_4)
 {
 	point3f local_0;
 	vector3f local_1;
@@ -32,6 +32,7 @@ void function_2900b0(long arg_0, point3f const *arg_1, real arg_2, real arg_3, v
 		arg_4->j = local_1.j * local_2;
 		arg_4->k = local_1.k * local_2;
 	}
+	return local_3;
 }
 
 // @retail 0x28f290

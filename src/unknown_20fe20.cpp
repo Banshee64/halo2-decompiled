@@ -185,7 +185,7 @@ real function_20f1a0(long object_index, short type)
 		short team = *(short *)(object + 0x138);
 		short side = (short)function_20f040(team);
 		byte *queue = (byte *)g_4f939c + side * 0x7dc;
-		long index = *(long *)(queue + 0x7d0);
+		long index = *(volatile long *)(queue + 0x7d0);
 		long time = g_510c54->game_time;
 		real seconds = g_510c54->field_2_3 * *(real *)((byte *)&table->entries[type] + 0x24);
 		long delay;
@@ -1396,27 +1396,39 @@ bool function_210770(short output_index, vector3f const *vector, vector3f *out)
 	return success;
 }
 
+PRIVATE __forceinline real function_210ac1(real arg_0)
+{
+	__asm
+	{
+		fld arg_0
+		fsqrt
+	}
+}
+
 // @retail 0x210970
 real function_210970(s_type_c3b527 const *a, s_type_c3b527 const *b)
 {
-	vector3f v;
 
 	if (a->output_index == b->output_index)
 	{
+		vector3f v;
 		vector3d_from_points3d(&a->point, &b->point, &v);
+		return function_210ac1(v.j * v.j + (v.i * v.i + v.k * v.k));
 	}
 	else
 	{
+		vector3f v;
 		point3f pa;
 		point3f pb;
 
 		function_210850(a, &pa);
 		function_210850(b, &pb);
 		vector3d_from_points3d(&pa, &pb, &v);
+		return function_210ac1(v.j * v.j + (v.i * v.i + v.k * v.k));
 	}
 
-	return node_point_magnitude3d(&v);
 }
+
 
 // @retail 0x210ac0
 real function_210ac0(s_type_c3b527 const *a, point3f const *b)
@@ -1437,6 +1449,7 @@ real function_210ac0(s_type_c3b527 const *a, point3f const *b)
 
 	return node_point_magnitude3d(&v);
 }
+
 
 // @retail 0x210be0
 void function_210be0(s_type_c3b527 const *a, s_type_c3b527 const *b, vector3f *out)
