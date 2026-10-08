@@ -1126,3 +1126,285 @@ void game_engine_player_row_build(short const *position, real alpha, long player
 		}
 	}
 }
+
+#include "unknown_030290.h"
+#include "unknown_07f720.h"
+#include <xtl.h>
+
+extern short_rectangle2d g_4b9dd8;
+extern short g_4b9dd0, g_4b9dd2;
+long function_11ca80(long value);
+long function_19fd00(long team_index);
+void utf8_string_to_utf16_string(char const *source, word *destination, long count);
+bool function_15f120(long player_index, word *buffer, long size, long suppress_score);
+
+struct s_score_display
+{
+	long players[16];
+	short teams[8];
+	char player_ranks[16];
+	char team_ranks[8];
+	short player_count;
+	short team_count;
+};
+void function_23f3e0(s_score_display *display, long mode, bool fallback);
+
+struct s_string_reference
+{
+	long string_handle;
+	long offset;
+};
+struct s_string_table
+{
+	s_string_reference *references;
+	char *data;
+	long count;
+	long data_size;
+	long references_offset;
+	long data_offset;
+	bool loaded;
+	byte field_19[3];
+};
+char const *string_table_find(s_string_table *table, long first, long count, long handle);
+
+struct s_score_player_row_1608e0
+{
+	s_game_engine_player_row row;
+	bool selected;
+	byte field_1c5[3];
+};
+struct s_score_panel_1608e0
+{
+	bool time;
+	bool score;
+	bool alternate_score;
+	byte field_3;
+	s_text_widget_d title;
+	s_text_widget_b place;
+	s_text_widget_b name;
+	s_text_widget_b score_label;
+	s_text_widget_b time_label;
+	s_text_widget_b field_270;
+	s_game_engine_score_row teams[8];
+	long team_count;
+	s_score_player_row_1608e0 players[16];
+	long player_count;
+};
+
+PRIVATE inline long score_string_list_1608e0()
+{
+	long result = NONE;
+	if (g_4e034c && g_4e034c->index != NONE)
+	{
+		byte *definition = g_4e3b44[g_4e034c->index & 0xffff].bytes;
+		result = *(long *)(*(byte **)(definition + 4) + 0x1c);
+	}
+	return result;
+}
+
+// @retail 0x1608e0
+void __stdcall function_1608e0(long player_index, s_score_panel_1608e0 *panel, real alpha)
+{
+	(void)&player_index;
+	(void)&panel;
+	(void)&alpha;
+	s_game_engine_player *local_player =
+		&((s_game_engine_player *)g_4e8c24->data)[player_index & 0xffff];
+	byte *scores = NULL;
+	if (game_engine_get())
+		scores = (byte *)g_4e9ae8 + 0x304;
+	s_score_display display;
+	function_23f3e0(&display, g_4e6948->flag1128 != false, true);
+	long total_rows = display.player_count + display.team_count + 2;
+	volatile long height = (display.team_count ? 0x15 : 0) +
+		(display.player_count + display.team_count) * 0x14 + 0x2c;
+	if (g_4e6948->flag1128)
+		panel->time = true;
+	else
+		panel->time = g_4e6948->score_to_win != 1;
+	if (*(long *)((byte *)g_4e6948 + 0x188))
+	{
+		panel->score = true;
+		bool teams = false;
+		if (game_engine_get())
+			teams = g_4e6948->flags184.bit0;
+		panel->alternate_score = !teams;
+	}
+	else
+	{
+		panel->score = false;
+		panel->alternate_score = false;
+	}
+	short width = (short)(g_4b9dd8.right - g_4b9dd8.left);
+	short x = (short)(width / 2 -
+		g_4b9dd2 + g_4b9dd8.left - 0x86);
+	long screen_height = (short)(g_4b9dd8.bottom - g_4b9dd8.top);
+	if (height < screen_height)
+		(real &)g_4e9af0.unknown04[4 + local_player->local_user_index * 4] = 0.0f;
+	else
+	{
+		real scroll = (real &)g_4e9af0.unknown04[4 + local_player->local_user_index * 4];
+		(real &)g_4e9af0.unknown04[4 + local_player->local_user_index * 4] =
+			PIN(scroll, 0.0f, (real)(height - screen_height));
+	}
+	short y = (short)(g_4b9dd8.top -
+		(long)(real &)g_4e9af0.unknown04[4 + local_player->local_user_index * 4] - g_4b9dd0);
+	struct
+	{
+		s_short_rectangle bounds;
+		short position[2];
+	} work;
+	s_short_rectangle title_bounds;
+	work.position[0] = x;
+	work.position[1] = y;
+	real volatile fade_count = (real)total_rows;
+	color4f foreground;
+	color4f background = { 0.0f, 0.0f, 0.0f, 0.0f };
+	real fade = (alpha - 0.0f / fade_count * 0.5f) * 2.0f;
+	foreground.alpha = PIN(fade, 0.0f, 1.0f);
+	foreground.red = 1.0f;
+	foreground.green = 1.0f;
+	foreground.blue = 1.0f;
+	word title[0x50];
+	function_15f120(player_index, title, 0x50, 0);
+	title_bounds.top = y;
+	title_bounds.left = x;
+	title_bounds.bottom = y + 0x14;
+	title_bounds.right = x + 0x10c;
+	panel->title.initialize(&title_bounds, &background, &foreground, title, 0x50, false);
+	fade = (alpha - 1.0f / fade_count * 0.5f) * 2.0f;
+	foreground.alpha = PIN(fade, 0.0f, 1.0f);
+	foreground.red = 0.125f;
+	foreground.green = 0.125f;
+	foreground.blue = 0.125f;
+	background.alpha = foreground.alpha;
+	background.red = 1.0f;
+	background.green = 1.0f;
+	background.blue = 1.0f;
+	long row_number = 2;
+	long score_width = panel->score || panel->alternate_score ? 0x32 : 0;
+	long time_width = panel->time ? 0x36 : 0;
+	long name_width = 0xec - score_width - time_width;
+	word text[0x100];
+	text[0] = 0;
+	y += 0x18;
+	work.position[1] = y;
+	work.bounds.top = y;
+	work.bounds.left = x;
+	work.bounds.bottom = y + 0x14;
+	work.bounds.right = x + 0x19;
+	panel->place.initialize(&work.bounds, &background, &foreground, (word const *)L"", 0x14, false);
+	work.bounds.left = x + 0x19;
+	work.bounds.right = work.bounds.left + (short)name_width;
+	long list = score_string_list_1608e0();
+	if (list != NONE) function_1a0180(list, 0x7000105, text);
+	panel->name.initialize(&work.bounds, &background, &foreground, text, 0x14, false);
+	if (score_width)
+	{
+		work.bounds.left = x + 0x19 + (short)name_width;
+		work.bounds.right = work.bounds.left + (short)score_width;
+		list = score_string_list_1608e0();
+		if (list != NONE) function_1a0180(list, 0x70000fd, text);
+		panel->score_label.initialize(&work.bounds, &background, &foreground, text, 0x14, true);
+	}
+	else
+		panel->score_label.valid = false;
+	if (time_width)
+	{
+		work.bounds.left = x + 0x19 + (short)name_width + (short)score_width;
+		work.bounds.right = work.bounds.left + (short)time_width;
+		list = score_string_list_1608e0();
+		if (list != NONE) function_1a0180(list, 0x8000102, text);
+		panel->time_label.initialize(&work.bounds, &background, &foreground, text, 0x14, true);
+	}
+	else
+		panel->time_label.valid = false;
+	panel->field_270.valid = false;
+	for (long team_row = 0; team_row < display.team_count; ++team_row)
+	{
+		real row_fade = (alpha - (real)row_number / fade_count * 0.5f) * 2.0f;
+		real row_alpha = PIN(row_fade, 0.0f, 1.0f);
+		long team = display.teams[team_row];
+		word name[0x100];
+		name[0] = 0;
+		byte *definition = g_4e3b44[g_4e034c->index & 0xffff].bytes;
+		long team_names = *(long *)(*(byte **)(definition + 4) + 0xc);
+		++row_number;
+		if (team_names != NONE)
+		{
+			long handle = function_19fd00(team == NONE ? 8 : team);
+			if (g_47ff38 == NONE)
+				g_47ff38 = function_11ca80(XGetLanguage());
+			long language = g_47ff38;
+			byte *names = g_4e3b44[team_names & 0xffff].bytes;
+			s_string_table *table = (s_string_table *)((byte *)g_4e034c + 0x188 + language * 0x1c);
+			if (table->loaded)
+			{
+				word converted[0x100];
+				char const *source = string_table_find(table, *(short *)(names + 0x10 + language * 4),
+					*(short *)(names + 0x12 + language * 4), handle);
+				utf8_string_to_utf16_string(source, converted, 0x100);
+				wcsncpy((wchar_t *)name, (wchar_t *)converted, 0xff);
+				name[0xff] = 0;
+			}
+		}
+		work.position[1] += 0x14;
+		color3f color;
+		color = *function_7f720(&color, (short)team);
+		byte *entry = scores + team * 0x12;
+		short seconds = *(short *)(entry + (g_4e6948->flag1128 ? 0x1c6 : 0x1c4));
+		bool active = false;
+		if (game_engine_get())
+		{
+			byte teams = ((byte *)g_4e6948)[0x184] & 1;
+			volatile byte observed_teams = teams;
+			if (teams && team >= 0 && team < 8)
+				active = (g_4e9ae8->wc & (1 << team)) != 0;
+		}
+		game_engine_score_row_build(work.position, (s_score_row_columns const *)panel, &color, row_alpha, name,
+			display.team_ranks[team_row] / 2 + 1, *(short *)(entry + 0x1d2), seconds,
+			!active, &panel->teams[team_row]);
+	}
+	panel->team_count = display.team_count;
+	if (display.team_count) work.position[1] += 0x15;
+	for (long player_row = 0; player_row < display.player_count; ++player_row)
+	{
+		long index = display.players[player_row];
+		real row_fade = (alpha - (real)row_number / fade_count * 0.5f) * 2.0f;
+		real row_alpha = PIN(row_fade, 0.0f, 1.0f);
+		byte *player = g_4e8c24->data + (index & 0xffff) * 0x21c;
+		++row_number;
+		long place = display.player_ranks[player_row] / 2 + 1;
+		bool dim = false;
+		bool has_engine = game_engine_get() != NULL;
+		bool teams = has_engine && g_4e6948->flags184.bit0;
+		char team = *(char *)(player + 0xc0);
+		if (teams && team != NONE)
+		{
+			for (long team_row = 0; team_row < display.team_count; ++team_row)
+				if (team == display.teams[team_row])
+				{
+					place = display.team_ranks[team_row] / 2 + 1;
+					break;
+				}
+		}
+		color3f colors[4];
+		function_7f790(teams ? team : NONE, team == NONE, (s_player_appearance *)(player + 0x84), colors);
+		color3f color = colors[0];
+		word flags = *(word *)(player + 2);
+		if ((flags & 2) || !(flags & 1) || team == NONE ||
+			(g_4e6948->value1b8 > 0 && *(long *)(player + 0x2c) == NONE &&
+			*(short *)(player + 0x1ac) == 0))
+			dim = true;
+		work.position[1] += 0x14;
+		bool show_icon = team != NONE && *(long *)(player + 0x2c) == NONE && !(flags & 2);
+		byte *entry = scores + (index & 0xffff) * 0x1c;
+		short seconds = *(short *)(entry + (g_4e6948->flag1128 ? 6 : 4));
+		s_player_row_columns *columns = (s_player_row_columns *)panel;
+		game_engine_player_row_build(work.position, row_alpha, index, (word *)(player + 0x44), place,
+			*(short *)(entry + 0x12), seconds, (bool)((flags >> 1) & 1), show_icon, team == NONE,
+			&color, dim, &panel->players[player_row].row, columns);
+		panel->players[player_row].selected = index == player_index;
+	}
+	panel->player_count = display.player_count;
+}
