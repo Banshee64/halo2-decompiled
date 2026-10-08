@@ -155,10 +155,13 @@ void function_3c9a0(vector3f const *forward, vector3f const *up, s_3c9a0_matrix 
 	matrix->position.z = 0.0f;
 }
 
+struct s_bitmap_view;
+D3DTexture *fetch_bitmap_texture(s_bitmap_view *, dword, real);
+
 // @retail 0x3bcb0
-void function_3bcb0(s_bitmap_data *bitmap)
+D3DTexture *function_3bcb0(s_bitmap_data *bitmap)
 {
-	bitmap_predict_inline((s_bitmap_predict_view *)bitmap, 0xe);
+	return fetch_bitmap_texture((s_bitmap_view *)bitmap, 0xe, 0.0f);
 }
 
 struct s_sort_record
