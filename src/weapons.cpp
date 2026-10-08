@@ -3851,55 +3851,6 @@ void __stdcall function_104150(long weapon_index, short barrel_index)
         synchronized_target, synchronized_node, &synchronized_point);
 }
 
-bool function_cd660(long unit_index);
-
-// @retail 0xfff40
-void __stdcall function_fff40(long weapon_index, bool silent, bool immediate)
-{
-    s_weapon *weapon = WEAPON_GET(weapon_index);
-    s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
-    function_104080(weapon_index);
-    s_weapon *animated_weapon = WEAPON_GET(weapon_index);
-    function_b7360(weapon_index);
-    if (WEAPON_GET(weapon_index)->animation_state_offset != NONE)
-    {
-        s_animation_state *animation = (s_animation_state *)((byte *)animated_weapon + animated_weapon->animation_state_offset);
-        long weapon_type = 0x7000001;
-        long unit_index = function_101f20(weapon_index);
-        if (unit_index != NONE && function_cd660(unit_index)) weapon_type = 0x400054b;
-        bool played = animation->animation_set(0x5000024, 0x7000101, weapon_type, 0x7000001, 0x82, 0x3f);
-        if (!played && weapon_type == 0x400054b)
-            played = animation->animation_set(0x5000024, 0x7000101, 0x7000001, 0x7000001, 0x82, 0x3f);
-        if (played) animated_weapon->state = 9;
-    }
-    s_weapon *current = WEAPON_GET(weapon_index);
-    volatile bool primary;
-    if ((current->item_flags & 1) && current->unit_index != NONE)
-    {
-        s_weapon_unit *unit = WEAPON_UNIT_GET(current->unit_index);
-        short slot = (signed char)*((byte *)unit + 0x212);
-        long primary_index = NONE;
-        if (slot != NONE) primary_index = unit->weapon_indices[slot];
-        primary = primary_index == weapon_index;
-    }
-    if (!silent) function_1039a0(weapon_index, WEAPON_LONG_AT(definition, 0x144), NONE, 0.0f, 0.0f);
-    if (immediate)
-        weapon->state_ticks = 0;
-    else
-    {
-        WEAPON_BYTE_AT(weapon, 0x16c) &= 0xdf;
-        real time = (real)g_510c54->field_2_3 * WEAPON_REAL_AT(definition, 0x138);
-        long ticks;
-        __asm
-        {
-            fld time
-            fistp ticks
-        }
-        WEAPON_SHORT_AT(weapon, 0x19e) = (short)ticks;
-        weapon->state_ticks = first_person_weapon_animation_ticks(weapon_index, 0x5000024, 1);
-    }
-}
-
 // @retail 0xfd980
 void __stdcall function_fd980(long weapon_index)
 {
