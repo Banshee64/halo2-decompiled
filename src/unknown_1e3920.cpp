@@ -783,11 +783,15 @@ void __stdcall function_1e2570(long actor_index, word type, long object_index, r
 		{
 			if (*(long *)(actor + 0x18) != NONE)
 				function_20ba60(3, *(long *)(actor + 0x18), object_index, NONE, type, NULL);
+			real incoming = *(real volatile *)&amount;
 			*(long *)(actor + 0x308) = time;
-			*(real *)(actor + 0x318) = amount + *(real *)(actor + 0x318);
+			*(real *)(actor + 0x318) += incoming;
 		}
 		else
-			*(real *)(actor + 0x318) = amount + *(real *)(actor + 0x318);
+		{
+			real incoming = *(real volatile *)&amount;
+			*(real *)(actor + 0x318) += incoming;
+		}
 		if (*(long *)(actor + 0x18) != NONE)
 		{
 			actor = (byte *)actor_get(actor_index);

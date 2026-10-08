@@ -364,7 +364,7 @@ void function_1e22d0(long actor_index, bool conditional)
  for (short slot_index = 0; slot_index <= actor->current; ++slot_index)
  {
   short type = actor->slots[slot_index].type;
-  s_slot_handler *handler = g_46eeb8[type];
+  s_slot_handler volatile const *handler = g_46eeb8[type];
   t_slot_notify callback = handler->notify34;
   if (callback)
    callback(actor_index, slot_index < 4 ? &actor->slots[slot_index] : NULL, conditional);
