@@ -1728,7 +1728,7 @@ void function_1e3b00(long object_index, long mode, point3f const *reference,
 long function_11c010(short row, short column);
 short __stdcall function_272af0(s_match_globals *arg_0, point3f const *arg_1);
 short __stdcall function_1c8df0(long arg_0, void const *arg_1, short arg_2, short arg_3,
-	point3f const *arg_4, long arg_5, bool arg_6, bool arg_7, bool arg_8, bool arg_9);
+	point3f const *arg_4, long arg_5, bool arg_6, bool arg_7, bool arg_8, long *arg_9);
 real normalize2d(point2f *v);
 
 // @retail 0x25f7b0
@@ -1833,5 +1833,5 @@ void __stdcall function_25f7b0(long arg_0, s_type_967e20 *arg_1, s_type_b36ac5 *
 		local_23 = arg_2->definition->unknown12;
 	arg_2->type = function_1c8df0(*(long *)((byte *)arg_1 + 0x648), (byte *)arg_1 + 0x638,
 		*(short *)((byte *)arg_1 + 0x660), local_23, &local_21, local_14, true,
-		local_0->unknown26c != NONE, local_22, false);
+		local_0->unknown26c != NONE, local_22, NULL);
 }

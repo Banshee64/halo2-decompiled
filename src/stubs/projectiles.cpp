@@ -11,8 +11,6 @@ void __stdcall function_b93b0(long parent_index, long object_index, long node_in
 // @stub 0x1e2930
 void __stdcall function_1e2930(long object_index, long actor_index) { }
 struct s_damage_owner;
-// @stub 0x1ca690
-void __stdcall function_1ca690(long object_index, void const *data, long a, long b, long c) { }
 struct s_collision_result_1697c0;
 struct s_type_1e6529;
 // @stub 0x184060

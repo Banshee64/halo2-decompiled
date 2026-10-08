@@ -10,6 +10,28 @@
 #include "object_iterator.h"
 #include "havok_reference.h"
 #include <xtl.h>
+
+extern bool g_47f05b;
+
+struct s_1c4260
+{
+ byte *field_0;
+ byte *field_4;
+ byte field_8[8];
+};
+struct s_1c4261
+{
+ byte field_0[0x68];
+ s_1c4260 *field_68;
+ long field_6c;
+};
+
+PRIVATE __forceinline hkRigidBody *function_1c4261(byte *arg_0)
+{
+ long local_0 = *(long *)(arg_0 + 8);
+ byte *local_1 = arg_0 - 0x10;
+ return local_0 == 1 ? *(hkRigidBody **)(local_1 + 0x20) : NULL;
+}
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -1046,6 +1068,103 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 
 
 void function_bba20(long object_index);
+
+PRIVATE __forceinline void function_1c4262(long arg_0)
+{
+ s_havok_object *local_0 = havok_object_get(arg_0);
+ if (local_0->havok_component_index != NONE)
+ {
+  long local_1 = local_0->havok_component_index;
+  s_havok_component *local_2 = havok_component_get(local_1);
+  long local_3 = local_2->object_index;
+  local_2->~s_havok_component();
+  record_pool_release(g_51e9b8, local_1);
+  s_havok_object *local_4 = havok_object_get(local_3);
+  if (TEST_FIELD_BIT(local_4->havok_flag))
+  {
+   local_4->havok_flag = 0;
+   --*g_51e9a0;
+  }
+  local_0->havok_component_index = NONE;
+ }
+ local_0 = havok_object_get(arg_0);
+ if (TEST_FIELD_BIT(local_0->havok_flag))
+ {
+  local_0->havok_flag = 0;
+  --*g_51e9a0;
+ }
+}
+
+// @retail 0x1c4260
+void function_1c4260()
+{
+ if (g_51e9a4 && !g_47f05b)
+ {
+  g_47f05b = true;
+  for (long local_0 = 0; local_0 < g_51e9a4->m_island_count; ++local_0)
+  {
+   hkSimulationIsland *local_1 = g_51e9a4->m_islands[local_0];
+   long local_2 = ((s_1c4261 *)local_1)->field_6c;
+   if (local_2 > 24)
+   {
+    for (long local_3 = 0; local_3 < ((s_1c4261 *)local_1)->field_6c; ++local_3)
+    {
+     s_1c4260 *local_4 = &((s_1c4261 *)local_1)->field_68[local_3];
+     hkRigidBody *local_5 = function_1c4261(local_4->field_0);
+     hkRigidBody *local_6 = function_1c4261(local_4->field_4);
+     if (local_5->m_motion->getType() == 7 || local_5->m_motion->getType() == 6 ||
+         local_6->m_motion->getType() == 7 || local_6->m_motion->getType() == 6)
+      --local_2;
+    }
+    if (local_2 > 24)
+    {
+     long local_7 = NONE;
+     for (long local_8 = 0; local_8 < 3 && local_7 == NONE; ++local_8)
+     {
+      long local_9 = 0x80000000;
+      for (long local_10 = 0; local_10 < local_1->m_entity_count; ++local_10)
+      {
+       hkEntity *local_11 = local_1->m_entities[local_10];
+       long local_12 = ((s_physics_entity_view *)local_11)->priority;
+       if (local_12 > local_9)
+       {
+        long local_13 = function_1c3f30(local_11, local_8, true, false, NONE);
+        if (local_13 != NONE)
+        {
+         local_9 = local_12;
+         local_7 = local_13;
+        }
+       }
+      }
+     }
+     if (local_7 != NONE)
+     {
+      s_physics_effect_globals *local_14 = ((s_tag_header_globals_physics_view *)g_4e034c)->effect;
+      s_physics_object *local_15 = physics_object_get(local_7);
+      if (local_14->effect_index != NONE)
+       function_1765e0(&((s_physics_object_detach_view *)local_15)->position,
+        &((s_physics_object_detach_view *)local_15)->velocity, g_4687b0, local_14->effect_index, 0, true);
+      local_15 = physics_object_get(local_7);
+      if (local_15->havok_component_index != NONE)
+       function_1d1260((s_havok_component *)havok_component_flags_get(local_15->havok_component_index));
+      local_15->bit6 = false;
+      bool local_16 = TEST_FIELD_BIT(physics_object_get(local_7)->bit6);
+      if (local_16)
+       function_146bf0();
+      function_1c4262(local_7);
+      if (local_16)
+      {
+       function_278f00();
+       function_146bf0();
+      }
+      function_b8540(local_7);
+     }
+    }
+   }
+  }
+  g_47f05b = false;
+ }
+}
 
 // @retail 0x1c4a20
 void function_1c4a20(hkEntity const *entity)
