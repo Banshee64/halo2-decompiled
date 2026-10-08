@@ -1246,7 +1246,7 @@ void function_1391ed(void)
 }
 
 real function_1591e0(long arg_1);
-void function_44370(long arg_1);
+bool __stdcall function_44370(long arg_1);
 bool function_15dea0(void);
 bool function_161b60(long arg_1);
 bool function_15fef0(long arg_1);

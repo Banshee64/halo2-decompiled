@@ -62,18 +62,8 @@ void function_13aa27(long arg_1, byte const *arg_2, byte *arg_3, long arg_4, byt
 {
 }
 
-// @stub 0x44370
-void function_44370(long arg_1)
-{
-}
-
 // @stub 0x159880
 void function_159880(void)
-{
-}
-
-// @stub 0x200462
-void function_200462(long arg_1)
 {
 }
 
