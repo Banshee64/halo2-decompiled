@@ -1628,6 +1628,7 @@ void function_126360(long sound_index)
 // @retail 0x126df0
 void function_126df0(long fade_in_index, long fade_out_index, short curve, real duration)
 {
+	real const volatile *local_0 = &duration;
 	if (fade_in_index != NONE)
 	{
 		s_sound_playback *sound = SOUND_PLAYBACK_GET(fade_in_index);
@@ -1638,7 +1639,7 @@ void function_126df0(long fade_in_index, long fade_out_index, short curve, real 
 			sound->fade_gain = 0xc2800000;
 		sound->fade_curve = curve;
 		sound->fade_start_time = NONE;
-		sound->fade_end_time = (long)(duration * 1000.0f);
+		sound->fade_end_time = (long)(*local_0 * 1000.0f);
 		sound->fading = true;
 	}
 	if (fade_out_index != NONE)
@@ -1647,7 +1648,7 @@ void function_126df0(long fade_in_index, long fade_out_index, short curve, real 
 
 		sound->fade_gain = function_12a810(fade_out_index);
 		sound->fade_curve = curve;
-		sound->fade_start_time = (long)(duration * 1000.0f);
+		sound->fade_start_time = (long)(*local_0 * 1000.0f);
 		sound->fade_end_time = NONE;
 		sound->fading = true;
 	}

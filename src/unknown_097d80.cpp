@@ -133,9 +133,9 @@ void c_aggregate::v8(long a, long b)
 // @retail 0x97f60
 void function_97f60(s_handle_peers *t, long a, c_handle_table_450cd0 *self)
 {
+	self->table = t;
 	self->shift = a;
 	self->bit = 1 << a;
-	self->table = t;
 	self->head = 0;
 	self->node = 0;
 	for (long i = 0; i < 1024; i++)

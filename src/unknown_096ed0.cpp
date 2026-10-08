@@ -383,6 +383,18 @@ struct s_sender
 	long unknown24;
 };
 
+static __forceinline void function_96ed1(void *arg_0)
+{
+	long local_0;
+	if (!g_4d87f8->allocator->get_info(arg_0, &local_0))
+		local_0 = NONE;
+	c_allocator *local_1 = g_4d87f8->allocator;
+	s_allocator_globals *local_2 = g_4d87f8;
+	local_1->release(arg_0, NONE);
+	if (arg_0 != 0)
+		local_2->count--;
+}
+
 // @retail 0x96ed0
 void function_96ed0(s_sender *self)
 {
@@ -445,7 +457,7 @@ void function_96ed0(s_sender *self)
 					}
 					owner->count--;
 					if (node->block != 0)
-						free_block(node->block);
+						function_96ed1(node->block);
 					free_block(node);
 				}
 			}

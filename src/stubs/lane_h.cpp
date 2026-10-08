@@ -31,16 +31,7 @@ c_class_1473c9 *__stdcall function_18f474(s_screen_parameters *parameters)
 }
 
 
-// @stub 0xb3610
-bool function_b3610(void)
-{
-	return false;
-}
 
-// @stub 0xb3670
-void function_b3670(void)
-{
-}
 
 // @stub 0x59570
 long function_59570(void)
