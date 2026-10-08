@@ -117,7 +117,7 @@ struct s_variant_string_list_view
 
 void *function_1482e8(void);
 long function_11ca80(long value);
-const char *string_table_find(s_string_table *table, long first, long count, long string_handle);
+__declspec(noinline) const char *string_table_find(s_string_table *table, long first, long count, long string_handle);
 void utf8_string_to_utf16_string(const char *source, word *destination, long destination_count);
 void utf16_string_to_utf8_string(const word *source, char *destination, long destination_size);
 
@@ -244,7 +244,7 @@ void function_193c00(s_built_variant *variant, long name_string, long descriptio
 
 /* fills one of the seven built-in variants */
 // @retail 0x193c70
-void function_193c70(long index, s_built_variant *variant)
+void function_193c70(s_built_variant *variant, long index)
 {
 	memset(variant, 0, sizeof(*variant));
 	switch (index)

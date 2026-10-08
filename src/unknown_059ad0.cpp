@@ -1628,13 +1628,14 @@ bool network_session_id_differs(c_class_58d20 *session, const s_parameters_part 
 // @retail 0x5c010
 bool network_session_parameters_set_data5ddc(c_class_58d20 *session, const s_parameters_part *data)
 {
+	bool local_0 = false;
 	if (session_state_is_live(session))
 	{
 		if (data && !network_session_id_differs(session, data))
-			return false;
+			goto local_1;
 		if (session_state_is_live(session) && function_058d50(session))
 		{
-			if (session->function_058d20())
+			if (session->state == 5 || session->state == 6 || session->state == 7 || session->state == 8)
 			{
 				if (data)
 				{
@@ -1660,10 +1661,11 @@ bool network_session_parameters_set_data5ddc(c_class_58d20 *session, const s_par
 				}
 				network_session_send_to_host(session, _network_message_type_parameters_request, sizeof(request), &request);
 			}
-			return true;
+			local_0 = true;
 		}
 	}
-	return false;
+local_1:
+	return local_0;
 }
 
 // @retail 0x5c1c0
@@ -3279,8 +3281,24 @@ bool __stdcall network_session_host(c_class_58d20 *session, long mode, long loca
 	return result;
 }
 /* sets a session up as owner owner_index of the observer */
+struct s_59ad0
+{
+ byte field_0[0x14];
+ c_network_channel_owner *field_14;
+ long field_18;
+ long field_1c;
+};
+
+static __forceinline s_59ad0 *function_59ad0(s_59ad0 *arg_0, c_class_58d20 *arg_1)
+{
+ arg_0->field_18 = NONE;
+ arg_0->field_1c = NONE;
+ arg_0->field_14 = (c_network_channel_owner *)arg_1;
+ return arg_0;
+}
+
 // @retail 0x59ad0
-bool network_session_initialize(c_class_58d20 **sessions, s_network_observer *observer, c_class_58d20 *session, long owner_index, long value14, long value38, void *unknown04)
+bool network_session_initialize(long owner_index, s_network_observer *observer, c_class_58d20 *session, c_class_58d20 **sessions, long value14, long value38, void *unknown04)
 {
 	session->value14 = value14;
 	session->value38 = value38;
@@ -3289,10 +3307,8 @@ bool network_session_initialize(c_class_58d20 **sessions, s_network_observer *ob
 	*(c_class_58d20 ***)session->unknown0c = sessions;
 	session->value10 = owner_index;
 	sessions[owner_index] = session;
-	s_network_observer_owner *owner = &observer->owners[session->value10];
-	owner->key_index = NONE;
-	owner->local = NONE;
-	owner->active = (c_network_channel_owner *)session;
+	s_59ad0 *local_0 = (s_59ad0 *)((byte *)observer + sizeof(s_network_observer_owner) * session->value10);
+	function_59ad0(local_0, session);
 	session->value18 = NONE;
 	session->member_index = NONE;
 	session->flag48 = false;

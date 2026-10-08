@@ -17,7 +17,7 @@ void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity
 void function_b7360(long object_index);
 void __stdcall function_b8600(long object_index, long unknown);
 void function_b7290(long object_index);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void __stdcall function_bd020(long object_index);
 
 struct s_object_list;

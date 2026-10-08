@@ -201,7 +201,11 @@ word collision_object_flags(long object_index)
 /* the lookup of 0x1efb40 (unknown_1efac0.cpp) */
 struct s_lookup
 {
-	byte unknown00[0x14];
+	long handle;
+	void *tag_a;
+	void *tag_b;
+	void *pointer_a;
+	void *pointer_b;
 
 	bool initialize(long object_handle);
 };
@@ -553,8 +557,115 @@ bool function_244980(long cluster_index, point3f const *point, vector3f const *v
 long function_b8940(short cluster_index, s_object_cluster_reference **reference, s_object_cluster_iterator *iterator);
 long function_b89b0(s_object_cluster_reference **reference, s_object_cluster_iterator *iterator);
 bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
-bool function_169510(long object_index, bool a, dword flags, dword test_flags, point3f const *point,
+bool __stdcall function_169510(long object_index, bool a, dword flags, dword test_flags, point3f const *point,
 	vector3f const *vector, long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+
+struct s_lookup_ray_hit_ad
+{
+	real t;
+	plane3f const *plane;
+	long surface_reference[3];
+	byte surface_flags[2];
+	short surface_index;
+	long leaf_count;
+	long leaves[256];
+};
+
+struct s_lookup_ray_result
+{
+	dword position;
+	short node;
+	short item;
+	s_lookup_ray_hit_ad hit;
+};
+
+bool function_1eff40(s_lookup *lookup, long flags, point3f const *point,
+	vector3f const *direction, s_lookup_ray_result *result);
+void function_d8ae0(long object_index, long region_index, short *material);
+bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
+
+// @retail 0x169510
+bool __stdcall function_169510(long object_index, bool a, dword flags, dword test_flags, point3f const *point,
+	vector3f const *vector, long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result)
+{
+	(void)&object_index; (void)&a; (void)&flags; (void)&test_flags; (void)&point;
+	(void)&vector; (void)&ignore_object_index; (void)&ignore_unit_index; (void)&result;
+	volatile bool found = false;
+	s_lookup lookup;
+	s_lookup_ray_result hit;
+	short material;
+	do
+	{
+		s_collision_object_header *header = &((s_collision_object_header *)g_4e0300->data)[object_index & 0xffff];
+		s_collision_object *object = header->object;
+		if (a || (collision_object_test(object_index, header, object, flags, ignore_object_index, ignore_unit_index) &&
+			function_11e5e0(point, (point3f const *)((byte *)object + 0x40), vector, *(real *)((byte *)object + 0x4c))))
+		{
+			if (lookup.initialize(object_index) && function_1eff40(&lookup, test_flags, point, vector, &hit) && result->t > hit.hit.t)
+			{
+				result->type = 4;
+				function_d8ae0(lookup.handle, hit.hit.surface_index, &material);
+				result->material_type = material;
+				result->instance_index = NONE;
+				result->unknown3c = NONE;
+				*(short *)result->unknown44 = hit.item;
+				*(short *)(result->unknown44 + 2) = hit.node;
+				*(dword *)(result->unknown44 + 4) = hit.position;
+				result->unknown40 = object_index;
+				function_168b40((s_168b40_result *)result, (s_168b40_surface const *)&hit.hit,
+					(transform4x3f const *)lookup.pointer_b + hit.node);
+				found = true;
+				if (flags & 0x10000000) goto done;
+			}
+			if (!(flags & 0x20000))
+			{
+				long child_index = *(long *)((byte *)object + 0x10);
+				if (child_index != NONE && function_169510(child_index, false, flags, test_flags, point, vector,
+					ignore_object_index, ignore_unit_index, result))
+				{
+					found = true;
+					if (flags & 0x10000000) goto done;
+				}
+			}
+		}
+		object_index = *(long *)((byte *)object + 0xc);
+	} while (object_index != NONE);
+done:
+	return found;
+}
+
+struct s_biped_ground_collision;
+struct s_location;
+extern short g_4686c4;
+void function_11bed0(s_location *location, point3f const *point);
+
+// @retail 0x1696d0
+bool function_1696d0(long flags, s_biped_ground_collision *output, long object_index,
+	point3f const *point, vector3f const *vector, long ignore_object_index, long ignore_unit_index)
+{
+	s_collision_result_1697c0 *collision = (s_collision_result_1697c0 *)output;
+	collision->type = 0;
+	collision->t = 1.0f;
+	collision->start_location.leaf_index = NONE;
+	collision->start_location.cluster_index = NONE;
+	collision->start_location.bsp_index = g_4686c4;
+	collision->end_location.leaf_index = NONE;
+	collision->end_location.cluster_index = NONE;
+	collision->end_location.bsp_index = g_4686c4;
+	collision->instance_index = NONE;
+	collision->unknown3c = NONE;
+	collision->unknown40 = NONE;
+	bool found = false;
+	if ((flags & 8) && !(flags & 0x1fff0)) flags |= 0x1fff0;
+	if (!object_or_parent_hidden(object_index))
+		found = function_169510(object_index, false, flags, collision_flags_to_test_flags(flags),
+			point, vector, ignore_object_index, ignore_unit_index, collision);
+	collision->point.x = point->x + vector->i * collision->t;
+	collision->point.y = point->y + vector->j * collision->t;
+	collision->point.z = point->z + vector->k * collision->t;
+	function_11bed0((s_location *)&collision->end_location, &collision->point);
+	return found;
+}
 struct s_location;
 void function_11bed0(s_location *location, point3f const *point);
 
@@ -681,18 +792,7 @@ bool __stdcall function_168f40(long flags, s_vehicle_ray const *ray,
 	return result;
 }
 
-#if 0
-/* Written but left out of the build (lane C's stub in src/stubs/lane_c.cpp
-   stays): retail keeps this function's standard stack convention (ret 0x18)
-   though nothing holds its address. With our few decompiled callers LTCG
-   passes the result in a register instead, which breaks its matched caller
-   0x10b190. With the `standard` marker the body lines up instruction for
-   instruction except for register choice and the register arguments of its
-   callees 0x1de630, 0x244980, 0xb8940, 0xb89b0 and 0x169510, which are stubs;
-   once they are real, try the marker. */
-/* tests a vector from a point against the structure, its instanced planes,
-   the instanced geometry and the objects of the clusters it crosses */
-/* retail 0x1697c0 (ray_cast_test) */
+// @retail 0x1697c0
 bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *collision)
 {
@@ -972,7 +1072,6 @@ bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const 
 
 	return result;
 }
-#endif
 
 bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
@@ -1065,4 +1164,269 @@ bool function_16a7c0(point3f const *from, point3f const *to, long ignore_object_
 		moved = true;
 	}
 	return moved;
+}
+
+void function_141590(transform4x3f const *in, transform4x3f *out);
+byte *function_183fc0(long index);
+struct s_1de2c1 { long field_0; long field_4[256]; };
+struct s_1de2c2
+{
+    s_1de2c1 field_0, field_404, field_808, field_c0c;
+};
+bool function_1dde10(s_bsp3d const *bsp, short count, dword const *mask,
+    point3f const *point, real radius, s_1de2c2 *hits);
+struct s_245aa0;
+struct s_source_245400;
+struct s_collection_245270;
+void function_245aa0(s_245aa0 const *hits, s_source_245400 const *source,
+    transform4x3f const *matrix, real height, real thickness,
+    long object_index, long position, s_collection_245270 *collection);
+
+PRIVATE __forceinline void sweep_transform_point(transform4x3f const *matrix, point3f const *point, point3f *out)
+{
+    real x = point->x, y = point->y, z = point->z;
+    if (matrix->scale != 1.0f)
+    {
+        x *= matrix->scale;
+        y *= matrix->scale;
+        z *= matrix->scale;
+    }
+    out->x = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x + matrix->position.x;
+    out->y = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x + matrix->position.y;
+    out->z = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x + matrix->position.z;
+}
+PRIVATE __forceinline void sweep_transform_vector(transform4x3f const *matrix, vector3f const *vector, vector3f *out)
+{
+    real x = vector->i, y = vector->j, z = vector->k;
+    if (matrix->scale != 1.0f)
+    {
+        x *= matrix->scale;
+        y *= matrix->scale;
+        z *= matrix->scale;
+    }
+    out->i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+    out->j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+    out->k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
+}
+
+// @retail 0x16a0a0
+void function_16a0a0(long instance_index, dword flags, point3f const *point, real radius,
+    real height, real thickness, s_collection_245270 *collection)
+{
+    s_168d60_bsp_view *bsp = (s_168d60_bsp_view *)g_4e0348;
+    s_168d60_instance *instance = &bsp->instances[instance_index];
+    byte *section = bsp->sections + instance->section_index * 0xc8;
+    if (collision_surface_test((s_collision_result_view const *)section, instance_index, flags))
+    {
+        real dx = instance->center.x - point->x;
+        real dy = instance->center.y - point->y;
+        real dz = instance->center.z - point->z;
+        real extent = instance->radius + radius;
+        if (dz * dz + dx * dx + dy * dy <= extent * extent)
+        {
+            transform4x3f inverse;
+            function_141590(&instance->matrix, &inverse);
+            point3f local_point;
+            real x = point->x, y = point->y, z = point->z;
+            if (inverse.scale != 1.0f)
+            {
+                x *= inverse.scale; y *= inverse.scale; z *= inverse.scale;
+            }
+            local_point.x = inverse.forward.i * x + inverse.left.i * y + inverse.up.i * z + inverse.position.x;
+            local_point.y = inverse.forward.j * x + inverse.left.j * y + inverse.up.j * z + inverse.position.y;
+            local_point.z = inverse.forward.k * x + inverse.left.k * y + inverse.up.k * z + inverse.position.z;
+            s_1de2c2 hits;
+            s_bsp3d const *geometry = (s_bsp3d const *)(section + 0x70);
+            if (function_1dde10(geometry, 8, (dword const *)function_183fc0(instance_index),
+                &local_point, inverse.scale * radius, &hits))
+                function_245aa0((s_245aa0 const *)&hits, (s_source_245400 const *)geometry,
+                    &instance->matrix, height, thickness, NONE, NONE, collection);
+        }
+    }
+}
+
+// @retail 0x1691a0
+bool function_1691a0(long instance_index, dword flags, dword test_flags, point3f const *point,
+    vector3f const *vector, s_collision_result_1697c0 *collision)
+{
+    s_168d60_bsp_view *bsp = (s_168d60_bsp_view *)g_4e0348;
+    s_168d60_instance *instance = &bsp->instances[instance_index];
+    byte *section = bsp->sections + instance->section_index * 0xc8;
+    if (collision_surface_test((s_collision_result_view const *)section, instance_index, flags) &&
+        function_11e5e0(&instance->center, point, vector, instance->radius))
+    {
+        transform4x3f inverse;
+        function_141590(&instance->matrix, &inverse);
+        point3f local_point;
+        vector3f local_vector;
+        sweep_transform_point(&inverse, point, &local_point);
+        sweep_transform_vector(&inverse, vector, &local_vector);
+        s_collision_bsp_test_vector_result hit;
+        if (function_1de630(test_flags, (s_slot_entry_list *)(section + 0x70), &hit, collision->t,
+            8, function_183fc0(instance_index), &local_point, &local_vector))
+        {
+            collision->type = 3;
+            short surface_index = hit.surface_index;
+            collision->material_type = surface_index != NONE ?
+                ((s_1697c0_bsp *)g_4e0348)->materials[surface_index].material_type : g_47d8e0;
+            collision->instance_index = NONE;
+            collision->unknown3c = instance_index;
+            collision->unknown40 = NONE;
+            function_168b40((s_168b40_result *)collision, (s_168b40_surface const *)&hit, &instance->matrix);
+            return true;
+        }
+    }
+    return false;
+}
+
+void __stdcall function_df5f0(long object_index, point3f *center, real *height, real *radius);
+struct s_line_list;
+void function_244ca0(real height, real radius, s_line_list *list, long a, long b, long c,
+    byte d, byte e, short f, point3f const *position);
+bool __stdcall function_1f0230(s_lookup *lookup, point3f const *point, real radius,
+    real height, real thickness, s_collection_245270 *collection);
+
+// @retail 0x16a280
+void __stdcall function_16a280(long object_index, dword flags, point3f const *point,
+    real radius, real height, real thickness, long ignore_object_index, long ignore_object_index2,
+    s_collection_245270 *collection)
+{
+    do
+    {
+        s_collision_object_header *header = &((s_collision_object_header *)g_4e0300->data)[object_index & 0xffff];
+        s_collision_object *object = header->object;
+        if (collision_object_test(object_index, header, object, flags, ignore_object_index, ignore_object_index2))
+        {
+            real dx = object->center.x - point->x;
+            real dy = object->center.y - point->y;
+            real dz = object->center.z - point->z;
+            real extent = object->radius + radius;
+            if (dx * dx + dy * dy + dz * dz <= extent * extent)
+            {
+                switch (object->type)
+                {
+                case 0:
+                {
+                    point3f center;
+                    real object_height, object_radius;
+                    function_df5f0(object_index, &center, &object_height, &object_radius);
+                    center.z += object_height;
+                    function_244ca0(object_height + height, object_radius + thickness,
+                        (s_line_list *)collection, object_index, NONE, NONE, 0, 0xff, NONE, &center);
+                    break;
+                }
+                case 1:
+                case 6:
+                case 7:
+                case 8:
+                case 11:
+                {
+                    s_lookup lookup;
+                    if (lookup.initialize(object_index))
+                        function_1f0230(&lookup, point, radius, height, thickness, collection);
+                    break;
+                }
+                default:
+                    break;
+                }
+                if (!(flags & 0x20000) && object->field_xf86fb0 != NONE)
+                    function_16a280(object->field_xf86fb0, flags, point, radius, height, thickness,
+                        ignore_object_index, ignore_object_index2, collection);
+            }
+        }
+        object_index = object->next_object;
+    }
+    while (object_index != NONE);
+}
+
+extern long g_4e7c20[1024];
+struct s_shapes;
+struct s_shape_counts
+{
+    short count[3];
+};
+
+#include <xmmintrin.h>
+extern void *g_4de2e0;
+extern void *g_4de2e4;
+
+PRIVATE __forceinline long shape_cluster_next(long *next)
+{
+    if (*next != NONE)
+    {
+        s_record_pool *pool = (s_record_pool *)g_4de2e4;
+        byte *entry = pool->data + pool->size * (*next & 0xffff);
+        *next = *(long *)(entry + 8);
+        if (*next != NONE)
+            _mm_prefetch((char const *)(pool->data + pool->size * (*next & 0xffff)), _MM_HINT_T0);
+        return *(long *)(entry + 4);
+    }
+    return NONE;
+}
+
+// @retail 0x16a440
+bool __stdcall function_16a440(dword flags, point3f const *position, real extent, real height,
+    real radius, long ignore_object, long ignore_parent, s_shapes *shapes)
+{
+    s_shape_counts *counts = (s_shape_counts *)shapes;
+    *(long *)&counts->count[0] = 0;
+    counts->count[2] = 0;
+    long test_world = flags & 1;
+    if (test_world || (flags & 0xc))
+    {
+        s_1de2c2 hits;
+        extent += 0.0625f;
+        bool found = function_1dde10((s_bsp3d *)g_4e0340, 256,
+            (dword const *)(g_4ed280 + g_4686c4 * 32 + 1), position, extent, &hits);
+        if (found && test_world)
+            function_245aa0((s_245aa0 const *)&hits, (s_source_245400 const *)g_4e0340,
+                0, height, radius, NONE, NONE, (s_collection_245270 *)shapes);
+        if ((hits.field_c0c.field_0 > 0 && (flags & 4)) || (flags & 8))
+        {
+            ++g_4e7414;
+            g_4e7411 = true;
+            if (flags & 4) { ++g_4e7c1c; g_4e7c18 = true; }
+            if (flags & 8)
+            {
+                ++g_4de2fc;
+                g_4de2f8 = true;
+                if (!(flags & 0x1fff0)) flags |= 0x1fff0;
+            }
+            s_1697c0_bsp *bsp = (s_1697c0_bsp *)g_4e0348;
+            for (long leaf = 0; leaf < hits.field_c0c.field_0; ++leaf)
+            {
+                long cluster = collision_leaf_cluster(hits.field_c0c.field_4[leaf]);
+                if (g_4e7418[(short)cluster] == g_4e7414) continue;
+                g_4e7418[(short)cluster] = g_4e7414;
+                if (flags & 4)
+                {
+                    s_1697c0_cluster *entry = &bsp->clusters[cluster];
+                    for (long i = 0; i < entry->instance_count; ++i)
+                    {
+                        short instance = entry->instances[i];
+                        if (g_4e7c20[instance] == g_4e7c1c) continue;
+                        g_4e7c20[instance] = g_4e7c1c;
+                        function_16a0a0(instance, flags, position, extent, height, radius,
+                            (s_collection_245270 *)shapes);
+                    }
+                }
+                if (flags & 8)
+                {
+                    long next = ((long *)g_4de2e0)[(short)cluster];
+                    for (long object = shape_cluster_next(&next); object != NONE;
+                        object = shape_cluster_next(&next))
+                    {
+                        if (g_4de300[object & 0xffff] == g_4de2fc) continue;
+                        g_4de300[object & 0xffff] = g_4de2fc;
+                        function_16a280(object, flags, position, extent, height, radius,
+                            ignore_object, ignore_parent, (s_collection_245270 *)shapes);
+                    }
+                }
+            }
+            if (flags & 8) g_4de2f8 = false;
+            if (flags & 4) g_4e7c18 = false;
+            g_4e7411 = false;
+        }
+    }
+    return counts->count[0] != 0 || counts->count[1] != 0 || counts->count[2] != 0;
 }

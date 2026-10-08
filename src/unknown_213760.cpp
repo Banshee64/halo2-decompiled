@@ -1150,7 +1150,7 @@ void function_213970(void)
         task.create_file.access = GENERIC_READ | GENERIC_WRITE;
         task.create_file.share_mode = 0;
         task.create_file.creation_disposition = OPEN_ALWAYS;
-        task.create_file.flags = FILE_FLAG_RANDOM_ACCESS;
+        task.create_file.flags = FILE_FLAG_NO_BUFFERING;
         task.create_file.file = (s_file_handle *)&file->handle;
         task.create_file.create_path = false;
         bool volatile done;

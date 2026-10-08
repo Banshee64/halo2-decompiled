@@ -67,7 +67,9 @@ bool function_187ec0(void)
 		long record_index = player_get(g_4e8c20->entries[index])->index24;
 		if (record_index != NONE)
 		{
-			s_player_record record = ((s_player_record *)g_51ea18)[record_index];
+			s_player_record const *local_0 = (s_player_record *)g_51ea18 + record_index;
+			s_player_record record;
+			record = *local_0;
 			result = record.flag1a;
 		}
 	}
@@ -160,14 +162,17 @@ s_globals_element *function_188640(long key)
 {
 	s_globals_element_block_view *globals = (s_globals_element_block_view *)g_4e034c;
 
-	return globals_element_get(globals, function_1885f0(globals, key).m_index);
+	long const *local_0 = &key;
+	c_block_index local_1 = function_1885f0(globals, *local_0);
+	return globals_element_get(globals, local_1.m_index);
 }
 
 // @retail 0x188690
 s_globals_element *function_188690(short index)
 {
 	short const *local_0 = &index;
-	return globals_element_get((s_globals_element_block_view *)g_4e034c, *local_0);
+	long local_1 = *(long const volatile *)local_0;
+	return globals_element_get((s_globals_element_block_view *)g_4e034c, (short)local_1);
 }
 /* the entries of a seat's animations, by element of the globals block */
 struct s_seat_animation_entry
@@ -238,7 +243,12 @@ long function_188090(long tag_index, long index, long type)
 			if (index < animations->count)
 			{
 				s_seat_animation *animation = &animations->animations[index];
-				if ((type ? animation->second_count : animation->first_count) > 0)
+				long local_0;
+				if (type == 0)
+					local_0 = animation->first_count;
+				else
+					local_0 = animation->second_count;
+				if (local_0 > 0)
 				{
 					result = index;
 					break;
@@ -248,9 +258,6 @@ long function_188090(long tag_index, long index, long type)
 			long next = NONE;
 			switch (index)
 			{
-			case 13:
-				next = 14;
-				break;
 			case 16:
 				next = 15;
 				break;
@@ -262,6 +269,9 @@ long function_188090(long tag_index, long index, long type)
 				break;
 			case 20:
 				next = 19;
+				break;
+			case 13:
+				next = 14;
 				break;
 			}
 			index = next;
@@ -318,6 +328,19 @@ real function_188370(long type)
 
 	switch (type)
 	{
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+		result = 10.0f;
+		break;
 	case 11:
 		result = 20.0f;
 		break;

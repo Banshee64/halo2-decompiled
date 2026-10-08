@@ -1082,11 +1082,14 @@ void s_animation_state::transition_offset_compute()
 		__declspec(align(16)) real_quaternion_transform transition = *g_4687d8;
 		__declspec(align(16)) real_quaternion_transform current = *g_4687d8;
 
-		animation_transform_get(channels[2].animation_id, channels[2].get_duration(), &transition);
-		animation_transform_get(channels[0].animation_id, 0.0f, &current);
+		c_type_709360 local_0;
+		*(long *)&local_0 = *(volatile long const *)&channels[2].animation_id;
+		animation_transform_get(local_0, channels[2].get_duration(), &transition);
+		*(long *)&local_0 = *(volatile long const *)&channels[0].animation_id;
+		animation_transform_get(local_0, 0.0f, &current);
 		unknown84.i = current.position.x - transition.position.x;
 		unknown84.j = current.position.y - transition.position.y;
-		unknown84.k = current.position.z - transition.position.z;
+		*(volatile real *)&unknown84.k = current.position.z - transition.position.z;
 		unknown6e |= 2;
 	}
 }
@@ -1154,15 +1157,13 @@ bool s_animation_state::update(animation_event_callback callback, long user, lon
 	c_animation_channel *channel = channels;
 	long i;
 
-	for (i = 0; i < 3; i++, channel++)
+	for (i = 0; result; i++, channel++)
 	{
+		if (i >= 3)
+			break;
 		if (channel_valid(channel))
 		{
 			result &= channel_update(channel, callback, user);
-		}
-		if (!result)
-		{
-			break;
 		}
 	}
 	if (channel_valid(&channels[2]) && (channels[2].unknown11 & 0xa))

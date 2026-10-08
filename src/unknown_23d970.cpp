@@ -10,6 +10,7 @@
 #include "globals.h"
 #include "data_array.h"
 #include "object_iterator.h"
+#include "effects.h"
 
 long function_1366d0(short width, short height, short depth, short format, short alignment, short mipmap_count);
 
@@ -737,6 +738,89 @@ void function_23ecd0(void)
 	g_470a3c[5] = 6;
 	g_470a3c[6] = 7;
 	g_470a3c[7] = 8;
+}
+
+struct s_shader_cache;
+void function_1bbf0(long tag, long first, long second, long third, long fourth, real scale);
+void function_1cf50(void);
+void function_1c590(s_shader_cache *state, long tag, long index);
+void function_1c6b0(void *state);
+void __stdcall function_1c710(void *state);
+void function_1ccb0(long format);
+extern byte g_51f0f0[0x2d8];
+PRIVATE byte const g_43f77a[20] =
+{
+	0x2a, 0x00, 0x03, 0x01, 0x02, 0x02, 0x00, 0x03, 0x03, 0x04,
+	0x02, 0x05, 0x01, 0x06, 0x03, 0x07, 0x03, 0x09, 0x11, 0xff
+};
+extern dword g_4b8348;
+byte g_470a2c;
+byte g_470a39 = 1;
+
+/* Sets the material pass and matrix constants for an interface draw. */
+// @retail 0x23ea80
+bool function_23ea80(long tag, transform4x3f const *matrix, long stage, long pass, long variant)
+{
+	(void)&stage;
+	(void)&pass;
+	(void)&variant;
+	bool result = false;
+	dword kind = ((dword *)g_4e3b44)[(short)tag * 4];
+	long const *reference;
+	if (kind == 0x5052544d || kind == 0x70727433)
+		reference = function_137bd0(tag)->function_x947334();
+	else
+		reference = *(long const **)(g_4e3b44[tag & 0xffff].bytes + 0x24);
+	byte *groups = *(byte **)(g_4e3b44[*reference & 0xffff].bytes + 0x5c);
+	long first = **(word **)(groups + 4) & 0x1ff;
+	long second = (*(word **)(groups + 0xc))[first + stage] & 0x1ff;
+	long shader_tag = *(long *)(*(byte **)(groups + 0x14) + (second + pass) * 10 + 4);
+	byte *shader = *(byte **)(*(byte **)(g_4e3b44[shader_tag & 0xffff].bytes + 0x20) + 4);
+	g_470a2c = 1;
+	g_4b8348 = 0;
+	D3DDevice_SetRenderState(D3DRS_STIPPLEENABLE, 0);
+	real constants[12];
+	constants[0] = matrix->forward.i;
+	constants[1] = matrix->left.i;
+	constants[2] = matrix->up.i;
+	constants[3] = matrix->position.x;
+	constants[4] = matrix->forward.j;
+	constants[5] = matrix->left.j;
+	constants[6] = matrix->up.j;
+	constants[7] = matrix->position.y;
+	constants[8] = matrix->forward.k;
+	constants[9] = matrix->left.k;
+	constants[10] = matrix->up.k;
+	constants[11] = matrix->position.z;
+	D3DDevice_SetVertexShaderConstant(78, constants, 3);
+	function_1bbf0(tag, 0, pass, variant, 0, 10000.0f);
+	function_1cf50();
+	long binding_tag = *(long *)(shader + 0x100);
+	long entry = stage + 7;
+	if (binding_tag != NONE)
+	{
+		byte *bindings = g_4e3b44[binding_tag & 0xffff].bytes;
+		if ((dword)entry < *(dword *)(bindings + 4) &&
+			(dword)(*(long *)(*(byte **)(bindings + 8) + entry * 0x1c + 0xc) >> 4) > 0)
+		{
+			result = true;
+			function_1c590((s_shader_cache *)g_51f0f0, binding_tag, entry);
+			if (g_470a38 && g_470a39)
+				function_1ccb0(43);
+			else
+			{
+				function_1c6b0(g_51f0f0);
+				*(byte const **)(g_51f0f0 + 0x8c) = g_43f77a;
+				if (*(byte const **)(g_51f0f0 + 0xcc) != g_43f77a)
+					g_51f0f0[0x20c] = 1;
+				function_1c710(g_51f0f0);
+			}
+			function_1c710(g_51f0f0);
+			function_23e460();
+			function_23ecd0();
+		}
+	}
+	return result;
 }
 
 static inline dword *push_vertex_data4f(dword *push, long slot, real a, real b, real c, real d)

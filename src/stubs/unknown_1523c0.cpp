@@ -8,10 +8,6 @@ struct s_stats;
 
 
 
-// @stub 0x23f260
-long function_23f260(long a, long b, long c) { return 0; }
-// @stub 0x1523c0
-void function_1523c0() { }
 // @stub 0x15cba0
 void function_15cba0() { }
 // @stub 0x24e59f

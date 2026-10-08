@@ -56,9 +56,10 @@ real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, poin
 
 /* the clusters within 10 world units of a point through the portals,
    starting from the point's cluster, with the shortest distance found to
-   each; returns nothing (the count ends the list with NONE) */
+   each */
+#pragma inline_depth(0)
 // @retail 0x12e960
-void scenario_fog_clusters_find(long cluster_index, point3f const *point, s_fog_cluster_distance *clusters)
+long scenario_fog_clusters_find(long cluster_index, point3f const *point, s_fog_cluster_distance *clusters)
 {
 	s_fog_structure_bsp *local_9e9b6e = (s_fog_structure_bsp *)g_4e0348;
 	dword visited[MAXIMUM_CLUSTERS / 32];
@@ -75,7 +76,9 @@ void scenario_fog_clusters_find(long cluster_index, point3f const *point, s_fog_
 	count = 1;
 	do
 	{
-		s_fog_cluster_distance *entry = &clusters[current++];
+		long local_0 = *(long volatile *)&current;
+		s_fog_cluster_distance *entry = &clusters[local_0];
+		current = local_0 + 1;
 		s_fog_cluster *cluster = &local_9e9b6e->clusters[entry->cluster_index];
 
 		for (long portal_index = 0; portal_index < cluster->portal_count; portal_index++)
@@ -111,4 +114,6 @@ void scenario_fog_clusters_find(long cluster_index, point3f const *point, s_fog_
 		}
 	}
 	while (current < count);
+	return count;
 }
+#pragma inline_depth(255)

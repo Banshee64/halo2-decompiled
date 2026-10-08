@@ -529,10 +529,14 @@ void function_095cf0(s_network_stream_header *header)
 	c_network_reliable_stream *stream = (c_network_reliable_stream *)header;
 	stream->m_unknown05 = false;
 	long sequence = (dword)(g_network_configuration.value16a8 * network_time_now()) / 1000 & 0xff;
-	sequence_window_initialize(&stream->m_message_window, sequence);
+	*(volatile long *)&stream->m_message_window.newest = sequence;
+	*(volatile long *)&stream->m_message_window.oldest = sequence;
+	*(volatile long *)&stream->m_message_window.head = 0;
+	*(volatile long *)&stream->m_message_window.count = 0;
+	stream->m_message_window.valid = true;
 	sequence_window_reset(&stream->m_acknowledgement_window, 0);
-	stream->m_acknowledgement_window.valid = false;
-	stream->m_next_sequence = sequence;
+	*(volatile bool *)&stream->m_acknowledgement_window.valid = false;
+	*(volatile long *)&stream->m_next_sequence = sequence;
 	stream->m_bytes = 0;
 	stream->m_unknown950 = 0;
 	stream->m_unknown954 = 0;
@@ -906,7 +910,8 @@ long c_network_reliable_stream::function_965e0(long *sequence, long *size, long 
 				*size = message->size;
 				*time = message->unknown08;
 				message->flags |= 2;
-				return 4;
+				type = 4;
+				break;
 			}
 		}
 	}
@@ -958,7 +963,7 @@ long function_75890(long time);
 bool __stdcall function_096ce0(c_network_reliable_stream *stream, bool force, long *type, long *sequence)
 {
 	c_network_reliable_stream *const *stream_reference = &stream;
-	long *const *type_reference = &type;
+	long *volatile *type_reference = &type;
 	bool result = false;
 	**type_reference = 0;
 	s_sequence_window *window = &(*stream_reference)->m_message_window;
@@ -972,7 +977,7 @@ bool __stdcall function_096ce0(c_network_reliable_stream *stream, bool force, lo
 			if ((flags & 4) || force || (flags & 1) ||
 				function_75890(message->time) >= stream->m_timeout + g_network_configuration.value16b4)
 			{
-				*type = 6;
+				**type_reference = 6;
 				result = true;
 				*sequence = oldest;
 				sequence_window_advance_1a4840(window, oldest);

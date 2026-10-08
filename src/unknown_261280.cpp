@@ -550,3 +550,45 @@ bool __stdcall function_261ec0(long actor_index, long squad_index, s_261d20_entr
     }
     return result;
 }
+
+#include "unknown_2605d0.h"
+
+// @retail 0x261d20
+short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long maximum_count,
+    s_2605d0_request const *request)
+{
+    s_actor_view *actor = actor_get(actor_index);
+    long count = 0;
+    if (actor->unknown030 != NONE)
+        function_261ec0(actor_index, actor->unknown030, entries, (short *)&count, maximum_count, (s_prop_search *)request);
+    long list_index = *(long *)((byte *)actor + 0x3f4);
+    if (list_index != NONE)
+    {
+        if (request && *(short const *)request == 4 && actor->unknown030 != NONE && (short)count > 0)
+        {
+            byte *squad = g_51e9d8->data + (actor->unknown030 & 0xffff) * 0x98;
+            short definition_index = *(short *)(squad + 0x2a);
+            if (definition_index != NONE && !*((bool *)actor + 0x3c))
+            {
+                byte *definition = *(byte **)((byte *)g_4e0350 + 0x244) + definition_index * 0x7c;
+                dword flags = *(dword *)(definition + 0x24);
+                if (((flags & 0x10) || ((flags & 0x20) && *(short *)(definition + 0x4e) != NONE)) &&
+                    *(long *)(squad + 0x80) != NONE)
+                    return count;
+            }
+        }
+        byte *list = g_51eca4->data + (list_index & 0xffff) * 0x484;
+        for (short index = 0; index < *(short *)(list + 8) && (short)count < maximum_count; ++index)
+        {
+            s_reference reference = { index, (word)(list_index | 0x8000) };
+            if (function_2623a0((s_reference_filter_view const *)request, actor_index, actor, reference) &&
+                function_2624d0(&entries[(short)count], reference))
+            {
+                if (*(short *)(list + 2) == 1)
+                    *(short *)((byte *)&entries[(short)count] + 0x5c) = ((short *)(list + 0x444))[index];
+                ++count;
+            }
+        }
+    }
+    return count;
+}

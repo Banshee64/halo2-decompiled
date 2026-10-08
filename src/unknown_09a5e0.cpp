@@ -343,9 +343,9 @@ bool c_game_engine_player_entity_definition::v19(long a, short *b, long c, long 
 // @retail 0x9aff0
 bool c_game_engine_player_entity_definition::v20(s_entity_slot *entity, long b, long c, long d)
 {
-	bool result = false;
 	long id = entity->id;
 	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
+	bool result = false;
 	long index;
 
 	for (index = 0; index < 16; index++)
@@ -364,10 +364,10 @@ bool c_game_engine_player_entity_definition::v20(s_entity_slot *entity, long b, 
 // @retail 0x9b0a0
 void c_game_engine_player_entity_definition::v21(s_entity_slot *entity)
 {
+	long index = 0;
 	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
-	long index;
 
-	for (index = 0; index < 16; index++)
+	for (; index < 16; index++)
 	{
 		long id = slot_of(manager, index);
 
@@ -428,15 +428,19 @@ bool c_game_engine_player_entity_definition::v23(s_entity_slot *entity, long b, 
 bool c_game_engine_player_entity_definition::v24(s_entity_slot *entity)
 {
 	bool result = false;
-	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
+	s_mp_globals *local_0 = g_4e9ae8;
+	c_engine_peer *manager = g_55e4d0[*(volatile long *)&local_0->engine_index];
+	s_entity_slot *volatile *local_2 = &entity;
+	s_entity_slot *local_3 = *local_2;
+	long local_1 = local_3->id;
 	long index;
 
 	for (index = 0; index < 16; index++)
 	{
-		if (slot_of(manager, index) == entity->id)
+		if (slot_of(manager, index) == local_1)
 			break;
 	}
-	if (index != 16 && entity->id == slot_of(manager, index))
+	if (index != 16 && local_1 == slot_of(manager, index))
 	{
 		g_4e9ae8->slots[(short)index] = NONE;
 		result = true;
@@ -1583,9 +1587,15 @@ bool c_breakable_surface_group_entity_definition::v20(s_entity_slot *entity, dwo
 				if (pair->a != NONE || pair->b != pair->a)
 				{
 					if (!function_184000(pair->b, pair->a))
-						*mask |= 1 << i;
+					{
+						dword local_0 = *mask;
+						*mask = local_0 | (1 << i);
+					}
 					else
-						*mask &= ~(1 << i);
+					{
+						dword local_0 = *mask;
+						*mask = local_0 & ~(1 << i);
+					}
 				}
 			}
 		}
@@ -1610,7 +1620,7 @@ bool c_breakable_surface_group_entity_definition::v23(s_entity_slot *entity, lon
 				long bit = g_4eca80[index].b;
 				if (bsp != NONE || bit != bsp)
 				{
-					if (function_184000(bit, bsp) && *g_4ed280)
+					if ((byte)function_184000(bit, bsp) && *g_4ed280)
 					{
 						dword *bits = (dword *)function_183fc0(bsp);
 						bits[bit >> 5] &= ~(1 << (bit & 31));
@@ -1975,3 +1985,204 @@ void c_damage_aftermath_event_definition::v8(long a, long b, long c, long size, 
 {
 	function_11c9c0(buffer, size, "damage aftermath: relevance=%5.3f", v7(a, b, c));
 }
+
+struct s_9d451
+{
+	long field_0;
+	short field_4;
+	short field_6;
+	short field_8;
+	byte field_a[2];
+	real field_c;
+};
+
+struct s_9d450
+{
+	byte field_0[0x90];
+	short field_90;
+	short field_92;
+	long field_94;
+	short field_98;
+	byte field_9a[2];
+	real field_9c;
+	real field_a0;
+	real field_a4;
+	long field_a8;
+	s_9d451 field_ac[4];
+	short field_ec;
+	byte field_ee;
+	byte field_ef;
+	real field_f0;
+	real field_f4;
+};
+
+static __forceinline real function_9d452(real const *arg_0)
+{
+	real local_0;
+	if (*(volatile real const *)arg_0 < 0.0f)
+		local_0 = 0.0f;
+	else
+	{
+		local_0 = 1.0f;
+		if (!(*(volatile real const *)arg_0 > 1.0f))
+			local_0 = *(volatile real const *)arg_0;
+	}
+	return local_0;
+}
+
+static __forceinline long function_9d453(long arg_0, short arg_1)
+{
+	long local_0 = NONE;
+	if (arg_1 != NONE)
+	{
+		byte *local_1 = (byte *)((s_object_header *)g_4e0300->data)[arg_0 & 0xffff].object;
+		local_0 = ((long *)(local_1 + 0x218))[arg_1];
+	}
+	return local_0;
+}
+
+// @retail 0x9d450
+long c_unit_type::v27(long arg_0, long arg_1, long arg_2, long arg_3)
+{
+	c_unit_type *volatile local_0 = this;
+	s_9d450 *local_2 = (s_9d450 *)arg_3;
+	byte *local_1 = (byte *)((s_object_header *)g_4e0300->data)[arg_0 & 0xffff].object;
+	dword local_3 = (dword)arg_1;
+	long local_4 = function_a5e70(arg_0, local_3 & 0x3ff, arg_3);
+	if (local_3 & 0x400)
+	{
+		short local_6 = NONE;
+		long local_5 = *(long *)(local_1 + 0x13c);
+		short local_7 = *(short *)(local_1 + 0x130);
+		if (local_5 != NONE)
+			local_6 = (short)local_5;
+		if (local_5 == NONE || local_6 == NONE || local_7 == NONE)
+		{
+			if (local_2->field_90 != local_6 || local_2->field_92 != local_7)
+			{
+				local_2->field_90 = local_6;
+				local_2->field_92 = local_7;
+				local_4 |= 0x400;
+			}
+		}
+	}
+	if (local_3 & 0x800)
+	{
+		long local_5 = NONE;
+		short local_6 = NONE;
+		long local_7 = *(long *)(local_1 + 0x14);
+		if (local_7 != NONE)
+		{
+			short local_8 = *(short *)(local_1 + 0x1fc);
+			if (local_8 != NONE)
+			{
+				local_5 = function_a5930(local_7);
+				if (local_5 != NONE)
+					local_6 = local_8;
+			}
+		}
+		if (local_2->field_94 != local_5 || local_2->field_98 != local_6)
+		{
+			local_2->field_94 = local_5;
+			local_2->field_98 = local_6;
+			local_4 |= 0x800;
+		}
+	}
+	if (local_3 & 0x1000)
+	{
+		if (!(fabs(local_2->field_9c - *(real *)(local_1 + 0x15c)) < 0.0001f &&
+			fabs(local_2->field_a0 - *(real *)(local_1 + 0x160)) < 0.0001f &&
+			fabs(local_2->field_a4 - *(real *)(local_1 + 0x164)) < 0.0001f))
+		{
+			local_2->field_9c = *(real *)(local_1 + 0x15c);
+			local_2->field_a0 = *(real *)(local_1 + 0x160);
+			local_2->field_a4 = *(real *)(local_1 + 0x164);
+			local_4 |= 0x1000;
+		}
+	}
+	if ((local_3 & 0x2000) && local_2->field_a8 != *(long *)(local_1 + 0x214))
+	{
+		local_2->field_a8 = *(long *)(local_1 + 0x214);
+		local_4 |= 0x2000;
+	}
+	long local_5 = 18;
+	long local_16 = 4;
+	s_9d451 *local_17 = local_2->field_ac;
+	do
+	{
+		dword local_6 = 1 << (local_5 - 4);
+		if ((local_3 & local_6) || (local_3 & (1 << local_5)))
+		{
+			long local_8 = function_9d453(arg_0, (short)(local_5 - 18));
+			long local_9 = NONE;
+			short local_10 = NONE;
+			long local_11 = 0;
+			long local_12 = 0;
+			real local_13 = 0.0f;
+			if (local_8 != NONE)
+			{
+				byte *local_14 = (byte *)((s_object_header *)g_4e0300->data)[local_8 & 0xffff].object;
+				local_9 = *(long *)local_14;
+				local_10 = *(short *)(local_14 + 0x17e);
+				local_13 = *(real *)(local_14 + 0x184);
+				byte *local_15 = g_4e3b44[local_9 & 0xffff].bytes;
+				if (*(long *)(local_15 + 0x2c0) > 0)
+				{
+					local_11 = *(short *)(local_14 + 0x22c);
+					local_12 = *(short *)(local_14 + 0x22a);
+				}
+			}
+			s_9d451 *local_14 = local_17;
+			if ((local_3 & local_6) && (local_14->field_0 != local_9 || local_14->field_4 != local_10))
+			{
+				local_4 |= local_6;
+				local_14->field_0 = local_9;
+				local_14->field_4 = local_10;
+			}
+			dword local_7 = 1 << local_5;
+			if ((local_3 & local_7) && (local_14->field_6 != local_11 || local_14->field_8 != local_12 || local_14->field_c != local_13))
+			{
+				local_4 |= local_7;
+				local_14->field_6 = (short)local_11;
+				local_14->field_8 = (short)local_12;
+				local_14->field_c = local_13;
+			}
+		}
+		local_17++;
+		local_5++;
+	}
+	while (--local_16);
+	if ((local_3 & 0x400000) && local_2->field_ec != *(short *)(local_1 + 0x23e))
+	{
+		local_2->field_ec = *(short *)(local_1 + 0x23e);
+		local_4 |= 0x400000;
+	}
+	if (local_3 & 0x800000)
+	{
+		real local_5 = function_9d452((real *)(local_1 + 0x2b0));
+		real local_6 = function_9d452((real *)(local_1 + 0x2b8));
+		byte local_7 = (byte)((*(dword *)(local_1 + 0x134) >> 3) & 1);
+		bool local_8 = false;
+		bool local_9 = false;
+		bool local_10 = false;
+		if (local_2->field_ee != local_7)
+		{
+			local_2->field_ee = local_7;
+			local_8 = true;
+		}
+		if (local_2->field_f0 != local_5)
+		{
+			local_2->field_f0 = local_5;
+			local_9 = true;
+		}
+		if (local_2->field_f4 != local_6)
+		{
+			local_2->field_f4 = local_6;
+			local_10 = true;
+		}
+		if (local_8 || local_9 || local_10)
+			local_4 |= 0x800000;
+	}
+	return local_4;
+}
+

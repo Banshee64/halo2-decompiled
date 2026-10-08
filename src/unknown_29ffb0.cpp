@@ -41,7 +41,7 @@ struct s_object;
 s_object *function_badc0(long arg_0, dword arg_1);
 vector3f *function_11d090(vector3f const *arg_0, vector3f *arg_1);
 void function_141590(transform4x3f const *arg_0, transform4x3f *arg_1);
-void function_14e970(long arg_0, point3f const *arg_1, long arg_2);
+bool function_14e970(long arg_0, point3f const *arg_1, long arg_2);
 void function_1874b0(long arg_0, vector3f const *arg_1);
 
 // @retail 0x29ffb0

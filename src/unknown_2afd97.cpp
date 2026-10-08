@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "globals.h"
 #include "screen_widgets.h"
+#include "unknown_07f720.h"
 
 void function_23625d(long tag_index);
 c_class_1a2c81 *function_22fa30(c_class_1a2c81 *parent, s_bitmap_block *definition);
@@ -213,6 +214,156 @@ c_widget_45adf0 *function_2baf38(c_class_1a2c81 *parent, s_widget_block_24 *defi
 		parent->add_child(widget);
 	}
 	return widget;
+}
+
+long function_2b014f(s_widget_item *item);
+long function_2b015b(s_widget_item *item);
+long function_2b016d(s_widget_item *item);
+bool function_2b0180(s_widget_item *item);
+bool function_2b0191(s_widget_item *item);
+long function_2b01c7(s_widget_item *item);
+long function_2b01da(s_widget_item *item);
+void function_2b0a14(s_widget_view_2b0a *widget, short index);
+void function_2b12ca(s_widget_view_2b0a *widget, short b, short a, void const *bounds);
+hsv3f *function_1318d0(color3f const *rgb, hsv3f *hsv);
+color3f *function_131a00(hsv3f const *hsv, color3f *rgb);
+
+/* Applies an item's optional text, appearance and bitmap fields to the
+   children of its group widget. */
+// @retail 0x2afeae
+void function_2afeae(s_widget_item *item, c_class_1a2c81 *widget)
+{
+	c_class_1a2c81 **widget_reference = &widget;
+	long tag_index = ((c_widget_45ad18 *)widget)->definition->tag_index;
+	if (tag_index != NONE)
+	{
+		s_widget_group_definition *definition = (s_widget_group_definition *)g_4e3b44[tag_index & 0xffff].bytes;
+		long team_index = function_2b016d(item);
+		word *text_address = (word *)function_2b014f(item);
+		s_player_appearance const *appearance = TEST_FIELD_BIT(item->unknown1) ? (s_player_appearance const *)item->value48 : NULL;
+		long text_id = function_2b015b(item);
+		word *text = TEST_FIELD_BIT(item->unknown4) ? (word *)item->unknown08 : NULL;
+		byte shown = function_2b0191(item);
+		long bitmap_index = function_2b01c7(item);
+		long frame_count = function_2b01da(item);
+		color3f colors[4];
+
+		if (appearance)
+		{
+			function_7f790((short)team_index, function_2b0180(item), appearance, colors);
+		}
+		else
+		{
+			color3f *color = colors;
+			long count = 4;
+			do
+			{
+				*color = *(color3f const *)g_468710;
+				color++;
+			} while (--count);
+			if ((short)team_index != NONE)
+			{
+				color3f team_color;
+				colors[0] = *function_7f720(&team_color, (short)team_index);
+			}
+		}
+
+		for (widget = widget->child; widget; widget = (*widget_reference)->next)
+		{
+			switch (widget->type)
+			{
+			case 9:
+				if (appearance)
+					function_2b12ca((s_widget_view_2b0a *)widget, (short)team_index, (short)bitmap_index, appearance);
+				else
+					widget->value6e = false;
+				break;
+
+			case 8:
+				if (widget->value0a != NONE)
+				{
+					long id = *(long *)definition->bitmaps[widget->value0a].unknown2c;
+					switch (id)
+					{
+					case 0x1400069a:
+						if (appearance || (short)team_index != NONE)
+						{
+							long frame = 0;
+							if (frame_count > 1)
+								frame = frame_count - 1;
+							widget->color = colors[0];
+							widget->value6e = true;
+							function_2b0a14((s_widget_view_2b0a *)widget, (short)frame);
+						}
+						else
+							widget->value6e = false;
+						break;
+					case 0x0900069c:
+						if ((short)bitmap_index != NONE)
+						{
+							function_2b0a14((s_widget_view_2b0a *)widget, (short)bitmap_index);
+							widget->value6e = true;
+						}
+						else
+							widget->value6e = false;
+						break;
+					case 0x0e00069b:
+						widget->value6e = shown != 0;
+						break;
+					}
+				}
+				break;
+
+			case 6:
+				if (widget->value0a != NONE)
+				{
+					long id = definition->texts[widget->value0a].string_handle;
+					switch (id)
+					{
+					case 0x0e00069b:
+						widget->value6e = shown != 0;
+						break;
+					case 0x0b000698:
+					{
+						if (text_id == NONE)
+						{
+							if (!text)
+							{
+								if (!text_address)
+								{
+									widget->value6e = false;
+									break;
+								}
+								widget->function_22f52e()->set_text((word *)text_address);
+							}
+							else
+								widget->function_22f52e()->set_text(text);
+						}
+						else
+							((c_text_widget_45a5e0 *)widget)->function_253b1a(text_id);
+
+						color3f color;
+						if (TEST_FIELD_BIT(item->has_color))
+							color = item->color;
+						else
+						{
+							hsv3f hsv;
+							color = colors[0];
+							function_1318d0(&color, &hsv);
+							hsv.saturation = 0.20833333f;
+							hsv.value = 0.7916667f;
+							function_131a00(&hsv, &color);
+						}
+						widget->color = color;
+						widget->value6e = true;
+						break;
+					}
+					}
+				}
+				break;
+			}
+		}
+	}
 }
 
 /* places a group's widgets at the point */

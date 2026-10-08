@@ -1484,3 +1484,206 @@ void function_14c630(dword valid_mask, s_machine_address const *addresses)
         }
     }
 }
+
+#include <wchar.h>
+void function_158090(long player_index, short old_team);
+void function_1582d0(long player_index, short old_team);
+void function_1583d0(long player_index, short old_value, short new_value);
+
+// @retail 0x14be90
+void __stdcall function_14be90(long player_index, dword const *configuration)
+{
+    s_player *player = player_get(player_index);
+    s_type_b07538 *current = (s_type_b07538 *)((byte *)player + 0x44);
+    __declspec(align(8)) s_type_b07538 previous = *current;
+    *(s_type_b07538 *)((byte *)player + 0xd4) = *(s_type_b07538 const *)configuration;
+    __declspec(align(8)) s_type_b07538 verified = *(s_type_b07538 const *)configuration;
+    player_configuration_verify(&verified);
+    function_158090(player_index, verified.team_index);
+    *current = verified;
+    wcsncmp((wchar_t const *)&previous, (wchar_t const *)current, 0x20);
+    if (previous.team_index != current->team_index)
+        function_1582d0(player_index, current->team_index);
+    if (previous.unknown7d != current->unknown7d)
+        function_1583d0(player_index, current->unknown7d, previous.unknown7d);
+    if (player->unit_index != NONE)
+        function_14bfc0(player_index, player->unit_index);
+}
+
+struct s_spawn_influence
+{
+    point3f point;
+    real value0c, value10, value14, value18, value1c;
+};
+struct s_spawn_influence_list
+{
+    long count;
+    s_spawn_influence influences[0x80];
+};
+void function_23bc40(long player_index, s_spawn_influence_list *list);
+real function_23ba90(point3f const *point, long player_index, bool deterministic,
+    s_spawn_influence_list *list, dword *seed);
+bool function_23bb70(long tag_index, point3f const *position);
+
+// @retail 0x14ef00
+long function_14ef00(long player_index, long tag_index, bool deterministic, bool preserve_counter)
+{
+    s_player *player = player_get(player_index);
+    s_scenario_starting_profiles_view *scenario = (s_scenario_starting_profiles_view *)g_4e0350;
+    short result = NONE;
+    real best = -1000.0f;
+    dword seed = ((1 << (player_index & 0xffff)) ^ g_4e6948->id_b ^ g_4e6948->id_a) + player->unknown218;
+    s_spawn_influence_list influences;
+    function_23bc40(player_index, &influences);
+    for (short index = 0; index < scenario->starting_profile_count; ++index)
+    {
+        s_scenario_starting_profile_view *profile = &scenario->starting_profiles[index];
+        real score = function_23ba90((point3f const *)profile, player_index, deterministic, &influences, &seed);
+        if (score > best && function_23bb70(tag_index, (point3f const *)profile))
+        {
+            result = index;
+            best = score;
+        }
+    }
+    if (!preserve_counter && result != NONE)
+        ++player->unknown218;
+    return result;
+}
+
+#include "object_queries.h"
+void function_11bed0(s_location *location, point3f const *point);
+void function_3f500(long cluster_index);
+extern "C" dword __stdcall GetTickCount();
+dword g_55e738;
+
+// @retail 0x14f0f0
+void function_14f0f0(long player_index)
+{
+    if (*(short *)((byte *)player_get(player_index) + 0x28) != NONE)
+    {
+        dword now = GetTickCount();
+        if (now > g_55e738)
+        {
+            long tag_index = NONE;
+            player_get_representation(player_index, &tag_index, 0);
+            long profile_index = function_14ef00(player_index, tag_index, false, true);
+            if (profile_index != NONE)
+            {
+                s_scenario_starting_profiles_view *scenario = (s_scenario_starting_profiles_view *)g_4e0350;
+                s_location location;
+                function_11bed0(&location, (point3f const *)&scenario->starting_profiles[profile_index]);
+                if (location.cluster_index != NONE)
+                    function_3f500(location.cluster_index);
+            }
+            g_55e738 = now + 250;
+        }
+    }
+}
+
+#pragma pack(push, 2)
+struct s_player_creation_record
+{
+    bool active;
+    bool field_2_2;
+    short controller_index;
+    long value04;
+    s_machine_address machine;
+    dword key[3];
+    byte unknown1a[2];
+    dword configuration[0x24];
+    byte unknownac[0xe4 - 0xac];
+};
+#pragma pack(pop)
+
+// @retail 0x14c090
+void __stdcall function_14c090(long index, bool reuse, s_player_creation_record const *record)
+{
+    (void)&index;
+    (void)&reuse;
+    (void)&record;
+    byte *player = (byte *)player_get(index);
+    s_players_globals *globals = (s_players_globals *)g_4e8c20;
+    long machine_index = NONE;
+    if (!record->field_2_2)
+    {
+        for (long i = 0; i < 16; ++i)
+        {
+            if ((globals->machine_valid_mask & (1 << i)) &&
+                memcmp(&record->machine, &globals->machine_addresses[i], sizeof(record->machine)) == 0)
+            {
+                machine_index = i;
+                break;
+            }
+        }
+    }
+    s_record_pool_iterator iterator;
+    iterator.data = g_4e8c24;
+    iterator.index = NONE;
+    while (data_iterator_next_inlined(&iterator)) {}
+    *(word *)(player + 2) = 0;
+    *(long *)(player + 0x10) = NONE;
+    *(word *)(player + 2) = reuse ? 8 : 0;
+    memcpy(player + 4, record->key, sizeof(record->key));
+    *(short *)(player + 0x1a) = (short)machine_index;
+    memcpy(player + 0x14, &record->machine, sizeof(record->machine));
+    *(short *)(player + 0x1c) = record->controller_index;
+    player[0x3e] = 0;
+    *(short *)(player + 0x17e) = 0;
+    *(short *)(player + 0x17c) = 0;
+    *(long *)(player + 0x194) = 0;
+    *(long *)(player + 0x18c) = 0;
+    player[0x1a7] = 0;
+    *(long *)(player + 0x190) = 0;
+    *(long *)(player + 0x20) = record->value04;
+    *(short *)(player + 0x28) = NONE;
+    *(long *)(player + 0x24) = NONE;
+    *(long *)(player + 0x2c) = NONE;
+    *(long *)(player + 0x30) = NONE;
+    *(long *)(player + 0x34) = NONE;
+    *(short *)(player + 0x2a) = NONE;
+    *(long *)(player + 0x174) = NONE;
+    *(long *)(player + 0x184) = NONE;
+    *(short *)(player + 0x188) = NONE;
+    *(real *)(player + 0x19c) = 1.0f;
+    *(short *)(player + 0x1a4) = NONE;
+    *(long *)(player + 0x1a0) = NONE;
+    *(long *)(player + 0x1b0) = NONE;
+    player[0x1a8] = 0xff;
+    short *mark = (short *)(player + 0x1d8);
+    long count = 8;
+    do
+    {
+        *mark = NONE;
+        mark += 4;
+    } while (--count);
+    function_14be90(index, record->configuration);
+    if (*(short *)(player + 0x1a) != NONE &&
+        *(short *)(player + 0x1a) == ((s_players_globals *)g_4e8c20)->local_machine_index)
+    {
+        player_set_local_user(index, record->controller_index);
+        byte *current = (byte *)player_get(index);
+        long old_controller = *(long *)(current + 0x24);
+        long controller = record->value04;
+        if (old_controller != controller)
+        {
+            if (controller == NONE)
+            {
+                ((s_players_globals *)g_4e8c20)->unknown1c[old_controller] = NONE;
+                --((s_players_globals *)g_4e8c20)->unknown0a;
+                *(long *)(current + 0x24) = NONE;
+            }
+            else
+            {
+                function_14f270(index, NONE);
+                *(long *)(current + 0x24) = controller;
+                ((s_players_globals *)g_4e8c20)->unknown1c[controller] = index;
+                ++((s_players_globals *)g_4e8c20)->unknown0a;
+            }
+        }
+    }
+    if (record->field_2_2)
+    {
+        player[2] |= 2;
+        *(long *)(player + 0x10) = g_510c54->game_time;
+    }
+}

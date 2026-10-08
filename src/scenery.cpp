@@ -7,6 +7,7 @@
 #include "unknown_1dacb0.h"
 #include "unknown_1c62f0.h"
 #include "unknown_1cafc0.h"
+#include "unknown_184250.h"
 
 /* the scenery definition (the tag data) */
 struct s_scenery_definition
@@ -247,6 +248,7 @@ long function_10a460(long object_index)
 /* the scenery object type definition */
 bool __stdcall function_10a1b0(long scenery_index, void *placement, bool *result);
 bool __stdcall function_10a2f0(long scenery_index);
+void __stdcall function_10a240(long scenery_index);
 
 struct s_scenery_type_definition
 {
@@ -260,7 +262,8 @@ struct s_scenery_type_definition
 	void (__stdcall *handler20)(long);
 	void *unknown24[2];
 	bool (__stdcall *handler2c)(long, void *, bool *);
-	void *unknown30[4];
+	void *unknown30[3];
+	void (__stdcall *handler3c)(long);
 	bool (__stdcall *handler40)(long);
 	void *unknown44[11];
 	void (__stdcall *handler70)(long, transform4x3f *);
@@ -279,6 +282,7 @@ s_scenery_type_definition g_467ff0 =
 	{ 0 },
 	function_10a1b0,
 	{ 0 },
+	function_10a240,
 	function_10a2f0,
 	{ 0 },
 	function_10a390
@@ -320,7 +324,10 @@ struct s_scenery_scenario_view
 };
 
 extern long *g_51e9cc;
-void function_b9b90(long object_index, bool disable);
+struct c_shape_global_owner;
+extern c_shape_global_owner *g_51e9d0;
+void function_1c5710(long object_index);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_bba20(long object_index);
 void __stdcall function_bf600(long user, real frame, s_animation_frame_event const *event);
 
@@ -340,6 +347,30 @@ bool __stdcall function_10a1b0(long scenery_index, void *placement, bool *result
 	if (name_index != NONE)
 		g_51e9cc[name_index] = scenery_index;
 	return true;
+}
+
+// @retail 0x10a250
+void __stdcall function_10a250(long scenery_index)
+{
+    s_scenery *scenery = SCENERY_GET(scenery_index);
+    s_184251 state;
+    state.field_0 = false;
+    function_2e90a0(state);
+    if (!(scenery->flags & 2))
+    {
+        s_scenery *current = SCENERY_GET(scenery_index);
+        if (current->placement_index != NONE)
+        {
+            long name_index = ((s_scenery_scenario_view *)g_4e0350)->entries[current->placement_index].name_index - 1;
+            if (name_index != NONE)
+            {
+                if (g_51e9d0 != NULL)
+                    function_1c5710(scenery_index);
+                g_51e9cc[name_index] = NONE;
+            }
+        }
+        scenery->flags |= 2;
+    }
 }
 
 // @retail 0x10a2f0
@@ -456,4 +487,10 @@ bool function_10a520(long object_index)
 		}
 	}
 	return result;
+}
+
+// @retail 0x10a240
+void __stdcall function_10a240(long scenery_index)
+{
+    function_10a250(scenery_index);
 }

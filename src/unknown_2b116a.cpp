@@ -195,6 +195,145 @@ long function_2b0a68(s_widget_view_2b0a *widget)
 	return definition && (definition->flags & 4);
 }
 
+void __stdcall function_2b0565(c_class_2b01eb *widget, long frame);
+void __stdcall function_2b07e2(c_class_2b01eb *widget, long frame);
+
+#include "unknown_234c64.h"
+struct s_13c051;
+void function_147cbc(s_13c051 const *window, dword color);
+void unicode_string_snprintf(word *buffer, long maximum_count, word const *format, ...);
+void function_235d69(short_rectangle2d const *rectangle, real depth,
+    short_rectangle2d const *screen, color4f const *color);
+s_float_rect *function_22ea81(c_class_1a2c81 *widget, s_float_rect *rect, short_rectangle2d const *frame);
+void function_22cd48(c_class_22cc8e *text, short_rectangle2d const *bounds,
+    short_rectangle2d const *clip, real depth, real alpha, short_rectangle2d const *screen);
+
+bool g_54d59f;
+color3f const *g_46873c;
+color4f const *g_4686f8;
+
+// @retail 0x2b07e2
+void __stdcall function_2b07e2(c_class_2b01eb *widget, long frame)
+{
+    s_type_954545 *globals = function_148350();
+    dword alpha = (long)(globals ? *(real *)((byte *)globals + 0x50) * 255.0f : 255.0f);
+    dword red = (long)(globals ? *(real *)((byte *)globals + 0x54) * 255.0f : 255.0f);
+    dword green = (long)(globals ? *(real *)((byte *)globals + 0x58) * 255.0f : 255.0f);
+    dword blue = (long)(globals ? *(real *)((byte *)globals + 0x5c) * 255.0f : 255.0f);
+    dword color = (((alpha << 8) | red) << 8 | green) << 8 | blue;
+    short x, y;
+    function_2363d4((short_rectangle2d const *)frame, &x, &y);
+    bool show_label = g_54d59f && widget->has_screen() && widget->v11() != 6;
+    s_float_rect rectangle;
+    function_22ea81(widget, &rectangle, (short_rectangle2d const *)frame);
+    s_widget_bounds bounds;
+    bounds.top = (short)rectangle.y0 + y;
+    bounds.left = (short)rectangle.x0 + x;
+    bounds.bottom = (short)rectangle.y1 + y;
+    bounds.right = (short)rectangle.x1 + x;
+    function_147cbc((s_13c051 const *)&bounds, color);
+    if (show_label)
+    {
+        c_user_interface_text_buffer_32 text;
+        real depth = widget->get_depth();
+        word label[16];
+        unicode_string_snprintf(label, 16, (word const *)L"%d", widget->value0a);
+        text.setup(label, 0, g_46873c, 0, NONE, 0, NONE);
+        s_widget_bounds outline = widget->bounds;
+        if (outline.right - outline.left > 0 && outline.bottom - outline.top > 0)
+        {
+            outline.left += x;
+            outline.right += x;
+            outline.top += y;
+            outline.bottom += y;
+            function_22cd48(&text, (short_rectangle2d const *)&outline, (short_rectangle2d const *)&outline,
+                depth, widget->animation.scale, (short_rectangle2d const *)frame);
+            function_235d69((short_rectangle2d const *)&outline, depth, (short_rectangle2d const *)frame, g_4686f8);
+        }
+    }
+}
+
+// @retail 0x2b0540
+void c_class_2b01eb::v4(long frame)
+{
+	if (definition)
+	{
+		if ((byte)function_2b0a68((s_widget_view_2b0a *)this))
+			function_2b07e2(this, frame);
+		else
+			function_2b0565(this, frame);
+	}
+}
+
+void function_235f31(s_sprite_element *element, s_float_rect const *from, point2f const *split, dword color, short mode);
+s_type_7ba8e9 *function_2b0b19(s_widget_view_2b0a *widget);
+
+PRIVATE __forceinline long bitmap_channel_round_2b(real value)
+{
+    long result;
+    __asm
+    {
+        fld value
+        fistp result
+    }
+    return result;
+}
+
+// @retail 0x2b0565
+void __stdcall function_2b0565(c_class_2b01eb *widget, long frame)
+{
+    real alpha = widget->animation.scale;
+    short x, y;
+    function_2363d4((short_rectangle2d const *)frame, &x, &y);
+    bool show_label = g_54d59f && widget->has_screen() && widget->v11() != 6;
+    if (*(long *)((byte *)widget->definition + 0x1c) != NONE)
+    {
+        long mode = 0;
+        dword color = bitmap_channel_round_2b(alpha * 255.0f);
+        color = (color << 8) | bitmap_channel_round_2b(widget->color.red * 255.0f);
+        color = (color << 8) | bitmap_channel_round_2b(widget->color.green * 255.0f);
+        color = (color << 8) | bitmap_channel_round_2b(widget->color.blue * 255.0f);
+        s_type_7ba8e9 *bitmap = function_2b0b19((s_widget_view_2b0a *)widget);
+        s_float_rect source;
+        source.x0 = source.y0 = 0.0f;
+        source.x1 = (real)bitmap->width;
+        source.y1 = (real)bitmap->height;
+        s_float_rect rectangle;
+        function_22ea81(widget, &rectangle, (short_rectangle2d const *)frame);
+        rectangle.x0 += x;
+        rectangle.x1 += x;
+        rectangle.y0 -= y;
+        rectangle.y1 -= y;
+        if (*(short *)((byte *)widget->definition + 8) == 1)
+            mode = 1;
+        if (*(real *)((byte *)widget->definition + 0x10) == 0.0f &&
+            *(real *)((byte *)widget->definition + 0x14) == 0.0f)
+        {
+            function_235e5e((s_sprite_element *)bitmap, &source, &rectangle, color, 1, mode);
+        }
+        else
+        {
+            function_235f31((s_sprite_element *)bitmap, &rectangle, (point2f const *)((byte *)widget + 0x7c), color, (short)mode);
+        }
+    }
+    if (show_label)
+    {
+        c_user_interface_text_buffer_32 text;
+        real depth = widget->get_depth();
+        word label[16];
+        unicode_string_snprintf(label, 16, (word const *)L"%d", widget->value0a);
+        text.setup(label, 0, g_46873c, 0, NONE, 0, NONE);
+        s_widget_bounds outline = widget->bounds;
+        function_22cd48(&text, (short_rectangle2d const *)&outline, (short_rectangle2d const *)&outline,
+            depth, alpha, (short_rectangle2d const *)frame);
+        outline.left += x;
+        outline.right += x;
+        outline.top += y;
+        outline.bottom += y;
+        function_235d69((short_rectangle2d const *)&outline, depth, (short_rectangle2d const *)frame, g_4686f8);
+    }
+}
+
 /* the widget's bitmap: the one set, else the definition's */
 // @retail 0x2b0b19
 s_type_7ba8e9 *function_2b0b19(s_widget_view_2b0a *widget)
@@ -5546,7 +5685,7 @@ c_class_1473c9 *__stdcall function_2b19dc(s_screen_parameters *parameters)
 
 struct s_bitmap_view;
 struct s_predicted_resource_block;
-void function_12360(s_bitmap_view *bitmap, real priority);
+D3DTexture *function_12360(s_bitmap_view *bitmap, real priority);
 bool function_16e5e0(s_predicted_resource_block const *block, short mode);
 
 // @retail 0x2b1179

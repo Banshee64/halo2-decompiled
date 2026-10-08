@@ -17,16 +17,6 @@ struct s_effect_owner;
 struct s_effect_source;
 
 
-// @stub 0x3ddd0
-long __stdcall function_3ddd0(long object_index) { return NONE; }
-
-
-// @stub 0xd2bb0
-long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }
-
-// @stub 0xd2a50
-long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, point3f const *point) { return 0; }
-
 
 // @stub 0xc0350
 void function_c0350(long tag_index, long object_index, long node_index, vector3f const *up, vector3f const *forward, point3f const *position, real scale) { }
@@ -34,8 +24,6 @@ void function_c0350(long tag_index, long object_index, long node_index, vector3f
 // @stub 0x16a8e0
 void function_16a8e0(long name, point3f const *point, real radius, long object_index, long unknown, point3f const *origin, real *radius_reference) { }
 
-// @stub 0x156b60
-void function_156b60(s_effect_beam *beam, real progress, transform4x3f const *matrix) { }
 
 /* in region */
 // @stub 0x174a30
@@ -51,5 +39,3 @@ void function_211060(long unknown0, void *physics, s_location *location, long un
 // @stub 0x43890
 void function_43890(void) { }
 
-// @stub 0x23aad0
-void __stdcall function_23aad0(long a, long b, long c) { }

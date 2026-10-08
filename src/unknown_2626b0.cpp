@@ -295,3 +295,12 @@ void __stdcall function_2628f0(long actor_index, s_reference reference)
 	actor->unknown418 = reference;
 }
 
+
+// The comparison is passed to the C runtime sorting routine.
+// @retail 0x2631f0 standard
+int __cdecl function_2631f0(void const *first, void const *second)
+{
+    short first_value = *(short const *)((byte const *)first + 4);
+    short second_value = *(short const *)((byte const *)second + 4);
+    return first_value < second_value ? 1 : -1;
+}

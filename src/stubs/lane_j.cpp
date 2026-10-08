@@ -47,11 +47,6 @@ void __stdcall function_094330(c_class_938e0 *handler, s_session_id const *messa
 
 /* lane J's out-of-band handlers still to write, and the session disband
    counterparts kept out of the build (src/unknown_075800.cpp) */
-// @stub 0x93fa0
-void __stdcall function_093fa0(c_class_938e0 *handler, void const *message)
-{
-}
-
 // @stub 0x94220
 void __stdcall function_094220(c_class_938e0 *handler, s_session_id const *message, s_type_99af70 const *address)
 {
@@ -66,10 +61,6 @@ struct s_network_message_session_query;
 
 /* outside lane J: the system link reply and the out-of-band session
    handlers (lane D's region) */
-// @stub 0xb2fc0
-void __stdcall function_0b2fc0(s_network_message_session_query const *message)
-{
-}
 
 
 class c_simulation_view;

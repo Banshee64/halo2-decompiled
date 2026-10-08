@@ -43,7 +43,7 @@ class c_slots_215541;
 struct s_storage_request;
 extern dword g_54d5b8;
 extern bool g_4ee4e0;
-s_storage_request *__stdcall function_215454(c_slots_215541 *arg_0, bool arg_1);
+s_storage_request *__stdcall function_215454(c_slots_215541 *arg_0, byte arg_1);
 void __stdcall function_215641(c_slots_215541 *arg_0);
 long __stdcall function_2155f4(c_slots_215541 *arg_0, long *arg_1, real *arg_2, long *arg_3);
 void function_1241b0(s_saved_game_read *arg_0);
@@ -58,6 +58,7 @@ struct s_12bbd0
 	long field_4[8];
 };
 
+#pragma inline_depth(0)
 // @retail 0x12bbd0
 void function_12bbd0(void)
 {
@@ -92,3 +93,4 @@ void function_12bbd0(void)
 	function_18f1c0(g_4e6948->state == 1 && *((byte *)g_4e6948 + 0x134) ? 3 : 0);
 	main_globals.quit_game = false;
 }
+#pragma inline_depth(255)

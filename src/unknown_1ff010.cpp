@@ -377,3 +377,58 @@ bool __stdcall function_1ffe00(long actor_index, long object_index)
     *(long *)((byte *)actor + 0x33c) = 0;
     return result;
 }
+
+bool function_1c9290(long arg_0, point3f const *arg_1, vector3f const *arg_2,
+    real arg_3, real arg_4, long arg_5, bool arg_6);
+real normalize2d(point2f *arg_0);
+
+// @retail 0x1ff010
+bool __stdcall function_1ff010(long arg_0, point3f const *arg_1)
+{
+    bool local_0 = false;
+    long const *local_1 = &arg_0;
+    point3f const *const *local_2 = &arg_1;
+    s_actor_view *local_3 = actor_get(*local_1);
+    byte *local_4 = (byte *)function_1e5380(*local_1);
+    if (local_4)
+    {
+        point3f local_5;
+        function_210850((s_type_c3b527 const *)((byte *)local_3 + 0x7d0), &local_5);
+        s_projectile_choice *local_6 = projectile_choice_get(*(short *)(local_4 + 4));
+        long local_7 = NONE;
+        if (local_6 && local_6->definition_index != NONE)
+            local_7 = local_6->definition_index;
+        vector3f local_8;
+        real local_9;
+        real local_10;
+        bool local_11;
+        if (function_fa6a0(local_7, NULL, *local_2, &local_5, NULL, NULL,
+            (real const *)((byte *)local_3 + 0x7f4), *(bool *)((byte *)local_3 + 0x7c6),
+            &local_8, &local_9, &local_10, NULL, &local_11))
+        {
+            point2f local_13;
+            local_13.x = local_8.i;
+            local_13.y = local_8.j;
+            if (!(normalize2d(&local_13) > 0.0f &&
+                local_3->unknown290.j * local_13.y + local_3->unknown290.i * local_13.x > 0.8660253882408142f))
+                return false;
+            vector3f local_14;
+            local_14.i = local_8.i * local_9;
+            local_14.j = local_8.j * local_9;
+            local_14.k = local_8.k * local_9;
+            real local_12;
+            if (local_11)
+                local_12 = 0.0f;
+            else
+                local_12 = function_fa170(local_7);
+            if (function_1c9290(*local_1, *local_2, &local_14, local_10, local_12,
+                *(long *)((byte *)local_3 + 0x7e4), local_3->unknown26c != NONE))
+            {
+                *(vector3f *)((byte *)local_3 + 0x7e8) = local_8;
+                *(real *)((byte *)local_3 + 0x7f4) = local_9;
+                local_0 = true;
+            }
+        }
+    }
+    return local_0;
+}

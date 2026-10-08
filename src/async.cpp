@@ -44,7 +44,8 @@ void function_120900(s_job_node *node)
 {
 	long priority;
 	async_work_callback callback;
-	s_async_insert_state state = { 0 };
+	s_async_insert_state state;
+	memset(&state, 0, sizeof(state));
 	s_job_node *previous = async_globals.work_list;
 
 	if (!previous)
@@ -255,10 +256,15 @@ bool function_120ce0(long job, long priority)
 	return result;
 }
 
+static __forceinline bool function_120d51(bool volatile *arg_0)
+{
+	return *arg_0;
+}
+
 // @retail 0x120d50
 inline void function_120d50(bool volatile *done, bool idle)
 {
-	if (!*done)
+	if (!function_120d51(done))
 	{
 		while (!*done)
 		{

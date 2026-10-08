@@ -13,7 +13,7 @@
 s_screen_definition *function_22f871(c_class_1473c9 *screen);
 void function_08cc20(struct s_name_buffer *buffer, const wchar_t *name);
 void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block const *definition);
-void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, s_widget_bounds const *bounds, color4f const *color, short flags);
+void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, short flags, color4f const *color, s_widget_bounds const *bounds);
 void function_253bc9(c_text_widget_458940 *widget, long subtitle_type);
 void function_253cff(c_class_19b8b1 *button);
 void function_24bc12(c_class_1474e8 *list, bool remove_extra);
@@ -358,7 +358,7 @@ void __stdcall function_22fda6(c_class_1473c9 *screen)
 				function_08cc20((s_name_buffer *)name, (const wchar_t *)screen->title.function_22f52e()->function_22f52e());
 			}
 		}
-		function_2538a6(&screen->title, pane_value, (short)font, &bounds, &color, 1);
+		function_2538a6(&screen->title, pane_value, (short)font, 1, &color, &bounds);
 		c_class_22cc8e *text = screen->title.function_22f52e();
 		c_class_22cc8e *const *text_reference = &text;
 		(*text_reference)->value14 |= 2;
@@ -417,7 +417,7 @@ void __stdcall function_22ff53(c_class_1473c9 *screen)
 			function_08cc20((s_name_buffer *)name, (const wchar_t *)screen->subtitle.function_22f52e()->function_22f52e());
 		}
 	}
-	function_2538a6(&screen->subtitle, pane_value, 1, &bounds, &color, 2);
+	function_2538a6(&screen->subtitle, pane_value, 1, 2, &color, &bounds);
 	screen->subtitle.function_22f52e()->set_text(name);
 	screen->subtitle.value6a = 0x7fff;
 }

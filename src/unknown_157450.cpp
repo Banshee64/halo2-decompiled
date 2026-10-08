@@ -10,6 +10,7 @@
 #include "input_record.h"
 #include "game_engine_events.h"
 #include "unknown_163110.h"
+#include "slot_handler.h"
 #include <string.h>
 #include <math.h>
 
@@ -4063,4 +4064,276 @@ bool function_15f3a0(long local_index, s_player_score_display *display)
     }
     else result = false;
     return result;
+}
+
+struct s_input_state
+{
+    byte unknown00[0x10];
+    byte values[0x38];
+};
+static __forceinline long real_to_long(real value);
+extern byte g_4e61b9;
+extern s_input_state g_4e61dc[3];
+extern s_input_state g_4e630c;
+bool function_162c50(long player_index, long *spectated_player_index);
+
+// @retail 0x15bb20
+void __stdcall function_15bb20(long player_index)
+{
+    long absolute_index = player_index & 0xffff;
+    s_engine_player *player = engine_player_get(player_index);
+    if (player->value194 > 0)
+        --player->value194;
+    if (g_4e6948->mode != 4 && player->unit_index != NONE && function_15b2f0() &&
+        g_510c54->game_time % g_510c54->field_2_3 == 0)
+        function_1967d0(absolute_index, 13, NONE, 1);
+
+    char *seat_timer = (char *)player + 0x1a6;
+    char *dead_timer = (char *)player + 0x1a7;
+    char *alive_timer = (char *)player + 0x1a8;
+    if (player->unit_index != NONE)
+    {
+        byte *unit = (byte *)engine_object_get(player->unit_index);
+        if (*(long *)(unit + 0x14) != NONE && *(short *)(unit + 0x1fc) != NONE)
+        {
+            if (*seat_timer == NONE)
+                *seat_timer = (char)(g_510c54->field_2_3 * 2);
+            else if (*seat_timer > 0)
+                --*seat_timer;
+        }
+        else
+            *seat_timer = NONE;
+        if (player->unit_index != NONE)
+        {
+            if (*dead_timer != NONE && g_4e6948->mode == 4)
+                ++*(short *)((byte *)player + 0x218);
+            *dead_timer = NONE;
+            if (*alive_timer == NONE)
+            {
+                *alive_timer = 0;
+                if (g_4e6948->mode != 4)
+                {
+                    *(long *)((byte *)player + 0x1b0) = NONE;
+                    function_a7840((short)player_index, 0x40);
+                }
+            }
+            else if (*alive_timer < 0x7f)
+                ++*alive_timer;
+        }
+    }
+    else
+    {
+        if (*dead_timer == NONE)
+            *dead_timer = (char)g_510c54->field_2_3;
+        else if (*dead_timer > 0)
+            --*dead_timer;
+        *alive_timer = NONE;
+    }
+
+    short user = *(short *)((byte *)player + 0x28);
+    long controller = *(long *)((byte *)player + 0x24);
+    if (user != NONE && controller != NONE)
+    {
+        bool has_input = g_4e61cc[(short)controller] != 0;
+        bool primary_input = has_input && g_4e61b9;
+        bool active = has_input && (primary_input ? g_4e630c.values[0xd] :
+            g_4e61dc[(short)controller].values[0xd]) != 0;
+        long ticks = g_510c54->field_2_3;
+        long minimum_time = ticks * 3;
+        if (function_15b2f0())
+            g_4e9af0.unknown04[0] = 0;
+        else
+        {
+            long elapsed = (long)g_4e9af0.unknown04[0] + 1;
+            g_4e9af0.unknown04[0] = (byte)(elapsed > ticks ? ticks : elapsed);
+        }
+
+        if ((active || g_4e9af0.unknown04[0] == ticks ||
+            (player->unit_index == NONE && player->value170 <= 1 && !(player->flags & 0x4000) &&
+                !function_15db30(player_index) && g_510c54->game_time > minimum_time && (player->flags & 1))) &&
+            !function_162c50(player_index, &player_index))
+        {
+                long maximum = real_to_long((real)g_510c54->field_2_3 * 0.25f);
+                user = *(short *)((byte *)player + 0x28);
+                long elapsed = (long)g_4e9af0.timers[user] + 1;
+                g_4e9af0.timers[user] = (byte)(elapsed > maximum ? maximum : elapsed);
+                if (has_input)
+                {
+                    short delta = primary_input ? (short &)g_4e630c.values[0x36] :
+                        (short &)g_4e61dc[(short)controller].values[0x36];
+                    real change = (real)(-delta);
+                    change *= 3.0518509447574615e-05f;
+                    change *= 240.0f / (real)g_510c54->field_2_3;
+                    (real &)g_4e9af0.unknown04[4 + user * 4] += change;
+                }
+        }
+        else
+        {
+            user = *(short *)((byte *)player + 0x28);
+            long remaining = (long)g_4e9af0.timers[user] - 1;
+            g_4e9af0.timers[user] = (byte)(remaining > 0 ? remaining : 0);
+        }
+    }
+}
+
+long function_23f360(long mode, long team);
+long function_23f260(long mode, long player_index, long value);
+
+PRIVATE __forceinline long sweep_rank_mode()
+{
+    long mode;
+    if (g_4e6948->flag1128)
+        mode = 1;
+    else
+        mode = 0;
+    return mode;
+}
+
+// @retail 0x158e90
+long function_158e90(long team)
+{
+    return function_23f360(sweep_rank_mode(), team) / 2;
+}
+
+PRIVATE __forceinline bool sweep_team_active(long team)
+{
+    bool result = false;
+    if (g_55e4d0[g_4e9ae8->engine_index])
+    {
+        byte teams = ((byte *)g_4e6948)[0x184] & 1;
+        volatile byte observed_teams = teams;
+        if (teams && team >= 0 && team < 8)
+            result = (function_xaee93d()->team_mask & (1 << team)) != 0;
+    }
+    return result;
+}
+
+// @retail 0x158eb0
+bool function_158eb0()
+{
+    bool result = true;
+    for (long team = 0; team < 8; ++team)
+    {
+        if (sweep_team_active(team) && function_158e90(team) > 0)
+        {
+            result = false;
+            break;
+        }
+    }
+    return result;
+}
+
+// @retail 0x158f50
+bool function_158f50()
+{
+    long count = 0;
+    bool result = true;
+    s_engine_player_iterator iterator;
+    iterator.data = g_4e8c24;
+    iterator.absolute_index = NONE;
+    iterator.index = NONE;
+    while (function_19f240((long *)&iterator))
+    {
+        ++count;
+        if (function_23f260(sweep_rank_mode(), iterator.index, NONE) / 2 > 0)
+        {
+            result = false;
+            break;
+        }
+    }
+    if (count == 1)
+        result = false;
+    return result;
+}
+
+void __stdcall function_19ef40(long unit_index, long *first_count, long *second_count);
+
+// @retail 0x15e970
+void function_15e970(long unit_index)
+{
+    byte *unit = (byte *)engine_object_get(unit_index);
+    long first_limit, second_limit;
+    first_limit = second_limit = (function_xaee93d()->flags & 8) ? 1 : 2;
+    long first_count = first_limit;
+    long second_count = 0;
+    function_19ef40(unit_index, &first_count, &second_count);
+    if (!((bool)((*(dword *)((byte *)g_4e6948 + 0x184) >> 11) & 1)))
+        first_count = second_count = 0;
+    switch (*(char *)((byte *)g_4e6948 + 0x210))
+    {
+    case 15:
+    case 17:
+        second_count += first_count;
+        first_count = 0;
+        break;
+    case 16:
+        first_count += second_count;
+        second_count = 0;
+        break;
+    }
+    if (first_count > first_limit) first_count = first_limit;
+    if (second_count > second_limit) second_count = second_limit;
+    unit[0x23e] = (byte)first_count;
+    unit[0x23f] = (byte)second_count;
+    long simulation_index = engine_object_get(unit_index)->simulation_index;
+    if (simulation_index != NONE)
+        function_b58c0(simulation_index, 0x400000);
+}
+
+#include "font_loading.h"
+#include "unknown_030290.h"
+extern short_rectangle2d g_4b9dd8;
+extern short g_4b9dd0, g_4b9dd2;
+extern long g_4ba04c;
+extern real g_4e69c0[4];
+extern point3f *g_468718;
+void function_13edb0(long font, long style, long justification, dword flags,
+    color4f const *color, color4f const *shadow);
+void function_13ec70(color4f const *color);
+void function_13e8a0();
+class c_1fa50
+{
+public:
+    void function_1fa50(short_rectangle2d const *bounds, void const *clip, void const *position,
+        long line_gap, real scale, long color, void const *shadow) const;
+};
+PRIVATE color3f const score_text_color = { 0.4588235318660736f, 0.729411780834198f, 1.0f };
+PRIVATE color3f const alternate_score_text_color = { 0.8078431487083435f, 0.5607843399047852f, 0.8705882430076599f };
+
+// @retail 0x15e530
+void __stdcall function_15e530(c_1fa50 const *text, real alpha, point2f const *point)
+{
+    (void)&text;
+    (void)&alpha;
+    (void)&point;
+    short_rectangle2d bounds = g_4b9dd8;
+    long font_index = (g_4ba04c <= 1) + 5;
+    s_font_header *font = font_get(g_4e28f4[font_index]);
+    long height = 10;
+    if (font)
+        height = font->leading_height + font->descending_height + font->ascending_height;
+    color3f const *rgb = &score_text_color;
+    if (g_4b9ed8 != NONE)
+    {
+        long player_index = g_4e8c20->entries[g_4b9ed8];
+        if (player_index != NONE)
+        {
+            char appearance = *((char *)engine_player_get(player_index) + 0x88);
+            if (appearance == 1 || appearance == 3)
+                rgb = &alternate_score_text_color;
+        }
+    }
+    real scale = (g_4b9ed8 >= 0 && g_4b9ed8 < 4) ? g_4e69c0[g_4b9ed8] : 1.0f;
+    color4f color = { scale * alpha, rgb->red, rgb->green, rgb->blue };
+    color4f shadow = { scale * alpha, g_468718->x, g_468718->y, g_468718->z };
+    real x = point->x - g_4b9dd2;
+    real y = point->y - g_4b9dd0;
+    bounds.left = (short)(x - 300.0f);
+    bounds.right = (short)(x + 300.0f);
+    bounds.top = (short)(y - (short)height);
+    bounds.bottom = (short)y;
+    function_13edb0(font_index, NONE, 2, 0, &color, &shadow);
+    function_13ec70(&color);
+    text->function_1fa50(&bounds, 0, 0, 0, 1.0f, 0, 0);
+    function_13e8a0();
 }

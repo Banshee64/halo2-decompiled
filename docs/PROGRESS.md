@@ -2,6 +2,249 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7066 functions match
+
+```
+matched 7066 of 11318 game functions (789417 of 2784283 bytes, 28.35%)
+```
+
+7066 new matches, none lost:
+- Merge batch r46: the second machine's first rounds of lanes D (#225, +3) and B (#226, +1).
+
+## 2026-10-08: 7062 functions match
+
+```
+matched 7062 of 11318 game functions (788532 of 2784283 bytes, 28.32%)
+```
+
+7062 new matches, none lost:
+- Merge batch r44: blocker lane BX1 (+1, 0xd47d0).
+
+## 2026-10-08: 7061 functions match
+
+```
+matched 7061 of 11318 game functions (788448 of 2784283 bytes, 28.32%)
+```
+
+7061 new matches, none lost:
+- Merge batch r45: blocker lane BX2 (+1, 0x2b7abe). The full check also showed 0x12ba90 had stopped matching after #222's new 0x12b450 body; 0x12b450 is back to its stub, which restores 0x12ba90 and matches 0x12b690.
+
+## 2026-10-08: 7059 functions match
+
+```
+matched 7059 of 11318 game functions (788228 of 2784283 bytes, 28.31%)
+```
+
+7059 new matches, none lost:
+- Merge batch r43: the second machine's #222 to #224 (lanes L, K and M; +2).
+
+## 2026-10-08: 7057 functions match
+
+```
+matched 7057 of 11318 game functions (788080 of 2784283 bytes, 28.30%)
+```
+
+7057 new matches, none lost:
+- Merge batch r41: the resting-lane sweep, round 3 (+4).
+
+## 2026-10-08: 7053 functions match
+
+```
+matched 7053 of 11318 game functions (787749 of 2784283 bytes, 28.29%)
+```
+
+7053 new matches, none lost:
+- Merge batch r42: the second machine's #219 to #221 (lanes C, P and U; +8 including 0x190e37).
+
+## 2026-10-08: 7045 functions match
+
+```
+matched 7045 of 11318 game functions (786974 of 2784283 bytes, 28.26%)
+```
+
+7045 new matches, none lost:
+- Merge batch r40: the second machine's #218 (lane K round 11, +4), #216, #217 and the #215 follow-up.
+
+## 2026-10-08: 7041 functions match
+
+```
+matched 7041 of 11318 game functions (786455 of 2784283 bytes, 28.25%)
+```
+
+7041 new matches, none lost:
+- Merge batch r39: near-match polish round 3 (+1, 0x86b40).
+
+## 2026-10-08: 7040 functions match
+
+```
+matched 7040 of 11318 game functions (786342 of 2784283 bytes, 28.24%)
+```
+
+7040 new matches, none lost:
+- Merge batch r38: the second machine's #212 to #215 (lanes M, P, O and J; +5).
+
+## 2026-10-08: 7035 functions match
+
+```
+matched 7035 of 11318 game functions (785210 of 2784283 bytes, 28.20%)
+```
+
+7035 new matches, none lost:
+- Merge batch r37: lane Z rounds 11 to 13 (+8), after fixing 0xb9b90's calling convention and the base v16 return type.
+
+## 2026-10-08: 7027 functions match
+
+```
+matched 7027 of 11318 game functions (784651 of 2784283 bytes, 28.18%)
+```
+
+7027 new matches, none lost:
+- Merge batch r36: lane D round 30 (+1).
+
+## 2026-10-07: 7026 functions match
+
+```
+matched 7026 of 11318 game functions (784516 of 2784283 bytes, 28.18%)
+```
+
+7026 new matches, none lost:
+- Merge batch r35: lane W round 20 (+1) and the second machine's #204 to #211 (lanes AC, U, C and F; +12).
+
+## 2026-10-07: 7013 functions match
+
+```
+matched 7013 of 11318 game functions (782562 of 2784283 bytes, 28.11%)
+```
+
+7013 new matches, none lost:
+- Merge batch r34: UI-core rounds 16 and 17 (+2).
+
+## 2026-10-07: 7011 functions match
+
+```
+matched 7011 of 11318 game functions (781916 of 2784283 bytes, 28.08%)
+```
+
+7011 new matches, none lost:
+- Merge batch r33: lane H rounds 5 and 6 (+7).
+
+## 2026-10-07: 7004 functions match
+
+```
+matched 7004 of 11318 game functions (780544 of 2784283 bytes, 28.03%)
+```
+
+7004 new matches, none lost:
+- Merge batch r32: the second machine's #203 (lane J round 7, +1) and #202 (lane L round 8, written code).
+
+## 2026-10-07: 7003 functions match
+
+```
+matched 7003 of 11318 game functions (780087 of 2784283 bytes, 28.02%)
+```
+
+7003 new matches, none lost:
+- Merge lane AD rounds 1 to 3 (+10): network message codecs, session search, surface queries and weapon object type, in documented gaps between finished ranges.
+
+## 2026-10-07: 6993 functions match
+
+```
+matched 6993 of 11318 game functions (779165 of 2784283 bytes, 27.98%)
+```
+
+6993 new matches, none lost:
+- Merge batch r31: lane A rounds 18 and 19 (+7).
+
+## 2026-10-07: 6986 functions match
+
+```
+matched 6986 of 11318 game functions (777995 of 2784283 bytes, 27.94%)
+```
+
+6986 new matches, none lost:
+- Merge batch r30: the resting-lane sweep, rounds 1 and 2 (+5), including seven new source files for groups that had no home.
+
+## 2026-10-07: 6981 functions match
+
+```
+matched 6981 of 11318 game functions (777464 of 2784283 bytes, 27.92%)
+```
+
+6981 new matches, none lost:
+- Merge batch r29: lane H rounds 3 and 4 (+7).
+
+## 2026-10-07: 6974 functions match
+
+```
+matched 6974 of 11318 game functions (776356 of 2784283 bytes, 27.88%)
+```
+
+6974 new matches, none lost:
+- Merge batch r28: the second machine's #196 to #200 (lanes J, K, P and O; +10) and @BrassMonkey71's #163 (0xe59e0).
+
+## 2026-10-07: 6963 functions match
+
+```
+matched 6963 of 11318 game functions (774630 of 2784283 bytes, 27.82%)
+```
+
+6963 new matches, none lost:
+- Merge batch r27: UI-core rounds 14 and 15 (+11), including the score-display group in a new src/unknown_23f260.cpp.
+
+## 2026-10-07: 6952 functions match
+
+```
+matched 6952 of 11318 game functions (772152 of 2784283 bytes, 27.73%)
+```
+
+6952 new matches, none lost:
+- Merge batch r26: lane W round 18 (+2) and the second machine's #193 to #195 (+5).
+
+## 2026-10-07: 6945 functions match
+
+```
+matched 6945 of 11318 game functions (771250 of 2784283 bytes, 27.70%)
+```
+
+6945 new matches, none lost:
+- Merge batch r25: the second machine's #180 to #192 (lanes K, Y, O, M, F, L, P and C; +33).
+
+## 2026-10-07: 6912 functions match
+
+```
+matched 6912 of 11318 game functions (763805 of 2784283 bytes, 27.43%)
+```
+
+6912 new matches, none lost:
+- Merge batch r24: lane H rounds 1 and 2 (+8), the first Codex rounds in 0x190000-0x19ffff.
+
+## 2026-10-07: 6904 functions match
+
+```
+matched 6904 of 11318 game functions (762636 of 2784283 bytes, 27.39%)
+```
+
+6904 new matches, none lost:
+- Merge batch r23: UI-screens rounds 10 and 11 (+3).
+
+## 2026-10-07: 6901 functions match
+
+```
+matched 6901 of 11318 game functions (762446 of 2784283 bytes, 27.38%)
+```
+
+6901 new matches, none lost:
+- Merge batch r21: UI-core rounds 11 to 13 (+9: the main menu and window-manager initialisers, two text-widget helpers and lobby/settings screen code).
+
+## 2026-10-07: 6892 functions match
+
+```
+matched 6892 of 11318 game functions (760427 of 2784283 bytes, 27.31%)
+```
+
+6892 new matches, none lost:
+- Merge batch r20: the second machine's #169 to #179 (lanes AC, P, U, L, K, J, M and F; +51) and lane W rounds 16 and 17 (+6).
+
 ## 2026-10-07: 6835 functions match
 
 ```

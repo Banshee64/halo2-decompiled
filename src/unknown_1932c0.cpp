@@ -8,6 +8,7 @@
 #include "files.h"
 #include "pending_messages.h"
 #include "unknown_19d220.h"
+#include "physical_memory.h"
 
 /* a game variant (0x614 bytes; the 16 of them are at 0x551ae8) */
 struct s_surface_description
@@ -67,8 +68,7 @@ long function_1932c0(s_surface_description* p)
 	}
 }
 
-// @retail 0x00193300
-long function_193300(s_surface_description* p)
+__forceinline long variant_upper_place(s_surface_description* p)
 {
 	switch (p->type)
 	{
@@ -85,6 +85,12 @@ long function_193300(s_surface_description* p)
 	default:
 		__assume(0);
 	}
+}
+
+// @retail 0x00193300
+long function_193300(s_surface_description* p)
+{
+	return variant_upper_place(p);
 }
 
 // @retail 0x00193340
@@ -272,11 +278,11 @@ long function_193250(s_surface_description *p)
 	switch (p->type)
 	{
 	case 1:
-		return function_193300(p);
+		goto upper_place;
 	case 2:
 		return 1;
 	case 3:
-		return function_193300(p);
+		goto upper_place;
 	case 4:
 		return p->field_600;
 	case 5:
@@ -284,6 +290,8 @@ long function_193250(s_surface_description *p)
 	default:
 		__assume(0);
 	}
+upper_place:
+	return variant_upper_place(p);
 }
 
 bool function_193560(s_surface_description *p);
@@ -291,6 +299,7 @@ byte function_193610(s_surface_description *p);
 byte function_193630(s_surface_description *p);
 byte function_1936a0(s_surface_description *p);
 byte function_1936a0_type5(s_surface_description *p);
+__declspec(noinline) bool function_1934f0(s_surface_description *p);
 
 // @retail 0x1934f0
 bool function_1934f0(s_surface_description *p)
@@ -564,11 +573,15 @@ long game_variant_get_map_status(long index)
 			if (function_1934f0(variant) && variant->field_4 == 0)
 				game_variant_check_maps(index);
 			if (function_1934f0(variant))
-				return variant->field_4;
+			{
+				status = variant->field_4;
+				goto done;
+			}
 		}
 		status = 3;
 	}
 
+done:
 	return status;
 }
 
@@ -759,12 +772,7 @@ void function_193010(s_game_variant_block *block, long type)
     }
     else
     {
-        block->maps[0].map_id = 30000;
-        block->map_count = 1;
-        function_19d220((s_game_variant *)block->maps[0].settings, 4);
-        *(long *)(block->maps[0].settings + 0x50) = 5;
-        *(dword *)(block->maps[0].settings + 0x48) &= ~0x10;
-        return;
+        goto fallback;
     }
     block->map_count = count;
     for (long i = 0; i < count; i++)
@@ -772,7 +780,7 @@ void function_193010(s_game_variant_block *block, long type)
         s_game_variant_map *map = &block->maps[i];
         char name[64];
         memset(name, 0, sizeof(name));
-        for (long j = 0; j < 11; j++)
+        for (dword j = 0; j < 11; j++)
         {
             if (g_444cd0[j].map_id == map->map_id)
             {
@@ -789,4 +797,120 @@ void function_193010(s_game_variant_block *block, long type)
         *(dword *)(map->settings + 0x48) &= ~0x20;
         *(long *)(map->settings + 0x58) = 0;
     }
+    return;
+fallback:
+    block->maps[0].map_id = 30000;
+    block->map_count = 1;
+    function_19d220((s_game_variant *)block->maps[0].settings, 4);
+    *(long *)(block->maps[0].settings + 0x50) = 5;
+    *(dword *)(block->maps[0].settings + 0x48) &= ~0x10;
 }
+
+struct s_built_variant;
+void function_193c70(s_built_variant *variant, long index);
+
+// @retail 0x1940d0
+void game_variants_file_initialize(s_game_variants_file *variants_file)
+{
+	(void)&variants_file;
+	s_surface_description variant;
+	memset(variants_file, 0, sizeof(*variants_file));
+	for (long i = 0; i < 16; i++)
+	{
+		function_193c70((s_built_variant *)&variant, i);
+		if (function_1934f0(&variant))
+		{
+			variants_file->variants[i] = variant;
+			function_193010(&variants_file->blocks[i], i);
+		}
+	}
+}
+
+extern s_physical_object *g_4e6464;
+long __stdcall function_12d2f0(long size, long user_data, long update, long release);
+void function_12c600(void);
+void function_12d520(long address);
+double timing_ticks_to_seconds(__int64 ticks);
+dword function_199560(void *data, dword size);
+bool __stdcall function_199740(byte *buffer, long size, byte *destination, long *decompressed_size);
+
+static __int64 variants_read_tsc(void)
+{
+	volatile __int64 ticks = 0;
+	__asm rdtsc
+}
+
+static __forceinline s_game_variants_file *variants_buffer_allocate(void)
+{
+	s_game_variants_file *result = NULL;
+	__int64 start = variants_read_tsc();
+	if (g_4e6464->page_count > 0)
+	{
+		long retries = 0;
+		do
+		{
+			result = (s_game_variants_file *)function_12d2f0(sizeof(*result), 0, 0, 0);
+			if (result)
+				break;
+			if (retries < 90)
+			{
+				retries++;
+				function_12c600();
+				continue;
+			}
+			__int64 elapsed = variants_read_tsc() - start;
+			if (elapsed < 0)
+				elapsed = 0;
+			if (!((real)timing_ticks_to_seconds(elapsed) < 1.0f))
+				break;
+			D3DDevice_KickPushBuffer();
+			D3DDevice_IsBusy();
+			SwitchToThread();
+		}
+		while (!result);
+	}
+	return result;
+}
+
+// @retail 0x194260
+bool __stdcall game_variants_received(s_pending_message_header *header)
+{
+	bool result = false;
+	if (header->kind && (header->flags & 2) && *((short *)((byte *)header + 0xe)) == 1)
+	{
+		byte *data = NULL;
+		if (header->data && (dword)header->size > 16)
+			data = (byte *)header->data + 16;
+		dword size = header->size - 16;
+		if (data && size > 0 && function_199560(data, size) == sizeof(s_game_variants_file))
+		{
+			s_game_variants_file *file = variants_buffer_allocate();
+			if (file)
+			{
+				long decompressed_size = 0;
+				if (function_199740(data, size, (byte *)file, &decompressed_size) && game_variants_file_write(file))
+					result = true;
+				function_12d520((long)file);
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x194160
+bool __stdcall game_variants_retry(s_pending_message_header *header)
+{
+	bool result = false;
+	s_game_variants_file *file = variants_buffer_allocate();
+	if (file)
+	{
+		game_variants_file_initialize(file);
+		if (game_variants_file_write(file))
+			result = true;
+		function_12d520((long)file);
+	}
+	return result;
+}
+
+bool (__stdcall *g_46dd74)(s_pending_message_header *) = game_variants_retry;
+bool (__stdcall *g_46dd7c)(s_pending_message_header *) = game_variants_received;

@@ -227,7 +227,7 @@ bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, 
 	real blend, bool flags, long mode);
 void __stdcall function_bd020(long object_index);
 point3f *function_b9ef0(long object_index, point3f *result);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 real function_d1210(long object_index);
 // @retail 0x2053c0
 void function_2053c0(real *value, real const *rates, real direction, real dt)

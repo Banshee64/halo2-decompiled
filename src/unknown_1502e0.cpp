@@ -1360,3 +1360,30 @@ void __stdcall function_152f80(void *address, void *option_data)
         if (TEST_FIELD_BIT(slot->flag4)) *(long *)slot->unknown004 = player->local_index;
     }
 }
+
+#include "data_array.h"
+void __stdcall function_14be90(long player_index, dword const *configuration);
+
+struct s_player_configuration_copy
+{
+    dword words[0x24];
+};
+
+// @retail 0x1523c0
+void function_1523c0()
+{
+    s_record_pool *players = g_4e8c24;
+    long index = NONE;
+    for (;;)
+    {
+        long next = data_find_index(players, index + 1);
+        if (next == NONE)
+            break;
+        long datum = data_datum_index(players, next);
+        byte *player = players->data + players->size * next;
+        s_player_configuration_copy configuration;
+        index = next;
+        memcpy(&configuration, player + 0xd4, sizeof(configuration));
+        function_14be90(datum, configuration.words);
+    }
+}

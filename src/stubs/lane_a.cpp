@@ -42,10 +42,6 @@ void __stdcall function_189cd0(long sound_index, long object_index, real scale, 
 
 
 
-// @stub 0x13c250
-void __stdcall function_13c250(long object_index, long a, long b)
-{
-}
 
 
 
@@ -59,10 +55,12 @@ struct s_saved_game_file_location;
 
 
 struct s_bitmap_data;
+struct D3DTexture;
 
 // @stub 0x12ce00
-void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
+D3DTexture *function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 {
+    return 0;
 }
 
 struct s_ai_trigger_condition;
@@ -75,31 +73,14 @@ struct s_ai_trigger_condition;
 /* callees of lane A's remaining script functions (other lanes' or not yet decompiled) */
 
 
-// @stub 0x275380
-void function_275380(long ai_index)
-{
-}
 
 
 
 
 
-// @stub 0x13c5a0
-void function_13c5a0(long object_index, long a, long b, long c)
-{
-}
-
-// @stub 0x1c84a0
-void function_1c84a0(long a, long b)
-{
-}
 
 
 
-// @stub 0x2011f0
-void function_2011f0(long squad_index)
-{
-}
 
 // @stub 0xb73b0
 void function_b73b0(long object_index)

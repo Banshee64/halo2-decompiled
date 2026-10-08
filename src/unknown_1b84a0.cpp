@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "unknown_11c920.h"
 #include "slot_handler.h"
+#include "unknown_0259a0.h"
 
 /* slot type 0x23 */
 
@@ -21,7 +22,7 @@ struct s_slot_23
 };
 
 short __stdcall function_1b84a0(long actor_index);
-void __stdcall function_1b85a0(long actor_index, s_slot *slot);
+bool __stdcall function_1b85a0(long actor_index, s_slot *slot);
 void __stdcall function_1b89d0(long actor_index, s_slot *slot);
 void __stdcall function_1b8ae0(long actor_index, s_slot *slot);
 bool function_25da00(s_prop_node_view *node);
@@ -178,5 +179,132 @@ s_slot_handler_2 g_47e908 =
 		function_1b84a0, function_1b8c60, function_1b8540, slot_proc_nothing, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
-	function_1b85a0, function_1b89d0, function_1b8ae0
+	(t_slot_proc)function_1b85a0, function_1b89d0, function_1b8ae0
 };
+
+void *function_1e4be0(long actor_index);
+bool __stdcall function_1ac610(long actor_index, point3f const *point,
+    s_object_marker *markers, short *indices);
+short __stdcall function_272af0(s_match_globals *structure, point3f const *point);
+struct s_1f4a20_entry;
+struct s_1f4a20_source;
+bool function_1f4a20(long actor_index, s_reference reference, s_1f4a20_entry const *entries,
+    bool alternate, s_type_c3b527 *point, vector3f *facing,
+    signed char *type, bool *available, s_1f4a20_source const *source);
+
+// @retail 0x1b85a0
+bool __stdcall function_1b85a0(long actor_index, s_slot *slot)
+{
+    volatile bool result = true;
+    s_actor_view *actor = actor_get(actor_index);
+    if (actor->prop_index == NONE)
+        return false;
+    if (!*((bool *)actor + 0x40))
+        return result;
+
+    s_prop_node_view *node = prop_node_get(actor->prop_index);
+    s_prop_view_fields *view = prop_node_view(node);
+    byte *character = (byte *)function_1e4be0(actor_index);
+    s_slot_23 *state = (s_slot_23 *)slot;
+    state->unknown1b = false;
+    state->unknown1c = false;
+    state->unknown1d = 0;
+    bool has_markers = false;
+    s_object_marker markers[32];
+    short marker_indices[32];
+    if (!*((bool *)actor + 0x3c) && actor->unknown227)
+        has_markers = function_1ac610(actor_index, &prop_node_state(node)->position,
+            markers, marker_indices);
+
+    s_2605d0_request request;
+    memset(&request, 0, sizeof(request));
+    request.type = 3;
+    real distance;
+    if (view && view->unknown70 == 1)
+    {
+        function_210850(&view->unknown78, (point3f *)((byte *)&request + 0x24));
+        short sector = *(short *)((byte *)view + 0x84) == NONE ?
+            *(short *)((byte *)view + 0x72) :
+            function_272af0(g_4e0348, (point3f *)((byte *)&request + 0x24));
+        *((bool *)&request + 0x20) = true;
+        *(s_type_c3b527 *)((byte *)&request + 0x30) = view->unknown78;
+        *(long *)((byte *)&request + 0x40) = *(long *)((byte *)view + 0x74);
+        *(short *)((byte *)&request + 0x44) = sector;
+        distance = function_210ac0(&view->unknown78, &actor->position);
+    }
+    else
+    {
+        *((bool *)&request + 0x52) = false;
+        distance = node->unknown28;
+    }
+    byte *movement = (byte *)function_1e4db0(actor_index);
+    long minimum;
+    if (movement)
+    {
+        real limit = *(real *)(movement + 0xc);
+        minimum = (long)(limit > distance ? distance : limit);
+        *(long *)((byte *)&request + 0x684) = minimum;
+        *(long *)((byte *)&request + 0x688) = (long)*(real *)(movement + 0x10);
+    }
+    else
+    {
+        minimum = 0;
+        *(long *)((byte *)&request + 0x684) = 0;
+        *(long *)((byte *)&request + 0x688) = 100;
+    }
+    *(real *)((byte *)&request + 0x48) = 2.0f;
+    *((bool *)&request + 0x46) = true;
+    *(real *)((byte *)&request + 0x4c) = (real)minimum;
+    *((bool *)&request + 0x50) = true;
+    *((bool *)&request + 0x59) = character && (*character & 1);
+    *(s_object_marker **)((byte *)&request + 0x64) = has_markers ? markers : NULL;
+    if (*(real *)((byte *)state + 0x10) != 0.0f)
+        *(real *)((byte *)&request + 0x1c) = *(real *)((byte *)state + 0x10);
+    if (actor->unknown50c && actor_get(actor_index)->unknown504 != 2 &&
+        !REFERENCE_EQUAL(actor->unknown418, g_470fa0))
+    {
+        *((bool *)&request + 0x692) = true;
+        *(s_reference *)((byte *)&request + 0x694) = actor->unknown418;
+    }
+
+    byte *scratch = ai_scratch_buffer_get();
+    s_261d20_entry entry;
+    long other_actor;
+    bool unknown;
+    s_reference reference = function_261280((s_prop_search *)&request, actor_index,
+        &entry, &other_actor, scratch, &unknown);
+    if (!REFERENCE_EQUAL(reference, g_470fa0) && *(short *)((byte *)&entry + 8) <= 1)
+    {
+        s_262b40_result *location = function_262b40(reference);
+        bool available = false;
+        bool success = false;
+        if (*(short *)((byte *)&entry + 0x5c) != 0 &&
+            *(long *)((byte *)location + 0x14) != NONE &&
+            *(long *)((byte *)location + 0x14) != 0xffff)
+        {
+            success = function_1f4a20(actor_index, reference,
+                (s_1f4a20_entry const *)scratch, true, &state->point, &state->facing,
+                (signed char *)&state->unknown1d, &available, (s_1f4a20_source const *)&entry);
+            if (success)
+            {
+                state->unknown1b = true;
+                state->unknown1c = false;
+            }
+            else if (available)
+                reference = g_470fa0;
+        }
+        if (!available && !success)
+            reference = function_2626b0(actor_index, reference, other_actor, scratch, unknown, true);
+        if (!REFERENCE_EQUAL(reference, g_470fa0))
+        {
+            state->unknown0d = true;
+            actor->unknown4ae = true;
+            ai_scratch_buffer_release(scratch);
+            return result;
+        }
+    }
+    state->unknown0c = true;
+    g_46eeb8[0x23]->unknown8 = g_46f348;
+    ai_scratch_buffer_release(scratch);
+    return result;
+}

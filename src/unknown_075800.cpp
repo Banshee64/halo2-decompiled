@@ -118,6 +118,12 @@ void __stdcall function_0942d0(c_class_938e0 *handler, const s_session_id *messa
 class c_class_93590;
 long network_link_find_connection(c_class_93590 *link, long kind, const s_type_99af70 *address);
 
+bool network_session_manager_get_hosted_session(c_class_58d20 **arg_0);
+struct s_session_browser_summary;
+bool __stdcall function_64d70(s_session_browser_summary *arg_0);
+bool function_07a9b0(void);
+extern bool g_4cf792;
+
 /* the sessions the session manager owns */
 struct s_network_session_list
 {
@@ -227,6 +233,53 @@ void network_message_handler_handle_session_query(const s_network_message_sessio
 		s_session_id id = g_4d8eb4.session_id;
 		if (memcmp(&message->session_id, &id, sizeof(s_session_id)) == 0)
 			function_0b2fc0(message);
+	}
+}
+
+struct s_93fa0
+{
+	word field_0;
+	word field_2;
+	s_session_id field_4;
+	byte field_c[0x714];
+};
+
+// @retail 0x93fa0
+void __stdcall function_093fa0(c_class_938e0 *arg_0, void const *arg_1)
+{
+	s_network_message_session_query const *local_0 = (s_network_message_session_query const *)arg_1;
+	if (local_0->identifier == 2)
+	{
+		bool local_7 = false;
+		if (g_4d8eb4.active)
+		{
+			s_session_id local_1 = g_4d8eb4.session_id;
+			local_7 = memcmp(&local_0->session_id, &local_1, sizeof(local_1)) == 0;
+		}
+		c_class_58d20 *local_2;
+		if (!local_7 && network_session_manager_get_hosted_session(&local_2))
+		{
+			__int64 local_3[0xe3];
+			if (function_64d70((s_session_browser_summary *)local_3))
+			{
+				if (g_transport_globals.initialized && g_transport_globals.started)
+					function_07a9b0();
+				if (g_4cf792)
+				{
+					s_93fa0 local_4;
+					memset(&local_4, 0, sizeof(local_4));
+					local_4.field_4 = local_0->session_id;
+					void *local_6 = arg_0->link;
+					local_4.field_0 = 2;
+					memcpy(local_4.field_c, local_3, sizeof(local_4.field_c));
+					s_type_99af70 local_5;
+					local_5.address_length = 4;
+					local_5.ipv4_address = NONE;
+					local_5.port = 1001;
+					function_07b140(local_6, (long)&local_5, 3, sizeof(local_4), &local_4);
+				}
+			}
+		}
 	}
 }
 

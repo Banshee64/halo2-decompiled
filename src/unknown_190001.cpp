@@ -775,7 +775,7 @@ c_class_1473c9 *__stdcall function_24b4a9(s_screen_parameters *parameters);
 /* signs the controller in with a saved profile; when online, or when no
    player slot is active yet, opens the gamertag selection screen instead */
 // @retail 0x19060a
-void function_19060a(long profile_index, long controller)
+void function_19060a(long controller, long profile_index)
 {
 	bool select;
 	s_player_profile_settings settings;
@@ -889,12 +889,28 @@ bool function_1907bf(byte frames_down, word msec_down)
 	return result;
 }
 
-#define SIGN(value) ((value) == 0 ? 0 : ((value) >= 0 ? 1 : -1))
+PRIVATE __forceinline long controller_direction_magnitude(short value)
+{
+	long result = value;
+	if (value < 0)
+		result = -result;
+	return result;
+}
+
+PRIVATE __forceinline long controller_direction_sign(short value)
+{
+	long result = 0;
+	if (value != 0)
+		result = value >= 0 ? 1 : -1;
+	return result;
+}
 
 // @retail 0x190a3d
 void function_190a3d(long controller, short *direction, dword time, long value)
 {
-	short x = direction[0];
+	// Keep the direction argument in its retail stack slot.
+	short *const *direction_reference = &direction;
+	short x = (*direction_reference)[0];
 
 	if (x == 0 && direction[1] == 0)
 	{
@@ -902,9 +918,9 @@ void function_190a3d(long controller, short *direction, dword time, long value)
 	}
 	else
 	{
-		if (abs(x) < 0x7332 || abs(g_55e758.last_direction[controller][0]) < 0x7332)
+		if (controller_direction_magnitude(x) < 0x7332 || controller_direction_magnitude(g_55e758.last_direction[controller][0]) < 0x7332)
 		{
-			if (abs(direction[1]) < 0x7332 || abs(g_55e758.last_direction[controller][1]) < 0x7332)
+			if (controller_direction_magnitude(direction[1]) < 0x7332 || controller_direction_magnitude(g_55e758.last_direction[controller][1]) < 0x7332)
 			{
 				goto send;
 			}
@@ -920,18 +936,18 @@ send:
 			event.amount = NONE;
 			event.controller = controller;
 			event.value = value;
-			if (abs(x) >= 0x7332)
+			if (controller_direction_magnitude(x) >= 0x7332)
 			{
-				event.type = SIGN(x) > 0 ? 4 : 2;
+				event.type = controller_direction_sign(x) > 0 ? 4 : 2;
 			}
 			else
 			{
 				short y = direction[1];
-				if (abs(y) < 0x7332)
+				if (controller_direction_magnitude(y) < 0x7332)
 				{
 					goto done;
 				}
-				event.type = SIGN(y) <= 0 ? 3 : 1;
+				event.type = controller_direction_sign(y) <= 0 ? 3 : 1;
 			}
 			function_147dbe(&event);
 			g_55e758.last_time[controller] = time;
@@ -1326,14 +1342,16 @@ long function_1910d9(void)
 // @retail 0x191234
 void function_191234(long index)
 {
-	if (!TEST_FIELD_BIT(controller_get(index)->signed_in) && !function_148f36(index))
+	bool result = true;
+	if (!TEST_FIELD_BIT(controller_get(index)->signed_in))
 	{
-		g_551ae0[index] = false;
+		if (!function_148f36(index))
+			result = false;
 	}
-	else
-	{
+	if (result)
 		g_551ae0[index] = true;
-	}
+	else
+		g_551ae0[index] = false;
 }
 
 /* the choice callback of a dialog: false while a controller that is signed
@@ -1369,7 +1387,8 @@ bool __stdcall function_19119c(c_class_1473c9 *screen, long dialog_id)
 
 	for (index = 0; index != NONE; index = controller_next(index))
 	{
-		if ((TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index)) && !g_4e61cc[(short)index])
+		s_controller const *controller = controller_get(index);
+		if ((TEST_FIELD_BIT(((s_controller const volatile *)controller)->signed_in) || function_148f36(index)) && !g_4e61cc[(short)index])
 		{
 			((c_dialog_screen *)screen)->set_dialog(controller_dialog_id(index), false);
 			screen->set_user_flags(1 << index);

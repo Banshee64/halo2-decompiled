@@ -903,3 +903,345 @@ void function_13afa9(long object_index, s_hud_weapon_record *record, long *defin
 	record->target_position = status.target_position;
 	*definition_out = *(long *)((byte *)g_4e3b44[(*(long *)object) & 0xffff].data + 0x2b4);
 }
+
+
+struct s_13a532
+{
+    byte field_0[8];
+    long field_8;
+    byte *field_c;
+    long field_10;
+    byte *field_14;
+    byte field_18[8];
+    long field_20;
+    byte *field_24;
+};
+
+struct s_text_widget;
+struct s_text_widget_state;
+bool function_22a9bc(s_text_widget const *arg_1, long arg_2,
+    s_text_widget_state const *arg_3, color4f const *arg_4);
+bool function_22b7dd(byte const *arg_1, long arg_2);
+bool function_22af8d(long arg_1, byte const *arg_2);
+struct s_22b8e2;
+void function_22b8e2(s_22b8e2 const *arg_0, long arg_1, color4f const *arg_2);
+void function_22aff1(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4);
+void function_22aa16(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4);
+
+// @retail 0x13a3c6
+bool function_13a3c6(long arg_1, long arg_2, byte const *arg_3, long arg_4)
+{
+	bool local_1 = true;
+	s_13a532 const *local_2 = (s_13a532 const *)g_4e3b44[arg_1 & 0xffff].bytes;
+    word local_3 = 0;
+    word local_4 = 0;
+    word local_5 = 0;
+    word local_6 = 0;
+    s_13ad48_item const *local_7;
+    function_13a050(arg_3, arg_2, arg_4, &local_7, &local_3, &local_4, &local_5, &local_6);
+    if (local_2->field_20 > 0)
+    {
+        long local_8 = 0;
+        long local_11 = local_2->field_20;
+        do
+        {
+            byte const *local_9 = local_2->field_24 + local_8;
+            if (function_13ac87((s_condition_masks const *)(local_9 + 8), local_3, local_4,
+                local_6, local_5, (s_condition_subject const *)local_7))
+            {
+                real local_10[4];
+                function_13ad48(arg_2, local_9 + 4, local_10, arg_3, local_7);
+                bool local_12 = function_22b7dd(local_9, arg_2);
+                if (!local_12) local_1 = local_12;
+            }
+            local_8 += 0x50;
+        }
+        while (--local_11);
+    }
+    if (local_2->field_8 > 0)
+    {
+        long local_8 = 0;
+        long local_11 = local_2->field_8;
+        do
+        {
+            byte const *local_9 = local_2->field_c + local_8;
+            if (function_13ac87((s_condition_masks const *)(local_9 + 8), local_3, local_4,
+                local_6, local_5, (s_condition_subject const *)local_7))
+            {
+                real local_10[4];
+                function_13ad48(arg_2, local_9 + 4, local_10, arg_3, local_7);
+                bool local_12 = function_22af8d(arg_2, arg_3);
+                if (!local_12) local_1 = local_12;
+            }
+            local_8 += 0x64;
+        }
+        while (--local_11);
+    }
+    if (local_2->field_10 > 0)
+    {
+        long local_8 = 0;
+        long local_11 = local_2->field_10;
+        do
+        {
+            byte const *local_9 = local_2->field_14 + local_8;
+            if (function_13ac87((s_condition_masks const *)(local_9 + 8), local_3, local_4,
+                local_6, local_5, (s_condition_subject const *)local_7))
+            {
+                real local_10[4];
+                function_13ad48(arg_2, local_9 + 4, local_10, arg_3, local_7);
+                bool local_12 = function_22a9bc((s_text_widget const *)local_9, arg_2, (s_text_widget_state const *)arg_3, (color4f const *)local_10);
+                if (!local_12) local_1 = local_12;
+            }
+            local_8 += 0x54;
+        }
+        while (--local_11);
+    }
+	return local_1;
+}
+
+// @retail 0x13a532
+void function_13a532(long arg_1, long arg_2, byte const *arg_3, long arg_4)
+{
+	s_13a532 const *local_2 = (s_13a532 const *)g_4e3b44[arg_1 & 0xffff].bytes;
+    word local_3 = 0;
+    word local_4 = 0;
+    word local_5 = 0;
+    word local_6 = 0;
+    s_13ad48_item const *local_7;
+    function_13a050(arg_3, arg_2, arg_4, &local_7, &local_3, &local_4, &local_5, &local_6);
+    if (local_2->field_20 > 0)
+    {
+        long local_8 = 0;
+        long local_11 = local_2->field_20;
+        do
+        {
+            byte const *local_9 = local_2->field_24 + local_8;
+            if (function_13ac87((s_condition_masks const *)(local_9 + 8), local_3, local_4,
+                local_6, local_5, (s_condition_subject const *)local_7))
+            {
+                real local_10[4];
+                function_13ad48(arg_2, local_9 + 4, local_10, arg_3, local_7);
+                function_22b8e2((s_22b8e2 const *)local_9, arg_2, (color4f const *)local_10);
+            }
+            local_8 += 0x50;
+        }
+        while (--local_11);
+    }
+    if (local_2->field_8 > 0)
+    {
+        long local_8 = 0;
+        long local_11 = local_2->field_8;
+        do
+        {
+            byte const *local_9 = local_2->field_c + local_8;
+            if (function_13ac87((s_condition_masks const *)(local_9 + 8), local_3, local_4,
+                local_6, local_5, (s_condition_subject const *)local_7))
+            {
+                real local_10[4];
+                function_13ad48(arg_2, local_9 + 4, local_10, arg_3, local_7);
+                function_22aff1(arg_2, arg_3, local_9, local_10);
+            }
+            local_8 += 0x64;
+        }
+        while (--local_11);
+    }
+    if (local_2->field_10 > 0)
+    {
+        long local_8 = 0;
+        long local_11 = local_2->field_10;
+        do
+        {
+            byte const *local_9 = local_2->field_14 + local_8;
+            if (function_13ac87((s_condition_masks const *)(local_9 + 8), local_3, local_4,
+                local_6, local_5, (s_condition_subject const *)local_7))
+            {
+                real local_10[4];
+                function_13ad48(arg_2, local_9 + 4, local_10, arg_3, local_7);
+                function_22aa16(arg_2, arg_3, local_9, local_10);
+            }
+            local_8 += 0x54;
+        }
+        while (--local_11);
+    }
+}
+
+// @retail 0x1393f3
+bool function_1393f3(long arg_1, byte *arg_2)
+{
+	bool local_1 = true;
+	((s_510c4c_view *)g_510c4c)->strings = arg_2;
+	if (*(long const *)(arg_2 + 0x14) != NONE)
+	{
+		if (!function_13a3c6(*(long const *)(arg_2 + 0x14), arg_1, arg_2, 3)) local_1 = false;
+	}
+	if (*(long const *)(arg_2 + 0x8) != NONE)
+	{
+		if (!function_13a3c6(*(long const *)(arg_2 + 0x8), arg_1, arg_2, 4)) local_1 = false;
+	}
+	if (*(long const *)(arg_2 + 0xc) != NONE)
+	{
+		if (!function_13a3c6(*(long const *)(arg_2 + 0xc), arg_1, arg_2, 1)) local_1 = false;
+	}
+	if (*(long const *)(arg_2 + 0x10) != NONE)
+	{
+		if (!function_13a3c6(*(long const *)(arg_2 + 0x10), arg_1, arg_2, 2)) local_1 = false;
+	}
+	if (*(long const *)(arg_2 + 0x14) != NONE)
+	{
+		if (!function_13a3c6(*(long const *)(arg_2 + 0x14), arg_1, arg_2, 3)) local_1 = false;
+	}
+	if (*(long const *)(arg_2 + 0x18) != NONE)
+	{
+		if (!function_13a3c6(*(long const *)(arg_2 + 0x18), arg_1, arg_2, 0)) local_1 = false;
+	}
+	if (*(long const *)(arg_2 + 0x0) != NONE)
+	{
+		if (!function_13a3c6(*(long const *)(arg_2 + 0x0), arg_1, arg_2, 0)) local_1 = false;
+	}
+	if (*(long const *)(arg_2 + 0x4) != NONE)
+	{
+		if (!function_13a3c6(*(long const *)(arg_2 + 0x4), arg_1, arg_2, 0)) local_1 = false;
+	}
+	return local_1;
+}
+
+// @retail 0x1394b9
+void function_1394b9(long arg_1, byte *arg_2)
+{
+	((s_510c4c_view *)g_510c4c)->strings = arg_2;
+	if (*(long const *)(arg_2 + 0x14) != NONE)
+	{
+		function_13a532(*(long const *)(arg_2 + 0x14), arg_1, arg_2, 3);
+	}
+	if (*(long const *)(arg_2 + 0x8) != NONE)
+	{
+		function_13a532(*(long const *)(arg_2 + 0x8), arg_1, arg_2, 4);
+	}
+	if (*(long const *)(arg_2 + 0xc) != NONE)
+	{
+		function_13a532(*(long const *)(arg_2 + 0xc), arg_1, arg_2, 1);
+	}
+	if (*(long const *)(arg_2 + 0x10) != NONE)
+	{
+		function_13a532(*(long const *)(arg_2 + 0x10), arg_1, arg_2, 2);
+	}
+	if (*(long const *)(arg_2 + 0x14) != NONE)
+	{
+		function_13a532(*(long const *)(arg_2 + 0x14), arg_1, arg_2, 3);
+	}
+	if (*(long const *)(arg_2 + 0x18) != NONE)
+	{
+		function_13a532(*(long const *)(arg_2 + 0x18), arg_1, arg_2, 0);
+	}
+	if (*(long const *)(arg_2 + 0x0) != NONE)
+	{
+		function_13a532(*(long const *)(arg_2 + 0x0), arg_1, arg_2, 0);
+	}
+	if (*(long const *)(arg_2 + 0x4) != NONE)
+	{
+		function_13a532(*(long const *)(arg_2 + 0x4), arg_1, arg_2, 0);
+	}
+}
+
+void function_13992a(byte *arg_1, long arg_2);
+void function_2003dc(long arg_1);
+void function_13aa27(long arg_1, byte const *arg_2, byte *arg_3, long arg_4, byte const *arg_5);
+bool function_14ddc0(long arg_1);
+void function_13b285(void);
+long players_first_active_local_player(void);
+long function_14de10(long arg_1);
+
+__forceinline long function_13a839(long const *arg_1)
+{
+    return *(long const volatile *)arg_1;
+}
+
+// @retail 0x13a838
+void __stdcall function_13a838(long arg_1)
+{
+    long local_13 = function_13a839(&arg_1);
+    byte *local_1 = (byte *)g_510c4c + local_13 * 0x6c;
+    byte local_2[0x270];
+    function_2003dc(local_13);
+    function_13992a(local_2, local_13);
+    function_13a720(local_13, (s_13a720_status const *)local_2);
+    if (local_2[0x130])
+    {
+        real local_3 = local_2[0x133] ? 1.0f : 0.0f;
+        if (*(real *)(local_1 + 0x28) != local_3)
+        {
+            real local_4 = 2.0f / g_510c54->field_2_3;
+            if (local_3 > *(real *)(local_1 + 0x28))
+            {
+                real local_5 = *(real *)(local_1 + 0x28) + local_4;
+                *(real *)(local_1 + 0x28) = local_5 > 1.0f ? 1.0f : local_5;
+            }
+            else
+            {
+                real local_5 = *(real *)(local_1 + 0x28) - local_4;
+                *(real *)(local_1 + 0x28) = local_5 > 0.0f ? local_5 : 0.0f;
+            }
+        }
+    }
+    long local_6 = NONE;
+    if (function_14ddc0(local_13))
+    {
+        long local_7 = function_14de70(local_13);
+        local_6 = *(long *)(g_4e8c24->data + (local_7 & 0xffff) * 0x21c + 0x2c);
+    }
+    if (local_6 != NONE)
+    {
+        byte const *local_8 = *(byte **)(g_4e0300->data + (local_6 & 0xffff) * 12 + 8);
+        real local_9 = *(real *)(local_8 + 0xf0);
+        if (*(real *)local_1 > local_9)
+        {
+            if (*(real *)(local_1 + 4) < 0.0f || *(real *)(local_1 + 4) > 1.0f)
+                *(long *)(local_1 + 8) = g_510c54->game_time;
+            long local_10 = *(long *)(local_1 + 8);
+            if (0.5f > (g_510c54->game_time - local_10) * g_510c54->rate)
+                *(real *)(local_1 + 4) = 0.0f;
+            else
+            {
+                *(real *)local_1 = local_9;
+                *(real *)(local_1 + 4) += (g_510c54->game_time - local_10) * g_510c54->rate;
+            }
+        }
+        else
+        {
+            bool local_11 = local_9 > *(real *)local_1;
+            *(real *)local_1 = local_9;
+            if (local_11)
+                *(real *)(local_1 + 4) = -1.0f;
+            else if (*(real *)(local_1 + 4) > 0.0f)
+                *(real *)(local_1 + 4) += (g_510c54->game_time - *(long *)(local_1 + 8)) * g_510c54->rate;
+            *(long *)(local_1 + 8) = g_510c54->game_time;
+        }
+    }
+    long local_12 = *(long *)(local_2 + 0xc);
+    if (local_12 != NONE)
+        function_13aa27(local_13, local_2 + 0x88, local_1 + 0x18, local_12, local_2);
+    local_12 = *(long *)(local_2 + 0x10);
+    if (local_12 != NONE)
+        function_13aa27(local_13, local_2 + 0xc0, local_1 + 0x20, local_12, local_2);
+}
+
+// @retail 0x1391ed
+void function_1391ed(void)
+{
+    word local_1 = 0;
+    function_13b285();
+    for (long local_2 = players_first_active_local_player(); local_2 != NONE; local_2 = function_14de10(local_2))
+    {
+        local_1 |= 1 << local_2;
+        function_13a838(local_2);
+    }
+    for (long local_3 = 0; local_3 < 4; local_3++)
+    {
+        if (!(local_1 & (1 << local_3)))
+        {
+            s_new_hud_user *local_4 = &((s_new_hud_globals *)g_510c4c)->users[local_3];
+            function_22beb5(local_3, 0, (s_interface_sound_block *)((byte *)g_510c94 + 0x418),
+                local_4->unknown50, (word *)&local_4->unknown68);
+        }
+    }
+}

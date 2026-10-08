@@ -147,7 +147,7 @@ extern s_unit_request_definition *g_4677c8[60];
 
 bool unit_action_active(long unit_index, long action_type);
 void function_b58c0(long index, dword mask);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_b7360(long object_index);
 void function_bba20(long object_index);
 void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
@@ -955,7 +955,7 @@ bool function_101440(long weapon_index);
 short function_cdff0(long unit_index, short grenade_type);
 bool function_ee8a0(long unit_index, long field_x11c898);
 long unit_get_player_index(long unit_index);
-void function_2007b3(long a, long b, long c);
+void function_2007b3(long arg_0, long arg_1, long arg_2, long arg_3);
 long function_1469f0(real seconds);
 void function_edff0(long unit_index);
 void function_ee7f0(long unit_index, long type);
@@ -1027,7 +1027,7 @@ bool __stdcall function_e7fb0(long unit_index, s_unit_request *request)
 		if (animate && unit_get_player_index(unit_index) != NONE &&
 			*(short *)(g_4e8c24->data + (unit_get_player_index(unit_index) & 0xffff) * 0x21c + 0x28) != NONE)
 		{
-			function_2007b3(0, 1, NONE);
+			function_2007b3(*(short *)(g_4e8c24->data + (unit_get_player_index(unit_index) & 0xffff) * 0x21c + 0x28), 0, 1, NONE);
 		}
 		return result;
 	}

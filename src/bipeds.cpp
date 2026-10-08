@@ -780,7 +780,7 @@ void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angu
 void function_b7740(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity,
 	bool unknown);
 void function_1c4b00(long object_index, void *a, void *b, long c);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_b7360(long object_index);
 bool function_e4680(long arg_159e6d);
 bool havok_component_any_rigid_body_active(s_havok_component *component);
@@ -4289,3 +4289,56 @@ s_biped_type_definition_view g_467a78 =
 	},
 	{ NULL, NULL, &g_467a78 }
 };
+
+PRIVATE inline void transform_vector_e59e0(transform4x3f const *matrix, vector3f *vector)
+{
+	real x = vector->i;
+	real y = vector->j;
+	real z = vector->k;
+	if (matrix->scale != 1.0f)
+	{
+		x *= matrix->scale;
+		y *= matrix->scale;
+		z *= matrix->scale;
+	}
+	vector->i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+	vector->j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+	vector->k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
+}
+
+PRIVATE inline void transform_point_e59e0(transform4x3f const *matrix, point3f *point)
+{
+	real x = point->x;
+	real y = point->y;
+	real z = point->z;
+	if (matrix->scale != 1.0f)
+	{
+		x = matrix->scale * x;
+		y = matrix->scale * y;
+		z = matrix->scale * z;
+	}
+	point->x = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x + matrix->position.x;
+	point->y = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x + matrix->position.y;
+	point->z = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x + matrix->position.z;
+}
+
+// @retail 0xe59e0
+void function_e59e0(long arg_159e6d, vector3f *velocity, point3f *position)
+{
+	s_biped *biped = BIPED_GET(arg_159e6d);
+	s_animation_state *state =
+		(s_animation_state *)((byte *)biped + *(short *)((byte *)biped + 0x12a));
+	transform4x3f matrix;
+
+	function_ba160(arg_159e6d, &matrix);
+	if (state->velocity_get((vector3f *)position, velocity))
+	{
+		transform_point_e59e0(&matrix, position);
+		transform_vector_e59e0(&matrix, velocity);
+	}
+	else
+	{
+		*position = matrix.position;
+		*velocity = *g_4687a4;
+	}
+}

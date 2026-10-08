@@ -69,9 +69,9 @@ void function_2483b0(s_particle_emitter_datum *emitter)
 	emitter->first_particle_index = NONE;
 }
 
-PRIVATE __forceinline void function_2483f1(s_particle_emitter_datum *arg_0, long *arg_1, long *arg_2, s_record_pool *arg_3)
+PRIVATE __forceinline void function_2483f1(s_particle_emitter_datum *arg_0, long *arg_1, long *arg_2, s_record_pool *arg_3, long arg_4)
 {
-	long local_0 = (arg_0->salt << 16) | (arg_0 - (s_particle_emitter_datum *)arg_3->data);
+	long local_0 = (arg_4 << 16) | (arg_0 - (s_particle_emitter_datum *)arg_3->data);
 	arg_0->next_index = NONE;
 	if (*arg_1 == NONE)
 		*arg_1 = local_0;
@@ -80,9 +80,9 @@ PRIVATE __forceinline void function_2483f1(s_particle_emitter_datum *arg_0, long
 	*arg_2 = local_0;
 }
 
-PRIVATE __forceinline void function_248d91(s_particle_location_datum *arg_0, long *arg_1, long *arg_2, s_record_pool *arg_3)
+PRIVATE __forceinline void function_248d91(s_particle_location_datum *arg_0, long *arg_1, long *arg_2, s_record_pool *arg_3, long arg_4)
 {
-	long local_0 = (arg_0->salt << 16) | (arg_0 - (s_particle_location_datum *)arg_3->data);
+	long local_0 = (arg_4 << 16) | (arg_0 - (s_particle_location_datum *)arg_3->data);
 	arg_0->next_index = NONE;
 	if (*arg_1 == NONE)
 		*arg_1 = local_0;
@@ -95,7 +95,8 @@ PRIVATE __forceinline void function_248d91(s_particle_location_datum *arg_0, lon
 // @retail 0x2483f0
 void function_2483f0(s_particle_emitter_datum *emitter, long *first_index, long *last_index)
 {
-	function_2483f1(emitter, first_index, last_index, g_51ec88);
+	long local_0 = *(short const volatile *)&emitter->salt;
+	function_2483f1(emitter, first_index, last_index, g_51ec88, local_0);
 }
 #pragma inline_depth(255)
 
@@ -103,7 +104,8 @@ void function_2483f0(s_particle_emitter_datum *emitter, long *first_index, long 
 // @retail 0x248d90
 void function_248d90(s_particle_location_datum *particle_location, long *first_index, long *last_index)
 {
-	function_248d91(particle_location, first_index, last_index, g_51ec8c);
+	long local_0 = *(short const volatile *)&particle_location->salt;
+	function_248d91(particle_location, first_index, last_index, g_51ec8c, local_0);
 }
 #pragma inline_depth(255)
 
@@ -185,9 +187,9 @@ long function_248620()
 		particle_location->next_index = NONE;
 		particle_location->position = *g_468788;
 		*(point3f *)&particle_location->vector = *g_468788;
-		particle_location->unknown2c = 0.5f;
-		particle_location->unknown1c = 1.0f;
-		particle_location->unknown30 = g_4ba034;
+		*(real volatile *)&particle_location->unknown2c = 0.5f;
+		*(real volatile *)&particle_location->unknown1c = 1.0f;
+		*(dword volatile *)&particle_location->unknown30 = g_4ba034;
 		particle_location->random = (byte)random_index(&g_4e7408->seed, 0xff);
 	}
 

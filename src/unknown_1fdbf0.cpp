@@ -361,3 +361,55 @@ bool function_1fddd0(long actor_index, point3f const *origin, vector3f *directio
         *out_object = object_index;
     return result;
 }
+
+#include "slot_handler.h"
+#include <math.h>
+struct s_collision_result_1697c0;
+struct s_point_collision
+{
+    long type;
+    real fraction;
+    byte field_8[0x24 - 8];
+    short material;
+    byte field_26[0x5c - 0x26];
+};
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
+    long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+extern vector3f *g_4687b0;
+
+// @retail 0x1fe410
+void function_1fe410(point3f *point, real distance)
+{
+    (void)&distance;
+    point3f start;
+    start.x = g_4687b0->i * 1.5f + point->x;
+    start.y = g_4687b0->j * 1.5f + point->y;
+    start.z = g_4687b0->k * 1.5f + point->z;
+    real angle = slot_random() * 6.2831854820251465f - 3.1415927410125732f;
+    point3f destination;
+    destination.x = (real)cos(angle) * distance + start.x;
+    destination.y = (real)sin(angle) * distance + start.y;
+    destination.z = 0.0f * distance + start.z;
+    vector3f direction;
+    direction.i = start.x - point->x;
+    direction.j = start.y - point->y;
+    direction.k = start.z - point->z;
+    s_point_collision collision;
+    collision.material = NONE;
+    if (function_1697c0(0x15808c2f, point, &direction, NONE, NONE,
+        (s_collision_result_1697c0 *)&collision))
+        start = *point;
+    direction.i = destination.x - start.x;
+    direction.j = destination.y - start.y;
+    direction.k = destination.z - start.z;
+    if (function_1697c0(0x5808c2f, &start, &direction, NONE, NONE,
+        (s_collision_result_1697c0 *)&collision))
+    {
+        real fraction = collision.fraction * distance - 0.1f;
+        if (fraction < 0.0f) fraction = 0.0f;
+        destination.x = direction.i * fraction + start.x;
+        destination.y = direction.j * fraction + start.y;
+        destination.z = 0.0f * fraction + start.z;
+    }
+    *point = destination;
+}

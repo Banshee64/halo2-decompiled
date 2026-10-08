@@ -87,17 +87,18 @@ real function_218c60(long definition_index, long pitch_range_index, long permuta
 	return (real)((s_sound_globals_view *)g_51ebd4)->permutations[arg_58ecd0->first_permutation_index + permutation_index].sample_count;
 }
 
+#pragma inline_depth(0)
 // @retail 0x218d30
 real function_218d30(long definition_index)
 {
-	s_sound_definition_view *definition = sound_definition_get(definition_index);
-
+	s_sound_definition_view *definition = (s_sound_definition_view *)g_4e3b44[definition_index & 0xffff].bytes;
 	if (definition->flags & 0x800)
 	{
 		return ((s_sound_promotion_view *)function_221810(definition->promotion_index))->maximum_distance;
 	}
 	return ((s_sound_globals_view *)g_51ebd4)->classes[definition->class_index].maximum_distance;
 }
+#pragma inline_depth(255)
 
 struct s_sound_definition;
 
@@ -116,10 +117,15 @@ static inline long decibels_add(long a, long b)
 long sound_definition_gain_lower(s_sound_definition const *definition)
 {
 	s_sound_definition_view const *view = (s_sound_definition_view const *)definition;
-	long class_gain = ((s_sound_promotion_view *)sound_class_definition_get(view->promotion_index))->gain_lower;
-	long playback_gain = ((s_sound_globals_playback_view *)g_51ebd4)->playback_parameters[view->playback_index].gain_lower;
-
-	return decibels_add(class_gain, playback_gain);
+	long local_0;
+	long local_1;
+	long local_2 = ((volatile s_sound_promotion_view *)sound_class_definition_get(view->promotion_index))->gain_lower;
+	s_sound_globals *local_4 = g_51ebd4;
+	local_1 = ((volatile s_sound_playback_gain_view *)((s_sound_globals_playback_view *)local_4)->playback_parameters)[view->playback_index].gain_lower;
+	real const volatile *local_3 = (real const *)&local_1;
+	local_0 = local_2;
+	*(real *)&local_0 = *local_3 + *(real *)&local_0;
+	return local_0;
 }
 
 /* the upper bound of a sound's gain in decibels */
@@ -127,8 +133,13 @@ long sound_definition_gain_lower(s_sound_definition const *definition)
 long sound_definition_gain_upper(s_sound_definition const *definition)
 {
 	s_sound_definition_view const *view = (s_sound_definition_view const *)definition;
-	long class_gain = ((s_sound_promotion_view *)sound_class_definition_get(view->promotion_index))->gain_upper;
-	long playback_gain = ((s_sound_globals_playback_view *)g_51ebd4)->playback_parameters[view->playback_index].gain_upper;
-
-	return decibels_add(class_gain, playback_gain);
+	long local_0;
+	long local_1;
+	long local_2 = ((volatile s_sound_promotion_view *)sound_class_definition_get(view->promotion_index))->gain_upper;
+	s_sound_globals *local_4 = g_51ebd4;
+	local_1 = ((volatile s_sound_playback_gain_view *)((s_sound_globals_playback_view *)local_4)->playback_parameters)[view->playback_index].gain_upper;
+	real const volatile *local_3 = (real const *)&local_1;
+	local_0 = local_2;
+	*(real *)&local_0 = *local_3 + *(real *)&local_0;
+	return local_0;
 }

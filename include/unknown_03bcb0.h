@@ -30,7 +30,7 @@ struct s_bitmap_predict_view
 extern long g_4e6488;
 
 D3DTexture *texture_cache_bitmap_get_texture(s_bitmap_data *bitmap, dword flags, real bias);
-void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias);
+D3DTexture *function_12ce00(s_bitmap_data *bitmap, dword flags, real bias);
 
 static __forceinline void bitmap_predict_inline(s_bitmap_predict_view *bitmap, dword flags)
 {
@@ -54,6 +54,6 @@ static __forceinline void bitmap_predict_inline(s_bitmap_predict_view *bitmap, d
 	}
 }
 
-void function_3bcb0(s_bitmap_data *bitmap);
+D3DTexture *function_3bcb0(s_bitmap_data *bitmap);
 
 #endif

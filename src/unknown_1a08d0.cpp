@@ -159,8 +159,8 @@ long function_1a0b40(
 long __stdcall async_copy_file_callback(s_async_task *task)
 {
 	s_copy_file_task *copy = &task->copy_file;
-	bool finished = false;
-	bool error;
+	byte finished = false;
+	bool error = false;
 
 	switch (copy->state)
 	{
@@ -200,10 +200,10 @@ long __stdcall async_copy_file_callback(s_async_task *task)
 	}
 	case 4:
 		finished = true;
-		*copy->success = finished;
-		return finished;
+		*copy->success = true;
+		break;
 	default:
-		return finished;
+		break;
 	}
 
 	if (error)
@@ -211,9 +211,10 @@ long __stdcall async_copy_file_callback(s_async_task *task)
 		finished = true;
 		*copy->success = false;
 	}
-	return finished;
+	return finished != false;
 }
 
+#pragma inline_depth(0)
 // @retail 0x1a0da0
 bool async_copy_file(s_file_handle source, s_file_handle destination, long category)
 {
@@ -233,10 +234,15 @@ bool async_copy_file(s_file_handle source, s_file_handle destination, long categ
 		task.copy_file.buffer = buffer;
 		task.copy_file.success = &success;
 		function_120ba0(6, &task, category, async_copy_file_callback, &done);
-		function_120d50(&done, false);
+		if (!done)
+		{
+			while (!done)
+				SwitchToThread();
+		}
 	}
 	return success;
 }
+#pragma inline_depth(255)
 
 // @retail 0x1a0e70
 long __stdcall function_1a0e70(s_async_task *task)

@@ -49,7 +49,7 @@ bool function_1f8660(long index);
 void function_1f86a0(long index);
 bool function_1f4f40(long actor_index, vector3f const *facing, short unknown, s_type_c3b527 const *point, bool face_prop);
 short __stdcall function_1aec30(long actor_index, short level, bool active);
-void __stdcall function_1af810(long actor_index, s_slot *slot);
+bool __stdcall function_1af810(long actor_index, s_slot *slot);
 void __stdcall function_1afb30(long actor_index, s_slot *slot);
 void __stdcall function_1afcf0(long actor_index, s_slot *slot);
 
@@ -188,30 +188,31 @@ short __stdcall function_1aef40(long actor_index)
 	return result;
 }
 
+PRIVATE __forceinline void function_1aefc1(real arg_0, short *arg_1)
+{
+    long local_0;
+    __asm
+    {
+        fld arg_0
+        fistp local_0
+    }
+    *arg_1 = (short)local_0;
+}
+
 // @retail 0x1aefc0
 bool __stdcall function_1aefc0(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	s_slot_0f *state = (s_slot_0f *)slot;
 	dword *seed = &g_4e7408->unknown0;
-	long rounded;
 
 	*seed = 1664525 * *seed + 1013904223;
-	real seconds = (real)(*seed >> 16) * (1.f / 65535.f) * 7.0f + 3.0f;
+	real local_0 = (real)(*seed >> 16) * (1.f / 65535.f);
+	real seconds = 3.0f + 7.0f * local_0;
 	real timer = (real)g_510c54->field_2_3 * 0.2f;
-	__asm
-	{
-		fld timer
-		fistp rounded
-	}
-	state->timer = (short)rounded;
+	function_1aefc1(timer, &state->timer);
 	real ticks = g_510c54->field_2_3 * seconds;
-	__asm
-	{
-		fld ticks
-		fistp rounded
-	}
-	state->ticks = (short)rounded;
+	function_1aefc1(ticks, &state->ticks);
 	state->unknown12 = false;
 	state->unknown13 = false;
 	state->unknown34 = false;
@@ -454,7 +455,7 @@ s_slot_handler_2 g_47de70 =
 		function_1aef40, function_1af0a0, function_1aefc0, 0, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
-	function_1af810, function_1afb30, function_1afcf0
+	(t_slot_proc)function_1af810, function_1afb30, function_1afcf0
 };
 
 struct s_bsp3d;

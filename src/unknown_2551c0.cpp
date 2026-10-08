@@ -388,7 +388,7 @@ real normalize2d(point2f *v);
 bool function_10f340(long unit_index, long mode, long set);
 void *function_1e5380(long actor_index);
 bool function_1ff6c0(long actor_index, long prop_index, point3f const *point, long *target);
-bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_1, long arg_2, bool arg_3);
+bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_4, long arg_1, long arg_2, bool arg_3);
 
 // @retail 0x255b10
 bool function_255b10(long arg_0, s_type_c3b527 const *arg_1, long arg_2, bool arg_3)
@@ -424,7 +424,7 @@ bool function_255b10(long arg_0, s_type_c3b527 const *arg_1, long arg_2, bool ar
 	short local_11;
 	if (function_255d60(arg_0, &local_3, *(real *)(local_10 + 0xc), *(real *)(local_10 + 0x20), &local_11))
 		return false;
-	return function_1ffa30(arg_1, arg_2, local_2, arg_3);
+	return function_1ffa30(arg_1, arg_0, arg_2, local_2, arg_3);
 }
 
 // @retail 0x255ce0

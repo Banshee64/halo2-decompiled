@@ -22,17 +22,12 @@ void function_1e5a60(s_biped_physics_result *result, s_biped_physics_input const
 // @stub 0xe5d50
 void __stdcall function_e5d50(long arg_159e6d, long target_index, vector3f *offset, point3f *point) { }
 
-// @stub 0xe59e0
-void function_e59e0(long arg_159e6d, vector3f *velocity, point3f *position) { }
-
 // @stub 0xe57e0
 void __stdcall function_e57e0(long arg_159e6d) { }
 
 // @stub 0x1ed340
 void __stdcall function_1ed340(void *physics, long arg_159e6d) { }
 
-// @stub 0x1696d0
-bool function_1696d0(long flags, s_biped_ground_collision *collision, long object_index, point3f const *point, vector3f const *vector, long a, long b) { return 0; }
 
 
 
@@ -55,6 +50,3 @@ void function_e5790(long arg_159e6d) { }
 void __stdcall function_1e55d0(s_biped_physics_move *move, void *physics, s_biped_physics_output *output) { }
 
 
-
-// @stub 0x1c4a80
-void function_1c4a80(long object_index, long a, long b) { }

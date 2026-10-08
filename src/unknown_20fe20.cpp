@@ -185,7 +185,7 @@ real function_20f1a0(long object_index, short type)
 		short team = *(short *)(object + 0x138);
 		short side = (short)function_20f040(team);
 		byte *queue = (byte *)g_4f939c + side * 0x7dc;
-		long index = *(long *)(queue + 0x7d0);
+		long index = *(volatile long *)(queue + 0x7d0);
 		long time = g_510c54->game_time;
 		real seconds = g_510c54->field_2_3 * *(real *)((byte *)&table->entries[type] + 0x24);
 		long delay;
@@ -1396,27 +1396,39 @@ bool function_210770(short output_index, vector3f const *vector, vector3f *out)
 	return success;
 }
 
+PRIVATE __forceinline real function_210ac1(real arg_0)
+{
+	__asm
+	{
+		fld arg_0
+		fsqrt
+	}
+}
+
 // @retail 0x210970
 real function_210970(s_type_c3b527 const *a, s_type_c3b527 const *b)
 {
-	vector3f v;
 
 	if (a->output_index == b->output_index)
 	{
+		vector3f v;
 		vector3d_from_points3d(&a->point, &b->point, &v);
+		return function_210ac1(v.j * v.j + (v.i * v.i + v.k * v.k));
 	}
 	else
 	{
+		vector3f v;
 		point3f pa;
 		point3f pb;
 
 		function_210850(a, &pa);
 		function_210850(b, &pb);
 		vector3d_from_points3d(&pa, &pb, &v);
+		return function_210ac1(v.j * v.j + (v.i * v.i + v.k * v.k));
 	}
 
-	return node_point_magnitude3d(&v);
 }
+
 
 // @retail 0x210ac0
 real function_210ac0(s_type_c3b527 const *a, point3f const *b)
@@ -1437,6 +1449,7 @@ real function_210ac0(s_type_c3b527 const *a, point3f const *b)
 
 	return node_point_magnitude3d(&v);
 }
+
 
 // @retail 0x210be0
 void function_210be0(s_type_c3b527 const *a, s_type_c3b527 const *b, vector3f *out)
@@ -2086,16 +2099,20 @@ long function_20e580(long ai_index, s_audio_priority_table *table, byte const *r
     long chosen_type = NONE;
     real chosen_weight = 0.0f;
     real chosen_distance = 0.0f;
-    s_ai_actor_iterator iterator;
-    ai_actor_iterator_new(ai_index, &iterator);
-    s_actor_datum *first = ai_actor_iterator_next(&iterator);
+    struct
+    {
+        s_actor_iterator field_0;
+        s_ai_actor_iterator field_18;
+    } local_0;
+    ai_actor_iterator_new(ai_index, &local_0.field_18);
+    s_actor_datum *first = ai_actor_iterator_next(&local_0.field_18);
     if (first)
     {
-        s_actor_iterator actors;
-        function_x66da2b(&actors, true);
+        
+        function_x66da2b(&local_0.field_0, true);
         short team = *(short *)((byte *)first + 0x24);
         s_actor_datum *actor;
-        while ((actor = (s_actor_datum *)function_1e46c0(&actors)) != NULL)
+        while ((actor = (s_actor_datum *)function_1e46c0(&local_0.field_0)) != NULL)
         {
             short candidate_team = *(short *)((byte *)actor + 0x24);
             if (team == candidate_team || !function_1df560(team, candidate_team))
@@ -2147,19 +2164,20 @@ long function_20ea60(s_audio_priority_table *table, byte const *request, long ta
     real best = 0.0f;
     real chosen_weight = 0.0f;
     real chosen_distance = 0.0f;
-    long chosen_type = NONE;
+    short chosen_type = NONE;
     long chosen_tag = NONE;
     long parent = *(long *)(object + 0x14);
     if (parent != NONE && *(short *)(object + 0x1fc) != NONE &&
         g_4e0300->data[(parent & 0xffff) * 12 + 3] == 1)
     {
         s_object_seat seats[64];
-        short count = 0;
-        function_c8a40(function_1b8c80(parent), seats, &count, 64);
-        if (count > 0)
+        union { long field_0; real field_00; } local_0;
+        local_0.field_0 = 0;
+        function_c8a40(function_1b8c80(parent), seats, (short *)&local_0.field_0, 64);
+        if ((short)local_0.field_0 > 0)
         {
             s_object_seat *seat = seats;
-            long remaining = (word)count;
+            long remaining = (word)local_0.field_0;
             do
             {
                 long candidate_index = function_c8f60(seat->object_index, seat->seat_index);
@@ -2170,17 +2188,17 @@ long function_20ea60(s_audio_priority_table *table, byte const *request, long ta
                         *(long *)(candidate_object + 0x12c) != NONE)
                     {
                         long tag;
-                        real candidate_weight;
+                        
                         short candidate = function_20d8c0(source_index, table, request, candidate_index,
-                            target_index, previous_index, &tag, &candidate_weight);
-                        if (candidate != NONE && candidate_weight > 0.0f)
+                            target_index, previous_index, &tag, &local_0.field_00);
+                        if ((short)candidate != NONE && local_0.field_00 > 0.0f)
                         {
                             real distance = function_20e190(candidate_index);
-                            real score = distance * candidate_weight;
+                            real score = distance * local_0.field_00;
                             if (score > best)
                             {
                                 best = score;
-                                chosen_weight = candidate_weight;
+                                chosen_weight = local_0.field_00;
                                 chosen_distance = distance;
                                 chosen_type = candidate;
                                 chosen_tag = tag;

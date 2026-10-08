@@ -116,16 +116,16 @@ void function_221490(
 	format.bits_per_sample = 8;
 	format.extra_size = 0;
 
-	pair.dwMixBin = 0xe;
-	pair.lVolume = 0;
-	mixbins.dwMixBinCount = 1;
-	mixbins.lpMixBinVolumePairs = &pair;
-
 	description.dwSize = sizeof(description);
 	description.dwBufferBytes = 0;
 	description.lpwfxFormat = (LPWAVEFORMATEX)&format;
 	description.lpMixBins = &mixbins;
 	description.dwInputMixBin = 0;
+
+	mixbins.dwMixBinCount = 1;
+	mixbins.lpMixBinVolumePairs = &pair;
+	pair.dwMixBin = 0xe;
+	pair.lVolume = 0;
 
 	DirectSoundCreateBuffer(&description, &buffer);
 
@@ -385,15 +385,20 @@ void __stdcall function_221980(
 	}
 }
 
-PRIVATE void set_fade_flag(
-	byte *flags,
-	byte mask,
-	bool value)
+struct s_221a20
 {
-	if (value)
-		*flags |= mask;
+	word field_0 : 1;
+	word field_1 : 15;
+};
+
+PRIVATE inline void set_fade_flag(
+	s_221a20 &arg_0,
+	bool arg_1)
+{
+	if (arg_1)
+		arg_0.field_0 = true;
 	else
-		*flags &= ~mask;
+		arg_0.field_0 = false;
 }
 
 // @retail 0x221a20
@@ -406,7 +411,7 @@ void function_221a20(
 	for (i = 0; i < k_sound_class_count; ++i)
 	{
 		if (*g_470090[i] && strstr(g_470090[i], name))
-			set_fade_flag(&g_502118[i].flags, 1, !set);
+			set_fade_flag(*(s_221a20 *)&g_502118[i].flags, !set);
 	}
 }
 

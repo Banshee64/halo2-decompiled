@@ -591,7 +591,7 @@ extern vector3f *g_4687bc;
 extern vector3f *g_4687a4;
 extern short g_47d8e0;
 long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_1883e0(long tag_index, bool ignore_distance, point3f const *point, short element_index, long unused,
 	long index, long variant, long *first_value04, long *second_value04, long *first_value, long *second_value,
 	long *first_value0c, long *second_value0c);

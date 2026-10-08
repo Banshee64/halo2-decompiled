@@ -19,12 +19,6 @@
 
 /* lane G's own, not written yet */
 
-// @stub 0x211a0
-long function_211a0(long value, real alpha, real first, real second, long mode, long index, long flags, long option, long unused, real scale, real offset)
-{
-	return 0;
-}
-
 
 /* the screens' create functions (lane G, not written yet) */
 
@@ -37,17 +31,8 @@ byte __stdcall function_219070(long set_index)
 	return 0;
 }
 
-// @stub 0x215367
-void __stdcall function_215367(long player, long profile_index, void *data, long flags)
-{
-}
 
 struct s_bitmap_view;
-
-// @stub 0x12360
-void function_12360(s_bitmap_view *bitmap, real priority)
-{
-}
 
 
 /* UI lane round 2: the custom game profile list (unknown_2c9ddb.cpp) */
@@ -95,15 +80,8 @@ void __stdcall function_24b869(c_class_1473c9 *screen)
 struct s_widget_item;
 class c_class_1a2c81;
 
-// @stub 0x2afeae
-void function_2afeae(s_widget_item *item, c_class_1a2c81 *widget)
-{
-}
-
 /* UI lane round 14: callees of the campaign options list */
 
 struct s_saved_game_header;
 struct s_saved_game_read;
 class c_campaign_options_list;
-
-

@@ -6,16 +6,13 @@
 /* the other object deletion callbacks (g_468664) */
 
 
-// @stub 0x1c9f30
-void __stdcall function_1c9f30(long object_index)
-{
-}
 
 
 // @stub 0x15b650
 void __stdcall function_15b650(long team, long delta) { }
 
 struct s_statborg;
+
 
 // @stub 0x1e9df0
 void function_1e9df0(long field, long counter, s_statborg *statistics, long team, long delta) { }

@@ -74,7 +74,7 @@ long samples_trimmed_mean(const long *samples, long count)
 #pragma intrinsic(memcpy)
 
 // @retail 0x7f020
-void function_7f020(s_network_observer *observer, real *trim)
+bool function_7f020(s_network_observer *observer, real *trim)
 {
 	g_4cf8e4 = observer;
 	g_4cf95c = false;
@@ -85,6 +85,7 @@ void function_7f020(s_network_observer *observer, real *trim)
 	g_4cf96c = 16;
 	memset(g_4cf8f0, 0, sizeof(g_4cf8f0));
 	g_4cf8e0 = true;
+	return true;
 }
 
 // @retail 0x7f260
