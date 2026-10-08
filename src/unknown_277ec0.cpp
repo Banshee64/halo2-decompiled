@@ -7,7 +7,7 @@
 
 class c_material_shape;
 void function_182b90(c_material_shape *arg_0, hkEntity const *arg_1,
-	real *arg_2, short *arg_3, real *arg_4);
+	real *arg_2, real *arg_4, short *arg_3);
 
 struct s_277ec0
 {
@@ -50,7 +50,7 @@ void function_277ec0(real *arg_0, real *arg_1, short *arg_4, short *arg_5,
 		s_277ec0 *local_5 = local_0[local_4];
 		c_material_shape *local_13 = local_5->field_0;
 		hkEntity *local_6 = function_277efd(local_5);
-		function_182b90(local_13, local_6, &local_2[local_4], local_1[local_4], &local_3[local_4]);
+		function_182b90(local_13, local_6, &local_2[local_4], &local_3[local_4], local_1[local_4]);
 		local_4++;
 	} while (local_4 < 2);
 	if (arg_6 != NONE && arg_7 != NONE)

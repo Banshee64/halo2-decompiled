@@ -109,7 +109,7 @@ bool function_efb60(long arg_0);
 bool function_e5240(long arg_0);
 
 // @retail 0x1d1910
-bool function_1d1910(c_1d19d0 *arg_0)
+char function_1d1910(c_1d19d0 *arg_0)
 {
  long local_0 = arg_0->field_60;
  s_1d1910 *local_1 = &((s_1d1910 *)g_4e0300->data)[local_0 & 0xffff];

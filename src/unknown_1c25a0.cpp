@@ -97,7 +97,8 @@ real c_world_contact_update::evaluate(void const *body, void const *query)
 {
 	s_contact_body_view const *root = body ? (s_contact_body_view const *)((byte const *)body - 0x10) : NULL;
 	c_world_query_filter *filter = (c_world_query_filter *)(((s_world_query_view *)g_51e9a4)->filter + 8);
-	if (filter->accepts(root, function_30c170(g_51e9a4) + 0xc).m_bool && root->type == 1 && root->entity)
+	byte *local_0 = function_30c170(g_51e9a4) + 0xc;
+	if (filter->accepts(root, local_0).m_bool && root->type == 1 && root->entity)
 	{
 		long component_index = havok_entity_component_index_get(root->entity);
 		if (component_index != NONE)
@@ -262,15 +263,19 @@ void function_1c25a0(void)
 	function_146b80();
 }
 
+PRIVATE __forceinline byte *function_1c2601(void *arg_0)
+{
+	byte *local_0 = (byte *)arg_0;
+	return local_0 - ((long *)local_0)[-1];
+}
+
 // @retail 0x1c2600
 void function_1c2600(void)
 {
 	byte *block;
 
 	function_146de0();
-	block = (byte *)g_479888;
-	long local_0 = ((long *)block)[-1];
-	block -= local_0;
+	block = function_1c2601(g_479888);
 	if (!VirtualFree(block, 0, MEM_RELEASE))
 	{
 		GetLastError();
@@ -624,6 +629,18 @@ PRIVATE inline s_havok_component_flags *havok_component_flags_get(long component
 c_havok_reference_counted *g_4f55b0;
 
 /* drops the references to 0x1c2910's object and to g_47f048 */
+PRIVATE __forceinline void function_1c2891(short *arg_0, c_havok_reference_counted *arg_1)
+{
+	--*arg_0;
+	if (*arg_0 == 0)
+	{
+		if (function_279740((long)arg_1))
+			*arg_0 = 1;
+		else
+			delete arg_1;
+	}
+}
+
 // @retail 0x1c2890
 void function_1c2890(void)
 {
@@ -632,7 +649,8 @@ void function_1c2890(void)
 		havok_reference_remove(g_4f55b0);
 		g_4f55b0 = NULL;
 	}
-	havok_reference_remove((c_havok_reference_counted *)g_47f048);
+	c_havok_reference_counted *local_0 = (c_havok_reference_counted *)g_47f048;
+	function_1c2891(&local_0->reference_count, local_0);
 	g_47f048 = NULL;
 }
 
@@ -1056,7 +1074,8 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 		{
 			physics_object_get(best_object_index)->flags |= 0x20;
 			function_1c3770(best_object_index, 0);
-			return true;
+			result = true;
+			goto local_0;
 		}
 		object = physics_object_get(best_object_index);
 		if (effect->effect_index != NONE)
@@ -1082,8 +1101,9 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 			function_146bf0();
 		}
 		function_b8540(best_object_index);
-		return true;
+		result = true;
 	}
+local_0:
 	return result;
 }
 

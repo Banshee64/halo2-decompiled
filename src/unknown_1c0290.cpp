@@ -133,6 +133,16 @@ short __stdcall function_1c0300(long actor_index)
 	return result;
 }
 
+#pragma inline_depth(0)
+PRIVATE __forceinline bool function_1c04f1(s_slot_7c const *arg_0, s_actor_tag_entry_1e4f90 const *arg_1)
+{
+	long local_0 = g_510c54->game_time;
+	long local_1 = function_1469f0(*(real const *)&arg_1->unknown14);
+	return local_0 - arg_0->unknown10 > local_1;
+}
+
+#pragma inline_depth(255)
+
 // @retail 0x1c04f0
 short __stdcall function_1c04f0(long actor_index, s_slot *slot, bool active)
 {
@@ -163,7 +173,7 @@ short __stdcall function_1c04f0(long actor_index, s_slot *slot, bool active)
 				}
 			}
 			else if (distance > entry->unknown10 ||
-				g_510c54->game_time - state->unknown10 > function_1469f0(entry->unknown14))
+				function_1c04f1(state, entry))
 			{
 				result = g_46fbe4;
 			}
@@ -300,6 +310,13 @@ void __stdcall function_1c04c0(long actor_index, s_slot *slot)
 	actor_get(actor_index)->times[3] = g_510c54->game_time;
 }
 
+#pragma optimize("g", off)
+PRIVATE __forceinline bool function_1c0a31(point2f *arg_0)
+{
+	return normalize2d(arg_0) > g_45dbd8;
+}
+#pragma optimize("g", on)
+
 // @retail 0x1c0a30
 void __stdcall function_1c0a30(long actor_index, s_slot *slot)
 {
@@ -307,7 +324,9 @@ void __stdcall function_1c0a30(long actor_index, s_slot *slot)
 
 	if (state->unknown0c)
 	{
-		actor_get(actor_index)->unknown810.bit13 = true;
+		s_actor_view *local_0 = actor_get(actor_index);
+		volatile dword *local_1 = &local_0->flags810;
+		*local_1 = *local_1 | 0x2000;
 	}
 	else
 	{
@@ -321,10 +340,10 @@ void __stdcall function_1c0a30(long actor_index, s_slot *slot)
 
 			direction.x = prop->position.x - actor->position.x;
 			direction.y = prop->position.y - actor->position.y;
-			if (normalize2d(&direction) > g_45dbd8)
+			if (function_1c0a31(&direction))
 			{
 				facing = *(point2f *)&actor->unknown290;
-				if (normalize2d(&facing) > g_45dbd8 && facing.x * direction.x + facing.y * direction.y > 0.9f)
+				if (function_1c0a31(&facing) && facing.y * direction.y + facing.x * direction.x > 0.9f)
 				{
 					actor->unknown482 = true;
 				}

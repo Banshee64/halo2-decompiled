@@ -4791,7 +4791,7 @@ void __stdcall function_2a5210(short function_index, long thread_index, bool ini
 
 s_type_f4462a const g_44c7c0 = { _hs_type_void, 0, function_2a5210, NULL, 1, { _hs_type_ai } };
 
-void function_1c84a0(long a, long b);
+void function_1c84a0(long a, bool b);
 
 /* 298: void () */
 // @retail 0x2a5250
