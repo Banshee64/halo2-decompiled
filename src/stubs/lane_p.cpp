@@ -61,13 +61,3 @@ union point3f;
 void function_13aa27(long arg_1, byte const *arg_2, byte *arg_3, long arg_4, byte const *arg_5)
 {
 }
-
-// @stub 0x159880
-void function_159880(void)
-{
-}
-
-// @stub 0x1e6fe0
-void function_1e6fe0(long arg_1)
-{
-}

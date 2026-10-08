@@ -77,6 +77,10 @@ long __stdcall function_2cb510(unsigned char *destination, long *destination_siz
 }
 
 
+// @stub 0x13954b
+void function_13954b(void)
+{
+}
 
 // @stub 0x191fd8
 void function_191fd8(long player_index)
