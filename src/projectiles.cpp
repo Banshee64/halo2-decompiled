@@ -1029,13 +1029,12 @@ bool function_fc030(long projectile_index, point3f const *point, s_collision_res
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
 	point3f *origin = (point3f *)((byte *)projectile + 0x64);
-	long ignore_object_index = *(long *)((byte *)projectile + 0x140);
 	vector3f vector;
 
 	vector.i = point->x - origin->x;
 	vector.j = point->y - origin->y;
 	vector.k = point->z - origin->z;
-	if (function_1697c0(0x2480000f, origin, &vector, ignore_object_index, projectile_index, collision))
+	if (function_1697c0(0x2480000f, origin, &vector, *(long *)((byte *)projectile + 0x140), projectile_index, collision))
 		return true;
 
 	real radius = *(real *)((byte *)definition + 0xc8);
@@ -1064,7 +1063,7 @@ bool function_fc030(long projectile_index, point3f const *point, s_collision_res
 		offset_vector.i = side.i * radius + point->x - start.x;
 		offset_vector.j = side.j * radius + point->y - start.y;
 		offset_vector.k = side.k * radius + point->z - start.z;
-		if (function_1697c0(0x4800008, &start, &offset_vector, ignore_object_index, NONE, collision))
+		if (function_1697c0(0x4800008, &start, &offset_vector, *(long *)((byte *)projectile + 0x140), NONE, collision))
 			return true;
 
 		start.x = (0.0f - radius) * side.i + origin->x;
@@ -1073,7 +1072,7 @@ bool function_fc030(long projectile_index, point3f const *point, s_collision_res
 		offset_vector.i = (0.0f - radius) * side.i + point->x - start.x;
 		offset_vector.j = side.j * (0.0f - radius) + point->y - start.y;
 		offset_vector.k = side.k * (0.0f - radius) + point->z - start.z;
-		if (function_1697c0(0x4800008, &start, &offset_vector, ignore_object_index, NONE, collision))
+		if (function_1697c0(0x4800008, &start, &offset_vector, *(long *)((byte *)projectile + 0x140), NONE, collision))
 			return true;
 	}
 	return false;
