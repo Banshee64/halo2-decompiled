@@ -139,7 +139,7 @@ separately, so `0x48574c` is probably the start of one structure (inferred).
 **The program** is `g_484f68`, the `D3DPIXELSHADERDEF` defined at
 `src/unknown_020560.cpp:59`. It is cleared (0xf0 bytes, `0x3a9ee`–`0x3a9f8`),
 and these fields are written. The offsets come from retail stores of functions
-whose source names the field (`function_20f30`, `function_251b0`,
+whose source names the field (`function_020f30`, `function_251b0`,
 `function_276d0`):
 
 | Offset | Field |

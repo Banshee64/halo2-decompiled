@@ -706,6 +706,8 @@ bool __stdcall device_export_function(long device_index, long name, real *value,
 	return result;
 }
 
+bool __stdcall function_106790(long volatile device_index);
+
 /* the device object type definition */
 struct s_device_type_definition
 {
@@ -724,7 +726,7 @@ struct s_device_type_definition
 	void (__stdcall *handler34)(long);
 	void *handler38;
 	void (__stdcall *handler3c)(long);
-	void *handler40;
+	bool (__stdcall *handler40)(long);
 	void *unknown44[2];
 	bool (__stdcall *handler4c)(long, long, real *, bool *);
 	void *unknown50[7];
@@ -748,7 +750,7 @@ s_device_type_definition g_468248 =
 	function_106680,
 	0,
 	function_106780,
-	0,
+	function_106790,
 	{ 0, 0 },
 	device_export_function,
 	{ 0, 0, 0, 0, 0, 0, 0 },
@@ -1180,5 +1182,154 @@ bool function_107cc0(long device_index, s_device_motion *motion, c_animation_cha
 	}
 	if (out_position)
 		*out_position = current;
+	return result;
+}
+
+bool function_107cc0(long device_index, s_device_motion *motion, c_animation_channel *channel,
+	s_animation_state *state, real position, real *out_position);
+bool function_11eed0(real *velocity, real *position, real dt, bool wrap, real target,
+	real speed, real acceleration, real lower, real upper);
+void __stdcall function_bd020(long object_index);
+void machine_keyframe_rigid_bodies(long object_index, bool value);
+struct s_index_pair
+{
+	long index;
+	byte field_4[2];
+	short index2;
+};
+bool function_0b6760(s_index_pair const *pair);
+
+// @retail 0x106790
+bool __stdcall function_106790(long volatile device_index)
+{
+	s_device *device = DEVICE_GET(device_index);
+	byte const *volatile saved_definition = g_4e3b44[device->definition_index & 0xffff].bytes;
+	volatile bool result = false;
+	s_animation_state *state = NULL;
+	if (device->animation_state_offset != NONE)
+		state = device_get_animation_state(device);
+	device->flags &= ~0x100;
+	if (device->flags & 8)
+	{
+		if (!(device->flags & 0x20))
+		{
+			real previous = device->power;
+			real position;
+			bool finished = function_107cc0(device_index, &device->motion_14c,
+				&device->channels[0], state, previous, &position);
+			device->power = position;
+			device->power_velocity = (position - previous) / g_510c54->rate;
+			if (finished)
+			{
+				device->flags |= 0x20;
+				function_107520(device_index);
+			}
+			else
+			{
+				device->flags &= ~0x20;
+				function_107520(device_index);
+			}
+			result = true;
+		}
+	}
+	else if (device->power_group_index != NONE)
+	{
+		s_device_group *group = DEVICE_GROUP_GET(device->power_group_index);
+		if (group->value == device->power && device->power_velocity == 0.0f && !(device->flags & 0x80))
+		{
+			device->delay_ticks = 0;
+		}
+		else
+		{
+			if (state && device->channels[0].graph_tag_index != NONE && device->channels[0].animation_id.index != NONE)
+				device->channels[0].set_frame_ratio(device->power);
+			byte const *definition = saved_definition;
+			real acceleration = *(real const *)(definition + 0xcc) * device->position +
+				*(real const *)(definition + 0xd4) * (1.0f - device->position);
+			real speed = *(real const *)(definition + 0xc8) * device->position +
+				*(real const *)(definition + 0xd0) * (1.0f - device->position);
+			bool increasing = device->power_velocity > 0.0f;
+			if (acceleration > 0.0f && speed > 0.0f)
+				device->flags |= 0x100;
+			else
+				device->flags &= ~0x100;
+			if (!((real)device->delay_ticks * g_510c54->rate >= *(real const *)(definition + 0x10c)) &&
+				device->power == 0.0f && !(device->power > group->value))
+			{
+				++device->delay_ticks;
+				if (device->delay_ticks == 1)
+					function_107980(device_index, *(long const *)(definition + 0x114));
+			}
+			else
+			{
+				real local_c01284_2 = device->power_velocity;
+				real previous = device->power;
+				if (fabs(local_c01284_2) > speed)
+					device->power_velocity = increasing ? speed : 0.0f - speed;
+				bool reached = function_11eed0(&device->power_velocity, &device->power,
+					g_510c54->rate, (*(byte const *)(definition + 0xbc) & 1) != 0,
+					group->value, speed, acceleration, 0.0f, 1.0f);
+				if (reached)
+					function_107980(device_index, *(long const *)(definition + (increasing ? 0xf0 : 0xf8)));
+				else if (device->power_velocity != 0.0f && device->power_velocity * local_c01284_2 <= 0.0f)
+					function_107980(device_index, *(long const *)(definition +
+						(device->power_velocity > local_c01284_2 ? 0xe0 : 0xe8)));
+				if (previous != device->power || (device->flags & 0x80))
+				{
+					function_107520(device_index);
+					if (state && device->channels[0].graph_tag_index != NONE && device->channels[0].animation_id.index != NONE)
+						device->channels[0].set_frame_ratio_and_advance(device->power, state,
+							(animation_event_callback)function_bf600, device_index);
+				}
+			}
+			result = true;
+		}
+	}
+	if (device->flags & 0x10)
+	{
+		if (!(device->flags & 0x40))
+		{
+			bool finished = function_107cc0(device_index, &device->motion_16c,
+				&device->channels[1], state, 0.0f, NULL);
+			if (finished)
+				device->flags |= 0x40;
+			else
+				device->flags &= ~0x40;
+			function_107520(device_index);
+			result = true;
+		}
+	}
+	else if (!(device->flags & 8) && device->position_group_index != NONE)
+	{
+		s_device_group *group = DEVICE_GROUP_GET(device->position_group_index);
+		if (group->value != device->position || device->position_velocity != 0.0f)
+		{
+			if (state && function_0b6760((s_index_pair const *)&device->channels[1]))
+				device->channels[1].set_frame_ratio(device->position);
+			byte const *definition = saved_definition;
+			real previous = device->position;
+			function_11eed0(&device->position_velocity, &device->position, g_510c54->rate, false,
+				group->value, *(real const *)(definition + 0xc0), *(real const *)(definition + 0xc4), 0.0f, 1.0f);
+			if (previous != device->position)
+			{
+				function_107520(device_index);
+				if (state && function_0b6760((s_index_pair const *)&device->channels[1]))
+					device->channels[1].set_frame_ratio_and_advance(device->position, state,
+						(animation_event_callback)function_bf600, device_index);
+			}
+			result = true;
+		}
+	}
+	if (((device->flags & 8) || device->power_group_index != NONE) && (device->flags & 0x80))
+	{
+		if ((1 << ((byte *)g_4e0300->data)[(device_index & 0xffff) * 12 + 3]) & 0x80)
+		{
+			function_bd020(device_index);
+			machine_keyframe_rigid_bodies(device_index, true);
+		}
+		if (device_index == NONE || *((byte *)DEVICE_GET(device_index) + 0xb3) == 0)
+			device->flags &= ~0x80;
+		return true;
+	}
 	return result;
 }

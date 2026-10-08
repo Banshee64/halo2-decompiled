@@ -23,7 +23,7 @@ void function_19a864(void);
 bool function_19a76d(short index);
 void function_121100(long *value);
 void function_148d42(long value);
-void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
+void dialog_ok_show(long a, long dialog_id, long b, short user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
 void function_2c83e6(long type, long a, long b, word user_flags);
 
 /* the squad settings that open a screen (unknown_2b116a.cpp) */

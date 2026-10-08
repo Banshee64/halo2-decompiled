@@ -5424,3 +5424,344 @@ void function_12a50(s_frame_parameters_12a50 const *parameters)
     g_485af0 = true;
     function_22850();
 }
+
+bool function_48b00(point3f const *point, real radius, real *screen, real *extent);
+real function_30bf0(vector3f *vector);
+extern real g_4857b4;
+void function_0224f0(dword stage, D3DTEXTURESTAGESTATETYPE type, dword value);
+
+PRIVATE __forceinline void draw_filter_quad(real left, real right, real top, real bottom)
+{
+    D3DDevice_SetVertexData2s(3, 0, 0);
+    D3DDevice_SetVertexData4f(0, left, top, 16777215.0f, 16777215.0f);
+    D3DDevice_SetVertexData2s(3, 1, 0);
+    D3DDevice_SetVertexData4f(0, right, top, 16777215.0f, 16777215.0f);
+    D3DDevice_SetVertexData2s(3, 1, 1);
+    D3DDevice_SetVertexData4f(0, right, bottom, 16777215.0f, 16777215.0f);
+    D3DDevice_SetVertexData2s(3, 0, 1);
+    D3DDevice_SetVertexData4f(0, left, bottom, 16777215.0f, 16777215.0f);
+}
+
+// @retail 0x46ea0
+void function_46ea0(long tag, point3f const *position)
+{
+    union { vector3f direction; real bounds[4]; } workspace;
+    vector3f &direction = workspace.direction;
+    direction.i = position->x - g_485618.position.x;
+    byte *definition = g_4e3b44[tag & 0xffff].bytes;
+    direction.j = position->y - g_485618.position.y;
+    direction.k = position->z - g_485618.position.z;
+    function_30bf0(&direction);
+    real dot = g_485618.forward.k * direction.k + g_485618.forward.i * direction.i +
+        g_485618.forward.j * direction.j;
+    real strength = (dot - 0.7071067690849304f) * 3.4142134189605713f;
+    if (strength < 0.0f) strength = 0.0f;
+    else if (strength > 1.0f) strength = 1.0f;
+    real scale = g_48565c / dot;
+    point3f projected;
+    projected.x = direction.i * scale + g_485618.position.x;
+    projected.y = direction.j * scale + g_485618.position.y;
+    projected.z = direction.k * scale + g_485618.position.z;
+    real screen[4];
+    if (!function_48b00(&projected, *(real *)(definition + 0x10), screen, &direction.i)) return;
+    screen[0] = (real)floor(screen[0] + 0.5f);
+    screen[1] = (real)floor(screen[1] + 0.5f);
+    real *bounds = workspace.bounds;
+    real &left = bounds[0];
+    real &right = bounds[1];
+    real &top = bounds[2];
+    real &bottom = bounds[3];
+    left = (real)(screen[0] - 32.0f);
+    top = (real)(screen[1] - 32.0f);
+    right = (real)(screen[0] + 32.0f);
+    bottom = (real)(screen[1] + 32.0f);
+    if (!((real)(short)g_48564e > left && (real)(short)g_48564c > top &&
+        right > (real)(short)g_48564a && bottom > (real)(short)g_485648)) return;
+    function_1cc30(10);
+    function_1c710(g_51f0f0);
+    g_4b8448 = 0x901; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0x901);
+    g_4b8308 = 0x1000000; D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x1000000);
+    g_4b82e8 = 0; D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+    g_4b82ec = 0; D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
+    g_4b82e0 = 0x207; D3DDevice_SetRenderState(D3DRS_ZFUNC, 0x207);
+    g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSCombinerCount = 1;
+    g_484f68.PSFinalCombinerConstant1 = 0;
+    g_484f68.PSFinalCombinerInputsEFG = 0x1100;
+    function_1ccf0(&g_484f68);
+    function_1cf50();
+    D3DDevice::Begin(D3DPT_QUADLIST);
+    D3DDevice_SetVertexData4f(0, left, top, 16777215.0f, 16777215.0f);
+    D3DDevice_SetVertexData4f(0, right, top, 16777215.0f, 16777215.0f);
+    D3DDevice_SetVertexData4f(0, right, bottom, 16777215.0f, 16777215.0f);
+    D3DDevice_SetVertexData4f(0, left, bottom, 16777215.0f, 16777215.0f);
+    D3DDevice::End();
+    function_14bc0((short)g_4858b8, 0, true);
+    function_1cc30(10);
+    function_1c710(g_51f0f0);
+    function_143c0(*(long *)(g_485a80 + 0x34), 0, 0, 0.0f);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, 3);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, 3);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, 2);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, 2);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 2);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+    D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+    g_4b8448 = 0x901; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0x901);
+    g_4b8308 = 0x1000000; D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x1000000);
+    g_4b82e8 = 0; D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    g_4b8438 = 2; D3DDevice_SetRenderState(D3DRS_ZENABLE, 2);
+    function_0222d0(D3DRS_ZFUNC, 0x203);
+    function_0222d0(D3DRS_ZWRITEENABLE, 0);
+    g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 1;
+    g_484f68.PSAlphaInputs[0] = 0x18200000;
+    g_484f68.PSAlphaOutputs[0] = 0x200c0;
+    g_484f68.PSFinalCombinerInputsABCD = 0x1c;
+    g_484f68.PSFinalCombinerInputsEFG = 0x1c00;
+    function_1ccf0(&g_484f68);
+    function_1cf50();
+    D3DDevice::Begin(D3DPT_QUADLIST);
+    draw_filter_quad(left, right, top, bottom);
+    D3DDevice::End();
+    function_46230(16, bounds);
+    function_46230(17, bounds);
+    short filtered = function_467c0(16, 17, 4);
+    function_14bc0((short)g_4858b8, 0, true);
+    function_1cc30(10);
+    function_1cd90();
+    function_14f60(0, filtered);
+    function_0224f0(0, D3DTSS_ADDRESSU, 3);
+    function_0224f0(0, D3DTSS_ADDRESSV, 3);
+    function_0224f0(0, D3DTSS_MAGFILTER, 2);
+    function_0224f0(0, D3DTSS_MINFILTER, 2);
+    function_0224f0(0, D3DTSS_MIPFILTER, 2);
+    function_0224f0(0, D3DTSS_MAXMIPLEVEL, 0);
+    function_0224f0(0, D3DTSS_MAXANISOTROPY, 0);
+    function_0224f0(0, D3DTSS_MIPMAPLODBIAS, 0);
+    function_0224f0(0, D3DTSS_COLORSIGN, 0);
+    function_0224f0(0, D3DTSS_ALPHAKILL, 0);
+    g_4b8448 = 0x901; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0x901);
+    function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+    function_0222d0(D3DRS_SRCBLEND, 0x302);
+    function_0222d0(D3DRS_DESTBLEND, 1);
+    function_0222d0(D3DRS_BLENDOP, 0x8006);
+    function_0222d0(D3DRS_ALPHATESTENABLE, 0);
+    function_0222d0(D3DRS_ZFUNC, 0x207);
+    g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 2;
+    g_484f68.PSConstant0[0] = 0xb0b080;
+    g_484f68.PSConstant1[0] = 0xffffff;
+    g_484f68.PSAlphaInputs[0] = 0x48200000;
+    g_484f68.PSAlphaOutputs[0] = 0xc0;
+    g_484f68.PSRGBInputs[1] = 0x3c011c02;
+    g_484f68.PSRGBOutputs[1] = 0xc00;
+    g_484f68.PSFinalCombinerInputsABCD = 0xc080000;
+    g_484f68.PSFinalCombinerInputsEFG = 0x1400;
+    function_1ccf0(&g_484f68);
+    real opacity = 1.0f - g_4857b4;
+    opacity = opacity < 0.0f ? 0.0f : opacity > 1.0f ? 1.0f : opacity;
+    strength *= opacity;
+    long i = 0;
+    do
+    {
+        real offset = (real)i * 0.0625f * 80.0f - 4.0f;
+        function_1cf50();
+        D3DDevice::Begin(D3DPT_QUADLIST);
+        ++i;
+        D3DDevice_SetVertexData4f(9, 0.0f, 0.0f, 0.0f, strength / i);
+        D3DDevice_SetVertexData2s(3, 0, 0);
+        D3DDevice_SetVertexData4f(0, left - offset, top - offset, 16777215.0f, 16777215.0f);
+        D3DDevice_SetVertexData2s(3, 1, 0);
+        D3DDevice_SetVertexData4f(0, right + offset, top - offset, 16777215.0f, 16777215.0f);
+        D3DDevice_SetVertexData2s(3, 1, 1);
+        D3DDevice_SetVertexData4f(0, right + offset, bottom + offset, 16777215.0f, 16777215.0f);
+        D3DDevice_SetVertexData2s(3, 0, 1);
+        D3DDevice_SetVertexData4f(0, left - offset, bottom + offset, 16777215.0f, 16777215.0f);
+        D3DDevice::End();
+    } while (i < 16);
+}
+
+struct s_index_cache
+{
+	long index;
+	short count;
+	short unknown06;
+	long values[256];
+};
+
+extern s_index_cache g_4c6b00[8];
+extern long g_50943c, g_509440;
+struct s_2cb30_state
+{
+	byte unknown00[0x2a78];
+	long active;
+};
+
+struct s_2cb30_entry
+{
+	dword values[9];
+};
+
+struct s_2cb30_globals
+{
+	long current;
+	long previous;
+	s_2cb30_state *state;
+	union
+	{
+		byte unknown0c[0x9b0 - 0xc];
+		struct
+		{
+			byte weights[850];
+			byte material_indices[850];
+			long materials[192];
+		};
+	};
+	long count;
+	s_2cb30_entry entries[32];
+	long entry_count;
+};
+extern s_2cb30_globals g_4c0b78;
+struct s_render_part_context;
+void function_41040(short index, long part_index, long group, byte weight,
+    s_render_part_context const *context, long material_override, bool force,
+    dword and_mask, dword or_mask);
+void *function_449e0(short index, bool load, bool instance);
+extern s_44940_entry g_4c6700[32];
+struct s_first_index_cache_44ac0
+{
+    s_44940_entry entries[32];
+    long index;
+    short count;
+    short unknown406;
+};
+s_first_index_cache_44ac0 g_4c62f8;
+bool function_460d0(dword const *mask, short index, long part_index);
+
+// @retail 0x44ac0
+void __stdcall function_44ac0(long group, dword selection_mask, long level)
+{
+    (void)&group; (void)&selection_mask; (void)&level;
+    long end = g_4c0b78.previous;
+    if (group) end = g_4c0b78.current;
+    end = (word)end;
+    long begin;
+    if (!group) begin = 0; else begin = (word)g_4c0b78.previous;
+    for (long index = begin; index < end; ++index)
+    {
+        s_44940_entry *entry = &g_4ba138[(short)index];
+        if (entry->unknown00 & 0x400)
+        {
+            if (!group)
+            {
+                if (g_50943c < 32)
+                    ((word *)g_4c6b00[7].values)[g_50943c++] = (word)index;
+            }
+            else if (!g_509440)
+            {
+                if (g_4c62f8.count < 32)
+                {
+                    g_4c62f8.entries[g_4c62f8.count] = *entry;
+                    ++g_4c62f8.count;
+                }
+            }
+            else if (g_4c6b00[g_509440 - 1].count < 32)
+            {
+                s_44940_entry *entries = g_509440 == 1 ? g_4c6700 :
+                    (s_44940_entry *)g_4c6b00[g_509440 - 2].values;
+                entries[g_4c6b00[g_509440 - 1].count] = *entry;
+                ++g_4c6b00[g_509440 - 1].count;
+            }
+            continue;
+        }
+        if (!((entry->unknown00 & selection_mask) & 0x1fffff) ||
+            ((entry->flags >> 4) & 0x1f) != level || !(entry->unknown00 & 1) ||
+            !entry->unknown10[0xa]) continue;
+        byte weight = g_4c0b78.weights[index];
+        long transform_index = entry->flags & 0xf;
+        byte material_index = g_4c0b78.material_indices[(short)index];
+        long material = NONE;
+        if (material_index != 0xff) material = g_4c0b78.materials[material_index];
+        byte *geometry = (byte *)function_449e0((short)index, false,
+            (bool)((entry->unknown00 >> 12) & 1));
+        if (!geometry) continue;
+        for (long part = 0; part < *(long *)geometry; ++part)
+        {
+            byte context[0x2c];
+            if (function_45ce0((short)index, context, (short)part, (short)transform_index) &&
+                function_460d0(*(dword const **)(entry->unknown10 + 4), (short)index, part))
+            {
+                long chosen = *(long *)context;
+                if (material != NONE) chosen = material;
+                if (chosen != NONE)
+                    function_41040((short)index, part, group, weight,
+                        (s_render_part_context *)context, chosen, level != 31, ~0UL, 0);
+            }
+        }
+    }
+}
+
+#if 0 // Preserve the existing exact SDK Clear callers.
+struct s_depth_parameters_13450
+{
+    long identifier, mode;
+    real distance;
+};
+s_depth_parameters_13450 g_4850c4;
+extern bool g_485a74;
+extern byte g_485607;
+extern dword g_4b8344;
+real g_4b893c;
+
+// Disabled retail 0x13450; SDK Clear activation changes matched 0x14ac0.
+bool function_13450(s_depth_parameters_13450 const *parameters)
+{
+    real inverse = 1.0f / g_485ad4.hi;
+    g_4850c4 = *parameters;
+    real lower = inverse * g_485ad4.lo * 16777215.0f;
+    real upper = inverse * g_485ad4.hi * 16777215.0f;
+    g_485a74 = false;
+    if (lower < 0.0f) lower = 0.0f;
+    else if (lower > 16777215.0f) lower = 16777215.0f;
+    g_485adc = lower;
+    if (upper < 0.0f) upper = 0.0f;
+    else if (upper > 16777215.0f) upper = 16777215.0f;
+    g_485ae0 = upper;
+    if (parameters->mode == 1 || parameters->mode == 2)
+    {
+        real distance = parameters->distance * inverse * 16777215.0f;
+        if (distance < 0.0f) distance = 0.0f;
+        else if (distance > 16777215.0f) distance = 16777215.0f;
+        if (parameters->mode == 1)
+            g_485adc = distance;
+        else if (parameters->mode == 2)
+        {
+            g_485ae0 = distance;
+            g_4858b8 = 18;
+            function_14bc0(18, 0, true);
+            if (g_485607 && !g_4858b8) function_14ac0();
+            D3DDevice_Clear(0, 0, 0xf3, 0, 1.0f, 0);
+        }
+    }
+    D3DDevice_SetDepthClipPlanes(g_485adc, g_485ae0, D3DSDCP_SET_FIXEDFUNCTION_PLANES);
+    g_4b8344 = 0;
+    D3DDevice_SetRenderState(D3DRS_DEPTHCLIPCONTROL, 0);
+    g_4b6280.count = 0;
+    g_4b6280.unknown04 = 0;
+    g_4b6280.unknown10 = true;
+    g_4b6280.available = true;
+    g_4b893c = 0.0f;
+    return true;
+}
+#endif

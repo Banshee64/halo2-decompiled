@@ -845,3 +845,105 @@ void function_b75a0(long object_index, point3f const *point, vector3f const *for
     }
     function_b7360(object_index);
 }
+
+// Activating this body changes shared helper register conventions and loses
+// seven existing exact matches. Preserve the closest draft until those
+// helper conventions can be reconciled with their owners.
+#if 0
+
+__declspec(noinline) bool function_0bfe60(dword const *mask, long node);
+bool function_10db60(long object_index);
+bool function_10edd0(long object_index);
+__declspec(noinline) void function_10ec00(long object_index, s_animation_state *state, long unused,
+	dword const *node_mask, long count, real_quaternion_transform *orientations, byte *mask);
+__declspec(noinline) void function_10e530(long object_index, s_animation_state *state, long unused,
+	dword const *node_mask, long count, real_quaternion_transform *orientations, byte *mask);
+void function_1132f0(long object_index, dword const *node_mask, long count, transform4x3f *matrices);
+void __stdcall function_1421f0(transform4x3f *out, rigid_transform_scaled const *orientation);
+
+rigid_transform_scaled g_4dc2f0[255];
+transform4x3f g_4d8f20[255];
+
+__declspec(noinline) transform4x3f const *__stdcall function_bd610(long object_index,
+	byte const *nodes, transform4x3f const *input_matrices);
+
+// Retail 0xbd610; its original stub remains in src/stubs/lane_p.cpp.
+transform4x3f const *__stdcall function_bd610(long object_index, byte const *nodes,
+	transform4x3f const *input_matrices)
+{
+	s_object_transform_header *header = &((s_object_transform_header *)g_4e0300->data)[object_index & 0xffff];
+	byte *object = (byte *)header->object;
+	transform4x3f *result = (transform4x3f *)input_matrices;
+	transform4x3f *matrices = 0;
+	rigid_transform_scaled *orientations = 0;
+	if (*(short *)(object + 0x112) == NONE)
+		return input_matrices;
+	if (object_index != NONE && object[0xb3] > 0)
+		return input_matrices;
+	byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+	long model_index = *(long *)(definition + 0x38);
+	if (model_index == NONE)
+		return input_matrices;
+	s_animation_state *state = (s_animation_state *)(object + *(short *)(object + 0x12a));
+	long node_count = *(short *)(object + 0x110) / sizeof(rigid_transform_scaled);
+	byte *model = g_4e3b44[model_index & 0xffff].bytes;
+	byte *render_model = g_4e3b44[*(long *)(model + 4) & 0xffff].bytes;
+	rigid_transform_scaled *object_orientations = (rigid_transform_scaled *)(object + *(short *)(object + 0x112));
+	dword mask[8];
+	memcpy(mask, model + 0xa4, sizeof(mask));
+	volatile bool sample = false;
+	if ((bool)((*(dword *)(object + 4) >> 30) & 1) &&
+		!((bool)((*(dword *)((byte *)header->object + 4) >> 29) & 1)) &&
+		(!((1 << definition[0]) & 1) || !((byte *)header->object)[0x34b]))
+	{
+		long render_node_count = *(long *)(render_model + 0x1c);
+		for (long node = 0; node < render_node_count; ++node)
+		{
+			byte index = nodes[node];
+			if (index != 0xff && function_0bfe60((dword const *)(model + 0xc4), index))
+				sample = true;
+			if (sample)
+				break;
+		}
+		if (sample)
+		{
+			*(dword *)(object + 4) &= 0xbfffffff;
+			function_bdb60(object_index, (s_16760c_render_model *)render_model, state,
+				(long)(model + 0xa4), node_count, (byte *)object_orientations);
+			orientations = object_orientations;
+			matrices = (transform4x3f *)input_matrices;
+			result = matrices;
+		}
+	}
+	if (((1 << ((byte *)header)[3]) & 3) &&
+		(function_10db60(object_index) || function_10edd0(object_index)))
+	{
+		memcpy(g_4dc2f0, object_orientations, node_count * sizeof(rigid_transform_scaled));
+		memcpy(g_4d8f20, input_matrices, node_count * sizeof(transform4x3f));
+		function_10ec00(object_index, state, (long)render_model, 0,
+			node_count, (real_quaternion_transform *)g_4dc2f0, (byte *)mask);
+		function_10e530(object_index, state, (long)render_model, 0,
+			node_count, (real_quaternion_transform *)g_4dc2f0, (byte *)mask);
+		matrices = g_4d8f20;
+		result = g_4d8f20;
+		orientations = g_4dc2f0;
+	}
+	if (matrices && orientations)
+	{
+		for (long node = 1; node < node_count; ++node)
+		{
+			if (mask[node >> 5] & (1 << (node & 31)))
+			{
+				byte *render_node = *(byte **)(render_model + 0x4c) + node * 0x60;
+				function_1421f0(&matrices[node], &orientations[node]);
+				function_142a60(&matrices[*(short *)(render_node + 4)], &matrices[node], &matrices[node]);
+			}
+		}
+		result = matrices;
+	}
+	if (result && ((1 << ((byte *)header)[3]) & 3))
+		function_1132f0(object_index, (dword const *)(model + 0xa4), node_count, result);
+	return result;
+}
+
+#endif

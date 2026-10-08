@@ -32,9 +32,9 @@ void function_1fc2f0(s_tracked_point *tracked, point3f const *point, bool unknow
 	tracked->point = *point;
 	tracked->unknown29 = false;
 	tracked->velocity = *g_4687a4;
-	tracked->unknown28 = unknown;
-	tracked->location.unknown0 = NONE;
-	tracked->location.unknown2 = NONE;
+	*(volatile bool *)&tracked->unknown28 = unknown;
+	*(volatile short *)&tracked->location.unknown0 = NONE;
+	*(volatile short *)&tracked->location.unknown2 = NONE;
 }
 
 struct s_tracking_source

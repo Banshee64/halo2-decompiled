@@ -921,7 +921,7 @@ bool network_session_interface_start_countdown(long user_index, bool start, long
 /* ---- the local users' players in a session (lane D, round 4) ---- */
 
 bool network_session_player_add(c_class_58d20 *session, const byte *properties, const dword *identity, long slot, long unknown18, long unknownac);
-bool network_session_player_set_properties(c_class_58d20 *session, const byte *properties, long slot, long unknown0c, long unknowna0);
+bool network_session_player_set_properties(c_class_58d20 *session, const byte *properties, long slot, long volatile unknown0c, long unknowna0);
 bool network_session_player_remove(c_class_58d20 *session, long slot);
 
 static inline long session_interface_time_get(void)

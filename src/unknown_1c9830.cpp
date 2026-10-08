@@ -56,7 +56,7 @@ bool function_0bfe60(const dword *flags, long bit);
 bool function_15e020(short a, short b);
 void __stdcall function_1c9830(short team_a, short team_b, bool broken, bool removed);
 
-PRIVATE void function_1df9c0(s_type_e695f2 *allegiance, bool broken, bool removed);
+PRIVATE void __stdcall function_1df9c0(s_type_e695f2 *volatile allegiance, bool broken, bool removed);
 
 // @retail 0x1df460
 void function_1df460(void)
@@ -238,55 +238,69 @@ bool function_1df770(short team_a, short team_b)
 }
 
 // @retail 0x1df820
-bool function_1df820(short team_a, short team_b, short incident_type)
+bool __stdcall function_1df820(volatile short team_a, volatile short team_b, short incident_type)
 {
-	if (g_4e6948->state != _game_mode_campaign)
-		return false;
-
-	s_game_allegiance_globals *globals = g_4f55ec;
-	s_type_e695f2 *allegiance = globals->allegiances;
-
-	for (short i = 0; i < globals->allegiance_count; i++, allegiance++)
+	bool local_4 = false;
 	{
-
-		if (allegiance->team_a == team_a && allegiance->team_b == team_b && allegiance->team_a_provokes ||
-			allegiance->team_b == team_a && allegiance->team_a == team_b && allegiance->team_b_provokes)
+		s_game_options_view *local_0 = g_4e6948;
+		short local_1 = *(short const *)&team_a;
+		short const *local_2 = (short const *)&team_b;
+		if (*(volatile long *)&local_0->state == _game_mode_campaign)
 		{
-			s_game_time_globals *game_time = g_510c54;
-			real seconds = game_time->field_2_3 * 0.2f;
-			long ticks;
 
-			__asm
+			s_game_allegiance_globals *globals = g_4f55ec;
+			s_type_e695f2 *allegiance = globals->allegiances;
+
+			for (short i = 0; i < globals->allegiance_count; i++, allegiance++)
 			{
-				fld seconds
-				fistp ticks
-			}
 
-			if (game_time->game_time - allegiance->last_incident_time > ticks)
-			{
-				short delta = 0;
+				if (allegiance->team_a == local_1 && allegiance->team_b == (*local_2) && *(volatile bool *)&allegiance->team_a_provokes ||
+					allegiance->team_b == local_1 && allegiance->team_a == (*local_2) && *(volatile bool *)&allegiance->team_b_provokes)
+				{
+					s_game_time_globals *game_time = g_510c54;
+					long local_3 = game_time->game_time;
+					short delta = 0;
+					real seconds = game_time->field_2_3 * 0.2f;
+					long ticks;
 
-				allegiance->last_incident_time = game_time->game_time;
-				switch (incident_type)
-				{
-				case 0: delta = 1; break;
-				case 1: delta = 3; break;
-				case 2: delta = -1; break;
+					__asm
+					{
+						fld seconds
+						fistp ticks
+					}
+
+					if (local_3 - allegiance->last_incident_time > ticks)
+					{
+
+						allegiance->last_incident_time = local_3;
+						switch (incident_type)
+						{
+						case 0: delta = 1; break;
+						case 1: delta = 3; break;
+						case 2: delta = -1; break;
+						}
+						allegiance->incidents += delta;
+						if (allegiance->incident_decay_ticks != NONE)
+							allegiance->decay_timer = allegiance->incident_decay_ticks;
+						if (allegiance->incident_threshold != NONE && allegiance->incidents >= allegiance->incident_threshold)
+						{
+							function_1df9c0(allegiance, true, false);
+							function_1c9830(allegiance->team_a, allegiance->team_b, true, false);
+							{
+								local_4 = true;
+								goto local_5;
+							}
+						}
+						goto local_5;
+					}
+					local_1 = *(short const *)&team_a;
 				}
-				allegiance->incidents += delta;
-				if (allegiance->incident_decay_ticks != NONE)
-					allegiance->decay_timer = allegiance->incident_decay_ticks;
-				if (allegiance->incident_threshold != NONE && allegiance->incidents >= allegiance->incident_threshold)
-				{
-					function_1df9c0(allegiance, true, false);
-					function_1c9830(allegiance->team_a, allegiance->team_b, true, false);
-					return true;
-				}
-				return false;
 			}
 		}
+		goto local_5;
 	}
-	return false;
+local_5:
+	return local_4;
 }
 
 /* an incident between the teams restarts the decay of their grudge */
@@ -320,7 +334,7 @@ PRIVATE void function_1dfaa0(dword *vector, long bit, bool value)
 }
 
 // @retail 0x1df9c0
-PRIVATE void function_1df9c0(s_type_e695f2 *allegiance, bool broken, bool removed)
+PRIVATE void __stdcall function_1df9c0(s_type_e695f2 *volatile allegiance, bool broken, bool removed)
 {
 	if (!removed && allegiance->broken == broken)
 		return;

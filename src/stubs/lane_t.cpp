@@ -15,11 +15,6 @@ struct s_bitmap_data;
 struct s_16760c_render_model;
 
 
-// @stub 0x16ebf0
-void function_16ebf0(long user_index)
-{
-}
-
 /* lane R's region */
 // @stub 0x170fd0
 void __stdcall function_170fd0(long user_index)

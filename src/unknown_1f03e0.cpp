@@ -181,13 +181,15 @@ struct s_component
 // @retail 0x1f1df0
 void function_1f1df0(long component_index, long material_index, vector3f const *normal, s_shape_state *state)
 {
+	short local_0 = 0;
 	s_component *component = (s_component *)(g_51e9b8->data + (component_index & 0xffff) * sizeof(s_component));
 
 	state->normal = *normal;
 	if (material_index != NONE)
-		state->material = component->materials[material_index].material;
+		local_0 = component->materials[material_index].material;
 	else
-		state->material = g_54e898;
+		local_0 = g_54e898;
+	state->material = local_0;
 }
 
 struct s_shape_carrier_contact

@@ -225,7 +225,8 @@ s_record_pool *function_296270(char const *name, long size, long count)
 	s_record_pool *result = NULL;
 	char label[256];
 	function_11c9c0(label, sizeof(label), "%s reference", name);
-	size += 12;
+	long *local_0 = &size;
+	size = *(volatile long *)local_0 + 12;
 	if (size == 32)
 		result = data_new(label, count, size, 5, g_510c2c);
 	else

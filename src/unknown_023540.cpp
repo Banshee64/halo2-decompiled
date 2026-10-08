@@ -161,7 +161,8 @@ bool function_25820(s_render_view_2b790 const *source)
 struct s_matrix_workspace { long size; byte data[0x27000]; };
 extern s_matrix_workspace g_487b18;
 
-#if 0 // New caller changes the previously matched 0x13b90 under LTCG.
+#if 0 // Activation must preserve all matched callers and callees.
+struct s_223240;
 struct s_frame_parameters_12a50
 {
     long mode;
@@ -184,16 +185,18 @@ void __stdcall function_2c790(byte const *source);
 void function_146de0(void);
 void function_146b80(void);
 
-// Disabled retail 0x2b5d0; closest trial was 332/332 bytes, differing at +0.
-void function_2b5d0(long count, long mode, long players, long layout, s_render_view_2b790 *views)
+// Disabled retail 0x2b5d0; activation regresses an opening match.
+void function_2b5d0(long count, long mode, long players, long layout, s_223240 const *source)
 {
-    (void)&players; (void)&layout; (void)&views;
+    long const *players_reference = &players;
+    long const *layout_reference = &layout;
+    s_223240 const *const *views_reference = &source;
     bool restore = g_47989c != 0;
     if (restore) function_146de0();
-    s_frame_parameters_12a50 parameters = {};
+    __declspec(align(8)) s_frame_parameters_12a50 parameters = {};
     ++g_4ba034;
-    g_4ba04c = players;
-    g_4ba048 = layout;
+    g_4ba04c = *players_reference;
+    g_4ba048 = *layout_reference;
     g_487b18.size = 0;
     g_4aeb1c = 0;
     g_4aeb28 = 0;
@@ -204,8 +207,11 @@ void function_2b5d0(long count, long mode, long players, long layout, s_render_v
     parameters.time = g_4ba040;
     function_12a50(&parameters);
     *(long *)g_54d598.unknown00 = NONE;
-    if (count > 0) do
+    if (count > 0)
     {
+        s_render_view_2b790 *views = (s_render_view_2b790 *)*views_reference;
+        do
+        {
         s_render_view_2b790 *view = views;
         if (!view->mode)
         {
@@ -220,7 +226,8 @@ void function_2b5d0(long count, long mode, long players, long layout, s_render_v
         else function_2c790((byte const *)view);
         ++views;
     }
-    while (--count);
+        while (--count);
+    }
     function_13b90();
     function_13cd0();
     if (restore) function_146b80();
@@ -2535,4 +2542,464 @@ void __stdcall function_29b00(long tag, long first_bitmap, real first_alpha,
     D3DDevice_SetVertexData2f(2, second_coordinates[6], second_coordinates[7]);
     D3DDevice_SetVertexData4f(0, bounds[0], bounds[3], 16777215.0f, 16777215.0f);
     D3DDevice_End();
+}
+
+struct s_bitmap_view;
+struct s_type_7ba8e9;
+D3DTexture *function_12310(s_bitmap_view *bitmap, real priority);
+bool function_14390(short stage, s_type_7ba8e9 *bitmap, real priority);
+extern IDirect3DBaseTexture8 *g_51f3c8[2][4];
+extern dword g_4b82e8, g_4b82f4, g_4b82f8, g_4b8324;
+
+struct s_2a2f0_record
+{
+    long y;
+    real speed;
+    long unused;
+};
+
+#pragma inline_depth(0)
+// @retail 0x2a2f0
+void __stdcall function_2a2f0(volatile long tag, volatile real alpha)
+{
+    if (tag != NONE)
+    {
+        s_2a2f0_record records[5];
+        records[0].y = 58; records[0].speed = 0.01f; records[0].unused = 0;
+        records[1].y = 64; records[1].speed = 0.03f; records[1].unused = 0;
+        records[2].y = -19; records[2].speed = 0.05f; records[2].unused = 0;
+        records[3].y = -22; records[3].speed = 0.08f; records[3].unused = 0;
+        records[4].y = 60; records[4].speed = 0.02f; records[4].unused = 0;
+        function_14bc0(0, 0, false);
+#pragma inline_depth(255)
+        g_4b8308 = 0x10101; D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x10101);
+        g_4b82e8 = 1; D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
+        g_4b82f4 = 1; D3DDevice_SetRenderState(D3DRS_SRCBLEND, 1);
+        g_4b82f8 = 0x303; D3DDevice_SetRenderState(D3DRS_DESTBLEND, 0x303);
+        g_4b8324 = 0x8006; D3DDevice_SetRenderState(D3DRS_BLENDOP, 0x8006);
+        g_4b82ec = 0; D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
+        g_4b8448 = 0; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
+        g_4b843c = 0; D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 0);
+        g_4b8438 = 0; D3DDevice_SetRenderState(D3DRS_ZENABLE, 0);
+        g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
+#pragma inline_depth(0)
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSTextureModes = 1;
+        g_484f68.PSCombinerCount = 0x11001;
+        real unclamped_alpha = alpha;
+        if (unclamped_alpha < 0.0f) alpha = 0.0f;
+        else
+        {
+            alpha = 1.0f;
+            if (!(unclamped_alpha > 1.0f)) alpha = unclamped_alpha;
+        }
+        real alpha_scale = 255.0f;
+        long packed = 0;
+        __asm
+        {
+            fld alpha
+            fld alpha_scale
+            fmulp st(1), st(0)
+            fistp packed
+            shl packed, 24
+        }
+        g_484f68.PSConstant0[0] = packed;
+        g_484f68.PSRGBInputs[0] = 0x8200000;
+        g_484f68.PSRGBOutputs[0] = 0x80;
+        g_484f68.PSAlphaInputs[0] = 0x18110000;
+        g_484f68.PSAlphaOutputs[0] = 0x10080;
+        g_484f68.PSFinalCombinerInputsABCD = 0x8180000;
+        g_484f68.PSFinalCombinerInputsEFG = 0x1800;
+#pragma inline_depth(255)
+        D3DDevice_SetPixelShaderProgram(&g_484f68);
+#pragma inline_depth(0)
+        function_1c590((s_shader_cache *)g_51f0f0,
+            *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x64), 0);
+        function_1c710(g_51f0f0);
+        long definition_index = tag & 0xffff;
+        long i = 0;
+        long bitmap_offset = 0;
+        s_2a2f0_record *volatile record = records;
+        for (i = 0; bitmap_offset < 5 * 0x74; ++i, ++record, bitmap_offset += 0x74)
+        {
+            byte *definition = g_4e3b44[definition_index].bytes;
+            volatile real &height = *(volatile real *)&tag;
+            volatile real &width = alpha;
+            height = 1.0f;
+            width = 1.0f;
+            if (i < *(long *)(definition + 0x44))
+            {
+                byte *bitmap = *(byte **)(definition + 0x48) + bitmap_offset;
+                real local_62a74a_2 = (real)*(short *)(bitmap + 4);
+                width = 1.0f;
+                if (!(local_62a74a_2 < 1.0f)) width = local_62a74a_2;
+                real local_98083a = (real)*(short *)(bitmap + 6);
+                height = 1.0f;
+                if (!(local_98083a < 1.0f)) height = local_98083a;
+            }
+            long count = *(long *)(definition + 0x44);
+            byte *selected = NULL;
+            if (count > 0)
+            {
+                short index = (short)((short)i % count);
+                if (definition && index >= 0 && index < count)
+                    selected = *(byte **)(definition + 0x48) + index * 0x74;
+            }
+            if (count > 0 && *(short *)(selected + 0xa) == 0)
+                function_14390(0, (s_type_7ba8e9 *)selected, 0.0f);
+            else
+            {
+                long fallback = *(long *)(g_485a80 + 0x64);
+                if (fallback != NONE)
+                {
+                    byte *fallback_definition = g_4e3b44[fallback & 0xffff].bytes;
+                    if (fallback_definition && *(long *)(fallback_definition + 0x44) > 0)
+                    {
+                        byte *bitmap = *(byte **)(fallback_definition + 0x48);
+                        if (bitmap)
+                        {
+                            g_51f3c8[1][0] = function_12310((s_bitmap_view *)bitmap, 0.0f);
+                            g_485af4[0] = *(short *)(bitmap + 4);
+                            g_485b04[0] = *(short *)(bitmap + 6);
+                        }
+                    }
+                }
+            }
+#pragma inline_depth(255)
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_WRAP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_WRAP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, D3DTADDRESS_CLAMP);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_NONE);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+            D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+#pragma inline_depth(0)
+            function_1cf50();
+            real half_height = height * 0.5f;
+            real center = 240.0f - ((real)record->y - half_height);
+            box2f bounds;
+            bounds.x0 = 0.0f; bounds.x1 = 640.0f;
+            bounds.y0 = center - half_height;
+            bounds.y1 = center + half_height;
+            real time = 0.0f;
+            if (g_510c54 && g_510c54->active)
+                time = g_510c54->game_time * g_510c54->rate;
+            real offset = 0.0f - record->speed * time;
+            D3DDevice_Begin(D3DPT_TRIANGLEFAN);
+            D3DDevice_SetVertexData2f(1, offset, 0.0f);
+            D3DDevice_SetVertexData4f(0, bounds.x0, bounds.y0, 16777215.0f, 16777215.0f);
+            real right = 640.0f / width + offset;
+            D3DDevice_SetVertexData2f(1, right, 0.0f);
+            D3DDevice_SetVertexData4f(0, bounds.x1, bounds.y0, 16777215.0f, 16777215.0f);
+            D3DDevice_SetVertexData2f(1, right, 1.0f);
+            D3DDevice_SetVertexData4f(0, bounds.x1, bounds.y1, 16777215.0f, 16777215.0f);
+            D3DDevice_SetVertexData2f(1, offset, 1.0f);
+            D3DDevice_SetVertexData4f(0, bounds.x0, bounds.y1, 16777215.0f, 16777215.0f);
+            D3DDevice_End();
+        }
+    }
+}
+#pragma inline_depth(255)
+
+real g_485658;
+extern dword g_4b82e8;
+__declspec(noinline) double __stdcall function_2b480(real value);
+dword __cdecl pack_color4f(color4f const *color);
+
+PRIVATE __forceinline real clamp_filter_unit(real value)
+{
+    return value < 0.0f ? 0.0f : value > 1.0f ? 1.0f : value;
+}
+
+PRIVATE __forceinline dword filter_output_shift(long exponent, long threshold)
+{
+    return ((exponent > threshold + 1 ? 0x20 : exponent > threshold ? 0x10 : 0) << 12) | 0xd00;
+}
+
+PRIVATE __forceinline long filter_quantized_byte(real value, bool direct)
+{
+    if ((long)(direct ? floor((double)value) : function_2b480(value)) < 0) return 0;
+    if ((long)function_2b480(value) > 255) return 255;
+    return (long)function_2b480(value);
+}
+
+PRIVATE __forceinline void set_filter_blending(bool additive)
+{
+    function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+    function_0222d0(D3DRS_SRCBLEND, additive ? 0x302 : 0x8001);
+    function_0222d0(D3DRS_DESTBLEND, additive ? 1 : 0x303);
+    function_0222d0(D3DRS_BLENDOP, 0x8006);
+    if (!additive) function_0222d0(D3DRS_BLENDCOLOR, 0xffffff);
+    function_0222d0(D3DRS_ZENABLE, 2);
+    function_0222d0(D3DRS_ZWRITEENABLE, 0);
+    function_0222d0(D3DRS_ZFUNC, 0x203);
+    g_4b8450 = 0;
+    D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
+}
+
+// @retail 0x3a5c0
+bool __stdcall function_3a5c0(byte const *configuration, real low, real high, long mode,
+    bool center, bool shift, bool clip, bool skip_state, real *depth_out)
+{
+    real offset = 0.0f;
+    real maximum = 1.0f;
+    bool small = false;
+    bool allow_small = false;
+    bool allow_negative = false;
+    real inverse_distance = 1.0f / g_48565c;
+    low *= inverse_distance;
+    high *= inverse_distance;
+    switch (mode)
+    {
+    case 0: maximum = 512.0f; allow_small = true; allow_negative = true; break;
+    case 1: maximum = 64.0f; allow_small = false; allow_negative = true; break;
+    case 2: maximum = 128.0f; allow_small = true; allow_negative = false; break;
+    case 3: maximum = 128.0f; allow_small = false; allow_negative = false; break;
+    }
+    if (high * 256.0f <= 1.0f && allow_small)
+    {
+        low *= 256.0f;
+        high *= 256.0f;
+        small = true;
+    }
+    low = (real)(long)floor(low * 65536.0f) * (1.0f / 65536.0f);
+    high = (real)(long)floor(high * 65536.0f) * (1.0f / 65536.0f);
+    if (!(high > low)) return false;
+    real inverse_span = 1.0f / (high - low);
+    if (inverse_span > maximum)
+    {
+        real width = 1.0f / maximum;
+        inverse_span = maximum;
+        if (small) return false;
+        if (center) low = (low + high) * 0.5f - width * 0.5f;
+        else if (shift) low = high - width;
+        else if (!clip) return false;
+    }
+    if (low < 0.0f)
+    {
+        if (allow_negative) offset = clamp_filter_unit(0.0f - inverse_span * low);
+        else if (!shift || !clip) return false;
+        low = 0.0f;
+    }
+    if (!skip_state)
+    {
+        function_14bc0((short)g_4858b8, 0, true);
+        function_14f60(0, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, 3);
+        D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, 3);
+        D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, 3);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, 1);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, 1);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+        g_4b8308 = 0x1010101; D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x1010101);
+        g_4b82e8 = 0; D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+        g_4b82ec = 0; D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
+        g_4b8448 = 0; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
+        g_4b843c = 0; D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 0);
+        g_4b8438 = 0; D3DDevice_SetRenderState(D3DRS_ZENABLE, 0);
+        g_4b82fc = 0; D3DDevice_SetRenderState(D3DRS_ZWRITEENABLE, 0);
+        function_0222d0(D3DRS_ZFUNC, 0x207);
+        g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
+        function_0222d0(D3DRS_DEPTHCLIPCONTROL, 0x10);
+        function_1cc30(12);
+        function_1c710(g_51f0f0);
+    }
+    long fixed = (long)floor(low * 65536.0f);
+    long whole = fixed >> 8;
+    long fraction = fixed & 0xff;
+    long input = small ? 5 : 4;
+    long alpha_input = small ? 4 : 24;
+    if (whole > 255) whole = fraction = 255;
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 1;
+    g_484f68.PSCombinerCount = 0x11108;
+    g_484f68.PSConstant0[0] = 0xff0000;
+    g_484f68.PSConstant1[0] = 0xff00;
+    g_484f68.PSRGBInputs[0] = 0x8010802;
+    g_484f68.PSRGBOutputs[0] = 0x3045;
+    g_484f68.PSConstant0[1] = (dword)fraction << 24;
+    g_484f68.PSRGBInputs[1] = ((dword)input << 24) | 0x201140;
+    g_484f68.PSRGBOutputs[1] = 0xc00;
+    g_484f68.PSAlphaInputs[1] = ((dword)input << 24) | 0x209140;
+    g_484f68.PSAlphaOutputs[1] = 0xc00;
+    g_484f68.PSConstant0[2] = (dword)whole << 24;
+    g_484f68.PSRGBInputs[2] = 0x2020;
+    g_484f68.PSRGBOutputs[2] = 0x4d00;
+    g_484f68.PSAlphaInputs[2] = ((dword)alpha_input << 24) | 0x201140;
+    g_484f68.PSAlphaOutputs[2] = 0xd00;
+    g_484f68.PSConstant0[3] = 0x1000000;
+    g_484f68.PSRGBInputs[3] = 0xcc202d20;
+    g_484f68.PSRGBOutputs[3] = 0xc00;
+    g_484f68.PSAlphaInputs[3] = 0xdd202df1;
+    g_484f68.PSAlphaOutputs[3] = 0xd00;
+    long exponent = 0;
+    if (inverse_span > 1.0f)
+        do { ++exponent; } while (inverse_span > (real)(1 << exponent));
+    if (mode == 0)
+    {
+        bool extra_texture = configuration == (byte const *)NONE;
+        if (extra_texture)
+        {
+            if (!skip_state) set_filter_blending(true);
+            g_484f68.PSTextureModes = 0x21;
+            g_484f68.PSAlphaInputs[0] = 0x19140000;
+            g_484f68.PSAlphaOutputs[0] = 0x90;
+        }
+        g_484f68.PSConstant0[4] = 0x80000000;
+        g_484f68.PSRGBInputs[4] = 0x1d201d00 | (exponent > 3 ? 0x20 : 0);
+        g_484f68.PSRGBOutputs[4] = filter_output_shift(exponent, 1);
+        g_484f68.PSAlphaInputs[4] = 0xdd201120;
+        g_484f68.PSAlphaOutputs[4] = 0xc00;
+        g_484f68.PSRGBInputs[5] = 0x2020;
+        g_484f68.PSRGBOutputs[5] = 0x4400;
+        g_484f68.PSAlphaInputs[5] = 0xd200d00 | (exponent > 6 ? 0x20 : 0);
+        g_484f68.PSAlphaOutputs[5] = filter_output_shift(exponent, 4);
+        real gain = 1.0f / (exponent > 8 ? 4.0f : exponent > 7 ? 2.0f : 1.0f);
+        gain /= exponent > 0 ? 2.0f : 1.0f;
+        gain /= inverse_span / (real)(1 << exponent);
+        g_484f68.PSConstant1[6] = function_131fc0(clamp_filter_unit(gain * offset));
+        g_484f68.PSConstant0[6] = 0x7f000000;
+        g_484f68.PSRGBInputs[6] = 0x1d201220;
+        g_484f68.PSRGBOutputs[6] = filter_output_shift(exponent, 7);
+        g_484f68.PSAlphaInputs[6] = 0x18201120;
+        g_484f68.PSAlphaOutputs[6] = 0xc00;
+        long upper = filter_quantized_byte(inverse_span * 256.0f / (real)(1 << exponent), true);
+        long lower = filter_quantized_byte(inverse_span * 0.5f, true);
+        g_484f68.PSConstant1[7] = ((dword)upper << 24) | lower;
+        g_484f68.PSRGBInputs[7] = 0x20 | (small ? 0x2000 : 0);
+        g_484f68.PSRGBOutputs[7] = 0x4500;
+        g_484f68.PSAlphaInputs[7] = 0xd120c02;
+        g_484f68.PSAlphaOutputs[7] = filter_output_shift(exponent, 0);
+        g_484f68.PSFinalCombinerConstant1 = function_131fc0(offset);
+        g_484f68.PSFinalCombinerInputsABCD = 0x41d1105;
+        g_484f68.PSFinalCombinerInputsEFG = (extra_texture ? 25 : 32) << 8;
+    }
+    else if (mode == 1)
+    {
+        color4f first, second;
+        first.alpha = clamp_filter_unit(*(real const *)(configuration + 0x28));
+        first.red = clamp_filter_unit(*(real const *)(configuration + 0x1c) * *(real const *)(configuration + 0x28));
+        first.green = clamp_filter_unit(*(real const *)(configuration + 0x20) * *(real const *)(configuration + 0x28));
+        first.blue = clamp_filter_unit(*(real const *)(configuration + 0x24) * *(real const *)(configuration + 0x28));
+        second.alpha = clamp_filter_unit(*(real const *)(configuration + 0x68));
+        second.red = clamp_filter_unit(*(real const *)(configuration + 0x5c));
+        second.green = clamp_filter_unit(*(real const *)(configuration + 0x60));
+        second.blue = clamp_filter_unit(*(real const *)(configuration + 0x64));
+        if (!skip_state) set_filter_blending(false);
+        g_484f68.PSAlphaInputs[0] = 0x8200000;
+        g_484f68.PSAlphaOutputs[0] = 0x40;
+        g_484f68.PSAlphaInputs[4] = 0x1d201d00 | (exponent > 3 ? 0x20 : 0);
+        g_484f68.PSAlphaOutputs[4] = filter_output_shift(exponent, 1);
+        real gain = 1.0f / (exponent > 5 ? 4.0f : exponent > 4 ? 2.0f : 1.0f);
+        gain /= exponent > 0 ? 2.0f : 1.0f;
+        gain /= inverse_span / (real)(1 << exponent);
+        g_484f68.PSConstant1[5] = function_131fc0(clamp_filter_unit(gain * offset));
+        g_484f68.PSAlphaInputs[5] = 0x1d201220;
+        g_484f68.PSAlphaOutputs[5] = filter_output_shift(exponent, 4);
+        g_484f68.PSConstant0[6] = pack_color4f(&first);
+        long upper = filter_quantized_byte(inverse_span * 256.0f / (real)(1 << exponent), false);
+        long lower = filter_quantized_byte(inverse_span * 0.5f, false);
+        g_484f68.PSConstant1[6] = ((dword)upper << 24) | lower;
+        g_484f68.PSRGBInputs[6] = 0x1341134;
+        g_484f68.PSRGBOutputs[6] = 0x45;
+        g_484f68.PSAlphaInputs[6] = 0x1d120c02;
+        g_484f68.PSAlphaOutputs[6] = filter_output_shift(exponent, 0);
+        g_484f68.PSConstant0[7] = pack_color4f(&second);
+        g_484f68.PSAlphaInputs[7] = 0x11141d05;
+        g_484f68.PSAlphaOutputs[7] = 0xc00;
+        g_484f68.PSFinalCombinerConstant1 = pack_color4f(&second);
+        g_484f68.PSFinalCombinerInputsABCD = 0x114000f;
+        g_484f68.PSFinalCombinerInputsEFG = 0x1d041c00;
+    }
+    else if (mode == 2)
+    {
+        if (!skip_state) set_filter_blending(false);
+        g_484f68.PSTextureModes = 0x21;
+        g_484f68.PSConstant0[4] = small ? 0x7f0000ff : 0;
+        g_484f68.PSRGBInputs[4] = 0x1d201d00 | (exponent > 3 ? 0x20 : 0);
+        g_484f68.PSRGBOutputs[4] = filter_output_shift(exponent, 1);
+        g_484f68.PSAlphaInputs[4] = 0x18011120;
+        g_484f68.PSAlphaOutputs[4] = 0xc00;
+        g_484f68.PSConstant0[5] = function_131fc0(*(real const *)configuration);
+        g_484f68.PSConstant1[5] = function_131fc0(*(real const *)(configuration + 4));
+        g_484f68.PSRGBInputs[5] = 0x39111912;
+        g_484f68.PSRGBOutputs[5] = 0xd00;
+        g_484f68.PSAlphaInputs[5] = 0xd200d00 | (exponent > 6 ? 0x20 : 0);
+        g_484f68.PSAlphaOutputs[5] = filter_output_shift(exponent, 4);
+        long upper = filter_quantized_byte(inverse_span * 256.0f / (real)(1 << exponent), false);
+        long lower = filter_quantized_byte(inverse_span * 0.5f, false);
+        g_484f68.PSConstant1[6] = ((dword)upper << 24) | lower;
+        g_484f68.PSAlphaInputs[6] = 0x1d120c02;
+        g_484f68.PSAlphaOutputs[6] = filter_output_shift(exponent, 0);
+        g_484f68.PSAlphaInputs[7] = 0x1d0d0d20;
+        g_484f68.PSAlphaOutputs[7] = 0x4d00;
+        if (configuration[0x14])
+        {
+            if (!skip_state)
+            {
+                function_14bc0(3, 0, true);
+                function_0222d0(D3DRS_COLORWRITEENABLE, 1);
+                function_0222d0(D3DRS_ALPHABLENDENABLE, 0);
+            }
+            g_484f68.PSFinalCombinerInputsABCD = 0x1d;
+            g_484f68.PSFinalCombinerInputsEFG = 0;
+        }
+        else
+        {
+            g_484f68.PSFinalCombinerConstant1 = pack_color3f((color3f const *)(configuration + 8));
+            g_484f68.PSFinalCombinerInputsABCD = 0x1d010000;
+            g_484f68.PSFinalCombinerInputsEFG = 0x1d00;
+        }
+    }
+    else if (mode == 3)
+    {
+        if (!skip_state) set_filter_blending(false);
+        g_484f68.PSTextureModes = 0x8421;
+        g_484f68.PSConstant0[4] = pack_color3f((color3f const *)(configuration + 4));
+        g_484f68.PSConstant1[4] = pack_color3f((color3f const *)(configuration + 0x10));
+        long selector = configuration[0] ? 0x10 : 0;
+        g_484f68.PSRGBInputs[4] = ((((9 + selector) << 16) | (10 + selector)) << 8) | 0x10002;
+        g_484f68.PSRGBOutputs[4] = 0x3045;
+        g_484f68.PSAlphaInputs[4] = 0x1d201d00 | (exponent > 3 ? 0x20 : 0);
+        g_484f68.PSAlphaOutputs[4] = filter_output_shift(exponent, 1);
+        g_484f68.PSConstant0[5] = pack_color3f((color3f const *)(configuration + 0x1c));
+        g_484f68.PSRGBInputs[5] = ((11 + selector) << 8) | 0x24250001;
+        g_484f68.PSRGBOutputs[5] = 0x1045;
+        g_484f68.PSAlphaInputs[5] = 0x1d201d00 | (exponent > 6 ? 0x20 : 0);
+        g_484f68.PSAlphaOutputs[5] = filter_output_shift(exponent, 4);
+        long upper = filter_quantized_byte(inverse_span * 256.0f / (real)(1 << exponent), false);
+        long lower = filter_quantized_byte(inverse_span * 0.5f, false);
+        g_484f68.PSConstant1[6] = ((dword)upper << 24) | lower;
+        g_484f68.PSRGBInputs[6] = 0x4250000;
+        g_484f68.PSRGBOutputs[6] = 0xd0;
+        g_484f68.PSAlphaInputs[6] = 0x1d120c02;
+        g_484f68.PSAlphaOutputs[6] = filter_output_shift(exponent, 0);
+        g_484f68.PSAlphaInputs[7] = 0x1d2d0000;
+        g_484f68.PSAlphaOutputs[7] = 0xd0;
+        g_484f68.PSFinalCombinerConstant1 = pack_color3f((color3f const *)(configuration + 0x28));
+        g_484f68.PSFinalCombinerInputsABCD = 0x1d010000;
+        g_484f68.PSFinalCombinerInputsEFG = 0x1d00;
+    }
+    function_1ccf0(&g_484f68);
+    if (depth_out)
+    {
+        real depth = g_48565c * low;
+        if (small) depth *= 0.00390625f;
+        if (g_485658 >= depth)
+        {
+            if (!skip_state) function_0222d0(D3DRS_ZENABLE, 0);
+            depth = g_485658;
+        }
+        *depth_out = depth;
+    }
+    return true;
 }

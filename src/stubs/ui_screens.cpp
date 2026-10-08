@@ -12,12 +12,6 @@ struct s_particle_properties_2ba;
 
 
 
-// @stub 0x2b9060
-void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void *system,
-    long first, real scale, long mode)
-{
-}
-
 
 // @stub 0x2c52e7
 void __stdcall function_2c52e7(char const *map_name)

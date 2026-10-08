@@ -203,12 +203,15 @@ bool s_component_property_view::function_1d3550(long key, bool *positive, real *
 	{
 	case 0xa000693:
 		result = (flags & 0x2000) ? 1.0f : 0.0f;
+		*value = result;
 		break;
 	case 0xd000691:
 		result = value1b * (1.0f / 255.0f);
+		*value = result;
 		break;
 	case 0xd000692:
 		result = value1a * (1.0f / 255.0f);
+		*value = result;
 		break;
 	default:
 		found = false;
@@ -216,7 +219,6 @@ bool s_component_property_view::function_1d3550(long key, bool *positive, real *
 	}
 	if (found)
 	{
-		*value = result;
 		*positive = result > 0.0f;
 	}
 	return found;
@@ -319,8 +321,8 @@ void s_havok_component::initialize(long object_index)
 	real seconds;
 	long ticks;
 
-	component->object_index = object_index;
 	component->unknown04 = 0;
+	component->object_index = object_index;
 	component->unknown0c = NONE;
 	seconds = g_510c54->field_2_3 * 0.35f;
 	__asm
@@ -1057,6 +1059,12 @@ struct s_component_contact_pair
 	s_component_contact_body *bodies[2];
 };
 
+PRIVATE __forceinline real function_1cfd11(real const *arg_0)
+{
+	real local_0 = *(real const volatile *)&arg_0[0];
+	return (real)sqrt(local_0 * arg_0[1]);
+}
+
 // @retail 0x1cfd10
 void function_1cfd10(s_component_contact_pair const *contact, s_havok_component *component, real scale)
 {
@@ -1074,18 +1082,19 @@ void function_1cfd10(s_component_contact_pair const *contact, s_havok_component 
 		hkEntity *entity = root->type == 1 ? root->entity : NULL;
 		function_182b90(body->shape, entity, &friction[i], &material, &restitution);
 	}
-	scale *= (real)sqrt(friction[0] * friction[1]);
+	scale *= function_1cfd11(friction);
 	s_game_time_globals *time = g_510c54;
 	if (!(scale > component->unknown14))
 	{
 		real seconds = time->field_2_3 * 0.35f;
+		long local_0 = time->game_time;
 		long ticks;
 		__asm
 		{
 			fld seconds
 			fistp ticks
 		}
-		if (time->game_time - component->unknown10 < ticks)
+		if (local_0 - component->unknown10 < ticks)
 			goto done;
 	}
 	component->unknown14 = scale;

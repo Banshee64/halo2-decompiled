@@ -179,7 +179,7 @@ bool c_animation_channel_frame_sample(c_animation_channel const *channel, real f
 		long frame_index = real_truncate(frame);
 		s_animation_data data;
 
-		function_1ddb40(&data, graph_tag_get(channel->graph_tag_index), channel->animation_id);
+		c_animation_channel_data_get(channel, &data);
 		function_20ad40((s_anim_data *)&data, position, delta, frame_index);
 		result = true;
 	}

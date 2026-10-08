@@ -2,7 +2,7 @@
 #include "unknown_1a1940.h"
 #include <string.h>
 
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 
 struct s_ring_buffer
 {
@@ -19,27 +19,27 @@ struct s_ring_buffer
 // @retail 0x1a1940
 void s_ring_buffer::write_wrapped(long count, long offset, const void *src)
 {
-	long first = size - offset;
-	if (first > count)
-		first = count;
-	count -= first;
+	long first = count;
+	if (first > size - offset)
+		first = size - offset;
+	long local_0 = count - first;
 	if (first > 0)
 		memcpy(data + offset, src, first);
-	if (count > 0)
-		memcpy(data, (const byte *)src + first, count);
+	if (local_0 > 0)
+		memcpy(data, (const byte *)src + first, local_0);
 }
 
 // @retail 0x1a19a0
 void s_ring_buffer::read_wrapped(long offset, long count, void *dst)
 {
-	long first = size - offset;
-	if (first > count)
-		first = count;
-	count -= first;
+	long first = count;
+	if (first > size - offset)
+		first = size - offset;
+	long local_0 = count - first;
 	if (first > 0)
 		memcpy(dst, data + offset, first);
-	if (count > 0)
-		memcpy((byte *)dst + first, data, count);
+	if (local_0 > 0)
+		memcpy((byte *)dst + first, data, local_0);
 }
 
 // @retail 0x1a1900
