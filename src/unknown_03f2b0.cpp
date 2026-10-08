@@ -2082,6 +2082,150 @@ extern D3DResource *g_509444;
 extern byte g_51f0f0[0x2d8];
 struct s_render_reset_state;
 struct s_shader_cache;
+struct s_coefficient_layout;
+struct s_lighting_record;
+bool __stdcall function_23690(s_coefficient_layout const *layout, short order, long object_index,
+    s_137801 const *vertices, byte const *indices, short count, long tag);
+bool function_3d480(long object_index, long count, transform4x3f const *matrices, transform4x3f *out);
+void function_3dd10(long object_index, bool force);
+s_lighting_record *function_3db00(long object_index, real priority);
+
+struct s_batch_cache_4b5d0
+{
+    byte unknown00[8];
+    long handle;
+    dword stamp;
+    byte lighting[0x54];
+};
+
+// @retail 0x4b5d0
+void function_4b5d0(long object_index, long override, real priority, byte *output,
+    byte *unused, bool project_nodes, real distance, bool force)
+{
+    (void)&object_index; (void)&override; (void)&priority;
+    (void)&output; (void)&unused; (void)&project_nodes;
+    transform4x3f projected[255];
+    long failed = 0;
+    signed char initial_level = -1;
+    long entries = function_4bcc0(output, object_index, distance, override,
+        (bool *)(output + 0x168), force, &initial_level);
+    *(short *)(output + 0x164) = initial_level;
+    if (output[0x168] && g_4b9ed8 != NONE &&
+        *(short *)((byte *)g_4ed284 + g_4b9ed8 * 0x94 + 0x42) != NONE)
+        entries = 0;
+    *(short *)(output + 0x162) = 0;
+    s_render_object_header *header = &((s_render_object_header *)g_4e0300->data)[object_index & 0xffff];
+    short type = NONE;
+    if (header->unknown00[3] == 6) type = *(short *)((byte *)header->object + 0x134);
+    *(short *)(output + 0x166) = type;
+    for (long index = 0; index < entries; ++index)
+    {
+        long slot = index - failed;
+        long flags;
+        transform4x3f *nodes;
+        dword node_count;
+        long *source_object = (long *)(output + 0x30) + slot;
+        long *tag = (long *)(output + 0x58) + slot;
+        long *count = (long *)(output + 0x14) + slot;
+        long *handle = (long *)output + slot;
+        s_batch_cache_4b5d0 **cache_slot = (s_batch_cache_4b5d0 **)(output + 0x44) + slot;
+        signed char *sections = (signed char *)(output + 0x71 + slot * 16);
+        function_3d4f0(*(bool *)(output + 0x168), (short)index, &flags, source_object,
+            tag, &nodes, &node_count, object_index);
+        signed char previous = -1;
+        if (g_4ba050 >= 0 && g_4ba050 < 4)
+        {
+            byte *levels = NULL;
+            long cache_index = function_3ddd0(*source_object);
+            if (cache_index != NONE)
+                levels = g_509434->data + (cache_index & 0xffff) * 0x100 + 0xbc;
+            previous = (signed char)levels[g_4ba050];
+        }
+        if (g_4ba050 >= 0 && g_4ba050 < 4) function_3ddd0(*source_object);
+        long cache_index = function_3ddd0(*source_object);
+        *cache_slot = cache_index == NONE ? NULL :
+            (s_batch_cache_4b5d0 *)(g_509434->data + (cache_index & 0xffff) * 0x100 + 0x44);
+        output[slot + 0x6c] = (byte)(flags & 1);
+        bool cached = previous != -1 && *cache_slot && (*cache_slot)->handle != NONE &&
+            (*cache_slot)->stamp == ((g_4ba034 & 0x3fffffff) | ((dword)g_4ba050 << 30));
+        if (cached) *(short *)(output + 0x164) = previous;
+        bool fallback;
+        bool success = function_4c190(count, object_index, *(bool *)(output + 0x168), *tag,
+            (short *)(output + 0x164), previous, sections, &fallback);
+        bool level_changed = *(short *)(output + 0x164) != initial_level;
+        bool reuse = cached && !fallback;
+        if (reuse && level_changed) reuse = false;
+        if ((index > 0 && level_changed) || !success)
+        {
+            ++failed;
+            continue;
+        }
+        long total = function_137650(*tag, *(short *)(output + 0x164), (byte const *)sections);
+        output[slot + 0x28] = (byte)total;
+        *handle = NONE;
+        if (!reuse || output[0x168])
+        {
+            long bytes = total > 0 ? total * 48 + 0x44 : 0;
+            long remainder = bytes % 4;
+            if (remainder) bytes = bytes - remainder + 4;
+            long next = g_487b18.size + bytes;
+            if (next <= 0x27000)
+            {
+                *handle = g_487b18.size & 0x0fffffff;
+                g_487b18.size = next;
+            }
+            if (*handle == NONE) success = false;
+            else
+            {
+                if (*cache_slot && !output[0x168] && !fallback && !level_changed)
+                {
+                    (*cache_slot)->stamp = (g_4ba034 & 0x3fffffff) | ((dword)g_4ba050 << 30);
+                    (*cache_slot)->handle = *handle;
+                }
+                if (project_nodes)
+                {
+                    function_3d480(object_index, node_count, nodes, projected);
+                    nodes = projected;
+                }
+                s_137801 *result = NULL;
+                if (*handle != NONE && *handle >= 0)
+                    result = (s_137801 *)(g_487b18.data + (*handle & 0x0fffffff));
+                function_137800(object_index, *tag, nodes, (byte const *)sections,
+                    *(short *)(output + 0x164), *(bool *)(output + 0x168), result);
+            }
+        }
+        if (!reuse && success)
+        {
+            if (*(dword *)(output + 0x16c) & 0x40)
+            {
+                byte *definition = g_4e3b44[*tag & 0xffff].bytes;
+                s_coefficient_layout const *layout = *(s_coefficient_layout **)(definition + 0x78);
+                s_137801 const *vertices = NULL;
+                if (*handle != NONE && *handle >= 0)
+                    vertices = (s_137801 const *)(g_487b18.data + (*handle & 0x0fffffff));
+                success = function_23690(layout, *(short *)(output + 0x164), *source_object,
+                    vertices, (byte const *)sections, (short)*count, *tag);
+            }
+            function_3dd10(*source_object, false);
+            if (*cache_slot)
+                memcpy((*cache_slot)->lighting, function_3db00(*source_object, priority), 0x54);
+        }
+        else if (reuse && success && !output[0x168] && g_4ba050 != NONE)
+            *handle = (*cache_slot)->handle;
+        if (success)
+        {
+            ++*(short *)(output + 0x162);
+            byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[*source_object & 0xffff].object;
+            long cache_index = *(long *)(object + 0xcc);
+            if (cache_index != NONE)
+            {
+                byte *cache = g_509434->data + (cache_index & 0xffff) * 0x100;
+                if (*(long *)(cache + 4) == *source_object) *(dword *)(cache + 0xc) = g_4ba034;
+            }
+        }
+        else ++failed;
+    }
+}
 struct s_type_7ba8e9;
 void function_16b10(s_render_reset_state *state);
 s_type_7ba8e9 *function_137550(long tag, short bitmap);
