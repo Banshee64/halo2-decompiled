@@ -885,7 +885,7 @@ bool network_session_player_add(c_class_58d20 *session, const byte *properties, 
 }
 
 // @retail 0x5a9c0
-bool network_session_player_set_properties(c_class_58d20 *session, const byte *properties, long slot, long unknown0c, long unknowna0)
+bool network_session_player_set_properties(c_class_58d20 *session, const byte *properties, long slot, long volatile unknown0c, long unknowna0)
 {
 	bool result = false;
 
@@ -909,11 +909,13 @@ bool network_session_player_set_properties(c_class_58d20 *session, const byte *p
 		{
 			s_network_message_player_properties message;
 			memset(&message, 0, sizeof(message));
-			message.session_id = *(s_session_id *)&session->unknown1c;
+			s_session_id const *local_0 = (s_session_id const *)&session->unknown1c;
+			message.session_id.a = local_0->a;
 			message.slot = slot;
+			message.session_id.b = local_0->b;
 			message.unknown0c = unknown0c;
-			memcpy(message.properties, properties, sizeof(message.properties));
 			message.unknowna0 = unknowna0;
+			memcpy(message.properties, properties, sizeof(message.properties));
 			network_session_send_to_host(session, _network_message_type_player_properties, sizeof(message), &message);
 			result = true;
 		}
@@ -1874,7 +1876,10 @@ void function_62990(c_class_58d20 *session)
 void function_612c0(c_class_58d20 *session)
 {
 	long now = network_session_time_now();
-	network_session_reset_7620(session);
+	session->update7650++;
+	memset(session->data761c, 0, sizeof(session->data761c));
+	memset(&session->value7654, 0xff, sizeof(session->value7654));
+	memset(&session->value7658, 0xff, sizeof(session->value7658));
 	memset(&session->value7420, 0, SESSION_STATE_DATA_SIZE);
 	session->value7420 = now;
 	session->state = 3;
@@ -2066,7 +2071,7 @@ void network_session_leave_joining(c_class_58d20 *session)
 		if (session->member_states[i].unknown00)
 			network_session_member_state_dispose(session, i);
 	}
-	session->current_member = NONE;
+	memset(&session->current_member, 0xff, sizeof(session->current_member));
 	memset(&session->value7420, 0, SESSION_STATE_DATA_SIZE);
 	memcpy(&session->value7420, &data, sizeof(data));
 	session->state = 2;
@@ -2519,8 +2524,8 @@ bool c_class_58d20::channel_is_host_or_local(long channel_index)
 	{
 		long member_index = network_session_find_member_by_channel(session, channel_index);
 		if (member_index == session->member_index)
-			return true;
-		if (session->current_member == session->member_index && member_index != NONE)
+			result = true;
+		else if (session->current_member == session->member_index && member_index != NONE)
 			result = true;
 	}
 	return result;
@@ -3126,6 +3131,13 @@ struct s_session_transition_state
 	dword mask14;
 };
 
+static __forceinline bool function_62550(s_session_transition_state *arg_0, long arg_1)
+{
+	dword local_0 = arg_0->sent_mask;
+	dword local_1 = 1 << arg_1;
+	return (bool)(local_0 & local_1);
+}
+
 // @retail 0x62550
 void network_session_send_host_reestablish(c_class_58d20 *session)
 {
@@ -3145,7 +3157,7 @@ void network_session_send_host_reestablish(c_class_58d20 *session)
 		if (i == transition->host_index && !timed_out)
 			continue;
 		dword bit = 1 << i;
-		if (!(bit & transition->sent_mask) && session->member_states[i].flag1)
+		if (!function_62550(transition, i) && session->member_states[i].flag1)
 		{
 			long channel_index = session->member_states[i].unknown04;
 			s_network_observer *observer = session->observer;

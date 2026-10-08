@@ -2,13 +2,31 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7109 functions match
+
+```
+matched 7109 of 11318 game functions (796701 of 2784283 bytes, 28.61%)
+```
+
+15 new matches, none lost:
+- Merge batch r48: the second machine's lane O round 16 (#244, +1), lane C round 38 (#245, +6), lane U round 11 (#246, +4) and lane AC round 20 (#247, +4, one of them a side effect); documentation follow-ups from @coldspear (#243).
+
+## 2026-10-08: 7094 functions match
+
+```
+matched 7094 of 11318 game functions (794052 of 2784283 bytes, 28.52%)
+```
+
+28 new matches, none lost:
+- Merge batch r47: the second machine's lane D rounds 2-6 (upper #227, #231, #234, #237, #240, +9; lower #229, #233, #235, #238, #241, +13), lane B rounds 2-6 (#230, #232, #236, #239, #242, +5) and lane M round 13 (#228, +1).
+
 ## 2026-10-08: 7066 functions match
 
 ```
 matched 7066 of 11318 game functions (789417 of 2784283 bytes, 28.35%)
 ```
 
-7066 new matches, none lost:
+4 new matches, none lost:
 - Merge batch r46: the second machine's first rounds of lanes D (#225, +3) and B (#226, +1).
 
 ## 2026-10-08: 7062 functions match

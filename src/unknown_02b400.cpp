@@ -288,6 +288,8 @@ double __cdecl function_2b460(real value)
 	return floor(value);
 }
 
+__declspec(noinline) double __stdcall function_2b480(real value);
+
 // @retail 0x2b480
 double __stdcall function_2b480(real value)
 {
@@ -649,4 +651,370 @@ void function_28580(long tag, real time, vector3f *out)
     out->i = state->direction.x * state->speed * delta;
     out->j = state->direction.y * state->speed * delta;
     out->k = 0.0f;
+}
+
+#include <string.h>
+extern long g_4857b8;
+extern real g_4857dc, g_4857e0, g_485640;
+extern real g_4b9d90, g_4b9d94;
+extern bool g_4b9d9c;
+extern short g_485600;
+extern byte g_485607;
+extern word g_485648, g_48564a, g_48564c, g_48564e;
+extern real g_48568c[46];
+extern double g_4858a0;
+extern transform4x3f *g_4687d0;
+struct s_frame_offset { point3f position; vector3f forward; vector3f up; };
+extern s_frame_offset g_485618;
+void function_141590(transform4x3f const *in, transform4x3f *out);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+
+struct s_27aa0_record
+{
+    long bitmap;
+    real fraction;
+    real weights[4];
+    real coordinates[8];
+};
+extern real g_4b9c74[5][14];
+long g_4b9d8c;
+real g_4b9d98;
+byte g_55e6c4;
+
+PRIVATE __forceinline double filter_random_fraction(void)
+{
+    g_4e7408->seed = g_4e7408->seed * 1664525 + 1013904223;
+    return (double)(g_4e7408->seed >> 16) * (1.0f / 65535.0f);
+}
+
+PRIVATE __forceinline void filter_random_pair(point2f *point)
+{
+    g_4e7408->seed = g_4e7408->seed * 1664525 + 1013904223;
+    g_4e7408->seed = g_4e7408->seed * 1664525 + 1013904223;
+    point->x = (real)((double)(g_4e7408->seed >> 16) * (1.0f / 65535.0f));
+    point->y = (real)(word)(g_4e7408->seed >> 16) * (1.0f / 65535.0f);
+}
+
+// @retail 0x27aa0
+void function_27aa0(void)
+{
+    if (g_4857b8 == NONE || !g_4857b8) return;
+    real time = (real)g_4858a0;
+    s_28580_view *state = g_4b9a04 + g_4b9a00;
+    s_27aa0_record *records = (s_27aa0_record *)g_4b9c74 + 1;
+    byte *definition = g_4e3b44[g_4857b8 & 0xffff].bytes;
+    byte *bitmap = g_4e3b44[*(long *)(definition + 0x18) & 0xffff].bytes;
+    g_4b9a00 = g_485600;
+    if (g_485607) g_4b9a00 = 4;
+    real blend = (real)((cos((double)g_485618.forward.k * 3.1415927410125732f) + 1.0f) * 0.5f);
+    g_4b9d8c = 19;
+    g_4b9d90 = 0.5f;
+    g_4b9d94 = *(real *)(definition + 0x20) * (1.0f - blend) + *(real *)(definition + 0x1c) * blend;
+    g_4b9d98 = *(real *)(definition + 0x24) * (1.0f - blend) + blend;
+    g_4b9d9c = (definition[0] & 1) != 0;
+    transform4x3f identity = *g_4687d0;
+    transform4x3f *previous = (transform4x3f *)(state->field_00 + 4);
+    point2f *points = (point2f *)state->field_48;
+    if (!state->field_00[0])
+    {
+        memset(state, 0, sizeof(*state));
+        filter_random_pair(points + 0);
+        filter_random_pair(points + 1);
+        filter_random_pair(points + 2);
+        filter_random_pair(points + 3);
+        *previous = *(transform4x3f *)g_48568c;
+        state->field_00[0] = 1;
+    }
+    vector3f motion;
+    function_28580(g_4857b8, time, &motion);
+    identity.position.x = *(real *)(definition + 0x44) + motion.i;
+    identity.position.y = *(real *)(definition + 0x48) + motion.j;
+    identity.position.z = *(real *)(definition + 0x4c) + motion.k;
+    transform4x3f relative;
+    function_141590(previous, &relative);
+    function_142a60(&identity, &relative, &relative);
+    function_142a60((transform4x3f *)g_48568c, &relative, &relative);
+    *previous = *(transform4x3f *)g_48568c;
+    real near_distance = g_4857dc;
+    real far_distance = g_4857e0;
+    if (!(far_distance > near_distance)) return;
+    real step = (far_distance - near_distance) * 0.25f;
+    real inverse_span = 1.0f / (far_distance - near_distance < 0.0001f ? 0.0001f : far_distance - near_distance);
+    real aspect = ((real)(short)g_48564c - (real)(short)g_485648) /
+        ((real)(short)g_48564e - (real)(short)g_48564a);
+    real largest_distance = far_distance < 0.0001f ? 0.0001f : far_distance;
+    real radius = (real)(*(real *)(definition + 0x10) * 0.5f /
+        (tan((double)g_485640 * 0.5f) * largest_distance * aspect));
+    real angle_delta = (real)atan2(relative.forward.j + (relative.left.j + relative.up.j) * 0.0f,
+        relative.forward.i + (relative.left.i + relative.up.i) * 0.0f);
+    real *angle = (real *)(state->field_00 + 0x3c);
+    *angle -= angle_delta * *(real *)(definition + 4);
+    real cosine = (real)cos((double)*angle);
+    real sine = (real)sin((double)*angle);
+    real phase = *(real *)(state->field_00 + 0x40);
+    phase -= *(real *)(definition + 0xc) / (step < 0.0001f ? 0.0001f : step) * relative.position.z;
+    real crossing = (real)floor((double)phase);
+    phase -= crossing;
+    *(real *)(state->field_00 + 0x40) = phase;
+    long *ring = (long *)(state->field_00 + 0x38);
+    *ring -= (long)crossing;
+    while (*ring < 0) *ring += 4;
+    while (*ring >= 4) *ring -= 4;
+    if (crossing < 0.0f) filter_random_pair(points + ((*ring + 3) % 4));
+    else if (crossing > 0.0f) filter_random_pair(points + *ring);
+    if (phase < 0.0f || phase >= 1.0f) return;
+    real offsets[4] = { 0.0f, 0.7135000228881836f, 0.34220001101493835f, 0.579800009727478f };
+    long bitmap_count = *(long *)(bitmap + 0x44);
+    for (long i = 0; i < 4; ++i)
+    {
+        if (*(real *)(definition + 0x28) > 0.0f)
+        {
+            double value = bitmap_count * (double)offsets[i] +
+                (double)state->previous_time / *(real *)(definition + 0x28);
+            real rounded = (real)value;
+            records[i].bitmap = (long)floor(value) % bitmap_count;
+            records[i].fraction = (real)(rounded - floor(value) < 0.0f ? 0.0f :
+                rounded - floor(value) > 1.0f ? 1.0f : rounded - floor(value));
+            if (records[i].bitmap < 0)
+            {
+                if (!g_55e6c4) g_55e6c4 = 1;
+                records[i].bitmap = 0;
+            }
+        }
+        else
+        {
+            records[i].bitmap = i % bitmap_count;
+            records[i].fraction = 0.0f;
+        }
+    }
+    for (long j = 0; j < 4; ++j)
+    {
+        long index = (*ring + j) % 4;
+        real distance = (j + phase) * step + g_4857dc;
+        real fraction = (distance - g_4857dc) * inverse_span;
+        real weight = (real)(pow(1.0 - pow((double)fabs(fraction * 2.0f - 1.0f), 3.0), 2.0) * g_4b9d98);
+        real size = *(real *)(definition + 0x10) / (g_4857e0 < 0.0001f ? 0.0001f : g_4857e0) * distance;
+        real x = 0.0f, y = 0.0f, z = 0.0f - distance;
+        if (relative.scale != 1.0f) { x *= relative.scale; y *= relative.scale; z *= relative.scale; }
+        real dx = relative.up.i * z + relative.left.i * y + relative.forward.i * x + relative.position.x;
+        real dy = relative.up.j * z + relative.left.j * y + relative.forward.j * x + relative.position.y;
+        points[index].x -= (dy * sine * g_4b9d94 + dx * cosine) * *(real *)(definition + 8) * radius * 0.5f;
+        points[index].y -= (dy * cosine * g_4b9d94 - dx * sine) * *(real *)(definition + 8) * radius * 0.5f;
+        real bounded = fraction < 0.0f ? 0.0f : fraction > 1.0f ? 1.0f : fraction;
+        if (*(real *)(definition + 0x28) != 0.0f)
+        {
+            real t = records[index].fraction;
+            real values[3];
+            values[0] = (1.0f - t) * (1.0f - t) * weight;
+            values[1] = t * 2.0f * (1.0f - t) * weight;
+            values[2] = t * t * weight;
+            for (long k = 0; k < 3; ++k)
+                records[index].weights[k] = values[k] < 0.0f ? 0.0f : values[k] > 1.0f ? 1.0f : values[k];
+        }
+        else
+        {
+            records[index].weights[0] = 0.0f;
+            records[index].weights[1] = weight < 0.0f ? 0.0f : weight > 1.0f ? 1.0f : weight;
+            records[index].weights[2] = 0.0f;
+        }
+        records[index].weights[3] = bounded;
+        records[index].coordinates[0] = size * cosine * 0.5f;
+        records[index].coordinates[1] = size * sine * aspect * 0.5f;
+        records[index].coordinates[2] = 0.0f;
+        records[index].coordinates[3] = points[index].x;
+        records[index].coordinates[4] = size * sine * -0.5f;
+        records[index].coordinates[5] = size * cosine * aspect * 0.5f;
+        records[index].coordinates[6] = 0.0f;
+        records[index].coordinates[7] = points[index].y;
+    }
+}
+
+#include <xmmintrin.h>
+#include "geometry_cache.h"
+extern real g_509418, g_4670fc;
+
+struct s_38450_vertex
+{
+    point3f position;
+    real size;
+    dword color;
+};
+struct s_38450_particle
+{
+    vector3f velocity;
+    real jitter_x, jitter_y, jitter_z;
+    real lifetime, age;
+};
+struct s_38450_records
+{
+    long count;
+    s_38450_vertex *vertices;
+    long field_08;
+    s_38450_particle *particles;
+};
+
+PRIVATE __forceinline real particle_inverse_sqrt(real magnitude)
+{
+    real result;
+    __asm
+    {
+        rsqrtss xmm0, magnitude
+        movss result, xmm0
+    }
+    return result;
+}
+
+// @retail 0x38450
+bool __stdcall function_38450(byte *state, byte const *definition, real remaining)
+{
+    real width = *(real *)(state + 8);
+    real height = *(real *)(state + 0xc);
+    real depth = *(real *)(state + 0x10);
+    real field_14 = *(real *)(state + 0x14);
+    point3f camera = g_485618.position;
+    real fade = 1.0f;
+    long nearby_count = 0;
+    if (remaining > 0.0f)
+    {
+        real duration = *(real *)(definition + 0xac);
+        if (duration > 0.0f)
+            fade = 1.0f - (remaining / duration < 1.0f ? remaining / duration : 1.0f);
+        else fade = 0.0f;
+    }
+    *(real *)(state + 0x80) += g_509418;
+    if (!function_12de70((s_geometry_block_info *)(state + 0x40), 3)) return true;
+    s_38450_records *records = *(s_38450_records **)(state + 0x68);
+    short players = *(short *)((byte *)g_4e8c20 + 8);
+    players = players < 1 ? 1 : players > 4 ? 4 : players;
+    long count = records->count / players;
+    long start = g_485600 * count;
+    long limit = (long)(count * g_4670fc);
+    real radius = *(real *)(state + 8) > *(real *)(state + 0xc) ? *(real *)(state + 8) : *(real *)(state + 0xc);
+    radius = radius > *(real *)(state + 0x10) ? radius : *(real *)(state + 0x10);
+    s_sphere_plane_volume *nearby[32];
+    byte *structure = (byte *)g_4e0348;
+    long volume_count = *(long *)(structure + 0x8c);
+    s_sphere_plane_volume *volumes = *(s_sphere_plane_volume **)(structure + 0x90);
+    for (long i = 0; i < volume_count; ++i)
+    {
+        real x = volumes[i].center.x - g_485618.position.x;
+        real y = volumes[i].center.y - g_485618.position.y;
+        real z = volumes[i].center.z - g_485618.position.z;
+        real combined = volumes[i].radius + radius;
+        if (combined * combined > z * z + y * y + x * x)
+            nearby[nearby_count++] = volumes + i;
+    }
+    long active = 0;
+    for (long j = start; j < start + count; ++j)
+    {
+        s_38450_vertex *vertex = records->vertices + j;
+        s_38450_particle *particle = records->particles + j;
+        if (particle->age >= 0.0f)
+        {
+            real delta = g_509418;
+            particle->age += delta;
+            real drift = *(real *)(definition + 0xa8);
+            real varied = particle->jitter_z + (filter_random_fraction() * 2.0 - 1.0) * drift;
+            particle->jitter_z = (real)(varied < -1.0f ? -1.0f : varied > 1.0f ? 1.0f : varied);
+            varied = particle->jitter_x + (filter_random_fraction() * 2.0 - 1.0) * drift;
+            particle->jitter_x = (real)(varied < -1.0f ? -1.0f : varied > 1.0f ? 1.0f : varied);
+            varied = particle->jitter_y + (filter_random_fraction() * 2.0 - 1.0) * drift;
+            particle->jitter_y = (real)(varied < -1.0f ? -1.0f : varied > 1.0f ? 1.0f : varied);
+            real vx = *(real *)(definition + 0x90) * particle->jitter_x + *(real *)(definition + 0x30);
+            real vy = *(real *)(definition + 0x94) * particle->jitter_y + *(real *)(definition + 0x34);
+            real vz = *(real *)(definition + 0x98) * particle->jitter_z + *(real *)(definition + 0x38);
+            if (!(particle->lifetime > 0.0001f))
+                particle->lifetime = (real)(filter_random_fraction() * 0.7f + 0.1f);
+            real inverse = 1.0f / particle->lifetime;
+            vx *= inverse; vy *= inverse; vz *= inverse;
+            vz -= *(real *)(definition + 0x9c);
+            particle->velocity.i += delta * vx;
+            particle->velocity.j += delta * vy;
+            particle->velocity.k += delta * vz;
+            real magnitude = particle->velocity.k * particle->velocity.k +
+                particle->velocity.j * particle->velocity.j + particle->velocity.i * particle->velocity.i;
+            real maximum = *(real *)(state + 0x18);
+            if (magnitude > maximum * maximum && magnitude > 9.99999905104687e-09f)
+            {
+                real scale = particle_inverse_sqrt(magnitude);
+                scale *= maximum;
+                particle->velocity.i *= scale;
+                particle->velocity.j *= scale;
+                particle->velocity.k *= scale;
+            }
+            vertex->position.x += particle->velocity.i * delta;
+            vertex->position.y += particle->velocity.j * delta;
+            vertex->position.z += particle->velocity.k * delta;
+            real x = vertex->position.x, y = vertex->position.y, z = vertex->position.z;
+            if (g_48568c[0] != 1.0f) { x *= g_48568c[0]; y *= g_48568c[0]; z *= g_48568c[0]; }
+            real px = g_48568c[7] * z + g_48568c[4] * y + g_48568c[1] * x + g_48568c[10];
+            real py = g_48568c[5] * y + g_48568c[2] * x + g_48568c[8] * z + g_48568c[11];
+            real pz = g_48568c[6] * y + g_48568c[3] * x + g_48568c[9] * z + g_48568c[12];
+            if (width > 0.0001f && height > 0.0001f && depth > 0.0001f)
+            {
+                bool wrapped = false;
+                px /= width;
+                px -= (long)px;
+                if (px < -0.5f) { px += 1.0f; wrapped = true; }
+                else if (px > 0.5f) { px -= 1.0f; wrapped = true; }
+                px *= width;
+                py /= height;
+                py -= (long)py;
+                if (py < -0.5f) { py += 1.0f; wrapped = true; }
+                else if (py > 0.5f) { py -= 1.0f; wrapped = true; }
+                py *= height;
+                if (pz < 0.0f - depth) wrapped = true;
+                pz /= depth;
+                pz -= (long)pz;
+                if (pz > 0.0f) { pz -= 1.0f; wrapped = true; }
+                pz *= depth;
+                if (wrapped)
+                {
+                    if (g_48568c[13] != 1.0f) { px *= g_48568c[13]; py *= g_48568c[13]; pz *= g_48568c[13]; }
+                    vertex->position.x = g_48568c[20] * pz + g_48568c[17] * py + g_48568c[14] * px + g_48568c[23];
+                    vertex->position.y = g_48568c[21] * pz + g_48568c[18] * py + g_48568c[15] * px + g_48568c[24];
+                    vertex->position.z = g_48568c[22] * pz + g_48568c[19] * py + g_48568c[16] * px + g_48568c[25];
+                }
+                else if (*(short *)(state + 0x6c) != 2)
+                {
+                    real distance = pz * pz + py * py + px * px;
+                    if (0.04000000283122063f > distance)
+                        vertex->color = ((long)(distance * 24.999998092651367f * fade * 256.0f) << 24) | 0xffffff;
+                }
+            }
+            bool inside = false;
+            real exclusion = *(real *)(state + 0x14);
+            if (exclusion > 0.0f)
+            {
+                real dx = g_485618.position.x - vertex->position.x;
+                real dy = g_485618.position.y - vertex->position.y;
+                real dz = g_485618.position.z - vertex->position.z;
+                inside = exclusion * exclusion > dz * dz + dy * dy + dx * dx;
+            }
+            if (!inside)
+                for (long k = 0; k < nearby_count; ++k)
+                    if (function_38390(&vertex->position, nearby[k])) { inside = true; break; }
+            if (active <= limit && !inside) ++active;
+            else particle->age = -1.0f;
+        }
+        else if (active < limit)
+        {
+            vertex->color = 0xffffffff;
+            particle->lifetime = (real)(filter_random_fraction() *
+                (*(real *)(state + 0x20) - *(real *)(state + 0x1c)) + *(real *)(state + 0x1c));
+            particle->velocity.i = (real)(filter_random_fraction() * *(real *)(state + 0x30));
+            particle->velocity.j = (real)(filter_random_fraction() * *(real *)(state + 0x34));
+            particle->velocity.k = (real)(filter_random_fraction() * *(real *)(state + 0x38));
+            vertex->size = (real)(filter_random_fraction() *
+                (*(real *)(state + 0x28) - *(real *)(state + 0x24)) + *(real *)(state + 0x24));
+            particle->age = 0.0f;
+            vertex->position.x = (real)((filter_random_fraction() * 2.0 - 1.0) * depth + camera.x);
+            vertex->position.y = (real)((filter_random_fraction() * 2.0 - 1.0) * width + camera.y);
+            vertex->position.z = (real)((filter_random_fraction() * 2.0 - 1.0) * height + camera.z);
+            particle->jitter_x = (real)(filter_random_fraction() * 2.0 - 1.0);
+            particle->jitter_y = (real)(filter_random_fraction() * 2.0 - 1.0);
+            particle->jitter_z = (real)(filter_random_fraction() * 2.0 - 1.0);
+        }
+    }
+    return true;
 }

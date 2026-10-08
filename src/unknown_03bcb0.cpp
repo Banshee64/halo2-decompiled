@@ -1251,3 +1251,56 @@ bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
     }
     return result;
 }
+
+#if 0 // Full camera and projection storage must be reconciled before enabling.
+struct s_camera_copy_3bd00
+{
+    byte data[0x74];
+};
+struct s_projection_copy_3bd00
+{
+    transform4x3f transform;
+    transform4x3f inverse;
+    byte unknown68[0xc0 - 0x68];
+};
+extern s_camera_copy_3bd00 g_485618;
+extern s_projection_copy_3bd00 g_48568c;
+extern byte g_485607;
+void function_14ac0(void);
+void function_12fa0(real const *projection, byte const *camera, bool scaled, long mode);
+void function_3ede0(void);
+
+// Disabled retail 0x3bd00; retail copies 0x74 camera bytes and 0xc0 projection bytes.
+bool __stdcall function_3bd00(real height, dword color)
+{
+    long target = g_4858b8;
+    g_4670bc = true;
+    function_16b10((s_render_reset_state *)g_485b48);
+    s_projection_copy_3bd00 saved_projection = g_48568c;
+    s_projection_copy_3bd00 projection = saved_projection;
+    s_camera_copy_3bd00 saved_camera = g_485618;
+    s_camera_copy_3bd00 camera = saved_camera;
+    g_4858b8 = 21;
+    function_14bc0(21, 0, false);
+    if (g_485607 && !g_4858b8) function_14ac0();
+    D3DDevice_Clear(0, 0, 0xf0, color, 1.0f, 0);
+    real *matrix = (real *)&projection.transform;
+    matrix[7] = 0.0f - matrix[7];
+    matrix[8] = 0.0f - matrix[8];
+    matrix[9] = 0.0f - matrix[9];
+    matrix[12] = height * 2.0f - matrix[12];
+    *(short *)(camera.data + 0x30) = 0;
+    *(short *)(camera.data + 0x32) = 0;
+    *(short *)(camera.data + 0x34) = 256;
+    *(short *)(camera.data + 0x36) = 512;
+    function_141590(&projection.transform, &projection.inverse);
+    function_12fa0((real *)&projection, camera.data, false, 21);
+    function_3ede0();
+    function_14bc0((short)target, 0, true);
+    g_485618 = saved_camera;
+    g_48568c = saved_projection;
+    g_4858b8 = target;
+    function_12fa0((real *)&saved_projection, saved_camera.data, false, target);
+    return true;
+}
+#endif

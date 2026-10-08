@@ -1207,14 +1207,17 @@ long voice_channels_get_bandwidth(s_voice_channels *channels, long player)
 	long total = 0;
 	if (channels->initialized && voice_channels_have_player(channels, player))
 	{
-		bool is_unknown00 = voice_get_unknown00() == player;
+		long local_0 = voice_get_unknown00();
+		bool is_unknown00 = local_0 == player;
 		total = 2;
-		for (long i = 0; i < 16; i++)
+		long i = 0;
+		do
 		{
 			s_voice_channel *channel = &channels->channels[i];
 			if (voice_channel_has_player(channel, player))
 				total += channel->values[player] * (is_unknown00 ? 13 : 11) + 2;
-		}
+			i++;
+		} while (i < 16);
 	}
 	return total;
 }
@@ -2316,6 +2319,13 @@ void __stdcall function_57080(s_voice_player_values *values)
 	}
 }
 
+static __forceinline bool function_56790(dword arg_0, long arg_1)
+{
+	dword local_0 = arg_0;
+	dword local_1 = 1 << arg_1;
+	return (bool)(local_0 & local_1);
+}
+
 // @retail 0x56790
 void function_56790(long *capacity, dword *remaining, dword allowed, word *selected,
 	bool preserve_one, long excluded, bool *blocked)
@@ -2323,7 +2333,7 @@ void function_56790(long *capacity, dword *remaining, dword allowed, word *selec
 	for (long i = 0; i < 16; i++)
 	{
 		dword bit = 1 << i;
-		if ((bit & *remaining) && (allowed & bit) && *capacity > 0 &&
+		if (function_56790(*remaining, i) && (allowed & bit) && *capacity > 0 &&
 			(!preserve_one || excluded != i))
 		{
 			if (*capacity == 1 && preserve_one)

@@ -21,14 +21,7 @@ struct s_effect_source;
 // @stub 0xc0350
 void function_c0350(long tag_index, long object_index, long node_index, vector3f const *up, vector3f const *forward, point3f const *position, real scale) { }
 
-// @stub 0x16a8e0
-void function_16a8e0(long name, point3f const *point, real radius, long object_index, long unknown, point3f const *origin, real *radius_reference) { }
-
-
 /* in region */
-// @stub 0x174a30
-bool function_174a30(s_particle_system_datum *particle_system, real dt) { return false; }
-
 /* in region */
 // @stub 0x17e670
 void function_17e670(s_effect_source *source, point3f const *point, long tag_index, vector3f const *vector, real radius, long unknown0, long unknown1, long unknown2) { }

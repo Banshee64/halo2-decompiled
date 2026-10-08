@@ -235,7 +235,7 @@ bool function_1b0400(long arg_0, s_follow_search_state *arg_1)
                 local_7 = *(long *)(local_8 + 0x14);
             local_7 = function_baf40(local_7);
             short local_9 = function_1c8df0(local_7, (point3f const *)((byte *)local_4 + 0x30),
-                *(short *)((byte *)local_2 + 0x2c), *(short *)((byte *)local_2 + 0x12),
+                *(volatile short *)((byte *)local_2 + 0x2c), *(short *)((byte *)local_2 + 0x12),
                 &local_6, 1, false, local_0->unknown26c != NONE, false, NULL);
             if (local_3->unknown24 >= 1)
                 local_1 = local_9 == 0;

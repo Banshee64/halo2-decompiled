@@ -1344,3 +1344,140 @@ bool function_171d00(point3f const *start, point3f const *end, real *fraction, b
     }
     return result;
 }
+
+struct s_camera_cluster_171830
+{
+	byte field_0[0x70];
+	byte reference;
+	byte field_71[0xb0 - 0x71];
+};
+
+struct s_camera_reference_171830
+{
+	short field_0;
+	short index;
+	plane3f plane;
+	byte field_14[4];
+};
+
+// @retail 0x171830
+void function_171830(point3f const *point, vector3f const *forward,
+	vector3f const *up, real *distance, real offset)
+{
+	(void)&point;
+	(void)&distance;
+	(void)&offset;
+	real center_fraction = 1.0f;
+	s_location location;
+	function_11bed0(&location, point);
+	bool narrow = false;
+	if (location.cluster_index != NONE)
+	{
+		byte *geometry = (byte *)g_4e0348;
+		s_camera_cluster_171830 *clusters = *(s_camera_cluster_171830 **)(geometry + 0xa0);
+		byte reference = clusters[location.cluster_index].reference;
+		if (reference != 0xff)
+		{
+			s_camera_reference_171830 *entry =
+				&(*(s_camera_reference_171830 **)(geometry + 0x68))[reference & 0x7f];
+			if (entry->index != NONE)
+			{
+				if (!(reference & 0x80) ||
+					entry->plane.k * point->z + entry->plane.j * point->y + point->x * entry->plane.i - entry->plane.d < 0.0f)
+					narrow = true;
+			}
+		}
+	}
+	real depth = *distance + offset;
+	point3f center;
+	center.x = point->x + (0.0f - depth * up->i);
+	center.y = point->y + (0.0f - depth * up->j);
+	center.z = point->z + (0.0f - depth * up->k);
+	function_171d00(point, &center, &center_fraction, narrow);
+	vector3f side;
+	side.i = forward->j * up->k - up->j * forward->k;
+	side.j = up->i * forward->k - forward->i * up->k;
+	side.k = up->j * forward->i - forward->j * up->i;
+	real best_fraction = center_fraction;
+	real radius = *distance * 0.174f;
+	vector3f offsets[2];
+	offsets[0] = *forward;
+	offsets[0].i *= radius;
+	offsets[0].j *= radius;
+	offsets[0].k *= radius;
+	offsets[1].i = side.i * radius;
+	offsets[1].j = side.j * radius;
+	offsets[1].k = side.k * radius;
+	vector3f const *best_offset = NULL;
+	real best_sign;
+	for (short sample = 0; sample < 4; ++sample)
+	{
+		s_segment_collision collision;
+		collision.material = NONE;
+		real sign = (real)((sample & 2) ? 1 : -1);
+		vector3f const *displacement = &offsets[sample & 1];
+		vector3f direction;
+		direction.i = displacement->i * sign + center.x - point->x;
+		direction.j = displacement->j * sign + center.y - point->y;
+		direction.k = displacement->k * sign + center.z - point->z;
+		long flags = 0x808c0f;
+		if (narrow) flags = 0x808c0d;
+		if (function_1697c0(flags, point, &direction, NONE, NONE,
+			(s_collision_result_1697c0 *)&collision) && collision.fraction < best_fraction)
+		{
+			best_fraction = collision.fraction;
+			best_offset = displacement;
+			best_sign = sign;
+		}
+	}
+	real fraction;
+	if (best_offset)
+	{
+		real lower = 0.0f;
+		real upper = best_sign;
+		real lower_fraction = center_fraction;
+		real upper_fraction = best_fraction;
+		for (long remaining = 10; remaining; --remaining)
+		{
+			real middle = (upper + lower) * 0.5f;
+			bool hit = false;
+			s_segment_collision collision;
+			collision.material = NONE;
+			long flags = 0x808c0f;
+			if (narrow) flags = 0x808c0d;
+			vector3f direction;
+			direction.i = best_offset->i * middle + center.x - point->x;
+			direction.j = best_offset->j * middle + center.y - point->y;
+			direction.k = best_offset->k * middle + center.z - point->z;
+			real found_fraction;
+			if (function_1697c0(flags, point, &direction, NONE, NONE,
+				(s_collision_result_1697c0 *)&collision))
+			{
+				found_fraction = collision.fraction;
+				hit = true;
+				if (fabs(found_fraction - upper_fraction) < 0.1f)
+				{
+					upper = middle;
+					upper_fraction = found_fraction;
+					continue;
+				}
+			}
+			lower = middle;
+			lower_fraction = hit ? found_fraction : 1.0f;
+		}
+		real direction;
+		if (upper_fraction > lower_fraction)
+			direction = lower;
+		else
+			direction = (real)(upper >= 0.0f);
+		real blend = upper_fraction > lower_fraction ? lower : upper;
+		if (direction != 0.0f)
+			blend = 0.0f - blend;
+		fraction = (1.0f - blend) * best_fraction + blend * center_fraction;
+	}
+	else
+	{
+		fraction = center_fraction;
+	}
+	*distance *= fraction;
+}

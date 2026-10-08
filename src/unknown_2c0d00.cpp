@@ -223,7 +223,7 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
     s_actor_view *volatile actor = NULL;
     bool straight = true;
     bool aligned = true;
-    bool has_target = false;
+    bool local_4d3867 = false;
     if (actor_index != NONE)
     {
         actor = actor_get(actor_index);
@@ -236,7 +236,7 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
             straight = dot > 0.95f;
             aligned = dot > 0.8660253882408142f;
         }
-        has_target = actor->unknown26c != NONE;
+        local_4d3867 = actor->unknown26c != NONE;
         if (unit[0xaa] == 0)
             self_unit = unit;
         if (settings)
@@ -518,24 +518,24 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
                 continue;
             if (restricted_spheres && !(sphere->flags & 4))
                 continue;
-            if (!has_target && (sphere->flags & 2))
+            if (!local_4d3867 && (sphere->flags & 2))
                 continue;
             point3f center;
-            real sphere_radius;
+            real local_a47c5e;
             if (sphere->node != NONE)
             {
                 transform4x3f *matrix = function_b8bd0(object_index, sphere->node);
                 transform4x3f_apply_point(matrix, &sphere->center, &center);
-                sphere_radius = sphere->radius * matrix->scale;
+                local_a47c5e = sphere->radius * matrix->scale;
             }
             else
             {
                 transform4x3f_apply_point(&object_matrix, &sphere->center, &center);
-                sphere_radius = sphere->radius * object_matrix.scale;
+                local_a47c5e = sphere->radius * object_matrix.scale;
             }
-            if (position->z > center.z + sphere_radius + 1.0f && direction->k > -0.2f)
+            if (position->z > center.z + local_a47c5e + 1.0f && direction->k > -0.2f)
                 continue;
-            if (center.z - sphere_radius - 1.0f > position->z && direction->k < 0.2f)
+            if (center.z - local_a47c5e - 1.0f > position->z && direction->k < 0.2f)
                 continue;
             vector3f difference;
             difference.k = center.z - position->z;
@@ -544,7 +544,7 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
             real squared = difference.k * difference.k * 4.0f;
             squared += difference.j * difference.j;
             squared += difference.i * difference.i;
-            real combined_radius = sphere_radius + radius;
+            real combined_radius = local_a47c5e + radius;
             if (combined_radius * combined_radius < squared)
                 continue;
             long moving = 0;
@@ -562,10 +562,10 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
             if (blocking)
             {
                 if (blocking_obstacles)
-                    obstacle_list_add(blocking_obstacles, (word)obstacle_flags, (point2f const *)&center, object_index, sphere_radius + inflation);
+                    obstacle_list_add(blocking_obstacles, (word)obstacle_flags, (point2f const *)&center, object_index, local_a47c5e + inflation);
             }
             else
-                obstacle_list_add(obstacles, combined_flags, (point2f const *)&center, object_index, sphere_radius + inflation);
+                obstacle_list_add(obstacles, combined_flags, (point2f const *)&center, object_index, local_a47c5e + inflation);
         }
     }
 }

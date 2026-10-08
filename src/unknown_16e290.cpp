@@ -4,6 +4,7 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "object_queries.h"
 #include "unknown_0259d0.h"
 #include "geometry_cache.h"
 #include "unknown_218850.h"
@@ -1398,7 +1399,110 @@ void function_16fe90(long user_index)
 	}
 }
 void __stdcall function_170fd0(long user_index);
-void function_16ebf0(long user_index);
+long function_155760(long user_index);
+void __stdcall function_1546f0(long user_index, transform4x3f *matrix);
+bool function_a74c0(vector3f const *forward, vector3f const *up);
+real function_1201a0(vector3f *vector, vector3f const *fallback);
+bool function_171d00(point3f const *start, point3f const *end, real *fraction, bool narrow);
+struct s_16658d_group;
+extern s_16658d_group *g_4e9bc8;
+
+struct s_camera_clip_reference_16ebf0
+{
+	short field_0;
+	short index;
+	plane3f plane;
+	byte field_14[4];
+};
+
+// @retail 0x16ebf0
+void function_16ebf0(long user_index)
+{
+	transform4x3f adjustment = *g_4687d0;
+	byte *state = (byte *)g_4e9bd4 + user_index * 0x358;
+	byte *volatile saved_state = state;
+	if (user_index != NONE)
+	{
+		if (function_155760(user_index) == 0)
+		{
+			byte *user = (byte *)g_4e9bc8 + user_index * 0x20cc;
+			if (*(long *)(user + 0x2094) != NONE && (*user & 4))
+				function_142a60(&adjustment, (transform4x3f *)(user + 0x2098), &adjustment);
+		}
+		if (!g_510c54->active || !g_510c54->unknown01)
+		{
+			switch (function_155760(user_index))
+			{
+			case 0:
+			case 2:
+				function_1546f0(user_index, &adjustment);
+				break;
+			}
+		}
+	}
+	vector3f *original_forward = (vector3f *)(state + 0xd8);
+	vector3f *original_up = (vector3f *)(state + 0xe4);
+	point3f *original_position = (point3f *)(state + 0xb8);
+	vector3f forward = *original_forward;
+	vector3f up = *original_up;
+	transform4x3f matrix;
+	matrix.scale = 1.0f;
+	matrix.forward = *original_forward;
+	matrix.up = *original_up;
+	matrix.position = *original_position;
+	matrix.left.i = forward.k * up.j - up.k * forward.j;
+	matrix.left.j = up.k * forward.i - forward.k * up.i;
+	matrix.left.k = forward.j * up.i - up.j * forward.i;
+	function_142a60(&matrix, &adjustment, &matrix);
+	forward = matrix.forward;
+	up = matrix.up;
+	point3f point = matrix.position;
+	if (!function_a74c0(&forward, &up))
+	{
+		function_1201a0(&forward, g_4687a8);
+		function_1201a0(&up, g_4687a8);
+		if (!function_a74c0(&forward, &up))
+		{
+			forward = *g_4687a8;
+			up = *g_4687b0;
+		}
+	}
+	if (!(*(dword *)(saved_state + 8) & 0x10))
+	{
+		s_location location;
+		function_11bed0(&location, &point);
+		bool narrow = false;
+		if (location.cluster_index != NONE)
+		{
+			s_16e210_match_view *geometry = (s_16e210_match_view *)g_4e0348;
+			byte reference = geometry->clusters[location.cluster_index].cluster_reference;
+			if (reference != 0xff)
+			{
+				s_camera_clip_reference_16ebf0 *entry =
+					&((s_camera_clip_reference_16ebf0 *)geometry->references)[reference & 0x7f];
+				if (entry->index != NONE)
+				{
+					if (!(reference & 0x80) ||
+						entry->plane.j * point.y + entry->plane.k * point.z + entry->plane.i * point.x - entry->plane.d < 0.0f)
+						narrow = true;
+				}
+			}
+		}
+		real fraction;
+		point3f *original = original_position;
+		if (function_171d00(original, &point, &fraction, narrow))
+		{
+			real amount = fraction * 0.9f;
+			real remainder = 1.0f - amount;
+			point.x = original->x * remainder + point.x * amount;
+			point.y = original->y * remainder + point.y * amount;
+			point.z = original->z * remainder + point.z * amount;
+		}
+	}
+	*original_position = point;
+	*original_forward = forward;
+	*original_up = up;
+}
 void function_3f450(long cluster_index);
 void function_3f500(long cluster_index);
 

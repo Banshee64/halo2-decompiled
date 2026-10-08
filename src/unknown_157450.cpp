@@ -4337,3 +4337,138 @@ void __stdcall function_15e530(c_1fa50 const *text, real alpha, point2f const *p
     text->function_1fa50(&bounds, 0, 0, 0, 1.0f, 0, 0);
     function_13e8a0();
 }
+
+bool function_15b2f0();
+long function_162470(bool flag);
+void __stdcall function_a7810(dword flags);
+long function_15b330(bool teams);
+
+// @retail 0x15be20
+void function_15be20()
+{
+	s_game_engine_globals *globals = function_xaee93d();
+	if (game_engine_get() && globals->value6c == 1 &&
+		(g_4e6948->mode == 4 || globals->value_c04 == 1) && g_4e6948->mode != 4)
+	{
+		if (engine_options()->value190)
+		{
+			long ticks = function_162470(true);
+			long seconds = real_truncate((real)ticks * g_510c54->rate);
+			if (seconds != function_xaee93d()->value_e0)
+			{
+				function_xaee93d()->value_e0 = (short)seconds;
+				function_a7810(0x10);
+				long subtype = NONE;
+				if (seconds == 1800) subtype = 0xe;
+				else if (seconds == 900) subtype = 0xf;
+				else if (seconds == 300) subtype = 0x10;
+				else if (seconds == 60) subtype = 0x11;
+				else if (seconds == 30) subtype = 0x20;
+				else if (seconds == 10) subtype = 0x21;
+				if (subtype != NONE)
+				{
+					s_event event;
+					game_engine_event_initialize_inline(&event, 0, subtype);
+					function_19eb90(&event);
+				}
+			}
+			if (ticks <= 0)
+			{
+				s_event event;
+				game_engine_event_initialize_inline(&event, 0, 0x12);
+				function_19eb90(&event);
+				function_15b3a0(function_15b330(false), 0);
+			}
+		}
+		else
+		{
+			long ticks = g_510c54->game_time - ((s_engine_round_clock *)globals)->start_time;
+			ticks &= (ticks < 0) - 1;
+			long seconds = real_truncate((real)ticks * g_510c54->rate);
+			if (seconds > 0x7fff) seconds = 0x7fff;
+			if (seconds != globals->value_e0)
+			{
+				globals->value_e0 = (short)seconds;
+				function_a7810(0x10);
+			}
+		}
+	}
+}
+
+#include <wchar.h>
+extern s_camera g_4b9e14;
+extern short g_4b9dd4, g_4b9dd6;
+bool function_30710(s_camera const *camera, vector3f const *vector,
+	short_rectangle2d const *bounds, point2f *point, s_view const *view);
+void parse_text(word *text);
+
+// @retail 0x159250
+void function_159250(long player_index, real alpha)
+{
+	(void)&alpha;
+	s_engine_player *player = 0;
+	if (player_index != NONE)
+	{
+		s_record_pool *players = g_4e8c24;
+		long index = player_index & 0xffff;
+		if (index < players->high_water_index)
+		{
+			s_engine_player *entry = (s_engine_player *)(players->data + players->size * index);
+			if (entry->salt && entry->salt == (player_index >> 16))
+				player = entry;
+		}
+	}
+	if (player && player->unit_index != NONE)
+	{
+		union
+		{
+			struct { s_camera camera; s_view view; } projection;
+			word text[0x100];
+		} storage;
+		s_object_marker marker;
+		function_b8d30(player->unit_index, 0x04000095, &marker, 1, false);
+		point3f position = marker.matrix.position;
+		position.z += 0.05f;
+		real x = position.x;
+		real y = position.y;
+		real z = position.z;
+		if (g_4b9e14.scale != 1.0f)
+		{
+			x = g_4b9e14.scale * x;
+			y = g_4b9e14.scale * y;
+			z = g_4b9e14.scale * z;
+		}
+		vector3f transformed;
+		transformed.i = g_4b9e14.forward.i * z;
+		transformed.i += g_4b9e14.right.i * x;
+		transformed.i += g_4b9e14.up.i * y;
+		transformed.i += g_4b9e14.position.x;
+		transformed.j = g_4b9e14.forward.j * z;
+		transformed.j += g_4b9e14.right.j * x;
+		transformed.j += g_4b9e14.up.j * y;
+		transformed.j += g_4b9e14.position.y;
+		transformed.k = g_4b9e14.forward.k * z;
+		transformed.k += g_4b9e14.right.k * x;
+		transformed.k += g_4b9e14.up.k * y;
+		transformed.k += g_4b9e14.position.z;
+		// Copy the fields the projector reads; shared globals must not escape.
+		storage.projection.camera.unknown78 = g_4b9e14.unknown78;
+		storage.projection.camera.unknown8c = g_4b9e14.unknown8c;
+		storage.projection.camera.unknown98 = g_4b9e14.unknown98;
+		storage.projection.camera.unknown9c = g_4b9e14.unknown9c;
+		storage.projection.view.bounds.top = g_4b9dd0;
+		storage.projection.view.bounds.left = g_4b9dd2;
+		storage.projection.view.bounds.bottom = g_4b9dd4;
+		storage.projection.view.bounds.right = g_4b9dd6;
+		point2f point;
+		if (function_30710(&storage.projection.camera, &transformed, 0, &point, &storage.projection.view))
+		{
+			word *text = storage.text;
+			text[0] = 0;
+			wcsncpy((wchar_t *)text, (wchar_t const *)((byte *)player + 0x44), 0xff);
+			text[0xff] = 0;
+			parse_text(text);
+			function_15e530((c_1fa50 const *)text, alpha, &point);
+		}
+	}
+}

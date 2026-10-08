@@ -379,8 +379,8 @@ void c_session_state_joining::function_06f200(bool flag, const void *target, lon
 void c_session_state_joining::function_06f2b0(const s_session_description *description, long count)
 {
 	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
-	long minimum_version = description->unknown0c;
-	long version = description->unknown08;
+	long minimum_version = *(volatile long *)&description->unknown0c;
+	long version = *(volatile long *)&description->unknown08;
 	if (description->unknown04 == 4 && version >= 0x2651 && minimum_version <= 0x2651)
 	{
 		if (description->unknown10 == (online_logon_connected() ? 2 : 1))
