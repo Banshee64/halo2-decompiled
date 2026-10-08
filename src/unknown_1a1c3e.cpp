@@ -27,6 +27,7 @@ struct s_motion_sensor_sample
 
 struct s_motion_sensor_player
 {
+	void motion_sensor_add_other_object(long object_index);
 	s_motion_sensor_sample samples[10];
 	long objects[16];
 	long nearby_count;
@@ -201,13 +202,17 @@ void motion_sensor_add_nearby_object(s_motion_sensor_player *sensor, long object
 }
 
 // @retail 0x1a1c8e
-void motion_sensor_add_other_object(s_motion_sensor_player *sensor, long object_index)
+void s_motion_sensor_player::motion_sensor_add_other_object(long object_index)
 {
-	long count = sensor->nearby_count + sensor->other_count;
+	s_motion_sensor_player *sensor = this;
+	long *local_0 = &sensor->other_count;
+	long count = sensor->nearby_count;
+	long local_1 = *(volatile long *)local_0;
+	count += local_1;
 	if (count < 16)
 	{
 		sensor->objects[count] = object_index;
-		sensor->other_count++;
+		(*local_0)++;
 	}
 }
 
@@ -407,35 +412,39 @@ bool motion_sensor_object_valid(long object_index)
 }
 
 // @retail 0x1a20e6
-bool motion_sensor_object_visible(long object_index)
+long __stdcall motion_sensor_object_visible(long object_index)
 {
-	s_sensor_object *object = SENSOR_OBJECT(object_index);
+	long *local_0 = &object_index;
+	s_sensor_object *object = SENSOR_OBJECT(*(volatile long *)local_0);
 	bool always = false;
 	bool unhidden = true;
 	bool flag30 = false;
 
 	if ((1 << object->type) & 3)
 	{
-		long zoom = function_e70e0(object_index);
+		long zoom = function_e70e0(*(volatile long *)local_0);
 		if ((object->flags14a & 0x21) || (zoom != 0 && zoom != 3))
 			always = true;
 		flag30 = TEST_FIELD_BIT(object->flags134_30);
 		unhidden = g_4e6948->state == 2 || !TEST_FIELD_BIT(object->flags134_3);
 		if (always)
-			return true;
+			goto local_0;
 	}
-	bool moving = motion_sensor_object_moving(object_index);
-	if (unhidden && (moving || flag30) || g_51e990)
-		return true;
-	return false;
+	bool moving = motion_sensor_object_moving(*(volatile long *)local_0);
+	if (unhidden && (moving || flag30))
+		goto local_0;
+	if (!g_51e990)
+		return false;
+local_0:
+	return true;
 }
 
 // @retail 0x1a2197
 void motion_sensor_draw_blip(char type, point2f const *point, real scale, real intensity, char height)
 {
+	color3f const *color = &g_445320[type];
 	real alpha = 1.0f;
 	real offset = g_47ff9c[height];
-	color3f const *color = &g_445320[type];
 
 	if (type == 6)
 		alpha = ((real)sin(g_510c54->game_time * g_510c54->rate * 3.14159265f) + 1.0f) * 0.033333335f + 1.0f;
@@ -575,7 +584,7 @@ void motion_sensor_update_other_objects(void)
 					real dx = object->position.x - positions[i].x;
 					room = true;
 					if (range_squared >= dx * dx + dy * dy)
-						motion_sensor_add_other_object(sensor, iterator.object_index);
+						sensor->motion_sensor_add_other_object(iterator.object_index);
 				}
 			}
 			if (!room)

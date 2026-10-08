@@ -18,8 +18,9 @@ PRIVATE long __stdcall async_task_execute_work(s_async_task *task)
 // @retail 0x1a17d0
 long async_task_add_work(async_task_work_function callback, long parameters_size, void *parameters, long priority, bool *done)
 {
-	long result;
-	s_async_task task;
+	struct { s_async_task field_0; long field_28; } local_0;
+	s_async_task &task = local_0.field_0;
+	long &result = local_0.field_28;
 
 	memset(&task, 0, sizeof(task));
 	if (parameters_size <= sizeof(task.work.parameters))
