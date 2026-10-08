@@ -82,10 +82,6 @@ struct s_ai_trigger_condition;
 
 
 
-// @stub 0x13c5a0
-void function_13c5a0(long object_index, long a, long b, long c)
-{
-}
 
 
 
