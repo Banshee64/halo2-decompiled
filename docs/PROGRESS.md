@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7057 functions match
+
+```
+matched 7057 of 11318 game functions (788080 of 2784283 bytes, 28.30%)
+```
+
+7057 new matches, none lost:
+- Merge batch r41: the resting-lane sweep, round 3 (+4).
+
 ## 2026-10-08: 7053 functions match
 
 ```
