@@ -979,7 +979,8 @@ bool function_1e12b0(long actor_index, dword const *clusters);
 // @retail 0x202310
 bool __stdcall function_202310(long squad_index, dword const *clusters, long cluster_count)
 {
-    (void)&cluster_count;
+    long const *local_0 = &cluster_count;
+    (void)local_0;
 	bool result = false;
 	long actor_index = squad_get(squad_index)->first_actor_index;
 	while (actor_index != NONE)

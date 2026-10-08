@@ -509,6 +509,202 @@ PRIVATE __declspec(noinline) void particle_damping_update_2b(s_particle_properti
 void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void *system,
     long first, real scale, long mode);
 
+#include "effects.h"
+
+struct s_object_246eb0;
+struct s_particle_impact
+{
+    point3f position;
+    vector3f direction;
+    vector3f normal;
+    short index;
+};
+
+class c_particle_collision_interface_2b
+{
+public:
+    virtual dword group() = 0;
+    virtual long tag_index() = 0;
+    virtual void v2() = 0;
+    virtual void v3() = 0;
+    virtual void v4() = 0;
+    virtual void v5() = 0;
+    virtual void v6() = 0;
+    virtual void v7() = 0;
+    virtual void v8() = 0;
+    virtual void v9() = 0;
+    virtual void v10() = 0;
+    virtual void v11() = 0;
+    virtual void v12() = 0;
+    virtual void v13() = 0;
+    virtual bool stop_on_surface() = 0;
+    virtual bool stop_on_object() = 0;
+};
+
+void function_246fa0(s_object_246eb0 const *particle, s_particle_impact const *impact, long tag_index);
+void function_247000(s_object_246eb0 const *particle, volatile long tag_index);
+void function_247070(s_object_246eb0 const *particle, s_particle_impact const *impact, long definition_index, long tag_index);
+
+real g_55e618;
+
+// @retail 0x2b9060
+void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void *system,
+    long first, real scale, long mode)
+{
+    s_particle_property_entry_2ba *properties = definition->properties;
+    c_particle_collision_interface_2b *material = (c_particle_collision_interface_2b *)function_137bd0(
+        ((s_particle_system_datum *)system)->function_1751d0()->tag_index);
+    dword remaining = definition->constant_mask;
+    long next = first;
+    real coefficients[2] = { 0.0f, 0.0f };
+    s_particle_cache_2ba cache;
+    cache.valid = 0;
+    cache.current_system = 0;
+    cache.current_emitter = 0;
+    cache.current_particle = 0;
+    if (system)
+    {
+        cache.current_system = system;
+        cache.valid = 0;
+    }
+    dword requested = definition->input_mask & 0x107f0;
+    function_173ba0(requested, cache.current_system, cache.current_emitter, cache.current_particle, cache.values);
+    cache.valid |= requested;
+    for (dword i = 0; i < 2 && remaining; ++i)
+    {
+        dword bit = 1 << i;
+        if (remaining & bit)
+        {
+            coefficients[i] = function_246cd0(&properties[i].property, cache.values);
+            remaining &= ~bit;
+        }
+    }
+    while (next != NONE)
+    {
+        s_particle_2b96 *particle = &((s_particle_2b96 *)g_51ec84->data)[next & 0xffff];
+        next = particle->next;
+        word *flags = (word *)((byte *)particle + 2);
+        if ((*flags & 9) || !(*(real *)((byte *)particle + 8) <= 1.0f))
+            continue;
+        word countdown = *flags >> 13;
+        if (countdown)
+        {
+            *flags = (*flags & 0x1fff) | ((countdown - 1) << 13);
+            continue;
+        }
+        if (cache.current_particle != particle)
+        {
+            cache.current_particle = particle;
+            cache.valid &= 0xffff07f0;
+        }
+        requested = definition->input_mask & 0xf80f;
+        function_173ba0(requested & ~cache.valid, cache.current_system, cache.current_emitter, cache.current_particle, cache.values);
+        cache.valid |= requested;
+        dword collision_flags = 0x800000 + ((mode & 2) != 0);
+        if (mode & 2) collision_flags |= 4;
+        else collision_flags &= ~4;
+        if (mode & 4) collision_flags |= 2;
+        else collision_flags &= ~2;
+        if (mode & 0x10) collision_flags |= 0x20;
+        else collision_flags &= ~0x20;
+        if (mode & 8) collision_flags |= 0x400;
+        else collision_flags &= ~0x400;
+        if (mode & 0x20) collision_flags |= 0x10;
+        else collision_flags &= ~0x10;
+        if (collision_flags & 0x430) collision_flags |= 8;
+        if (!(mode & 1) && !(mode & 2) && !(mode & 4) && !(mode & 8))
+        {
+            *flags &= ~2;
+            continue;
+        }
+        vector3f displacement;
+        displacement.i = particle->velocity.i * scale;
+        displacement.j = particle->velocity.j * scale;
+        displacement.k = particle->velocity.k * scale;
+        vector3f sweep;
+        sweep.i = displacement.i * 12.0f;
+        sweep.j = displacement.j * 12.0f;
+        sweep.k = displacement.k * 12.0f;
+        point3f start = particle->position;
+        start.x -= displacement.i;
+        start.y -= displacement.j;
+        start.z -= displacement.k;
+        union
+        {
+            s_collision_result_1697c0 value;
+            byte storage[0x5c];
+        } collision;
+        collision.value.unknown24 = NONE;
+        if (function_1697c0(collision_flags, &start, &sweep, NONE, NONE, &collision.value))
+        {
+            if (g_55e618 > *(real *)(collision.storage + 4))
+            {
+                for (dword j = 0; j < 2 && remaining; ++j)
+                {
+                    dword bit = 1 << j;
+                    if (remaining & bit)
+                    {
+                        coefficients[j] = function_246cd0(&properties[j].property, cache.values);
+                        remaining &= ~bit;
+                    }
+                }
+                vector3f const *normal = (vector3f const *)(collision.storage + 0x28);
+                real keep = 1.0f - coefficients[0];
+                real dot = particle->velocity.i * normal->i;
+                dot += normal->k * particle->velocity.k;
+                dot += normal->j * particle->velocity.j;
+                vector3f perpendicular;
+                perpendicular.i = dot * normal->i;
+                perpendicular.j = dot * normal->j;
+                perpendicular.k = dot * normal->k;
+                vector3f tangent;
+                tangent.i = particle->velocity.i - perpendicular.i;
+                tangent.j = particle->velocity.j - perpendicular.j;
+                tangent.k = particle->velocity.k - perpendicular.k;
+                particle->position.x = normal->i * 0.005f + collision.value.point.x;
+                particle->position.y = normal->j * 0.005f + collision.value.point.y;
+                particle->position.z = normal->k * 0.005f + collision.value.point.z;
+                s_particle_impact impact;
+                impact.index = NONE;
+                placement_set((s_placement *)&impact, &particle->velocity, &particle->position, normal, collision.value.unknown24);
+                particle->velocity.i = tangent.i * keep - perpendicular.i * coefficients[1];
+                particle->velocity.j = tangent.j * keep - perpendicular.j * coefficients[1];
+                particle->velocity.k = tangent.k * keep - perpendicular.k * coefficients[1];
+                *(real *)((byte *)particle + 0x34) *= keep;
+                if (!(*flags & 2))
+                {
+                    if (((s_particle_system_datum *)system)->function_1751d0()->location_mode != 1 && material->tag_index() != NONE)
+                    {
+                        long definition_index = ((s_particle_system_datum *)system)->function_1751d0()->tag_index;
+                        long tag_index = material->tag_index();
+                        dword group = material->group();
+                        if (tag_index != NONE)
+                        {
+                            switch (group)
+                            {
+                            case 'snd!': function_247000((s_object_246eb0 *)particle, tag_index); break;
+                            case 'foot': function_247070((s_object_246eb0 *)particle, &impact, definition_index, tag_index); break;
+                            case 'effe': function_246fa0((s_object_246eb0 *)particle, &impact, tag_index); break;
+                            }
+                        }
+                    }
+                    *flags |= 2;
+                }
+                if (normal->k > 0.8f) *flags |= 0x10;
+                else *flags &= ~0x10;
+                if ((*(long *)collision.storage == 1 && material->stop_on_surface()) ||
+                    (*(long *)collision.storage == 3 && material->stop_on_surface()) ||
+                    (*(long *)collision.storage == 2 && material->stop_on_object()))
+                    *flags |= 1;
+            }
+            else
+                *flags &= 0x1fff;
+        }
+        else
+            *flags = (*flags & 0x1ffd) | 0xa000;
+    }
+}
+
 // @retail 0x2b8da0
 void function_2b8da0(s_particle_properties_2ba const *definition, void *system,
     long first, void const *origin, real scale, long mode)

@@ -387,7 +387,7 @@ bool player_slot_get_identity(long index, s_player_identity *identity);
 void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
 
 /* unknown_19b510.cpp */
-void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
+void dialog_ok_show(long a, long dialog_id, long b, short user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
 
 /* unknown_1a2ca7.cpp: the pending friend request */
 #include "unknown_x8d43e5.h"

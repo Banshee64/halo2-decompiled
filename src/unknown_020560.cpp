@@ -1467,3 +1467,121 @@ void __stdcall function_21a80(real first, real second, real depth)
         function_34a90(0, 7, 0x1010101, false, false, 1.0f, 0.0f, 1.0f, 1, false, false);
     }
 }
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+bool g_485a74;
+void function_14bc0(short index, short element, bool use_depth);
+
+// @retail 0x214f0
+void __stdcall function_214f0(real passes, real distortion, real strength, real falloff,
+    real scale, bool blend, bool preserve)
+{
+    struct { real first, second, alpha_scale, alpha; color4f color; } values;
+    values.first = 1.0f;
+    values.second = 0.4f;
+    if (g_510c50 && ((byte *)g_510c50)[5])
+    {
+        s_5093e4 *state = g_5093e4;
+        if (state->flag1)
+        {
+            state->flag0 = false;
+            state->flag1 = false;
+            state->value4 = -1.0f;
+            state->value8 = -1.0f;
+            state->valuec = -1.0f;
+            state->value10 = -1.0f;
+            state->value14 = -1.0f;
+            state->flag18 = true;
+            state->flag19 = false;
+            state->value1c = -1.0f;
+            state->value20 = -1.0f;
+            state->flag1a = false;
+        }
+        else if (state->flag0)
+        {
+            if (state->value4 != -1.0f) passes = state->value4;
+            if (state->value8 != -1.0f) distortion = state->value8;
+            if (state->valuec != -1.0f) strength = state->valuec;
+            if (state->value10 != -1.0f) falloff = state->value10;
+            if (state->value14 != -1.0f) scale = state->value14;
+            blend = state->flag18;
+            preserve = state->flag19;
+            if (state->value1c != -1.0f) values.first = state->value1c;
+            if (state->value20 != -1.0f) values.second = state->value20;
+        }
+    }
+    passes = passes > 0.0f ? passes : 0.0f;
+    distortion = PIN(distortion, 0.0f, 1.0f);
+    strength = PIN(strength, 0.0f, 1.0f);
+    falloff = PIN(falloff, 0.0f, 1.0f);
+    scale = PIN(scale, 0.0f, 1.0f);
+    values.first = PIN(values.first, 0.0f, 1.0f);
+    values.second = PIN(values.second, 0.0f, 1.0f);
+    if (strength > 0.0f || values.first > 0.0f)
+    {
+        configure_filter_textures(g_4858b8);
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSTextureModes = 0x8421;
+        g_484f68.PSCombinerCount = 0x11004;
+        g_484f68.PSAlphaInputs[0] = 0x18201920;
+        g_484f68.PSAlphaInputs[1] = 0x1a201b20;
+        g_484f68.PSAlphaInputs[2] = 0x1c201d20;
+        g_484f68.PSAlphaOutputs[0] = 0x30c00;
+        g_484f68.PSAlphaOutputs[1] = 0x30d00;
+        g_484f68.PSAlphaOutputs[2] = 0x30c00;
+        g_484f68.PSRGBInputs[0] = 0x8200920;
+        g_484f68.PSRGBInputs[1] = 0xa200b20;
+        g_484f68.PSRGBInputs[2] = 0xc200d20;
+        g_484f68.PSRGBOutputs[0] = 0x30c00;
+        g_484f68.PSRGBOutputs[1] = 0x30d00;
+        g_484f68.PSRGBOutputs[2] = 0x30c00;
+        values.color.alpha = 0.125f;
+        values.color.red = distortion;
+        values.color.green = distortion;
+        values.color.blue = distortion;
+        g_484f68.PSConstant0[3] = pack_color4f(&values.color);
+        g_484f68.PSRGBInputs[3] = 0xc200140;
+        g_484f68.PSRGBOutputs[3] = 0x20d00;
+        g_484f68.PSAlphaInputs[3] = 0x1c110000;
+        g_484f68.PSAlphaOutputs[3] = 0x10d00;
+        // Retail clears the values.alpha conversion slot before rounding.
+        values.alpha = 0.0f;
+        values.alpha_scale = 255.0f;
+        long &packed = *(long *)&distortion;
+        packed = 0;
+        __asm
+        {
+            fld values.alpha
+            fld values.alpha_scale
+            fmulp st(1), st(0)
+            fistp distortion
+        }
+        g_484f68.PSFinalCombinerConstant1 = (dword)packed << 24;
+        g_484f68.PSFinalCombinerInputsABCD = ((g_485a74 ? 0x1c : 0) << 24) | 0xf000d;
+        g_484f68.PSFinalCombinerInputsEFG = ((g_485a74 ? 0x1d : 0) | 0xc1100) << 8;
+        function_1ccf0(&g_484f68);
+        function_34a90(7, 10, 0x1010101, false, false, 1.0f, 0.5f, 1.0f, 4, false, false);
+        long filtered = function_211a0(7, passes, 1.0f, falloff, 8, NONE, NONE, 1, 0, scale, values.second);
+        function_14f60(0, (short)filtered);
+        function_15780(0, 4);
+        function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
+        function_0222d0(D3DRS_SRCBLEND, blend ? 0x307 : 1);
+        function_0222d0(D3DRS_DESTBLEND, !preserve);
+        function_0222d0(D3DRS_BLENDOP, 0x8006);
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSTextureModes = 1;
+        g_484f68.PSCombinerCount = 0x11001;
+        values.color.alpha = values.first;
+        values.color.red = strength;
+        values.color.green = strength;
+        values.color.blue = strength;
+        g_484f68.PSConstant0[0] = pack_color4f(&values.color);
+        g_484f68.PSRGBOutputs[0] = 0x10c00;
+        g_484f68.PSFinalCombinerInputsABCD = 0xc;
+        g_484f68.PSRGBInputs[0] = (g_485a74 ? 0x11 : 0) | 0x8011800;
+        function_1ccf0(&g_484f68);
+        function_34a90(g_4858b8, NONE, 0x1010101, false, false, 1.0f, 0.0f, 1.0f, 1, false, false);
+        function_14bc0((short)(g_4858b4 != NONE ? g_4858b4 : g_4858b8), 0, true);
+    }
+}

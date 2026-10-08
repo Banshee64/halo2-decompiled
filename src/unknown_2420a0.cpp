@@ -1996,13 +1996,16 @@ void function_242e00(long player_index, long team)
 
 
 // @retail 0x244240
-bool function_244240(s_marker_list *list, point3f const *point, long object_index)
+bool function_244240(s_marker_list *list, long object_index, point3f const *point)
 {
 	list->b0 = 1;
 	list->b1 = 0;
 	list->l4 = 1;
 	function_10da60(object_index, &list->position);
-	list->r14 = ctf_options()->engine_type == 9 ? 0.1f : 0.8f;
+	if (ctf_options()->engine_type == 9)
+		list->r14 = 0.1f;
+	else
+		list->r14 = 0.8f;
 	list->r18 = 0.1f;
 	list->r1c = 0.0f;
 	list->l20 = object_index;
@@ -2221,6 +2224,16 @@ void function_244630(point3f const *arg_0, long arg_1)
 		(t_record_fill)function_d4bc0, (dword)function_244470, function_244610, (void *)arg_1, arg_0);
 }
 
+PRIVATE __forceinline void function_2417a1(s_marker_entry const *arg_0, short arg_1, point3f *arg_2)
+{
+    long local_0 = *(long const volatile *)&arg_0[arg_1].position.y;
+    point3f const *local_1 = &arg_0[arg_1].position;
+    ((long *)arg_2)[0] = ((long const *)local_1)[0];
+    long local_2 = ((long const *)local_1)[2];
+    ((long *)arg_2)[1] = local_0;
+    ((long *)arg_2)[2] = local_2;
+}
+
 // @retail 0x2417a0
 void c_game_engine_markers::v13(long arg_0)
 {
@@ -2244,13 +2257,13 @@ void c_game_engine_markers::v13(long arg_0)
 				short local_4 = g_51ec80->b[local_2];
 				if (local_4 != NONE)
 				{
-					local_5 = g_4e0350->marker_entries[local_4].position;
+					function_2417a1(g_4e0350->marker_entries, local_4, &local_5);
 					function_244630(&local_5, local_2);
 				}
 				local_4 = g_51ec80->c[local_2];
 				if (local_4 != NONE)
 				{
-					local_5 = g_4e0350->marker_entries[local_4].position;
+					function_2417a1(g_4e0350->marker_entries, local_4, &local_5);
 					function_244630(&local_5, -1 - local_2);
 				}
 			}
@@ -2325,7 +2338,7 @@ void c_game_engine_markers::v14(long arg_0)
 				local_5 = function_15e410(8);
 				if (local_5 && (local_5->lc == NONE || ctf_player_get(local_5->lc)->team != local_1->team))
 				{
-					if (function_244240(&local_14, (point3f *)&local_9, local_5->object_index))
+					if (function_244240(&local_14, local_5->object_index, (point3f *)&local_9))
 						function_24e59f(&local_14);
 				}
 			}
@@ -2398,7 +2411,7 @@ void c_game_engine_markers::v14(long arg_0)
 				}
 				if (local_29)
 				{
-					if (function_244240(&local_31, (point3f *)&local_28, local_16->object_index))
+					if (function_244240(&local_31, local_16->object_index, (point3f *)&local_28))
 						function_24e59f(&local_31);
 				}
 			}

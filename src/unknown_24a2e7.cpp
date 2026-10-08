@@ -189,28 +189,29 @@ void c_list_24a64d::v20(c_class_1a2c81 *item, long)
 // @retail 0x24a691
 word const *c_list_24a64d::function_24a691(long index, bool append)
 {
+	word const *result = (word const *)L"";
+	long local_0 = 0;
 	long count;
 	s_entry_24a64d *entries = (s_entry_24a64d *)get_items(&count);
 	s_entry_24a64d *volatile local_entries = entries;
-	word const *result = (word const *)L"";
-	for (long i = 0; i < count; ++i)
+	for (; local_0 < count; ++local_0)
 	{
-		if (entries[i].index == index)
+		if (entries[local_0].index == index)
 		{
-			if (append && entries[i].field_4c[0])
+			if (append && entries[local_0].field_4c[0])
 			{
 				word suffix[16] = { 0 };
-				ascii_string_to_unicode(entries[i].field_4c, suffix, 15);
-				word *buffer = entries[i].field_1e4;
-				unicode_string_copy(buffer, entries[i].field_0c, 0x31);
+				ascii_string_to_unicode(entries[local_0].field_4c, suffix, 15);
+				word *buffer = entries[local_0].field_1e4;
+				unicode_string_copy(buffer, entries[local_0].field_0c, 0x31);
 				wcsncat((wchar_t *)buffer, L" (", 0x31);
 				wcsncat((wchar_t *)buffer, (wchar_t *)suffix, 0x31);
 				wcsncat((wchar_t *)buffer, L")", 0x31);
-				local_entries[i].field_1e4[49] = 0;
+				local_entries[local_0].field_1e4[49] = 0;
 				result = buffer;
 			}
 			else
-				result = entries[i].field_0c;
+				result = entries[local_0].field_0c;
 			break;
 		}
 	}

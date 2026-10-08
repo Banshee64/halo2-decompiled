@@ -186,8 +186,9 @@ time. A matching decompilation passes the 15.0 unconverted.
    though retail still compares it with −1.0 (`0xd3d46`). Only in that case is
    the vector then normalized again inline (`0xd3d6b`–`0xd3dcf`), so for n =
    (1, 0, 0) direction 0 is (−0.8, 0, −0.6).
-9. The tag functions follow, in this order. `+0x1c` is F88 of 2.0 × (0.11 b +
-   0.59 g + 0.3 r) of B, pinned to [0, 1] (`0xd3dde`–`0xd3e92`). Then F24(L)
+9. The tag functions follow, in this order. `+0x1c` is F88 of the input 2.0 ×
+   (0.11 b + 0.59 g + 0.3 r) of B, pinned to [0, 1] before the call. The mapped
+   result is stored as it is (`0xd3dde`–`0xd3e92`). Then F24(L)
    and F60(L) are taken, and colour 1 is multiplied by the first and colour 2
    by the second (`0xd3e85`–`0xd3f94`). Last, colour 0 is multiplied by
    (F80(0.114 b + 0.587 g + 0.299 r of c) × (1 − (0.1 L + 0.6))) × 1.4

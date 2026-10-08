@@ -5,6 +5,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
+#include <xmmintrin.h>
 #include "slot_handler.h"
 
 real function_1e96a0(short column, short row);
@@ -368,3 +369,140 @@ void function_1ea880(long arg_1f407d, long player_index, s_object_values *table)
 struct s_statborg;
 void function_1968b0(long team, long index, long counter, long value);
 
+struct s_request_screen_bounds
+{
+	short top, left, bottom, right;
+};
+
+void function_1e90b0(long first, s_request_screen_bounds const *bounds, point2f *points);
+
+extern long g_4b9ed8;
+extern short g_4b9dd0, g_4b9dd2;
+struct s_bitmap_data;
+struct D3DTexture;
+struct s_widget_quad_2b11;
+struct s_float_rect;
+D3DTexture *function_3bcb0(s_bitmap_data *bitmap);
+void function_22a664(s_widget_quad_2b11 const *quad, s_float_rect const *coordinates,
+	long bitmap_index, long sequence, long color);
+
+// @retail 0x1e9140
+bool __stdcall function_1e9140(s_request_screen_bounds const *volatile bounds)
+{
+	// Retail keeps the bounds argument on the stack through the texture lookups.
+	s_request_screen_bounds const *volatile const *bounds_reference = &bounds;
+	byte *definition = (byte *)g_510c94;
+	long color = *(long *)(definition + 0x444);
+	bool result = true;
+	long diagonal, corner, edge, center;
+	bool alternate = false;
+	if (g_4b9ed8 != NONE)
+	{
+		long player_index = g_4e8c20->entries[g_4b9ed8];
+		if (player_index != NONE)
+		{
+			byte state = g_4e8c24->data[(player_index & 0xffff) * 0x21c + 0x88];
+			alternate = state == 1 || state == 3;
+		}
+	}
+	if (alternate)
+	{
+		corner = *(long *)(definition + 0x47c);
+		diagonal = *(long *)(definition + 0x46c);
+		edge = *(long *)(definition + 0x474);
+		center = *(long *)(definition + 0x484);
+	}
+	else
+	{
+		corner = *(long *)(definition + 0x45c);
+		diagonal = *(long *)(definition + 0x44c);
+		edge = *(long *)(definition + 0x454);
+		center = *(long *)(definition + 0x464);
+	}
+	if (color != NONE && corner != NONE && diagonal != NONE && edge != NONE && center != NONE)
+	{
+		s_bitmap_data *corner_bitmap = *(s_bitmap_data **)(g_4e3b44[corner & 0xffff].bytes + 0x48);
+		s_bitmap_data *diagonal_bitmap = *(s_bitmap_data **)(g_4e3b44[diagonal & 0xffff].bytes + 0x48);
+		s_bitmap_data *edge_bitmap = *(s_bitmap_data **)(g_4e3b44[edge & 0xffff].bytes + 0x48);
+		s_bitmap_data *center_bitmap = *(s_bitmap_data **)(g_4e3b44[center & 0xffff].bytes + 0x48);
+		if (!function_3bcb0(corner_bitmap))
+			result = false;
+		if (!function_3bcb0(diagonal_bitmap))
+			result = false;
+		if (!function_3bcb0(edge_bitmap))
+			result = false;
+		if (!function_3bcb0(center_bitmap))
+			return false;
+		if (result)
+		{
+			s_request_screen_bounds const *input = *bounds_reference;
+			__declspec(align(8)) s_request_screen_bounds inner;
+			inner.left = input->left + 8 + g_4b9dd2;
+			inner.right = input->right - 8 + g_4b9dd2;
+			inner.bottom = input->bottom - 8 + g_4b9dd0;
+			inner.top = input->top + 8 + g_4b9dd0;
+			s_request_screen_bounds piece = inner;
+			real coordinates[4];
+			_mm_store_ss(&coordinates[0], _mm_setzero_ps());
+			_mm_store_ss(&coordinates[1], _mm_set_ss(1.0f));
+			_mm_store_ss(&coordinates[2], _mm_setzero_ps());
+			_mm_store_ss(&coordinates[3], _mm_set_ss(1.0f));
+			point2f points[4];
+			function_1e90b0(0, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, center, 0, color);
+			short top = inner.top - 10;
+			piece.top = top;
+			piece.left = inner.left;
+			piece.right = inner.right;
+			piece.bottom = inner.top;
+			function_1e90b0(0, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, edge, 0, color);
+			short bottom = inner.bottom + 10;
+			piece.top = inner.bottom;
+			piece.bottom = bottom;
+			piece.left = inner.left;
+			piece.right = inner.right;
+			function_1e90b0(2, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, edge, 0, color);
+			short left = inner.left - 10;
+			piece.left = left;
+			piece.bottom = inner.bottom;
+			piece.top = inner.top;
+			piece.right = inner.left;
+			function_1e90b0(1, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, edge, 0, color);
+			short right = inner.right + 10;
+			piece.right = right;
+			piece.bottom = inner.bottom;
+			piece.left = inner.right;
+			piece.top = inner.top;
+			function_1e90b0(3, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, edge, 0, color);
+			piece.left = left;
+			piece.top = top;
+			piece.right = inner.left;
+			piece.bottom = inner.top;
+			function_1e90b0(0, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, corner, 0, color);
+			piece.top = inner.bottom;
+			piece.right = right;
+			piece.bottom = bottom;
+			piece.left = inner.right;
+			function_1e90b0(2, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, corner, 0, color);
+			piece.left = inner.right;
+			piece.top = top;
+			piece.right = right;
+			piece.bottom = inner.top;
+			function_1e90b0(0, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, diagonal, 0, color);
+			piece.left = left;
+			piece.top = inner.bottom;
+			piece.bottom = bottom;
+			piece.right = inner.left;
+			function_1e90b0(2, &piece, points);
+			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, diagonal, 0, color);
+		}
+	}
+	return result;
+}
