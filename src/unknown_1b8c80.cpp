@@ -1323,9 +1323,10 @@ bool __stdcall function_1ba5c0(long arg_0, s_slot *arg_1, long arg_2)
         if (function_1badc0(&local_5.point, local_2->object_index, arg_0,
             &local_8, &local_9, false, &local_10))
         {
-            local_4 = function_1f4460(arg_0, &local_8, local_9,
+            bool local_14 = function_1f4460(arg_0, &local_8, local_9,
                 local_10 ? NONE : local_2->object_index, false);
-            if (!local_4)
+            local_4 = local_14;
+            if (!local_14)
             {
                 ++local_2->unknown7;
                 short local_11 = (local_2->flags & 1) ? 5 : 50;
