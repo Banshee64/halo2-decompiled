@@ -68,7 +68,7 @@ struct s_world_query_view
 extern hkWorld *g_51e9a4;
 byte *__fastcall function_30c170(hkWorld *world);
 long havok_entity_component_index_get(hkEntity const *entity);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 
 // @retail 0x1c5690
 real c_world_contact_update::evaluate(void const *body, void const *query)
