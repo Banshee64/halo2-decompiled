@@ -1454,7 +1454,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00080940,352,game,speed,a16 pad,,,,src/unknown_0805e0.cpp,todo
 00080aa0,327,game,unknown,a16,,,0007fc80 003207ed 00320d00 003303f3,src/unknown_0805e0.cpp,todo
 00080bf0,382,game,speed,a16 pad,,,,src/unknown_0805e0.cpp,todo
-00080d70,108,game,speed,a16 pad,,,0007fc80,src/unknown_0805e0.cpp,todo
+00080d70,108,game,speed,a16 pad,,,0007fc80,src/unknown_080d70.cpp,todo
 00080de0,47,game,speed,a16 pad,,,,src/unknown_080de0.cpp,matched
 00080e10,280,game,speed,a16 pad,,,0012c600 0012d2f0 00223bb0 002d2084 003fac30,src/unknown_080f30.cpp,todo
 00080f30,49,game,speed,a16 pad,,,000b49a0,src/unknown_080f30.cpp,matched
@@ -1646,7 +1646,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0008b4d0,391,game,speed,a16 pad,,,00069470 00089df0 00089e70 00089f20 0008b0a0,src/unknown_0699a0.cpp,todo
 0008b660,251,game,speed,a16 pad,,,00069470 00082740,src/unknown_08b110.cpp,matched
 0008b760,136,game,speed,a16 pad,,,,src/unknown_08b110.cpp,matched
-0008b7f0,53,game,speed,a16 pad,,,,src/unknown_08b110.cpp,todo
+0008b7f0,53,game,speed,a16 pad,,,,src/unknown_08b110.cpp,matched
 0008b830,53,game,speed,a16 pad,,,,src/unknown_08b110.cpp,matched
 0008b870,26,game,speed,a16 pad,,,,src/unknown_08b110.cpp,matched
 0008b890,329,game,speed,a16 pad,,,003314b0,src/unknown_08b110.cpp,matched
@@ -1710,7 +1710,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0008e0b0,54,game,speed,a16 pad,,,00092c70 00092f10,src/unknown_08e090.cpp,matched
 0008e0f0,230,game,speed,a16 pad,,,0006b640 00081050 0008e0f0 0012d520,src/unknown_08e1e0.cpp,todo
 0008e1e0,40,game,speed,a16 pad,,,,src/unknown_08e1e0.cpp,matched
-0008e210,47,game,speed,a16 pad,,,,src/unknown_08e1e0.cpp,todo
+0008e210,47,game,speed,a16 pad,,,,src/unknown_08e1e0.cpp,near
 0008e240,700,game,speed,a16 pad,,,00080e10 0008e0f0 000b42b0 000b4450 000b4670 000b4810,src/unknown_08e1e0.cpp,todo
 0008e500,128,game,speed,a16 pad,,,0008e1e0 00163ba0,src/unknown_08e1e0.cpp,matched
 0008e580,90,game,unknown,a16,,,0008e1e0,src/unknown_08e1e0.cpp,todo
