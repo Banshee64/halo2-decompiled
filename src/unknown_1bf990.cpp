@@ -275,12 +275,12 @@ bool function_1f45c0(long arg_0, s_type_c3b527 const *arg_1, long arg_2, bool ar
 // @retail 0x1bff80
 bool __stdcall function_1bff80(long arg_0, s_slot *arg_1)
 {
+    volatile bool local_5 = true;
     s_actor_view *local_0 = actor_get(arg_0);
     s_slot_vehicle_board *local_1 = (s_slot_vehicle_board *)arg_1;
     long local_2 = local_0->unknown018;
     s_slot_object_view *local_3 = object_get(local_2);
     s_slot_object_view *local_4 = object_get(prop_node_get(local_0->prop_index)->object_index);
-    bool local_5 = true;
     if (local_1->boarding)
     {
         if (local_3->parent_index == local_1->vehicle_index &&
