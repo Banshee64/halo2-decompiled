@@ -12,7 +12,7 @@
 #include "object_iterator.h"
 #include "effects.h"
 
-long function_1366d0(short width, short height, short depth, short format, short alignment, short mipmap_count);
+long function_1366d0(short width, short height, short depth, short format, short alignment, long mipmap_count);
 
 PRIVATE const dword g_4507c8[24] =
 {

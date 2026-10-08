@@ -429,14 +429,32 @@ hash_table *function_13e1a0(char const *name, long data_size, long bucket_count,
 long __stdcall function_25dd20(long key);
 bool __stdcall function_25dd30(long a, long b);
 
+PRIVATE __forceinline s_record_pool *function_1dfae1(c_data_allocator *arg_0)
+{
+	s_record_pool *local_0 = (s_record_pool *)arg_0->allocate(0x8886c);
+	if (local_0)
+	{
+		function_16b5f0(local_0, "actor", 0x100, 0x888, 0, arg_0);
+		((byte *)local_0)[0x2a] |= 4;
+	}
+	return local_0;
+}
+
+#pragma inline_depth(0)
+PRIVATE __forceinline hash_table *function_1dfae2()
+{
+	return function_13e1a0("actor firing-position owners", 4, 0x400,
+		(dword (__stdcall *)(void const *))function_25dd20,
+		(bool (__stdcall *)(void const *, void const *))function_25dd30, 0x100, g_510c2c);
+}
+#pragma inline_depth(255)
+
 // @retail 0x1dfae0
 void function_1dfae0(void)
 {
-	g_4f55f0 = data_new_inlined("actor", 0x100, 0x888, 0, g_510c2c);
+	g_4f55f0 = function_1dfae1(g_510c2c);
 	g_4f93a0 = (s_output_entry *)function_123d40(NULL, NULL, 0x640);
-	g_557c6c = (s_game_proc_table_557c6c *)function_13e1a0("actor firing-position owners", 4, 0x400,
-		(dword (__stdcall *)(void const *))function_25dd20,
-		(bool (__stdcall *)(void const *, void const *))function_25dd30, 0x100, g_510c2c);
+	g_557c6c = (s_game_proc_table_557c6c *)function_1dfae2();
 }
 void function_28d930(void);
 void function_25c170(void);

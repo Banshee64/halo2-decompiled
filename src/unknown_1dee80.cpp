@@ -156,8 +156,8 @@ void function_1df080(point3f const *points, long count, point3f *center, real *r
  (void)&count;
  (void)&center;
  (void)&radius;
- long a = 0;
  long b = 0;
+ long a = 0;
  real maximum = 0.0f;
  if (count > 1)
  {
@@ -167,7 +167,7 @@ void function_1df080(point3f const *points, long count, point3f *center, real *r
    {
     vector3f delta;
     vector3d_from_points3d(&points[j], &points[i], &delta);
-    real distance = length_sq3f(&delta);
+    real distance = delta.j * delta.j + delta.i * delta.i + delta.k * delta.k;
     if (distance > maximum)
     {
      maximum = distance;
@@ -178,9 +178,9 @@ void function_1df080(point3f const *points, long count, point3f *center, real *r
   }
   real initial_radius = (real)sqrt(maximum) * 0.5f;
   point3f midpoint;
-  midpoint.x = (points[a].x + points[b].x) * 0.5f;
-  midpoint.y = (points[a].y + points[b].y) * 0.5f;
-  midpoint.z = (points[a].z + points[b].z) * 0.5f;
+  midpoint.x = (points[b].x + points[a].x) * 0.5f;
+  midpoint.y = (points[b].y + points[a].y) * 0.5f;
+  midpoint.z = (points[b].z + points[a].z) * 0.5f;
   *center = midpoint;
   real larger_radius = 0.0f;
   for (long i = 0; i < count; ++i)

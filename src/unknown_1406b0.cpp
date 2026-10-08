@@ -6,6 +6,7 @@
    allocator over a 0x7800 byte buffer. */
 
 #include "unknown_11c920.h"
+#include "unknown_13eeb0.h"
 #include "data_array.h"
 #include "physical_memory.h"
 #include "job_queue.h"
@@ -800,7 +801,7 @@ PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword off
 }
 
 // @retail 0x1414d0
-bool font_cache_predict_character(long font_index, long character)
+bool font_cache_predict_character(s_13eeb1 font_index, s_13eeb1 character)
 {
 	if (font_cache_get_character_header(font_index, character, 2))
 	{

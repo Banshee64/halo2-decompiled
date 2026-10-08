@@ -296,11 +296,11 @@ void __stdcall function_1ac010(long actor_index, s_slot *slot)
 }
 
 // @retail 0x1ab950
-bool function_1ab950(long prop_index, long actor_index, s_tag_element_52 *element, real value, bool strict)
+bool function_1ab950(long actor_index, long prop_index, s_tag_element_52 *element, real value, bool strict)
 {
+	bool result = false;
 	s_actor_view *actor = actor_get(actor_index);
 	s_prop_node_view *prop = prop_node_get(prop_index);
-	bool result = false;
 	s_prop_view_fields *view = prop_node_view(prop);
 
 	if (view)
@@ -376,7 +376,7 @@ short __stdcall function_1abbc0(long actor_index)
 				(element->unknown84 == g_45dbd8 || element->unknown84 > prop->unknown28) &&
 				prop->unknown27 >= 2 &&
 				function_1aba50(actor->prop_index, actor_index, &value) &&
-				function_1ab950(actor->prop_index, actor_index, element, value, false))
+				function_1ab950(actor_index, actor->prop_index, element, value, false))
 			{
 				long time = actor->unknown3e8;
 
@@ -391,8 +391,8 @@ short __stdcall function_1abbc0(long actor_index)
 // @retail 0x1abda0
 short __stdcall function_1abda0(long actor_index, s_slot *slot, bool active)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = g_46fbe4;
+	s_actor_view *actor = actor_get(actor_index);
 	s_tag_element_52 *element = (s_tag_element_52 *)function_1e5450(actor_index, ai_object_get(actor->unknown26c)->definition_index);
 
 	if (element && actor->prop_index != NONE)
@@ -410,7 +410,7 @@ short __stdcall function_1abda0(long actor_index, s_slot *slot, bool active)
 
 			if (element->unknown14 * 2.0f > prop->unknown28)
 				close = false;
-			if (function_1ab950(actor->prop_index, actor_index, element, value, true))
+			if (function_1ab950(actor_index, actor->prop_index, element, value, true))
 			{
 				if (close)
 				{
