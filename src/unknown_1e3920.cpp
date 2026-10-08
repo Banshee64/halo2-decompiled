@@ -359,9 +359,9 @@ void function_1e3790(long actor_index)
 	actor->second_ticks++;
 	bool first = false;
 	bool eligible = function_26c120(actor_index);
-	s_game_time_globals *time = g_510c54;
 	if (eligible)
 	{
+		s_game_time_globals *time = g_510c54;
 		if (!((s_ai_periodic_view *)g_4f55d0)->first_used && actor->first_ticks > ((s_ai_periodic_view *)g_4f55d0)->first_threshold &&
 			actor->first_ticks * time->rate > 0.5f)
 		{
@@ -374,6 +374,7 @@ void function_1e3790(long actor_index)
 	}
 	actor->update_first = first;
 	bool second = false;
+	s_game_time_globals *time = g_510c54;
 	if (!((s_ai_periodic_view *)g_4f55d0)->second_used && actor->second_ticks > ((s_ai_periodic_view *)g_4f55d0)->second_threshold &&
 		actor->second_ticks * time->rate > 0.5f)
 	{
