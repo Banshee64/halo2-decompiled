@@ -17,6 +17,16 @@ struct s_combat_prop_view
 	short state;
 };
 
+PRIVATE __forceinline bool function_1fdbf1(s_actor_moving *arg_0)
+{
+    bool local_0 = false;
+    s_combat_prop_view *local_1;
+    local_0 = arg_0->unknown722 == 0 && arg_0->prop_index != NONE &&
+        (local_1 = (s_combat_prop_view *)function_25d700(arg_0->prop_index)) != 0 && local_1->state >= 4 &&
+        (real)arg_0->unknown350 * g_510c54->rate >= 2.5f;
+    return local_0;
+}
+
 // @retail 0x1fdbf0
 bool function_1fdbf0(long actor_index, short type)
 {
@@ -31,9 +41,7 @@ bool function_1fdbf0(long actor_index, short type)
 			(view = (s_combat_prop_view *)function_25d700(actor->prop_index)) != 0 && view->state >= 6;
 		break;
 	case 2:
-		result = actor->unknown722 == 0 && actor->prop_index != NONE &&
-			(view = (s_combat_prop_view *)function_25d700(actor->prop_index)) != 0 && view->state >= 4 &&
-			(real)actor->unknown350 * g_510c54->rate >= 2.5f;
+		result = function_1fdbf1(actor);
 		break;
 	case 3:
 		result = actor->unknown722 == 1 && actor->prop_index != NONE &&
@@ -227,7 +235,10 @@ bool function_1fe1e0(long actor_index, real blend, s_combat_blend_values *out)
 			else
 			{
 				s_combat_blend_values const *upper = &block->values[1];
-				out->field_0 = upper->field_0 * blend + lower->field_0 * (1.0f - blend);
+				real local_0 = *(real const volatile *)&upper->field_0;
+				local_0 *= blend;
+				local_0 += lower->field_0 * (1.0f - blend);
+				out->field_0 = local_0;
 				out->field_4 = lower->field_4 * (1.0f - blend) + upper->field_4 * blend;
 				out->field_8 = lower->field_8 * (1.0f - blend) + upper->field_8 * blend;
 				out->field_c = lower->field_c * (1.0f - blend) + upper->field_c * blend;
@@ -252,23 +263,30 @@ bool function_1fe1e0(long actor_index, real blend, s_combat_blend_values *out)
 bool function_1ff7d0(long actor_index, point3f const *point, real enemy_radius, real friendly_radius, short *count_out);
 void *function_1e5380(long actor_index);
 
+PRIVATE __forceinline bool function_1fdce1(long arg_0)
+{
+	bool result = true;
+	s_actor_view *actor = actor_get(arg_0);
+	s_prop_node_view *node = prop_node_get(*(long *)((byte *)actor + 0x724));
+	s_type_5cfb45 *state = function_25d690((s_prop_datum *)node);
+	if (state->unknown3c != NONE)
+		return true;
+	byte *prop = g_50241c->data + (node->unknown08 & 0xffff) * 0xc4;
+	if (prop[0x25])
+		return false;
+	short count = 0;
+	function_1ff7d0(arg_0, &state->position, 6.0f, 0.0f, &count);
+	result = count >= 3;
+	return result;
+}
+
 // @retail 0x1fdce0
 bool function_1fdce0(long actor_index, short type)
 {
 	bool result = true;
 	if (type == 3)
 	{
-		s_actor_view *actor = actor_get(actor_index);
-		s_prop_node_view *node = prop_node_get(*(long *)((byte *)actor + 0x724));
-		s_type_5cfb45 *state = function_25d690((s_prop_datum *)node);
-		if (state->unknown3c != NONE)
-			return true;
-		byte *prop = g_50241c->data + (node->unknown08 & 0xffff) * 0xc4;
-		if (prop[0x25])
-			return false;
-		short count = 0;
-		function_1ff7d0(actor_index, &state->position, 6.0f, 0.0f, &count);
-		result = count >= 3;
+		result = function_1fdce1(actor_index);
 	}
 	return result;
 }

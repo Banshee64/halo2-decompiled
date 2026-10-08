@@ -712,11 +712,8 @@ point3f *function_210d10(short a, byte b, real *in, point3f *out)
 	return out;
 }
 
-/* returning out, as 0x210d10 does, gives retail's (ecx, edx, eax) convention here
-   too, but then 0x2104b0 and 0x2105b0 keep &local in eax across the call where
-   retail reloads it */
 // @retail 0x210d60
-void function_210d60(short a, byte b, real *in, point3f *out)
+inline point3f *function_210d60(short a, byte b, real *in, point3f *out)
 {
 	long index = a * 2 + b;
 	real z = in[g_440bb8[index][2]];
@@ -725,6 +722,7 @@ void function_210d60(short a, byte b, real *in, point3f *out)
 	out->x = in[g_440bb8[index][0]];
 	out->y = y;
 	out->z = z;
+	return out;
 }
 
 /* ---- points relative to an object's node ---- */
@@ -735,6 +733,7 @@ struct s_node_matrix_object
 	short nodes_offset;
 };
 
+#pragma inline_depth(0)
 // @retail 0x2104b0
 bool function_2104b0(short output_index, point3f const *point, point3f *out)
 {
@@ -775,6 +774,7 @@ bool function_2104b0(short output_index, point3f const *point, point3f *out)
 
 	return success;
 }
+#pragma inline_depth(255)
 
 // @retail 0x210850
 point3f *function_210850(s_type_c3b527 const *point, point3f *out)
@@ -1228,11 +1228,15 @@ void function_212100(point3f const *p3, point3f const *p2, point3f const *p1, po
 // @retail 0x210a30
 real function_210a30(s_type_c3b527 const *a, s_type_c3b527 const *b)
 {
-	vector3f v;
+	real local_0;
+	real local_1;
+	real local_2;
 
 	if (a->output_index == b->output_index)
 	{
-		vector3d_from_points3d(&a->point, &b->point, &v);
+		local_0 = b->point.x - a->point.x;
+		local_1 = b->point.y - a->point.y;
+		local_2 = b->point.z - a->point.z;
 	}
 	else
 	{
@@ -1241,30 +1245,38 @@ real function_210a30(s_type_c3b527 const *a, s_type_c3b527 const *b)
 
 		function_210850(a, &pa);
 		function_210850(b, &pb);
-		vector3d_from_points3d(&pa, &pb, &v);
+		local_1 = pb.x - pa.x;
+		local_2 = pb.y - pa.y;
+		local_0 = pb.z - pa.z;
 	}
 
-	return length_sq3f(&v);
+	return local_0 * local_0 + local_2 * local_2 + local_1 * local_1;
 }
 
 // @retail 0x210b60
 real function_210b60(s_type_c3b527 const *a, point3f const *b)
 {
-	vector3f v;
+	real local_0;
+	real local_1;
+	real local_2;
 
 	if (a->output_index == NONE)
 	{
-		vector3d_from_points3d(&a->point, b, &v);
+		local_0 = b->x - a->point.x;
+		local_1 = b->y - a->point.y;
+		local_2 = b->z - a->point.z;
 	}
 	else
 	{
 		point3f point;
 
 		function_210850(a, &point);
-		vector3d_from_points3d(&point, b, &v);
+		local_1 = b->x - point.x;
+		local_2 = b->y - point.y;
+		local_0 = b->z - point.z;
 	}
 
-	return length_sq3f(&v);
+	return local_0 * local_0 + local_2 * local_2 + local_1 * local_1;
 }
 
 /* ---- vectors and distances between node points ---- */
@@ -1273,6 +1285,7 @@ static inline real node_point_magnitude3d(vector3f const *v)
 	return (real)sqrt(v->j * v->j + (v->i * v->i + v->k * v->k));
 }
 
+#pragma inline_depth(0)
 // @retail 0x2105b0
 bool function_2105b0(short output_index, vector3f const *vector, vector3f *out)
 {
@@ -1313,6 +1326,7 @@ bool function_2105b0(short output_index, vector3f const *vector, vector3f *out)
 
 	return success;
 }
+#pragma inline_depth(255)
 
 // @retail 0x210690
 bool function_210690(short output_index, point3f const *point, point3f *out)

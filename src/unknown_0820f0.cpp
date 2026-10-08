@@ -232,7 +232,8 @@ long network_connection_send_capacity(s_network_connection *connection)
 
 	if (connection->state == 5 && (connection->flags & 0x10))
 	{
-		result = network_stream_window_space(network_stream_get(connection->stream_index));
+		s_network_stream_window *local_0 = &network_stream_get(connection->stream_index)->window;
+		result = (local_0->end - local_0->next + 0x200) << 5;
 	}
 	return result;
 }

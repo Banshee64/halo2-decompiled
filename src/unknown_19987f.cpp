@@ -1049,7 +1049,7 @@ void network_session_manager_check_joining_leader(void);
 typedef bool (__stdcall *dialog_choice_callback)(long controller_index);
 class c_class_1473c9;
 typedef bool (__stdcall *dialog_closed_callback)(c_class_1473c9 *screen, long dialog_id);
-void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
+void dialog_ok_show(long a, long dialog_id, long b, short user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
 
 /* joins the session the search found at the index, with the local users */
 // @retail 0x199c47

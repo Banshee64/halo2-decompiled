@@ -589,6 +589,13 @@ long function_29f480(void)
 	return list_index;
 }
 
+PRIVATE __forceinline bool function_29f5b1(long arg_0, short arg_1)
+{
+	s_object *local_0 = object_get(arg_0);
+	local_0 = (s_object *)((byte *)local_0 + 0x30);
+	return function_11c470(arg_1, (point3f const *)local_0);
+}
+
 /* moves the unit of every player outside a trigger volume to a cutscene
    flag */
 // @retail 0x29f5b0
@@ -600,7 +607,7 @@ void function_29f5b0(short trigger_volume_index, short cutscene_flag_index)
 	{
 		s_player_29f5b0 *player = &((s_player_29f5b0 *)g_4e8c24->data)[player_index & 0xffff];
 		if (player->unit_index != NONE &&
-			!function_11c470(trigger_volume_index, &object_get(player->unit_index)->center))
+			!function_29f5b1(player->unit_index, trigger_volume_index))
 		{
 			function_29ffb0(player->unit_index, cutscene_flag_index, true, true);
 		}
