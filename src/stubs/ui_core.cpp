@@ -2,5 +2,3 @@
 // decompiled yet
 #include "unknown_11c920.h"
 
-// @stub 0x149f88
-void __stdcall function_149f88(void *screen) { }

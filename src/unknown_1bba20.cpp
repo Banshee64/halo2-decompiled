@@ -191,3 +191,49 @@ void function_1bba70(long actor_index, long vehicle_index, long seat_index)
         *(dword *)((byte *)actor + 0x810) &= ~1;
     }
 }
+
+void __stdcall function_1e1a00(long actor_index, long value);
+long __stdcall function_1e0160(long squad_index, long entry_index, long unit_index, bool flag);
+bool function_1e11b0(long actor_index, bool active);
+void function_1e1150(long actor_index, short team);
+
+// @retail 0x1bbdf0
+void function_1bbdf0(long object_index)
+{
+    if (g_4f55d0->active)
+    {
+        s_slot_object_view *parent = object_get(object_index);
+        long child_index = *(long *)((byte *)parent + 0x10);
+        while (child_index != NONE)
+        {
+            s_slot_object_view *child = object_get(child_index);
+            if (((1 << *((char *)child + 0xaa)) & 3) && child->unknown1fc == NONE)
+            {
+                byte *definition = g_4e3b44[child->tag_index & 0xffff].bytes;
+                if (*(long *)(definition + 0x138) != NONE)
+                {
+                    long owner_index = *(long *)((byte *)parent + 0x248);
+                    if (owner_index != NONE)
+                    {
+                        s_slot_object_view *owner = object_get(owner_index);
+                        long actor_index = child->actor_index;
+                        if (actor_index != NONE && actor_get(actor_index)->unknown024 != *(short *)((byte *)owner + 0x138))
+                            function_1e1a00(actor_index, 0);
+                        if (child->actor_index == NONE)
+                        {
+                            child_index = function_1e0160(NONE, *(long *)(definition + 0x138), child_index, false);
+                            if (child_index != NONE)
+                            {
+                                function_1e11b0(child_index, true);
+                                function_1e1150(child_index, *(short *)((byte *)owner + 0x138));
+                            }
+                        }
+                    }
+                    else if (child->actor_index != NONE)
+                        function_1e1a00(child->actor_index, 0);
+                }
+            }
+            child_index = *(long *)((byte *)child + 0xc);
+        }
+    }
+}

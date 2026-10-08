@@ -1066,3 +1066,176 @@ bool function_16a7c0(point3f const *from, point3f const *to, long ignore_object_
 	}
 	return moved;
 }
+
+void function_141590(transform4x3f const *in, transform4x3f *out);
+byte *function_183fc0(long index);
+struct s_1de2c1 { long field_0; long field_4[256]; };
+struct s_1de2c2
+{
+    s_1de2c1 field_0, field_404, field_808, field_c0c;
+};
+bool function_1dde10(s_bsp3d const *bsp, short count, dword const *mask,
+    point3f const *point, real radius, s_1de2c2 *hits);
+struct s_245aa0;
+struct s_source_245400;
+struct s_collection_245270;
+void function_245aa0(s_245aa0 const *hits, s_source_245400 const *source,
+    transform4x3f const *matrix, real height, real thickness,
+    long object_index, long position, s_collection_245270 *collection);
+
+PRIVATE __forceinline void sweep_transform_point(transform4x3f const *matrix, point3f const *point, point3f *out)
+{
+    real x = point->x, y = point->y, z = point->z;
+    if (matrix->scale != 1.0f)
+    {
+        x *= matrix->scale;
+        y *= matrix->scale;
+        z *= matrix->scale;
+    }
+    out->x = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x + matrix->position.x;
+    out->y = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x + matrix->position.y;
+    out->z = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x + matrix->position.z;
+}
+PRIVATE __forceinline void sweep_transform_vector(transform4x3f const *matrix, vector3f const *vector, vector3f *out)
+{
+    real x = vector->i, y = vector->j, z = vector->k;
+    if (matrix->scale != 1.0f)
+    {
+        x *= matrix->scale;
+        y *= matrix->scale;
+        z *= matrix->scale;
+    }
+    out->i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+    out->j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+    out->k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
+}
+
+// @retail 0x16a0a0
+void function_16a0a0(long instance_index, dword flags, point3f const *point, real radius,
+    real height, real thickness, s_collection_245270 *collection)
+{
+    s_168d60_bsp_view *bsp = (s_168d60_bsp_view *)g_4e0348;
+    s_168d60_instance *instance = &bsp->instances[instance_index];
+    byte *section = bsp->sections + instance->section_index * 0xc8;
+    if (collision_surface_test((s_collision_result_view const *)section, instance_index, flags))
+    {
+        real dx = instance->center.x - point->x;
+        real dy = instance->center.y - point->y;
+        real dz = instance->center.z - point->z;
+        real extent = instance->radius + radius;
+        if (dz * dz + dx * dx + dy * dy <= extent * extent)
+        {
+            transform4x3f inverse;
+            function_141590(&instance->matrix, &inverse);
+            point3f local_point;
+            real x = point->x, y = point->y, z = point->z;
+            if (inverse.scale != 1.0f)
+            {
+                x *= inverse.scale; y *= inverse.scale; z *= inverse.scale;
+            }
+            local_point.x = inverse.forward.i * x + inverse.left.i * y + inverse.up.i * z + inverse.position.x;
+            local_point.y = inverse.forward.j * x + inverse.left.j * y + inverse.up.j * z + inverse.position.y;
+            local_point.z = inverse.forward.k * x + inverse.left.k * y + inverse.up.k * z + inverse.position.z;
+            s_1de2c2 hits;
+            s_bsp3d const *geometry = (s_bsp3d const *)(section + 0x70);
+            if (function_1dde10(geometry, 8, (dword const *)function_183fc0(instance_index),
+                &local_point, inverse.scale * radius, &hits))
+                function_245aa0((s_245aa0 const *)&hits, (s_source_245400 const *)geometry,
+                    &instance->matrix, height, thickness, NONE, NONE, collection);
+        }
+    }
+}
+
+// @retail 0x1691a0
+bool function_1691a0(long instance_index, dword flags, dword test_flags, point3f const *point,
+    vector3f const *vector, s_collision_result_1697c0 *collision)
+{
+    s_168d60_bsp_view *bsp = (s_168d60_bsp_view *)g_4e0348;
+    s_168d60_instance *instance = &bsp->instances[instance_index];
+    byte *section = bsp->sections + instance->section_index * 0xc8;
+    if (collision_surface_test((s_collision_result_view const *)section, instance_index, flags) &&
+        function_11e5e0(&instance->center, point, vector, instance->radius))
+    {
+        transform4x3f inverse;
+        function_141590(&instance->matrix, &inverse);
+        point3f local_point;
+        vector3f local_vector;
+        sweep_transform_point(&inverse, point, &local_point);
+        sweep_transform_vector(&inverse, vector, &local_vector);
+        s_collision_bsp_test_vector_result hit;
+        if (function_1de630(test_flags, (s_slot_entry_list *)(section + 0x70), &hit, collision->t,
+            8, function_183fc0(instance_index), &local_point, &local_vector))
+        {
+            collision->type = 3;
+            short surface_index = hit.surface_index;
+            collision->material_type = surface_index != NONE ?
+                ((s_1697c0_bsp *)g_4e0348)->materials[surface_index].material_type : g_47d8e0;
+            collision->instance_index = NONE;
+            collision->unknown3c = instance_index;
+            collision->unknown40 = NONE;
+            function_168b40((s_168b40_result *)collision, (s_168b40_surface const *)&hit, &instance->matrix);
+            return true;
+        }
+    }
+    return false;
+}
+
+void __stdcall function_df5f0(long object_index, point3f *center, real *height, real *radius);
+struct s_line_list;
+void function_244ca0(real height, real radius, s_line_list *list, long a, long b, long c,
+    byte d, byte e, short f, point3f const *position);
+bool __stdcall function_1f0230(s_lookup *lookup, point3f const *point, real radius,
+    real height, real thickness, s_collection_245270 *collection);
+
+// @retail 0x16a280
+void __stdcall function_16a280(long object_index, dword flags, point3f const *point,
+    real radius, real height, real thickness, long ignore_object_index, long ignore_object_index2,
+    s_collection_245270 *collection)
+{
+    do
+    {
+        s_collision_object_header *header = &((s_collision_object_header *)g_4e0300->data)[object_index & 0xffff];
+        s_collision_object *object = header->object;
+        if (collision_object_test(object_index, header, object, flags, ignore_object_index, ignore_object_index2))
+        {
+            real dx = object->center.x - point->x;
+            real dy = object->center.y - point->y;
+            real dz = object->center.z - point->z;
+            real extent = object->radius + radius;
+            if (dx * dx + dy * dy + dz * dz <= extent * extent)
+            {
+                switch (object->type)
+                {
+                case 0:
+                {
+                    point3f center;
+                    real object_height, object_radius;
+                    function_df5f0(object_index, &center, &object_height, &object_radius);
+                    center.z += object_height;
+                    function_244ca0(object_height + height, object_radius + thickness,
+                        (s_line_list *)collection, object_index, NONE, NONE, 0, 0xff, NONE, &center);
+                    break;
+                }
+                case 1:
+                case 6:
+                case 7:
+                case 8:
+                case 11:
+                {
+                    s_lookup lookup;
+                    if (lookup.initialize(object_index))
+                        function_1f0230(&lookup, point, radius, height, thickness, collection);
+                    break;
+                }
+                default:
+                    break;
+                }
+                if (!(flags & 0x20000) && object->field_xf86fb0 != NONE)
+                    function_16a280(object->field_xf86fb0, flags, point, radius, height, thickness,
+                        ignore_object_index, ignore_object_index2, collection);
+            }
+        }
+        object_index = object->next_object;
+    }
+    while (object_index != NONE);
+}

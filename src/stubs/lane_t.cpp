@@ -53,9 +53,3 @@ void function_246c60(void *block, long unknown)
 struct s_68a90_entry;
 /* in the region: the collision test of one object (not decompiled yet) */
 struct s_collision_result_1697c0;
-// @stub 0x1691a0
-bool function_1691a0(long object_index, dword flags, dword test_flags, point3f const *point,
-	vector3f const *vector, s_collision_result_1697c0 *collision)
-{
-	return false;
-}

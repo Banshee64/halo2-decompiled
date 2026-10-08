@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 6986 functions match
+
+```
+matched 6986 of 11318 game functions (777995 of 2784283 bytes, 27.94%)
+```
+
+6986 new matches, none lost:
+- Merge batch r30: the resting-lane sweep, rounds 1 and 2 (+5), including seven new source files for groups that had no home.
+
 ## 2026-10-07: 6981 functions match
 
 ```

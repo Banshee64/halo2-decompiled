@@ -1484,3 +1484,68 @@ void function_14c630(dword valid_mask, s_machine_address const *addresses)
         }
     }
 }
+
+#include <wchar.h>
+void function_158090(long player_index, short old_team);
+void function_1582d0(long player_index, short old_team);
+void function_1583d0(long player_index, short old_value, short new_value);
+
+// @retail 0x14be90
+void __stdcall function_14be90(long player_index, dword const *configuration)
+{
+    s_player *player = player_get(player_index);
+    s_type_b07538 *current = (s_type_b07538 *)((byte *)player + 0x44);
+    __declspec(align(8)) s_type_b07538 previous = *current;
+    *(s_type_b07538 *)((byte *)player + 0xd4) = *(s_type_b07538 const *)configuration;
+    __declspec(align(8)) s_type_b07538 verified = *(s_type_b07538 const *)configuration;
+    player_configuration_verify(&verified);
+    function_158090(player_index, verified.team_index);
+    *current = verified;
+    wcsncmp((wchar_t const *)&previous, (wchar_t const *)current, 0x20);
+    if (previous.team_index != current->team_index)
+        function_1582d0(player_index, current->team_index);
+    if (previous.unknown7d != current->unknown7d)
+        function_1583d0(player_index, current->unknown7d, previous.unknown7d);
+    if (player->unit_index != NONE)
+        function_14bfc0(player_index, player->unit_index);
+}
+
+struct s_spawn_influence
+{
+    point3f point;
+    real value0c, value10, value14, value18, value1c;
+};
+struct s_spawn_influence_list
+{
+    long count;
+    s_spawn_influence influences[0x80];
+};
+void function_23bc40(long player_index, s_spawn_influence_list *list);
+real function_23ba90(point3f const *point, long player_index, bool deterministic,
+    s_spawn_influence_list *list, dword *seed);
+bool function_23bb70(long tag_index, point3f const *position);
+
+// @retail 0x14ef00
+long function_14ef00(long player_index, long tag_index, bool deterministic, bool preserve_counter)
+{
+    s_player *player = player_get(player_index);
+    s_scenario_starting_profiles_view *scenario = (s_scenario_starting_profiles_view *)g_4e0350;
+    short result = NONE;
+    real best = -1000.0f;
+    dword seed = ((1 << (player_index & 0xffff)) ^ g_4e6948->id_b ^ g_4e6948->id_a) + player->unknown218;
+    s_spawn_influence_list influences;
+    function_23bc40(player_index, &influences);
+    for (short index = 0; index < scenario->starting_profile_count; ++index)
+    {
+        s_scenario_starting_profile_view *profile = &scenario->starting_profiles[index];
+        real score = function_23ba90((point3f const *)profile, player_index, deterministic, &influences, &seed);
+        if (score > best && function_23bb70(tag_index, (point3f const *)profile))
+        {
+            result = index;
+            best = score;
+        }
+    }
+    if (!preserve_counter && result != NONE)
+        ++player->unknown218;
+    return result;
+}
