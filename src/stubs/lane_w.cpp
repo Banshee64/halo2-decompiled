@@ -4,6 +4,43 @@
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
 
+struct s_frame_view_2c560;
+// @stub 0x132d0
+void __stdcall function_132d0(s_frame_view_2c560 const *)
+{
+}
+
+// @stub 0x13c20
+void function_13c20(void)
+{
+}
+
+// @stub 0x3d2c0
+void function_3d2c0(void)
+{
+}
+
+// @stub 0x2bcd0
+void __stdcall function_2bcd0(long, long, bool, long, long, long, float)
+{
+}
+
+// @stub 0x14b60
+void __stdcall function_14b60(short, bool, bool, bool)
+{
+}
+
+// @stub 0x44370
+bool __stdcall function_44370(long)
+{
+    return false;
+}
+
+// @stub 0x174220
+void __stdcall function_174220(bool)
+{
+}
+
 // @stub 0x143600
 void function_143600(float const *, long, float const *, float *)
 {

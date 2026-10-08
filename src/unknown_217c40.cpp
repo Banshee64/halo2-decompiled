@@ -1,0 +1,213 @@
+// @flags /O2 /Oi /arch:SSE /Gr
+#include "unknown_11c920.h"
+#include "globals.h"
+#include <math.h>
+
+struct s_input_state
+{
+    byte unknown00[0x10];
+    byte values[0x38];
+};
+
+struct s_gamepad_preferences
+{
+    real look_sensitivity_horizontal;
+    real look_sensitivity_vertical;
+    char button_map[16];
+    short unknown18;
+    bool unknown1a;
+    bool unknown1b;
+};
+
+struct s_217c40
+{
+    byte field_0[16];
+    word field_10[16];
+    real field_30;
+    real field_34;
+    real field_38;
+    real field_3c;
+    real field_40;
+    real field_44;
+    real field_48;
+    byte field_4c;
+    byte field_4d;
+    bool field_4e;
+    byte field_4f;
+};
+
+extern byte g_4e61b9;
+extern s_input_state g_4e61dc[3];
+extern s_input_state g_4e630c;
+extern byte g_51ea18[0x6f * 4];
+extern bool g_51ebcc[4];
+bool function_218510(long arg_0);
+
+PRIVATE real const g_4570a0[4] =
+{
+    0.7853981852531433f, 2.356194496154785f,
+    -0.7853981852531433f, -2.356194496154785f
+};
+
+PRIVATE __forceinline real function_217c41(real arg_0)
+{
+    return arg_0 < -1.0f ? -1.0f : arg_0 > 1.0f ? 1.0f : arg_0;
+}
+
+PRIVATE __forceinline void function_217c42(real *arg_0, real *arg_1, real arg_2, double arg_3, real arg_4)
+{
+    real local_0 = *arg_0;
+    real local_1 = *arg_1;
+    long local_2 = (local_0 < 0.0f ? 1 : 0) | (local_1 < 0.0f ? 2 : 0);
+    real local_3 = arg_2 - g_4570a0[(short)local_2];
+    real local_4 = (real)sqrt(local_1 * local_1 + local_0 * local_0);
+    real local_5 = (real)fabs(local_3);
+    if (local_5 < arg_4)
+    {
+        real local_6 = (real)fabs(arg_3);
+        if (local_6 < 0.7853981852531433f || local_6 > 2.356194496154785f)
+        {
+            local_0 = (local_0 < 0.0f ? -1 : 1) * local_4;
+            local_1 = (1.0f - local_5 * 1.6370222568511963f) * (local_1 < 0.0f ? -1 : 1) * local_4;
+        }
+        else
+        {
+            local_1 = (local_1 < 0.0f ? -1 : 1) * local_4;
+            local_0 = (1.0f - local_5 * 1.6370222568511963f) * (local_0 < 0.0f ? -1 : 1) * local_4;
+        }
+    }
+    else if (fabs(local_0) > fabs(local_1))
+    {
+        local_0 = (local_0 < 0.0f ? -1 : 1) * local_4;
+        local_1 = 0.0f;
+    }
+    else
+    {
+        local_1 = (local_1 < 0.0f ? -1 : 1) * local_4;
+        local_0 = 0.0f;
+    }
+    *arg_0 = function_217c41(local_0);
+    *arg_1 = function_217c41(local_1);
+}
+
+// @retail 0x217c40
+void function_217c40(void)
+{
+    for (long local_0 = 0; local_0 != NONE; )
+    {
+        s_input_state *local_1 = NULL;
+        if (g_4e61cc[(short)local_0])
+            local_1 = g_4e61b9 ? &g_4e630c : &g_4e61dc[(short)local_0];
+        if (local_1)
+        {
+            real local_2 = (real)*(short *)((byte *)local_1 + 0x40);
+            real local_3 = (real)*(short *)((byte *)local_1 + 0x42);
+            double local_4 = atan2(local_3, local_2);
+            real local_5 = (real)local_4;
+            real local_6 = (real)fabs(sin(local_4));
+            real local_7 = (real)fabs(cos(local_4));
+            real local_8 = 1.0f / (local_6 > local_7 ? local_6 : local_7);
+            real local_9 = function_217c41(local_2 * local_8 * 0.000030518509447574615f);
+            real local_10 = function_217c41(local_3 * local_8 * 0.000030518509447574615f);
+            real local_11 = (real)*(short *)((byte *)local_1 + 0x44);
+            real local_12 = (real)*(short *)((byte *)local_1 + 0x46);
+            double local_13 = atan2(local_12, local_11);
+            real local_14 = (real)local_13;
+            real local_15 = (real)fabs(sin(local_13));
+            real local_16 = (real)fabs(cos(local_13));
+            real local_17 = 1.0f / (local_15 > local_16 ? local_15 : local_16);
+            real local_18 = function_217c41(local_11 * local_17 * 0.000030518509447574615f);
+            real local_19 = function_217c41(local_12 * local_17 * 0.000030518509447574615f);
+            s_gamepad_preferences *local_20 = &((s_gamepad_preferences *)g_51ea18)[local_0];
+            s_217c40 *local_21 = &((s_217c40 *)(g_51ea18 + 0x70))[local_0];
+            for (long local_22 = 0; local_22 < 16; local_22++)
+            {
+                long local_23 = (byte)local_20->button_map[local_22];
+                local_21->field_0[local_22] = local_1->values[local_23];
+                local_21->field_10[local_22] = *(word *)((byte *)local_1 + local_23 * 2 + 0x20);
+            }
+            local_21->field_30 = *((byte *)local_1 + 6) * 0.003921568859368563f;
+            local_21->field_34 = *((byte *)local_1 + 7) * 0.003921568859368563f;
+            local_21->field_4e = false;
+            long local_24 = 6;
+            if (local_20->button_map[7] == 6)
+            {
+                local_24 = 7;
+                local_21->field_4e = true;
+            }
+            local_21->field_4c = 6;
+            for (long local_25 = 0; local_25 < 16; local_25++)
+            {
+                if ((byte)local_20->button_map[local_25] == local_24)
+                {
+                    local_21->field_4c = (byte)local_25;
+                    break;
+                }
+            }
+            local_21->field_4d = 4;
+            for (long local_26 = 0; local_26 < 16; local_26++)
+            {
+                if (local_20->button_map[local_26] == 1)
+                {
+                    local_21->field_4d = (byte)local_26;
+                    break;
+                }
+            }
+            short local_27 = local_20->unknown18;
+            if (local_27 == 2 || local_27 == 3)
+            {
+                function_217c42(&local_9, &local_10, local_5, local_4, 0.6108652353286743f);
+                function_217c42(&local_18, &local_19, local_14, local_13, 0.1745329201221466f);
+            }
+            bool local_28 = local_20->unknown1a;
+            if (!local_28 && local_20->unknown1b)
+                local_28 = function_218510(local_0);
+            switch (local_27)
+            {
+            case 0:
+                local_21->field_38 = local_10;
+                local_21->field_3c = 0.0f - local_9;
+                local_21->field_40 = 0.0f - local_18;
+                local_21->field_48 = local_19;
+                local_21->field_44 = (local_28 ? -1.0f : 1.0f) * local_19;
+                break;
+            case 1:
+                local_21->field_40 = 0.0f - local_9;
+                local_21->field_48 = local_10;
+                local_21->field_44 = (local_28 ? -1.0f : 1.0f) * local_10;
+                local_21->field_3c = 0.0f - local_18;
+                local_21->field_38 = local_19;
+                break;
+            case 2:
+                local_21->field_38 = local_10;
+                local_21->field_40 = 0.0f - local_9;
+                local_21->field_3c = 0.0f - local_18;
+                local_21->field_48 = local_19;
+                local_21->field_44 = (local_28 ? -1.0f : 1.0f) * local_19;
+                break;
+            case 3:
+                local_21->field_3c = 0.0f - local_9;
+                local_21->field_48 = local_10;
+                local_21->field_44 = (local_28 ? -1.0f : 1.0f) * local_10;
+                local_21->field_40 = 0.0f - local_18;
+                local_21->field_38 = local_19;
+                break;
+            default:
+                local_21->field_38 = local_10;
+                local_21->field_3c = 0.0f - local_9;
+                local_21->field_40 = 0.0f - local_18;
+                local_21->field_48 = local_19;
+                local_21->field_44 = (local_28 ? -1.0f : 1.0f) * local_19;
+                break;
+            }
+            if (!g_51ebcc[local_0])
+                g_51ebcc[local_0] = true;
+        }
+        else
+            g_51ebcc[local_0] = false;
+        long local_29 = NONE;
+        if (local_0 >= 0 && local_0 < 3)
+            local_29 = local_0 + 1;
+        local_0 = local_29;
+    }
+}
