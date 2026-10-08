@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_12B070.CPP: the main loop's timing: the time it started, and the
    lengths of the last 15 vertical blanks reported by the rasterizer */
 
@@ -45,8 +45,8 @@ void function_12b070(void)
 	g_4e6398.low = 0;
 	g_4e6398.high = 0;
 	D3DDevice_SetVerticalBlankCallback(main_vblank_callback);
-	memset(g_4e6400.counts, 0, sizeof(g_4e6400.counts));
 	g_4e6400.next = 0;
+	memset(g_4e6400.counts, 0, sizeof(g_4e6400.counts));
 }
 
 /* the vertical blank count (unknown_123b30.cpp) and the one of the last frame */
@@ -121,6 +121,7 @@ bool function_14a224(void);
 // @retail 0x12b0e0
 real function_12b0e0(void)
 {
+	real local_0;
 	dword now = GetTickCount();
 	__int64 target = g_4e63b0;
 	__int64 next;
@@ -154,9 +155,10 @@ real function_12b0e0(void)
 	if (rate <= 0)
 		rate = 60;
 	elapsed = (real)(next - LAST_FRAME_VBLANK_COUNT) / rate;
+	local_0 = 0.0f > elapsed ? 0.0f : (elapsed > 10.0f ? 10.0f : elapsed);
 	LAST_FRAME_VBLANK_COUNT = next;
 	g_4e6390 = ticks;
 	g_4e638c = game_time;
 	g_4e63a0 = VBLANK_COUNT;
-	return 0.0f > elapsed ? 0.0f : (elapsed > 10.0f ? 10.0f : elapsed);
+	return local_0;
 }

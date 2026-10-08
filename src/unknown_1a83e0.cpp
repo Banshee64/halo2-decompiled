@@ -12,22 +12,27 @@ bool function_1f5110(long arg_0, point2f const *arg_1, real arg_2,
 PRIVATE __forceinline real function_1a83e1(point3f const *arg_0, vector3f const *arg_1, point3f const *arg_2)
 {
     point3f const volatile *local_3 = arg_0;
+    vector3f const volatile *local_4 = arg_1;
+    vector3f local_5;
+    local_5.k = local_4->k;
+    local_5.j = local_4->j;
+    local_5.i = local_4->i;
     vector3f local_0;
-    real local_1 = arg_1->k * arg_1->k + arg_1->j * arg_1->j + arg_1->i * arg_1->i;
+    real local_1 = local_5.k * local_5.k + local_5.j * local_5.j + local_5.i * local_5.i;
     if (local_1 > 0.0001f)
     {
         local_0.i = arg_2->x - local_3->x;
         local_0.j = arg_2->y - local_3->y;
         local_0.k = arg_2->z - local_3->z;
-        real local_2 = (local_0.k * arg_1->k + local_0.j * arg_1->j + local_0.i * arg_1->i) / local_1;
+        real local_2 = (local_0.k * local_5.k + local_0.j * local_5.j + local_0.i * local_5.i) / local_1;
         if (local_2 < 0.0f)
             local_2 = 0.0f;
         else if (local_2 > 1.0f)
             local_2 = 1.0f;
         local_2 = 0.0f - local_2;
-        local_0.i += arg_1->i * local_2;
-        local_0.j += arg_1->j * local_2;
-        local_0.k += arg_1->k * local_2;
+        local_0.i += local_5.i * local_2;
+        local_0.j += local_5.j * local_2;
+        local_0.k += local_5.k * local_2;
     }
     else
     {
