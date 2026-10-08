@@ -1608,7 +1608,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00089d20,36,game,speed,a16 pad,,,,src/replication_entity_table.cpp,matched
 00089d50,110,game,speed,a16 pad,,,,src/replication_entity_table.cpp,matched
 00089dc0,37,game,speed,a16 pad,,,00096ed0,src/replication_sender_reset.cpp,matched
-00089df0,128,game,speed,a16 pad,,,,src/unknown_0699a0.cpp,todo
+00089df0,128,game,speed,a16 pad,,,,src/unknown_0699a0.cpp,matched
 00089e70,57,game,unknown,a16,,,00089eb0,src/unknown_0699a0.cpp,todo
 00089eb0,102,game,speed,a16 pad,,,,src/unknown_0699a0.cpp,todo
 00089f20,261,game,speed,a16 pad,,,003314b0,src/unknown_0699a0.cpp,todo
