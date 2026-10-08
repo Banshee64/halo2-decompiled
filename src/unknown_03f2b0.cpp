@@ -2099,8 +2099,8 @@ struct s_batch_cache_4b5d0
 };
 
 // @retail 0x4b5d0
-void function_4b5d0(long object_index, long override, real priority, byte *output,
-    byte *unused, bool project_nodes, real distance, bool force)
+void function_4b5d0(bool force, long override, long object_index, real distance, real priority,
+    byte *output, byte *unused, bool project_nodes)
 {
     (void)&object_index; (void)&override; (void)&priority;
     (void)&output; (void)&unused; (void)&project_nodes;
