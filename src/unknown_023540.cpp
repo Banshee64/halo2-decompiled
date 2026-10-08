@@ -6,6 +6,7 @@
 #include <math.h>
 #include <xtl.h>
 #include "geometry_cache.h"
+#include "unknown_234c64.h"
 
 struct s_render_view_2b790
 {
@@ -156,6 +157,76 @@ bool function_25820(s_render_view_2b790 const *source)
 	}
 	return result;
 }
+
+struct s_matrix_workspace { long size; byte data[0x27000]; };
+extern s_matrix_workspace g_487b18;
+
+#if 0 // New caller changes the previously matched 0x13b90 under LTCG.
+struct s_frame_parameters_12a50
+{
+    long mode;
+    dword identifier;
+    double time;
+    dword unknown10, unknown14;
+};
+extern double g_4ba040;
+extern long g_4ba048, g_4ba04c, g_4ba030, g_5234c4;
+extern dword g_4ba034, g_4c56c0[64];
+extern vector3f g_4b9dac;
+long g_4aeb1c, g_4aeb28;
+real g_4aeb4c;
+vector3f g_485b14;
+void function_12a50(s_frame_parameters_12a50 const *parameters);
+void function_13b90(void);
+void function_13cd0(void);
+void function_020720(long player);
+void __stdcall function_2c790(byte const *source);
+void function_146de0(void);
+void function_146b80(void);
+
+// Disabled retail 0x2b5d0; closest trial was 332/332 bytes, differing at +0.
+void function_2b5d0(long count, long mode, long players, long layout, s_render_view_2b790 *views)
+{
+    (void)&players; (void)&layout; (void)&views;
+    bool restore = g_47989c != 0;
+    if (restore) function_146de0();
+    s_frame_parameters_12a50 parameters = {};
+    ++g_4ba034;
+    g_4ba04c = players;
+    g_4ba048 = layout;
+    g_487b18.size = 0;
+    g_4aeb1c = 0;
+    g_4aeb28 = 0;
+    memset(g_4c56c0, 0, 16 * sizeof(dword));
+    g_4ba030 = mode;
+    g_4aeb4c = 98304.0f;
+    parameters.mode = mode;
+    parameters.time = g_4ba040;
+    function_12a50(&parameters);
+    *(long *)g_54d598.unknown00 = NONE;
+    if (count > 0) do
+    {
+        s_render_view_2b790 *view = views;
+        if (!view->mode)
+        {
+            if (!function_25820(view) || !g_5093fc)
+            {
+                function_020720(view->player_index);
+                function_2b790(view, false);
+                g_5234c4 = NONE;
+                g_485b14 = g_4b9dac;
+            }
+        }
+        else function_2c790((byte const *)view);
+        ++views;
+    }
+    while (--count);
+    function_13b90();
+    function_13cd0();
+    if (restore) function_146b80();
+    g_4ba030 = 0;
+}
+#endif
 
 struct s_23600_section
 {
@@ -354,7 +425,7 @@ void function_01d660(void)
 }
 
 // @retail 0x23540
-void function_023540(
+long function_023540(
 	short count,
 	s_bucket_source const *source,
 	s_table_entry *entry,
@@ -370,6 +441,7 @@ void function_023540(
 		total += value;
 		entry->data_count[i] = (byte)value;
 	}
+	return total;
 }
 
 // @retail 0x235a0
@@ -2255,6 +2327,106 @@ void __stdcall function_2a8d0(long tag, long bitmap_index, real const *source,
     D3DDevice_SetVertexData2f(1, source[0] * inverse_width, source[3] * inverse_height);
     D3DDevice_SetVertexData4f(0, destination[0], destination[3], 16777215.0f, 16777215.0f);
     D3DDevice_End();
+}
+
+struct s_coefficient_level { long offset, unknown04, unknown08; };
+struct s_coefficient_layout
+{
+    short order, groups, columns;
+    byte unknown06[0xe];
+    long level_count;
+    s_coefficient_level const *levels;
+    long unknown1c;
+    real const *data;
+};
+struct s_137801;
+struct s_light_sample_source;
+matrix3x3 *function_142bf0(matrix3x3 const *matrix, real scale, matrix3x3 *out);
+bool spherical_harmonics_evaluate_directional_light(vector3f const *direction, dword order,
+    real red, real green, real blue, real *red_result, real *green_result, real *blue_result);
+void __stdcall function_22cf0(s_light_sample_source const *source, real *red, real *green,
+    real *blue, byte order, vector3f *direction, point3f const *position);
+
+// @retail 0x23690
+bool __stdcall function_23690(s_coefficient_layout const *layout, short order, long object_index,
+    s_137801 const *vertices, byte const *indices, short count, long tag)
+{
+    (void)&layout; (void)&order; (void)&object_index; (void)&vertices;
+    (void)&indices; (void)&count; (void)&tag;
+    bool found = false;
+    for (short i = 0; i < g_5093e8; ++i)
+        if (g_4b89b0[i].key == object_index) found = true;
+    if (found || g_5093e8 >= 24) return true;
+    s_table_entry *entry = &g_4b89b0[g_5093e8];
+    entry->key = object_index;
+    *(short *)&entry->unknown4 = order;
+    byte const *structure = (byte *)g_4e0344;
+    bool use_samples = structure && *(long const *)(structure + 0x80) > 0 && g_4e0348 &&
+        *(long const *)(*(byte const **)(structure + 0x84) + 0x1c) != NONE &&
+        *(long const *)(*(byte const **)(structure + 0x84) + 4) == *(long const *)((byte *)g_4e0348 + 8);
+    real red[16], green[16], blue[16];
+    if (!use_samples)
+    {
+        vector3f direction = { 0.0f, 0.0f, -1.0f };
+        spherical_harmonics_evaluate_directional_light(&direction, layout->order,
+            1.0f, 1.0f, 1.0f, red, green, blue);
+    }
+    long level = 5 - order;
+    if (level > layout->level_count - 1) level = layout->level_count - 1;
+    real const *data = layout->data + layout->levels[level].offset;
+    long stride = layout->groups * (layout->columns * 3 + 4);
+    s_bucket_source const *buckets = (s_bucket_source const *)vertices;
+    long total = function_023540(count, buckets, entry, stride);
+    long bytes = total * stride * sizeof(real);
+    if (!bytes) return true;
+    long next = g_487b18.size + bytes;
+    if (next > 0x27000) return false;
+    long handle = g_487b18.size & 0x0fffffff;
+    g_487b18.size = next;
+    entry->data_handle = handle;
+    real *output = (real *)(g_487b18.data + handle);
+    for (long bucket = 0; bucket < count; ++bucket)
+    {
+        byte const *pair = (byte const *)vertices + 4 + bucket * 4;
+        long available = *(word const *)(pair + 2);
+        if (!available) continue;
+        real const *source = (real const *)((byte const *)vertices + 0x44 + *(short const *)pair * 0x30);
+        transform4x3f matrix;
+        function_0235a0(source, &matrix);
+        long samples = available > 1 ? 2 : 1;
+        for (long sample = 0; sample < samples; ++sample)
+        {
+            if (sample) function_0235a0(source + 12, &matrix);
+            real determinant = matrix.left.k * matrix.forward.j * matrix.up.i;
+            determinant += matrix.forward.k * matrix.up.j * matrix.left.i;
+            determinant += matrix.up.k * matrix.left.j * matrix.forward.i;
+            determinant -= matrix.forward.i * matrix.left.k * matrix.up.j;
+            determinant -= matrix.forward.j * matrix.left.i * matrix.up.k;
+            determinant -= matrix.forward.k * matrix.left.j * matrix.up.i;
+            matrix3x3 rotation;
+            function_142bf0((matrix3x3 const *)&matrix.forward, determinant, &rotation);
+            if (use_samples)
+            {
+                point3f const *position = (point3f const *)function_23600(tag, object_index, indices, bucket, sample);
+                if (position)
+                {
+                    byte *bsp = *(byte **)(structure + 0x84);
+                    vector3f direction;
+                    function_22cf0((s_light_sample_source const *)(bsp + 0x38), red, green, blue,
+                        (byte)layout->order, &direction, position);
+                    entry->scale = direction;
+                }
+            }
+            real rotated_red[16], rotated_green[16], rotated_blue[16];
+            function_143600((real const *)&rotation, 3, red, rotated_red);
+            function_143600((real const *)&rotation, 3, green, rotated_green);
+            function_143600((real const *)&rotation, 3, blue, rotated_blue);
+            function_023ca0((s_block_layout const *)layout, data, rotated_red, rotated_green, rotated_blue, output);
+            output += stride;
+        }
+    }
+    ++g_5093e8;
+    return true;
 }
 
 // @retail 0x29b00

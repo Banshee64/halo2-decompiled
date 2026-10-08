@@ -8,9 +8,3 @@ hkPoolMemory::hkPoolMemory() { }
 
 // @stub 0x22cb90
 real hkPoolMemory::get_used_fraction(void) { return 0; }
-
-// @stub 0x1c27a0
-void function_1c27a0(void) { }
-
-// @stub 0x1c2690
-void function_1c2690(void) { }
