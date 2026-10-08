@@ -64,8 +64,3 @@ struct s_network_message_session_query;
 
 
 class c_simulation_view;
-
-// @stub 0x184440
-void __stdcall function_184440(long arg_0, long arg_1, void const *arg_2, long arg_3)
-{
-}

@@ -8,7 +8,8 @@
 
 void *function_122c10(long arg_0, long arg_1);
 void function_db760(long arg_0, long arg_1, long arg_2, long arg_3);
-void __stdcall function_184440(long arg_0, long arg_1, void const *arg_2, long arg_3);
+struct s_18444a;
+void __stdcall function_184440(long arg_0, long arg_1, s_18444a const *arg_2, long arg_3);
 extern byte *g_4ed280;
 
 // @retail 0x9c910
@@ -91,7 +92,7 @@ bool c_breakable_surface_damage_event_definition::v11(long arg_0, long const *ar
         local_1.field_7c = -1;
         local_1.field_0 = *(long const *)(local_0 + 0x30);
         if (*g_4ed280 && local_1.field_0 != NONE)
-            function_184440(*(long const *)local_0, *(long const *)(local_0 + 4), &local_1, *(long const *)(local_0 + 8));
+            function_184440(*(long const *)local_0, *(long const *)(local_0 + 4), (s_18444a const *)&local_1, *(long const *)(local_0 + 8));
     }
     return false;
 }
