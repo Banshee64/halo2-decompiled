@@ -23,8 +23,8 @@ real function_30bf0(vector3f *v);
 extern vector3f *g_4687bc;
 
 // @retail 0x1c8df0
-short __stdcall function_1c8df0(long arg_0, void const *arg_1, short arg_2, short arg_3,
- point3f const *arg_4, long arg_5, bool arg_6, bool arg_7, bool arg_8, long *arg_9)
+short __stdcall function_1c8df0(long arg_0, point3f const *arg_4, short arg_3, short arg_2,
+ void const *arg_1, long arg_5, bool arg_6, bool arg_7, bool arg_8, long *arg_9)
 {
  long local_0;
  (void)&arg_1;
