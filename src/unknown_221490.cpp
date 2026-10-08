@@ -331,23 +331,25 @@ void function_221900(
 	if (delta > 0.0f)
 	{
 		fade = g_502118;
-		for (i = 0; i < k_sound_class_count; i++, fade++)
+		real *local_0 = &fade->time;
+		for (i = 0; i < k_sound_class_count; i++, local_0 += 4)
 		{
-			if (fade->time > delta)
+			if (*local_0 > delta)
 			{
-				dword target_bits = fade->target;
-				dword current_bits = fade->current;
+				dword target_bits = ((dword *)local_0)[-2];
+				dword current_bits = ((dword *)local_0)[-1];
 				real target = *(real *)&target_bits;
 				real current = *(real *)&current_bits;
-				real result = (target - current) * (delta / fade->time) + current;
+				real local_1 = delta / *local_0;
+				real result = (target - current) * local_1 + current;
 
-				fade->current = *(dword *)&result;
-				fade->time = fade->time - delta;
+				((dword *)local_0)[-1] = *(dword *)&result;
+				*local_0 = *local_0 - delta;
 			}
 			else
 			{
-				fade->current = fade->target;
-				fade->time = 0.0f;
+				((dword *)local_0)[-1] = ((dword *)local_0)[-2];
+				*local_0 = 0.0f;
 			}
 		}
 	}
