@@ -17,6 +17,16 @@ struct s_combat_prop_view
 	short state;
 };
 
+PRIVATE __forceinline bool function_1fdbf1(s_actor_moving *arg_0)
+{
+    bool local_0 = false;
+    s_combat_prop_view *local_1;
+    local_0 = arg_0->unknown722 == 0 && arg_0->prop_index != NONE &&
+        (local_1 = (s_combat_prop_view *)function_25d700(arg_0->prop_index)) != 0 && local_1->state >= 4 &&
+        (real)arg_0->unknown350 * g_510c54->rate >= 2.5f;
+    return local_0;
+}
+
 // @retail 0x1fdbf0
 bool function_1fdbf0(long actor_index, short type)
 {
@@ -31,9 +41,7 @@ bool function_1fdbf0(long actor_index, short type)
 			(view = (s_combat_prop_view *)function_25d700(actor->prop_index)) != 0 && view->state >= 6;
 		break;
 	case 2:
-		result = actor->unknown722 == 0 && actor->prop_index != NONE &&
-			(view = (s_combat_prop_view *)function_25d700(actor->prop_index)) != 0 && view->state >= 4 &&
-			(real)actor->unknown350 * g_510c54->rate >= 2.5f;
+		result = function_1fdbf1(actor);
 		break;
 	case 3:
 		result = actor->unknown722 == 1 && actor->prop_index != NONE &&

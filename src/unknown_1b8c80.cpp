@@ -1277,8 +1277,7 @@ bool __stdcall function_1ba5c0(long arg_0, s_slot *arg_1, long arg_2)
 {
     volatile bool local_4 = true;
     s_actor_view *local_0 = actor_get(arg_0);
-    s_slot_4c *local_1 = (s_slot_4c *)arg_1;
-    s_seat_selection *local_2 = (s_seat_selection *)&local_1->unknown1c;
+    s_seat_selection *local_2 = (s_seat_selection *)((byte *)arg_1 + 0x1c);
     s_4c_element *local_3 = (s_4c_element *)arg_2;
     if (local_2->object_index == NONE || local_3->object_index == NONE)
         return false;
@@ -1289,21 +1288,21 @@ bool __stdcall function_1ba5c0(long arg_0, s_slot *arg_1, long arg_2)
         return local_4;
     if (*((byte *)local_0 + 0x5d8) || !function_1b90b0(arg_0, local_3->object_index) ||
         !function_1ba990(arg_0, local_3->object_index, !(local_2->flags & 1),
-            local_1->unknown28, local_1->unknown2c, true))
+            ((s_slot_4c *)((byte *)local_2 - 0x1c))->unknown28, ((s_slot_4c *)((byte *)local_2 - 0x1c))->unknown2c, true))
         return false;
     s_seat_approach_result local_5;
     if (!function_1b9e70(arg_0, local_2, false, local_3, &local_5))
         return false;
     function_f5d10(local_2->object_index, local_2->seat_index, true);
-    local_1->point = *(point3f *)&local_5.direction;
+    ((s_slot_4c *)((byte *)local_2 - 0x1c))->point = *(point3f *)&local_5.direction;
     bool local_6 = false;
     if (local_5.approaching)
     {
-        ++*(short *)((byte *)local_1 + 0x30);
-        local_6 = (real)*(short *)((byte *)local_1 + 0x30) * g_510c54->rate >= 1.0f;
+        ++*(short *)((byte *)((s_slot_4c *)((byte *)local_2 - 0x1c)) + 0x30);
+        local_6 = (real)*(short *)((byte *)((s_slot_4c *)((byte *)local_2 - 0x1c)) + 0x30) * g_510c54->rate >= 1.0f;
     }
     else
-        *(short *)((byte *)local_1 + 0x30) = 0;
+        *(short *)((byte *)((s_slot_4c *)((byte *)local_2 - 0x1c)) + 0x30) = 0;
     if (local_6 || (local_5.close && local_5.facing))
     {
         s_unit_request local_7;
