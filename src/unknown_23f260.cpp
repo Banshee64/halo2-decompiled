@@ -17,8 +17,8 @@ struct s_score_team_entry
 
 struct s_score_table
 {
-	dword valid;
 	s_score_player_entry players[16];
+	dword field_1c0;
 	s_score_team_entry teams[8];
 };
 
@@ -119,21 +119,30 @@ struct s_score_player_view
 	byte unknownc1[0x21c - 0xc1];
 };
 
+PRIVATE inline long score_inactive_player_order(const s_score_player_view *first, const s_score_player_view *second)
+{
+	return (long)!((dword)second->flags >> 1 & 1) - (long)!((dword)first->flags >> 1 & 1);
+}
+
+PRIVATE inline s_score_player_view *score_player_at(long identifier)
+{
+	return (s_score_player_view *)g_4e8c24->data + (identifier & 0xffff);
+}
+
 // @retail 0x23f760
 long __stdcall function_23f760(long first, long second, char criterion, bool fallback)
 {
 	s_score_table *table = 0;
 	if (g_55e4d0[g_4e9ae8->engine_index])
 		table = (s_score_table *)((byte *)g_4e9ae8 + 0x304);
-	s_score_player_view *players = (s_score_player_view *)g_4e8c24->data;
-	s_score_player_view *a = players + (first & 0xffff);
-	s_score_player_view *b = players + (second & 0xffff);
+	s_score_player_view *a = score_player_at(first);
+	s_score_player_view *b = score_player_at(second);
 	long result = 0;
 	switch (criterion)
 	{
 	case 0:
 		if (!function_15eaf0())
-			return (long)!((dword)b->flags >> 1 & 1) - (long)!((dword)a->flags >> 1 & 1);
+			result = score_inactive_player_order(a, b);
 		break;
 	case 1:
 		{
@@ -330,8 +339,8 @@ long function_23f260(long mode, long player, long excluded_team)
 		long i = score_next_player(data, cursor + 1);
 		if (i == NONE)
 			break;
+		long other = data_datum_index(data, i);
 		byte *entry = data->data + data->size * i;
-		long other = (*(short *)entry << 16) | i;
 		bool same_player = player == other;
 		cursor = i;
 		if (!same_player && ((s_score_player_view *)entry)->team != (short)excluded_team)
@@ -354,14 +363,20 @@ void sort_2byte(word *elements, unsigned long count, void *unused, score_compare
 PRIVATE inline bool score_team_present(long team)
 {
 	bool result = false;
-	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e6948->flags184.bit0 && team >= 0 && team < 8)
-		result = (g_4e9ae8->we & (1 << team)) != 0;
+	if (g_55e4d0[g_4e9ae8->engine_index])
+	{
+		byte teams = ((byte *)g_4e6948)[0x184] & 1;
+		volatile byte observed_teams = teams;
+		if (teams && team >= 0 && team < 8)
+			result = (g_4e9ae8->we & (1 << team)) != 0;
+	}
 	return result;
 }
 
 // @retail 0x23f3e0
 void function_23f3e0(s_score_display *display, long mode, bool fallback)
 {
+	(void)&mode;
 	const byte *criteria = score_criteria(mode);
 	s_record_pool *data = g_4e8c24;
 	display->player_count = 0;
@@ -369,26 +384,37 @@ void function_23f3e0(s_score_display *display, long mode, bool fallback)
 	long index = NONE;
 	while ((index = score_next_player(data, index + 1)) != NONE)
 	{
-		byte *entry = data->data + data->size * index;
-		display->players[display->player_count++] = (*(short *)entry << 16) | index;
+		display->players[display->player_count++] = data_datum_index(data, index);
 	}
 	s_score_sort_context player_context;
 	player_context.criteria = criteria;
 	player_context.fallback = fallback;
-	sort_4byte(display->players, display->player_count, &mode, function_23fbe0, &player_context);
+	sort_4byte(display->players, display->player_count, &fallback, function_23fbe0, &player_context);
 	for (long i = 0; i < display->player_count; i++)
 		display->player_ranks[i] = (char)function_23fc40(mode, display->players[i], display);
-	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e6948->flags184.bit0)
+	byte teams = 0;
+	if (g_55e4d0[g_4e9ae8->engine_index])
 	{
-		for (long team = 0; team < 8; team++)
+		teams = ((byte *)g_4e6948)[0x184] & 1;
+		volatile byte observed_teams = teams;
+	}
+	if (teams)
+	{
+		for (long team = 2; team - 2 < 8; team += 4)
 		{
+			if (score_team_present(team - 2))
+				display->teams[display->team_count++] = (short)(team - 2);
+			if (score_team_present(team - 1))
+				display->teams[display->team_count++] = (short)(team - 1);
 			if (score_team_present(team))
 				display->teams[display->team_count++] = (short)team;
+			if (score_team_present(team + 1))
+				display->teams[display->team_count++] = (short)(team + 1);
 		}
 		s_score_sort_context team_context;
 		team_context.criteria = criteria;
 		team_context.fallback = fallback;
-		sort_2byte((word *)display->teams, display->team_count, &mode, function_23fc10, &team_context);
+		sort_2byte((word *)display->teams, display->team_count, &fallback, function_23fc10, &team_context);
 		for (long j = 0; j < display->team_count; j++)
 			display->team_ranks[j] = (char)function_23fd10(mode, display->teams[j], display);
 	}
