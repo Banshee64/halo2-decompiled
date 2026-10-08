@@ -61,12 +61,12 @@ bool __stdcall function_8c900(const byte *messages)
 		dword error;
 		if (function_136970(&file, 2, &error))
 		{
-			long language = g_47ff38;
-			if (language == NONE)
+			long language;
+			if (g_47ff38 == NONE)
 			{
 				g_47ff38 = function_11ca80(XGetLanguage());
-				language = g_47ff38;
 			}
+			language = g_47ff38;
 			if (function_136d00(&file, messages + language * 0x200, 0x200) &&
 				function_136d00(&file, messages + 0x1200 + language * 0x4004, 0x4004))
 				result = true;
@@ -100,7 +100,7 @@ struct s_name_list
 	s_name_buffer names[32];
 };
 
-void name_list_clear(s_name_list *list);
+s_name_list *name_list_clear(s_name_list *list);
 void function_08cc20(s_name_buffer *buffer, const wchar_t *name);
 bool function_1368f0(s_type_acf665 *file);
 

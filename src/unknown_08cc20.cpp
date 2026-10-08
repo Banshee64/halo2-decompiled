@@ -24,8 +24,9 @@ struct s_name_list
 };
 
 // @retail 0x8cc00
-void name_list_clear(s_name_list *list)
+s_name_list *name_list_clear(s_name_list *list)
 {
 	for (long i = 0; i < 32; i++)
 		list->names[i].name[0] = 0;
+	return list;
 }

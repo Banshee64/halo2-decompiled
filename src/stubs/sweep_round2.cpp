@@ -3,8 +3,6 @@ struct s_player_creation_record;
 union point3f;
 union vector3f;
 struct s_netgame_entry_state;
-// @stub 0x15be20
-void function_15be20() {}
 // @stub 0x15ae70
 void __stdcall function_15ae70(s_netgame_entry_state *entries) {}
 // @stub 0x14e200

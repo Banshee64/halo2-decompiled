@@ -1430,3 +1430,288 @@ bool __stdcall function_16a440(dword flags, point3f const *position, real extent
     }
     return counts->count[0] != 0 || counts->count[1] != 0 || counts->count[2] != 0;
 }
+
+struct s_shape_header
+{
+	long unknown00;
+	long unknown04;
+	long unknown08;
+	byte unknown0c;
+	byte unknown0d;
+	short unknown0e;
+};
+struct s_prism
+{
+	s_shape_header header;
+	plane3f plane;
+	real thickness;
+	short axis;
+	byte side;
+	byte unknown27;
+	long point_count;
+	point2f points[8];
+};
+struct s_ray_shape_result
+{
+	s_shape_header header;
+	real time;
+	point3f position;
+	plane3f plane;
+};
+struct s_camera_shapes_16a8e0
+{
+	short counts[3];
+	byte field_6[2];
+	byte field_8[0x4c00];
+	s_prism prisms[256];
+};
+bool function_2469b0(s_shapes const *shapes, point3f const *start,
+	vector3f const *direction, s_ray_shape_result *result);
+
+PRIVATE inline void camera_prism_point_16a8e0(s_prism const *prism, point2f const *point, point3f *out)
+{
+	short axis = prism->axis;
+	short const *indices = g_440b94[prism->side + axis * 2];
+	out->n[indices[0]] = point->x;
+	out->n[indices[1]] = point->y;
+	if (fabs(prism->plane.n.n[axis]) < 0.0001f)
+		out->n[axis] = 0.0f;
+	else
+		out->n[axis] = (prism->plane.d - prism->plane.n.n[indices[0]] * point->x -
+			prism->plane.n.n[indices[1]] * point->y) / prism->plane.n.n[axis];
+}
+
+// @retail 0x16a8e0
+bool __stdcall function_16a8e0(long flags, point3f const *point, real radius,
+	long ignore_object, long ignore_parent, point3f *out, real *out_radius)
+{
+	(void)&flags;
+	(void)&point;
+	(void)&radius;
+	(void)&ignore_object;
+	(void)&ignore_parent;
+	(void)&out;
+	(void)&out_radius;
+	s_camera_shapes_16a8e0 shapes;
+	bool result = false;
+	if (radius > 0.0f)
+	{
+		struct
+		{
+			point3f face_sum;
+			real nearest_squared;
+			point3f edge_sum;
+		} accumulators;
+		accumulators.edge_sum = *g_468788;
+		accumulators.face_sum = *g_468788;
+		long edge_count = 0;
+		long face_count = 0;
+		real edge_radius = radius;
+		real face_radius = radius;
+		function_16a440(flags, point, radius, 0.0f, 0.0f, ignore_object, ignore_parent, (s_shapes *)&shapes);
+		if (shapes.counts[2] > 0)
+		{
+			real radius_squared = radius * radius;
+			for (long index = 0; index < shapes.counts[2]; ++index)
+			{
+				s_prism *prism = &shapes.prisms[index];
+				real distance = point->x * prism->plane.i + point->y * prism->plane.j +
+					prism->plane.k * point->z - prism->plane.d;
+				point3f projected;
+				projected.x = (0.0f - distance) * prism->plane.i + point->x;
+				projected.y = prism->plane.j * (0.0f - distance) + point->y;
+				projected.z = (0.0f - distance) * prism->plane.k + point->z;
+				accumulators.nearest_squared = 3.4028234663852886e+38f;
+				bool inside = true;
+				long count = prism->point_count > 8 ? 8 : prism->point_count;
+				point3f closest;
+				for (long edge_index = 0; edge_index < count; ++edge_index)
+				{
+					point3f first;
+					point3f second;
+					camera_prism_point_16a8e0(prism, &prism->points[edge_index], &first);
+					camera_prism_point_16a8e0(prism, &prism->points[(edge_index + 1) % prism->point_count], &second);
+					vector3f relative;
+					relative.i = projected.x - first.x;
+					relative.j = projected.y - first.y;
+					relative.k = projected.z - first.z;
+					vector3f edge;
+					edge.i = second.x - first.x;
+					edge.j = second.y - first.y;
+					edge.k = second.z - first.z;
+					vector3f side;
+					side.i = edge.j * relative.k - edge.k * relative.j;
+					side.j = edge.k * relative.i - relative.k * edge.i;
+					side.k = relative.j * edge.i - edge.j * relative.i;
+					if (prism->plane.k * side.k + prism->plane.j * side.j + prism->plane.i * side.i < 0.0f)
+					{
+						inside = false;
+					}
+					else
+					{
+						vector3f perpendicular;
+						perpendicular.i = prism->plane.k * edge.j - prism->plane.j * edge.k;
+						perpendicular.j = prism->plane.i * edge.k - prism->plane.k * edge.i;
+						perpendicular.k = prism->plane.j * edge.i - prism->plane.i * edge.j;
+						real amount = 0.0f - (perpendicular.i * relative.i +
+							perpendicular.k * relative.k + perpendicular.j * relative.j);
+						point3f candidate;
+						candidate.x = perpendicular.i * amount + projected.x;
+						candidate.y = perpendicular.j * amount + projected.y;
+						candidate.z = perpendicular.k * amount + projected.z;
+						real along = (candidate.x - first.x) * edge.i +
+							(candidate.z - first.z) * edge.k + (candidate.y - first.y) * edge.j;
+						point3f clamped;
+						if (along <= 0.0f)
+							clamped = first;
+						else if (along >= edge.j * edge.j + edge.i * edge.i + edge.k * edge.k)
+							clamped = second;
+						else
+							clamped = candidate;
+						vector3f difference;
+						difference.i = clamped.x - projected.x;
+						difference.j = clamped.y - projected.y;
+						difference.k = clamped.z - projected.z;
+						real separation = difference.i * difference.i + difference.k * difference.k +
+							difference.j * difference.j;
+						if (accumulators.nearest_squared > separation)
+						{
+							accumulators.nearest_squared = separation;
+							closest = clamped;
+						}
+					}
+				}
+				real separation = 0.0f;
+				if (inside)
+					closest = projected;
+				else
+					separation = accumulators.nearest_squared;
+				if (radius_squared > separation)
+				{
+					bool face = true;
+					vector3f direction;
+					point3f positive;
+					point3f negative;
+					s_ray_shape_result hit;
+					s_ray_shape_result face_hit;
+					bool use_normal = true;
+					if (!(fabs(distance) < 0.01f && inside))
+					{
+						direction.i = closest.x - point->x;
+						direction.j = closest.y - point->y;
+						direction.k = closest.z - point->z;
+						real magnitude = (real)sqrt(direction.i * direction.i + direction.k * direction.k +
+							direction.j * direction.j);
+						if (!(fabs(magnitude) < 0.0001f))
+						{
+							real inverse = 1.0f / magnitude;
+							direction.i = inverse * direction.i;
+							direction.j = direction.j * inverse;
+							direction.k = direction.k * inverse;
+							if (magnitude > 0.01f)
+								use_normal = false;
+						}
+					}
+					if (!use_normal)
+					{
+						vector3f ray;
+						ray.i = direction.i * radius;
+						ray.j = direction.j * radius;
+						ray.k = direction.k * radius;
+						face = false;
+						if (function_2469b0((s_shapes *)&shapes, point, &ray, &hit))
+							positive = hit.position;
+						else
+						{
+							positive.x = point->x + ray.i;
+							positive.y = point->y + ray.j;
+							positive.z = ray.k + point->z;
+						}
+						real opposite = 0.0f - radius;
+						ray.i = direction.i * opposite;
+						ray.j = direction.j * opposite;
+						ray.k = direction.k * opposite;
+						if (function_2469b0((s_shapes *)&shapes, point, &ray, &hit))
+							negative = hit.position;
+						else
+						{
+							negative.x = point->x + ray.i;
+							negative.y = point->y + ray.j;
+							negative.z = ray.k + point->z;
+						}
+					}
+					else
+					{
+						vector3f ray;
+						ray.i = prism->plane.i * radius;
+						ray.j = prism->plane.j * radius;
+						ray.k = prism->plane.k * radius;
+						if (function_2469b0((s_shapes *)&shapes, point, &ray, &face_hit))
+							positive = face_hit.position;
+						else
+						{
+							positive.x = point->x + ray.i;
+							positive.y = point->y + ray.j;
+							positive.z = ray.k + point->z;
+						}
+						negative = *point;
+					}
+					point3f middle;
+					middle.x = (negative.x + positive.x) * 0.5f;
+					middle.y = (negative.y + positive.y) * 0.5f;
+					middle.z = (negative.z + positive.z) * 0.5f;
+					vector3f half;
+					half.i = middle.x - positive.x;
+					half.j = middle.y - positive.y;
+					half.k = middle.z - positive.z;
+					real available = (real)sqrt(half.i * half.i + half.k * half.k + half.j * half.j);
+					if (face)
+					{
+						accumulators.face_sum.x += middle.x;
+						accumulators.face_sum.y += middle.y;
+						accumulators.face_sum.z += middle.z;
+						if (face_radius > available) face_radius = available;
+						++face_count;
+					}
+					else
+					{
+						accumulators.edge_sum.x += middle.x;
+						accumulators.edge_sum.y += middle.y;
+						accumulators.edge_sum.z += middle.z;
+						if (edge_radius > available) edge_radius = available;
+						++edge_count;
+					}
+				}
+			}
+		}
+		if (face_count > 0)
+		{
+			real inverse = 1.0f / face_count;
+			out->x = accumulators.face_sum.x * inverse;
+			out->y = accumulators.face_sum.y * inverse;
+			out->z = accumulators.face_sum.z * inverse;
+			*out_radius = face_radius;
+			result = true;
+		}
+		else if (edge_count > 0)
+		{
+			real inverse = 1.0f / edge_count;
+			out->x = accumulators.edge_sum.x * inverse;
+			out->y = accumulators.edge_sum.y * inverse;
+			out->z = accumulators.edge_sum.z * inverse;
+			*out_radius = edge_radius;
+			result = true;
+		}
+		else
+		{
+			*out = *point;
+			*out_radius = radius;
+		}
+	}
+	else
+	{
+		*out = *point;
+		*out_radius = radius;
+	}
+	return result;
+}

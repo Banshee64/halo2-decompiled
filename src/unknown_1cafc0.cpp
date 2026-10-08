@@ -1072,6 +1072,15 @@ void s_animation_state::animation_velocity_get(c_type_709360 animation_id, real 
 	velocity->k = (current.position.z - previous.position.z) * scale;
 }
 
+PRIVATE __forceinline void function_1ce011(word *arg_0, vector3f *arg_1,
+	real_quaternion_transform const *arg_2, real_quaternion_transform const *arg_3)
+{
+	arg_1->i = arg_2->position.x - arg_3->position.x;
+	arg_1->j = arg_2->position.y - arg_3->position.y;
+	*(volatile real *)&arg_1->k = arg_2->position.z - arg_3->position.z;
+	*arg_0 |= 2;
+}
+
 // @retail 0x1ce010
 void s_animation_state::transition_offset_compute()
 {
@@ -1087,10 +1096,7 @@ void s_animation_state::transition_offset_compute()
 		animation_transform_get(local_0, channels[2].get_duration(), &transition);
 		*(long *)&local_0 = *(volatile long const *)&channels[0].animation_id;
 		animation_transform_get(local_0, 0.0f, &current);
-		unknown84.i = current.position.x - transition.position.x;
-		unknown84.j = current.position.y - transition.position.y;
-		*(volatile real *)&unknown84.k = current.position.z - transition.position.z;
-		unknown6e |= 2;
+		function_1ce011(&unknown6e, &unknown84, &current, &transition);
 	}
 }
 
@@ -1381,9 +1387,10 @@ c_type_709360 s_animation_state::animation_get(long set, long weapon_class, long
 // @retail 0x1cbce0
 bool s_animation_state::pairs_iterate(s_graph_pair_iterator *iterator)
 {
+	s_graph_tag *local_0 = graph_get();
 	iterator->mode = unknown70;
 	iterator->weapon_class = unknown74;
-	return function_1dcfa0(graph_get(), iterator);
+	return function_1dcfa0(local_0, iterator);
 }
 void function_1dd290(s_graph_tag *graph, transform4x3f *matrices, rigid_transform_scaled const *orientations,
 	transform4x3f const *root, short mirrored_node_index, short mirror_parent_index);

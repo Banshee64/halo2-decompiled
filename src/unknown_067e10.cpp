@@ -1334,9 +1334,14 @@ class c_replication_view_storage;
 long function_821c0(void **arg_f0f1ad, c_replication_view_storage **out_storage);
 
 // The caller at 0x84630 supplies four stack arguments; the last is unused here.
-// @retail 0x68580
+// Retail body matches with the standard convention. without the marker,
+// LTCG changes stack cleanup and loop registers (ten differences).
+// No absolute reference to this address exists in retail. caller 0x84630
+// pushes all four arguments; taking unused's address did not keep ret 16.
+// @retail 0x68580 standard
 void __stdcall function_68580(short type, const s_machine_address *address, long value, long unused)
 {
+	(void)&unused;
 	c_replication_view_storage *storage;
 	c_simulation_view *view;
 	long index = function_821c0((void **)&view, &storage);
@@ -1344,16 +1349,19 @@ void __stdcall function_68580(short type, const s_machine_address *address, long
 	{
 		view->initialize(index, type, (s_simulation_view_data *)storage, address, value);
 		c_class_6a600 *world = SIMULATION_WORLD;
-		long slot;
-		for (slot = 0; slot < 15; slot++)
+		long slot = 0;
+		c_simulation_view **local_0 = world->views;
+		do
 		{
-			if (world->views[slot] == 0)
+			if (*local_0 == 0)
 			{
 				world->views[slot] = view;
 				world->view_count++;
 				break;
 			}
-		}
+			slot++;
+			local_0++;
+		} while (slot < 15);
 		view->world = world;
 		view->world_index = slot;
 	}

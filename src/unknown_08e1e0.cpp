@@ -35,6 +35,14 @@ long pending_message_find_free(void)
 	return index;
 }
 
+static __forceinline void function_8e215(long arg_0)
+{
+ g_4d8c28[arg_0].header = 0;
+ g_4d8c28[arg_0].size = 0;
+ g_4d8c28[arg_0].task_index = NONE;
+ g_4d8c28[arg_0].data = 0;
+}
+
 // @retail 0x8e210
 void pending_messages_reset(void)
 {
@@ -42,10 +50,7 @@ void pending_messages_reset(void)
 	long i = 0;
 	do
 	{
-		g_4d8c28[i].header = 0;
-		g_4d8c28[i].task_index = NONE;
-		g_4d8c28[i].size = 0;
-		g_4d8c28[i].data = 0;
+		function_8e215(i);
 		i++;
 	} while (i < 32);
 }

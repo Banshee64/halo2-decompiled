@@ -450,8 +450,8 @@ bool function_1f9760(long arg_0, long arg_1, point3f const *arg_2, real arg_3,
 	bool *arg_4, bool *arg_5, vector3f *arg_6);
 bool function_1f9240(long arg_0, s_path_settings *arg_1);
 void obstacle_list_group(s_obstacle_list *arg_0, real arg_1);
-void __stdcall function_2c0d60(long arg_0, long arg_1, bool arg_2, s_path_settings const *arg_3,
-	s_obstacle_list *arg_4, long arg_5, point3f const *arg_6, real arg_7, vector3f const *arg_8,
+void __stdcall function_2c0d60(vector3f const *arg_0, long arg_1, byte arg_2, s_path_settings const *arg_3,
+	s_obstacle_list *arg_4, s_obstacle_list *arg_5, point3f const *arg_6, real arg_7, vector3f const *arg_8,
 	long arg_9, long arg_10);
 real function_1f99d0(long arg_0, long arg_1, short arg_2, point2f const *arg_3,
 	point2f const *arg_4, point2f const *arg_5, s_obstacle_list const *arg_6);

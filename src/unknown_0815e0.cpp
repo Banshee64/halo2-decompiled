@@ -69,18 +69,23 @@ struct s_network_message_gateway
 	s_bitstream outgoing_packet;
 };
 
+static __forceinline void function_815ec(s_bitstream *arg_0, byte *arg_1)
+{
+	arg_0->unknown08 = 1;
+	arg_0->size_in_bytes = 0x600;
+	arg_0->mode = 0;
+	arg_0->bit_position = 0;
+	arg_0->checkpoint_count = 0;
+	arg_0->error = false;
+	arg_0->data = arg_1;
+}
+
 class c_lifecycle_gateway : public s_network_message_gateway
 {
 public:
 	c_lifecycle_gateway()
 	{
-		outgoing_packet.unknown08 = 1;
-		outgoing_packet.size_in_bytes = 0x600;
-		outgoing_packet.mode = 0;
-		outgoing_packet.bit_position = 0;
-		outgoing_packet.checkpoint_count = 0;
-		outgoing_packet.error = false;
-		outgoing_packet.data = outgoing_packet_storage;
+		function_815ec(&outgoing_packet, outgoing_packet_storage);
 		link = 0;
 		field_c_7 = 0;
 		handler = 0;
