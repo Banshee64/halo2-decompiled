@@ -23,35 +23,34 @@ void __stdcall function_2548f0(point2f const *center, real scale)
 
 struct s_slot;
 
-// @stub 0x1a8c30
-short __stdcall function_1a8c30(long actor_index, s_slot *slot)
-{
-	return 0;
-}
-
-// @stub 0x1a9760
-void __stdcall function_1a9760(long actor_index, s_slot *slot)
-{
-}
 
 
 
 
 
 
-// @stub 0x1acda0
-void __stdcall function_1acda0(long actor_index, s_slot *slot)
-{
-}
 
 
-// @stub 0x1af810
-void __stdcall function_1af810(long actor_index, s_slot *slot)
-{
-}
+
 
 // @stub 0x216240
 bool function_216240(long file_index, void *buffer, long size, wchar_t *name)
 {
 	return false;
+}
+
+#include "slot_handler.h"
+#include "unknown_0259a0.h"
+struct s_follow_search_state;
+
+// @stub 0x1b0400
+bool function_1b0400(long arg_0, s_follow_search_state *arg_1)
+{
+    return false;
+}
+
+// @stub 0x2613d0
+bool function_2613d0(long arg_0, s_reference arg_1, s_prop_search *arg_2)
+{
+    return false;
 }

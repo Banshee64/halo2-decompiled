@@ -27,3 +27,35 @@ public:
 void function_f8190(void)
 {
 }
+
+// @stub 0x22b7dd
+bool function_22b7dd(byte const *arg_1, long arg_2)
+{
+    return false;
+}
+
+// @stub 0x22af8d
+bool function_22af8d(long arg_1, byte const *arg_2)
+{
+    return false;
+}
+
+// @stub 0x22b8e2
+void function_22b8e2(byte const *arg_1, long arg_2, real const *arg_3)
+{
+}
+
+// @stub 0x22aff1
+void function_22aff1(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4)
+{
+}
+
+// @stub 0x22aa16
+void function_22aa16(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4)
+{
+}
+
+// @stub 0x13aa27
+void function_13aa27(long arg_1, byte const *arg_2, byte *arg_3, long arg_4, byte const *arg_5)
+{
+}

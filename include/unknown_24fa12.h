@@ -31,6 +31,7 @@ public:
 	virtual screen_load_proc get_load_proc();
 	virtual void v18(void *parameters);
 	virtual void v2();
+	virtual void v3();
 	void function_250155();
 	void function_250eb7();
 	void function_250cda(long index, bool update);

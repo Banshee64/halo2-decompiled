@@ -159,8 +159,8 @@ long function_1a0b40(
 long __stdcall async_copy_file_callback(s_async_task *task)
 {
 	s_copy_file_task *copy = &task->copy_file;
-	bool finished = false;
-	bool error;
+	byte finished = false;
+	bool error = false;
 
 	switch (copy->state)
 	{
@@ -200,10 +200,10 @@ long __stdcall async_copy_file_callback(s_async_task *task)
 	}
 	case 4:
 		finished = true;
-		*copy->success = finished;
-		return finished;
+		*copy->success = true;
+		break;
 	default:
-		return finished;
+		break;
 	}
 
 	if (error)
@@ -211,7 +211,7 @@ long __stdcall async_copy_file_callback(s_async_task *task)
 		finished = true;
 		*copy->success = false;
 	}
-	return finished;
+	return finished != false;
 }
 
 #pragma inline_depth(0)
