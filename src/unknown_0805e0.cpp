@@ -152,32 +152,7 @@ void function_80940(s_cache_property_record *records, long record_capacity,
 		*buffer_count = buffers_used;
 }
 
-// @retail 0x80d70
-void function_80d70(s_cache_property_record *records, long count)
-{
-	long position;
-	for (long i = 0; i < count; i++)
-	{
-		s_cache_property_record *record = &records[i];
-		if (record->type == 0x61 && record->count == 4)
-		{
-			long index = function_7fc80(record->identity, &position);
-			if (index != NONE)
-			{
-				s_cache_property *properties = record->properties;
-				long valid = properties[0].type == 4 ? 1 : 0;
-				if (properties[1].type == 1)
-					valid++;
-				if (properties[2].type == 1)
-					valid++;
-				if (properties[3].type == 1)
-					valid++;
-				if (valid == 4)
-					g_4cf98c[index].flags &= ~1;
-			}
-		}
-	}
-}
+void function_80d70(s_cache_property_record *records, long count);
 
 // @retail 0x7fd10
 void function_7fd10(long index)
