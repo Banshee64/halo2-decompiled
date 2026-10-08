@@ -116,16 +116,16 @@ void function_221490(
 	format.bits_per_sample = 8;
 	format.extra_size = 0;
 
-	pair.dwMixBin = 0xe;
-	pair.lVolume = 0;
-	mixbins.dwMixBinCount = 1;
-	mixbins.lpMixBinVolumePairs = &pair;
-
 	description.dwSize = sizeof(description);
 	description.dwBufferBytes = 0;
 	description.lpwfxFormat = (LPWAVEFORMATEX)&format;
 	description.lpMixBins = &mixbins;
 	description.dwInputMixBin = 0;
+
+	mixbins.dwMixBinCount = 1;
+	mixbins.lpMixBinVolumePairs = &pair;
+	pair.dwMixBin = 0xe;
+	pair.lVolume = 0;
 
 	DirectSoundCreateBuffer(&description, &buffer);
 

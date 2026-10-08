@@ -923,7 +923,8 @@ bool function_22a9bc(s_text_widget const *arg_1, long arg_2,
     s_text_widget_state const *arg_3, color4f const *arg_4);
 bool function_22b7dd(byte const *arg_1, long arg_2);
 bool function_22af8d(long arg_1, byte const *arg_2);
-void function_22b8e2(byte const *arg_1, long arg_2, real const *arg_3);
+struct s_22b8e2;
+void function_22b8e2(s_22b8e2 const *arg_0, long arg_1, color4f const *arg_2);
 void function_22aff1(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4);
 void function_22aa16(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4);
 
@@ -1020,7 +1021,7 @@ void function_13a532(long arg_1, long arg_2, byte const *arg_3, long arg_4)
             {
                 real local_10[4];
                 function_13ad48(arg_2, local_9 + 4, local_10, arg_3, local_7);
-                function_22b8e2(local_9, arg_2, local_10);
+                function_22b8e2((s_22b8e2 const *)local_9, arg_2, (color4f const *)local_10);
             }
             local_8 += 0x50;
         }

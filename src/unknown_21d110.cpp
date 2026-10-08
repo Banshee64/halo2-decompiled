@@ -376,7 +376,7 @@ bool function_21d5a0(long effect_index)
 		else
 		{
 			s_sound_playback_flags flags = {0};
-			sound_playback_update_source(effect->sound_index, playing_sound_get(effect->sound_index)->marker.link.source, &flags);
+			result = sound_playback_update_source(effect->sound_index, playing_sound_get(effect->sound_index)->marker.link.source, &flags);
 			if (TEST_FIELD_BIT(flags.source_updated))
 			{
 				effect->flags |= FLAG(_sound_effect_unmanaged_bit);

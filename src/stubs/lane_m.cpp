@@ -10,16 +10,6 @@ void function_254200(void)
 {
 }
 
-// @stub 0x254490
-void __stdcall function_254490(point2f const *point, real scale, real alpha, color3f const *color, bool pulse)
-{
-}
-
-// @stub 0x2548f0
-void __stdcall function_2548f0(point2f const *center, real scale)
-{
-}
-
 
 struct s_slot;
 
