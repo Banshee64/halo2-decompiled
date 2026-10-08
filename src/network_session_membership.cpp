@@ -159,6 +159,11 @@ static inline s_session_member_header *session_get_member_header(c_class_58d20 *
 	return (s_session_member_header *)session->members[member_index].words;
 }
 
+static __forceinline void function_62b71(s_session_machine *arg_0, const s_session_member_header *arg_1)
+{
+ memcpy(arg_0, &arg_1->address, sizeof(*arg_0));
+}
+
 // @retail 0x62b70
 long network_session_build_peer_map(c_class_58d20 *session, s_session_peer_map *map)
 {
@@ -168,7 +173,7 @@ long network_session_build_peer_map(c_class_58d20 *session, s_session_peer_map *
 	map->unknown48 = session->value4c;
 	map->host_member_index = session->current_member;
 	map->unknown50 = session->members[session->current_member].unknown94;
-	map->machines[0] = session_get_member_header(session, session->current_member)->address;
+	function_62b71(&map->machines[0], session_get_member_header(session, session->current_member));
 	map->machine_count = 1;
 	map->reachable_mask = 1;
 	map->connected_mask = 1;

@@ -374,13 +374,13 @@ extern s_network_observer *g_4cf8e4;
 extern bool g_4cf95c;
 struct s_message_of_the_day_globals
 {
- dword flags;
+ union { dword flags; word field_0; };
  short length;
 };
 struct s_game_variant_globals
 {
  dword unknown0;
- dword flags;
+ union { dword flags; word field_4; };
  word count;
  word state;
 };
@@ -409,9 +409,9 @@ void function_6cb60(void)
  for (long i = 0; i < g_transport_globals.transition_function_count; i++)
   if (g_transport_globals.reset_functions[i])
    g_transport_globals.reset_functions[i](g_transport_globals.contexts[i]);
- g_479784.flags &= ~2;
- g_47d8f4.flags &= ~2;
- g_477058.flags &= ~2;
+ g_479784.field_0 &= (word)~2;
+ g_47d8f4.field_4 &= (word)~2;
+ g_477058.field_4 &= (word)~2;
 }
 
 void function_8e5e0(long status, long task_index);

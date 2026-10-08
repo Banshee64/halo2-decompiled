@@ -269,10 +269,11 @@ static inline long session_get_value49f8(c_class_58d20 *session)
 // @retail 0x59500
 long network_session_manager_get_value49f8(void)
 {
-	c_class_58d20 *session = session_manager_session_a();
-	if (!session_state_is_live(session))
-		return 1;
-	return session_get_value49f8(session);
+	long local_0 = 1;
+    c_class_58d20 *session = session_manager_session_a();
+	if (session_state_is_live(session))
+        local_0 = session_get_value49f8(session);
+    return local_0;
 }
 
 // @retail 0x59530
