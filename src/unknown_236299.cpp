@@ -286,12 +286,12 @@ void function_2363d4(short_rectangle2d const *bounds, short *x, short *y)
 			if (left == 0)
 			{
 				*x = 20;
-				*y = -16;
+				goto negative_y;
 			}
 			else
 			{
 				*x = -20;
-				*y = -16;
+				goto negative_y;
 			}
 		}
 		else
@@ -299,12 +299,12 @@ void function_2363d4(short_rectangle2d const *bounds, short *x, short *y)
 			if (left == 0)
 			{
 				*x = 20;
-				*y = 16;
+				goto positive_y;
 			}
 			else
 			{
 				*x = -20;
-				*y = 16;
+				goto positive_y;
 			}
 		}
 	}
@@ -315,11 +315,11 @@ void function_2363d4(short_rectangle2d const *bounds, short *x, short *y)
 		{
 			if (top == 0)
 			{
-				*y = -16;
+				goto negative_y;
 			}
 			else
 			{
-				*y = 16;
+				goto positive_y;
 			}
 		}
 		else
@@ -327,6 +327,12 @@ void function_2363d4(short_rectangle2d const *bounds, short *x, short *y)
 			*y = 0;
 		}
 	}
+	return;
+negative_y:
+	*y = -16;
+	return;
+positive_y:
+	*y = 16;
 }
 
 /* a machine address */
