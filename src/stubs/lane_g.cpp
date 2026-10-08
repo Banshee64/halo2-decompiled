@@ -31,10 +31,6 @@ byte __stdcall function_219070(long set_index)
 	return 0;
 }
 
-// @stub 0x215367
-void __stdcall function_215367(long player, long profile_index, void *data, long flags)
-{
-}
 
 struct s_bitmap_view;
 

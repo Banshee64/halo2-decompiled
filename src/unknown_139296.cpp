@@ -923,7 +923,8 @@ bool function_22a9bc(s_text_widget const *arg_1, long arg_2,
     s_text_widget_state const *arg_3, color4f const *arg_4);
 bool function_22b7dd(byte const *arg_1, long arg_2);
 bool function_22af8d(long arg_1, byte const *arg_2);
-void function_22b8e2(byte const *arg_1, long arg_2, real const *arg_3);
+struct s_22b8e2;
+void function_22b8e2(s_22b8e2 const *arg_0, long arg_1, color4f const *arg_2);
 void function_22aff1(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4);
 void function_22aa16(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4);
 
@@ -1020,7 +1021,7 @@ void function_13a532(long arg_1, long arg_2, byte const *arg_3, long arg_4)
             {
                 real local_10[4];
                 function_13ad48(arg_2, local_9 + 4, local_10, arg_3, local_7);
-                function_22b8e2(local_9, arg_2, local_10);
+                function_22b8e2((s_22b8e2 const *)local_9, arg_2, (color4f const *)local_10);
             }
             local_8 += 0x50;
         }
@@ -1150,14 +1151,20 @@ void function_13b285(void);
 long players_first_active_local_player(void);
 long function_14de10(long arg_1);
 
+__forceinline long function_13a839(long const *arg_1)
+{
+    return *(long const volatile *)arg_1;
+}
+
 // @retail 0x13a838
 void __stdcall function_13a838(long arg_1)
 {
-    byte *local_1 = (byte *)g_510c4c + arg_1 * 0x6c;
+    long local_13 = function_13a839(&arg_1);
+    byte *local_1 = (byte *)g_510c4c + local_13 * 0x6c;
     byte local_2[0x270];
-    function_2003dc(arg_1);
-    function_13992a(local_2, arg_1);
-    function_13a720(arg_1, (s_13a720_status const *)local_2);
+    function_2003dc(local_13);
+    function_13992a(local_2, local_13);
+    function_13a720(local_13, (s_13a720_status const *)local_2);
     if (local_2[0x130])
     {
         real local_3 = local_2[0x133] ? 1.0f : 0.0f;
@@ -1177,9 +1184,9 @@ void __stdcall function_13a838(long arg_1)
         }
     }
     long local_6 = NONE;
-    if (function_14ddc0(arg_1))
+    if (function_14ddc0(local_13))
     {
-        long local_7 = function_14de70(arg_1);
+        long local_7 = function_14de70(local_13);
         local_6 = *(long *)(g_4e8c24->data + (local_7 & 0xffff) * 0x21c + 0x2c);
     }
     if (local_6 != NONE)
@@ -1212,10 +1219,10 @@ void __stdcall function_13a838(long arg_1)
     }
     long local_12 = *(long *)(local_2 + 0xc);
     if (local_12 != NONE)
-        function_13aa27(arg_1, local_2 + 0x88, local_1 + 0x18, local_12, local_2);
+        function_13aa27(local_13, local_2 + 0x88, local_1 + 0x18, local_12, local_2);
     local_12 = *(long *)(local_2 + 0x10);
     if (local_12 != NONE)
-        function_13aa27(arg_1, local_2 + 0xc0, local_1 + 0x20, local_12, local_2);
+        function_13aa27(local_13, local_2 + 0xc0, local_1 + 0x20, local_12, local_2);
 }
 
 // @retail 0x1391ed

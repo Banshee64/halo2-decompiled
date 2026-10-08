@@ -100,9 +100,8 @@ __forceinline void function_180d83(transform4x3f const *arg_0, point3f *arg_1)
 // @retail 0x180d80
 long __stdcall function_180d80(s_180d84 const *arg_0, transform4x3f const *arg_1, long arg_2, s_cluster_query const *arg_3, bool arg_4, s_180d81 const *arg_5, s_180d83 *arg_6)
 {
-    long local_1 = NONE;
     s_180d82 local_0[1024];
-    if (arg_5->field_5802 > 0 && arg_5->field_5000 > 0 && arg_3->cluster_index != NONE)
+    if (arg_5->field_5802 <= 0 || arg_5->field_5000 <= 0 || arg_3->cluster_index == NONE) return NONE;
     {
         byte const *local_2 = (byte const *)g_4e3b44[arg_2 & 0xffff].data;
         vector3f local_3 = {0.0f, 0.0f, 0.0f};
@@ -190,7 +189,7 @@ long __stdcall function_180d80(s_180d84 const *arg_0, transform4x3f const *arg_1
                         local_13 += local_15;
                     }
                     arg_6->field_0 = (local_2[0] & 1) != 0;
-                    local_1 = *(long *)(local_2 + 0xc);
+                    long local_1 = *(long *)(local_2 + 0xc);
                     function_180b60(arg_3, local_9, local_6);
                     return local_1;
                 }
@@ -198,6 +197,6 @@ long __stdcall function_180d80(s_180d84 const *arg_0, transform4x3f const *arg_1
             ((s_physical_object *)g_509448)->block_delete(local_5);
         }
     }
-    return local_1;
+    return NONE;
 }
 #pragma inline_depth(255)

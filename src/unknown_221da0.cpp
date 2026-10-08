@@ -68,7 +68,7 @@ bool function_221da0(long listener_index, s_sound_transmission_view const *sound
 				short listener_cluster = listener->index;
 				if (listener_cluster != NONE &&
 					(*(long *)listener->unknown00 == sound->bsp_index || listener_cluster == sound_cluster ||
-					!(function_249d60(sound_cluster, listener_cluster, (s_structure_bsp_view *)g_4e0348) * scale < 256.0f)))
+					function_249d60(listener_cluster, sound_cluster, (s_structure_bsp_view *)g_4e0348) * scale < 256.0f))
 				{
 					result = false;
 				}

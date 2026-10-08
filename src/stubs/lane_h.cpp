@@ -18,17 +18,6 @@ struct s_dialog_definition;
 struct s_screen_parameters;
 class c_class_1473c9;
 
-// @stub 0x18f42d
-c_class_1473c9 *__stdcall function_18f42d(s_screen_parameters *parameters)
-{
-	return 0;
-}
-
-// @stub 0x18f474
-c_class_1473c9 *__stdcall function_18f474(s_screen_parameters *parameters)
-{
-	return 0;
-}
 
 
 

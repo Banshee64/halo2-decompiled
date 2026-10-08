@@ -32,10 +32,6 @@ void __stdcall function_170fd0(long user_index)
 
 
 
-// @stub 0x2232a0
-void function_2232a0(void)
-{
-}
 
 
 // @stub 0x12b6f0

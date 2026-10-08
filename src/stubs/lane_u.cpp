@@ -26,3 +26,9 @@ long __stdcall function_1e0850(long arg_0, long arg_1, s_203780 const *arg_2, bo
 {
     return NONE;
 }
+
+// @stub 0x217370
+void __stdcall function_217370(long arg_0, bool **arg_1)
+{
+    *arg_1 = NULL;
+}

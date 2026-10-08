@@ -133,6 +133,12 @@ __forceinline void function_185be5(s_186ab2 *arg_0)
     arg_0->field_18 = 0;
 }
 
+union s_185be7
+{
+    real field_0[2];
+    vector2f field_8;
+};
+
 #pragma inline_depth(1)
 // @retail 0x185be0
 void __stdcall function_185be0(long arg_0, long arg_1, real arg_2, real arg_3, s_186ab4 *arg_4, s_186ab3 *arg_5)
@@ -150,8 +156,9 @@ void __stdcall function_185be0(long arg_0, long arg_1, real arg_2, real arg_3, s
         word local_4[16];
         memset(local_3, 0, sizeof(local_3));
         memset(local_4, 0, sizeof(local_4));
-        real local_5 = *(real *)(g_51ea18 + arg_0 * 0x1c) * 0.01745329238474369f;
-        real local_6 = *(real *)(g_51ea18 + arg_0 * 0x1c + 4) * 0.01745329238474369f;
+        s_185be7 local_5;
+        local_5.field_0[0] = *(real *)(g_51ea18 + arg_0 * 0x1c) * 0.01745329238474369f;
+        local_5.field_0[1] = *(real *)(g_51ea18 + arg_0 * 0x1c + 4) * 0.01745329238474369f;
         local_2 = ((s_185be0 *)(g_51ea18 + 0x70))[arg_0];
         long local_7 = local_1->field_0;
         if (local_7 != NONE)
@@ -172,9 +179,9 @@ void __stdcall function_185be0(long arg_0, long arg_1, real arg_2, real arg_3, s
                 if (*(real *)(local_13 + 0x5c) != 0.0f)
                     local_16 = (real)pow(local_16, *(real *)(local_13 + 0x5c));
                 if (*(real *)(local_13 + 0x44) > 0.0f || *(real *)(local_13 + 0x48) > 0.0f)
-                    local_5 = ((*(real *)(local_13 + 0x48) - *(real *)(local_13 + 0x44)) * local_16 + *(real *)(local_13 + 0x44)) * 0.01745329238474369f;
+                    local_5.field_0[0] = ((*(real *)(local_13 + 0x48) - *(real *)(local_13 + 0x44)) * local_16 + *(real *)(local_13 + 0x44)) * 0.01745329238474369f;
                 if (*(real *)(local_13 + 0x4c) > 0.0f || *(real *)(local_13 + 0x50) > 0.0f)
-                    local_6 = ((*(real *)(local_13 + 0x50) - *(real *)(local_13 + 0x4c)) * local_16 + *(real *)(local_13 + 0x4c)) * 0.01745329238474369f;
+                    local_5.field_0[1] = ((*(real *)(local_13 + 0x50) - *(real *)(local_13 + 0x4c)) * local_16 + *(real *)(local_13 + 0x4c)) * 0.01745329238474369f;
             }
         }
         arg_5->field_0 = local_2.field_38;
@@ -192,50 +199,51 @@ void __stdcall function_185be0(long arg_0, long arg_1, real arg_2, real arg_3, s
             }
             real local_11 = function_185be1(local_10 * local_2.field_40, -1.0f, 1.0f);
             real local_12 = function_185be1(local_10 * local_2.field_44, -1.0f, 1.0f);
-            real local_13 = function_185b30(*(short *)(local_0 + 0x74), *(real **)(local_0 + 0x78), local_11) * local_5;
-            real local_14 = function_185b30(*(short *)(local_0 + 0x74), *(real **)(local_0 + 0x78), local_12) * local_6;
+            s_185be7 local_13;
+            local_13.field_0[0] = function_185b30(*(short *)(local_0 + 0x74), *(real **)(local_0 + 0x78), local_11) * local_5.field_0[0];
+            local_13.field_0[1] = function_185b30(*(short *)(local_0 + 0x74), *(real **)(local_0 + 0x78), local_12) * local_5.field_0[1];
             if (fabs(local_11) >= *(real *)(local_0 + 0x48))
             {
                 real local_15 = function_185be1(local_1->field_78 / *(real *)(local_0 + 0x4c), 0.0f, 1.0f);
-                local_13 *= (*(real *)(local_0 + 0x50) - 1.0f) * local_15 + 1.0f;
+                local_13.field_0[0] *= (*(real *)(local_0 + 0x50) - 1.0f) * local_15 + 1.0f;
                 local_1->field_78 += arg_2;
             }
             else local_1->field_78 = 0.0f;
             if (fabs(local_12) >= *(real *)(local_0 + 0x48))
             {
                 real local_15 = function_185be1(local_1->field_7c / *(real *)(local_0 + 0x54), 0.0f, 1.0f);
-                local_14 *= (*(real *)(local_0 + 0x58) - 1.0f) * local_15 + 1.0f;
+                local_13.field_0[1] *= (*(real *)(local_0 + 0x58) - 1.0f) * local_15 + 1.0f;
                 local_1->field_7c += arg_2;
             }
             else local_1->field_7c = 0.0f;
             if (local_1->field_0 != NONE && local_1->field_2e != NONE)
             {
                 real local_15 = 1.0f / function_c8880(local_1->field_0, local_1->field_2e);
-                local_13 *= local_15;
-                local_14 *= local_15;
+                local_13.field_0[0] *= local_15;
+                local_13.field_0[1] *= local_15;
             }
             if (local_1->field_0 != NONE)
             {
                 real local_15 = 1.0f - *(real *)(function_185be2(local_1->field_0) + 0x2e4) *
                     *(real *)(*(byte **)((byte *)g_4e034c + 0x134) + 0x7c);
-                local_13 *= local_15;
-                local_14 *= local_15;
+                local_13.field_0[0] *= local_15;
+                local_13.field_0[1] *= local_15;
             }
             vector3f local_15;
             function_1a4900(arg_1, &arg_5->field_28, &local_15);
             local_1->field_68 = local_15.k > 0.0f;
             real local_16;
             real local_17;
-            if (local_1->field_68 && arg_2 > 0.0f && (fabs(local_13) > 0.0001f || fabs(local_14) > 0.0001f ||
+            if (local_1->field_68 && arg_2 > 0.0f && (fabs(local_13.field_0[0]) > 0.0001f || fabs(local_13.field_0[1]) > 0.0001f ||
                 fabs(arg_5->field_0) > 0.0001f || fabs(arg_5->field_4) > 0.0001f))
             {
                 real local_18 = arg_3 / arg_2;
                 real local_19 = function_185be1(*(real *)arg_4->field_4, 0.0f, 1.0f) * local_15.k;
                 real local_20 = function_185be1(*(real *)(arg_4->field_4 + 4), 0.0f, 1.0f) * local_15.k;
-                local_16 = function_185be1(local_15.i * local_18, -3.1415927410125732f, 3.1415927410125732f) * local_20 + (1.0f - local_19) * local_13;
-                local_17 = function_185be1(local_15.j * local_18, -1.5707963705062866f, 1.5707963705062866f) * local_20 + (1.0f - local_19) * local_14;
+                local_16 = function_185be1(local_15.i * local_18, -3.1415927410125732f, 3.1415927410125732f) * local_20 + (1.0f - local_19) * local_13.field_0[0];
+                local_17 = function_185be1(local_15.j * local_18, -1.5707963705062866f, 1.5707963705062866f) * local_20 + (1.0f - local_19) * local_13.field_0[1];
             }
-            else { local_16 = local_13; local_17 = local_14; }
+            else { local_16 = local_13.field_0[0]; local_17 = local_13.field_0[1]; }
             arg_5->field_10 = local_16 * arg_2;
             arg_5->field_14 = local_17 * arg_2;
             *(real *)((byte *)arg_5 + 0x24) = local_2.field_48;
@@ -256,11 +264,10 @@ void __stdcall function_185be0(long arg_0, long arg_1, real arg_2, real arg_3, s
                             local_15 = *(vector3f *)((byte *)&local_21 + 4);
                             if (local_18 == local_1->field_40)
                             {
-                                vector2f local_22, local_23;
-                                function_11df30(&local_22, &local_15);
-                                function_11df30(&local_23, &local_1->field_34);
-                                arg_5->field_10 += local_22.i - local_23.i;
-                                arg_5->field_14 += local_22.j - local_23.j;
+                                function_11df30(&local_5.field_8, &local_15);
+                                function_11df30(&local_13.field_8, &local_1->field_34);
+                                arg_5->field_10 += local_5.field_8.i - local_13.field_8.i;
+                                arg_5->field_14 += local_5.field_8.j - local_13.field_8.j;
                             }
                         }
                     }

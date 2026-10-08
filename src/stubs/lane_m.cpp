@@ -10,16 +10,6 @@ void function_254200(void)
 {
 }
 
-// @stub 0x254490
-void __stdcall function_254490(point2f const *point, real scale, real alpha, color3f const *color, bool pulse)
-{
-}
-
-// @stub 0x2548f0
-void __stdcall function_2548f0(point2f const *center, real scale)
-{
-}
-
 
 struct s_slot;
 
@@ -32,12 +22,6 @@ struct s_slot;
 
 
 
-
-// @stub 0x216240
-bool function_216240(long file_index, void *buffer, long size, wchar_t *name)
-{
-	return false;
-}
 
 #include "slot_handler.h"
 #include "unknown_0259a0.h"
