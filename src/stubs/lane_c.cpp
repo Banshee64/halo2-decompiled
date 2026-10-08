@@ -78,9 +78,7 @@ void hkRigidBody::setTransform(hkTransform const &transform) { }
 /* callees of the slot handler callbacks (unknown_0259a0.h) */
 
 
-// @stub 0x1697c0
-bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
-	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result) { return false; }
+
 
 
 // @stub 0x26d100

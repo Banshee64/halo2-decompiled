@@ -83,6 +83,7 @@ public:
 	virtual void v11(long a, long b, long c);
 	virtual void v21(s_entity *entity);
 	virtual void v26(long index, long b, s_entity_state *state);
+	virtual long v27(long arg_0, long arg_1, long arg_2, long arg_3);
 	virtual bool v28(long index);
 	virtual bool v32(long a);
 };

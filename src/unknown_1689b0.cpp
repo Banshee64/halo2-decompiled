@@ -201,7 +201,11 @@ word collision_object_flags(long object_index)
 /* the lookup of 0x1efb40 (unknown_1efac0.cpp) */
 struct s_lookup
 {
-	byte unknown00[0x14];
+	long handle;
+	void *tag_a;
+	void *tag_b;
+	void *pointer_a;
+	void *pointer_b;
 
 	bool initialize(long object_handle);
 };
@@ -553,8 +557,115 @@ bool function_244980(long cluster_index, point3f const *point, vector3f const *v
 long function_b8940(short cluster_index, s_object_cluster_reference **reference, s_object_cluster_iterator *iterator);
 long function_b89b0(s_object_cluster_reference **reference, s_object_cluster_iterator *iterator);
 bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
-bool function_169510(long object_index, bool a, dword flags, dword test_flags, point3f const *point,
+bool __stdcall function_169510(long object_index, bool a, dword flags, dword test_flags, point3f const *point,
 	vector3f const *vector, long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+
+struct s_lookup_ray_hit_ad
+{
+	real t;
+	plane3f const *plane;
+	long surface_reference[3];
+	byte surface_flags[2];
+	short surface_index;
+	long leaf_count;
+	long leaves[256];
+};
+
+struct s_lookup_ray_result
+{
+	dword position;
+	short node;
+	short item;
+	s_lookup_ray_hit_ad hit;
+};
+
+bool function_1eff40(s_lookup *lookup, long flags, point3f const *point,
+	vector3f const *direction, s_lookup_ray_result *result);
+void function_d8ae0(long object_index, long region_index, short *material);
+bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
+
+// @retail 0x169510
+bool __stdcall function_169510(long object_index, bool a, dword flags, dword test_flags, point3f const *point,
+	vector3f const *vector, long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result)
+{
+	(void)&object_index; (void)&a; (void)&flags; (void)&test_flags; (void)&point;
+	(void)&vector; (void)&ignore_object_index; (void)&ignore_unit_index; (void)&result;
+	volatile bool found = false;
+	s_lookup lookup;
+	s_lookup_ray_result hit;
+	short material;
+	do
+	{
+		s_collision_object_header *header = &((s_collision_object_header *)g_4e0300->data)[object_index & 0xffff];
+		s_collision_object *object = header->object;
+		if (a || (collision_object_test(object_index, header, object, flags, ignore_object_index, ignore_unit_index) &&
+			function_11e5e0(point, (point3f const *)((byte *)object + 0x40), vector, *(real *)((byte *)object + 0x4c))))
+		{
+			if (lookup.initialize(object_index) && function_1eff40(&lookup, test_flags, point, vector, &hit) && result->t > hit.hit.t)
+			{
+				result->type = 4;
+				function_d8ae0(lookup.handle, hit.hit.surface_index, &material);
+				result->material_type = material;
+				result->instance_index = NONE;
+				result->unknown3c = NONE;
+				*(short *)result->unknown44 = hit.item;
+				*(short *)(result->unknown44 + 2) = hit.node;
+				*(dword *)(result->unknown44 + 4) = hit.position;
+				result->unknown40 = object_index;
+				function_168b40((s_168b40_result *)result, (s_168b40_surface const *)&hit.hit,
+					(transform4x3f const *)lookup.pointer_b + hit.node);
+				found = true;
+				if (flags & 0x10000000) goto done;
+			}
+			if (!(flags & 0x20000))
+			{
+				long child_index = *(long *)((byte *)object + 0x10);
+				if (child_index != NONE && function_169510(child_index, false, flags, test_flags, point, vector,
+					ignore_object_index, ignore_unit_index, result))
+				{
+					found = true;
+					if (flags & 0x10000000) goto done;
+				}
+			}
+		}
+		object_index = *(long *)((byte *)object + 0xc);
+	} while (object_index != NONE);
+done:
+	return found;
+}
+
+struct s_biped_ground_collision;
+struct s_location;
+extern short g_4686c4;
+void function_11bed0(s_location *location, point3f const *point);
+
+// @retail 0x1696d0
+bool function_1696d0(long flags, s_biped_ground_collision *output, long object_index,
+	point3f const *point, vector3f const *vector, long ignore_object_index, long ignore_unit_index)
+{
+	s_collision_result_1697c0 *collision = (s_collision_result_1697c0 *)output;
+	collision->type = 0;
+	collision->t = 1.0f;
+	collision->start_location.leaf_index = NONE;
+	collision->start_location.cluster_index = NONE;
+	collision->start_location.bsp_index = g_4686c4;
+	collision->end_location.leaf_index = NONE;
+	collision->end_location.cluster_index = NONE;
+	collision->end_location.bsp_index = g_4686c4;
+	collision->instance_index = NONE;
+	collision->unknown3c = NONE;
+	collision->unknown40 = NONE;
+	bool found = false;
+	if ((flags & 8) && !(flags & 0x1fff0)) flags |= 0x1fff0;
+	if (!object_or_parent_hidden(object_index))
+		found = function_169510(object_index, false, flags, collision_flags_to_test_flags(flags),
+			point, vector, ignore_object_index, ignore_unit_index, collision);
+	collision->point.x = point->x + vector->i * collision->t;
+	collision->point.y = point->y + vector->j * collision->t;
+	collision->point.z = point->z + vector->k * collision->t;
+	function_11bed0((s_location *)&collision->end_location, &collision->point);
+	return found;
+}
 struct s_location;
 void function_11bed0(s_location *location, point3f const *point);
 
@@ -681,18 +792,7 @@ bool __stdcall function_168f40(long flags, s_vehicle_ray const *ray,
 	return result;
 }
 
-#if 0
-/* Written but left out of the build (lane C's stub in src/stubs/lane_c.cpp
-   stays): retail keeps this function's standard stack convention (ret 0x18)
-   though nothing holds its address. With our few decompiled callers LTCG
-   passes the result in a register instead, which breaks its matched caller
-   0x10b190. With the `standard` marker the body lines up instruction for
-   instruction except for register choice and the register arguments of its
-   callees 0x1de630, 0x244980, 0xb8940, 0xb89b0 and 0x169510, which are stubs;
-   once they are real, try the marker. */
-/* tests a vector from a point against the structure, its instanced planes,
-   the instanced geometry and the objects of the clusters it crosses */
-/* retail 0x1697c0 (ray_cast_test) */
+// @retail 0x1697c0
 bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *collision)
 {
@@ -972,7 +1072,6 @@ bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const 
 
 	return result;
 }
-#endif
 
 bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
