@@ -77,10 +77,6 @@ struct s_ai_trigger_condition;
 /* callees of lane A's remaining script functions (other lanes' or not yet decompiled) */
 
 
-// @stub 0x275380
-void function_275380(long ai_index)
-{
-}
 
 
 
@@ -93,11 +89,6 @@ void function_13c5a0(long object_index, long a, long b, long c)
 
 
 
-
-// @stub 0x2011f0
-void function_2011f0(long squad_index)
-{
-}
 
 // @stub 0xb73b0
 void function_b73b0(long object_index)

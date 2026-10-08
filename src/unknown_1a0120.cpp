@@ -66,6 +66,8 @@ static inline long current_language()
 }
 
 /* the text of a string in a table, or an empty string */
+__declspec(noinline) const char *string_table_find(s_string_table *table, long first, long count, long string_handle);
+
 // @retail 0x1a02d0
 const char *string_table_find(s_string_table *table, long first, long count, long string_handle)
 {

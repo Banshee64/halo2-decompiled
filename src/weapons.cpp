@@ -2367,7 +2367,7 @@ void function_100520(long weapon_index, s_weapon_status *status)
 }
 
 extern bool g_4f55dc[16];
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 
 struct s_scenario_weapon_view
 {

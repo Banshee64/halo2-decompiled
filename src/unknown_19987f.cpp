@@ -69,7 +69,8 @@ bool function_19a84e(long *a, long *b)
 // @retail 0x19989d
 long function_19989d(void)
 {
-	volatile long result = NONE;
+	long default_result = NONE;
+	long result;
 	long value = network_session_interface_get_value_18();
 	byte *data = network_session_interface_get_data_4db0();
 	long a;
@@ -85,14 +86,16 @@ long function_19989d(void)
 	case 1:
 		if (a != NONE)
 		{
-			return value ? 2 : 0;
+			result = value ? 2 : 0;
+			goto done;
 		}
 		if (data)
 		{
 			long state = *(long *)(data + 0x44);
 			if (state > 0 && (state <= 4 || state > 6 && state <= 9))
 			{
-				return (value != 0) * 2 + 1;
+				result = (value != 0) * 2 + 1;
+				goto done;
 			}
 		}
 		break;
@@ -102,22 +105,27 @@ long function_19989d(void)
 		case 1:
 			if (a != NONE)
 			{
-				return 4;
+				result = 4;
+				goto done;
 			}
 			if (data)
 			{
 				long state = *(long *)(data + 0x44);
 				if (state > 0 && (state <= 4 || state > 6 && state <= 9))
 				{
-					return 5;
+					result = 5;
+					goto done;
 				}
 			}
 			break;
 		case 2:
-			return 6;
+			result = 6;
+			goto done;
 		}
 		break;
 	}
+	result = *(long const volatile *)&default_result;
+done:
 	return result;
 }
 

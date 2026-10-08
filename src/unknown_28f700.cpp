@@ -42,6 +42,7 @@ __forceinline s_28f702 *function_28f701(s_handler_object_view *arg_0)
 // @retail 0x28f700
 void __stdcall function_28f700(long arg_0)
 {
+	long const volatile *local_5 = &arg_0;
 	s_28f700 *local_0 = &((s_28f700 *)g_4f55f0->data)[arg_0 & 0xffff];
 	s_28f701 *local_1 = (s_28f701 *)perception_get(local_0->field_1c);
 	if ((real)(g_510c54->game_time - local_1->field_20) * g_510c54->rate > 2.0f)
@@ -70,12 +71,12 @@ void __stdcall function_28f700(long arg_0)
 		if (local_4)
 		{
 			local_2 = local_4->field_c;
-			function_28f3b0(arg_0, local_3);
+			function_28f3b0(*local_5, local_3);
 		}
 		else
 		{
 			local_2 = NONE;
-			function_28f3b0(arg_0, local_3);
+			function_28f3b0(*local_5, local_3);
 		}
 	}
 	local_2 = ((s_28f701 *)perception_get(local_0->field_1c))->field_18;

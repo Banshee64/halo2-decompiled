@@ -62,10 +62,12 @@ long __stdcall function_28dab0(long arg_0, s_28dab2 const *arg_1)
 			if (local_3->field_14 <= 0)
 			{
 				function_28e200(local_0);
-				return NONE;
+				local_0 = NONE;
+				goto local_6;
 			}
 			local_3->field_16 = local_3->field_14;
 		}
 	}
+local_6:
 	return local_0;
 }
