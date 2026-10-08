@@ -9,11 +9,6 @@ void function_143600(float const *, long, float const *, float *)
 {
 }
 
-// @stub 0x12e5e0
-void function_12e5e0(unsigned char *, long, point3f const *, vector3f const *, unsigned char, bool)
-{
-}
-
 struct s_2f970_view;
 struct s_speed_result;
 // @stub 0x2ba10

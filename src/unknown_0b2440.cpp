@@ -226,9 +226,7 @@ bool __stdcall function_b2a90(s_bitstream *stream, long size, s_synchronous_game
 	if (message->size > 0)
 	{
 		function_195820(stream, data, message->size * 8);
-		if (stream_overflowed(stream))
-			return false;
-		return true;
+		valid = !stream_overflowed(stream);
 	}
 	return valid;
 }

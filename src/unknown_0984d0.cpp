@@ -155,7 +155,7 @@ bool function_988f0(c_handle_table_450cd0 *self, long index, s_bitstream *stream
 
 /* kind 5: an entity's update */
 // @retail 0x989f0
-bool function_989f0(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits)
+bool function_989f0(c_handle_table_450cd0 *self, long index, s_bitstream *stream, long a3, long reserved_bits)
 {
 	long local_3 = stream->bit_position;
 	long handle = self->entries[index].handle;
@@ -164,7 +164,8 @@ bool function_989f0(c_handle_table_450cd0 *self, s_bitstream *stream, long index
 	stream->checkpoint_count++;
 	function_195720(stream, 5, 3);
 	function_b5650(handle, stream);
-	c_handle_owner *local_0 = self->table->owner;
+	s_handle_peers *local_4 = *(s_handle_peers *volatile *)&self->table;
+	c_handle_owner *local_0 = local_4->owner;
 	dword local_1 = *(volatile dword *)&self->entries[index].unknown04;
 	if (local_0->v5(handle, local_1, a3, stream, reserved_bits, &released) &&
 		(stream->size_in_bytes << 3) - stream->bit_position >= reserved_bits)
@@ -230,7 +231,7 @@ void c_handle_table_450cd0::v3(long a1, long a2, long a3, long a4, long a5, long
 			function_988f0(this, a1, (s_bitstream *)a5, a6);
 			break;
 		case 5:
-			function_989f0(this, (s_bitstream *)a5, a1, a3, a6);
+			function_989f0(this, a1, (s_bitstream *)a5, a3, a6);
 			break;
 		}
 	}

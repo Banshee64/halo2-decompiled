@@ -1,3 +1,5 @@
+// @stub 0xfff40
+void __stdcall function_fff40(long a, long b) { }
 // stubs for game functions not decompiled yet, called by unknown_0a76b0.cpp
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
@@ -18,8 +20,6 @@ bool __stdcall function_bc1d0(long object_index, point3f *point) { return 0; }
 
 
 
-// @stub 0xfff40
-void __stdcall function_fff40(long a, long b) { }
 
 
 
