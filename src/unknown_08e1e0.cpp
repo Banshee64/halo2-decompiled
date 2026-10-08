@@ -39,8 +39,8 @@ static __forceinline void function_8e215(long arg_0)
 {
  g_4d8c28[arg_0].header = 0;
  g_4d8c28[arg_0].size = 0;
- g_4d8c28[arg_0].data = 0;
  g_4d8c28[arg_0].task_index = NONE;
+ g_4d8c28[arg_0].data = 0;
 }
 
 // @retail 0x8e210

@@ -360,8 +360,8 @@ void c_vtable_450c94::reset(c_source_450c94 *new_source)
 // @retail 0x8b7f0
 bool c_vtable_450c94::take_data18(long index, s_dword34 *data)
 {
-	dword bit = 1 << index;
 	bool result = false;
+	dword bit = 1 << index;
 	if (mask14 & bit)
 	{
 		*data = data18[index];
