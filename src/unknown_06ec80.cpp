@@ -21,7 +21,7 @@ union s_6ec80
 // @retail 0x6ec80
 bool function_06ec80(c_class_58d20 *arg_0, bool arg_1)
 {
-    bool local_0 = false;
+    volatile bool local_0 = false;
     bool local_1 = true;
     long local_2 = NONE;
     long local_3 = NONE;

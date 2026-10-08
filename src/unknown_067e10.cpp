@@ -1337,6 +1337,7 @@ long function_821c0(void **arg_f0f1ad, c_replication_view_storage **out_storage)
 // @retail 0x68580
 void __stdcall function_68580(short type, const s_machine_address *address, long value, long unused)
 {
+	(void)&unused;
 	c_replication_view_storage *storage;
 	c_simulation_view *view;
 	long index = function_821c0((void **)&view, &storage);
@@ -1344,12 +1345,13 @@ void __stdcall function_68580(short type, const s_machine_address *address, long
 	{
 		view->initialize(index, type, (s_simulation_view_data *)storage, address, value);
 		c_class_6a600 *world = SIMULATION_WORLD;
+		c_simulation_view **local_0 = world->views;
 		long slot;
-		for (slot = 0; slot < 15; slot++)
+		for (slot = 0; slot < 15; slot++, local_0++)
 		{
-			if (world->views[slot] == 0)
+			if (*local_0 == 0)
 			{
-				world->views[slot] = view;
+				*local_0 = view;
 				world->view_count++;
 				break;
 			}

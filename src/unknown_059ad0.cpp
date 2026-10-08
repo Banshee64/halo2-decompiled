@@ -2066,7 +2066,7 @@ void network_session_leave_joining(c_class_58d20 *session)
 		if (session->member_states[i].unknown00)
 			network_session_member_state_dispose(session, i);
 	}
-	session->current_member = NONE;
+	memset(&session->current_member, 0xff, sizeof(session->current_member));
 	memset(&session->value7420, 0, SESSION_STATE_DATA_SIZE);
 	memcpy(&session->value7420, &data, sizeof(data));
 	session->state = 2;
