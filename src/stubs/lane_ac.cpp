@@ -39,3 +39,8 @@ void __stdcall function_2c0d60(long arg_0, long arg_1, bool arg_2, s_path_settin
 	long arg_9, long arg_10)
 {
 }
+
+
+// @stub 0x2902b0
+void __stdcall function_2902b0(long arg_0, long arg_1, long arg_2, long arg_3,
+	real arg_4, real arg_5, transform4x3f const *arg_6, short arg_7) {}
