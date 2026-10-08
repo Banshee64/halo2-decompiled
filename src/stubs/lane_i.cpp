@@ -59,10 +59,3 @@ long __stdcall function_26d0e0(point3f const *arg_0, s_type_c3b527 *arg_1, long 
 }
 
 
-// @stub 0x1c8df0
-short __stdcall function_1c8df0(long arg_0, void const *arg_1, short arg_2, short arg_3,
-	point3f const *arg_4, long arg_5, bool arg_6, bool arg_7, bool arg_8, bool arg_9)
-{
-	return 0;
-}
-

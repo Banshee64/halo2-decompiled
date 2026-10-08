@@ -54,10 +54,15 @@ void function_18e960(void)
     s_18e961 local_0;
     s_18e962 local_1;
     local_1.field_0 = *(s_18e960 *)((byte *)g_4e6948 + 8);
-    if (g_467214 != NONE && online_task_get_logon_status(g_467214) == 1)
+    if (g_467214 != NONE)
     {
-        packed_clc_write((s_clc_source const *)&local_1.field_0, (s_packed_clc *)&local_0);
-        function_b3ed0((s_packed_clc const *)&local_0, 0x33b, g_453060);
+        switch (online_task_get_logon_status(g_467214))
+        {
+        case 1:
+            packed_clc_write((s_clc_source const *)&local_1.field_0, (s_packed_clc *)&local_0);
+            function_b3ed0((s_packed_clc const *)&local_0, 0x33b, g_453060);
+            break;
+        }
     }
     if (local_1.field_0.field_14 != NONE)
     {

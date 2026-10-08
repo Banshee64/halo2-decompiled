@@ -36,9 +36,13 @@ struct s_packed_clc;
 // @stub 0xb3ed0
 void __stdcall function_b3ed0(s_packed_clc const *arg_0, long arg_1, char const *arg_2) { }
 
-struct s_186ab4;
-struct s_186ab3;
-// @stub 0x185be0
-void __stdcall function_185be0(long arg_0, long arg_1, real arg_2, real arg_3, s_186ab4 *arg_4, s_186ab3 *arg_5) { }
 // @stub 0x151110
 void __stdcall function_151110(long arg_0, void *arg_1) { }
+
+struct s_186ab2;
+// @stub 0x1a4900
+void __stdcall function_1a4900(long arg_0, s_186ab2 *arg_1, vector3f *arg_2) { }
+
+struct s_cluster_query;
+// @stub 0xd47d0
+bool __stdcall function_d47d0(s_cluster_query const *arg_0, color3f *arg_1) { return false; }
