@@ -2307,7 +2307,7 @@ void function_15b980(bool skip_event)
 	}
 }
 
-void function_1e9df0(long field, long counter, s_statborg *statistics, long team, short delta);
+void function_1e9df0(long field, long counter, s_statborg *statistics, long team, long delta);
 void function_1e9ce0(long player_index, long counter, s_statborg *statistics, long field, long delta, bool by_team);
 
 struct s_round_limit_options
