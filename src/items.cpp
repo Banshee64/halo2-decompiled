@@ -87,7 +87,7 @@ struct s_item_unit
 
 #define ITEM_GET(index) (((s_item_header *)g_4e0300->data)[(index) & 0xffff].item)
 
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 point3f *function_b9dd0(long object_index, point3f *result);
 
 // @retail 0x10c850

@@ -58,9 +58,10 @@ void function_a6430(long mask, long object_index, long state_address)
 		function_b7680(object_index, *(real *)(state + 0x24), 0.0f);
 	if (mask & 0x40)
 	{
+		short value = state[0x44] == 0;
 		byte *object = update_object_0a6430(object_index);
 		*(long *)(object + 0xec) = *(long *)(state + 0x40);
-		*(short *)(object + 0x106) = state[0x44] == 0;
+		*(short *)(object + 0x106) = value;
 	}
 	if (mask & 0x80)
 		function_bf830(object_index, *(real *)(state + 0x48), state[0x4c] == 0);
@@ -85,9 +86,9 @@ void function_a6430(long mask, long object_index, long state_address)
 		if (state[0x61] == count)
 		{
 			word first = *(word *)(state + 0x62);
-			word second = *(word *)(state + 0x64);
-			if (first || second)
+			if (first || *(word *)(state + 0x64))
 			{
+				word second = *(word *)(state + 0x64);
 				function_dbc80(object_index, first, second);
 				function_b9b90(object_index, false);
 			}
