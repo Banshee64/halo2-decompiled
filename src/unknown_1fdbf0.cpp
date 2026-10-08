@@ -260,23 +260,30 @@ bool function_1fe1e0(long actor_index, real blend, s_combat_blend_values *out)
 bool function_1ff7d0(long actor_index, point3f const *point, real enemy_radius, real friendly_radius, short *count_out);
 void *function_1e5380(long actor_index);
 
+PRIVATE __forceinline bool function_1fdce1(long arg_0)
+{
+	bool result = true;
+	s_actor_view *actor = actor_get(arg_0);
+	s_prop_node_view *node = prop_node_get(*(long *)((byte *)actor + 0x724));
+	s_type_5cfb45 *state = function_25d690((s_prop_datum *)node);
+	if (state->unknown3c != NONE)
+		return true;
+	byte *prop = g_50241c->data + (node->unknown08 & 0xffff) * 0xc4;
+	if (prop[0x25])
+		return false;
+	short count = 0;
+	function_1ff7d0(arg_0, &state->position, 6.0f, 0.0f, &count);
+	result = count >= 3;
+	return result;
+}
+
 // @retail 0x1fdce0
 bool function_1fdce0(long actor_index, short type)
 {
 	bool result = true;
 	if (type == 3)
 	{
-		s_actor_view *actor = actor_get(actor_index);
-		s_prop_node_view *node = prop_node_get(*(long *)((byte *)actor + 0x724));
-		s_type_5cfb45 *state = function_25d690((s_prop_datum *)node);
-		if (state->unknown3c != NONE)
-			return true;
-		byte *prop = g_50241c->data + (node->unknown08 & 0xffff) * 0xc4;
-		if (prop[0x25])
-			return false;
-		short count = 0;
-		function_1ff7d0(actor_index, &state->position, 6.0f, 0.0f, &count);
-		result = count >= 3;
+		result = function_1fdce1(actor_index);
 	}
 	return result;
 }
