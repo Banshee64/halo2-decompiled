@@ -33,6 +33,7 @@ class c_205559 : public c_205558
 public:
     c_205559(s_205550 *arg_0, long arg_1)
     {
+        *(long volatile *)&field_8 = 0;
         *(long volatile *)&field_10 = arg_1;
         *(s_205550 *volatile *)&field_c = arg_0;
         *(dword volatile *)&field_14 = arg_1 | 0x80000000;

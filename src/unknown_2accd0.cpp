@@ -242,7 +242,7 @@ bool saved_game_file_copy_begin(void *buffer, dword size, bool non_roamable, s_s
 	return async_task_add_work(saved_game_file_copy_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
 }
 // @retail 0x2acf40
-void saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game_file_location *location)
+s_saved_game_file *saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game_file_location *location)
 {
 	file->flags = flags;
 	s_saved_game_file_location *file_location = &file->location;
@@ -257,6 +257,7 @@ void saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game
 	file->buffer = NULL;
 	file->copy_state = _saved_game_file_copy_done;
 	*file_location = *location;
+	return file;
 }
 
 __forceinline void saved_game_file_copy_display_name(wchar_t *destination, wchar_t const *source)
