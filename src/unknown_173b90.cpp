@@ -749,3 +749,168 @@ void function_175a80(bool tinted, dword color_a, dword color_b, s_particle_syste
 		particle_system->color = color_a;
 	}
 }
+
+extern dword g_4c56c0[64];
+extern vector3f *g_4687bc;
+extern vector3f *g_4687b4;
+real function_30bf0(vector3f *vector);
+vector3f *function_11d000(vector3f const *vector, vector3f *out);
+long function_1753a0(s_particle_system_datum *system);
+
+class c_248767 : public s_effect_particle_system_definition
+{
+public:
+	void function_248750(s_particle_system_datum *system, real dt, byte *location);
+};
+
+PRIVATE inline void particle_cross_174a30(vector3f const *forward, vector3f const *up, vector3f *out)
+{
+	out->i = up->k * forward->j - up->j * forward->k;
+	out->j = up->i * forward->k - up->k * forward->i;
+	out->k = up->j * forward->i - forward->j * up->i;
+}
+
+class c_particle_tag_view_174a30
+{
+public:
+	virtual void v0() = 0;
+	virtual void v1() = 0;
+	virtual void v2() = 0;
+	virtual void v3() = 0;
+	virtual void v4() = 0;
+	virtual void v5() = 0;
+	virtual void v6() = 0;
+	virtual void v7() = 0;
+	virtual long count() = 0;
+	virtual long const *names() = 0;
+};
+
+// @retail 0x174a30
+bool function_174a30(s_particle_system_datum *particle_system, real dt)
+{
+	(void)&dt;
+	word flags = *((word *)particle_system + 6);
+	if (flags & 0x100)
+		flags |= 0x200;
+	else
+		flags &= ~0x200;
+	*((volatile word *)particle_system + 6) = flags;
+	particle_system->flag8 = false;
+	flags = *((volatile word *)particle_system + 6);
+	if (!(flags & 0x20) &&
+		!(g_4c56c0[particle_system->location.cluster_index >> 5] &
+		(1 << (particle_system->location.cluster_index & 31))))
+		function_1753f0(particle_system);
+	s_effect_particle_system_definition *definition = particle_system->function_1751d0();
+	long location_index = particle_system->location_index;
+	while (location_index != NONE)
+	{
+		s_particle_location_datum *location = DATUM(g_51ec8c, s_particle_location_datum, location_index);
+		((c_248767 *)definition)->function_248750(particle_system, dt, (byte *)location);
+		location_index = location->next_index;
+	}
+	c_particle_tag_view_174a30 *tag = (c_particle_tag_view_174a30 *)function_137bd0(definition->tag_index);
+	long const *names = tag->names();
+	long child_index = particle_system->first_child_index;
+	while (child_index != NONE)
+	{
+		s_particle_system_datum *child = DATUM(g_510c74, s_particle_system_datum, child_index);
+		long next_index = child->next_index;
+		byte *particle = record_pool_lookup_checked(g_51ec84, child->unknown4c);
+		if (particle)
+		{
+			transform4x3f matrix;
+			long index = child->unknown24;
+			if (index != NONE && index < tag->count())
+			{
+				long name = names[index];
+				switch (name)
+				{
+				case 0x20000ca:
+					matrix.forward = *g_4687b0;
+					matrix.up = *g_4687a8;
+					matrix.left = *g_4687ac;
+					break;
+				case 0x70000c0:
+					matrix.forward = *g_4687bc;
+					matrix.up = *g_4687b4;
+					matrix.left = *g_4687ac;
+					break;
+				default:
+				{
+					vector3f const *velocity = (vector3f *)(particle + 0x28);
+					matrix.forward.i = velocity->i * -1.0f;
+					matrix.forward.j = velocity->j * -1.0f;
+					matrix.forward.k = velocity->k * -1.0f;
+					function_30bf0(&matrix.forward);
+					function_11d000(&matrix.forward, &matrix.up);
+					particle_cross_174a30(&matrix.forward, &matrix.up, &matrix.left);
+					break;
+				}
+				}
+			}
+			else
+			{
+				vector3f const *velocity = (vector3f *)(particle + 0x28);
+				matrix.forward.i = velocity->i * -1.0f;
+				matrix.forward.j = velocity->j * -1.0f;
+				matrix.forward.k = velocity->k * -1.0f;
+				real magnitude = (real)sqrt(matrix.forward.j * matrix.forward.j +
+					matrix.forward.i * matrix.forward.i + matrix.forward.k * matrix.forward.k);
+				if (!(fabs(magnitude) < 0.0001f))
+				{
+					real inverse = 1.0f / magnitude;
+					matrix.forward.i *= inverse;
+					matrix.forward.j *= inverse;
+					matrix.forward.k *= inverse;
+				}
+				real x = (real)fabs(matrix.forward.i);
+				real y = (real)fabs(matrix.forward.j);
+				real z = (real)fabs(matrix.forward.k);
+				if (y >= x && z >= x)
+				{
+					matrix.up.i = 0.0f;
+					matrix.up.j = matrix.forward.k;
+					matrix.up.k = 0.0f - matrix.forward.j;
+				}
+				else if (z >= y)
+				{
+					matrix.up.i = 0.0f - matrix.forward.k;
+					matrix.up.j = 0.0f;
+					matrix.up.k = matrix.forward.i;
+				}
+				else
+				{
+					matrix.up.i = matrix.forward.j;
+					matrix.up.j = 0.0f - matrix.forward.i;
+					matrix.up.k = 0.0f;
+				}
+				particle_cross_174a30(&matrix.forward, &matrix.up, &matrix.left);
+			}
+			matrix.scale = 1.0f;
+			matrix.position = *(point3f *)(particle + 0x1c);
+			dword color = particle_system->color;
+			s_particle_system_spawn spawn;
+			spawn.scale = *(real *)(particle + 8) / *(real *)(particle + 0xc) - dt;
+			spawn.unknown = dt;
+			spawn.location_index = child->location_index;
+			c_type_4e7709 *child_tag = function_137bd0(child->function_1751d0()->tag_index);
+			bool tinted = child_tag->tinted();
+			function_175a80(tinted, color, 0xffffffff, child, child_tag->multiplied());
+			function_175270(child, &spawn, &matrix, false);
+		}
+		if (!function_174a30(child, dt))
+		{
+			s_particle_system_datum *volatile parent = particle_system;
+			particle_system_unlink(child, &parent->first_child_index, &parent->last_child_index);
+			function_174180(child_index);
+		}
+		child_index = next_index;
+	}
+	particle_system->flag0 = false;
+	if (function_1753a0(particle_system) > 0 && TEST_FIELD_BIT(particle_system->flag3))
+		return true;
+	if (particle_system->flag0 || particle_system->first_child_index != NONE || particle_system->flag9)
+		return true;
+	return false;
+}

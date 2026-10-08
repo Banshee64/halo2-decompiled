@@ -393,11 +393,12 @@ void function_24cc73(long player_index, word const *text, long value)
 		s_hud_player *player = hud_player_get(player_index);
 
 		unicode_string_copy(player->text_454, text, 0x3f);
-		player->time_450 = g_510c54->game_time;
-		player->flag_4d2 = true;
-		player->sequence_4d3 = g_5023f4->next_sequence++;
-		player->time_4d8 = g_510c54->game_time;
-		player->value_4dc = value;
+		s_hud_player volatile *local_0 = player;
+		local_0->time_450 = g_510c54->game_time;
+		local_0->flag_4d2 = true;
+		local_0->sequence_4d3 = g_5023f4->next_sequence++;
+		local_0->time_4d8 = g_510c54->game_time;
+		local_0->value_4dc = value;
 	}
 }
 

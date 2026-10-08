@@ -33,13 +33,6 @@ struct s_path_settings;
 struct s_obstacle_list;
 struct s_path_location;
 
-// @stub 0x2c0d60
-void __stdcall function_2c0d60(long arg_0, long arg_1, bool arg_2, s_path_settings const *arg_3,
-	s_obstacle_list *arg_4, long arg_5, point3f const *arg_6, real arg_7, vector3f const *arg_8,
-	long arg_9, long arg_10)
-{
-}
-
 
 // @stub 0x2902b0
 void __stdcall function_2902b0(long arg_0, long arg_1, long arg_2, long arg_3,

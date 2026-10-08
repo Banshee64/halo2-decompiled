@@ -2161,6 +2161,12 @@ long function_276dd0(long actor_index)
 	return result;
 }
 
+PRIVATE __forceinline bool function_276381(long arg_0, s_unit_request *arg_1)
+{
+	arg_1->type = 0x24;
+	return function_e6900(arg_0, arg_1);
+}
+
 /* whether an actor an ai index names runs the command script named */
 // @retail 0x276380
 bool function_276380(long ai_index)
@@ -2171,8 +2177,7 @@ bool function_276380(long ai_index)
 	{
 		s_unit_request request;
 		memset(&request, 0, sizeof(request));
-		request.type = 0x24;
-		result = function_e6900(actor_datum_get(actor_index)->unit_index, &request);
+		result = function_276381(actor_datum_get(actor_index)->unit_index, &request);
 	}
 	return result;
 }

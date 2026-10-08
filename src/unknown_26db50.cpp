@@ -1,5 +1,6 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 #include "unknown_11c920.h"
+#include "unknown_26c380.h"
 #include "slot_handler.h"
 #include "unknown_20fe20.h"
 #include "unknown_11cc90.h"
@@ -411,4 +412,113 @@ short __stdcall function_26e090(long object_index, s_object_marker *markers, sho
 		}
 	}
 	return count;
+}
+
+struct s_pathfinding_data;
+struct s_path_trace_result;
+struct s_collision_result_1697c0;
+bool function_26c590(s_pathfinding_data const *pathfinding, point3f const *origin, long sector_index,
+	long target_sector_index, vector3f const *direction, real distance, s_path_location const *location,
+	s_path_trace_result *trace);
+long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *location, point3f const *point);
+
+struct s_record_pathfinding_view
+{
+	byte field_0[0xc4];
+	long count;
+	s_pathfinding_data *pathfinding;
+};
+
+struct s_record_collision_view
+{
+	long type;
+	real fraction;
+	point3f point;
+	byte field_14[0x5c - 0x14];
+};
+
+PRIVATE inline void record_rotate_vector(vector3f *vector, vector3f const *axis, real sine, real cosine)
+{
+	real along = record_dot3f(axis, vector) * (1.0f - cosine);
+	real i = vector->i, j = vector->j, k = vector->k;
+	vector->i = axis->i * along + i * cosine - (axis->k * j - axis->j * k) * sine;
+	vector->j = axis->j * along + j * cosine - (axis->i * k - axis->k * i) * sine;
+	vector->k = axis->k * along + k * cosine - (axis->j * i - axis->i * j) * sine;
+}
+
+// @retail 0x26d570
+long function_26d570(long object_index)
+{
+	long result = function_26d3f0(object_index, 0);
+	if (result != NONE)
+	{
+		s_location_record_view *record = (s_location_record_view *)(g_51eca4->data + (result & 0xffff) * sizeof(s_location_record_view));
+		vector3f const *up = g_4687b0;
+		long sector_index = record->location_index;
+		real radius = *(real *)((byte *)object_get(object_index) + 0x3c);
+		long ring = 0;
+		long rings_remaining = 2;
+		do
+		{
+			real distance = (real)((double)radius * 1.2 + (real)ring * radius);
+			real phase = (real)ring * 0.39269909262657166f;
+			for (short spoke = 0; spoke < 8; spoke++)
+			{
+				vector3f direction = *g_4687a8;
+				real angle = (real)spoke * 0.7853981852531433f + phase;
+				real sine = (real)sin(angle);
+				real cosine = (real)cos(angle);
+				record_rotate_vector(&direction, up, sine, cosine);
+				s_record_pathfinding_view *structure = (s_record_pathfinding_view *)g_4e0348;
+				s_pathfinding_data *pathfinding = NULL;
+				if (structure->count > 0)
+					pathfinding = structure->pathfinding;
+				s_sector_trace_result trace;
+				point3f *origin = &record->point.point;
+				if (!function_26c590(pathfinding, origin, sector_index, NONE, &direction, distance, NULL,
+					(s_path_trace_result *)&trace) && !trace.blocked)
+				{
+					point3f point;
+					point.x = direction.i * trace.distance + origin->x;
+					point.y = direction.j * trace.distance + origin->y;
+					point.z = direction.k * trace.distance + origin->z;
+					point.x += up->i * 0.5f;
+					point.y += up->j * 0.5f;
+					point.z += up->k * 0.5f;
+					s_location_entry_view *entry = (s_location_entry_view *)&record->entries[record->count];
+					point3f world;
+					s_record_collision_view collision;
+					*(short *)((byte *)&collision + 0x24) = NONE;
+					if (!function_2104b0(record->point.output_index, &point, &world))
+						world = point;
+					s_pathfinding_data *volatile saved_pathfinding = NULL;
+					structure = (s_record_pathfinding_view *)g_4e0348;
+					if (structure->count > 0)
+						saved_pathfinding = structure->pathfinding;
+					entry->owner = function_26d100(up, (s_collision_result_1697c0 *)&collision, (long *)&entry->location, &world);
+					up = g_4687b0;
+					point.x = up->i * 0.1f + collision.point.x;
+					point.y = up->j * 0.1f + collision.point.y;
+					point.z = up->k * 0.1f + collision.point.z;
+					long sector = function_14a280((s_bsp3d *)g_4e0340, &point, 0);
+					if (sector != NONE)
+						entry->sector = ((s_record_sector_map *)g_4e0348)->entries[sector].sector;
+					if (entry->sector != (word)NONE)
+					{
+						entry->flags |= 0x40;
+						entry->direction.i = 0.0f;
+						entry->direction.j = 1.5707963705062866f;
+						entry->field10 = NONE;
+						((short *)record->unknown444)[record->count] = 0;
+						location_entry_activate(record->active, record->count);
+						if (++record->count == 32)
+							break;
+					}
+				}
+			}
+			ring++;
+		}
+		while (--rings_remaining);
+	}
+	return result;
 }

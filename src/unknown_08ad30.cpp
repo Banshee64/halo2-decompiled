@@ -498,15 +498,16 @@ void c_entry_table::creation_relevance(dword identifier, dword flags, s_update_o
 	{
 		s_creation_weight_view const *weight = (s_creation_weight_view const *)&g_4cef68[entry->handler_index];
 		real value;
+		real local_0;
 		if (weight->weight > 0.0f)
 		{
 			value = weight->weight;
 		}
 		else
 		{
-			value = weight->relevance_bounds[1] - weight->relevance_bounds[0];
-			value *= function_aa4d0(1, (long const *)&entry->identifier, weight->maximum_distance, (s_relevance_observers const *)observers, 0);
-			value += weight->relevance_bounds[0];
+			local_0 = weight->relevance_bounds[1] - weight->relevance_bounds[0];
+			value = function_aa4d0(1, (long const *)&entry->identifier, weight->maximum_distance, (s_relevance_observers const *)observers, 0);
+			value = local_0 * value + weight->relevance_bounds[0];
 		}
 		*relevance = value;
 		handler->v9(entry, observers, bits);

@@ -436,3 +436,111 @@ real function_31b40(vector3f *vector, vector3f const *axis)
 	*vector = result;
 	return function_30bf0(vector);
 }
+
+extern s_record_pool *g_4e030c;
+
+struct s_render_entry_110
+{
+    long unknown00;
+    long tag;
+    byte unknown08[0x4c - 8];
+    long object;
+    long unknown50;
+    short index;
+    byte unknown56[0x110 - 0x56];
+};
+
+struct s_index_flags_31660
+{
+    long identifier;
+    short count;
+    short unknown06;
+    word *values;
+    long *groups;
+};
+struct s_index_state_31660
+{
+    byte unknown00[0xc];
+    s_index_flags_31660 *first;
+    void *unknown10;
+    s_index_flags_31660 *second;
+    s_index_flags_31660 *third;
+};
+
+// @retail 0x31660
+void function_31660(long index, long tag, s_index_state_31660 *state,
+    long first_group, long second_group, bool skip, bool *output)
+{
+    long const *first_reference = &first_group;
+    long const *second_reference = &second_group;
+    bool const *skip_reference = &skip;
+    bool *const *output_reference = &output;
+    s_render_entry_110 *entry = &((s_render_entry_110 *)g_4e030c->data)[index & 0xffff];
+    dword const *definition = (dword const *)g_4e3b44[tag & 0xffff].bytes;
+    if (*definition & 0x10000)
+    {
+        for (long i = 0; i < state->first->count; ++i)
+        {
+            word *value = &state->first->values[(short)i];
+            long flags = *value;
+            flags &= 0xdfff;
+            flags |= 0x1000;
+            *value = (word)flags;
+        }
+        for (long i = 0; i < state->third->count; ++i)
+        {
+            word *value = &state->third->values[(short)i];
+            long flags = *value;
+            flags &= 0xdfff;
+            flags |= 0x1000;
+            *value = (word)flags;
+        }
+    }
+    if (*definition & 0x20000)
+        for (long i = 0; i < state->second->count; ++i)
+        {
+            word *value = &state->second->values[(short)i];
+            long flags = *value;
+            flags &= 0xdfff;
+            flags |= 0x1000;
+            *value = (word)flags;
+        }
+    if (*definition & 0x3800)
+    {
+        byte flag11 = (byte)~(*definition >> 11);
+        byte flag13_source = (byte)~(*definition >> 13);
+        byte flag12_source = (byte)~(*definition >> 12);
+        byte flag12 = (flag11 | flag13_source) & 1;
+        byte flag13 = (flag12_source | flag13_source) & 1;
+        for (long i = 0; i < state->second->count; ++i)
+            if (*first_reference == NONE || state->second->groups[(short)i] == *first_reference)
+            {
+                word *value = &state->second->values[(short)i];
+                long flags = *value;
+                if (flag13) flags |= 0x2000; else flags &= ~0x2000;
+                if (flag12) flags |= 0x1000; else flags &= ~0x1000;
+                *value = (word)flags;
+            }
+        if (*first_reference != *second_reference)
+            for (long i = 0; i < state->second->count; ++i)
+                if (*second_reference == NONE || state->second->groups[(short)i] == *second_reference)
+                {
+                    word *value = &state->second->values[(short)i];
+                    long flags = *value;
+                    if (flag13) flags |= 0x2000; else flags &= ~0x2000;
+                    if (flag12) flags |= 0x1000; else flags &= ~0x1000;
+                    *value = (word)flags;
+                }
+    }
+    if (state->first->count > 0 && (*definition & 4) && state->first->count > 1)
+    {
+        *(real *)((byte *)entry + 0xf8) = 1.0f;
+        // Retail's final store is reached only with a null output argument.
+        if (!*output_reference && !*skip_reference)
+        {
+            for (long i = 0; i < state->first->count; ++i)
+                state->first->values[(short)i] |= 0x3000;
+            **output_reference = true;
+        }
+    }
+}

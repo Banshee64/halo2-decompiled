@@ -32,10 +32,7 @@ void function_07a840(void)
 
 
 
-// @stub 0x80390
-void function_80390(void)
-{
-}
+
 
 // @stub 0x195a40
 void function_195a40(void)
@@ -89,4 +86,10 @@ struct s_simulation_definition_registry;
 void __stdcall function_82240(s_simulation_definition_registry *registry,
 	long *entity_count, long *event_count)
 {
+}
+
+// @stub 0x7fb50
+bool function_7fb50(void)
+{
+ return false;
 }

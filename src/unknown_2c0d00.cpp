@@ -10,6 +10,70 @@
 
 // @flags /O2 /arch:SSE /Gr
 
+#include "ai_actor.h"
+#include "path.h"
+#include "object_markers.h"
+#include "props.h"
+#include "object_queries.h"
+#include "unknown_1428b0.h"
+
+real function_30bf0(vector3f *vector);
+point3f *function_b9dd0(long object_index, point3f *result);
+bool object_or_parent_hidden(long object_index);
+transform4x3f *function_ba160(long object_index, transform4x3f *matrix);
+void function_11bed0(s_location *location, point3f const *point);
+short __stdcall function_bb050(long mask, dword type_mask, void const *location,
+    point3f const *position, real radius, long *objects, short maximum_count);
+short function_26f930(long object_index, s_object_marker *markers, short capacity, long flags);
+short function_26fbf0(long object_index, s_object_marker *markers, short capacity, long flags);
+short function_26fe20(long object_index, s_object_marker *markers, short capacity, long flags);
+bool function_26f8f0(s_object_marker const *marker);
+long function_25d810(long object_index, long actor_index, bool create);
+
+struct s_obstacle_object_flags_2c
+{
+    dword : 22;
+    dword restricted_spheres : 1;
+    dword no_obstacle : 1;
+    dword : 8;
+};
+
+struct s_obstacle_unit_flags_2c
+{
+    byte : 2;
+    byte no_obstacle : 1;
+    byte : 5;
+};
+
+struct s_obstacle_definition_flags_2c
+{
+    byte : 3;
+    byte no_obstacle : 1;
+    byte : 4;
+};
+
+struct s_obstacle_motion_definition_2c
+{
+    word flags;
+    byte field_2[0xc - 2];
+    short priority;
+};
+
+struct s_obstacle_sphere_2c
+{
+    short node;
+    word flags;
+    point3f center;
+    real radius;
+};
+
+struct s_obstacle_physics_definition_2c
+{
+    byte field_0[0x24];
+    long count;
+    s_obstacle_sphere_2c *spheres;
+};
+
 
 /* the nearest obstacle a ray hits */
 struct s_obstacle_hit
@@ -140,6 +204,370 @@ bool obstacle_list_add(s_obstacle_list *list, word flags, point2f const *center,
 	obstacle->center = *center;
 	obstacle->radius = radius;
 	return true;
+}
+
+void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_index, byte flags,
+    s_path_settings const *settings, s_obstacle_list *obstacles, s_obstacle_list *blocking_obstacles,
+    point3f const *position, real radius, vector3f const *direction, long unit_index, long ignore_index);
+
+// @retail 0x2c0d60
+void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_index, byte flags,
+    s_path_settings const *volatile settings, s_obstacle_list *obstacles, s_obstacle_list *blocking_obstacles,
+    point3f const *position, real radius, vector3f const *direction, volatile long unit_index, long ignore_index)
+{
+    short ignore_priority = 0;
+    short block_priority = 0;
+    short range_min = 0;
+    short range_max = 0;
+    byte *self_unit = NULL;
+    s_actor_view *volatile actor = NULL;
+    bool straight = true;
+    bool aligned = true;
+    bool local_4d3867 = false;
+    if (actor_index != NONE)
+    {
+        actor = actor_get(actor_index);
+        byte *unit = (byte *)ai_object_get(actor->unknown018);
+        if (previous_direction)
+        {
+            real dot = direction->k * previous_direction->k;
+            dot += direction->j * previous_direction->j;
+            dot += direction->i * previous_direction->i;
+            straight = dot > 0.95f;
+            aligned = dot > 0.8660253882408142f;
+        }
+        local_4d3867 = actor->unknown26c != NONE;
+        if (unit[0xaa] == 0)
+            self_unit = unit;
+        if (settings)
+        {
+            if (flags & 1) ignore_priority = settings->unknown0e;
+            if (flags & 4) block_priority = settings->unknown10;
+            if (flags & 2)
+            {
+                range_min = settings->unknown12;
+                range_max = settings->unknown14;
+            }
+        }
+    }
+    s_location location;
+    if (unit_index != NONE)
+        location = *(s_location *)((byte *)ai_object_get(unit_index) + 0x28);
+    else
+    {
+        point3f raised;
+        raised.x = g_4687b0->i * 0.05f + position->x;
+        raised.y = g_4687b0->j * 0.05f + position->y;
+        raised.z = g_4687b0->k * 0.05f + position->z;
+        function_11bed0(&location, &raised);
+    }
+    long object_indices[128];
+    short object_count = function_bb050(1, 0x8c3, &location, position, radius, object_indices, 128);
+    s_object_marker first_markers[32];
+    s_object_marker second_markers[32];
+    s_object_marker third_markers[32];
+    for (short i = 0; i < object_count; ++i)
+    {
+        long object_index = object_indices[i];
+        byte *object = (byte *)ai_object_get(object_index);
+        real inflation = 0.0f;
+        bool skip_classification = false;
+        bool device_spheres = false;
+        bool restricted_spheres = false;
+        if (object_index == unit_index || object_index == ignore_index)
+            continue;
+        s_obstacle_object_flags_2c *object_flags = (s_obstacle_object_flags_2c *)(object + 4);
+        if (TEST_FIELD_BIT(object_flags->restricted_spheres))
+            restricted_spheres = true;
+        else if (TEST_FIELD_BIT(object_flags->no_obstacle))
+            continue;
+        if (object_or_parent_hidden(object_index))
+            continue;
+        if (self_unit && self_unit[0x3dc] == 1 && object_index == *(long *)(self_unit + 0x448))
+            continue;
+        long type = (char)object[0xaa];
+        if (type == 0)
+        {
+            if (TEST_FIELD_BIT(((s_obstacle_unit_flags_2c *)(object + 0x10a))->no_obstacle))
+                continue;
+            if (actor_index != NONE)
+            {
+                long reference_index = function_25d810(object_index, actor_index, false);
+                if (reference_index != NONE && prop_ref_get(reference_index)->state < 1)
+                    continue;
+            }
+            long other_actor_index = *(long *)(object + 0x12c);
+            if (other_actor_index != NONE)
+            {
+                s_actor_view *other = actor_get(other_actor_index);
+                bool enemy = actor && function_1df560(actor->unknown024, other->unknown024);
+                if (*((byte *)other + 0x5d0) && (!actor || actor->unknown26c == NONE))
+                {
+                    point3f center;
+                    function_b9dd0(object_index, &center);
+                    vector3f offset;
+                    offset.i = center.x - position->x;
+                    offset.j = center.y - position->y;
+                    offset.k = center.z - position->z;
+                    if (function_30bf0(&offset) > 0.0f)
+                    {
+                        vector3f const *other_direction = (vector3f const *)((byte *)other + 0x5ec);
+                        real dot = offset.k * other_direction->k + offset.j * other_direction->j + offset.i * other_direction->i;
+                        if (dot > magnitude3d(direction) * 0.7071067690849304f)
+                            continue;
+                    }
+                }
+                if (actor)
+                {
+                    if (actor->unknown26c != NONE && !enemy)
+                        inflation = 1.0f;
+                    else if (enemy && actor->unknown223)
+                        inflation = 0.5f;
+                }
+                skip_classification = !enemy;
+            }
+            else if (actor && *(long *)(object + 0x13c) != NONE)
+            {
+                bool enemy = team_is_enemy(actor->unknown024, 1);
+                if (actor->unknown26c != NONE && !enemy)
+                    inflation = 1.0f;
+                else if (enemy && actor->unknown223)
+                    inflation = 0.5f;
+                skip_classification = !enemy;
+            }
+        }
+        else if (type == 1)
+        {
+            if (actor && actor->unknown26c == NONE)
+            {
+                short team = *(short *)(object + 0x138);
+                skip_classification = team == actor->unknown024 || !function_1df560(actor->unknown024, team);
+            }
+        }
+        else if (type == 7)
+        {
+            byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+            word device_flags = *(word *)(definition + 0x11e);
+            if (!(device_flags & 1) || ((device_flags & 2) && *(real *)(object + 0x140) == 1.0f && !(object[0x1cc] & 1)))
+                device_spheres = true;
+        }
+        else if (type == 11)
+        {
+            long component_index = *(long *)(object + 0xb4);
+            if (component_index != NONE && *(char *)(g_51e9b8->data + (component_index & 0xffff) * 0xa0 + 0x1c) <= 1)
+                continue;
+        }
+        vector3f offset;
+        offset.i = *(real *)(object + 0x30) - position->x;
+        offset.j = *(real *)(object + 0x34) - position->y;
+        offset.k = *(real *)(object + 0x38) - position->z;
+        real object_radius = *(real *)(object + 0x3c) + radius;
+        real distance_squared = offset.k * offset.k + offset.j * offset.j + offset.i * offset.i;
+        if (object_radius * object_radius < distance_squared)
+            continue;
+        byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+        if (TEST_FIELD_BIT(((s_obstacle_definition_flags_2c *)(definition + 2))->no_obstacle))
+            continue;
+        s_obstacle_motion_definition_2c *motion = NULL;
+        bool blocking = false;
+        dword obstacle_flags = 0;
+        dword sphere_flags = 0;
+        if (settings->unknown18 != object_index && !skip_classification)
+        {
+            short priority = 0;
+            bool enabled = true;
+            if (*(long *)(definition + 0x5c) > 0)
+            {
+                motion = *(s_obstacle_motion_definition_2c **)(definition + 0x60);
+                if ((motion->flags & 2) && *(real *)(object + 0xec) <= 0.0f)
+                    enabled = false;
+                else
+                    priority = motion->priority;
+            }
+            if (priority == 0)
+            {
+                long component_index = *(long *)(object + 0xb4);
+                if (component_index != NONE)
+                    priority = *(char *)(g_51e9b8->data + (component_index & 0xffff) * 0xa0 + 0x1c);
+                if (!enabled)
+                    continue;
+            }
+            if (priority > 0)
+            {
+                if (ignore_priority >= priority)
+                    continue;
+                if (block_priority >= priority && aligned)
+                {
+                    obstacle_flags = 0x10;
+                    blocking = true;
+                }
+                else if (range_min <= priority && range_max >= priority && type != 0)
+                {
+                    obstacle_flags = 0x20;
+                    blocking = true;
+                }
+            }
+            if ((flags & 8) && straight)
+            {
+                short count = function_26f930(object_index, first_markers, 32, (word)settings->unknown04);
+                for (short m = 0; m < count; ++m)
+                {
+                    s_object_marker const *marker = &first_markers[m];
+                    if (function_26f8f0(marker))
+                    {
+                        real dot = marker->matrix.up.k * (position->z - marker->matrix.position.z);
+                        dot += marker->matrix.up.j * (position->y - marker->matrix.position.y);
+                        dot += (position->x - marker->matrix.position.x) * marker->matrix.up.i;
+                        if (dot >= -0.2f && dot < marker->unknown6c + 0.2f &&
+                            fabs(marker->matrix.left.k * direction->k + marker->matrix.left.j * direction->j + marker->matrix.left.i * direction->i) >= 0.9f)
+                        {
+                            obstacle_flags |= 0x40;
+                            blocking = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if ((flags & 0x10) && aligned)
+            {
+                short count = function_26fbf0(object_index, second_markers, 32, (word)settings->unknown04);
+                for (short m = 0; m < count; ++m)
+                {
+                    s_object_marker const *marker = &second_markers[m];
+                    if (function_26f8f0(marker))
+                    {
+                        real dot = marker->matrix.up.k * (position->z - marker->matrix.position.z);
+                        dot += marker->matrix.up.j * (position->y - marker->matrix.position.y);
+                        dot += marker->matrix.up.i * (position->x - marker->matrix.position.x);
+                        if (dot >= 0.1f && dot < marker->unknown6c - 0.1f &&
+                            fabs(marker->matrix.left.k * direction->k + marker->matrix.left.j * direction->j + direction->i * marker->matrix.left.i) >= 0.9f)
+                        {
+                            obstacle_flags |= 0x100;
+                            blocking = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if ((flags & 0x20) && aligned)
+            {
+                short count = function_26fe20(object_index, third_markers, 32, (word)settings->unknown04);
+                for (short m = 0; m < count; ++m)
+                {
+                    if (function_26f8f0(&third_markers[m]))
+                    {
+                        obstacle_flags |= 0x80;
+                        blocking = true;
+                        break;
+                    }
+                }
+            }
+            if (actor && actor->unknown26c != NONE && ((1 << type) & 3))
+            {
+                point3f center;
+                function_b9dd0(object_index, &center);
+                real dot = (center.z - position->z) * direction->k;
+                dot += (center.x - position->x) * direction->i;
+                dot += direction->j * (center.y - position->y);
+                long vehicle_index = *(long *)(object + 0x248);
+                if (dot > 0.0f && vehicle_index != NONE)
+                {
+                    short team = *(short *)(object + 0x138);
+                    if (team == actor->unknown024 || !function_1df560(actor->unknown024, team))
+                    {
+                        byte *vehicle = (byte *)ai_object_get(vehicle_index);
+                        long vehicle_actor_index = *(long *)(vehicle + 0x12c);
+                        bool forward = false;
+                        if (vehicle_actor_index != NONE)
+                        {
+                            byte *vehicle_actor = (byte *)actor_get(vehicle_actor_index);
+                            if (vehicle_actor[0x5d0])
+                            {
+                                vector3f const *heading = (vector3f const *)(vehicle_actor + 0x5ec);
+                                forward = heading->k * direction->k + heading->j * direction->j + direction->i * heading->i > 0.0f;
+                            }
+                        }
+                        vector3f const *velocity = (vector3f const *)(object + 0x88);
+                        if (forward || velocity->k * direction->k + velocity->j * direction->j + direction->i * velocity->i > 0.0f)
+                        {
+                            obstacle_flags |= 0x200;
+                            blocking = true;
+                            inflation = 4.0f;
+                        }
+                    }
+                }
+            }
+            if (motion && (flags & 0x40) && (motion->flags & 2))
+                sphere_flags = 8;
+        }
+        long model_index = *(long *)(definition + 0x38);
+        if (model_index == NONE)
+            continue;
+        long physics_index = *(long *)(g_4e3b44[model_index & 0xffff].bytes + 0xc);
+        if (physics_index == NONE)
+            continue;
+        s_obstacle_physics_definition_2c *physics = (s_obstacle_physics_definition_2c *)g_4e3b44[physics_index & 0xffff].bytes;
+        if (physics->count <= 0)
+            continue;
+        transform4x3f object_matrix;
+        function_ba160(object_index, &object_matrix);
+        for (short s = 0; s < physics->count; ++s)
+        {
+            s_obstacle_sphere_2c const *sphere = &physics->spheres[s];
+            if (device_spheres && !(sphere->flags & 1))
+                continue;
+            if (restricted_spheres && !(sphere->flags & 4))
+                continue;
+            if (!local_4d3867 && (sphere->flags & 2))
+                continue;
+            point3f center;
+            real local_a47c5e;
+            if (sphere->node != NONE)
+            {
+                transform4x3f *matrix = function_b8bd0(object_index, sphere->node);
+                transform4x3f_apply_point(matrix, &sphere->center, &center);
+                local_a47c5e = sphere->radius * matrix->scale;
+            }
+            else
+            {
+                transform4x3f_apply_point(&object_matrix, &sphere->center, &center);
+                local_a47c5e = sphere->radius * object_matrix.scale;
+            }
+            if (position->z > center.z + local_a47c5e + 1.0f && direction->k > -0.2f)
+                continue;
+            if (center.z - local_a47c5e - 1.0f > position->z && direction->k < 0.2f)
+                continue;
+            vector3f difference;
+            difference.k = center.z - position->z;
+            difference.j = center.y - position->y;
+            difference.i = center.x - position->x;
+            real squared = difference.k * difference.k * 4.0f;
+            squared += difference.j * difference.j;
+            squared += difference.i * difference.i;
+            real combined_radius = local_a47c5e + radius;
+            if (combined_radius * combined_radius < squared)
+                continue;
+            long moving = 0;
+            if (type == 0)
+            {
+                real dot = direction->j * difference.j + difference.k * direction->k + direction->i * difference.i;
+                if (dot > 0.0f)
+                {
+                    vector3f const *velocity = (vector3f const *)(object + 0x88);
+                    if (velocity->k * direction->k + velocity->j * direction->j + velocity->i * direction->i > 2.0f)
+                        moving = 1;
+                }
+            }
+            word combined_flags = (word)(moving | sphere_flags | obstacle_flags);
+            if (blocking)
+            {
+                if (blocking_obstacles)
+                    obstacle_list_add(blocking_obstacles, (word)obstacle_flags, (point2f const *)&center, object_index, local_a47c5e + inflation);
+            }
+            else
+                obstacle_list_add(obstacles, combined_flags, (point2f const *)&center, object_index, local_a47c5e + inflation);
+        }
+    }
 }
 
 /* the first obstacle other than the one ignored whose circle, grown by the
