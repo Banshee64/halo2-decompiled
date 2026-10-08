@@ -1969,7 +1969,7 @@ struct s_unit_child_iterator
 
 void function_d0590(s_unit_child_iterator *iterator, long object_index);
 s_damage_object *function_d05c0(s_unit_child_iterator *iterator);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_b9c60(long object_index, bool flag);
 void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag);
 bool function_b9d20(long object_index);

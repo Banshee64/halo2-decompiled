@@ -1866,7 +1866,7 @@ void __stdcall function_2a1850(short function_index, long thread_index, bool ini
 
 s_type_f4462a const g_44b538 = { _hs_type_void, 0, function_2a1850, NULL, 2, { _hs_type_object, _hs_type_boolean } };
 
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 
 /* 65: void (object) */
 // @retail 0x2a18d0

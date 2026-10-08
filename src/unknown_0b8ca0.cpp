@@ -189,33 +189,43 @@ short function_b8d30(long object_index, long marker_name, s_object_marker *marke
 	return result;
 }
 
-#pragma inline_depth(0)
+// Preserve the activation call boundary while inlining the component lookup.
+__declspec(noinline) void __stdcall function_b9b90(long object_index, bool disable);
 // @retail 0xb9b90
-void function_b9b90(long object_index, bool disable)
+void __stdcall function_b9b90(long object_index, bool disable)
 {
+	struct s_physics_flags
+	{
+		unsigned short : 6;
+		word active : 1;
+		unsigned short : 1;
+		word disabled : 1;
+		unsigned short : 7;
+	};
 	s_object_header_view *header = OBJECT_HEADER_GET(object_index);
 	s_object_view *object = header->object;
 	dword type_mask = 1 << header->type;
 
-	if ((type_mask & 0x1883) && TEST_FIELD_BIT(object->physics_active) && object->havok_component_index != NONE)
+	if ((type_mask & 0x1883) &&
+		TEST_FIELD_BIT(((s_physics_flags *)((byte *)object + 0xc0))->active) &&
+		object->havok_component_index != NONE)
 	{
 		if (!disable)
 		{
 			havok_component_rigid_bodies_activate(havok_component_get(object->havok_component_index));
-			object->physics_disabled = false;
-			function_b7360(object_index);
 		}
+		else
+			goto update;
 	}
 	else if (disable)
 	{
-		object->physics_disabled = true;
+		((s_physics_flags *)((byte *)object + 0xc0))->disabled = true;
+		goto update;
 	}
-	else
-	{
-		object->physics_disabled = false;
-		function_b7360(object_index);
-	}
+	((s_physics_flags *)((byte *)object + 0xc0))->disabled = false;
+	function_b7360(object_index);
 
+update:
 	if (type_mask & 0x1c)
 	{
 		s_object_view *item = OBJECT_GET(object_index);
@@ -229,7 +239,6 @@ void function_b9b90(long object_index, bool disable)
 			function_b58c0(projectile->field_x10a40f, 0x400);
 	}
 }
-#pragma inline_depth()
 
 
 void __stdcall function_bd020(long object_index);
