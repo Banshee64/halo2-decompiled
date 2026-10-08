@@ -328,8 +328,8 @@ long function_21d110(s_sound_play_state *state, long tag_index)
 // @retail 0x21d2c0
 long function_21d2c0(long platform_playback, real scale, short priority)
 {
-	s_sound_effect_definition *definition = NULL;
 	long effect_index = NONE;
+	s_sound_effect_definition *definition = NULL;
 
 	if (sound_effect_get_definition(NONE, platform_playback, &definition))
 	{

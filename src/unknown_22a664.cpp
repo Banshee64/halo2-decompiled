@@ -30,6 +30,16 @@ struct s_22a664
 	dword field_18;
 };
 
+PRIVATE __forceinline real function_22a665(byte const *arg_0, long arg_1)
+{
+    real local_0;
+    if (*(word const *)(arg_0 + 0xe) & 0x10)
+        local_0 = (real)*(short const *)(arg_0 + arg_1);
+    else
+        local_0 = 1.0f;
+    return local_0;
+}
+
 // @retail 0x22a664
 void function_22a664(s_widget_quad_2b11 const *arg_0, s_float_rect const *arg_1,
 	long arg_2, long arg_3, long arg_4)
@@ -40,14 +50,8 @@ void function_22a664(s_widget_quad_2b11 const *arg_0, s_float_rect const *arg_1,
 	D3DTexture *local_8 = function_3bcb0((s_bitmap_data *)local_1);
 	if (local_8)
 	{
-		real local_2;
-		real local_3 = 1.0f;
-		if (*(word const *)(local_1 + 0xe) & 0x10)
-			local_2 = (real)*(short const *)(local_1 + 4);
-		else
-			local_2 = local_3;
-		if (*(word const *)(local_1 + 0xe) & 0x10)
-			local_3 = (real)*(short const *)(local_1 + 6);
+		real local_2 = function_22a665(local_1, 4);
+		real local_3 = function_22a665(local_1, 6);
 		real const *local_4 = (real const *)arg_0;
 		point2f const *local_5 = (point2f const *)arg_1;
 		local_0[0].field_0 = local_5[0].x;

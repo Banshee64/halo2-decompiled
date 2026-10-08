@@ -576,9 +576,10 @@ bool impact_matches_data(
 	s_impact_data const *data,
 	bool check_position)
 {
+	long local_0 = data->component_b;
 	long component_a = data->component_a;
 
-	if (impacts_match(impact->component_a, impact->component_b, component_a, data->component_b,
+	if (impacts_match(impact->component_a, impact->component_b, component_a, local_0,
 		impact->material_a, impact->material_b, data->material_a, data->material_b,
 		impact->unknownd, data->type, impact->unknowne, data->unknown38, impact->shape.type, data->shape.type))
 	{
@@ -595,7 +596,7 @@ bool impact_matches_data(
 				return false;
 			}
 		}
-		if (impact_components_valid(component_a, data->component_b))
+		if (impact_components_valid(component_a, local_0))
 			return true;
 	}
 	return false;
