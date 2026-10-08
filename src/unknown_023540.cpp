@@ -2637,7 +2637,8 @@ void __stdcall function_2a2f0(volatile long tag, volatile real alpha)
                 height = 1.0f;
                 if (!(local_98083a < 1.0f)) height = local_98083a;
             }
-            long count = *(long *)(definition + 0x44);
+            // Reload the count after the dimension writes.
+            long count = *(volatile long *)(definition + 0x44);
             byte *selected = NULL;
             if (count > 0)
             {
