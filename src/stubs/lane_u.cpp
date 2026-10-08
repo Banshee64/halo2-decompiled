@@ -10,12 +10,6 @@ void function_20b450(long arg_0, real arg_1)
 {
 }
 
-// @stub 0x1a0680
-bool function_1a0680(long arg_0, s_player_profile *arg_1, s_saved_game_file_task *arg_2)
-{
-    return false;
-}
-
 // @stub 0x268840
 void function_268840(void)
 {
