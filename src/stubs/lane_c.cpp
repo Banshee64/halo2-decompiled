@@ -3,6 +3,136 @@
 #include "unknown_11c920.h"
 #include "unknown_1cec30.h"
 
+// @stub 0x211640
+void function_211640(long arg_0) {}
+
+// @stub 0x295e60
+void function_295e60(long arg_0) {}
+
+class c_1d1261
+{
+public:
+ hkBool function_30ca30(void *arg_0);
+ void function_30bd10(void *arg_0);
+};
+// @stub 0x30ca30
+hkBool c_1d1261::function_30ca30(void *arg_0) { return hkBool(); }
+// @stub 0x30bd10
+void c_1d1261::function_30bd10(void *arg_0) {}
+
+class c_2df9d0
+{
+public:
+ virtual hkBool function_2df9d0(void const *arg_0, void const *arg_1);
+};
+// @stub 0x2df9d0
+hkBool c_2df9d0::function_2df9d0(void const *arg_0, void const *arg_1) { return hkBool(); }
+
+class c_2df8f0
+{
+public:
+ virtual hkBool function_2df8f0(void const *arg_0, void const *arg_1);
+};
+// @stub 0x2df8f0
+hkBool c_2df8f0::function_2df8f0(void const *arg_0, void const *arg_1) { return hkBool(); }
+
+class c_2dfae0
+{
+public:
+ virtual hkBool function_2dfae0(void const *arg_0, void const *arg_1);
+};
+// @stub 0x2dfae0
+hkBool c_2dfae0::function_2dfae0(void const *arg_0, void const *arg_1) { return hkBool(); }
+
+class c_2dfbf0
+{
+public:
+ c_2dfbf0();
+ void function_2df950(long arg_0, long arg_1);
+ void function_2df990(long arg_0, long arg_1);
+};
+// @stub 0x2dfbf0
+c_2dfbf0::c_2dfbf0() {}
+// @stub 0x2df950
+void c_2dfbf0::function_2df950(long arg_0, long arg_1) {}
+// @stub 0x2df990
+void c_2dfbf0::function_2df990(long arg_0, long arg_1) {}
+
+struct s_3111d0
+{
+ s_3111d0();
+};
+// @stub 0x3111d0
+s_3111d0::s_3111d0() {}
+
+struct s_30cb70
+{
+ byte field_0;
+};
+class c_interface_278b40;
+class c_3101c0
+{
+public:
+ c_3101c0(s_3111d0 const &arg_0, long arg_1);
+ void function_30c1a0(byte *arg_0);
+ void function_30cb70(s_30cb70 arg_0);
+ void function_30c500();
+ void function_310900(c_2dfbf0 *arg_0, s_30cb70 arg_1);
+ void function_30cab0(c_interface_278b40 *arg_0);
+};
+// @stub 0x3101c0
+c_3101c0::c_3101c0(s_3111d0 const &arg_0, long arg_1) {}
+// @stub 0x30c1a0
+void c_3101c0::function_30c1a0(byte *arg_0) {}
+// @stub 0x30cb70
+void c_3101c0::function_30cb70(s_30cb70 arg_0) {}
+// @stub 0x30c500
+void c_3101c0::function_30c500() {}
+// @stub 0x310900
+void c_3101c0::function_310900(c_2dfbf0 *arg_0, s_30cb70 arg_1) {}
+// @stub 0x30cab0
+void c_3101c0::function_30cab0(c_interface_278b40 *arg_0) {}
+// @stub 0x2dadb0
+void __cdecl function_2dadb0(hkWorld *arg_0) {}
+
+// @stub 0x268510
+void function_268510() {}
+// @stub 0x1e2f50
+void function_1e2f50() {}
+
+// @stub 0x1d3fc0
+void __stdcall function_1d3fc0(long arg_0) {}
+// @stub 0x1e2990
+void __stdcall function_1e2990(long arg_0, bool arg_1) {}
+
+struct s_311100;
+class c_311100
+{
+public:
+ void function_311100(s_311100 const *arg_0);
+};
+// @stub 0x311100
+void c_311100::function_311100(s_311100 const *arg_0) {}
+
+// @stub 0x2d8780
+void __cdecl function_2d8780() {}
+// @stub 0x2d7f00
+void __cdecl function_2d7f00() {}
+class c_278370
+{
+public:
+ virtual void function_a9ef0(void *arg_0);
+};
+// @stub 0xa9ef0
+void c_278370::function_a9ef0(void *arg_0) {}
+
+// @stub 0x2d8910
+void __cdecl function_2d8910(long arg_0) {}
+// @stub 0x2d8890
+void __cdecl function_2d8890() {}
+// @stub 0x2d8ab0
+void __cdecl function_2d8ab0() {}
+
 class c_library_30c470
 {
 public:
@@ -70,8 +200,6 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 /* the physics callees of the havok components */
 struct s_havok_component;
 
-// @stub 0x1d1260
-void function_1d1260(s_havok_component *component) { }
 
 // @stub 0x3126f0
 void hkRigidBody::setTransform(hkTransform const &transform) { }
@@ -92,8 +220,6 @@ void hkEntityApi::removeEntityListener(hkEntityListener *listener) { }
 // @stub 0x30f800
 hkBool hkWorld::removeEntity(hkEntity *entity) { return hkBool(); }
 
-// @stub 0x278f00
-void function_278f00(void) { }
 
 
 
@@ -103,8 +229,6 @@ void function_1d56f0(s_havok_component *component) { }
 // @stub 0x1d5940
 signed char __stdcall function_1d5940(s_havok_component *component, long a, long b, long c) { return 0; }
 
-// @stub 0x1d6b80
-void function_1d6b80(s_havok_component *component) { }
 
 
 /* in the region, not decompiled yet */
@@ -145,11 +269,6 @@ struct real_quaternion_transform;
 
 
 
-// @stub 0x290250
-void __stdcall function_290250(long tag_index, long ticks, long object_index, long node_index, real lower, real upper,
-	transform4x3f const *matrix)
-{
-}
 
 
 // @stub 0x2d9160

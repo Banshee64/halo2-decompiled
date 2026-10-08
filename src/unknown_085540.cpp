@@ -242,8 +242,9 @@ void simulation_view_baseline_set_active(s_simulation_view_baseline *baseline, b
 		}
 		else
 		{
+			long *sequence = &baseline->sequence;
 			memset(&baseline->state, 0, sizeof(baseline->state));
-			baseline->sequence = 0;
+			*sequence = 0;
 			g_510ca2 = true;
 			baseline->unknown06 = true;
 		}
