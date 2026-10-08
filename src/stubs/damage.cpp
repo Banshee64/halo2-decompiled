@@ -7,8 +7,6 @@ struct s_damage_info;
 struct s_damage_region_accumulator;
 struct s_damage_object;
 
-// @stub 0xb8b70
-void function_b8b70(long object_index) { }
 // @stub 0xb9c60
 void function_b9c60(long object_index, bool flag) { }
 // @stub 0xbef30
