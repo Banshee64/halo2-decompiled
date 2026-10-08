@@ -193,35 +193,36 @@ void function_b7360(long object_index)
 	}
 }
 
+PRIVATE __forceinline point3f *transform_parent_point(transform4x3f const *matrix, point3f const *point, point3f *result)
+{
+    real x = point->x;
+    real y = point->y;
+    real z = point->z;
+    if (matrix->scale != 1.0f)
+    {
+        x = matrix->scale * x;
+        y = matrix->scale * y;
+        z = matrix->scale * z;
+    }
+    result->x = matrix->rotation.up.i * z + matrix->rotation.left.i * y + matrix->rotation.forward.i * x + matrix->position.x;
+    result->y = matrix->rotation.up.j * z + matrix->rotation.left.j * y + matrix->rotation.forward.j * x + matrix->position.y;
+    result->z = matrix->rotation.up.k * z + matrix->rotation.left.k * y + matrix->rotation.forward.k * x + matrix->position.z;
+    return result;
+}
+
 // @retail 0xb9dd0
 point3f *function_b9dd0(long object_index, point3f *result)
 {
-	s_object_header *headers = (s_object_header *)g_4e0300->data;
-	s_object *object = headers[object_index & 0xffff].object;
-
-	if (object->parent_index == NONE)
-	{
-		*result = object->position;
-		return result;
-	}
-
-	real x = object->position.x;
-	real y = object->position.y;
-	real z = object->position.z;
-	s_object *parent = headers[object->parent_index & 0xffff].object;
-	transform4x3f *matrix = (transform4x3f *)((byte *)parent + parent->nodes_offset + object->parent_node * 0x34);
-
-	if (matrix->scale != 1.0f)
-	{
-		x *= matrix->scale;
-		y *= matrix->scale;
-		z *= matrix->scale;
-	}
-
-	result->x = matrix->rotation.up.i * z + matrix->rotation.left.i * y + matrix->rotation.forward.i * x + matrix->position.x;
-	result->y = matrix->rotation.up.j * z + matrix->rotation.left.j * y + matrix->rotation.forward.j * x + matrix->position.y;
-	result->z = matrix->rotation.up.k * z + matrix->rotation.left.k * y + matrix->rotation.forward.k * x + matrix->position.z;
-	return result;
+    s_object_header *headers = (s_object_header *)g_4e0300->data;
+    s_object *object = headers[object_index & 0xffff].object;
+    if (object->parent_index == NONE)
+    {
+        *result = object->position;
+        return result;
+    }
+    s_object *parent = headers[object->parent_index & 0xffff].object;
+    transform4x3f *matrix = (transform4x3f *)((byte *)parent + parent->nodes_offset) + object->parent_node;
+    return transform_parent_point(matrix, &object->position, result);
 }
 
 

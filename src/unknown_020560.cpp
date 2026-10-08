@@ -1516,7 +1516,9 @@ void __stdcall function_214f0(real passes, real distortion, real strength, real 
     strength = PIN(strength, 0.0f, 1.0f);
     falloff = PIN(falloff, 0.0f, 1.0f);
     scale = PIN(scale, 0.0f, 1.0f);
-    values.first = PIN(values.first, 0.0f, 1.0f);
+    real first_input = values.first;
+    if (first_input < 0.0f) *(volatile real *)&values.first = 0.0f;
+    else if (first_input > 1.0f) *(volatile real *)&values.first = 1.0f;
     values.second = PIN(values.second, 0.0f, 1.0f);
     if (strength > 0.0f || values.first > 0.0f)
     {

@@ -78,7 +78,7 @@ static __forceinline bool quantized_step(long *candidate, long const *quantized,
 /* writes a world position; when asked, a quantized position outside the
    world is moved by one quantum to a neighbour inside it */
 // @retail 0x86d20
-void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside)
+void simulation_write_position(long bits, s_bitstream *stream, real const *position, bool keep_inside)
 {
 	real_bounds const *ranges = world_bounds();
 	long quantized[3];

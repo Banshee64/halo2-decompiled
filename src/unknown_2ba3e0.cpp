@@ -555,13 +555,16 @@ void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void
     c_particle_collision_interface_2b *material = (c_particle_collision_interface_2b *)function_137bd0(
         ((s_particle_system_datum *)system)->function_1751d0()->tag_index);
     dword remaining = definition->constant_mask;
-    long next = first;
-    real coefficients[2] = { 0.0f, 0.0f };
+    long next;
+    real coefficients[2];
     s_particle_cache_2ba cache;
     cache.valid = 0;
     cache.current_system = 0;
     cache.current_emitter = 0;
     cache.current_particle = 0;
+    coefficients[0] = 0.0f;
+    coefficients[1] = 0.0f;
+    next = first;
     if (system)
     {
         cache.current_system = system;
@@ -619,13 +622,13 @@ void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void
         }
         vector3f displacement;
         displacement.i = particle->velocity.i * scale;
+        point3f start = particle->position;
         displacement.j = particle->velocity.j * scale;
         displacement.k = particle->velocity.k * scale;
         vector3f sweep;
         sweep.i = displacement.i * 12.0f;
         sweep.j = displacement.j * 12.0f;
         sweep.k = displacement.k * 12.0f;
-        point3f start = particle->position;
         start.x -= displacement.i;
         start.y -= displacement.j;
         start.z -= displacement.k;
@@ -650,17 +653,19 @@ void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void
                 }
                 vector3f const *normal = (vector3f const *)(collision.storage + 0x28);
                 real keep = 1.0f - coefficients[0];
-                real dot = particle->velocity.i * normal->i;
-                dot += normal->k * particle->velocity.k;
-                dot += normal->j * particle->velocity.j;
+                vector3f velocity;
+                velocity.i = particle->velocity.i;
+                velocity.j = particle->velocity.j;
+                velocity.k = particle->velocity.k;
+                real dot = velocity.i * normal->i + normal->k * velocity.k + normal->j * velocity.j;
                 vector3f perpendicular;
                 perpendicular.i = dot * normal->i;
                 perpendicular.j = dot * normal->j;
                 perpendicular.k = dot * normal->k;
                 vector3f tangent;
-                tangent.i = particle->velocity.i - perpendicular.i;
-                tangent.j = particle->velocity.j - perpendicular.j;
-                tangent.k = particle->velocity.k - perpendicular.k;
+                tangent.i = velocity.i - perpendicular.i;
+                tangent.j = velocity.j - perpendicular.j;
+                tangent.k = velocity.k - perpendicular.k;
                 particle->position.x = normal->i * 0.005f + collision.value.point.x;
                 particle->position.y = normal->j * 0.005f + collision.value.point.y;
                 particle->position.z = normal->k * 0.005f + collision.value.point.z;

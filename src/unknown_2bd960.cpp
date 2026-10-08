@@ -1639,10 +1639,10 @@ void c_game_engine_a::v36(long local_player)
 			s_color_bits color;
 			territory_marker_color(player_index, i, &color);
 			s_marker_list list;
+			list.position = g_4e0350->marker_entries[(short)state->w60[i]].position;
 			list.b0 = 0;
 			list.b1 = 0;
 			list.l4 = 1;
-			list.position = g_4e0350->marker_entries[(short)state->w60[i]].position;
 			list.r14 = 0.4f;
 			list.r18 = 0.1f;
 			list.r1c = 0.0f;

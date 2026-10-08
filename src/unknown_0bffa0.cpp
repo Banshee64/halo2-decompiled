@@ -998,3 +998,68 @@ void __stdcall function_c1d90(s_light_frame_ab const *frame, s_light_shape_ab co
         function_163db0((s_frustum_1648d0 *)entry->frustum, &bounds, (s_camera_163db0 *)entry, 0);
     }
 }
+
+struct s_light_delete_view
+{
+    short identifier;
+    byte flags;
+    byte unknown03[0x10 - 3];
+    long first_cluster_reference;
+    byte unknown14[0x58 - 0x14];
+    long object_index;
+    byte unknown5c[0x110 - 0x5c];
+};
+
+struct s_cluster_partition
+{
+    long *cluster_first_data_references;
+    s_record_pool *data_references;
+    s_record_pool *cluster_references;
+};
+
+void function_1cae40(s_cluster_partition *partition, long data_index, long *first_cluster_reference);
+
+// @retail 0xc3260
+void __stdcall function_c3260(long light_index, bool clear_object_flag)
+{
+    long const *light_index_reference = &light_index;
+    bool const *clear_flag_reference = &clear_object_flag;
+    s_record_pool *lights = g_4e030c;
+    s_light_delete_view *light = &((s_light_delete_view *)lights->data)[*light_index_reference & 0xffff];
+    if ((light->flags & 8) && (light->flags & 2))
+    {
+        s_cluster_partition partition =
+        {
+            (long *)g_4e0310,
+            (s_record_pool *)g_4e0314,
+            (s_record_pool *)g_4e0318
+        };
+        function_1cae40(&partition, *light_index_reference, &light->first_cluster_reference);
+        light->flags &= ~8;
+    }
+    long object_index = light->object_index;
+    if (object_index != NONE && *clear_flag_reference)
+    {
+        struct s_object_header { byte unknown00[8]; byte *object; };
+        byte *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+        bool remaining = false;
+        long next = NONE;
+        while ((next = function_16bc00(lights, next + 1)) != NONE)
+        {
+            long size = *(long volatile *)&lights->size;
+            byte *data = *(byte *volatile *)&lights->data;
+            s_light_delete_view *entry = (s_light_delete_view *)(data + next * size);
+            long index = ((long)entry->identifier << 16) | next;
+            if (index != *light_index_reference && entry->object_index == object_index)
+            {
+                remaining = true;
+                break;
+            }
+        }
+        if (remaining)
+            *(dword *)(object + 4) |= 0x40;
+        else
+            *(dword *)(object + 4) &= ~0x40;
+    }
+    record_pool_release(lights, *light_index_reference);
+}
