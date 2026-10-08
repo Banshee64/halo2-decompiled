@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 7013 functions match
+
+```
+matched 7013 of 11318 game functions (782562 of 2784283 bytes, 28.11%)
+```
+
+7013 new matches, none lost:
+- Merge batch r34: UI-core rounds 16 and 17 (+2).
+
 ## 2026-10-07: 7011 functions match
 
 ```
