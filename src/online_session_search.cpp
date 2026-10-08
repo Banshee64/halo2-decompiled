@@ -351,6 +351,48 @@ bool session_search_seen(s_session_search *search, XNKID const *id)
 	return seen;
 }
 
+struct s_online_match_result;
+void function_8fb30(long task_index, s_online_match_result *output, word *capacity);
+
+// @retail 0x902b0
+void function_902b0(s_session_search *arg_0)
+{
+	s_match_result_data local_0[50];
+	long local_1 = arg_0->task_index;
+	if (local_1 != NONE)
+	{
+		long local_2 = online_task_poll(local_1);
+		if (local_2 >= 0 && local_2 <= 1)
+			return;
+		if (local_2 == 2)
+		{
+			word local_3 = 50;
+			function_8fb30(local_1, (s_online_match_result *)local_0, &local_3);
+			arg_0->result_count = local_3;
+			long local_4 = 0;
+			for (; local_4 < arg_0->result_count; local_4++)
+			{
+				arg_0->results[local_4].valid = true;
+				arg_0->results[local_4].seen = session_search_seen(arg_0, &local_0[local_4].id);
+				arg_0->results[local_4].unknown01 = !arg_0->results[local_4].seen;
+				arg_0->results[local_4].unknown08 = true;
+				arg_0->results[local_4].unknown04 = local_4;
+				memcpy(arg_0->results[local_4].search_result, &local_0[local_4], sizeof(local_0[local_4]));
+				arg_0->results[local_4].unknown7c = NONE;
+				*(word *)&arg_0->results[local_4].unknown74 = 0;
+			}
+			for (; local_4 < 50; local_4++)
+				arg_0->results[local_4].valid = false;
+		}
+		if (arg_0->task_index != NONE)
+		{
+			function_6b640(arg_0->task_index);
+			arg_0->task_index = NONE;
+		}
+	}
+}
+
+
 /* the session identifier in a result */
 static inline XNKID const *search_result_id(s_search_result const *result)
 {
@@ -481,8 +523,9 @@ void session_search_get_progress(s_session_search *search, long *first, long *la
 			long current = search->unknown20;
 			long previous = search->unknown1c;
 			end = current + 1;
-			start = previous;
-			if (previous == NONE)
+			if (previous != NONE)
+				start = previous;
+			else
 				start = current;
 		}
 		long result_count = 0;
@@ -554,9 +597,10 @@ bool __stdcall session_search_result_allowed(s_session_search *search, s_search_
 	}
 	if (SEARCH_FLAG(entry, 0xa4))
 	{
-		long lower = SEARCH_LONG(entry, 0xb0);
-		long upper = SEARCH_LONG(entry, 0xb4);
-		if (!session_search_version_allowed(SEARCH_LONG(entry, 0xac), lower, upper))
+		long local_0 = SEARCH_LONG(entry, 0xac);
+		long upper = *(volatile long *)((byte *)entry + 0xb4);
+		long lower = *(volatile long *)((byte *)entry + 0xb0);
+		if (!session_search_version_allowed(local_0, lower, upper))
 			return false;
 	}
 	if (g_transport_globals.initialized && g_transport_globals.started)
@@ -877,4 +921,19 @@ bool function_90880(s_session_search *arg_0, long arg_1, long arg_2, long arg_3,
 		}
 	}
 	return arg_0->active;
+}
+
+// @retail 0x90840
+void function_90840(s_session_search *arg_0)
+{
+	if (arg_0->active)
+	{
+		function_902b0(arg_0);
+		function_905a0(arg_0, 0);
+		function_905a0(arg_0, 1);
+		session_search_score_and_sort(arg_0);
+		function_90420(arg_0, 0);
+		function_90420(arg_0, 1);
+		function_90f70(arg_0);
+	}
 }

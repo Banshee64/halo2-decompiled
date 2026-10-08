@@ -132,8 +132,8 @@ void dialog_choice_show(long a, long dialog_id, long b, word user_flags, dialog_
 		screen->list.first_chosen = first_chosen;
 		screen->list.second_chosen = second_chosen;
 		screen->closed = closed;
-		screen->choices = definition.choices;
-		screen->set_screen_id(definition.screen_id);
+		((c_dialog_screen volatile *)screen)->choices = ((s_dialog_definition const volatile *)&definition)->choices;
+		screen->set_screen_id(((s_dialog_definition const volatile *)&definition)->screen_id);
 	}
 }
 

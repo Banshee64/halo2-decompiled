@@ -2,6 +2,69 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 7011 functions match
+
+```
+matched 7011 of 11318 game functions (781916 of 2784283 bytes, 28.08%)
+```
+
+7011 new matches, none lost:
+- Merge batch r33: lane H rounds 5 and 6 (+7).
+
+## 2026-10-07: 7004 functions match
+
+```
+matched 7004 of 11318 game functions (780544 of 2784283 bytes, 28.03%)
+```
+
+7004 new matches, none lost:
+- Merge batch r32: the second machine's #203 (lane J round 7, +1) and #202 (lane L round 8, written code).
+
+## 2026-10-07: 7003 functions match
+
+```
+matched 7003 of 11318 game functions (780087 of 2784283 bytes, 28.02%)
+```
+
+7003 new matches, none lost:
+- Merge lane AD rounds 1 to 3 (+10): network message codecs, session search, surface queries and weapon object type, in documented gaps between finished ranges.
+
+## 2026-10-07: 6993 functions match
+
+```
+matched 6993 of 11318 game functions (779165 of 2784283 bytes, 27.98%)
+```
+
+6993 new matches, none lost:
+- Merge batch r31: lane A rounds 18 and 19 (+7).
+
+## 2026-10-07: 6986 functions match
+
+```
+matched 6986 of 11318 game functions (777995 of 2784283 bytes, 27.94%)
+```
+
+6986 new matches, none lost:
+- Merge batch r30: the resting-lane sweep, rounds 1 and 2 (+5), including seven new source files for groups that had no home.
+
+## 2026-10-07: 6981 functions match
+
+```
+matched 6981 of 11318 game functions (777464 of 2784283 bytes, 27.92%)
+```
+
+6981 new matches, none lost:
+- Merge batch r29: lane H rounds 3 and 4 (+7).
+
+## 2026-10-07: 6974 functions match
+
+```
+matched 6974 of 11318 game functions (776356 of 2784283 bytes, 27.88%)
+```
+
+6974 new matches, none lost:
+- Merge batch r28: the second machine's #196 to #200 (lanes J, K, P and O; +10) and @BrassMonkey71's #163 (0xe59e0).
+
 ## 2026-10-07: 6963 functions match
 
 ```

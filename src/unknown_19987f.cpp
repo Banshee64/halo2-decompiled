@@ -69,7 +69,8 @@ bool function_19a84e(long *a, long *b)
 // @retail 0x19989d
 long function_19989d(void)
 {
-	volatile long result = NONE;
+	long default_result = NONE;
+	long result;
 	long value = network_session_interface_get_value_18();
 	byte *data = network_session_interface_get_data_4db0();
 	long a;
@@ -85,14 +86,16 @@ long function_19989d(void)
 	case 1:
 		if (a != NONE)
 		{
-			return value ? 2 : 0;
+			result = value ? 2 : 0;
+			goto done;
 		}
 		if (data)
 		{
 			long state = *(long *)(data + 0x44);
 			if (state > 0 && (state <= 4 || state > 6 && state <= 9))
 			{
-				return (value != 0) * 2 + 1;
+				result = (value != 0) * 2 + 1;
+				goto done;
 			}
 		}
 		break;
@@ -102,22 +105,27 @@ long function_19989d(void)
 		case 1:
 			if (a != NONE)
 			{
-				return 4;
+				result = 4;
+				goto done;
 			}
 			if (data)
 			{
 				long state = *(long *)(data + 0x44);
 				if (state > 0 && (state <= 4 || state > 6 && state <= 9))
 				{
-					return 5;
+					result = 5;
+					goto done;
 				}
 			}
 			break;
 		case 2:
-			return 6;
+			result = 6;
+			goto done;
 		}
 		break;
 	}
+	result = *(long const volatile *)&default_result;
+done:
 	return result;
 }
 
@@ -2075,7 +2083,7 @@ bool function_19a7e9(long controller, long value)
 		{
 			if (function_19a2ce(NULL) != 10)
 			{
-				return result;
+				goto done;
 			}
 			start = true;
 			mode = 1;
@@ -2085,6 +2093,7 @@ bool function_19a7e9(long controller, long value)
 			result = true;
 		}
 	}
+done:
 	return result;
 }
 /* the seconds of the host's countdown, while it runs */
@@ -2133,7 +2142,7 @@ long function_19a5fd(long state)
 			long state;
 			long value;
 		} entries[16];
-		long default_value;
+		volatile long default_value;
 	} table =
 	{
 		{
@@ -2157,13 +2166,19 @@ long function_19a5fd(long state)
 		0
 	};
 
+	long result;
 	for (dword i = 0; i < 16; i++)
 	{
 		if (table.entries[i].state == state)
-			return table.entries[i].value;
+		{
+			result = table.entries[i].value;
+			goto done;
+		}
 	}
 
-	return table.default_value;
+	result = table.default_value;
+done:
+	return result;
 }
 
 // @retail 0x199e7e

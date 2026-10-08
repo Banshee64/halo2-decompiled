@@ -1099,9 +1099,10 @@ void function_132900(s_bit_vector_pool *arg_1, s_sort_context const *arg_2, s_so
 	{
 		s_sort_entry const *local_3 = &arg_2->entries[arg_2->order[local_1]];
 		s_sort_entry const *local_4 = &arg_3->entries[arg_3->order[local_2]];
-		if (local_4->value > local_3->value)
+		short local_6 = *(volatile short const *)&local_3->value;
+		if (local_4->value > local_6)
 			local_1++;
-		else if (local_4->value < local_3->value)
+		else if (local_4->value < local_6)
 			local_2++;
 		else
 		{

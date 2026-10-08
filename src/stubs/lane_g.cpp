@@ -84,11 +84,6 @@ void __stdcall function_24b869(c_class_1473c9 *screen)
 struct s_widget_item;
 class c_class_1a2c81;
 
-// @stub 0x2afeae
-void function_2afeae(s_widget_item *item, c_class_1a2c81 *widget)
-{
-}
-
 /* UI lane round 14: callees of the campaign options list */
 
 struct s_saved_game_header;

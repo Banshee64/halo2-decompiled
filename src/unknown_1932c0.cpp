@@ -573,11 +573,15 @@ long game_variant_get_map_status(long index)
 			if (function_1934f0(variant) && variant->field_4 == 0)
 				game_variant_check_maps(index);
 			if (function_1934f0(variant))
-				return variant->field_4;
+			{
+				status = variant->field_4;
+				goto done;
+			}
 		}
 		status = 3;
 	}
 
+done:
 	return status;
 }
 

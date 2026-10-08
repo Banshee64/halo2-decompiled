@@ -1,6 +1,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "object_markers.h"
+#include "data_array.h"
 
 // @flags /O1 /arch:SSE /Gr
 
@@ -311,4 +312,76 @@ void function_19188c(long user_index)
     default: return;
     }
     function_24c9e9(*user_reference, message, sound, tag_index);
+}
+
+
+void function_192129(long local_player_index);
+struct s_view_globals;
+extern s_view_globals *g_510c98;
+extern long g_4b9ed8;
+bool function_159170(long player_index);
+long function_155760(long local_player_index);
+void function_24da7d(long local_player_index);
+void function_24cf66(long local_player_index);
+void function_13954b(void);
+void function_191fd8(long player_index);
+bool function_13cb40(void);
+bool function_15e020(short first, short second);
+
+struct s_hud_flag_view_1917eb
+{
+    bool draw_items;
+    byte unknown01;
+    bool draw_messages;
+};
+
+// @retail 0x1917eb
+void function_1917eb(void)
+{
+    long local_player_index = g_4b9ed8;
+    long player_index = function_14de70(local_player_index);
+    if (player_index != NONE && function_159170(player_index))
+    {
+        short mode = (short)function_155760(local_player_index);
+        if (((s_hud_flag_view_1917eb *)g_510c98)->draw_items)
+        {
+            bool draw = false;
+            if (mode != 3 && mode != 2 && *(long *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x2c) != NONE)
+                draw = true;
+            function_19188c(local_player_index);
+            if (draw)
+            {
+                function_192129(g_4b9ed8);
+                function_24da7d(g_4b9ed8);
+            }
+        }
+        if (((s_hud_flag_view_1917eb *)g_510c98)->draw_messages)
+            function_24cf66(g_4b9ed8);
+    }
+    function_13954b();
+}
+
+// @retail 0x192129
+void function_192129(long local_player_index)
+{
+    long player_index = function_14de70(local_player_index);
+    byte *player = g_4e8c24->data + (player_index & 0xffff) * 0x21c;
+    if (g_4e6948->state == 1 && !function_13cb40())
+    {
+        s_data_datum_iterator iterator;
+        iterator.data = g_4e8c24;
+        iterator.index = NONE;
+        iterator.datum_index = NONE;
+        while (data_datum_iterator_next(&iterator))
+        {
+            byte *other = iterator.datum;
+            bool different;
+            if (g_4e6948->state == 1)
+                different = other[0xc0] != player[0xc0];
+            else
+                different = function_15e020((signed char)other[0xc0], (signed char)player[0xc0]);
+            if (iterator.datum_index != player_index && !different && *(long *)(other + 0x2c) != NONE)
+                function_191fd8(iterator.datum_index);
+        }
+    }
 }

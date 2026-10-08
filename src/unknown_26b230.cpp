@@ -1946,3 +1946,15 @@ void function_269870(long clump_index)
         ++cursor;
     }
 }
+
+// @retail 0x269da0
+int __cdecl function_269da0(void const *first, void const *second)
+{
+    s_prop_candidate_view const *a = (s_prop_candidate_view const *)first;
+    s_prop_candidate_view const *b = (s_prop_candidate_view const *)second;
+    if (a->priority > b->priority)
+        return -1;
+    if (a->priority >= b->priority && a->prop_index != NONE && b->prop_index == NONE)
+        return -1;
+    return 1;
+}

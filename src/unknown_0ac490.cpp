@@ -127,7 +127,9 @@ bool __stdcall message_broadcast_reply_decode(s_bitstream *stream, long size, s_
 {
 	message->id = (word)function_1959c0(stream, 16);
 	function_195820(stream, &message->nonce, 64);
-	return function_07c110(stream, &message->session) && !stream_overflowed(stream);
+	if (function_07c110(stream, &message->session) && !stream_overflowed(stream))
+		return true;
+	return false;
 }
 
 // @retail 0x000ac800

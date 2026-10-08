@@ -76,33 +76,29 @@ void function_1947e0(s_bitstream *stream, dword value, long bits)
 	function_195720(stream, value, bits);
 }
 
+PRIVATE __forceinline void vector_basis_cross(vector3f const *v, vector3f const *axis, vector3f *out)
+{
+	real k = axis->j * v->i - v->j * axis->i;
+	real j = v->k * axis->i - v->i * axis->k;
+	real i = v->j * axis->k - axis->j * v->k;
+	out->i = i;
+	out->j = j;
+	out->k = k;
+}
+
 // @retail 0x194870
 real function_194870(vector3f const *v, vector3f *a, vector3f *b)
 {
 	vector3f const *r0 = g_4687a8;
 	vector3f const *r1 = g_4687ac;
-	real d0 = (real)fabs(r0->j * v->j + v->k * r0->k + v->i * r0->i);
-	real d1 = (real)fabs(r1->j * v->j + v->i * r1->i + r1->k * v->k);
-	real x, y, z;
-	if (d1 > d0)
-	{
-		x = v->j * r0->k - r0->j * v->k;
-		y = v->k * r0->i - v->i * r0->k;
-		z = r0->j * v->i - v->j * r0->i;
-	}
+	real d0 = (real)fabs(r0->i * v->i + r0->j * v->j + r0->k * v->k);
+	real d1 = (real)fabs(r1->i * v->i + r1->j * v->j + r1->k * v->k);
+	if (d0 < d1)
+		vector_basis_cross(v, r0, a);
 	else
-	{
-		x = v->j * r1->k - r1->j * v->k;
-		y = v->k * r1->i - v->i * r1->k;
-		z = r1->j * v->i - v->j * r1->i;
-	}
-	a->i = x;
-	a->j = y;
-	a->k = z;
+		vector_basis_cross(r1, v, a);
 	function_30bf0(a);
-	b->i = v->j * a->k - v->k * a->j;
-	b->j = v->k * a->i - v->i * a->k;
-	b->k = v->i * a->j - v->j * a->i;
+	vector_basis_cross(v, a, b);
 	return function_30bf0(b);
 }
 
@@ -202,10 +198,12 @@ void function_195240(s_bitstream *stream, vector3f *forward, vector3f *up)
 		function_24f6b0(function_1959c0(stream, k_direction_bits), forward);
 	long value = (long)function_1959c0(stream, 8);
 	real angle;
-	if (value != 0 && value < 254)
+	if (value == 0)
+		angle = -k_pi;
+	else if (value < 254)
 		angle = ((real)value * k_pi - (real)(254 - value) * k_pi) * (1.f / 254.f);
 	else
-		angle = -k_pi;
+		angle = k_pi;
 	function_194a10(forward, angle, up);
 }
 
@@ -254,33 +252,30 @@ void function_1955d0(s_bitstream *stream, void const *source, long bits)
 		if (position % 8 == 0)
 		{
 			memcpy(stream->data + (position >> 3), source, (n + 7) >> 3);
-			long end = stream->bit_position + n;
-			if ((end & 7) != 0)
-				stream->data[end >> 3] &= (byte)(0xff >> (8 - (end & 7)));
+			if (((stream->bit_position + n) & 7) != 0)
+				stream->data[(stream->bit_position + n) >> 3] &= (byte)(0xff >> (8 - ((stream->bit_position + n) & 7)));
 		}
 		else
 		{
 			long shift = position % 32;
-			dword *destination = stream->buffer + (position >> 5);
 			dword *end = stream->buffer + ((position + n - 1) >> 5) + 1;
+			dword *destination = stream->buffer + (position >> 5);
 			dword const *s = (dword const *)source;
 			*destination++ |= *s << shift;
 			if (destination < end)
 			{
 				do
 				{
-					destination++;
-					destination[-1] = *s >> (32 - shift);
+					*destination = *s >> (32 - shift);
 					s++;
-					destination[-1] |= *s << shift;
+					*destination++ |= *s << shift;
 				}
 				while (destination < end);
 			}
-			long tail = stream->bit_position + n;
-			if ((tail & 0x1f) != 0)
+			if (((stream->bit_position + n) & 0x1f) != 0)
 			{
-				dword *last = stream->buffer + (tail >> 5);
-				*last &= 0xffffffff >> (32 - (tail & 0x1f));
+				dword *last = stream->buffer + ((stream->bit_position + n) >> 5);
+				*last &= 0xffffffff >> (32 - ((stream->bit_position + n) & 0x1f));
 			}
 		}
 	}
@@ -336,30 +331,31 @@ void function_195820(s_bitstream *stream, void *destination, long bits)
 		long position = stream->bit_position;
 		if (position % 8 == 0)
 		{
-			memcpy(destination, stream->data + (position >> 3), (n + 7) >> 3);
-			if ((n & 7) != 0)
-				((byte *)destination)[n >> 3] &= (byte)(0xff >> (8 - (n & 7)));
+			byte const *source = stream->data + (position >> 3);
+			memcpy(destination, source, (n + 7) >> 3);
+			long tail = n & 7;
+			if (tail != 0)
+				((byte *)destination)[n >> 3] = ((byte *)destination)[n >> 3] & (byte)(0xff >> (8 - tail));
 		}
 		else
 		{
 			long shift = position % 32;
 			dword const *s = stream->buffer + (position >> 5);
+			dword *end = (dword *)destination + ((n - 1) >> 5) + 1;
 			dword *d = (dword *)destination;
-			dword *end = d + ((n - 1) >> 5) + 1;
 			long tail = n & 0x1f;
 			dword saved = 0;
 			if (tail > 0)
 			{
-				long bytes = (tail + 7) >> 3;
+				dword bytes = (tail + 7) >> 3;
 				if (bytes < 4)
 					saved = (0xffffffff << (bytes * 8)) & d[n >> 5];
 			}
 			while (d < end)
 			{
-				d++;
-				d[-1] = *s >> shift;
+				*d = *s >> shift;
 				s++;
-				d[-1] |= *s << (32 - shift);
+				*d++ |= *s << (32 - shift);
 			}
 			if (tail != 0)
 			{

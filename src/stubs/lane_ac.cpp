@@ -28,10 +28,6 @@ void __cdecl function_3153c0(void *arg_0, void *arg_1, void const *arg_2)
 {
 }
 
-// @stub 0x14e970
-void function_14e970(long arg_0, point3f const *arg_1, long arg_2)
-{
-}
 
 struct s_path_settings;
 struct s_obstacle_list;
