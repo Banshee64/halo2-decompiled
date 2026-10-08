@@ -5,12 +5,7 @@
 /* outside the region */
 
 
-// @stub 0x2153dd
-void __stdcall function_2153dd(long player, long profile_index, s_player_profile_settings *settings, long flags)
-{
-}
 
 /* the screen transition states */
 
 /* in the region: screen load procedures */
-

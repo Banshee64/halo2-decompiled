@@ -15,8 +15,6 @@ void function_1ff360(long actor_index, point3f const *target, vector3f *velocity
 // @stub 0xbc1d0
 bool __stdcall function_bc1d0(long object_index, point3f *point) { return 0; }
 
-// @stub 0x2007b3
-void function_2007b3(long a, long b, long c) { }
 
 
 
