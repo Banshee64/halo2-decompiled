@@ -1309,3 +1309,38 @@ void __stdcall function_173130(long camera_count, byte *cameras, long cluster_in
 	}
 	sort_4byte(collection->order, collection->cluster_count, &camera_count, function_134950, collection);
 }
+
+struct s_segment_collision
+{
+    long kind;
+    real fraction;
+    point3f point;
+    byte field_14[0x24 - 0x14];
+    short material;
+    byte field_26[0x5c - 0x26];
+};
+struct s_collision_result_1697c0;
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
+    long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+
+// @retail 0x171d00
+bool function_171d00(point3f const *start, point3f const *end, real *fraction, bool narrow)
+{
+    bool result = false;
+    (void)&fraction;
+    s_segment_collision collision;
+    collision.material = NONE;
+    long flags = 0x808c0f;
+    if (narrow) flags = 0x808c0d;
+    vector3f direction;
+    direction.i = end->x - start->x;
+    direction.j = end->y - start->y;
+    direction.k = end->z - start->z;
+    if (function_1697c0(flags, start, &direction, NONE, NONE,
+        (s_collision_result_1697c0 *)&collision))
+    {
+        *fraction = collision.fraction;
+        result = true;
+    }
+    return result;
+}

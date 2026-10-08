@@ -3,7 +3,7 @@
 #include "unknown_1cec30.h"
 // @flags /O2 /Gr
 
-void __stdcall function_1d3fc0(long arg_0);
+void __stdcall function_1d3fc0(long arg_0, s_havok_component *arg_1);
 struct s_1c4a80
 {
  long field_0;
@@ -34,7 +34,7 @@ void function_1c4a80(long arg_0, long arg_1, long arg_2)
   {
    bool local_2 = (bool)local_1->field_408;
    if (!local_2 && !(bool)local_1->field_407 || (byte)arg_2 && !local_2)
-    function_1d3fc0(local_0);
+    function_1d3fc0(local_0, (s_havok_component *)local_1);
   }
  }
 }
