@@ -67,7 +67,9 @@ bool function_187ec0(void)
 		long record_index = player_get(g_4e8c20->entries[index])->index24;
 		if (record_index != NONE)
 		{
-			s_player_record record = ((s_player_record *)g_51ea18)[record_index];
+			s_player_record const *local_0 = (s_player_record *)g_51ea18 + record_index;
+			s_player_record record;
+			record = *local_0;
 			result = record.flag1a;
 		}
 	}
