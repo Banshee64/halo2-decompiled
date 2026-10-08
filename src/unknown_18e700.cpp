@@ -135,7 +135,8 @@ bool __stdcall function_18e8b0(s_session_options const *arg_0)
     if (!local_1)
     {
         function_18ee60();
-        return true;
+        local_0 = true;
+        goto local_2;
     }
     memset(g_4e61dc, 0, 0x120);
     if (function_18eaa0((s_18eaa0 const *)local_1) && function_18f000((s_18e700 const *)local_1))
@@ -144,10 +145,12 @@ bool __stdcall function_18e8b0(s_session_options const *arg_0)
             function_18f0a0((s_18f0a0 const *)local_1);
         else if (((s_18e700 const *)local_1)->field_0 == 3 && !main_play_intro_movie())
             function_1483c3(((s_18e700 const *)local_1)->field_264);
-        return true;
+        local_0 = true;
+        goto local_2;
     }
     else
         function_18efa0();
+local_2:
     return local_0;
 }
 #pragma inline_depth(255)
