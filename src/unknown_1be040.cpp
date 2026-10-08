@@ -56,7 +56,7 @@ short __stdcall function_1be0f0(long actor_index, s_slot *slot, bool active)
 
 point3f *function_b9dd0(long object_index, point3f *result);
 short __stdcall function_1c8df0(long object_index, void const *origin, short team, short type,
-	point3f const *point, long count, bool unknown, bool unknown2, bool unknown3, bool unknown4);
+	point3f const *point, long count, bool unknown, bool unknown2, bool unknown3, long *arg_9);
 
 // @retail 0x1be120
 bool __stdcall function_1be120(long actor_index, s_slot *slot)
@@ -78,7 +78,7 @@ bool __stdcall function_1be120(long actor_index, s_slot *slot)
 			if (function_2641c0(actor_index, &origin, &position) &&
 				function_1c8df0(actor->unknown5ac, &position, *(short *)((byte *)object + 0x2c),
 					*(short *)((byte *)&origin + 0x28), (point3f const *)&origin, 1,
-					false, false, true, false) == 0)
+					false, false, true, NULL) == 0)
 				state->unknown0c = true;
 			result = true;
 		}
