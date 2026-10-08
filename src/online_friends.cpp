@@ -22,7 +22,9 @@ long online_friends_startup(void)
 	if (task_index != NONE)
 	{
 		task = online_task_get_unchecked(task_index);
-		if (!task || !(task->flags & 0x24))
+		if (!task)
+			return task_index;
+		if (!(task->flags & 0x24))
 			return task_index;
 		online_task_restart(task_index);
 		task = online_task_get_unchecked(task_index);
