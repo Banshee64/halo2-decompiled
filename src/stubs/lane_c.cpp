@@ -209,8 +209,6 @@ void hkRigidBody::setTransform(hkTransform const &transform) { }
 
 
 
-// @stub 0x26d100
-long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point) { return 0; }
 
 /* callees of the physics code (unknown_1c25a0.cpp, unknown_1cec30.cpp) */
 

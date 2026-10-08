@@ -51,11 +51,6 @@ struct s_unit_move_result;
 
 /* outside the unit range */
 
-// @stub 0x10ff40
-bool function_10ff40(long unit_index, long type, short side, short value, bool *flag, short *side_out, short *value_out)
-{
-	return false;
-}
 
 
 

@@ -364,3 +364,25 @@ void function_1ea880(long arg_1f407d, long player_index, s_object_values *table)
 			function_b58c0(g_4e9ae8->value28, 1 << index);
 	}
 }
+
+struct s_statborg;
+void function_1968b0(long team, long index, long counter, long value);
+
+// @retail 0x1e9df0
+void function_1e9df0(long field, long counter, s_statborg *statistics, long team, short delta)
+{
+    (void)&team;
+    (void)&delta;
+    long value = delta;
+    short *entry = &((s_object_values *)statistics)->team_values[team][field];
+    value += *entry;
+    if (value < -30000)
+        value = -30000;
+    else if (value > 30000)
+        value = 30000;
+    *entry = (short)value;
+    if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->value28 != NONE)
+        function_b58c0(g_4e9ae8->value28, 1 << (team + 16));
+    if (counter != NONE)
+        function_1968b0(team, NONE, counter, *entry);
+}
