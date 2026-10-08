@@ -17,7 +17,11 @@ struct s_player_configuration_cache_entry
 	short previous_other;
 	short next_other;
 	dword flags;
-	byte unknown64[4];
+	union
+	{
+		byte unknown64[4];
+		dword field_64;
+	};
 };
 
 s_player_configuration_cache_entry g_4cf98c[350];
@@ -746,4 +750,31 @@ void function_80440(const s_cached_player_identity *identity, s_recent_player *p
   index = function_80330(identity, position);
  memcpy(player, &g_4cf98c[index].player, sizeof(*player));
  function_7fdf0(index);
+}
+
+bool g_510554;
+dword g_510558;
+bool function_7fb50(void);
+
+// @retail 0x80390
+void function_80390(void)
+{
+ if (g_51055c && g_510554)
+ {
+  dword local_0 = GetTickCount();
+  if (local_0 - g_510558 > 10000)
+  {
+   if (function_7fb50())
+    g_51055c = false;
+   g_510558 = local_0;
+  }
+ }
+ unsigned __int64 local_1 = 0;
+ GetSystemTimeAsFileTime((FILETIME *)&local_1);
+ dword local_2 = (dword)(local_1 / 3600000000ULL);
+ for (long local_3 = 0; local_3 < g_4cf978; ++local_3)
+ {
+  if (local_2 - g_4cf98c[local_3].field_64 > 72)
+   g_4cf98c[local_3].flags |= 2;
+ }
 }

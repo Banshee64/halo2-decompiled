@@ -163,9 +163,10 @@ inline void c_simulation_view::release_buffer(void)
 {
 	if (buffer)
 	{
-		unknown9c = 0;
-		unknowna0 = 0;
-		function_12d520((long)buffer);
+		c_simulation_view *local_0 = this;
+		*(volatile long *)&local_0->unknown9c = 0;
+		*(volatile long *)&local_0->unknowna0 = 0;
+		function_12d520((long)*(byte *volatile *)&local_0->buffer);
 		buffer = 0;
 		unknown98 = 0;
 	}
