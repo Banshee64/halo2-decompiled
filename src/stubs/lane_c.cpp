@@ -209,8 +209,6 @@ void hkEntityApi::removeEntityListener(hkEntityListener *listener) { }
 // @stub 0x30f800
 hkBool hkWorld::removeEntity(hkEntity *entity) { return hkBool(); }
 
-// @stub 0x278f00
-void function_278f00(void) { }
 
 
 
@@ -260,11 +258,6 @@ struct real_quaternion_transform;
 
 
 
-// @stub 0x290250
-void __stdcall function_290250(long tag_index, long ticks, long object_index, long node_index, real lower, real upper,
-	transform4x3f const *matrix)
-{
-}
 
 
 // @stub 0x2d9160
