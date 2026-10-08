@@ -113,7 +113,7 @@ void function_20aa70(vector3f *out, s_anim_data *data, long index_, real *w)
 	}
 }
 // @retail 0x20ab60
-void function_20ab60(vector3f *sum, s_anim_data *data, real *w)
+void function_20ab60(s_anim_data *data, vector3f *sum, real *w)
 {
 	s_anim_header *h;
 	byte *p;

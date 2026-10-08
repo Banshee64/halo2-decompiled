@@ -122,7 +122,7 @@ extern short g_54e898;
 
 // @retail 0x182b90
 void function_182b90(c_material_shape *shape, hkEntity const *entity,
-	real *friction, short *material, real *restitution)
+	real *friction, real *restitution, short *material)
 {
 	if (shape->shape_kind() == 0x17)
 		shape = shape->child;
