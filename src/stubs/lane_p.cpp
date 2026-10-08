@@ -28,12 +28,6 @@ void function_f8190(void)
 {
 }
 
-// @stub 0x18e960
-void function_18e960(void)
-{
-}
-
-
 // @stub 0x22b7dd
 bool function_22b7dd(byte const *arg_1, long arg_2)
 {
