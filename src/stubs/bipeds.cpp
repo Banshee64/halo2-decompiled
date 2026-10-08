@@ -52,6 +52,3 @@ void function_e5790(long arg_159e6d) { }
 void __stdcall function_1e55d0(s_biped_physics_move *move, void *physics, s_biped_physics_output *output) { }
 
 
-
-// @stub 0x1c4a80
-void function_1c4a80(long object_index, long a, long b) { }
