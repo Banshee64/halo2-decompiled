@@ -82,8 +82,6 @@ void __cdecl function_2dadb0(hkWorld *arg_0) {}
 void function_268510() {}
 // @stub 0x1e2f50
 void function_1e2f50() {}
-// @stub 0x293830
-void function_293830() {}
 
 // @stub 0x1d3fc0
 void __stdcall function_1d3fc0(long arg_0) {}
