@@ -54,3 +54,9 @@ bool function_2613d0(long arg_0, s_reference arg_1, s_prop_search *arg_2)
 {
     return false;
 }
+
+// @stub 0x2173d0
+bool function_2173d0(wchar_t const *arg_0, long arg_1, void const *arg_2, long arg_3, long arg_4)
+{
+    return false;
+}
