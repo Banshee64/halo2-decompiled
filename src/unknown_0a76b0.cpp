@@ -783,7 +783,7 @@ void __stdcall function_e7900(long unit_index, bool spread, point3f const *origi
 
 		actions->grenade_projectile_index = NONE;
 		actions->grenade_type = NONE;
-		flag17 = (projectile->object_flags >> 17) & 1;
+		flag17 = TEST_FIELD_BIT((projectile->object_flags >> 17) & 1);
 		projectile->object_flags &= ~0x20000;
 		projectile->flags_c0 &= ~2;
 		function_b9a90(projectile_index);
@@ -797,7 +797,7 @@ void __stdcall function_e7900(long unit_index, bool spread, point3f const *origi
 			byte *parent_definition = g_4e3b44[UNIT_ACTION_UNIT_GET(unit->parent_object_index)->definition_index & 0xffff].bytes;
 			byte *seat = *(byte **)(parent_definition + 0x1cc) + unit->seat_index * 0xb0;
 
-			if ((*(dword *)seat >> 11) & 1)
+			if (TEST_FIELD_BIT((*(dword *)seat >> 11) & 1))
 			{
 				attach = true;
 				marker_name = *(long *)(seat + 0x10);
@@ -2278,7 +2278,7 @@ bool function_ea1f0(long unit_index, long vehicle_index, short seat_index, bool 
 		if (!keep_animation)
 			state_name = function_c7160(unit_index, seat_index, 0, vehicle_index, 0);
 
-		bool is_vehicle = ((1 << UNIT_ACTION_HEADER_GET(unit_index)->type) >> 1) & 1;
+		bool is_vehicle = TEST_FIELD_BIT(((1 << UNIT_ACTION_HEADER_GET(unit_index)->type) >> 1) & 1);
 		s_unit_action_unit *vehicle = UNIT_ACTION_UNIT_GET(vehicle_index);
 		byte *seat = *(byte **)(g_4e3b44[vehicle->definition_index & 0xffff].bytes + 0x1cc) + seat_index * 0xb0;
 
@@ -2361,7 +2361,7 @@ bool function_ea1f0(long unit_index, long vehicle_index, short seat_index, bool 
 			function_1bb570(unit->parent_object_index, unit->unknown12c);
 		if (unit->unknown13c != NONE)
 			function_1bbc00(unit->unknown13c, unit->parent_object_index);
-		if (unit->unknown13c != NONE && ((*(dword *)seat >> 2) & 1))
+		if (unit->unknown13c != NONE && (TEST_FIELD_BIT((*(dword *)seat >> 2) & 1)))
 		{
 			short user_index = unit_action_player_value28_get(unit->unknown13c);
 
@@ -2898,7 +2898,7 @@ void function_152140(long player_index);
 void __stdcall function_eb520(long unit_index, long type)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
-	bool push = (UNIT_ACTIONS_GET(unit)->unknown00 >> 1) & 1;
+	bool push = ((dword)UNIT_ACTIONS_GET(unit)->unknown00 >> 1) & 1;
 
 	if (unit->unknown13c != NONE)
 		function_152140(unit->unknown13c);
@@ -2907,7 +2907,11 @@ void __stdcall function_eb520(long unit_index, long type)
 	s_unit_action_header *header = UNIT_ACTION_HEADER_GET(unit_index);
 
 	if ((1 << header->type) & 1)
-		*((byte *)header->unit + 0x348) |= 0x40;
+	{
+		word *flags = (word *)((byte *)header->unit + 0x348);
+
+		*flags |= 0x40;
+	}
 }
 
 // @retail 0xeb5a0

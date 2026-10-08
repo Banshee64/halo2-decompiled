@@ -289,34 +289,36 @@ bool function_ddfb0(long arg_159e6d)
 	s_biped *biped = BIPED_GET(arg_159e6d);
 	bool resting = false;
 
-	if (biped->unknown34b)
+	if (!biped->unknown34b)
 	{
-		return false;
-	}
-	if (biped->havok_component_index != NONE)
-	{
-		s_havok_component *component = havok_component_get(biped->havok_component_index);
-
-		if (*(byte *)(*(byte **)((byte *)component + 0x70) + 0x44) && !(TEST_FIELD_BIT((component->unknown04 >> 18) & 1)))
+		if (biped->havok_component_index != NONE)
 		{
-			resting = true;
+			s_havok_component *component = havok_component_get(biped->havok_component_index);
+
+			if (*(byte *)(*(byte **)((byte *)component + 0x70) + 0x44) && !(TEST_FIELD_BIT((component->unknown04 >> 18) & 1)))
+			{
+				resting = true;
+			}
 		}
-	}
-	switch (biped->physics_mode)
-	{
-	case 6:
-		return true;
-	case 3:
-		return resting;
-	}
-	if (!(0.0001f > (real)fabs(biped->control.i * biped->control.i + biped->control.j * biped->control.j +
-		biped->control.k * biped->control.k)))
-	{
-		return true;
-	}
-	if (biped->physics_mode == 4 || biped->physics_mode == 5 || function_e4050(arg_159e6d))
-	{
-		return true;
+		if (biped->physics_mode == 6)
+		{
+			return true;
+		}
+		if (biped->physics_mode == 3)
+		{
+			return resting;
+		}
+		if (!(0.0001f > (real)fabs(biped->control.i * biped->control.i + biped->control.j * biped->control.j +
+			biped->control.k * biped->control.k)))
+		{
+			return true;
+		}
+		long mode = biped->physics_mode;
+
+		if (mode == 4 || mode == 5 || function_e4050(arg_159e6d))
+		{
+			return true;
+		}
 	}
 	return resting;
 }
@@ -1449,7 +1451,7 @@ void __stdcall function_df5f0(long object_index, point3f *center, real *height, 
 	{
 		center->z += *(real *)(definition + 0x270);
 	}
-	if ((*(dword *)(definition + 0x264) >> 1) & 1)
+	if (TEST_FIELD_BIT((*(dword *)(definition + 0x264) >> 1) & 1))
 	{
 		*height = 0.0f;
 		*radius = *(real *)(definition + 0x270);
@@ -1571,7 +1573,7 @@ void __stdcall function_df6c0(point3f *bottom, vector3f *axis, long arg_159e6d, 
 		point3f const *a = &nodes[node_a].position;
 		point3f const *b = &nodes[node_b].position;
 
-		if ((*(dword *)(definition + 0x264) >> 1) & 1)
+		if (TEST_FIELD_BIT((*(dword *)(definition + 0x264) >> 1) & 1))
 		{
 			bottom->x = (a->x + b->x) * 0.5f;
 			bottom->y = (a->y + b->y) * 0.5f;
@@ -1988,7 +1990,7 @@ void function_e1a80(long arg_159e6d)
 		char body = *((char *)component + 0x18);
 		short rigid_body = body >= 0 && body < component->rigid_bodies.size ? body : NONE;
 
-		if (((component->unknown04 >> 11) & 1) && rigid_body != NONE)
+		if ((TEST_FIELD_BIT((component->unknown04 >> 11) & 1)) && rigid_body != NONE)
 		{
 			real value = function_1d1230(rigid_body, component);
 			byte *motion = *(byte **)(*(byte **)((byte *)component->rigid_bodies.data + rigid_body * 0x60 + 0x40) +
@@ -3206,7 +3208,7 @@ void __stdcall function_e40d0(long arg_159e6d, long *names)
 	{
 		function_e3700(arg_159e6d);
 	}
-	if ((*(dword *)(definition + 0x1f0) >> 3) & 1)
+	if (TEST_FIELD_BIT((*(dword *)(definition + 0x1f0) >> 3) & 1))
 	{
 		long current = function_10f8f0(arg_159e6d);
 
