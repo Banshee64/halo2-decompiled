@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-07: 7003 functions match
+
+```
+matched 7003 of 11318 game functions (780087 of 2784283 bytes, 28.02%)
+```
+
+7003 new matches, none lost:
+- Merge lane AD rounds 1 to 3 (+10): network message codecs, session search, surface queries and weapon object type, in documented gaps between finished ranges.
+
 ## 2026-10-07: 6993 functions match
 
 ```
