@@ -17,6 +17,22 @@ struct s_501e0
     dword field_14;
 };
 
+static __forceinline void function_0501e0(real arg_0, vector3f const *arg_1, vector3f *arg_2)
+{
+    real local_0 = arg_1->i;
+    real local_1 = arg_1->j;
+    real local_2 = arg_1->k;
+    if (arg_0 != 1.f)
+    {
+        local_0 = arg_0 * local_0;
+        local_1 = arg_0 * local_1;
+        local_2 = arg_0 * local_2;
+    }
+    arg_2->i = g_4b9e14.forward.i * local_2 + g_4b9e14.up.i * local_1 + g_4b9e14.right.i * local_0;
+    arg_2->j = g_4b9e14.forward.j * local_2 + g_4b9e14.up.j * local_1 + g_4b9e14.right.j * local_0;
+    arg_2->k = g_4b9e14.forward.k * local_2 + g_4b9e14.up.k * local_1 + g_4b9e14.right.k * local_0;
+}
+
 // @retail 0x501e0
 void function_501e0(s_501e0 const *arg_0, bool arg_1, s_501e0 *arg_2)
 {
@@ -29,32 +45,10 @@ void function_501e0(s_501e0 const *arg_0, bool arg_1, s_501e0 *arg_2)
     local_1.i = arg_0[1].field_0.x - g_4b9da0.x;
     local_1.j = arg_0[1].field_0.y - g_4b9da0.y;
     local_1.k = arg_0[1].field_0.z - g_4b9da0.z;
-    if (g_4b9e14.scale != 1.f)
-    {
-        local_0.i = g_4b9e14.scale * local_0.i;
-        local_0.j = g_4b9e14.scale * local_0.j;
-        local_0.k = g_4b9e14.scale * local_0.k;
-    }
     vector3f local_2;
-    local_2.i = g_4b9e14.forward.i * local_0.k + g_4b9e14.up.i * local_0.j;
-    local_2.i += g_4b9e14.right.i * local_0.i;
-    local_2.j = g_4b9e14.forward.j * local_0.k + g_4b9e14.up.j * local_0.j;
-    local_2.j += g_4b9e14.right.j * local_0.i;
-    local_2.k = g_4b9e14.forward.k * local_0.k + g_4b9e14.up.k * local_0.j;
-    local_2.k += g_4b9e14.right.k * local_0.i;
-    if (g_4b9e14.scale != 1.f)
-    {
-        local_1.i = g_4b9e14.scale * local_1.i;
-        local_1.j = g_4b9e14.scale * local_1.j;
-        local_1.k = g_4b9e14.scale * local_1.k;
-    }
     vector3f local_3;
-    local_3.i = local_1.j * g_4b9e14.up.i + local_1.k * g_4b9e14.forward.i;
-    local_3.i += g_4b9e14.right.i * local_1.i;
-    local_3.j = local_1.j * g_4b9e14.up.j + local_1.k * g_4b9e14.forward.j;
-    local_3.j += g_4b9e14.right.j * local_1.i;
-    local_3.k = local_1.j * g_4b9e14.up.k + local_1.k * g_4b9e14.forward.k;
-    local_3.k += g_4b9e14.right.k * local_1.i;
+    function_0501e0(g_4b9e14.scale, &local_0, &local_2);
+    function_0501e0(g_4b9e14.scale, &local_1, &local_3);
     if (local_2.k < 0.f && local_3.k < 0.f &&
         local_2.k * local_2.k * 4.f > local_2.i * local_2.i &&
         local_2.k * local_2.k * 4.f > local_2.j * local_2.j &&

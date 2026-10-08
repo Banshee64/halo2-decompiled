@@ -2519,8 +2519,8 @@ bool c_class_58d20::channel_is_host_or_local(long channel_index)
 	{
 		long member_index = network_session_find_member_by_channel(session, channel_index);
 		if (member_index == session->member_index)
-			return true;
-		if (session->current_member == session->member_index && member_index != NONE)
+			result = true;
+		else if (session->current_member == session->member_index && member_index != NONE)
 			result = true;
 	}
 	return result;
