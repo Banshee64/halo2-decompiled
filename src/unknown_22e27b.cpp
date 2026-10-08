@@ -378,18 +378,19 @@ void c_class_1a2c81::set_animation(s_type_0cfb31 *definition)
 	animation.scale = 1.0f;
 }
 
+__declspec(noinline)
 // @retail 0x22edb8
 c_class_1a2c81 *c_class_1a2c81::find_child(long type, short index, bool recursive)
 {
 	c_class_1a2c81 *result = 0;
 	c_class_1a2c81 *widget;
-	short count = index;
+	short original_index = index;
 
-	if (count >= 0)
+	if (index >= 0)
 	{
 		for (widget = child; widget; widget = widget->next)
 		{
-			if (widget->type == type && count-- == 0)
+			if (widget->type == type && index-- == 0)
 			{
 				return widget;
 			}
@@ -399,7 +400,7 @@ c_class_1a2c81 *c_class_1a2c81::find_child(long type, short index, bool recursiv
 	{
 		for (widget = child; widget; widget = widget->next)
 		{
-			result = widget->find_child(type, index, recursive);
+			result = widget->find_child(type, (short)original_index, recursive);
 			if (result)
 			{
 				break;
