@@ -456,26 +456,3 @@ struct s_remove_object_header
     byte *object;
 };
 
-// @retail 0xb8540
-void __stdcall function_b8540(long object_index)
-{
-    long const *index_reference = &object_index;
-    s_remove_object_header *header = &((s_remove_object_header *)g_4e0300->data)[*index_reference & 0xffff];
-    byte *object = header->object;
-    if (!object_or_parent_hidden(*index_reference) && function_b9d20(*index_reference))
-        function_bef30(*index_reference, 1, 0, 0, 0);
-    header->flags |= 0x10;
-    function_b8b70(*index_reference);
-    if ((1 << header->type) & 0x40)
-        function_10a250(*index_reference);
-    function_bf090(*index_reference);
-    object[0xab] = 0xff;
-    *(word *)(object + 0xa8) = 0xffff;
-    *(long *)(object + 0xa4) = NONE;
-    if ((signed char)object[0xaf] != -1)
-        function_15b220(*index_reference, (signed char)object[0xaf]);
-    function_109400(*index_reference);
-    function_bb950(*index_reference, false, NONE);
-    function_a7a60(*index_reference);
-    function_10ace0(*index_reference);
-}

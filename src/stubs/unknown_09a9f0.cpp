@@ -9,6 +9,11 @@ bool function_a5bd0(long a)
 	return false;
 }
 
+// @stub 0xb8540
+void __stdcall function_b8540(long a)
+{
+}
+
 
 
 // @stub 0xa58d0
