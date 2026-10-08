@@ -238,7 +238,7 @@ bool function_1df770(short team_a, short team_b)
 }
 
 // @retail 0x1df820
-bool function_1df820(short team_a, short team_b, short incident_type)
+bool __stdcall function_1df820(volatile short team_a, volatile short team_b, short incident_type)
 {
 	if (g_4e6948->state != _game_mode_campaign)
 		return false;

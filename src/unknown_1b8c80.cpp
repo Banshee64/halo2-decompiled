@@ -37,7 +37,7 @@ short __stdcall function_1b9fc0(long actor_index);
 short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active);
 long __stdcall function_1ba090(long actor_index, s_slot *slot);
 void __stdcall function_1ba3f0(long actor_index, s_slot *slot, s_slot_target_list *list);
-void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index);
+bool __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index);
 short __stdcall function_1bb3a0(long actor_index, long joint_index, long a, long b);
 short __stdcall function_1b2ff0(long actor_index);
 void *function_1e5240(long actor_index);
@@ -816,7 +816,7 @@ s_slot_handler_2x g_47e9d0 =
 		},
 		(t_slot_proc)joint_update, joint_activate, joint_deactivate
 	},
-	(t_slot_proc)function_1ba090, (t_slot_release)function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, (t_slot_proc4)function_1bb3a0,
+	(t_slot_proc)function_1ba090, (t_slot_release)function_1ba3f0, (t_slot_release)function_1ba5c0, slot_release_nothing, function_1ba8c0, (t_slot_proc4)function_1bb3a0,
 	1, 10, 1.5f, 0x5b
 };
 
@@ -1263,4 +1263,99 @@ done:
         *((bool *)actor + 0x5d4) = false;
         *(dword *)((byte *)actor + 0x810) &= ~1;
     }
+}
+
+struct joint_state;
+long joint_count_invited_participants(joint_state const *arg_0);
+bool __stdcall function_1badc0(point3f const *arg_2, long arg_1, long arg_0,
+    s_type_c3b527 *arg_3, long *arg_4, bool arg_5, bool *arg_6);
+real function_1f8940(long arg_0);
+bool function_1f8660(long arg_0);
+
+// @retail 0x1ba5c0
+bool __stdcall function_1ba5c0(long arg_0, s_slot *arg_1, long arg_2)
+{
+    s_actor_view *local_0 = actor_get(arg_0);
+    s_slot_4c *local_1 = (s_slot_4c *)arg_1;
+    s_seat_selection *local_2 = (s_seat_selection *)&local_1->unknown1c;
+    s_4c_element *local_3 = (s_4c_element *)arg_2;
+    bool local_4 = true;
+    if (local_2->object_index == NONE || local_3->object_index == NONE)
+        return false;
+    if (local_0->unknown26c != NONE || (local_2->flags & 2))
+        return local_4;
+    if (*(short *)((byte *)local_3 + 2) <= 0 &&
+        (short)joint_count_invited_participants((joint_state *)local_3) != 0)
+        return local_4;
+    if (*((byte *)local_0 + 0x5d8) || !function_1b90b0(arg_0, local_3->object_index) ||
+        !function_1ba990(arg_0, local_3->object_index, !(local_2->flags & 1),
+            local_1->unknown28, local_1->unknown2c, true))
+        return false;
+    s_seat_approach_result local_5;
+    if (!function_1b9e70(arg_0, local_2, false, local_3, &local_5))
+        return false;
+    function_f5d10(local_2->object_index, local_2->seat_index, true);
+    local_1->point = *(point3f *)&local_5.direction;
+    bool local_6 = false;
+    if (local_5.approaching)
+    {
+        ++*(short *)((byte *)local_1 + 0x30);
+        local_6 = (real)*(short *)((byte *)local_1 + 0x30) * g_510c54->rate >= 1.0f;
+    }
+    else
+        *(short *)((byte *)local_1 + 0x30) = 0;
+    if (local_6 || (local_5.close && local_5.facing))
+    {
+        s_unit_request local_7;
+        local_7.type = 0x1c;
+        local_7.type1c.object_index = local_2->object_index;
+        local_7.type1c.seat_index = local_2->seat_index;
+        local_7.type1c.unknowna = false;
+        local_7.type1c.unknownb = false;
+        local_4 = function_e6900(local_0->unknown018, &local_7);
+    }
+    else if (local_5.close)
+        function_1f86a0(arg_0);
+    else if (local_0->unknown040)
+    {
+        s_type_c3b527 local_8;
+        long local_9;
+        bool local_10;
+        if (function_1badc0(&local_5.point, local_2->object_index, arg_0,
+            &local_8, &local_9, false, &local_10))
+        {
+            local_4 = function_1f4460(arg_0, &local_8, local_9,
+                local_10 ? NONE : local_2->object_index, false);
+            if (!local_4)
+            {
+                ++local_2->unknown7;
+                short local_11 = (local_2->flags & 1) ? 5 : 50;
+                if ((short)local_2->unknown7 > local_11)
+                {
+                    local_4 = false;
+                    actor_get(arg_0)->unknown040 = false;
+                }
+                else
+                    local_4 = true;
+            }
+            else
+                local_2->unknown7 = 0;
+        }
+        else
+            local_2->unknown7 = 0;
+    }
+    bool local_12;
+    if (function_1f8660(arg_0))
+        local_12 = 1.0f > function_1f8940(arg_0);
+    else
+    {
+        vector3f local_13;
+        vector3d_from_points3d(&local_0->position, &local_5.point, &local_13);
+        local_12 = 1.0f > local_13.k * local_13.k + local_13.i * local_13.i + local_13.j * local_13.j;
+    }
+    if (local_12)
+        local_2->flags |= 4;
+    else
+        local_2->flags &= ~4;
+    return local_4;
 }
