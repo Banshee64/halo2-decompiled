@@ -81,10 +81,18 @@ public:
 	virtual void v9(long a, long b, long *size);
 	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 	virtual void v11(long a, long b, long c);
+	virtual void v12(long arg_0, s_entity_info *arg_1, long arg_2, s_bitstream *arg_3);
+	virtual bool v13(long arg_0, s_entity_info *arg_1, s_bitstream *arg_2);
+	virtual bool v14(long arg_0, long arg_1, long arg_2, long arg_3, long arg_4, long arg_5, long arg_6, long arg_7);
+	virtual bool v15(long arg_0, long arg_1, long arg_2, long arg_3, s_bitstream *arg_4);
+	virtual bool v16(long arg_0, long arg_1, long arg_2);
+	virtual bool v19(long arg_0, long arg_1, long arg_2, s_entity_data *arg_3);
 	virtual void v21(s_entity *entity);
 	virtual void v26(long index, long b, s_entity_state *state);
 	virtual long v27(long arg_0, long arg_1, long arg_2, long arg_3);
 	virtual bool v28(long index);
+	virtual long v29(long arg_0, s_entity_info *arg_1, long *arg_2, long arg_3, long arg_4);
+	virtual void v31(long arg_0, long arg_1, long arg_2, long arg_3);
 	virtual bool v32(long a);
 };
 
