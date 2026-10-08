@@ -43,7 +43,7 @@ extern real g_5234dc;
 s_223240 g_47f0f8[6];
 
 void function_2f800(s_2f800_source const *, s_2f800_size const *, s_2f800_size const *, s_2f800_view *);
-void __stdcall function_2c8a0(s_223240 const *);
+void __stdcall function_2c8a0(byte const *);
 void function_2b5d0(long, long, long, long, s_223240 const *);
 void function_223080(long, long, long, s_223080 *, long, long, s_223081 const *);
 bool function_68290(void);
@@ -65,7 +65,7 @@ PRIVATE __forceinline s_223240 *function_2232a1(s_223240 *arg_0)
 // @retail 0x2232a0
 void function_2232a0(void)
 {
-	function_2c8a0(function_2232a1(&g_47f0f8[0]));
+	function_2c8a0((byte const *)function_2232a1(&g_47f0f8[0]));
 }
 
 // @retail 0x2234e0
