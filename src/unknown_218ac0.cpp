@@ -113,8 +113,8 @@ real sound_permutation_duration(s_sound_definition const *definition, s_sound_pi
 	s_218b80 const *local_1 = (s_218b80 const *)&globals->classes[definition->class_index];
 	s_218b81 const *local_2 = (s_218b81 const *)&globals->playback_parameters[definition->playback_index];
 	long natural_pitch = SOUND_GLOBALS_DEFINITIONS->pitch_bounds[(*local_0)->bounds_index].unknown00;
-	long local_3 = local_1->field_1a;
-	long local_4 = local_2->field_a;
+	short local_3 = local_1->field_1a;
+	short local_4 = local_2->field_a;
 	long pitch = (short)(local_1->field_18 <= local_3 ? local_1->field_18 : local_3) +
 		(short)(local_2->field_8 > local_4 ? local_4 : local_2->field_8);
 	real rate = sound_pitch_to_rate(natural_pitch);

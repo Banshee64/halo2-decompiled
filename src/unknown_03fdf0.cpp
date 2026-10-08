@@ -3,25 +3,11 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "index_cache_storage.h"
 #include "unknown_0494b0.h"
 #include <string.h>
 #include <xtl.h>
 
-struct s_44940_entry
-{
-    dword unknown00;
-    long tag;
-    dword unknown08;
-    dword flags;
-    byte unknown10[0x10];
-};
-struct s_index_cache
-{
-    long index;
-    short count;
-    short unknown06;
-    long values[256];
-};
 struct s_record_source;
 struct s_record_sources
 {
@@ -96,10 +82,8 @@ struct s_light_shape_ab
     };
 };
 
-extern s_index_cache g_4c6b00[8];
 /* The first cached record block precedes the existing metadata array.
    Later blocks occupy the preceding metadata entry's values storage. */
-s_44940_entry g_4c6700[32];
 extern s_44940_entry g_4ba138[850];
 extern s_2cb30_globals g_4c0b78;
 extern s_record_sources g_4c1a48[3];

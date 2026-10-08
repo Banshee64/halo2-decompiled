@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7144 functions match
+
+```
+matched 7144 of 11318 game functions (804185 of 2784283 bytes, 28.88%)
+```
+
+9 new matches, none lost:
+- Deep lanes switch to tuning near misses: deep lane 1 +8 (0x1d2f0, 0xa1410, 0xa1670, 0xa18c0, 0xa1ba0, 0xa3600, 0xa8f10, 0xb4a90; reorders the parameters of simulation_write_position, 0x86d20), deep lane 3 +1 (0x1e22d0).
+
+## 2026-10-08: 7135 functions match
+
+```
+matched 7135 of 11318 game functions (802521 of 2784283 bytes, 28.82%)
+```
+
+26 new matches, none lost:
+- Merge batch r49: the second machine's lane K round 13 (#253, +1), lane M round 14 (#250, +5), lane P round 11 (#248, +5) and lane C round 39 (#251, +15, one of them 0x2a5250 as a side effect).
+- The deep lanes' complete drafts of large functions (rounds 1-3) are on main as work in progress; none matches exactly yet.
+
 ## 2026-10-08: 7109 functions match
 
 ```

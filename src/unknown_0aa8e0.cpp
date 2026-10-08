@@ -137,7 +137,7 @@ void function_ab5e0(s_z_blend_state const *state, s_bitstream *stream)
   stream_write_bit(stream, false);
 }
 
-void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+void simulation_write_position(long bits, s_bitstream *stream, real const *position, bool keep_inside);
 void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f const *up);
 void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real hi, long bits);
 bool __stdcall function_a75d0(vector3f *vector, real maximum);
@@ -146,7 +146,7 @@ bool __stdcall function_a75d0(vector3f *vector, real maximum);
 void function_ab7f0(s_bitstream *stream, s_z_transform_state const *state)
 {
  function_b5650(state->identifier, stream);
- simulation_write_position((real const *)&state->position, 16, stream, false);
+ simulation_write_position(16, stream, (real const *)&state->position, false);
  function_194d30(stream, &state->forward, &state->up);
  vector3f velocity = state->linear_velocity;
  function_a75d0(&velocity, 350.0f);

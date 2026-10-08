@@ -167,10 +167,10 @@ PRIVATE __forceinline long function_1d8f52(long marker_group_index, long render_
 }
 
 // @retail 0x1d8f50
-short function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
+long function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
 	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, long count)
 {
-	return (short)function_1d8f52(marker_group_index, render_model_index, region_permutations,
+	return function_1d8f52(marker_group_index, render_model_index, region_permutations,
 		node_remapping, field_50, mirrored, markers, count);
 }
 

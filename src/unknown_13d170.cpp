@@ -105,6 +105,26 @@ void s_physical_object::block_delete(long handle)
 	record_pool_release(blocks, handle);
 }
 
+PRIVATE __forceinline byte *function_13d8b1(s_record_pool_iterator *arg_1)
+{
+	s_record_pool *local_1 = arg_1->data;
+	long local_2 = data_find_index(local_1, arg_1->index + 1);
+	byte *local_3;
+	if (local_2 != NONE)
+	{
+		local_3 = local_1->data + local_1->size * local_2;
+		arg_1->index = local_2;
+		arg_1->datum_index = (*(short *)local_3 << 16) | local_2;
+	}
+	else
+	{
+		arg_1->index = local_1->maximum_count;
+		arg_1->datum_index = NONE;
+		local_3 = 0;
+	}
+	return local_3;
+}
+
 /* resizes the allocator to a number of pages, freeing the blocks past its end */
 // @retail 0x13d8b0
 void s_physical_object::method_13d8b0(long pages)
@@ -115,7 +135,7 @@ void s_physical_object::method_13d8b0(long pages)
 	iterator.data = blocks;
 	iterator.index = NONE;
 	iterator.datum_index = NONE;
-	while ((block = (s_physical_block *)data_iterator_next_inlined(&iterator)) != NULL)
+	while ((block = (s_physical_block *)function_13d8b1(&iterator)) != NULL)
 	{
 		if (block->offset + block->pages > pages)
 		{

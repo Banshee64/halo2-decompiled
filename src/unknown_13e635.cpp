@@ -135,7 +135,7 @@ void function_13e703(byte const *arg_1, s_13e703 const *arg_2, box2f const *arg_
 		real local_12 = ((local_11 + 1) & 2) ? local_18->x1 : local_18->x0;
 		real local_13 = local_11 > 1 ? local_18->y1 : local_18->y0;
 		point2f local_19;
-		local_19.y = (local_5 * local_13 - local_7) * arg_4;
+		local_19.y = (*(volatile real const *)&local_5 * local_13 - local_7) * arg_4;
 		local_19.x = (local_4 * local_12 - arg_6) * arg_4;
 		local_10[local_11].field_0.x = local_19.x * arg_5 + local_8 - local_19.y * local_2;
 		local_10[local_11].field_0.y = local_19.y * arg_5 + local_19.x * local_2 + local_9;

@@ -133,39 +133,38 @@ void sound_voices_update_locations(void)
 	iterator.datum_index = NONE;
 	while ((voice = (s_sound_voice *)data_iterator_next_inlined(&iterator)) != NULL)
 	{
-		s_location *location = &voice->position.location;
+		s_sound_position *local_0 = &voice->position;
 
 		if (bsp_index == NONE)
 		{
-			location->leaf_index = NONE;
-			location->cluster_index = NONE;
-			location->bsp_index = bsp_index;
+			local_0->location.leaf_index = NONE;
+			local_0->location.cluster_index = NONE;
+			local_0->location.bsp_index = bsp_index;
 		}
 		else
 		{
-			long leaf_index = function_14a280(g_4e033c, &voice->position.position, 0);
-			location->leaf_index = leaf_index;
-			location->cluster_index = leaf_index != NONE ? ((s_structure_bsp_leaves_view_21dde0 *)g_4e0348)->leaves[leaf_index].cluster_index : NONE;
-			location->bsp_index = bsp_index;
+			long leaf_index = function_14a280(g_4e033c, &local_0->position, 0);
+			local_0->location.leaf_index = leaf_index;
+			local_0->location.cluster_index = leaf_index != NONE ? ((s_structure_bsp_leaves_view_21dde0 *)g_4e0348)->leaves[leaf_index].cluster_index : NONE;
+			local_0->location.bsp_index = bsp_index;
 		}
 	}
 }
 
 /* whether two sound classes play alike */
+#pragma inline_depth(0)
 // @retail 0x21e1d0
-bool sound_classes_match(long class_a, long class_b)
+long sound_classes_match(long class_a, long class_b)
 {
-	if (class_a == class_b)
+	if (class_a != class_b)
 	{
-		return true;
+		if (!(((s_sound_class_view_221810 *)function_221810((short)class_a))->gain_bounds == ((s_sound_class_view_221810 *)function_221810((short)class_b))->gain_bounds &&
+			(real)fabs((double)(((s_sound_class_view_221810 *)function_221810((short)class_a))->distance - ((s_sound_class_view_221810 *)function_221810((short)class_b))->distance)) < 0.0001f))
+			return false;
 	}
-	if (((s_sound_class_view_221810 *)function_221810((short)class_a))->gain_bounds == ((s_sound_class_view_221810 *)function_221810((short)class_b))->gain_bounds &&
-		fabs(((s_sound_class_view_221810 *)function_221810((short)class_a))->distance - ((s_sound_class_view_221810 *)function_221810((short)class_b))->distance) < 0.0001f)
-	{
-		return true;
-	}
-	return false;
+	return true;
 }
+#pragma inline_depth(255)
 
 /* whether a playing sound can share a voice */
 // @retail 0x21e0b0

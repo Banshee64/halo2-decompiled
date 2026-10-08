@@ -279,6 +279,11 @@ c_type_709360 function_1dd5d0(s_graph_tag *graph, c_type_709360 animation_id)
 	return result;
 }
 
+PRIVATE __forceinline real function_1dd632(bool arg_0, s_random_globals *arg_1)
+{
+	return arg_0 ? function_x82e52f(&arg_1->unknown0, NULL, 0) : function_x82e52f(&arg_1->seed, NULL, 0);
+}
+
 // @retail 0x1dd630
 c_type_709360 *function_1dd630(s_graph_tag *graph, c_type_709360 *result, c_type_709360 animation_id, bool first_seed)
 {
@@ -298,8 +303,7 @@ c_type_709360 *function_1dd630(s_graph_tag *graph, c_type_709360 *result, c_type
 			animation = graph_animation_get(arg_0e6cbc, animation_id.index);
 			if (1.0f > animation->weight)
 			{
-				s_random_globals *local_4c4858 = g_4e7408;
-				real random = first_seed ? function_x82e52f(&local_4c4858->unknown0, NULL, 0) : function_x82e52f(&local_4c4858->seed, NULL, 0);
+				real random = function_1dd632(first_seed, g_4e7408);
 
 				while (animation->next_animation != NONE)
 				{
