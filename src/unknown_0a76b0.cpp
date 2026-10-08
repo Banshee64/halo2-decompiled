@@ -143,7 +143,7 @@ extern s_unit_request_definition *g_4677c8[60];
 
 bool unit_action_active(long unit_index, long action_type);
 void function_b58c0(long index, dword mask);
-void function_b9b90(long object_index, bool disable);
+void __stdcall function_b9b90(long object_index, bool disable);
 void function_b7360(long object_index);
 void function_bba20(long object_index);
 void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
