@@ -17,10 +17,6 @@ bool function_06ec80(c_class_58d20 *s, bool flag)
 
 
 
-// @stub 0x1388e0
-void function_1388e0()
-{
-}
 
 
 

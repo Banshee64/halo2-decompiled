@@ -27,3 +27,49 @@ public:
 void function_f8190(void)
 {
 }
+
+// @stub 0x18e960
+void function_18e960(void)
+{
+}
+
+
+// @stub 0x22b7dd
+bool function_22b7dd(byte const *arg_1, long arg_2)
+{
+    return false;
+}
+
+// @stub 0x22af8d
+bool function_22af8d(long arg_1, byte const *arg_2)
+{
+    return false;
+}
+
+// @stub 0x22b8e2
+void function_22b8e2(byte const *arg_1, long arg_2, real const *arg_3)
+{
+}
+
+// @stub 0x22aff1
+void function_22aff1(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4)
+{
+}
+
+// @stub 0x22aa16
+void function_22aa16(long arg_1, byte const *arg_2, byte const *arg_3, real const *arg_4)
+{
+}
+
+struct s_133f70;
+union point3f;
+// @stub 0x4b5d0
+void function_4b5d0(long arg_1, long arg_2, bool arg_3, real arg_4, real arg_5,
+    s_133f70 *arg_6, point3f const *arg_7, bool arg_8)
+{
+}
+
+// @stub 0x13aa27
+void function_13aa27(long arg_1, byte const *arg_2, byte *arg_3, long arg_4, byte const *arg_5)
+{
+}
