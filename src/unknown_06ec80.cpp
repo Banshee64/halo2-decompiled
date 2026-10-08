@@ -1,0 +1,180 @@
+// @flags /O2 /arch:SSE /Gr
+#include "unknown_11c920.h"
+#include "unknown_059ad0.h"
+#include "unknown_058dd0.h"
+#include "globals.h"
+#include <string.h>
+#include <xtl.h>
+
+struct s_game_options;
+void function_138110(s_game_options *options);
+bool __stdcall function_138180(s_session_options const *options);
+bool __stdcall function_18e8b0(s_session_options const *arg_0);
+
+union s_6ec80
+{
+    s_session_options field_0;
+    byte field_1[0x1118];
+    __int64 field_2;
+};
+
+// @retail 0x6ec80
+bool function_06ec80(c_class_58d20 *arg_0, bool arg_1)
+{
+    bool local_0 = false;
+    bool local_1 = true;
+    long local_2 = NONE;
+    long local_3 = NONE;
+    byte *local_4 = 0;
+    long local_5 = NONE;
+    if (arg_0->state > 2 && arg_0->state <= 8)
+        local_5 = arg_0->value4da8;
+    __int64 local_6 = -1;
+    if (arg_0->state > 2 && arg_0->state <= 8)
+    {
+        ((long *)&local_6)[0] = arg_0->value4da0;
+        ((long *)&local_6)[1] = arg_0->value4da4;
+    }
+    byte *local_7 = 0;
+    if (arg_0->state > 2 && arg_0->state <= 8)
+        local_7 = arg_0->data4db0;
+    short local_8 = NONE;
+    if (arg_0->state > 2 && arg_0->state <= 8)
+        local_8 = arg_0->value5dd0;
+    long local_9 = NONE;
+    if (arg_0->state > 2 && arg_0->state <= 8)
+        local_9 = arg_0->value4dac;
+    long local_10 = NONE;
+    long local_11 = arg_0->value18;
+    arg_0->get_values_4d08(&local_2, &local_3, &local_4);
+    s_unknown_108 *local_12 = 0;
+    s_unknown_3648 *local_13 = 0;
+    if (arg_0->state > 2 && arg_0->state <= 8 && arg_0->flag4f20)
+    {
+        local_12 = &arg_0->data4f24;
+        local_13 = &arg_0->data4f90;
+    }
+    if (arg_1)
+    {
+        local_10 = arg_0->get_value_49c8();
+        if (local_10 == NONE)
+            local_1 = false;
+    }
+    if (local_3 == NONE)
+        local_1 = false;
+    if (!local_4 || !*local_4)
+        local_1 = false;
+    if (!local_7)
+        local_1 = false;
+    dword local_14 = 0;
+    if (local_12 && local_13)
+    {
+        long local_15 = 0;
+        do
+        {
+            if (((s_session_player *)local_13)[local_15].active)
+                local_14 |= 1 << local_15;
+            local_15++;
+        } while (local_15 < 16);
+        if (!local_12->data[0] || !local_14)
+            local_1 = false;
+    }
+    else
+        local_1 = false;
+    if (local_9 >= 0 && local_9 < 3 && local_1)
+    {
+        bool local_16 = arg_0->current_member == arg_0->member_index;
+        long local_17 = arg_0->player_count;
+        long local_18 = arg_0->member_count;
+        s_session_machine local_19 = *(s_session_machine *)((byte *)&arg_0->members[arg_0->current_member] + 0xa);
+        if ((short)local_8 != NONE)
+        {
+            if (local_17 > 2)
+                local_1 = false;
+            if (local_18 > 1)
+                goto local_23;
+        }
+        if (local_1)
+        {
+            long local_20;
+            switch (local_9)
+            {
+            case 0: local_20 = 1; break;
+            case 1: local_20 = local_16 ? 3 : 2; break;
+            case 2: local_20 = local_16 ? 5 : 4; break;
+            default: __assume(0);
+            }
+            s_6ec80 local_21;
+            function_138110((s_game_options *)&local_21);
+            s_session_options *local_22 = &local_21.field_0;
+            *(long *)(local_21.field_1 + 0x14) = local_2;
+            *(long *)(local_21.field_1 + 0x18) = local_3;
+            strncpy(local_22->name, (char *)local_4, sizeof(local_22->name));
+            local_22->name[sizeof(local_22->name) - 1] = 0;
+            local_22->unknown4 = (char)local_20;
+            switch (local_11)
+            {
+            case 0: local_22->unknown5 = 1; break;
+            case 1: local_22->unknown5 = 2; break;
+            case 2: local_22->unknown5 = 3; break;
+            }
+            *(long *)(local_21.field_1 + 8) = ((long *)&local_6)[0];
+            *(long *)(local_21.field_1 + 0xc) = ((long *)&local_6)[1];
+            *(long *)(local_21.field_1 + 0x10) = local_5;
+            if ((short)local_8 != NONE)
+            {
+                local_22->type = 1;
+                local_22->unknown12a = (short)local_8;
+                local_22->unknown12c = local_17 > 1;
+                local_22->unknown12d[0] = 0;
+            }
+            else
+            {
+                local_22->type = 2;
+                memcpy(local_22->unknown134, local_7, sizeof(local_22->unknown134));
+                *(long *)(local_21.field_1 + 0x130) = local_10;
+            }
+            memcpy(&local_22->machine_mask, local_12, sizeof(*local_12));
+            memcpy(local_22->players, local_13, sizeof(*local_13));
+            local_22->local_machine_valid = true;
+            local_22->local_machine = local_19;
+            g_510548 = false;
+            g_51054c = GetTickCount();
+            if (function_138180(local_22) && function_18e8b0(local_22))
+                local_0 = true;
+            g_510548 = true;
+            g_51054c = GetTickCount();
+        }
+    }
+local_23:
+    return local_0;
+}
+
+struct s_6ec10
+{
+    byte field_0[0x10];
+    long field_10;
+    long field_14;
+};
+
+// @retail 0x6ec10
+void c_session_state::function_06ec10(c_class_58d20 *arg_0)
+{
+    if (function_06ec80(arg_0, false))
+    {
+        s_6ec10 *local_0 = (s_6ec10 *)this;
+        local_0->field_10 = g_4e6948->id_a;
+        local_0->field_14 = g_4e6948->id_b;
+    }
+    else
+    {
+        long local_0 = arg_0->state;
+        if (local_0 == 5 || local_0 == 6 || local_0 == 7 || local_0 == 8)
+            network_session_set_mode(arg_0, 1);
+        else
+        {
+            volatile long local_1 = local_0;
+            network_session_leave(arg_0, false);
+        }
+    }
+}

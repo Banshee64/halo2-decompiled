@@ -3126,6 +3126,13 @@ struct s_session_transition_state
 	dword mask14;
 };
 
+static __forceinline bool function_62550(s_session_transition_state *arg_0, long arg_1)
+{
+	dword local_0 = arg_0->sent_mask;
+	dword local_1 = 1 << arg_1;
+	return (bool)(local_0 & local_1);
+}
+
 // @retail 0x62550
 void network_session_send_host_reestablish(c_class_58d20 *session)
 {
@@ -3145,7 +3152,7 @@ void network_session_send_host_reestablish(c_class_58d20 *session)
 		if (i == transition->host_index && !timed_out)
 			continue;
 		dword bit = 1 << i;
-		if (!(bit & transition->sent_mask) && session->member_states[i].flag1)
+		if (!function_62550(transition, i) && session->member_states[i].flag1)
 		{
 			long channel_index = session->member_states[i].unknown04;
 			s_network_observer *observer = session->observer;
