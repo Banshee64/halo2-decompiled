@@ -775,7 +775,7 @@ c_class_1473c9 *__stdcall function_24b4a9(s_screen_parameters *parameters);
 /* signs the controller in with a saved profile; when online, or when no
    player slot is active yet, opens the gamertag selection screen instead */
 // @retail 0x19060a
-void function_19060a(long profile_index, long controller)
+void function_19060a(long controller, long profile_index)
 {
 	bool select;
 	s_player_profile_settings settings;
