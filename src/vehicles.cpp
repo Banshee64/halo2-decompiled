@@ -3642,7 +3642,8 @@ bool __stdcall function_f6d10(long vehicle_index, long name, real *value, bool *
 		result = function_d1210(vehicle_index);
 		break;
 	case 0x4000580:
-		if (function_f5d70(vehicle_index) || (vehicle->control_flags & 2) || ((vehicle->flags348 >> 5) & 1))
+		if (function_f5d70(vehicle_index) || (vehicle->control_flags & 2) ||
+			TEST_FIELD_BIT(((s_vehicle_word_flag_bits const *)&vehicle->flags348)->bit5))
 		{
 			result = 1.0f;
 		}

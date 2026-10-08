@@ -1446,7 +1446,7 @@ void function_f87f0(long projectile_index, point3f *aim_point)
 		}
 	}
 
-	if ((definition->flags & 0x200) && distance > 0.0001f)
+	if (TEST_FIELD_BIT(definition->flag_bits.unknown9) && distance > 0.0001f)
 	{
 		vector3f const *up = g_4687b0;
 		vector3f axis;
@@ -1473,7 +1473,7 @@ void function_f87f0(long projectile_index, point3f *aim_point)
 		return;
 	}
 
-	if (!(definition->flags & 0x80))
+	if (!TEST_FIELD_BIT(definition->flag_bits.unknown7))
 	{
 		vector3f offset;
 
