@@ -1150,14 +1150,20 @@ void function_13b285(void);
 long players_first_active_local_player(void);
 long function_14de10(long arg_1);
 
+__forceinline long function_13a839(long const *arg_1)
+{
+    return *(long const volatile *)arg_1;
+}
+
 // @retail 0x13a838
 void __stdcall function_13a838(long arg_1)
 {
-    byte *local_1 = (byte *)g_510c4c + arg_1 * 0x6c;
+    long local_13 = function_13a839(&arg_1);
+    byte *local_1 = (byte *)g_510c4c + local_13 * 0x6c;
     byte local_2[0x270];
-    function_2003dc(arg_1);
-    function_13992a(local_2, arg_1);
-    function_13a720(arg_1, (s_13a720_status const *)local_2);
+    function_2003dc(local_13);
+    function_13992a(local_2, local_13);
+    function_13a720(local_13, (s_13a720_status const *)local_2);
     if (local_2[0x130])
     {
         real local_3 = local_2[0x133] ? 1.0f : 0.0f;
@@ -1177,9 +1183,9 @@ void __stdcall function_13a838(long arg_1)
         }
     }
     long local_6 = NONE;
-    if (function_14ddc0(arg_1))
+    if (function_14ddc0(local_13))
     {
-        long local_7 = function_14de70(arg_1);
+        long local_7 = function_14de70(local_13);
         local_6 = *(long *)(g_4e8c24->data + (local_7 & 0xffff) * 0x21c + 0x2c);
     }
     if (local_6 != NONE)
@@ -1212,10 +1218,10 @@ void __stdcall function_13a838(long arg_1)
     }
     long local_12 = *(long *)(local_2 + 0xc);
     if (local_12 != NONE)
-        function_13aa27(arg_1, local_2 + 0x88, local_1 + 0x18, local_12, local_2);
+        function_13aa27(local_13, local_2 + 0x88, local_1 + 0x18, local_12, local_2);
     local_12 = *(long *)(local_2 + 0x10);
     if (local_12 != NONE)
-        function_13aa27(arg_1, local_2 + 0xc0, local_1 + 0x20, local_12, local_2);
+        function_13aa27(local_13, local_2 + 0xc0, local_1 + 0x20, local_12, local_2);
 }
 
 // @retail 0x1391ed
@@ -1237,4 +1243,62 @@ void function_1391ed(void)
                 local_4->unknown50, (word *)&local_4->unknown68);
         }
     }
+}
+
+real function_1591e0(long arg_1);
+void function_44370(long arg_1);
+bool function_15dea0(void);
+bool function_161b60(long arg_1);
+bool function_15fef0(long arg_1);
+void function_1396c7(long arg_1, point2f *arg_2);
+void motion_sensor_render(long arg_1, short const *arg_2);
+void function_15ea50(long arg_1);
+void function_200462(long arg_1);
+void function_1e6fe0(long arg_1);
+void function_159880(void);
+void function_445d0(void);
+
+short const g_47ff40[3][2] = { {41, -42}, {31, -31}, {31, -31} };
+
+// @retail 0x13954b
+void function_13954b(void)
+{
+    if (function_13939b())
+    {
+        long local_1 = g_4b9ed8;
+        long local_2 = function_14de70(local_1);
+        function_139296(local_1, function_1591e0(local_1) * ((s_new_hud_globals *)g_510c4c)->current);
+        function_44370(0x18);
+        if (!function_15dea0() || function_161b60(local_2))
+        {
+            byte local_3[0x270];
+            function_13992a(local_3, local_1);
+            if (function_1393f3(local_1, local_3))
+            {
+                function_1394b9(local_1, local_3);
+                memcpy(&g_4e69d0[local_1], local_3, sizeof(s_4e69d0));
+            }
+            else
+                function_1394b9(local_1, (byte *)&g_4e69d0[local_1]);
+            if (function_15fef0(local_2) && *(short *)(local_3 + 0x3c) == NONE)
+            {
+                long local_4 = function_13a690(4);
+                point2f local_5;
+                function_1396c7(2, &local_5);
+                short local_6[2];
+                local_6[0] = (short)(long)((real)g_47ff40[local_4][0] + local_5.x - (real)g_4b9dd2);
+                local_6[1] = (short)(long)((real)g_47ff40[local_4][1] + local_5.y - (real)g_4b9dd0);
+                if (local_1 != NONE)
+                    motion_sensor_render(local_1, local_6);
+            }
+            function_15ea50(local_1);
+            function_200462(local_1);
+            function_1e6fe0(local_1);
+        }
+        function_159880();
+        function_445d0();
+        *(long *)((byte *)g_510c4c + 0x1bc) = 0;
+    }
+    else
+        function_13ac42(g_4b9ed8);
 }

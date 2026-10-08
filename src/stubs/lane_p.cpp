@@ -67,3 +67,23 @@ void function_4b5d0(long arg_1, long arg_2, bool arg_3, real arg_4, real arg_5,
 void function_13aa27(long arg_1, byte const *arg_2, byte *arg_3, long arg_4, byte const *arg_5)
 {
 }
+
+// @stub 0x44370
+void function_44370(long arg_1)
+{
+}
+
+// @stub 0x159880
+void function_159880(void)
+{
+}
+
+// @stub 0x200462
+void function_200462(long arg_1)
+{
+}
+
+// @stub 0x1e6fe0
+void function_1e6fe0(long arg_1)
+{
+}
