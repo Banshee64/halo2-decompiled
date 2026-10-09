@@ -210,11 +210,11 @@ real function_aa4d0(long count, long const *entity_indices, real maximum_distanc
 char *function_11c9c0(char *buffer, long size, const char *format, ...);
 void function_a6660(s_entity_info *info);
 void function_b5650(long identifier, s_bitstream *stream);
-bool function_a6810(s_bitstream *stream);
+bool function_a6810(s_entity_info *info, s_bitstream *stream);
 bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g);
 bool function_a7180(long a, long b);
 void __stdcall function_b8540(long a);
 bool function_a5d90(void *data, s_entity_info *info, long *c, long e);
-long function_a73b0(s_entity_info *info);
-long function_b7b40(void *creation);
+long __stdcall function_a73b0(s_entity_info *info);
+long __stdcall function_b7b40(void *creation);
 void __stdcall function_b9b90(long object_index, bool disable);

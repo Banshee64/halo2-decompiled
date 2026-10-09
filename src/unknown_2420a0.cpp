@@ -164,7 +164,7 @@ void __stdcall function_a7810(dword mask);
 void __stdcall function_a7870(long object_index);
 struct s_effect_owner;
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-long function_b7b40(void *data);
+long __stdcall function_b7b40(void *data);
 void function_15e050(long object_index, short value);
 void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
@@ -408,19 +408,19 @@ void c_game_engine_markers::v45(dword *flags, long, s_marker_update *update)
 		do
 		{
 			long a = g->triples[i].a == NONE ? NONE : g->triples[i].a & 0xffff;
-			long b = g->triples[i].b == NONE ? NONE : g->triples[i].b & 0xffff;
-			long c = g->triples[i].c == NONE ? NONE : g->triples[i].c & 0xffff;
 
 			if (update->triples[i].a != a)
 			{
 				update->triples[i].a = a;
 				changed |= 0x400;
 			}
+			long b = g->triples[i].b == NONE ? NONE : g->triples[i].b & 0xffff;
 			if (update->triples[i].b != b)
 			{
 				update->triples[i].b = b;
 				changed |= 0x400;
 			}
+			long c = g->triples[i].c == NONE ? NONE : g->triples[i].c & 0xffff;
 			if (update->triples[i].c != c)
 			{
 				update->triples[i].c = c;
@@ -649,7 +649,11 @@ bool function_2440a0(s_marker_list *list, point3f const *point, long object_inde
 			if (value == NONE)
 				list->items[list->count].r = 0.0f;
 			else
-				list->items[list->count].r = (real)value / (real)scale;
+			{
+				real *local_1 = &list->items[list->count].r;
+				real volatile local_0 = (real)value / (real)scale;
+				*local_1 = local_0;
+			}
 		}
 		else
 		{
@@ -1155,6 +1159,14 @@ void c_game_engine_markers::v23(long object_index, long unit_index)
 	}
 }
 
+PRIVATE __forceinline short function_2411b1(short arg_0)
+{
+	short local_0 = NONE;
+	if (arg_0 != 8)
+		local_0 = arg_0;
+	return local_0;
+}
+
 // @retail 0x2411b0
 void c_game_engine_markers::v24(long object_index, long unit_index)
 {
@@ -1198,7 +1210,7 @@ void c_game_engine_markers::v24(long object_index, long unit_index)
 
 					game_engine_event_initialize(&event, ctf_options()->engine_type == 9 ? 10 : 3, 2);
 					game_engine_event_set_cause_player(&event, player_index);
-					event.effect_team = (short)(slot == 8 ? NONE : slot);
+					event.effect_team = function_2411b1((short)slot);
 					function_19eb90(&event);
 				}
 			}
@@ -1798,6 +1810,17 @@ bool function_244300(long object_index, long *player_index)
 	return false;
 }
 
+PRIVATE __forceinline real function_244681(long arg_0, s_palette_source_globals const *arg_1, point3f *arg_2, real arg_3)
+{
+	point3f const *local_0 = &arg_1->marker_entries[arg_0].position;
+	long local_1 = ((long const volatile *)local_0)[0];
+	((long *)arg_2)[0] = local_1;
+	real local_2 = arg_3 - arg_2->x;
+	((long *)arg_2)[1] = ((long const volatile *)local_0)[1];
+	((long *)arg_2)[2] = ((long const volatile *)local_0)[2];
+	return local_2;
+}
+
 // @retail 0x244680
 bool function_244680(long team, long unit_index)
 {
@@ -1821,11 +1844,11 @@ bool function_244680(long team, long unit_index)
 				if (marker_index != NONE)
 				{
 					point3f const *bounds = k == 0 ? &g->bounds[0][i] : &g->bounds[1][i];
-					point3f marker = *marker_position(marker_index);
-					real dx = position.x - marker.x;
+					point3f marker;
+					real dx = function_244681(marker_index, g_4e0350, &marker, position.x);
 					real dy = position.y - marker.y;
 
-					if (bounds->x * bounds->x > dx * dx + dy * dy &&
+					if (dx * dx + dy * dy < bounds->x * bounds->x &&
 						bounds->z > position.z - marker.z &&
 						bounds->y > marker.z - position.z)
 					{
@@ -1848,6 +1871,18 @@ PRIVATE __forceinline real function_2447f1(point3f const *arg_0, point3f const *
 	return local_0 * local_0 + local_1 * local_1 + local_2 * local_2;
 }
 
+PRIVATE __forceinline void function_2447f2(long arg_0, s_palette_source_globals const *arg_1, point3f *arg_2)
+{
+	point3f const *local_0 = &arg_1->marker_entries[arg_0].position;
+	long const volatile *local_1 = (long const volatile *)local_0;
+	long local_2 = local_1[2];
+	long local_3 = local_1[1];
+	long local_4 = local_1[0];
+	((long *)arg_2)[0] = local_4;
+	((long *)arg_2)[1] = local_3;
+	((long *)arg_2)[2] = local_2;
+}
+
 // @retail 0x2447f0
 bool function_2447f0()
 {
@@ -1868,7 +1903,7 @@ bool function_2447f0()
 				if (marker_index == NONE)
 					continue;
 				function_b9dd0(entry->object_index, &position);
-				marker = *marker_position(marker_index);
+				function_2447f2(marker_index, g_4e0350, &marker);
 				if (!(function_2447f1(&position, &marker) > 0.2f * 0.2f))
 					continue;
 			}
@@ -1905,11 +1940,23 @@ long function_baf80(long object_index);
 bool function_15b7c0(long delta, long player_index);
 void function_10da60(long object_index, point3f *position);
 
+PRIVATE __forceinline long function_240741(long arg_0, s_mp_globals const *arg_1)
+{
+	long local_0 = 0;
+	if (g_55e4d0[arg_1->engine_index])
+	{
+		s_ctf_player_score const *local_1 = (s_ctf_player_score const *)((byte const *)arg_1 + 0x304);
+		if (local_1)
+			local_0 = local_1[arg_0 & 0xffff].score;
+	}
+	return local_0;
+}
+
 // @retail 0x240740
 void function_240740(long object_index)
 {
 	long slot = slot_object_get(object_index)->slot;
-	long best_player_index = NONE;
+	long volatile best_player_index = NONE;
 	long best_score = 0x80000000;
 	s_player_iterator iterator;
 
@@ -1920,11 +1967,7 @@ void function_240740(long object_index)
 	{
 		if (slot == 8 || iterator.player->team == slot)
 		{
-			s_ctf_player_score *scores = ctf_player_scores();
-			long score = 0;
-
-			if (scores)
-				score = scores[iterator.index & 0xffff].score;
+			long score = function_240741(iterator.index, g_4e9ae8);
 			if (score > best_score)
 			{
 				best_player_index = iterator.index;
@@ -2224,7 +2267,7 @@ void function_244630(point3f const *arg_0, long arg_1)
 		(t_record_fill)function_d4bc0, (dword)function_244470, function_244610, (void *)arg_1, arg_0);
 }
 
-PRIVATE __forceinline void function_2417a1(s_marker_entry const *arg_0, short arg_1, point3f *arg_2)
+PRIVATE __forceinline void function_2417a1(s_marker_entry const *arg_0, long arg_1, point3f *arg_2)
 {
     long local_0 = *(long const volatile *)&arg_0[arg_1].position.y;
     point3f const *local_1 = &arg_0[arg_1].position;

@@ -116,18 +116,35 @@ void __stdcall function_1ada70(long actor_index, s_slot *slot);
 
 /* ---- slot type 0x2c ---- */
 
+#pragma optimize("g", off)
+PRIVATE __forceinline real function_1ac091(dword const *arg_0)
+{
+	return (real)*arg_0;
+}
+#pragma optimize("", on)
+#pragma optimize("g", off)
+PRIVATE __forceinline real function_1ac092(long const *arg_0)
+{
+	return (real)*arg_0;
+}
+#pragma optimize("", on)
+
 // @retail 0x1ac090
 bool __stdcall function_1ac090(long actor_index, s_slot *slot)
 {
 	s_slot_2c *state = (s_slot_2c *)slot;
-	dword *seed = &g_4e7408->unknown0;
+	s_random_globals *local_0 = g_4e7408;
+	dword *seed = &local_0->unknown0;
 	long ticks;
 
 	*seed = 1664525 * *seed + 1013904223;
-	real seconds = ((real)(*seed >> 16) * (1.f / 65535.f) + 1.0f) * 2.0f * g_510c54->field_2_3;
+	*(dword *)&slot = *seed >> 16;
+	real local_1 = (function_1ac091((dword *)&slot) * (1.f / 65535.f) + 1.0f) * 2.0f;
+	*(long *)&slot = g_510c54->field_2_3;
+	*(real *)&slot = local_1 * function_1ac092((long *)&slot);
 	__asm
 	{
-		fld seconds
+		fld slot
 		fistp ticks
 	}
 	state->ticks = (short)ticks;

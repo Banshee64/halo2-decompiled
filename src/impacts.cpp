@@ -555,19 +555,31 @@ bool impacts_match(
 	{
 		if (flag)
 		{
-			return impact_material_a == material_a && impact_material_b == material_b ||
-				impact_material_b == material_a && impact_material_a == material_b;
+			if (impact_material_a == material_a && impact_material_b == material_b ||
+				impact_material_b == material_a && impact_material_a == material_b)
+				goto local_0;
 		}
 	}
 	else if (!flag)
 	{
-		return (impact_component_a == component_a && impact_component_b == component_b ||
+		if ((impact_component_a == component_a && impact_component_b == component_b ||
 			impact_component_a == component_b && impact_component_b == component_a) &&
 			c_class_227600::function_227600(NONE, impact_material_a, impact_material_b, material_a, material_b) &&
 			impact_unknown == unknown &&
-			impact_type == type;
+			impact_type == type)
+			goto local_0;
 	}
 	return false;
+local_0:
+	return true;
+}
+
+PRIVATE __forceinline real function_2274f1(vector3f const *arg_0)
+{
+	real local_0 = arg_0->i * arg_0->i;
+	local_0 += arg_0->j * arg_0->j;
+	local_0 += arg_0->k * arg_0->k;
+	return local_0;
 }
 
 // @retail 0x2274f0
@@ -589,7 +601,7 @@ bool impact_matches_data(
 			real distance_squared;
 
 			vector3d_from_points3d(&impact->position, &data->position, &delta);
-			distance_squared = length_sq3f(&delta);
+			distance_squared = function_2274f1(&delta);
 			if (!(distance_squared < 0.25f) &&
 				(!(distance_squared < 16.0f) || !(dot3f(&impact->normal, &data->normal) > g_55c2d0)))
 			{

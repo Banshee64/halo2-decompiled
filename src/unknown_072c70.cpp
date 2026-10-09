@@ -763,10 +763,10 @@ void c_game_engine_derived::v46(long a, long b)
 			if (owner != NONE)
 			{
 				s_event e;
-
+				long team = event_player_get(owner)->team;
 				game_engine_event_initialize_inline(&e, 4, 3);
 				e.cause_player_index = owner;
-				e.cause_team = event_player_get(owner)->team;
+				e.cause_team = team;
 				function_19eb90(&e);
 			}
 		}

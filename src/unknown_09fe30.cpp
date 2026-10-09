@@ -19,9 +19,9 @@
 
 struct s_object_data_view
 {
-	byte unknown00[8];
-	long unknown08;
-	byte unknown0c[0xb8];
+	byte unknown00[0xc];
+	long field_0c;
+	byte unknown10[0xb4];
 };
 
 struct s_object_creation
@@ -101,11 +101,11 @@ long c_object_type_definition::v29(long a, s_entity_info *info, long *c, long d,
 
 	creation.owner = (c_vehicle_type *)this;
 	function_a5d90(&creation.data, info, c, e);
-	creation.data.unknown08 = info->identifier;
+	creation.data.field_0c = info->identifier;
 	if (info->field0 != NONE)
 		index = function_a73b0(info);
 	else
-		index = function_b7b40(&creation);
+		index = function_b7b40(&creation.data);
 	if (index != NONE)
 	{
 		byte *object = OBJECT_FROM_INDEX(index);
@@ -125,10 +125,15 @@ void c_object_type_definition::v12(long a, s_entity_info *info, long c, s_bitstr
 // @retail 0xa0a60
 bool c_object_type_definition::v13(long a, s_entity_info *info, s_bitstream *stream)
 {
-	bool ok = function_a6810(stream);
+    c_object_type_definition const *volatile unused_this = this;
+	bool ok = function_a6810(info, stream);
 
 	function_195820(stream, info->vehicle_data, 0x20);
-	return stream->bit_position <= (stream->size_in_bytes << 3) && ok;
+	if (stream->bit_position <= (stream->size_in_bytes << 3) && ok)
+    {
+        return true;
+    }
+    return false;
 }
 
 // @retail 0xa09f0

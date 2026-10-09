@@ -1112,10 +1112,11 @@ real function_336f0(long selector)
         if (g_485a58)
         {
             real const *values = (real const *)g_485a58;
-            real red = values[4] + values[12];
-            real green = values[5] + values[13];
-            real blue = values[6] + values[14];
-            real value = blue * 0.114f + green * 0.587f + red * 0.299f;
+            color3f summed;
+            summed.red = values[4] + values[12];
+            summed.green = values[5] + values[13];
+            summed.blue = values[6] + values[14];
+            real value = summed.blue * 0.114f + summed.green * 0.587f + summed.red * 0.299f;
             return 0.0f > value ? 0.0f : value > 1.0f ? 1.0f : value;
         }
         return 1.0f;
@@ -1657,7 +1658,7 @@ long __stdcall function_2e9e0(byte const *context, s_2e3f0_record const *record)
         dword seed = (dword)context >> 5;
         dword hash = 0xffffffff;
         function_163ba0(&hash, &seed, 4);
-        time += (hash & 0xff) * (1.0f / 256.0f) + ((hash >> 8) & 0xff);
+        time = (hash & 0xff) * (1.0f / 256.0f) + time + ((hash >> 8) & 0xff);
     }
     if (*(long *)(definition + 0x4c) > 0)
         attenuation *= function_13bb90((s_tag_data *)*(byte **)(definition + 0x50), time, 0.0f);
@@ -1665,8 +1666,8 @@ long __stdcall function_2e9e0(byte const *context, s_2e3f0_record const *record)
     {
         real base_angle = function_2f2d0(&direction, &position,
             *(short *)(definition + 0x2c), *(real *)(definition + 0x30));
-        real camera_angle = (real)atan2(delta.j * g_4b9e4c.j + delta.i * g_4b9e4c.i + delta.k * g_4b9e4c.k,
-            delta.j * g_4b9e58.j + delta.i * g_4b9e58.i + delta.k * g_4b9e58.k);
+        real camera_angle = (real)atan2((double)delta.j * g_4b9e4c.j + (double)delta.i * g_4b9e4c.i + (double)delta.k * g_4b9e4c.k,
+            (double)delta.j * g_4b9e58.j + (double)delta.i * g_4b9e58.i + (double)delta.k * g_4b9e58.k);
         color3f animated = { 1.0f, 1.0f, 1.0f };
         if (*(long *)(definition + 0x54) > 0)
         {
@@ -1724,8 +1725,8 @@ long __stdcall function_2e9e0(byte const *context, s_2e3f0_record const *record)
                         g_4c19c0 = false;
                     }
                     D3DDevice_SetVertexData2f(8, clamp_2e9e0(1.0f - *(real *)(entry + 0x20)), 0.0f);
-                    real sine = angle == 0.0f ? 0.0f : (real)sin(angle);
-                    real cosine = angle == 0.0f ? 1.0f : (real)cos(angle);
+                    real sine = angle == 0.0f ? 0.0f : (real)sin((double)angle);
+                    real cosine = angle == 0.0f ? 1.0f : (real)cos((double)angle);
                     function_480a0(&point, cosine * size, sine * size, x_scale, y_scale,
                         function_131f40(opacity, &selected));
                 }
@@ -1961,9 +1962,9 @@ void c_octree_radius_view_ab::function_3f970(short index, plane3f const *planes,
 
 
 
-PRIVATE __forceinline double random_unit_fraction(s_random_globals *random)
+PRIVATE __forceinline real random_unit_fraction(s_random_globals *random)
 {
-    return (double)random_next(&random->seed) * (1.0f / 65535.0f);
+    return (real)random_next(&random->seed) * (1.0f / 65535.0f);
 }
 
 // @retail 0x39a80
@@ -2735,18 +2736,24 @@ real g_525980[3];
 // @retail 0x41640
 void function_41640(void)
 {
-    t_41640_draw draw[6] = { function_4e260, function_4ebd0, function_4ebd0,
-        function_4ede0, function_4efa0, function_4efa0 };
     t_41640_fill fill[6] = { (t_41640_fill)function_4de20, (t_41640_fill)function_4dfa0,
         (t_41640_fill)function_4dfa0, (t_41640_fill)function_4e0d0,
         (t_41640_fill)function_4e0d0, (t_41640_fill)function_4e0d0 };
+    t_41640_draw draw[6] = { function_4e260, function_4ebd0, function_4ebd0,
+        function_4ede0, function_4efa0, function_4efa0 };
     byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
     if (!g_4ba025) return;
     byte *definitions = (byte *)g_4e0350;
+    union
+    {
+        dword value;
+        struct { dword view : 8; dword record : 22; dword distance : 2; } fields;
+    } handle;
     for (long view = 0; view < (long)g_509438; ++view)
     {
         s_octree_output *node = &g_4c5700[view];
         byte *range = *(byte **)(table + 0x24) + node->node * 24;
+        handle.fields.view = view;
         for (long i = 0; i < *(short *)(range + 0x12); ++i)
         {
             long record_index = *(long *)(range + 0x14) + i;
@@ -2756,7 +2763,7 @@ void function_41640(void)
             long definition_index = (signed char)record[0];
             if (definition_index < 0 || definition_index >= *(long *)(definitions + 0x378)
                 || *(short *)(record + 0xa) <= 0 || !function_12de70(block, 3)) continue;
-            long tag = (*(long **)(definitions + 0x37c))[definition_index * 2 + 1];
+            long tag = (*(long **)(definitions + 0x37c))[(signed char)record[0] * 2 + 1];
             if (tag == NONE) continue;
             byte *definition = g_4e3b44[tag & 0xffff].bytes;
             long part_index = record[1];
@@ -2787,10 +2794,10 @@ void function_41640(void)
                 point3f camera = g_4b9da0;
                 if (g_525980[distance_class] > distance3d(&camera, &position) - radius)
                 {
-                    dword handle = (view & 0xff) | ((record_index << 8) & 0x3fffff00)
-                        | (distance_class << 30);
+                    handle.fields.record = *(long *)(range + 0x14) + i;
+                    handle.fields.distance = distance_class;
                     function_40e30(0, material, 10000.0f, 0, 0xffff, NONE, 0,
-                        fill[part[4]], (dword)draw[part[4]], (void *)handle);
+                        fill[part[4]], (dword)draw[part[4]], (void *)handle.value);
                 }
             }
         }

@@ -88,8 +88,8 @@ void function_18f62b()
 	long index = 0;
 	do
 	{
-		s_slot_update_view *slot = &((s_slot_update_view *)g_54e8e0)[index];
 		bool changed = false;
+		s_slot_update_view *slot = &((s_slot_update_view *)g_54e8e0)[index];
 		bool connected = slot_update_connected((short)index);
 		if (connected)
 		{

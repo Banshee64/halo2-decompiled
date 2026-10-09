@@ -92,7 +92,7 @@ bool __stdcall function_1c19b0(long actor_index, vector3f const *direction, s_ty
 		{
 			break;
 		}
-		node_index = function_26d100(g_4687b0, &collision, &unknown, &end);
+		node_index = function_26d100(g_4687b0, &unknown, &collision, &end);
 		if (!(height + 0.1f > collision.point.z) || !(2.0f > origin.z - collision.point.z))
 		{
 			break;

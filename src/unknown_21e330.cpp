@@ -725,9 +725,8 @@ PRIVATE inline real reverb_decibels_add(long first, long second)
 void function_21ece0(long effect_index, s_sound_driver_reverb const *reverb)
 {
 	DSFX_HIGH_LEVEL_EFFECT_DESCRIPTION description;
-	long gain = function_2197f0(g_468834);
-
 	description.effectType = DSFX_EFFECT_TYPE_I3DL2REVERB;
+	volatile long gain = function_2197f0(g_468834);
 	description.I3DL2Reverb.lRoom = (long)(function_12aff0(-64.0f, 0.0f,
 		reverb_decibels_add(*(long const *)&reverb->room, gain), true) * 6400.0f - 6400.0f);
 	description.I3DL2Reverb.lRoomHF = (long)(function_12aff0(-64.0f, 0.0f,

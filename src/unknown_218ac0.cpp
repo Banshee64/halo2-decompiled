@@ -191,24 +191,25 @@ static inline bool sound_bounds_contain(s_short_bounds const *bounds, real value
 // @retail 0x218f50
 short function_218f50(s_looping_playback_definition *playback_definition, short previous, real pitch)
 {
+	long local_0 = *(long const *)&previous;
 	s_sound_definition *definition = (s_sound_definition *)playback_definition;
 	long count = definition->pitch_range_count;
 	long best_index = NONE;
 
-	if (previous != NONE && previous < count)
+	if ((short)local_0 != NONE && (short)local_0 < count)
 	{
-		s_sound_pitch_range *arg_58ecd0 = sound_definition_pitch_range_get(definition, previous);
+		s_sound_pitch_range *arg_58ecd0 = sound_definition_pitch_range_get(definition, (short)local_0);
 
 		if (sound_bounds_contain(&sound_pitch_bounds_get(arg_58ecd0)->playback, pitch) && arg_58ecd0->permutation_count > 0)
 		{
-			return previous;
+			return (short)local_0;
 		}
 	}
 
 	real best_distance = 3.40282347e+38f;
-	for (short index = 0; index < count; index++)
+	for (long index = 0; (short)index < count; index++)
 	{
-		s_sound_pitch_range *arg_58ecd0 = sound_definition_pitch_range_get(definition, index);
+		s_sound_pitch_range *arg_58ecd0 = sound_definition_pitch_range_get(definition, (short)index);
 
 		if (arg_58ecd0->permutation_count > 0)
 		{

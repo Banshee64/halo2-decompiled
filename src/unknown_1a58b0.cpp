@@ -644,12 +644,14 @@ void function_1a6d80(void)
 // @retail 0x1a73c0
 s_action_node **function_1a73c0(long owner_index, short id, bool *valid, short *count)
 {
+	short const *local_0 = &id;
+	short local_1 = *local_0;
 	s_actor_view *owner = actor_get(owner_index);
-	s_action_table_entry *entry = &g_4f2cc0[id][owner->unknown004];
+	s_action_table_entry *entry = &g_4f2cc0[local_1][owner->unknown004];
 	s_action_node **nodes = &g_4f0a60[entry->index];
 	short node_count = entry->count;
 
-	*valid = function_1a71f0(node_count, g_46eeb8[id]->index, nodes);
+	*valid = function_1a71f0(node_count, g_46eeb8[local_1]->index, nodes);
 	*count = node_count;
 	return nodes;
 }
