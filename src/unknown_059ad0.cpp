@@ -849,7 +849,7 @@ long network_session_add_local_player(c_class_58d20 *session, long member_index,
 // @retail 0x5a880
 bool network_session_player_add(c_class_58d20 *session, const byte *properties, const dword *identity, long slot, long unknown18, long unknownac)
 {
-	bool result = false;
+	volatile bool result = false;
 
 	if (session_state_is_live(session))
 	{
@@ -1091,14 +1091,18 @@ bool network_session_is_leaving(c_class_58d20 *session)
 // @retail 0x5af70
 bool network_session_is_full(c_class_58d20 *session, long peer_count, long player_count)
 {
-	bool result = false;
-
-	if (session_state_is_live(session))
-	{
-		if (session->member_count + peer_count > session->value4990 || session->player_count + player_count > session->value4994)
-			result = true;
-	}
-	return result;
+    bool result = false;
+    if (session_state_is_live(session))
+    {
+        if (session->member_count + peer_count > session->value4990)
+            goto local_0;
+        if (session->player_count + player_count > session->value4994)
+            goto local_0;
+        return result;
+local_0:
+        result = true;
+    }
+    return result;
 }
 
 // @retail 0x5afc0
@@ -3663,7 +3667,7 @@ void __stdcall function_063080(c_class_58d20 *session, const s_network_message_s
   function_630f0(session, &request, (long)address, reason);
 }
 
-long count_bits(dword value);
+inline long count_bits(dword value);
 
 bool function_619b0(const s_session_member *arg_0, long arg_1, long arg_2, long arg_3);
 
