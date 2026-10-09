@@ -102,7 +102,7 @@ extern vector3f g_485950;
 extern byte g_4ba022;
 byte g_4ba018;
 
-void *function_449e0(short index, bool load, bool instance);
+__declspec(noinline) void *function_449e0(short index, bool load, bool instance);
 bool function_45ce0(short index, byte *out, short part, short transform_index);
 bool function_460d0(dword const *mask, short index, long part_index);
 void function_41040(short index, long part_index, long group, byte weight,

@@ -123,7 +123,7 @@ void simulation_read_position(s_bitstream *stream, real *position, long bits)
 
 /* whether two world positions quantize to within one quantum of each other */
 // @retail 0x86e90
-bool simulation_positions_close(long bits, real const *a, real const *b)
+byte simulation_positions_close(long bits, real const *a, real const *b)
 {
 	s_world_bounds_view *local_0 = (s_world_bounds_view *)g_4e0348;
 	long quantized_a[3];

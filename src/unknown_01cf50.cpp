@@ -37,7 +37,7 @@ extern IDirect3DBaseTexture8 *g_51f3c8[2][4];
 struct s_type_7ba8e9;
 s_type_7ba8e9 *function_137550(long tag, short bitmap);
 bool function_14390(short stage, s_type_7ba8e9 *bitmap, real priority);
-void function_144f0(long tag, short stage, short fallback, short fallback_index, short index, real priority);
+void function_144f0(long tag, short stage, long fallback, short fallback_index, short index, real priority);
 bool function_01dd60(long index, long *width, long *height);
 long function_25960(void);
 struct s_shader_cache;
@@ -232,7 +232,7 @@ void __stdcall function_15ec0(long index)
     }
 }
 
-bool function_015b10(long index, D3DPalette **out);
+__declspec(noinline) bool function_015b10(long index, D3DPalette **out);
 const long g_43e8e8[4] = { 32, 64, 128, 256 };
 
 // @retail 0x1d3f0
@@ -328,7 +328,7 @@ bool function_015a60(short format, long width, long height, long depth,
 bool function_1d000(byte *bitmap)
 {
 	short width = *(short *)(bitmap + 4);
-	short height = *(short *)(bitmap + 6);
+	volatile short height = *(short *)(bitmap + 6);
 	char depth = *(char *)(bitmap + 8);
 	short format = *(short *)(bitmap + 0xc);
 	bool linear = (bitmap[0xe] & 0x10) != 0;
@@ -647,24 +647,26 @@ bool function_14480(long tag, short stage, short index)
 }
 
 // @retail 0x144f0
-void function_144f0(long tag, short stage, short fallback, short fallback_index, short index, real priority)
+void function_144f0(long tag, short stage, long fallback, short fallback_index, short index, real priority)
 {
-    s_type_7ba8e9 *bitmap = NULL;
+    s_type_7ba8e9 *bitmap;
     if (tag != NONE)
     {
         byte *group = g_4e3b44[tag & 0xffff].bytes;
         long count = *(long *)(group + 0x44);
         if (count > 0)
+        {
             bitmap = function_137550(tag, (short)(index % count));
+            if ((long)*(short *)((byte *)bitmap + 0xa) == (long)fallback)
+                goto selected;
+        }
     }
-    if (!bitmap || *(short *)((byte *)bitmap + 0xa) != fallback)
-    {
-        tag = *(long *)(g_485a80 + fallback * 8 + 0x64);
-        if (tag == NONE) return;
-        bitmap = function_137550(tag, fallback_index);
-    }
-    if (bitmap)
-        function_14390(stage, bitmap, priority);
+    tag = *(long *)(g_485a80 + fallback * 8 + 0x64);
+    if (tag == NONE) return;
+    bitmap = function_137550(tag, fallback_index);
+    if (!bitmap) return;
+selected:
+    function_14390(stage, bitmap, priority);
 }
 
 short g_55ece0, g_55ece2;
@@ -907,7 +909,7 @@ void function_1c1b0(void)
 				for (long i = 0; i < count; i++)
 				{
 					long bit = g_43f188[i].y * 32 + base + g_43f188[i].x;
-					mask[bit / 32] = mask[bit / 32] | (1 << (bit % 32));
+					g_487288[count][bit / 32] |= 1 << (bit % 32);
 				}
 			}
 		}
@@ -3101,9 +3103,9 @@ void function_12d50(real const *projection, bool scaled, real *output)
 // @retail 0x14600
 bool function_14600()
 {
-    volatile bool result = true;
+    bool result = true;
     g_50935c = D3DDevice_GetBackBuffer2(0);
-    g_509360 = D3DDevice_GetBackBuffer2(1);
+    g_509360 = D3DDevice_GetBackBuffer2(-1);
     g_509364 = D3DDevice_GetDepthStencilSurface2();
     if (g_50935c && g_509360 && g_509364)
     {
@@ -3660,6 +3662,7 @@ long function_184000(long bit, long index);
 // @retail 0x45ce0
 bool function_45ce0(short index, byte *out, short part, short transform_index)
 {
+    out = *(byte *volatile *)&out;
     s_44940_entry *entry = &g_4ba138[index];
     byte *definition;
     if (entry->tag != NONE)
@@ -5645,7 +5648,7 @@ struct s_render_part_context;
 void function_41040(short index, long part_index, long group, byte weight,
     s_render_part_context const *context, long material_override, bool force,
     dword and_mask, dword or_mask);
-void *function_449e0(short index, bool load, bool instance);
+__declspec(noinline) void *function_449e0(short index, bool load, bool instance);
 s_index_cache_storage g_4c62f8;
 bool function_460d0(dword const *mask, short index, long part_index);
 
@@ -5681,7 +5684,7 @@ void __stdcall function_44ac0(long group, dword selection_mask, long level)
         }
         if (!((entry->unknown00 & selection_mask) & 0x1fffff) ||
             ((entry->flags >> 4) & 0x1f) != level || !(entry->unknown00 & 1) ||
-            !entry->unknown10[0xa]) continue;
+            entry->unknown10[0xa] <= 0u) continue;
         byte weight = g_4c0b78.weights[index];
         long transform_index = entry->flags & 0xf;
         byte material_index = g_4c0b78.material_indices[(short)index];

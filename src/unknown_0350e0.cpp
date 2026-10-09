@@ -101,11 +101,28 @@ struct s_motion_state_groups
 // @retail 0x39880
 inline void function_39880(s_motion_state_groups *state)
 {
-	long i;
-	for (i = 0; i < state->large_count; ++i)
-		function_36f50(state->large_entries + i * 0x3a8);
-	for (i = 0; i < state->count; ++i)
-		function_39a80(state->entries + i * 0x8c);
+    if (state->large_count > 0)
+    {
+        long i = 0;
+        long offset = 0;
+        do
+        {
+            function_36f50(state->large_entries + offset);
+            ++i;
+            offset += 0x3a8;
+        } while (i < state->large_count);
+    }
+    if (state->count > 0)
+    {
+        long i = 0;
+        long offset = 0;
+        do
+        {
+            function_39a80(state->entries + offset);
+            ++i;
+            offset += 0x8c;
+        } while (i < state->count);
+    }
 }
 
 real g_4670e4 = 0.85f;
@@ -1005,10 +1022,14 @@ void function_4b160(long first, s_4b160_entry *entries, long mode, long last)
 {
 	(void)&entries;
 	(void)&mode;
-	long const *last_reference = &last;
+	long const volatile *last_reference = &last;
 	long begin = first + 1;
-	for (long i = first; i <= *last_reference; ++i)
 	{
+    long i = first;
+    if (i <= *last_reference)
+    {
+        do
+        {
 		for (long j = begin; j <= *last_reference; ++j)
 		{
 			bool swap;
@@ -1025,7 +1046,11 @@ void function_4b160(long first, s_4b160_entry *entries, long mode, long last)
 				entries[j] = temporary;
 			}
 		}
-	}
+	
+            ++i;
+        } while (i <= *last_reference);
+    }
+}
 }
 
 real g_509418;
@@ -1170,9 +1195,7 @@ extern vector3f g_4b9dac;
 long g_4b9ed4;
 
 // @retail 0x2dba0
-bool function_2dba0(long tag, vector3f const *direction, bool alternate,
-    long c, long d, long e, point3f const *position, color3f const *color,
-    real alpha, real amount, real scale)
+bool function_2dba0(long tag, vector3f const *direction, long c, long d, long e, point3f const *position, color3f const *color, real alpha, real amount, real scale, bool alternate)
 {
     bool result = false;
     if (g_4b9ed4 != NONE && tag != NONE && alpha > 0.0f)
@@ -1241,7 +1264,8 @@ void function_4baf0(long object_index, real distance, byte *first, byte *second)
         long parent = function_baf80(object_index);
         if (parent != object_index)
         {
-            byte *local_be682a_2 = ((s_scalar_object_header *)g_4e0300->data)[parent & 0xffff].object;
+            word parent_slot = (word)parent;
+            byte *local_be682a_2 = ((s_scalar_object_header *)g_4e0300->data)[parent_slot].object;
             byte *parent_definition = g_4e3b44[*(long *)local_be682a_2 & 0xffff].bytes;
             long parent_model = *(long *)(parent_definition + 0x38);
             if (parent_model != NONE)
@@ -1849,8 +1873,7 @@ void function_3eec0()
                 basis[0].k = 0.0f - direction.k;
                 function_11d000(&basis[0], &basis[2]);
                 function_30bf0(&basis[2]);
-                function_2dba0(tag, basis, false, 3, 0, i, &position,
-                    (color3f const *)((byte const *)g_4686cc + 4), 1.0f - g_4b9f58, 1.0f, 1.0f);
+                function_2dba0(tag, basis, 3, 0, i, &position, (color3f const *)((byte const *)g_4686cc + 4), 1.0f - g_4b9f58, 1.0f, 1.0f, false);
             }
         }
     }
@@ -2535,8 +2558,17 @@ struct s_41c80_state
 // @retail 0x41c80
 void function_41c80(short type, s_41c80_state const *state)
 {
-    for (short i = 0; i < state->objects->count; ++i)
-        function_41c20(type, state->objects->indices[i], state->objects->values[i]);
+    s_41c80_objects const *objects = state->objects;
+    long i = 0;
+    if (objects->count > 0)
+    {
+        do
+        {
+            function_41c20(type, objects->indices[(short)i], objects->values[(short)i]);
+            objects = state->objects;
+            ++i;
+        } while (i < objects->count);
+    }
 }
 
 // @retail 0x41980
@@ -2567,8 +2599,7 @@ void __stdcall function_41980(short type, long object_index)
                         {
                             byte *tag = g_4e3b44[entry->tag & 0xffff].bytes;
                             real scale = (tag[0x28] & 0x40) ? matrix->scale : 1.0f;
-                            function_2dba0(entry->tag, &matrix->forward, function_3e9c0(object_index),
-                                0, object_index & 0xffff, added, &matrix->position, &color, 1.0f, amount, scale);
+                            function_2dba0(entry->tag, &matrix->forward, 0, object_index & 0xffff, added, &matrix->position, &color, 1.0f, amount, scale, function_3e9c0(object_index));
                             ++added;
                         }
                         else if (!g_55e6c7)

@@ -2625,8 +2625,7 @@ bool function_1778d0(void)
 
 extern long g_4b9ed8;
 bool function_3e9c0(long object_index);
-bool function_2dba0(long tag, vector3f const *direction, bool alternate, long c, long d, long e,
-	point3f const *position, color3f const *color, real alpha, real amount, real scale);
+bool function_2dba0(long tag, vector3f const *direction, long c, long d, long e, point3f const *position, color3f const *color, real alpha, real amount, real scale, bool alternate);
 void function_42850(long a, long b, point3f const *position, vector3f const *first,
 	vector3f const *second, real scale, real width, vector3f const *third);
 real function_17ca10(real x, short curve);
@@ -2694,8 +2693,7 @@ void __stdcall function_179880(s_effect_datum *effect, long effect_index)
 							real remaining = effect_remaining_fraction_179880(effect);
 							scale *= 1.0f - function_17ca10(1.0f - remaining, *(short *)(tag + 0x3c));
 						}
-						function_2dba0(part->tag_index, &forward, function_3e9c0(effect->object_index),
-							1, effect_index & 0xffff, flare_index, &position, (color3f const *)&effect->origin, 1.0f, scale, 1.0f);
+						function_2dba0(part->tag_index, &forward, 1, effect_index & 0xffff, flare_index, &position, (color3f const *)&effect->origin, 1.0f, scale, 1.0f, function_3e9c0(effect->object_index));
 						++flare_index;
 					}
 				}
