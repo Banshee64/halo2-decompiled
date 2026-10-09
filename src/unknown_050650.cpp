@@ -165,9 +165,9 @@ PRIVATE void function_297560(long actor_index)
 	}
 	actor->idle_aiming_timer = (short)rounded_ticks;
 	actor->idle_looking_timer = (short)rounded_ticks;
+	actor->idle_aiming_direction = actor->forward;
 	actor->idle_aiming_direction_type = 4;
 	actor->idle_looking_direction_type = 4;
-	actor->idle_aiming_direction = actor->forward;
 	actor->idle_looking_direction = actor->forward;
 }
 
@@ -335,8 +335,8 @@ struct s_actor_looking_unit_definition
 PRIVATE bool function_2973f0(long actor_index, real *looking_cosine, real *aiming_cosine, real *idle_aiming_cosine, real *idle_looking_cosine)
 {
 	s_actor_looking_view *actor = actor_looking_get(actor_index);
-	s_actor_looking_properties *properties = function_1e5160(actor->character_definition_index);
 	bool result = false;
+	s_actor_looking_properties *properties = function_1e5160(actor->character_definition_index);
 	if (properties)
 	{
 		*aiming_cosine = properties->aiming_cosine;
@@ -357,8 +357,7 @@ PRIVATE bool function_2973f0(long actor_index, real *looking_cosine, real *aimin
 				s_actor_looking_unit_definition *definition = (s_actor_looking_unit_definition *)g_4e3b44[parent->definition_index & 0xffff].bytes;
 				s_actor_looking_seat *seat = &definition->seats[unit->seat_index];
 				real yaw = 0.f - seat->minimum_yaw;
-				yaw = yaw > seat->maximum_yaw ? yaw : seat->maximum_yaw;
-				*aiming_cosine = (real)cos(yaw);
+				*aiming_cosine = (real)cos(yaw > seat->maximum_yaw ? yaw : seat->maximum_yaw);
 			}
 		}
 		*looking_cosine = properties->looking_cosine;
@@ -419,11 +418,13 @@ PRIVATE long function_297c10(long actor_index, bool alternate_range, bool extend
 		   retail's store to real immediately before integer rounding. */
 		real random = (real)random_next(&g_4e7408->unknown0) * (1.f / 65535.f);
 		real ticks = (lower + (upper - lower) * random) * time->field_2_3;
+		long rounded;
 		__asm
 		{
 			fld ticks
-			fistp result
+			fistp rounded
 		}
+		result = rounded;
 	}
 	return result;
 }
@@ -855,12 +856,20 @@ PRIVATE bool function_297660(long actor_index, bool use_aiming_direction, bool u
 						real pitch_maximum = pitch + g_55e5cc;
 						real yaw_limit = angles[0] * scale;
 						real negative_yaw_limit = 0.f - yaw_limit;
+						if (!(yaw_minimum > negative_yaw_limit))
+							yaw_minimum = negative_yaw_limit;
+						if (yaw_maximum > yaw_limit)
+							yaw_maximum = yaw_limit;
 						real pitch_lower_limit = scale * -0.17453292f;
+						if (!(pitch_minimum > pitch_lower_limit))
+							pitch_minimum = pitch_lower_limit;
 						real pitch_upper_limit = scale * 0.17453292f;
-						yaw_lower = (yaw_minimum > negative_yaw_limit ? yaw_minimum : negative_yaw_limit) - yaw;
-						yaw_upper = (yaw_maximum > yaw_limit ? yaw_limit : yaw_maximum) - yaw;
-						pitch_lower = (pitch_minimum > pitch_lower_limit ? pitch_minimum : pitch_lower_limit) - pitch;
-						pitch_upper = (pitch_maximum > pitch_upper_limit ? pitch_upper_limit : pitch_maximum) - pitch;
+						if (pitch_maximum > pitch_upper_limit)
+							pitch_maximum = pitch_upper_limit;
+						yaw_lower = yaw_minimum - yaw;
+						yaw_upper = yaw_maximum - yaw;
+						pitch_lower = pitch_minimum - pitch;
+						pitch_upper = pitch_maximum - pitch;
 					}
 				}
 			}

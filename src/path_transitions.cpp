@@ -56,7 +56,7 @@ struct s_transition_path_block
 struct s_transition_collision
 {
     s_collision_result_1697c0 prefix;
-    byte unknown4c[8];
+    byte unknown4c[0x10];
 };
 
 // @retail 0x26f150
@@ -111,7 +111,7 @@ bool function_26f2d0(s_path_settings const *settings, point3f const *start, poin
             real hi = globals->settings->type_bounds[i].hi;
             real height = end->z - start->z;
             result = height >= lo && height <= hi;
-            if (result) return true;
+            if (result) break;
         }
     }
     return result;
@@ -131,7 +131,7 @@ bool function_26f360(s_path_settings const *settings, point3f const *start, poin
             real hi = globals->settings->mode_bounds[i].hi;
             real height = end->z - start->z;
             result = height >= lo && height <= hi;
-            if (result) return true;
+            if (result) break;
         }
     }
     return result;
@@ -187,9 +187,12 @@ bool function_270130(s_object_marker const *marker, point3f const *position, rea
 {
     if (marker->unknown6c > 0.f)
     {
-        real distance = (position->z - marker->matrix.position.z) * marker->matrix.up.k +
-            (position->y - marker->matrix.position.y) * marker->matrix.up.j +
-            (position->x - marker->matrix.position.x) * marker->matrix.up.i;
+        vector3f delta;
+        delta.k = position->z - marker->matrix.position.z;
+        delta.j = position->y - marker->matrix.position.y;
+        delta.i = position->x - marker->matrix.position.x;
+        real distance = marker->matrix.up.k * delta.k + marker->matrix.up.j * delta.j +
+            delta.i * marker->matrix.up.i;
         if (distance < 0.f) distance = 0.f;
         else if (distance > marker->unknown6c) distance = marker->unknown6c;
         if (marker->unknown6c > margin * 2.f)
@@ -202,9 +205,9 @@ bool function_270130(s_object_marker const *marker, point3f const *position, rea
             if (distance < 0.f) distance = 0.f;
             else if (distance > marker->unknown6c) distance = marker->unknown6c;
         }
-        out->x = marker->matrix.up.i * distance + marker->matrix.position.x;
-        out->y = marker->matrix.up.j * distance + marker->matrix.position.y;
-        out->z = marker->matrix.up.k * distance + marker->matrix.position.z;
+        out->x = distance * marker->matrix.up.i + marker->matrix.position.x;
+        out->y = distance * marker->matrix.up.j + marker->matrix.position.y;
+        out->z = distance * marker->matrix.up.k + marker->matrix.position.z;
     }
     else
         *out = marker->matrix.position;
@@ -383,68 +386,76 @@ bool function_2702a0(long actor_index, long mode, long set, long target_mode, lo
     point3f const *position, vector3f const *forward, point3f *out_position,
     vector3f *out_forward, long *location, long *node_index)
 {
+    point3f *const *reference = &out_position;
+    bool result = false;
+    point3f const *const *position_reference = &position;
     s_actor_view *actor = actor_get(actor_index);
-    struct { transform4x3f source, local, inverse; } matrices;
-    if (function_270240(actor->unknown018, mode, set, position, forward, &matrices.source) &&
+    struct { transform4x3f local, inverse, source; } matrices;
+    if (function_270240(actor->unknown018, mode, set, *position_reference, forward, &matrices.source) &&
         function_10f9b0(actor->unknown018, target_mode, target_set, 3, &matrices.local, false))
     {
         function_141590(&matrices.local, &matrices.inverse);
         function_142a60(&matrices.source, &matrices.inverse, &matrices.local);
-        if (out_position) *out_position = matrices.local.position;
+        if (*reference) **reference = matrices.local.position;
         if (out_forward) *out_forward = matrices.local.forward;
         if (location || node_index)
         {
             s_transition_path_block *block = (s_transition_path_block *)g_4e0348;
-            s_pathfinding_data *data = NULL;
+            s_pathfinding_data *volatile data = NULL;
             if (block->count > 0) data = block->data;
             s_transition_collision collision;
             collision.prefix.unknown24 = NONE;
             long node = function_26d100(g_4687b0, &collision.prefix, location, &matrices.local.position);
             if (node_index) *node_index = node;
         }
-        return true;
+        result = true;
     }
-    return false;
+    return result;
 }
 
 // @retail 0x270400
 bool function_270400(long actor_index, long mode, long set, point3f const *position,
-    vector3f const *forward, point3f *out_position, vector3f *out_forward, long *location, long *node_index)
+    vector3f const *forward, point3f *out_position, long *location, vector3f *out_forward, long *node_index)
 {
+    point3f const *const *position_reference = &position;
+    bool result = false;
     transform4x3f matrix;
     if (actor_index != NONE)
     {
-        if (!function_270240(actor_get(actor_index)->unknown018, mode, set, position, forward, &matrix))
-            return false;
-        if (out_position) *out_position = matrix.position;
-        if (out_forward) *out_forward = matrix.forward;
-        if (location || node_index)
+        if (function_270240(actor_get(actor_index)->unknown018, mode, set, *position_reference, forward, &matrix))
         {
-            s_transition_path_block *block = (s_transition_path_block *)g_4e0348;
-            s_pathfinding_data *data = NULL;
-            if (block->count > 0) data = block->data;
-            s_transition_collision collision;
-            collision.prefix.unknown24 = NONE;
-            long node = function_26d100(g_4687b0, &collision.prefix, location, &matrix.position);
-            if (node_index) *node_index = node;
+            if (out_position) *out_position = matrix.position;
+            if (out_forward) *out_forward = matrix.forward;
+            if (location || node_index)
+            {
+                s_transition_path_block *block = (s_transition_path_block *)g_4e0348;
+                s_pathfinding_data *volatile data = NULL;
+                if (block->count > 0) data = block->data;
+                s_transition_collision collision;
+                collision.prefix.unknown24 = NONE;
+                long node = function_26d100(g_4687b0, &collision.prefix, location, &matrix.position);
+                if (node_index) *node_index = node;
+            }
+            result = true;
         }
     }
     else
     {
-        if (out_position) *out_position = *position;
+        if (out_position) *out_position = **position_reference;
         if (out_forward) *out_forward = *forward;
-        if (location || node_index)
+        if (node_index || location)
         {
             s_transition_path_block *block = (s_transition_path_block *)g_4e0348;
-            s_pathfinding_data *data = NULL;
+            s_pathfinding_data *volatile data = NULL;
             if (block->count > 0) data = block->data;
             s_transition_collision collision;
             collision.prefix.unknown24 = NONE;
-            long node = function_26d100(g_4687b0, &collision.prefix, location, position);
+            long node = function_26d100(g_4687b0, &collision.prefix, location, *position_reference);
             if (node_index) *node_index = node;
         }
+        result = true;
     }
-    return true;
+    return result;
 }
 
 // @retail 0x26f3f0
@@ -527,7 +538,7 @@ bool function_26f3f0(s_pathfinding_data *pathfinding, long surface_index,
             direction.j = direction_point->y * -1.f;
             direction.k = direction_point->z * -1.f;
             if (actor_index != NONE && function_270400(actor_index, 0x05000534, 0x05000049,
-                position, &direction, NULL, NULL, (long *)start_out, parent_node_index_out))
+                position, &direction, NULL, (long *)start_out, NULL, parent_node_index_out))
             {
                 out->point = *position;
                 out->output_index = parent_point->output_index;
@@ -551,7 +562,7 @@ bool function_26f3f0(s_pathfinding_data *pathfinding, long surface_index,
             out->output_index = parent_point->output_index;
             *out_node_index = parent_node_index;
             if (!function_270400(actor_index, 0x050000cb, 0x060000cc, position,
-                (vector3f const *)direction_point, NULL, NULL, (long *)start_out, parent_node_index_out))
+                (vector3f const *)direction_point, NULL, (long *)start_out, NULL, parent_node_index_out))
             {
                 s_path_trace_result trace;
                 function_26c590(data, position, parent_node_index, NONE,
