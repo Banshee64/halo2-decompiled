@@ -723,15 +723,20 @@ void function_177260(long effect_index, bool flag)
 
 	if (effect)
 	{
-		effect_stop_looping_sound(effect);
+		if (effect->looping_sound_index != NONE)
+		{
+			s_effect_looping_sound *sound = DATUM(g_4ed28c, s_effect_looping_sound, effect->looping_sound_index);
+			*(volatile byte *)((byte *)sound + 4) |= 2;
+			effect->looping_sound_index = NONE;
+		}
 		function_1771a0(effect);
-		if (TEST_FIELD_BIT(effect->flag1))
+		if (((byte)effect->flags >> 1) & 1)
 		{
 			if (flag)
-				effect->flag4 = true;
+				*(volatile byte *)&effect->flags |= 0x10;
 			else
-				effect->flag4 = false;
-			effect->flag2 = true;
+				*(volatile byte *)&effect->flags &= ~0x10;
+			*(volatile byte *)&effect->flags |= 4;
 		}
 		else
 		{
@@ -1010,11 +1015,12 @@ void function_1782a0(long effect_index, short event_index)
 
 		if (event_index >= 0 && event_index < definition->event_count)
 		{
-			s_effect_event *event = &definition->events[event_index];
+			s_effect_event *event;
 
 			effect->flag0 = false;
 			effect->event_index = event_index;
 			effect->unknown60 = 0.0f;
+			event = &definition->events[event_index];
 			if (event->delay_lower == event->delay_upper)
 				effect->event_delay = event->delay_lower;
 			else
@@ -1826,6 +1832,7 @@ static inline bool effect_location_in_zone(s_location const *location, point3f c
 // @retail 0x178c80
 void function_178c80(real scale, s_effect_datum *effect, s_particle_system_datum *particle_system, s_effect_particle_system_definition *definition, real unknown, bool field_b4)
 {
+	real *scale_reference = &scale;
 	long location_index = effect->location_indices[definition->location_index];
 	s_effect_location_datum *location;
 	s_particle_system_spawn spawn;
@@ -1834,7 +1841,7 @@ void function_178c80(real scale, s_effect_datum *effect, s_particle_system_datum
 		particle_system->set_location(&effect->location);
 	dword color_a = effect->color_a;
 
-	spawn.scale = scale;
+	spawn.scale = (*scale_reference);
 	spawn.unknown = unknown;
 	spawn.location_index = particle_system->location_index;
 	{

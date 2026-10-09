@@ -539,19 +539,24 @@ void function_158850(long *type, long *count)
 	if (engine_options()->value190)
 	{
 		*type = 2;
+		long number = function_xaee93d()->value_e0;
+		if (number > 0)
+		{
+			*count = (long)number;
+			return;
+		}
 	}
 	else
 	{
 		*type = 1;
+		long number = function_xaee93d()->value_e0;
+		if (number > 0)
+		{
+			*count = (long)number;
+			return;
+		}
 	}
-	if (function_xaee93d()->value_e0 > 0)
-	{
-		*count = function_xaee93d()->value_e0;
-	}
-	else
-	{
-		*count = 0;
-	}
+	*count = 0;
 }
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
@@ -917,7 +922,9 @@ bool function_159610(void)
 			{
 				player_index = g_4e8c20->entries[g_4b9ed8];
 			}
-			result = player_index == NONE || engine_player_get(player_index)->unit_index == NONE;
+			result = true;
+			if (player_index != NONE && engine_player_get(player_index)->unit_index != NONE)
+				result = false;
 		}
 	}
 	return result;
@@ -1210,7 +1217,8 @@ struct s_options_equipment
 // @retail 0x15a4d0
 long c_engine_equipment::choose(long default_value, long *name, char kind)
 {
-	s_options_equipment *options = (s_options_equipment *)g_4e6948;
+	s_options_equipment * options;
+	options = (s_options_equipment *)g_4e6948;
 
 	switch (kind)
 	{
@@ -1384,11 +1392,12 @@ void function_15b1e0(long object_index, long index, s_netgame_entry_state *entri
 // @retail 0x15b220
 void function_15b220(long object_index, long index)
 {
+	long const *index_reference = &index;
 	s_engine_object *object = engine_object_get(object_index);
 
 	if (g_4e6948->mode != 4)
 	{
-		function_xaee93d()->netgame_entries[index].index = NONE;
+		function_xaee93d()->netgame_entries[*index_reference].index = NONE;
 	}
 	object->netgame_entry = NONE;
 }
@@ -1862,30 +1871,7 @@ void function_159460(long player_index, bool *leading, bool *tied)
 	s_engine_player *player = (s_engine_player *)g_4e8c24->data + absolute_index;
 	bool is_tied = false;
 
-	if (function_x340af0())
-	{
-		long score = function_1587f0(player->team);
-
-		for (long team = 0; team < 8; team++)
-		{
-			if (team != player->team && game_engine_team_is_active(team))
-			{
-				long difference = function_1587f0(team) - score;
-
-				if (difference == 0)
-				{
-					is_tied = true;
-				}
-				else if (difference > 0)
-				{
-					*leading = false;
-					*tied = false;
-					return;
-				}
-			}
-		}
-	}
-	else
+	if (!(function_x340af0()))
 	{
 		long score = function_1587b0(player_index);
 		s_engine_player_iterator iterator;
@@ -1904,6 +1890,29 @@ void function_159460(long player_index, bool *leading, bool *tied)
 					is_tied = true;
 				}
 				if (difference > 0)
+				{
+					*leading = false;
+					*tied = false;
+					return;
+				}
+			}
+		}
+	}
+	else
+	{
+		long score = function_1587f0(player->team);
+
+		for (long team = 0; team < 8; team++)
+		{
+			if (team != player->team && game_engine_team_is_active(team))
+			{
+				long difference = function_1587f0(team) - score;
+
+				if (difference == 0)
+				{
+					is_tied = true;
+				}
+				else if (difference > 0)
 				{
 					*leading = false;
 					*tied = false;
@@ -1990,7 +1999,7 @@ real function_15dec0(long player_index, long other_index)
 			}
 			if (!TEST_FIELD_BIT(engine_options()->flags_bit7) && !function_15e020(player->team, other->team))
 			{
-				return 0.0f;
+				result = 0.0f;
 			}
 		}
 	}
@@ -2026,7 +2035,17 @@ long function_15a090(short const *types, long type, volatile long count)
 	long result = NONE;
 	long i;
 
-	if (game_engine_get())
+	if (!(game_engine_get()))
+	{
+		for (i = 0; i < count; i++)
+		{
+			if (types[i] == 0)
+			{
+				return i;
+			}
+		}
+	}
+	else
 	{
 		for (i = 0; i < count; i++)
 		{
@@ -2046,16 +2065,6 @@ long function_15a090(short const *types, long type, volatile long count)
 				match |= type != 1 && type != 9;
 			}
 			if (match)
-			{
-				return i;
-			}
-		}
-	}
-	else
-	{
-		for (i = 0; i < count; i++)
-		{
-			if (types[i] == 0)
 			{
 				return i;
 			}
@@ -4252,12 +4261,13 @@ void __stdcall function_19ef40(long unit_index, long *first_count, long *second_
 // @retail 0x15e970
 void function_15e970(long unit_index)
 {
-    byte *unit = (byte *)engine_object_get(unit_index);
+	long *unit_index_reference = &unit_index;
+    byte *unit = (byte *)engine_object_get((*unit_index_reference));
     long first_limit, second_limit;
     first_limit = second_limit = (function_xaee93d()->flags & 8) ? 1 : 2;
     long first_count = first_limit;
     long second_count = 0;
-    function_19ef40(unit_index, &first_count, &second_count);
+    function_19ef40((*unit_index_reference), &first_count, &second_count);
     if (!((bool)((*(dword *)((byte *)g_4e6948 + 0x184) >> 11) & 1)))
         first_count = second_count = 0;
     switch (*(char *)((byte *)g_4e6948 + 0x210))
@@ -4276,7 +4286,7 @@ void function_15e970(long unit_index)
     if (second_count > second_limit) second_count = second_limit;
     unit[0x23e] = (byte)first_count;
     unit[0x23f] = (byte)second_count;
-    long simulation_index = engine_object_get(unit_index)->simulation_index;
+    long simulation_index = engine_object_get((*unit_index_reference))->simulation_index;
     if (simulation_index != NONE)
         function_b58c0(simulation_index, 0x400000);
 }
