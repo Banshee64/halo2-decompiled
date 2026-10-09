@@ -1122,10 +1122,10 @@ void __stdcall function_c2d00(long light_index)
     if (*(short *)(light + 0x54) != NONE)
     {
         long marker_name = function_b8c40(*(long *)(light + 0x4c), *(short *)(light + 0x54));
-        bool first_person = (*(long *)definition & 0x20) &&
+        bool in_own_view = (*(long *)definition & 0x20) &&
             first_person_weapon_get_marker(*(long *)(light + 0x4c), marker_name,
                 (point3f *)(light + 0x84), (vector3f *)(light + 0xac), (vector3f *)(light + 0xb8));
-        if (!first_person)
+        if (!in_own_view)
         {
             function_b8d30(*(long *)(light + 0x4c), marker_name, &scratch.marker, 1, false);
             *(point3f *)(light + 0x84) = scratch.marker.matrix.position;
