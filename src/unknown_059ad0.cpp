@@ -2955,7 +2955,7 @@ bool network_session_handle_parameters_request(const s_network_message_parameter
 		{
 			byte current = *(volatile byte *)&session->data49a1[0];
 			byte value = message->value49a1;
-			if (value != current)
+			if ((byte)(current - value))
 			{
 				session->data49a1[0] = value;
 				changed = true;
@@ -3665,34 +3665,7 @@ void __stdcall function_063080(c_class_58d20 *session, const s_network_message_s
 
 long count_bits(dword value);
 
-// @retail 0x619b0
-bool function_619b0(const s_session_member *members, long first_index, long second_index, long player_count)
-{
- const s_session_member *first = &members[first_index];
- const s_session_member *second = &members[second_index];
- long first_bits = count_bits(*(const dword *)first->properties.unknown74);
- long second_bits = count_bits(*(const dword *)second->properties.unknown74);
- if (first_bits > second_bits)
-  return true;
- if (first_bits < second_bits)
-  return false;
- if (first->player_count < second->player_count)
-  return true;
- if (first->player_count > second->player_count)
-  return false;
- long maximum = g_network_configuration.value84[player_count];
- long first_value = first->unknown94;
- long second_value = second->unknown94;
- if (first_value > maximum) first_value = maximum;
- if (second_value > maximum) second_value = maximum;
- real score = (real)(first_value - second_value) * g_network_configuration.real34;
- real delta = (real)(*(const long *)(second->properties.unknown74 + 8) - *(const long *)(first->properties.unknown74 + 8)) * g_network_configuration.real38;
- if (delta > 0.f)
-  score += (real)pow(delta, g_network_configuration.real3c);
- else
-  score -= (real)pow(-delta, g_network_configuration.real3c);
- return score > 0.3f;
-}
+bool function_619b0(const s_session_member *arg_0, long arg_1, long arg_2, long arg_3);
 
 struct s_session_host_choice
 {
@@ -3763,8 +3736,8 @@ void __stdcall function_61ac0(c_class_58d20 *session)
    s_session_host_proposal message;
    memset(&message, 0, sizeof(message));
    message.id = *(s_session_id *)&session->unknown1c;
-   message.member = *(s_session_member_identity *)&session->members[choice->selected];
    message.index = (short)choice->selected;
+   message.member = *(s_session_member_identity *)&session->members[choice->selected];
    network_session_send_to_members(session, 0, 15, sizeof(message), &message);
    choice->proposed = true;
    choice->proposal_time = network_session_time_now();
@@ -3772,7 +3745,8 @@ void __stdcall function_61ac0(c_class_58d20 *session)
   }
   if (choice->proposed && !choice->committed)
   {
-   long elapsed = network_session_time_now() - choice->proposal_time;
+   long local_0 = choice->proposal_time;
+   long elapsed = network_session_time_now() - local_0;
    if (choice->acknowledged == (1u << session->member_count) - 1 || elapsed >= g_network_configuration.value1474)
    {
     if (!(choice->acknowledged & (1 << choice->selected)))
@@ -3789,11 +3763,16 @@ void __stdcall function_61ac0(c_class_58d20 *session)
     }
    }
   }
-  if (choice->committed && network_session_time_now() - choice->commit_time >= g_network_configuration.value147c)
+  long local_1 = choice->commit_time;
+  if (choice->committed && network_session_time_now() - local_1 >= g_network_configuration.value147c)
    network_session_clear_peer(session, choice->selected);
  }
- else if (network_session_time_now() - choice->search_time >= g_network_configuration.value1478)
-  complete = true;
+ else
+ {
+  long local_2 = choice->search_time;
+  if (network_session_time_now() - local_2 >= g_network_configuration.value1478)
+   complete = true;
+ }
  if (complete)
  {
   bool leave = choice->leave;
