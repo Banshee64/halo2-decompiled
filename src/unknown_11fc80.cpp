@@ -212,6 +212,19 @@ real function_1201a0(vector3f *v, vector3f const *fallback)
 	return 0.f;
 }
 
+struct s_120791
+{
+    real field_0;
+};
+
+static __forceinline s_120791 function_120791(real const *arg_0, real const *arg_1, short arg_2, short arg_3, short arg_4)
+{
+    s_120791 local_0;
+    local_0.field_0 = arg_0[3] - arg_0[arg_2] * arg_1[0] - arg_0[arg_3] * arg_1[1];
+    local_0.field_0 /= arg_0[arg_4];
+    return local_0;
+}
+
 // @retail 0x120790
 real *function_120790(real *out, real const *plane, real const *point, short axis, byte side)
 {
@@ -224,7 +237,7 @@ real *function_120790(real *out, real const *plane, real const *point, short axi
 	if (fabs(plane[axis]) < k_real_epsilon)
 		out[axis] = 0.f;
 	else
-		out[axis] = (plane[3] - plane[a] * point[0] - plane[b] * point[1]) / plane[axis];
+		out[axis] = function_120791(plane, point, a, b, axis).field_0;
 	return out;
 }
 

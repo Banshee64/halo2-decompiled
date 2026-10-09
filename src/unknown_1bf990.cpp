@@ -134,11 +134,10 @@ void __stdcall function_1bfc30(long actor_index, s_slot *slot)
 	}
 }
 
-// @retail 0x1bfd00
-short __stdcall function_1bfd00(long actor_index, s_slot *slot, bool active)
+PRIVATE __forceinline word function_1bfd01(long arg_0, s_slot *arg_1, bool arg_2)
 {
-	s_actor_view *actor = actor_get(actor_index);
-	s_slot_vehicle_board *state = (s_slot_vehicle_board *)slot;
+	s_actor_view *actor = actor_get(arg_0);
+	s_slot_vehicle_board *state = (s_slot_vehicle_board *)arg_1;
 	short result = g_46fbe4;
 
 	if (actor->prop_index == state->prop_index && state->vehicle_index != NONE)
@@ -163,7 +162,7 @@ short __stdcall function_1bfd00(long actor_index, s_slot *slot, bool active)
 				{
 					s_character_vehicle *character = (s_character_vehicle *)function_1e4ad0(actor->unknown054);
 
-					if (character && (!function_1e2030(actor_index) || !(node->unknown28 > character->unknown08)))
+					if (character && (!function_1e2030(arg_0) || !(node->unknown28 > character->unknown08)))
 					{
 						s_prop_state_view *s_type_5cfb45 = prop_node_state(node);
 
@@ -177,7 +176,7 @@ short __stdcall function_1bfd00(long actor_index, s_slot *slot, bool active)
 						}
 					}
 				}
-				function_1f86a0(actor_index);
+				function_1f86a0(arg_0);
 				result = g_46fbe4;
 			}
 			else if (unit->parent_index == state->vehicle_index && unit->unknown1fc == state->vehicle_seat_index)
@@ -210,6 +209,12 @@ short __stdcall function_1bfd00(long actor_index, s_slot *slot, bool active)
 		}
 	}
 	return result;
+}
+
+// @retail 0x1bfd00
+short __stdcall function_1bfd00(long actor_index, s_slot *slot, bool active)
+{
+	return (short)function_1bfd01(actor_index, slot, active);
 }
 
 s_slot_handler_2 g_47eeb8 =

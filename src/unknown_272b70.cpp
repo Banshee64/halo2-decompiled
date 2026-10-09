@@ -2740,14 +2740,15 @@ void function_276b40(long object_index, real a, real b, real c)
 		{
 			s_command_script *target = command_script_get(script_index);
 
-			target->flag52 = true;
-			target->flag46 = false;
-			target->flag51 = false;
+			((s_command_script volatile *)target)->flag52 = true;
+			((s_command_script volatile *)target)->flag46 = false;
+			((s_command_script volatile *)target)->flag51 = false;
 			target->type54 = 1;
 			target->index58 = object_index;
-			command_script_get(script_index)->flag46 = true;
-			command_script_get(script_index)->type48 = 1;
-			command_script_get(script_index)->index4c = object_index;
+			s_command_script *local_0 = command_script_get(script_index);
+			local_0->flag46 = true;
+			local_0->type48 = 1;
+			local_0->index4c = object_index;
 			target->flag50 = true;
 			target->flag51 = true;
 		}
