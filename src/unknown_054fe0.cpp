@@ -1807,7 +1807,7 @@ bool __stdcall function_64d70(s_session_browser_summary *output)
    output->option = option;
    output->map_variant = map_variant;
    output->teams = (variant[0x48] & 1) != 0;
-   if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->index == 2 && state == 3)
+   if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 2 && state == 3)
    {
     statistics = true;
     function_158850(&output->score_type, &output->score_limit);
