@@ -405,7 +405,7 @@ bool function_2702a0(long actor_index, long mode, long set, long target_mode, lo
             if (block->count > 0) data = block->data;
             s_transition_collision collision;
             collision.prefix.unknown24 = NONE;
-            long node = function_26d100(g_4687b0, &collision.prefix, location, &matrices.local.position);
+            long node = function_26d100(g_4687b0, location, &collision.prefix, &matrices.local.position);
             if (node_index) *node_index = node;
         }
         result = true;
@@ -433,7 +433,7 @@ bool function_270400(long actor_index, long mode, long set, point3f const *posit
                 if (block->count > 0) data = block->data;
                 s_transition_collision collision;
                 collision.prefix.unknown24 = NONE;
-                long node = function_26d100(g_4687b0, &collision.prefix, location, &matrix.position);
+                long node = function_26d100(g_4687b0, location, &collision.prefix, &matrix.position);
                 if (node_index) *node_index = node;
             }
             result = true;
@@ -450,7 +450,7 @@ bool function_270400(long actor_index, long mode, long set, point3f const *posit
             if (block->count > 0) data = block->data;
             s_transition_collision collision;
             collision.prefix.unknown24 = NONE;
-            long node = function_26d100(g_4687b0, &collision.prefix, location, *position_reference);
+            long node = function_26d100(g_4687b0, location, &collision.prefix, *position_reference);
             if (node_index) *node_index = node;
         }
         result = true;

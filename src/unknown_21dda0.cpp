@@ -79,7 +79,7 @@ extern s_record_pool *g_502114;
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 struct s_structure_leaf_view
 {
@@ -143,7 +143,7 @@ void sound_voices_update_locations(void)
 		}
 		else
 		{
-			long leaf_index = function_14a280(g_4e033c, &local_0->position, 0);
+			long leaf_index = function_14a280(g_4e033c, 0, &local_0->position);
 			local_0->location.leaf_index = leaf_index;
 			local_0->location.cluster_index = leaf_index != NONE ? ((s_structure_bsp_leaves_view_21dde0 *)g_4e0348)->leaves[leaf_index].cluster_index : NONE;
 			local_0->location.bsp_index = bsp_index;
@@ -174,7 +174,7 @@ long sound_voice_matches(s_voice_playing_sound const *sound, s_sound_voice const
 
 	if (source == sound->source &&
 		voice->ambient == TEST_BIT(sound->location.flags, 0) &&
-		sound_classes_match((char)voice->sound_class, ((s_sound_tag_class_view *)g_4e3b44[sound->definition_index & 0xffff].bytes)->sound_class))
+		(byte)sound_classes_match((char)voice->sound_class, ((s_sound_tag_class_view *)g_4e3b44[sound->definition_index & 0xffff].bytes)->sound_class))
 	{
 		if (source)
 		{

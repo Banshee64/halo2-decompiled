@@ -682,7 +682,10 @@ bool __stdcall function_0b0900(s_bitstream *stream, long unused, s_message_0b090
 	{
 		message->flag1485 = stream_read_bit(stream);
 		if (message->flag1485)
-			valid = valid && function_b23d0(stream, &message->data1488);
+        {
+            bool decoded = function_b23d0(stream, &message->data1488);
+            valid = valid && decoded;
+        }
 	}
 	message->flag14cc = stream_read_bit(stream);
 	if (message->flag14cc)
@@ -919,7 +922,10 @@ bool __stdcall function_b1c80(s_bitstream *stream, long size, void *message_)
 	{
 		message->part15_valid = function_1957d0(stream);
 		if (message->part15_valid)
-			valid = valid && function_b23d0(stream, &message->part15);
+		{
+			bool decoded = function_b23d0(stream, &message->part15);
+			valid = valid && decoded;
+		}
 	}
 	bool result = valid && !stream_overflowed(stream);
 	if (message->has_value0)

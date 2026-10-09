@@ -1370,7 +1370,7 @@ long function_15ac50(long index)
 }
 
 // @retail 0x15b1e0
-void function_15b1e0(long object_index, s_netgame_entry_state *entries, long index)
+void function_15b1e0(long object_index, long index, s_netgame_entry_state *entries)
 {
 	s_engine_object *object = engine_object_get(object_index);
 
@@ -1934,7 +1934,7 @@ void function_15adb0(s_netgame_entry_state *entries)
 		{
 			if (entries[index].index != NONE)
 			{
-				function_15b1e0(entries[index].index, entries, index);
+				function_15b1e0(entries[index].index, index, entries);
 			}
 			entries[index].value04 = 0;
 			entries[index].index = iterator.object_index;
@@ -4192,7 +4192,8 @@ PRIVATE __forceinline long sweep_rank_mode()
 // @retail 0x158e90
 long function_158e90(long team)
 {
-    return function_23f360(sweep_rank_mode(), team) / 2;
+    bool mode = g_4e6948->flag1128 != 0;
+    return function_23f360((long)mode, team) / 2;
 }
 
 PRIVATE __forceinline bool sweep_team_active(long team)
@@ -4398,8 +4399,7 @@ void function_15be20()
 #include <wchar.h>
 extern s_camera g_4b9e14;
 extern short g_4b9dd4, g_4b9dd6;
-bool function_30710(s_camera const *camera, vector3f const *vector,
-	short_rectangle2d const *bounds, point2f *point, s_view const *view);
+bool function_30710(vector3f const *vector, short_rectangle2d const *bounds, point2f *point, s_camera const *camera, s_view const *view);
 void parse_text(word *text);
 
 // @retail 0x159250
@@ -4425,18 +4425,18 @@ void function_159250(long player_index, real alpha)
 			struct { s_camera camera; s_view view; } projection;
 			word text[0x100];
 		} storage;
+		point2f point = { 0.0f, 0.0f };
 		s_object_marker marker;
 		function_b8d30(player->unit_index, 0x04000095, &marker, 1, false);
-		point3f position = marker.matrix.position;
-		position.z += 0.05f;
-		real x = position.x;
-		real y = position.y;
-		real z = position.z;
-		if (g_4b9e14.scale != 1.0f)
+		real scale = g_4b9e14.scale;
+		real x = marker.matrix.position.x;
+		real y = marker.matrix.position.y;
+		real z = marker.matrix.position.z + 0.05f;
+		if (scale != 1.0f)
 		{
-			x = g_4b9e14.scale * x;
-			y = g_4b9e14.scale * y;
-			z = g_4b9e14.scale * z;
+			x = scale * x;
+			y = scale * y;
+			z = scale * z;
 		}
 		vector3f transformed;
 		transformed.i = g_4b9e14.forward.i * z;
@@ -4460,8 +4460,7 @@ void function_159250(long player_index, real alpha)
 		storage.projection.view.bounds.left = g_4b9dd2;
 		storage.projection.view.bounds.bottom = g_4b9dd4;
 		storage.projection.view.bounds.right = g_4b9dd6;
-		point2f point;
-		if (function_30710(&storage.projection.camera, &transformed, 0, &point, &storage.projection.view))
+		if (function_30710(&transformed, 0, &point, &storage.projection.camera, &storage.projection.view))
 		{
 			word *text = storage.text;
 			text[0] = 0;

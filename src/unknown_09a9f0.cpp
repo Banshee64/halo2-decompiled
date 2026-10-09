@@ -118,7 +118,8 @@ void c_turret_entity_definition::v12(long a, s_entity_info *info, long c, s_bits
 // @retail 0xa3c00
 bool c_turret_entity_definition::v13(long a, s_entity_info *info, s_bitstream *stream)
 {
-	bool valid = function_a6810(stream);
+    c_turret_entity_definition const *volatile unused_this = this;
+	bool valid = function_a6810(info, stream);
 	if (function_1957d0(stream))
 	{
 		long index = function_1959c0(stream, 10);
@@ -128,7 +129,11 @@ bool c_turret_entity_definition::v13(long a, s_entity_info *info, s_bitstream *s
 	{
 		info->identifier = NONE;
 	}
-	return stream->bit_position <= stream->size_in_bytes * 8 && valid;
+	if (stream->bit_position <= stream->size_in_bytes * 8 && valid)
+    {
+        return true;
+    }
+    return false;
 }
 
 // @retail 0xa3cd0
@@ -145,6 +150,7 @@ bool c_object_type_definition::v14(long a1, long a2, long a3, long a4, long a5, 
 // @retail 0xa0960
 bool c_object_type_definition::v15(long a, long b, long c, long d, s_bitstream *stream)
 {
+	c_object_type_definition const *volatile saved_definition = this;
 	if (function_a6d50(b, d, stream) && stream->bit_position <= stream->size_in_bytes * 8)
 	{
 		return true;
@@ -298,6 +304,7 @@ void c_turret_entity_definition::v26(long index, long b, s_entity_state *state)
 // @retail 0xa3a00
 long c_object_type_definition::v27(long a, long b, long c, long d)
 {
+	c_object_type_definition const *volatile saved_definition = this;
 	return function_a5e70(a, b & 0x3ff, d);
 }
 

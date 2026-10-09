@@ -15,22 +15,25 @@ struct s_3eb20_bsp
 	short *clusters;
 };
 
+static __forceinline bool cluster_selection_matches(long cluster_index, long index)
+{
+    if (index != NONE && g_4686c4 != NONE)
+    {
+        s_3eb20_bsp *bsp = (s_3eb20_bsp *)g_4e0348;
+        if (bsp->cluster_count > 0 && bsp->clusters[index] == cluster_index)
+            return true;
+    }
+    return false;
+}
+
 // @retail 0x3eb20
 bool function_3eb20(long cluster_index)
 {
-	bool result = false;
-
-	if (cluster_index != NONE && g_4b9ee9)
-	{
-		long index = g_4b9eec;
-
-		if (index != NONE && g_4686c4 != NONE)
-		{
-			s_3eb20_bsp *bsp = (s_3eb20_bsp *)g_4e0348;
-
-			if (bsp->cluster_count > 0 && bsp->clusters[index] == cluster_index)
-				result = true;
-		}
-	}
-	return result;
+    bool result = false;
+    if (cluster_index != NONE && g_4b9ee9)
+    {
+        if (cluster_selection_matches(cluster_index, g_4b9eec))
+            result = true;
+    }
+    return result;
 }

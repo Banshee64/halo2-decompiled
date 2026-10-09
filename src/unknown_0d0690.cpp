@@ -1086,6 +1086,20 @@ PRIVATE __forceinline void lighting_rotate(vector3f const *input, real angle, ve
 	out->k = input->k * cosine + axis.k * projection - (axis.j * input->i - axis.i * input->j) * sine;
 }
 
+PRIVATE __forceinline real lighting_normalize_ordered(vector3f *v, real square)
+{
+    real magnitude = (real)sqrt(square);
+    if (!(fabs(magnitude) < 0.0001f))
+    {
+        real inverse = 1.0f / magnitude;
+        v->i = inverse * v->i;
+        v->j = v->j * inverse;
+        v->k = v->k * inverse;
+        return magnitude;
+    }
+    return 0.0f;
+}
+
 // @retail 0xd37f0
 bool function_d37f0(s_lighting_parameter_block *block, long type, s_effect_color_query const *query,
 	s_lighting_record *record, color3f const *base, color3f const *lightmap)
@@ -1102,7 +1116,7 @@ bool function_d37f0(s_lighting_parameter_block *block, long type, s_effect_color
 	vector3f normal = *(vector3f const *)query;
 	real length = (real)sqrt(normal.i * normal.i + normal.j * normal.j + normal.k * normal.k);
 	record->length = length;
-	normalize_inline(&normal);
+	lighting_normalize_ordered(&normal, (normal.k * normal.k + normal.j * normal.j) + normal.i * normal.i);
 	color3f adjusted;
 	adjusted.red = lightmap->red + parameters->bias;
 	adjusted.green = lightmap->green + parameters->bias;
@@ -1127,10 +1141,12 @@ bool function_d37f0(s_lighting_parameter_block *block, long type, s_effect_color
 	if (record->direction0.k > -0.75f)
 	{
 		record->direction0.k = lighting_pin(record->direction0.k, -1.0f, -0.75f);
-		normalize_inline(&record->direction0);
+		lighting_normalize_ordered(&record->direction0,
+            (record->direction0.i * record->direction0.i + record->direction0.j * record->direction0.j) +
+            record->direction0.k * record->direction0.k);
 	}
 	real luminance = 2.0f * (0.11f * lightmap->blue + 0.59f * lightmap->green + 0.3f * lightmap->red);
-	record->value1c = lighting_pin(lighting_function(&parameters->value1c, luminance), 0.0f, 1.0f);
+	record->value1c = lighting_function(&parameters->value1c, lighting_pin(luminance, 0.0f, 1.0f));
 	real scale1 = lighting_function(&parameters->scale1, length);
 	real scale2 = lighting_function(&parameters->scale2, length);
 	record->color1.red *= scale1;
@@ -1157,8 +1173,8 @@ void function_d4080(s_effect_color_query const *query, long type, s_lighting_rec
 	(void)&flag;
 	vector3f normal = *(vector3f const *)query;
 	real length = (real)sqrt(normal.i * normal.i + normal.j * normal.j + normal.k * normal.k);
-	bool mobile = type >= 0 && type <= 2;
-	record->length = normalize_inline(&normal);
+	bool mobile = type == 0 || type == 1 || type == 2;
+	record->length = lighting_normalize_ordered(&normal, (normal.i * normal.i + normal.k * normal.k) + normal.j * normal.j);
 	color3f base, lightmap;
 	unpack_color3f(query->color_a, &base);
 	unpack_color3f(query->color_b, &lightmap);
@@ -1183,16 +1199,17 @@ void function_d4080(s_effect_color_query const *query, long type, s_lighting_rec
 		if (!(reflected.green > 0.0f)) reflected.green = 0.0f;
 		if (!(reflected.blue > 0.0f)) reflected.blue = 0.0f;
 		real square = length * length;
-		record->color2.red = (1.0f - square) * lightmap.red + square * reflected.red;
-		record->color2.green = (1.0f - square) * lightmap.green + square * reflected.green;
-		record->color2.blue = (1.0f - square) * lightmap.blue + square * reflected.blue;
+		record->color2.red = (1.0f - square) * record->color1.red + reflected.red * square;
+		record->color2.green = (1.0f - square) * record->color1.green + reflected.green * square;
+		record->color2.blue = (1.0f - square) * record->color1.blue + reflected.blue * square;
 		vector3f turned = record->direction1;
 		lighting_negate(&turned);
 		lighting_rotate(&turned, g_467494 * 0.01745329238474369f, &record->direction2);
 		record->color0 = lightmap;
 		record->direction0.i = 0.0f - normal.i;
 		record->direction0.j = 0.0f - normal.j;
-		record->direction0.k = 0.0f - 2.0f * normal.k;
+		record->direction0.k = 0.0f - normal.k;
+		record->direction0.k *= 2.0f;
 		function_30bf0(&record->direction0);
 		real k = mobile ? 1.18f : 0.75f;
 		real luminance = 0.114f * lightmap.blue + 0.587f * lightmap.green + 0.299f * lightmap.red;

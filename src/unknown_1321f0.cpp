@@ -364,11 +364,18 @@ dword function_132b10(bool b, bool d, bool c, bool f, bool g, bool e, bool a)
 // @retail 0x135880
 real function_135880(word value)
 {
-	dword sign = value >> 15;
-	dword mantissa = (value >> 5) & 0x3ff;
-	dword exponent = value & 0x1f;
-	dword bits = (sign << 31) | (mantissa << 13) | ((exponent + 0x70) << 23);
-	return *(real *)&bits;
+	union s_135881
+	{
+		dword field_0;
+		real field_00;
+		struct { dword field_0 : 13; dword field_d : 10; dword field_17 : 8; dword field_1f : 1; } field_000;
+	};
+	s_135881 local_1;
+	local_1.field_0 = 0;
+	local_1.field_000.field_d = value >> 5;
+	local_1.field_000.field_1f = value >> 15;
+	local_1.field_000.field_17 = (value & 0x1f) + 0x70;
+	return local_1.field_00;
 }
 // @retail 0x134980
 void function_134980(s_bit_vector_pool *data, s_bit_vector_pool_sizes const *sizes, void *context)

@@ -75,7 +75,7 @@ struct s_293135
 struct s_effect_owner;
 extern s_record_pool *g_51ecb4;
 void function_b7930(void *arg_0, long arg_1, long arg_2, s_effect_owner const *arg_3);
-long function_b7b40(void *arg_0);
+long __stdcall function_b7b40(void *arg_0);
 void __stdcall function_b8540(long arg_0);
 bool function_2936b0(long arg_0, long arg_1);
 

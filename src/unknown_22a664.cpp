@@ -54,6 +54,7 @@ void function_22a664(s_widget_quad_2b11 const *arg_0, s_float_rect const *arg_1,
 		real local_3 = function_22a665(local_1, 6);
 		real const *local_4 = (real const *)arg_0;
 		point2f const *local_5 = (point2f const *)arg_1;
+		real local_9 = ((real const volatile *)local_4)[1];
 		local_0[0].field_0 = local_5[0].x;
 		local_0[0].field_4 = local_5[0].y;
 		local_0[1].field_0 = local_5[1].x;
@@ -66,7 +67,7 @@ void function_22a664(s_widget_quad_2b11 const *arg_0, s_float_rect const *arg_1,
 		local_0[0].field_c = local_0[1].field_c = local_0[2].field_c = local_0[3].field_c = 16777215.0f;
 		local_0[0].field_10 = local_4[0] * local_2;
 		local_0[0].field_14 = local_0[1].field_14 = local_4[2] * local_3;
-		local_0[1].field_10 = local_0[2].field_10 = local_4[1] * local_2;
+		local_0[1].field_10 = local_0[2].field_10 = local_9 * local_2;
 		local_0[2].field_14 = local_0[3].field_14 = local_4[3] * local_3;
 		local_0[3].field_10 = local_0[0].field_10;
 		local_0[0].field_18 = local_0[1].field_18 = local_0[2].field_18 = local_0[3].field_18 = 0xffffffff;

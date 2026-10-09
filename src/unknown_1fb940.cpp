@@ -31,7 +31,7 @@ dword *function_1fb940(short cluster_index)
 		memset(g_4f5728, 0, BIT_VECTOR_SIZE_IN_BYTES(bsp->cluster_count));
 		for (i = 0; i < bsp->cluster_count; i++)
 		{
-			if (!function_249c20(cluster_index, i, bsp) && function_249d60(cluster_index, i, bsp) < 40.0f)
+			if (!function_249c20(bsp, cluster_index, i) && function_249d60(bsp, cluster_index, i) < 40.0f)
 				g_4f5728[i >> 5] |= 1 << (i & 31);
 		}
 		g_4f5768 = cluster_index;
@@ -236,7 +236,8 @@ void __stdcall function_1fbe00(long clump_index, long source_index, long object_
 	bool filter, dword const *clusters, s_1fbac0_event const *event)
 {
 	s_502420_element *clump = element_502420_get(clump_index);
-	s_slot_object_view *object = object_get(object_index);
+	s_object_header_view *local_0 = (s_object_header_view *)g_4e0300->data;
+	s_slot_object_view *object = (s_slot_object_view *)local_0[object_index & 0xffff].object;
 	if (event->unknown00 == 0 && (event->data.unknown00 - 1) == 0)
 	{
 		function_1df820(*(short const *)((byte const *)event + 0xc),
@@ -249,7 +250,7 @@ void __stdcall function_1fbe00(long clump_index, long source_index, long object_
 	function_b9dd0(object_index, &position);
 	s_location const *location = (s_location const *)((byte *)object + 0x28);
 	if (object->parent_index != NONE)
-		location = (s_location const *)((byte *)object_get(function_baf80(object_index)) + 0x28);
+		location = (s_location const *)((byte *)(s_slot_object_view *)local_0[function_baf80(object_index) & 0xffff].object + 0x28);
 
 	long prop_index = function_26b230(clump_index, object_index);
 	if (prop_index != NONE)
@@ -265,7 +266,7 @@ void __stdcall function_1fbe00(long clump_index, long source_index, long object_
 				long actor_index = node->actor_index;
 				if (actor_get(actor_index)->unknown009 &&
 					(!filter || function_1fba10(actor_index, source_index, location, event, clusters, &position)))
-					function_1fbff0(actor_index, source_index, object_index, node_index, event);
+					function_1fbff0(node->actor_index, source_index, object_index, node_index, event);
 				node_index = node->next;
 			}
 		}

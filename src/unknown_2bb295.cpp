@@ -534,17 +534,7 @@ bool c_squad_setting_list::v10(s_widget_event *event)
 	return ((c_widget *)this)->c_widget::v18((s_event *)event);
 }
 
-/* 0x2bb801, the list's handler, matches but is left out below: it makes
-   the screens that 0x2bb8ac..0x2bb945 load live, and with them more callers
-   of function_19a76d (unknown_19987f.cpp), which then takes its argument in
-   ecx instead of retail's eax and breaks 0x199a92 and 0x2c9d38. The
-   placeholder keeps the handler's slot. */
 // @retail 0x2bb801
-void c_squad_setting_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
-#if 0
 void c_squad_setting_list::handle_item(s_controller_reference **controller, long *item)
 {
 	if (*item != NONE)
@@ -585,4 +575,5 @@ void c_squad_setting_list::handle_item(s_controller_reference **controller, long
 		}
 	}
 }
-#endif
+
+

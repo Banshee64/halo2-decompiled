@@ -99,15 +99,16 @@ struct s_team_value_row
 PRIVATE __forceinline bool update_team_value_row(s_team_value_row *destination, const short *source)
 {
 	bool same = true;
+    short *values = destination->values;
 	if (destination->first != source[0]) { destination->first = source[0]; same = false; }
-	if (destination->values[0] != source[1]) { destination->values[0] = source[1]; same = false; }
-	if (destination->values[1] != source[2]) { destination->values[1] = source[2]; same = false; }
-	if (destination->values[2] != source[3]) { destination->values[2] = source[3]; same = false; }
-	if (destination->values[3] != source[4]) { destination->values[3] = source[4]; same = false; }
-	if (destination->values[4] != source[5]) { destination->values[4] = source[5]; same = false; }
-	if (destination->values[5] != source[6]) { destination->values[5] = source[6]; same = false; }
-	if (destination->values[6] != source[7]) { destination->values[6] = source[7]; same = false; }
-	if (destination->values[7] != source[8]) { destination->values[7] = source[8]; same = false; }
+	if (values[0] != source[1]) { values[0] = source[1]; same = false; }
+	if (values[1] != source[2]) { values[1] = source[2]; same = false; }
+	if (values[2] != source[3]) { values[2] = source[3]; same = false; }
+	if (values[3] != source[4]) { values[3] = source[4]; same = false; }
+	if (values[4] != source[5]) { values[4] = source[5]; same = false; }
+	if (values[5] != source[6]) { values[5] = source[6]; same = false; }
+	if (values[6] != source[7]) { values[6] = source[7]; same = false; }
+	if (values[7] != source[8]) { values[7] = source[8]; same = false; }
 	return same;
 }
 
@@ -170,7 +171,9 @@ bool __stdcall function_1e9ad0(void *state, long mask, void *data)
 	void *const *data_reference = &data;
 	s_object_values *table = (s_object_values *)*state_reference;
 	s_object_values_packet *packet = (s_object_values_packet *)*data_reference;
-	for (long i = 0; i < 16; i++)
+	short *row = table->values[0];
+ long row_offset = 0;
+ for (long i = 0; i < 16; i++, row += sizeof(table->values[0]) / sizeof(short), row_offset += 9)
 	{
 		if (*mask_reference & (1 << i))
 		{
@@ -178,7 +181,7 @@ bool __stdcall function_1e9ad0(void *state, long mask, void *data)
 			{
 				if (column == 5 || column == 8)
 				{
-					long count = packet->values[i][column] - table->values[i][column];
+					long count = packet->values[0][row_offset + column] - row[column];
 					if (count > 0)
 					{
 						long player_index = NONE;
@@ -211,7 +214,7 @@ bool __stdcall function_1e9ad0(void *state, long mask, void *data)
 						}
 					}
 				}
-				table->values[i][column] = packet->values[i][column];
+				row[column] = packet->values[0][row_offset + column];
 			}
 		}
 	}
@@ -374,7 +377,7 @@ struct s_request_screen_bounds
 	short top, left, bottom, right;
 };
 
-void function_1e90b0(long first, s_request_screen_bounds const *bounds, point2f *points);
+void function_1e90b0(long first, point2f *points, s_request_screen_bounds const *bounds);
 
 extern long g_4b9ed8;
 extern short g_4b9dd0, g_4b9dd2;
@@ -448,61 +451,224 @@ bool __stdcall function_1e9140(s_request_screen_bounds const *volatile bounds)
 			_mm_store_ss(&coordinates[2], _mm_setzero_ps());
 			_mm_store_ss(&coordinates[3], _mm_set_ss(1.0f));
 			point2f points[4];
-			function_1e90b0(0, &piece, points);
+			function_1e90b0(0, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, center, 0, color);
 			short top = inner.top - 10;
 			piece.top = top;
 			piece.left = inner.left;
 			piece.right = inner.right;
 			piece.bottom = inner.top;
-			function_1e90b0(0, &piece, points);
+			function_1e90b0(0, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, edge, 0, color);
 			short bottom = inner.bottom + 10;
 			piece.top = inner.bottom;
 			piece.bottom = bottom;
 			piece.left = inner.left;
 			piece.right = inner.right;
-			function_1e90b0(2, &piece, points);
+			function_1e90b0(2, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, edge, 0, color);
 			short left = inner.left - 10;
 			piece.left = left;
 			piece.bottom = inner.bottom;
 			piece.top = inner.top;
 			piece.right = inner.left;
-			function_1e90b0(1, &piece, points);
+			function_1e90b0(1, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, edge, 0, color);
 			short right = inner.right + 10;
 			piece.right = right;
 			piece.bottom = inner.bottom;
 			piece.left = inner.right;
 			piece.top = inner.top;
-			function_1e90b0(3, &piece, points);
+			function_1e90b0(3, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, edge, 0, color);
 			piece.left = left;
 			piece.top = top;
 			piece.right = inner.left;
 			piece.bottom = inner.top;
-			function_1e90b0(0, &piece, points);
+			function_1e90b0(0, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, corner, 0, color);
 			piece.top = inner.bottom;
 			piece.right = right;
 			piece.bottom = bottom;
 			piece.left = inner.right;
-			function_1e90b0(2, &piece, points);
+			function_1e90b0(2, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, corner, 0, color);
 			piece.left = inner.right;
 			piece.top = top;
 			piece.right = right;
 			piece.bottom = inner.top;
-			function_1e90b0(0, &piece, points);
+			function_1e90b0(0, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, diagonal, 0, color);
 			piece.left = left;
 			piece.top = inner.bottom;
 			piece.bottom = bottom;
 			piece.right = inner.left;
-			function_1e90b0(2, &piece, points);
+			function_1e90b0(2, points, &piece);
 			function_22a664((s_widget_quad_2b11 const *)points, (s_float_rect const *)coordinates, diagonal, 0, color);
 		}
 	}
 	return result;
+}
+
+#if 0
+// Activating this body regresses 0x15ca10, 0x2bce70 and 0x2c0a90.
+// Disabled retail draft 0x1e9df0
+void function_1e9df0(long field, long counter, s_statborg *statistics, long team, long volatile delta)
+{
+ short *entry = &((s_object_values *)statistics)->team_values[team][field];
+ long value = *entry + (short)delta;
+ if (value < -30000)
+  value = -30000;
+ else if (value > 30000)
+  value = 30000;
+ *entry = (short)value;
+ if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->value28 != NONE)
+  function_b58c0(g_4e9ae8->value28, 1 << (team + 16));
+ if (counter != NONE)
+  function_1968b0(NONE, team, counter, *entry);
+}
+#endif
+
+
+#include "unknown_0259d0.h"
+#include "unknown_030290.h"
+#include <wchar.h>
+struct s_510c4c;
+extern s_510c4c *g_510c4c;
+struct s_unknown_1e6a40;
+extern s_unknown_1e6a40 *g_51e9c0;
+struct s_33a0b_default;
+extern s_33a0b_default *g_4686d4;
+extern real g_4e69c0[4];
+extern long g_4ba04c;
+extern short_rectangle2d g_4b9dd8;
+void function_13925f(long string_handle, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+void function_22d2ee(word *string, long maximum_length);
+bool function_162c50(long player_index, long *spectated_player_index);
+bool function_2259f0(long player_index);
+bool function_22acb4(long local_player_index);
+void function_13edb0(long font, long style, long justification, dword flags, color4f const *color, color4f const *field_24);
+void function_13ec70(color4f const *color);
+void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale);
+long function_1e8cb0(long index);
+struct s_entry_420;
+s_entry_420 *function_1e8d50(long index);
+class c_1fa50
+{
+public:
+ void function_1fa50(short_rectangle2d const *bounds, void const *clip, void const *position,
+  long line_gap, real scale, long color, void const *shadow) const;
+ void function_1fb10(short_rectangle2d const *bounds, real scale) const;
+};
+
+// @retail 0x1e6fe0
+void function_1e6fe0(long local_player_index)
+{
+ byte *globals = (byte *)g_51e9c0;
+ if (!globals[0x6c5])
+  return;
+ word text[256];
+ word temporary[256];
+ text[0] = 0;
+ bool spectating = false;
+ if (local_player_index != NONE)
+ {
+  long player_index = g_4e8c20->entries[local_player_index];
+  long spectated_player;
+  if (player_index != NONE && function_162c50(player_index, &spectated_player))
+  {
+   *(long *)((byte *)g_510c4c + 0x1b8) = spectated_player;
+   temporary[0] = 0;
+   long string_handle = *(long *)((byte *)g_510c94 + (0x43c - function_2259f0(player_index) * 4));
+   function_13925f(string_handle, temporary);
+   wcsncpy((wchar_t *)text, (wchar_t const *)temporary, 255);
+   text[255] = 0;
+   function_22d2ee(text, 256);
+   *(long *)((byte *)g_510c4c + 0x1b8) = NONE;
+   spectating = true;
+  }
+ }
+ if (!spectating)
+ {
+  long string_handle;
+  if (globals[0x6c4] && *(long *)(globals + 0x6c0) != 0 && *(long *)(globals + 0x6c0) != NONE)
+   string_handle = *(long *)(globals + 0x6c0);
+  else
+  {
+   byte *state = globals + local_player_index * 0x1b0;
+   long index = *(long *)(state + 0x80);
+   if (index == NONE)
+    return;
+   short transition = *(short *)(globals + local_player_index * 0x1b0 + index * 4);
+   if (transition != 2 && transition != 3)
+    return;
+   byte *entry = (byte *)function_1e8d50(index);
+   if (!entry)
+    return;
+   word delay = *(word *)(entry + 4);
+   if (delay && g_510c54->field_2_3 * delay <= *(long *)(state + 0x84))
+    return;
+   string_handle = function_1e8cb0(*(long *)(state + 0x80));
+  }
+  temporary[0] = 0;
+  if (g_510c94 && g_510c94->string_list != NONE)
+   function_1a0180(g_510c94->string_list, string_handle, temporary);
+  wcsncpy((wchar_t *)text, (wchar_t const *)temporary, 255);
+  text[255] = 0;
+  function_22d2ee(text, 256);
+ }
+ if (!text[0])
+  return;
+ color4f default_color = *(color4f const *)g_4686d4;
+ long font = g_4ba04c <= 1 ? 6 : 5;
+ color4f color;
+ bool alternate = function_22acb4(g_4b9ed8);
+ if (alternate)
+ {
+ color.alpha = g_4b9ed8 >= 0 && g_4b9ed8 < 4 ? g_4e69c0[g_4b9ed8] : 1.0f;
+  color.red = 0.9647058844566345f;
+  color.green = 0.8627451062202454f;
+ }
+ else
+ {
+ color.alpha = g_4b9ed8 >= 0 && g_4b9ed8 < 4 ? g_4e69c0[g_4b9ed8] : 1.0f;
+  color.red = 0.7137255072593689f;
+  color.green = 0.8588235378265381f;
+ }
+ color.blue = 1.0f;
+ default_color.alpha = g_4b9ed8 >= 0 && g_4b9ed8 < 4 ? g_4e69c0[g_4b9ed8] : 1.0f;
+ function_13edb0(font, NONE, 2, 0, &color, &default_color);
+ function_13ec70(&color);
+ short_rectangle2d limits;
+ limits.top = -32768; limits.left = -32768; limits.bottom = 32767; limits.right = 32767;
+ short_rectangle2d bounds, measured;
+ function_13e9c0(text, &limits, &bounds, &measured, 1.0f);
+ long center_x = (g_4b9dd8.left + g_4b9dd8.right) / 2 - g_4b9dd2;
+ long center_y = (g_4b9dd8.top + g_4b9dd8.bottom) / 2 - g_4b9dd0;
+ long half_width = (short)(bounds.right - bounds.left) / 2 + 5;
+ long half_height = (short)(bounds.bottom - bounds.top) / 2 + 1;
+ limits.left = (short)(center_x - half_width);
+ limits.right = (short)(center_x + half_width);
+ limits.top = (short)(center_y - half_height);
+ limits.bottom = (short)(center_y + half_height);
+ if (function_1e9140((s_request_screen_bounds const *)&limits))
+  ((c_1fa50 const *)text)->function_1fa50(&limits, NULL, NULL, 0, 1.0f, 0, NULL);
+}
+
+// @retail 0x1e90b0
+void function_1e90b0(long first, point2f *points, const s_request_screen_bounds *bounds)
+{
+	real left = (real)bounds->left;
+	real right = (real)bounds->right;
+	real top = (real)bounds->top;
+	real bottom = (real)bounds->bottom;
+	points[first % 4].x = left;
+	points[first % 4].y = top;
+	points[(first + 1) % 4].x = right;
+	points[(first + 1) % 4].y = top;
+	points[(first + 2) % 4].x = right;
+	points[(first + 2) % 4].y = bottom;
+	points[(first + 3) % 4].x = left;
+	points[(first + 3) % 4].y = bottom;
 }

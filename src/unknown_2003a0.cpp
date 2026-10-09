@@ -180,7 +180,7 @@ void __stdcall function_202420(long group_index)
 	for (long index = group->first_squad_index; index != NONE; )
 	{
 		s_squad_datum *squad = squad_get(index);
-		active |= TEST_FIELD_BIT(((s_squad_activity_flags *)squad)->active);
+		active |= (bool)((((dword)*(short *)((byte *)squad + 2)) >> 7) & 1);
 		index = squad->next_squad_index;
 	}
 	if (active && !*(bool *)((byte *)group + 0x22))
@@ -603,7 +603,8 @@ bool function_204390(long squad_index)
 	}
 	for (long index = g_4f55d0->unknown14; index != NONE; )
 	{
-		s_actor_datum *actor = &((s_actor_datum *)(*(byte *volatile *)&g_4f55f0->data))[index & 0xffff];
+		s_record_pool *local_0 = g_4f55f0;
+		s_actor_datum *actor = &((s_actor_datum *)local_0->data)[index & 0xffff];
 		long source_squad = *(volatile long *)((byte *)actor + 0x34);
 		if (source_squad == squad_index && function_1e13f0(index))
 		{
@@ -2559,7 +2560,7 @@ void function_201c80(void)
 
 struct s_effect_owner;
 void function_b7930(void *arg_0, long arg_1, long arg_2, s_effect_owner const *arg_3);
-long function_b7b40(void *arg_0);
+long __stdcall function_b7b40(void *arg_0);
 void __stdcall function_a7870(long arg_0);
 void function_11dfb0(vector2f const *arg_0, vector3f *arg_1, vector3f *arg_2);
 long function_203780(long arg_0, short arg_1, short arg_2, bool arg_3);

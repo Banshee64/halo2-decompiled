@@ -374,11 +374,13 @@ s_object *function_badc0(long object_index, dword type_mask);
 long function_2d000(long object_index, long tag, long instance)
 {
 	long result = 3;
-	byte *map = (byte *)g_4e0348;
-	byte *definition = g_4e0344 ? (byte *)g_4e0344->bsp : NULL;
-	if (g_4e0344 && g_4e0344->count > 0 && map &&
+	byte *map;
+    byte *definition;
+    if (g_4e0344 && g_4e0344->count > 0 &&
+        (map = (byte *)g_4e0348) != NULL &&
+        (definition = (byte *)g_4e0344->bsp,
 		*(long *)(definition + 0x1c) != NONE &&
-		*(long *)(definition + 4) == *(long *)(map + 8))
+		*(long *)(definition + 4) == *(long *)(map + 8)))
 	{
 		if (tag != NONE)
 		{
@@ -398,9 +400,7 @@ long function_2d000(long object_index, long tag, long instance)
 				}
 			}
 		}
-		else if (instance == 0x7ff)
-			result = 0;
-		else
+		else if (instance != 0x7ff)
 		{
 			byte *mappings = *(byte **)(definition + 0x54);
 			long section = *(word *)(mappings + instance * 12 + 2);
@@ -411,6 +411,8 @@ long function_2d000(long object_index, long tag, long instance)
 				result = *(short *)(instances + instance * 0x58 + 0x56) != 0;
 			}
 		}
+        else
+            result = 0;
 	}
 	else if (tag != NONE && object_index != NONE)
 	{
@@ -444,8 +446,8 @@ bool function_3e320(long tag, byte const *indices)
     for (long i = 0; i < data->count; ++i)
     {
         long index = indices[i];
-        if (index != 255 && !function_12de70(&data->sections[index].block, 3))
-            result = false;
+        if (index != 255)
+            result &= function_12de70(&data->sections[index].block, 3);
     }
     return result;
 }
@@ -526,7 +528,7 @@ long function_34060(long mode, dword flags)
 }
 
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 struct s_leaf_cluster
 {
@@ -551,7 +553,7 @@ bool function_2b720(point3f *point, long *cluster, long *leaf)
     long *const *cluster_reference = &cluster;
     s_leaf_cluster_map *map = (s_leaf_cluster_map *)g_4e0348;
     bool result = false;
-    long index = function_14a280(map->bsp, point, 0);
+    long index = function_14a280(map->bsp, 0, point);
     if (index != NONE)
     {
         *leaf = index;
@@ -593,7 +595,7 @@ bool function_3e9c0(long object_index)
             {
                 byte *object = header->object;
                 long entry = g_4e8c20->entries[index];
-                if (entry == *(long *)(object + 0x13c))
+                if (*(long *)(object + 0x13c) == entry)
                     result = true;
             }
         }
@@ -1186,12 +1188,13 @@ bool function_460d0(dword const *mask, short index, long part_index)
 bool function_4c2b0(long tag, byte const *wanted, signed char *current, long level,
     bool request, signed char *sections, bool *fallback)
 {
+    struct { word available; bool result; } section_status;
     (void)&wanted; (void)&current; (void)&level;
     (void)&request; (void)&sections; (void)&fallback;
     byte *definition = g_4e3b44[tag & 0xffff].bytes;
     *fallback = false;
-    word available = 0;
-    bool result = true;
+    section_status.available = 0;
+    section_status.result = true;
     for (long i = 0; i < *(long *)(definition + 0x1c); ++i)
     {
         long selection = wanted[i];
@@ -1203,18 +1206,18 @@ bool function_4c2b0(long tag, byte const *wanted, signed char *current, long lev
             s_geometry_block_info *block = (s_geometry_block_info *)(*(byte **)(definition + 0x28) + section * 0x5c + 0x38);
             if (request)
             {
-                if (function_12de70(block, 3)) available |= 1 << i;
+                if (function_12de70(block, 3)) section_status.available |= 1 << i;
             }
             else
             {
-                if (function_12de70(block, 0)) available |= 1 << i;
+                if (function_12de70(block, 0)) section_status.available |= 1 << i;
             }
         }
     }
     for (long i = 0; i < *(long *)(definition + 0x1c); ++i)
     {
         byte *group = *(byte **)(definition + 0x20) + i * 16;
-        if (available & (1 << i))
+        if (section_status.available & (1 << i))
         {
             byte *variant = *(byte **)(group + 0xc) + (signed char)wanted[i] * 16;
             sections[i] = (signed char)((short *)(variant + 4))[level];
@@ -1231,7 +1234,7 @@ bool function_4c2b0(long tag, byte const *wanted, signed char *current, long lev
                     sections[i] = (signed char)((short *)(variant + 4))[level];
                     *fallback = true;
                 }
-                else result = false;
+                else section_status.result = false;
             }
             else
             {
@@ -1241,7 +1244,7 @@ bool function_4c2b0(long tag, byte const *wanted, signed char *current, long lev
         }
         else sections[i] = -1;
     }
-    return result;
+    return section_status.result;
 }
 
 struct s_light_shape_ab;

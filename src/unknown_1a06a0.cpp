@@ -105,13 +105,14 @@ void function_1a06f0(s_key_set *set, long *best_key, long *best_index)
 void function_1a0750(s_player_profile *profile)
 {
 	memset(profile, 0, sizeof(s_player_profile));
-	profile->unknown118 = 10;
-	profile->unknown119 = 0;
-	profile->unknown11a = 0;
-	profile->unknown11b = 10;
-	profile->unknown11d = 0;
-	profile->unknown11e = 0;
-	profile->flags_0 = true;
+	*(volatile byte *)&profile->unknown118 = 10;
+	*(volatile byte *)&profile->unknown119 = 0;
+	*(volatile byte *)&profile->unknown11a = 0;
+	*(volatile byte *)&profile->unknown11b = 10;
+	*(volatile byte *)&profile->unknown11d = 0;
+	*(volatile byte *)&profile->unknown11e = 0;
+	dword *local_0 = (dword *)((byte *)profile + 4);
+	*local_0 |= 1;
 	profile->unknown102 = 3;
 	profile->unknownfc = 0;
 	profile->unknown100 = 0;

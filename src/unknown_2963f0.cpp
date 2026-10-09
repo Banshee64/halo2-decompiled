@@ -40,11 +40,7 @@ long function_2960e0(s_2960e0_counts *counts, long *objects, long maximum_count)
 		s_object *object;
 		s_type_f1af8e iterator;
 	} state;
-	state.iterator.signature = 0x86868686;
-	state.iterator.type_mask = 0x40;
-	state.iterator.flags = 0;
-	state.iterator.index = 0;
-	state.iterator.object_index = NONE;
+	function_bae80(&state.iterator, 0x40, 0);
 	while ((state.object = function_baeb0(&state.iterator)) != NULL)
 	{
 		long index = NONE;
@@ -56,11 +52,7 @@ long function_2960e0(s_2960e0_counts *counts, long *objects, long maximum_count)
 			objects[slot] = state.iterator.object_index;
 		}
 	}
-	state.iterator.signature = 0x86868686;
-	state.iterator.type_mask = 0x80;
-	state.iterator.flags = 0;
-	state.iterator.index = 0;
-	state.iterator.object_index = NONE;
+	function_bae80(&state.iterator, 0x80, 0);
 	while ((state.object = function_baeb0(&state.iterator)) != NULL)
 	{
 		long index = NONE;

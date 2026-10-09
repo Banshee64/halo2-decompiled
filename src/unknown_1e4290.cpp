@@ -75,14 +75,17 @@ void function_1e4260(long actor_index)
 void function_1e4290(long actor_index, bool value)
 {
 	s_actor_view *actor = actor_get(actor_index);
-	bool *enable = &value;
+	bool volatile *enable = &value;
 
 	if (*enable)
 	{
 		if (!actor->unknown229 && actor->unknown26c != NONE)
-			*enable = !ai_object_get(actor->unknown26c)->unknown34c;
-		if (*enable)
-			actor->flags810 |= 0x800;
+			{
+   bool allowed = 0 >= *(byte *)&ai_object_get(actor->unknown26c)->unknown34c;
+   *enable = allowed;
+   if (!allowed) return;
+  }
+		actor->flags810 |= 0x800;
 	}
 	else
 	{
@@ -194,12 +197,15 @@ long function_baf80(long object_index);
 // @retail 0x1e13f0
 bool function_1e13f0(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	bool result = false;
+	s_actor_view *actor = actor_get(actor_index);
 	if (actor->unknown018 != NONE)
 	{
 		if (actor_query_enabled(function_baf80(actor->unknown018)))
-			return true;
+		{
+			result = true;
+			goto done;
+		}
 	}
 	else
 	{
@@ -214,10 +220,14 @@ bool function_1e13f0(long actor_index)
 				byte *links = object->flags134 == 0 ? (byte *)object + object->link_offset : NULL;
 				object_index = links ? *(long *)(links + 0xc) : NONE;
 				if (actor_query_enabled(actor_query_root(current)))
-					return true;
+				{
+					result = true;
+					goto done;
+				}
 			}
 		}
 	}
+done:
 	return result;
 }
 

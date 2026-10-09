@@ -238,8 +238,8 @@ void __stdcall function_185be0(long arg_0, long arg_1, real arg_2, real arg_3, s
                 fabs(arg_5->field_0) > 0.0001f || fabs(arg_5->field_4) > 0.0001f))
             {
                 real local_18 = arg_3 / arg_2;
-                real local_19 = function_185be1(*(real *)arg_4->field_4, 0.0f, 1.0f) * local_15.k;
-                real local_20 = function_185be1(*(real *)(arg_4->field_4 + 4), 0.0f, 1.0f) * local_15.k;
+                real local_19 = function_185be1(*(real *)local_0, 0.0f, 1.0f) * local_15.k;
+                real local_20 = function_185be1(*(real *)(local_0 + 4), 0.0f, 1.0f) * local_15.k;
                 local_16 = function_185be1(local_15.i * local_18, -3.1415927410125732f, 3.1415927410125732f) * local_20 + (1.0f - local_19) * local_13.field_0[0];
                 local_17 = function_185be1(local_15.j * local_18, -1.5707963705062866f, 1.5707963705062866f) * local_20 + (1.0f - local_19) * local_13.field_0[1];
             }
@@ -321,8 +321,7 @@ void __stdcall function_185be0(long arg_0, long arg_1, real arg_2, real arg_3, s
         arg_5->field_c = local_2.field_4e ? local_2.field_34 : local_2.field_30;
         long local_11 = local_3[local_2.field_4c];
         byte *local_12 = &local_3[local_2.field_4c];
-        byte *local_13 = local_1->field_0 != NONE ? function_185be2(local_1->field_0) : NULL;
-        if (local_13 && local_13[0x212] != 0xff && local_13[0x213] != 0xff)
+        if (local_1->field_0 != NONE && function_185be2(local_1->field_0)[0x212] != 0xff && function_185be2(local_1->field_0)[0x213] != 0xff)
         {
             *local_12 = 0;
             local_1->field_90 = local_11 > 0;

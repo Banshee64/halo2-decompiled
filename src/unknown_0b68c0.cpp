@@ -156,6 +156,8 @@ extern s_record_pool *g_4e030c;
 struct s_object_list;
 extern s_object_list *g_4de2f4;
 
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0xb69d0
 void function_b69d0(void)
 {
@@ -171,16 +173,20 @@ void function_b69d0(void)
     record_pool_release_all(pool);
     memset(g_4de2d0, 0xff, 0x280 * sizeof(long));
     memset(g_4de2e0, 0xff, 0x200 * sizeof(long));
+    _ReadWriteBarrier();
     pool = (s_record_pool *)g_4de2e8;
     pool->valid = true;
     record_pool_release_all(pool);
+    _ReadWriteBarrier();
     pool = (s_record_pool *)g_4de2e4;
     pool->valid = true;
     record_pool_release_all(pool);
     memset(g_4de2d4, 0xff, 0x200 * sizeof(long));
+    _ReadWriteBarrier();
     pool = (s_record_pool *)g_4de2dc;
     pool->valid = true;
     record_pool_release_all(pool);
+    _ReadWriteBarrier();
     pool = (s_record_pool *)g_4de2d8;
     pool->valid = true;
     record_pool_release_all(pool);
@@ -194,6 +200,7 @@ void function_b69d0(void)
     state[0x80] = 0;
     *(long *)(state + 8) = NONE;
 }
+#pragma function(_ReadWriteBarrier)
 
 static inline void pool_invalidate_ab(void *data)
 {
@@ -429,19 +436,19 @@ void function_bb950(long object_index, bool add, long delta);
 void function_a7a60(long object_index);
 void function_10ace0(long object_index);
 
-void function_1ca130(long unit_index, long value, long priority);
+void function_1ca130(long unit_index, long priority, long value);
 
 // @retail 0xbfc30
-void function_bfc30(long unit_index, long value, bool active)
+void function_bfc30(long unit_index, long value, long priority)
 {
-    bool const *active_reference = &active;
+    long const *priority_reference = &priority;
     if (unit_index != NONE)
     {
         struct s_header { word identifier; byte flags; byte type; dword unknown04; byte *object; };
         s_header *header = &((s_header *)g_4e0300->data)[unit_index & 0xffff];
         long type_mask = 1;
         if ((type_mask << header->type) & 3)
-            function_1ca130(unit_index, value, *active_reference);
+            function_1ca130(unit_index, *priority_reference, value);
     }
     if (value == 2)
         *(long *)((byte *)g_4de2f4 + 0x14) = g_510c54->game_time;

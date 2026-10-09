@@ -158,27 +158,30 @@ void function_108cd0(long object_index)
 // @retail 0x108d30
 bool function_108d30(long object_index, long a, long b)
 {
-	s_object_handlers **list = OBJECT_TYPE_DEFINITION(object_index)->handlers;
-	bool result = false;
-	while (!result && *list)
+	struct { s_object_type_definition *definition; bool result; s_object_handlers **list; } iterator;
+	iterator.definition = OBJECT_TYPE_DEFINITION(object_index);
+	iterator.result = false;
+	iterator.list = iterator.definition->handlers;
+	while (!iterator.result && *iterator.list)
 	{
-		s_object_handlers *handlers = *list;
+		s_object_handlers *handlers = *iterator.list;
 		if (handlers->handler48)
 		{
-			result = handlers->handler48(object_index, a, b);
+			iterator.result = handlers->handler48(object_index, a, b);
 		}
-		list++;
+		iterator.list++;
 	}
-	return result;
+	return iterator.result;
 }
 
 // @retail 0x108d90
 bool function_108d90(long object_index, long a, real *out_real, bool *out_bool)
 {
-	s_object_handlers **list = OBJECT_TYPE_DEFINITION(object_index)->handlers;
+	s_object_type_definition *definition = OBJECT_TYPE_DEFINITION(object_index);
 	bool result = false;
 	*out_real = 0.0f;
 	*out_bool = false;
+	s_object_handlers **list = definition->handlers;
 	while (!result && *list)
 	{
 		s_object_handlers *handlers = *list;

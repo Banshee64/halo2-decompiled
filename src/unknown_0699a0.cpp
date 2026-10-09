@@ -30,6 +30,12 @@ static inline bool controller_world_is_authority(c_class_6a600 *world)
 	return world->state != 3 && world->state != 5;
 }
 
+#pragma inline_depth(0)
+static __forceinline void function_84751(s_player_action *arg_0)
+{
+ player_action_initialize(arg_0);
+}
+#pragma inline_depth(8)
 // @retail 0x84750
 void simulation_controller_initialize(s_simulation_controller *controller, c_class_6a600 *world,
 	long field_00, long field_04, long field_08, const s_machine_address *machine, const t_player_key *key)
@@ -43,7 +49,7 @@ void simulation_controller_initialize(s_simulation_controller *controller, c_cla
 	controller->world = world;
 	controller->field_25 = !controller_world_is_authority(world);
 	controller->field_28 = NONE;
-	player_action_initialize(&controller->action);
+	function_84751(&controller->action);
 }
 
 struct s_replication_sender_view
@@ -51,6 +57,8 @@ struct s_replication_sender_view
 	byte unknown00[0xc];
 	c_vtable_450d1c *senders[15];
 };
+
+static __forceinline void function_89eb3(s_allocator_globals *arg_0, void *arg_1);
 
 // @retail 0x89f20
 void replication_node_start(s_node_450d1c *node, s_owner_450d1c *owner, dword mask)
@@ -97,10 +105,7 @@ void replication_node_start(s_node_450d1c *node, s_owner_450d1c *owner, dword ma
 			long info;
 			if (!g_4d87f8->allocator->get_info(data, &info))
 				info = NONE;
-			s_allocator_globals *globals = g_4d87f8;
-			globals->allocator->release(data, NONE);
-			if (data)
-				globals->count--;
+			function_89eb3(g_4d87f8, data);
 		}
 		long info;
 		if (!g_4d87f8->allocator->get_info(node, &info))
@@ -156,6 +161,15 @@ void function_89e70(s_node_450d1c *node, s_owner_450d1c *owner)
 		function_89eb0(node, 1);
 }
 /* frees a node and, when asked, the node itself */
+#pragma optimize("g", off)
+static __forceinline void function_89eb3(s_allocator_globals *arg_0, void *arg_1)
+{
+	arg_0->allocator->release(arg_1, NONE);
+	if (arg_1)
+		arg_0->count--;
+}
+#pragma optimize("", on)
+
 // @retail 0x89eb0
 s_node_450d1c *function_89eb0(s_node_450d1c *node, long flags)
 {
@@ -164,10 +178,7 @@ s_node_450d1c *function_89eb0(s_node_450d1c *node, long flags)
 	{
 		long info;
 		g_4d87f8->allocator->get_info(data, &info);
-		s_allocator_globals *globals = g_4d87f8;
-		globals->allocator->release(data, NONE);
-		if (data)
-			globals->count--;
+		function_89eb3(g_4d87f8, data);
 	}
 	if (flags & 1)
 	{
@@ -437,40 +448,4 @@ void function_825e0(const s_weapon_activity_result *input, s_player_action *acti
 bool function_14d0a0(const s_player_action *action);
 real g_4ced44;
 
-// @retail 0x84990
-bool __stdcall function_84990(s_simulation_controller *controller, s_player_action *output)
-{
- bool result = false;
- if (controller->field_08 >= 4 && controller->field_08 <= 5)
- {
-  c_class_6a600 *world = controller->world;
-  c_simulation_view *view;
-  if (controller_world_is_authority(world))
-   view = function_6ad40(world, &controller->machine);
-  else
-   view = function_6acb0(world);
-  if (view)
-  {
-   c_vtable_450c94 *source = (c_vtable_450c94 *)((byte *)view->data + 0x5098);
-   if (source)
-   {
-    s_weapon_activity_result activity;
-    if (source->take_data18(controller->field_00, (s_dword34 *)&activity))
-    {
-     s_player_action action;
-     function_825e0(&activity, &action);
-     controller->action = action;
-     controller->field_28 = g_510c54->game_time;
-    }
-   }
-  }
- }
- if (controller->field_08 != 2 && controller->field_28 != NONE &&
-  (g_510c54->game_time - controller->field_28) * g_510c54->rate < g_4ced44 &&
-  function_14d0a0(&controller->action))
- {
-  *output = controller->action;
-  result = true;
- }
- return result;
-}
+

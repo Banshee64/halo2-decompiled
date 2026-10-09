@@ -240,11 +240,11 @@ struct s_time_entry
 // @retail 0x1e67a0
 void function_1e67a0(s_character_physics_component *component, s_type_94656b *datum, byte a, byte b)
 {
-	point3f *point = &component->position;
-	if (!component->has_position)
-	{
+	point3f *point;
+	if (component->has_position)
+		point = &component->position;
+	else
 		point = (point3f *)g_4687b0;
-	}
 	datum->pointac = *point;
 	datum->byteb8 = a;
 	datum->byteb9 = b;
@@ -495,7 +495,9 @@ void function_1e5bb0(s_biped_physics_output *output, void *physics, void *animat
    real cosine = (real)cos(rotation);
    real projection = (original.j * state->up.j + original.k * state->up.k + original.i * state->up.i) * (1.0f - cosine);
    vector3f cross;
-   initial_cross(&original, &state->up, &cross);
+   cross.i = original.j * state->up.k - original.k * state->up.j;
+   cross.j = original.k * state->up.i - original.i * state->up.k;
+   cross.k = original.i * state->up.j - original.j * state->up.i;
    vector3f rotated;
    rotated.i = original.i * cosine + projection * state->up.i - cross.i * sine;
    rotated.j = projection * state->up.j + original.j * cosine - cross.j * sine;
@@ -527,16 +529,16 @@ struct s_shape_state;
 struct s_direction_rotation_input;
 void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *up, vector3f *forward);
 void function_1faa20(byte const *state, vector3f *up, vector3f *forward, long *ticks);
-void function_1ecf50(s_direction_rotation_input *input, vector3f *up, vector3f *forward);
+void function_1ecf50(vector3f *forward, vector3f *up, s_direction_rotation_input *input);
 
 // @retail 0x1e5af0
-void function_1e5af0(s_biped_physics_output *output, void *physics, vector3f const *up, vector3f const *forward)
+void function_1e5af0(void *physics, s_biped_physics_output *output, vector3f const *up, vector3f const *forward)
 {
  switch (*(byte *)physics)
  {
  case 1: function_1f1460((byte *)output, (s_shape_state *)((byte *)physics + 0x10), (vector3f *)up, (vector3f *)forward); break;
  case 2: function_1faa20((byte *)output, (vector3f *)up, (vector3f *)forward, (long *)((byte *)physics + 0x10)); break;
- case 3: function_1ecf50((s_direction_rotation_input *)output, (vector3f *)up, (vector3f *)forward); break;
+ case 3: function_1ecf50((vector3f *)forward, (vector3f *)up, (s_direction_rotation_input *)output); break;
  case 4: break;
  case 5: break;
  case 6: break;

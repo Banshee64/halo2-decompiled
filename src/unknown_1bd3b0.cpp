@@ -206,16 +206,18 @@ long __stdcall function_1bd890(long actor_index, s_slot *slot)
 short __stdcall function_1bda60(long actor_index, s_slot *slot, bool active)
 {
 	s_slot_5d *state = (s_slot_5d *)slot;
-	s_5d_element *element = (s_5d_element *)element_502424_get(state->element_index);
+	s_record_pool *local_0 = g_502424;
+	byte *local_1 = *(byte *volatile *)&local_0->data;
+	s_5d_element *element = (s_5d_element *)(local_1 + (state->element_index & 0xffff) * sizeof(s_502424_element));
 	short result = g_46fbe8;
 
-	if (element->object_index != NONE && state->unknown20 != NONE && element->unknown7c >= element->unknown86 &&
-		function_f5dc0(element->object_index))
+	if (!(element->object_index != NONE && state->unknown20 != NONE && element->unknown7c >= element->unknown86 &&
+		function_f5dc0(element->object_index)))
 	{
-		return result;
+		result = g_46fbe4;
+		element->unknown02 = 2;
 	}
-	element->unknown02 = 2;
-	return g_46fbe4;
+	return result;
 }
 
 // @retail 0x1bdd70

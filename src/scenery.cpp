@@ -288,8 +288,7 @@ s_scenery_type_definition g_467ff0 =
 	function_10a390
 };
 
-bool function_10a660(long animation_graph_index, long object_index, long animation_name, short frame,
-	long attached_object_index, bool interpolate, bool loop);
+bool function_10a660(long volatile object_index, long animation_name, short frame, long attached_object_index, bool volatile interpolate, bool loop, long animation_graph_index);
 
 /* starts a scenery's default looping animation; flag 0 says it plays */
 // @retail 0x10a3f0
@@ -303,7 +302,7 @@ void function_10a3f0(long scenery_index)
 		long graph_tag_index = ((s_scenery_animation_state *)((byte *)scenery + scenery->animation_state_offset))->graph_tag_index;
 
 		if (graph_tag_index != NONE &&
-			function_10a660(graph_tag_index, scenery_index, 0x400000c, 0, NONE, false, true))
+			function_10a660(scenery_index, 0x400000c, 0, NONE, false, true, graph_tag_index))
 		{
 			scenery->flags |= 1;
 		}
@@ -442,7 +441,7 @@ struct s_scenery_graph_view
 };
 
 struct s_type_1a7926;
-bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+bool function_20a9a0(s_type_1a7926 *matrices, long object_index);
 
 // @retail 0x10a520
 bool function_10a520(long object_index)
@@ -454,7 +453,7 @@ bool function_10a520(long object_index)
 	if (header->cluster_index == NONE)
 		return result;
 	{
-		if (function_20a9a0(object_index, (s_type_1a7926 *)info))
+		if (function_20a9a0((s_type_1a7926 *)info, object_index))
 			return true;
 		if (definition->model_index != NONE)
 		{

@@ -187,11 +187,12 @@ s_actor_moving *function_1e47d0(s_actor_point_request *request)
 		}
 		if (request->index == NONE)
 			return NULL;
+		long next_actor_index = request->next_actor_index;
 		s_actor_moving *actor = NULL;
-		if (request->next_actor_index != NONE)
+		if (next_actor_index != NONE)
 		{
-			actor = actor_moving_get(request->next_actor_index);
-			request->actor_index = request->next_actor_index;
+			actor = actor_moving_get(next_actor_index);
+			request->actor_index = next_actor_index;
 			request->next_actor_index = *(long *)((byte *)actor + 0x80);
 		}
 		if (actor)
@@ -275,7 +276,7 @@ void function_1e28b0(long actor_index, const vector3f *direction, real magnitude
 
 __forceinline void actor_direction_between_points(const point3f *position, const s_type_c3b527 *target, vector3f *direction)
 {
-	function_210c90(target, position, direction);
+	function_210c90(position, target, direction);
 }
 
 // @retail 0x1e3370
@@ -359,9 +360,9 @@ void function_1e3790(long actor_index)
 	actor->second_ticks++;
 	bool first = false;
 	bool eligible = function_26c120(actor_index);
-	s_game_time_globals *time = g_510c54;
 	if (eligible)
 	{
+		s_game_time_globals *time = g_510c54;
 		if (!((s_ai_periodic_view *)g_4f55d0)->first_used && actor->first_ticks > ((s_ai_periodic_view *)g_4f55d0)->first_threshold &&
 			actor->first_ticks * time->rate > 0.5f)
 		{
@@ -374,6 +375,7 @@ void function_1e3790(long actor_index)
 	}
 	actor->update_first = first;
 	bool second = false;
+	s_game_time_globals *time = g_510c54;
 	if (!((s_ai_periodic_view *)g_4f55d0)->second_used && actor->second_ticks > ((s_ai_periodic_view *)g_4f55d0)->second_threshold &&
 		actor->second_ticks * time->rate > 0.5f)
 	{
@@ -482,7 +484,7 @@ void function_690d0(c_class_6a600 *world, long actor_index, const dword *state);
 void function_1e4390(long actor_index)
 {
 	s_actor_control_view *actor = (s_actor_control_view *)actor_moving_get(actor_index);
-	s_unit_control_view *unit = (s_unit_control_view *)moving_object_get(actor->unit_index);
+	s_unit_control_view *unit = (s_unit_control_view *)moving_object_get(*(long volatile *)&actor->unit_index);
 	if (unit->player_index == NONE || *((byte *)g_4e8c20 + 6))
 	{
 		s_actor_control_request state;
@@ -499,10 +501,10 @@ void function_1e4390(long actor_index)
 		state.third = actor->third;
 		if (actor->reset)
 		{
-			function_cbf60(actor->unit_index, true);
+			function_cbf60(*(long volatile *)&actor->unit_index, true);
 			actor->reset = false;
 		}
-		function_c6de0(actor->unit_index, &state);
+		function_c6de0(*(long volatile *)&actor->unit_index, &state);
 		if (unit->simulation_index != NONE && !g_4cf772 && *(long *)((byte *)g_4cf77c + 8) != 0)
 			function_690d0((c_class_6a600 *)g_4cf77c, unit->simulation_index, (const dword *)&state);
 	}
@@ -527,7 +529,7 @@ long __stdcall function_cbd80(long object_index, long *holder_index);
 void *function_1e5280(long actor_index, long key);
 void function_118e80(long object_index, vector3f *forward);
 real normalize2d(point2f *vector);
-real function_267370(long object_index);
+real function_267370(long volatile object_index);
 
 // @retail 0x1e3b60
 void function_1e3b60(long actor_index)
@@ -832,3 +834,40 @@ void __stdcall function_1e2570(long actor_index, word type, long object_index, r
 		}
 	}
 }
+
+#if 0
+// Activating this body changes the matched forwarding caller 0x1ca260.
+#include "unknown_1fb7e0.h"
+// Disabled retail draft 0x1e18f0
+void __fastcall function_1e18f0(long actor_index, long old_weapon, long player_index, long new_weapon)
+{
+ long const *player_reference = &player_index;
+ long const *weapon_reference = &new_weapon;
+ byte *player = g_4e8c24->data + (*player_reference & 0xffff) * 0x21c;
+ real old_value = 0.0f;
+ real new_value = 0.0f;
+ if (old_weapon != NONE)
+ {
+  byte *object = *(byte **)(g_4e0300->data + (old_weapon & 0xffff) * 12 + 8);
+  old_value = *(real *)(g_4e3b44[*(long *)object & 0xffff].bytes + 0x238);
+ }
+ if (*weapon_reference != NONE)
+ {
+  byte *object = *(byte **)(g_4e0300->data + (*weapon_reference & 0xffff) * 12 + 8);
+  new_value = *(real *)(g_4e3b44[*(long *)object & 0xffff].bytes + 0x238);
+ }
+ long unit = actor_get(actor_index)->unknown018;
+ if (new_value > old_value)
+ {
+  if (unit != NONE)
+   function_20ba60(0xbc, unit, *(long *)(player + 0x2c), NONE, NONE, 0);
+ }
+ else if (old_value > new_value)
+ {
+  if (unit != NONE)
+   function_20ba60(0xbd, unit, *(long *)(player + 0x2c), NONE, NONE, 0);
+ }
+ else if (unit != NONE)
+  function_20ba60(0xbe, unit, *(long *)(player + 0x2c), NONE, NONE, 0);
+}
+#endif

@@ -73,9 +73,11 @@ void function_b4020(void)
 // @retail 0xb4050
 void function_b4050(void)
 {
-	g_547620++;
-	long count = g_510580 ? g_5107d8 : 0;
-	if (g_547620 >= 3 * count)
+	long iteration = g_547620 + 1;
+	g_547620 = iteration;
+	long count = 0;
+	if (g_510580) count = g_5107d8;
+	if (iteration >= 3 * count)
 	{
 		online_result_registration_clear();
 		long task_index = g_510584;

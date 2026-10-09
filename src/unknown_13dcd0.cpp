@@ -155,7 +155,14 @@ void function_13dcd0(char *lo, char *hi, unsigned int element_size, bool swap_dw
 			p += element_size;
 		}
 
-		SWAP_ELEMENTS(max, hi, element_size, swap_dwords);
+		if (swap_dwords)
+		{
+			SWAP_ELEMENTS(max, hi, element_size, true);
+		}
+		else
+		{
+			SWAP_ELEMENTS(max, hi, element_size, false);
+		}
 
 		hi -= element_size;
 	}

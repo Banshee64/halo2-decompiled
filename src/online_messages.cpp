@@ -152,14 +152,15 @@ long online_message_download_attachment(long details_task_index, long property, 
 				if (SUCCEEDED(XOnlineMessageDownloadAttachmentToMemory((XONLINETASK_HANDLE)local_c5a52a->handle, (WORD)function_8eda0(property),
 					(PBYTE)buffer, size, NULL, (PXONLINETASK_HANDLE)&task->handle)))
 				{
+					long local_0 = local_c5a52a->controller_index;
 					task->flags = 1;
 					task->type = 39;
-					task->controller_index = local_c5a52a->controller_index;
+					task->controller_index = local_0;
 				}
 				else
 				{
 					function_6b640(task_index);
-					return NONE;
+					task_index = NONE;
 				}
 			}
 		}
@@ -547,7 +548,8 @@ void online_message_block_set_properties(s_state_block *block, long controller_i
 	{
 		long length = wcslen(text);
 		value = XGetLanguage();
-		online_message_block_set_property(block, 3, (length + 1) * sizeof(wchar_t), text);
+		long local_0 = (length + 1) * sizeof(wchar_t);
+		online_message_block_set_property(block, 3, local_0, text);
 		online_message_block_set_property(block, 4, sizeof(value), &value);
 	}
 	if (block->unknown210 > 0)
@@ -569,7 +571,11 @@ void online_message_block_set_properties(s_state_block *block, long controller_i
 	else if (block->unknown4 == 2)
 	{
 		if (player_slot_get_identity(controller_index, (s_player_identity *)&identity))
-			online_message_block_set_property(block, 6, (wcslen(identity.name) + 1) * sizeof(wchar_t), identity.name);
+		{
+			long local_1 = wcslen(identity.name);
+			long local_2 = (local_1 + 1) * sizeof(wchar_t);
+			online_message_block_set_property(block, 6, local_2, identity.name);
+		}
 		else
 			block->unknown8 = 4;
 	}
@@ -719,7 +725,8 @@ HRESULT online_message_block_send_message(long controller_index, s_state_block *
 void __stdcall online_message_block_send_finished(c_online_task_screen *screen)
 {
 	s_message_task_screen *view = (s_message_task_screen *)screen;
-	bool failed = false;
+	volatile byte *local_0 = (volatile byte *)&screen;
+	*local_0 = 0;
 	long error = 0x39;
 	long task_index = view->task_index;
 
@@ -733,15 +740,15 @@ void __stdcall online_message_block_send_finished(c_online_task_screen *screen)
 			s_type_9df9da *task = function_6b910(task_index);
 			if (task)
 				error = function_0b4a20(online_task_continue(task));
-			failed = true;
+			*local_0 = 1;
 		}
 	}
 	s_state_block *block = view->block;
 	if (block && block->unknown4 == 2)
 		friend_request_clear();
 	function_08fa30(block);
-	online_task_screen_finish_inline(screen);
-	if (failed && error != 0x90)
+	online_task_screen_finish_inline((c_online_task_screen *)view);
+	if (*local_0 && error != 0x90)
 		dialog_ok_show(1, error, 4, view->user_flags, 0, 0);
 }
 

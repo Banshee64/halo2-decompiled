@@ -25,18 +25,6 @@ void __stdcall function_e5d50(long arg_159e6d, long target_index, vector3f *offs
 // @stub 0xe57e0
 void __stdcall function_e57e0(long arg_159e6d) { }
 
-// @stub 0x1ed340
-void __stdcall function_1ed340(void *physics, long arg_159e6d) { }
-
-
-
-
-
-
-
-
-
-
 // @stub 0xe63b0
 bool function_e63b0(vector3f const *aim, bool flag) { return 0; }
 

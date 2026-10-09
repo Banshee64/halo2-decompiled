@@ -154,13 +154,28 @@ PRIVATE __forceinline bool contact_shape_has_material(s_contact_body_view const 
 	return *(byte *)(metadata + 0x1e) != 0xff;
 }
 
+PRIVATE __forceinline short function_1d4884(long arg_0)
+{
+ return (short)(arg_0 < 1 ? 1 : arg_0 > 16 ? 16 : arg_0);
+}
+
+PRIVATE __forceinline bool function_1d4885(s_contact_body_view const *arg_0)
+{
+ if (arg_0->shape->type() == 0x18)
+  return false;
+ long local_0 = arg_0->shape->metadata;
+ if (!local_0 || function_1d4884(local_0) == local_0)
+  return false;
+ return *(byte *)(local_0 + 0x1e) != 0xff;
+}
+
 // @retail 0x1d4880
 void c_contact_presence::hit(void const *query, s_contact_body_view const *body)
 {
 	s_contact_body_view const *root = body;
 	while (root->parent)
 		root = root->parent;
-	if (root->type == 1 && root->entity && !contact_shape_has_material(body))
+	if (root->type == 1 && root->entity && !function_1d4885(body))
 		found = true;
 }
 
@@ -830,7 +845,8 @@ void function_1c50c0(void)
 			g_51e9a4->removeSimulationIsland(island);
 			removed = true;
 		}
-		island_index += !removed;
+		byte local_0 = *(volatile byte const *)&removed;
+		island_index += local_0 == 0;
 	}
 }
 
@@ -1011,15 +1027,25 @@ local_3:
 	return result;
 }
 
+struct s_1c4040
+{
+	byte field_0[3];
+	volatile bool field_3;
+	volatile long field_4;
+	long field_8;
+	s_simulation_island_array *field_c;
+	long field_10;
+};
+
 // @retail 0x1c4040
 bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_unknown, long excluded_component_index)
 {
+	s_1c4040 local_0;
 	s_physics_world_view *world = (s_physics_world_view *)g_51e9a4;
-	s_simulation_island_array *islands = active ? &world->active_islands : &world->inactive_islands;
-	volatile long best_priority = 0x80000000;
-	long best_object_index = NONE;
-	volatile bool result = false;
-	long island_index;
+	*(s_simulation_island_array *volatile *)&local_0.field_c = active ? &world->active_islands : &world->inactive_islands;
+	local_0.field_4 = 0x80000000;
+	local_0.field_8 = NONE;
+	local_0.field_3 = false;
 	long i;
 
 	if (!active)
@@ -1031,80 +1057,80 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 			hkEntity *entity = island->m_entities[i];
 			long priority = ((s_physics_entity_view *)entity)->priority;
 
-			if (priority > best_priority)
+			if (priority > local_0.field_4)
 			{
 				long object_index = function_1c3f30(entity, attempt, any_object, even_if_unknown, excluded_component_index);
 
 				if (object_index != NONE)
 				{
-					best_priority = priority;
-					best_object_index = object_index;
+					local_0.field_4 = priority;
+					local_0.field_8 = object_index;
 				}
 			}
 		}
 	}
-	for (island_index = 0; island_index < islands->count; island_index++)
+	for (local_0.field_10 = 0; local_0.field_10 < local_0.field_c->count; local_0.field_10++)
 	{
-		hkSimulationIsland *island = islands->data[island_index];
+		hkSimulationIsland *island = local_0.field_c->data[local_0.field_10];
 
 		for (i = 0; i < island->m_entity_count; i++)
 		{
 			hkEntity *entity = island->m_entities[i];
 			long priority = ((s_physics_entity_view *)entity)->priority;
 
-			if (priority > best_priority)
+			if (priority > local_0.field_4)
 			{
 				long object_index = function_1c3f30(entity, attempt, any_object, even_if_unknown, excluded_component_index);
 
 				if (object_index != NONE)
 				{
-					best_priority = priority;
-					best_object_index = object_index;
+					local_0.field_4 = priority;
+					local_0.field_8 = object_index;
 				}
 			}
 		}
 	}
-	if (best_object_index != NONE)
+	if (local_0.field_8 != NONE)
 	{
 		s_physics_effect_globals *effect = ((s_tag_header_globals_physics_view *)g_4e034c)->effect;
 		s_physics_object *object;
 		bool unknown;
 
-		if (g_4e6948->mode == 4 && ((s_physics_object_detach_view *)physics_object_get(best_object_index))->unknownd4 != NONE)
+		if (g_4e6948->mode == 4 && ((s_physics_object_detach_view *)physics_object_get(local_0.field_8))->unknownd4 != NONE)
 		{
-			physics_object_get(best_object_index)->flags |= 0x20;
-			function_1c3770(best_object_index, 0);
-			result = true;
+			physics_object_get(local_0.field_8)->flags |= 0x20;
+			function_1c3770(local_0.field_8, 0);
+			local_0.field_3 = true;
 			goto local_0;
 		}
-		object = physics_object_get(best_object_index);
+		object = physics_object_get(local_0.field_8);
 		if (effect->effect_index != NONE)
 		{
 			function_1765e0(&((s_physics_object_detach_view *)object)->position, &((s_physics_object_detach_view *)object)->velocity,
 				g_4687b0, effect->effect_index, 0, true);
 		}
-		object = physics_object_get(best_object_index);
+		object = physics_object_get(local_0.field_8);
 		if (object->havok_component_index != NONE)
 		{
 			function_1d1260((s_havok_component *)havok_component_flags_get(object->havok_component_index));
 		}
 		object->bit6 = false;
-		unknown = TEST_FIELD_BIT(physics_object_get(best_object_index)->bit6);
+		unknown = TEST_FIELD_BIT(physics_object_get(local_0.field_8)->bit6);
 		if (unknown)
 		{
 			function_146bf0();
 		}
-		havok_object_detach(best_object_index);
+		havok_object_detach(local_0.field_8);
 		if (unknown)
 		{
 			function_278f00();
 			function_146bf0();
 		}
-		function_b8540(best_object_index);
-		result = true;
+		function_b8540(local_0.field_8);
+		local_0.field_3 = true;
 	}
 local_0:
-	return result;
+	return local_0.field_3;
 }
 
 

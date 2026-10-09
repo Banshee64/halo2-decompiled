@@ -98,6 +98,7 @@ long replication_table_create(s_handle_peers *peers, long index)
 // @retail 0x89470
 bool replication_table_create_chain(s_handle_peers *peers, long count, long *handles)
 {
+	bool result = true;
 	long indices[4];
 	long i;
 
@@ -105,7 +106,10 @@ bool replication_table_create_chain(s_handle_peers *peers, long count, long *han
 	{
 		indices[i] = replication_table_allocate(peers);
 		if (indices[i] == NONE)
-			return false;
+		{
+			result = false;
+			goto local_0;
+		}
 	}
 	for (i = count - 1; i >= 0; i--)
 	{
@@ -117,7 +121,8 @@ bool replication_table_create_chain(s_handle_peers *peers, long count, long *han
 			peer->flags |= 0x10;
 		peer->unknown04 = i + 1 < count ? handles[i + 1] : NONE;
 	}
-	return true;
+local_0:
+	return result;
 }
 
 // @retail 0x89660
