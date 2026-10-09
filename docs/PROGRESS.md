@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7186 functions match
+
+```
+matched 7186 of 11318 game functions (812356 of 2784283 bytes, 29.18%)
+```
+
+6 new matches, none lost:
+- Deep lane 1, exact-length tuning (lanes W, Z, AB and AD): 0x122c0, 0x123b0, 0xa0960, 0xa3a00, 0xa7ab0, 0xad940.
+
 ## 2026-10-08: 7180 functions match
 
 ```
