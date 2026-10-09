@@ -111,7 +111,7 @@ bool function_26f2d0(s_path_settings const *settings, point3f const *start, poin
             real hi = globals->settings->type_bounds[i].hi;
             real height = end->z - start->z;
             result = height >= lo && height <= hi;
-            if (result) return true;
+            if (result) break;
         }
     }
     return result;
@@ -131,7 +131,7 @@ bool function_26f360(s_path_settings const *settings, point3f const *start, poin
             real hi = globals->settings->mode_bounds[i].hi;
             real height = end->z - start->z;
             result = height >= lo && height <= hi;
-            if (result) return true;
+            if (result) break;
         }
     }
     return result;
