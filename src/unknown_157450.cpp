@@ -3271,7 +3271,8 @@ long function_15ee30(long player_index)
 				{
 					long elapsed = g_510c54->game_time - ((s_engine_round_clock *)g_4e9ae8)->start_time;
 					elapsed = elapsed < 0 ? 0 : elapsed;
-					if (elapsed < duration)
+					long const *elapsed_reference = &elapsed;
+					if (*elapsed_reference < duration)
 						result = 18;
 					else if (countdown != NONE && countdown != 0 && countdown < 5)
 						result = 17;
