@@ -528,6 +528,7 @@ real function_218d30(long definition_index);
 real function_30bf0(vector3f *vector);
 long function_1895f0(s_sound_position const *position, real scale, long tag_index);
 
+#pragma inline_depth(0)
 // @retail 0x1897c0
 bool function_1897c0(long local_player_index, long unit_index, long tag_index, s_location const *location, point3f const *origin, vector3f const *direction)
 {
@@ -557,7 +558,10 @@ bool function_1897c0(long local_player_index, long unit_index, long tag_index, s
 	length_squared = length_sq3f(direction);
 	if (length_squared != 0.0f)
 	{
-		real t = dot3f(direction, &to_camera) / length_squared;
+		real local_0 = direction->k * to_camera.k;
+		local_0 += direction->i * to_camera.i;
+		local_0 += direction->j * to_camera.j;
+		real t = local_0 / length_squared;
 
 		projection.i = direction->i * t;
 		projection.j = direction->j * t;
@@ -598,6 +602,7 @@ bool function_1897c0(long local_player_index, long unit_index, long tag_index, s
 	}
 	return false;
 }
+#pragma inline_depth(255)
 
 /* 0x189cd0: retained for the next matching pass. LTCG removes the unused
    fourth and fifth arguments (ret 0x14 instead of retail's ret 0x1c),
