@@ -64,7 +64,7 @@ void function_b58c0(long index, dword mask);
 bool function_15b7c0(long a, long b);
 bool function_15d770(long player_index);
 bool function_15db30(long player_index);
-void function_1967d0(long a, long b, long c, long delta);
+void function_1967d0(long a, long c, long b, long delta);
 
 extern s_game_time_globals *g_510c54;
 
@@ -274,7 +274,7 @@ void c_juggernaut_engine::v15(long player_index)
 		if (g_510c9c->players & (1 << absolute_index) &&
 			((s_juggernaut_player *)(g_4e8c24->data + absolute_index * sizeof(s_juggernaut_player)))->unit_index != NONE)
 		{
-			function_1967d0(absolute_index, 0x28, NONE, 1);
+			function_1967d0(absolute_index, NONE, 0x28, 1);
 		}
 	}
 }
@@ -389,14 +389,14 @@ void c_juggernaut_engine::v30(long killer, long victim, long, long)
 			if (killer != NONE)
 			{
 				juggernaut_set(killer, true);
-				function_1967d0(killer & 0xffff, 0x26, NONE, 1);
+				function_1967d0(killer & 0xffff, NONE, 0x26, 1);
 			}
 		}
 		else if (killer != NONE && g_510c9c->players & (1 << (killer & 0xffff)) &&
 			killer != victim && victim != NONE)
 		{
 			function_15b7c0(1, killer);
-			function_1967d0(killer & 0xffff, 0x27, NONE, 1);
+			function_1967d0(killer & 0xffff, NONE, 0x27, 1);
 		}
 		else if (g_4e6948->flags22c_bits.bit3 && killer != NONE && victim != NONE && killer != victim &&
 			!juggernaut_is(killer) && !juggernaut_is(victim))

@@ -364,8 +364,8 @@ public:
 // @retail 0x23b170
 void function_23b170(long player_index, s_spawn_influence_list *list)
 {
-	s_spawn_player_view *player = &((s_spawn_player_view *)g_4e8c24->data)[player_index & 0xffff];
 	s_spawn_scenario_23aea0 *scenario = (s_spawn_scenario_23aea0 *)g_4e0350;
+	s_spawn_player_view *player = &((s_spawn_player_view *)g_4e8c24->data)[player_index & 0xffff];
 	if (scenario->count > 0)
 	{
 		s_spawn_zone_block_23b170 *block = (s_spawn_zone_block_23b170 *)((byte *)scenario->settings +

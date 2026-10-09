@@ -16,7 +16,7 @@
 #include "unknown_07f720.h"
 #include "globals.h"
 
-#pragma intrinsic(memset, memcpy)
+#pragma intrinsic(memset, memcpy, memcmp)
 
 bool function_1999b3(void);
 long function_19a161(void);
@@ -1142,11 +1142,19 @@ long function_75890(long time);
 void function_251f8d(c_matchmaking_screen *screen)
 {
     long maximum = 0;
-    long player_count = 0;
-    long unused;
-    bool capacity = function_199dc9((long)&player_count, (long)&unused, (long)&maximum);
+    struct s_status_values
+    {
+        c_text_widget_45a5e0 *status;
+        long player_count;
+    } status_values;
+    status_values.player_count = 0;
+    bool capacity;
+    {
+        long unused;
+        capacity = function_199dc9((long)&status_values.player_count, (long)&unused, (long)&maximum);
+    }
     c_text_widget_45a5e0 *title = (c_text_widget_45a5e0 *)screen->find_child(6, 2, false);
-    c_text_widget_45a5e0 *status = (c_text_widget_45a5e0 *)screen->find_child(6, 5, false);
+    status_values.status = (c_text_widget_45a5e0 *)screen->find_child(6, 5, false);
     c_text_widget_45a5e0 *message = (c_text_widget_45a5e0 *)screen->find_child(6, 7, false);
     if (title)
         title->function_253b1a(screen->get_title());
@@ -1165,14 +1173,14 @@ void function_251f8d(c_matchmaking_screen *screen)
     }
     if (message && (long)function_217b70((word *)&screen->value1222) > 0)
         message->function_22f52e()->set_text((word *)&screen->value1222);
-    if (status)
+    if (status_values.status)
     {
         if (capacity)
         {
-            if (player_count >= maximum)
+            if (status_values.player_count >= maximum)
             {
-                status->function_253b1a(0x11000762);
-                status->value6e = true;
+                status_values.status->function_253b1a(0x11000762);
+                status_values.status->value6e = true;
             }
             else
             {
@@ -1181,13 +1189,13 @@ void function_251f8d(c_matchmaking_screen *screen)
                 buffer[0] = 0;
                 format[0] = 0;
                 ((c_widget *)screen)->function_230134(0xe000761, format);
-                function_1630e0(buffer, format, maximum - player_count);
-                status->function_22f52e()->set_text(buffer);
-                status->value6e = true;
+                function_1630e0(buffer, format, maximum - status_values.player_count);
+                status_values.status->function_22f52e()->set_text(buffer);
+                status_values.status->value6e = true;
             }
         }
         else
-            status->value6e = false;
+            status_values.status->value6e = false;
     }
 }
 
@@ -2708,19 +2716,26 @@ void c_network_squad_browser_screen::v3()
 	{
 		s_widget_item items[16];
 
-		for (i = 0; i < squad->player_count; i++)
 		{
-			items[i].flags |= 1;
-			items[i].value4 = (long)squad->player_names[i];
-			if (has_game)
+			i = 0;
+			if (i < squad->player_count)
 			{
-				items[i].flags |= 2;
-				memcpy(items[i].value48, squad->player_appearances[i], sizeof(items[i].value48));
-				if (squad->has_teams)
+				do
 				{
-					items[i].flags |= 4;
-					items[i].value5c = squad->player_teams[i];
-				}
+					items[i].flags |= 1;
+					items[i].value4 = (long)squad->player_names[i];
+					if (has_game)
+					{
+						items[i].flags |= 2;
+						memcpy(items[i].value48, squad->player_appearances[i], sizeof(items[i].value48));
+						if (squad->has_teams)
+						{
+							items[i].flags |= 4;
+							items[i].value5c = squad->player_teams[i];
+						}
+					}
+					i++;
+				} while (i < squad->player_count);
 			}
 		}
 		function_22f042(items, this, squad->player_count);

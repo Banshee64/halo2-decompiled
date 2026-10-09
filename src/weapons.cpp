@@ -1164,7 +1164,7 @@ real weapon_barrel_estimate_time_to_target(long weapon_index, short barrel_index
 }
 
 long function_166244(long key);
-void function_ee680(long user_index, long state, bool secondary, long weapon_index);
+void function_ee680(long user_index, long state, long secondary, long weapon_index);
 
 static inline long user_get_unit_index(long user_index)
 {
@@ -1181,7 +1181,7 @@ void function_105fa0(long weapon_index, long state)
 {
 	long user_index = function_166244(weapon_index);
 	long unit_index = user_index != NONE ? user_get_unit_index(user_index) : NONE;
-	bool secondary = false;
+	long secondary = 0;
 
 	if (unit_index != NONE)
 	{
@@ -1315,11 +1315,11 @@ void function_101db0(long weapon_index, real heat)
 
 	if (TEST_FIELD_BIT(weapon->in_inventory) && weapon->unit_index != NONE)
 	{
-		long player_index = WEAPON_UNIT_GET(weapon->unit_index)->player_index;
+		long player_index = ((s_weapon_unit_header *)((volatile s_record_pool *)g_4e0300)->data)[weapon->unit_index & 0xffff].unit->player_index;
 		if (player_index != NONE)
 			overheat_disabled = function_159dd0(player_index);
 	}
-	if (TEST_FIELD_BIT(weapon->item_flag3) && weapon->heat < 1.0f && !overheat_disabled)
+	if (TEST_FIELD_BIT((*(volatile byte *)&weapon->item_flags >> 3) & 1) && weapon->heat < 1.0f && !overheat_disabled)
 	{
 		weapon->heat = heat + weapon->heat;
 		if (weapon->heat >= 1.0f)
@@ -1639,7 +1639,7 @@ long function_101e80(long object_index);
 
 /* starts reloading a magazine of a weapon, if it can */
 // @retail 0x102a80
-bool function_102a80(long weapon_index, short magazine_index)
+bool function_102a80(volatile long weapon_index, short magazine_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
@@ -1693,6 +1693,7 @@ static inline s_weapon_barrel *weapon_barrel_get(long weapon_index, short barrel
 // @retail 0x101490
 bool function_101490(long weapon_index, long magazine_index)
 {
+	long const volatile *weapon_index_reference = &weapon_index;
 	s_weapon_definition *definition = WEAPON_DEFINITION(WEAPON_GET(weapon_index));
 	bool result = false;
 
@@ -1701,24 +1702,26 @@ bool function_101490(long weapon_index, long magazine_index)
 	{
 		long i;
 
+		result = true;
 		function_b7360(weapon_index);
 		for (i = 0; i < definition->trigger_count; i++)
 		{
-			s_weapon_trigger *trigger = &WEAPON_GET(weapon_index)->triggers[(short)i];
-
-			trigger->state = 0;
-			trigger->timer = 0;
+			s_weapon *weapon = WEAPON_GET(weapon_index);
+			weapon->triggers[(short)i].state = 0;
+			weapon->triggers[(short)i].timer = 0;
 		}
 		for (i = 0; i < definition->barrel_count; i++)
 		{
-			s_weapon_barrel *barrel = weapon_barrel_get(weapon_index, (short)i);
-
-			if (barrel && barrel->state != 1)
-				barrel->flag6 = false;
+			short barrel_index = (short)i;
+			if (barrel_index >= 0 && barrel_index < 2)
+			{
+				s_weapon_barrel *barrel = &WEAPON_GET(weapon_index)->barrels[barrel_index];
+				if (barrel->state != 1)
+					barrel->flag6 = false;
+			}
 			if (definition->reload_style != 1)
-				function_103dd0(weapon_index, (short)i);
+				function_103dd0(*weapon_index_reference, (short)i);
 		}
-		result = true;
 	}
 	return result;
 }
@@ -1905,8 +1908,8 @@ void function_a7cd0(long weapon_index);
 void function_102b90(long weapon_index, short magazine_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
-	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
 	s_weapon_magazine_definition *magazine_definition = &WEAPON_DEFINITION(weapon)->magazines[magazine_index];
+	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
 
 	if (magazine_definition->flags & 1)
 		magazine->rounds_loaded = 0;
@@ -1914,7 +1917,7 @@ void function_102b90(long weapon_index, short magazine_index)
 	long available = function_1008f0(magazine_index, weapon_index, false);
 	long reloaded = magazine_definition->rounds_reloaded > available ? available : magazine_definition->rounds_reloaded;
 	word loaded = magazine->rounds_loaded;
-	short rounds = (short)(loaded + reloaded);
+	long rounds = (short)(loaded + reloaded);
 
 	if (rounds > magazine_definition->rounds_loaded_maximum)
 		rounds = magazine_definition->rounds_loaded_maximum;
@@ -1982,9 +1985,9 @@ void function_102d60(long weapon_index, short trigger_index)
 		fld duration
 		fistp ticks
 	}
-	s_weapon_trigger *trigger = &WEAPON_GET(weapon_index)->triggers[trigger_index];
-	trigger->state = 2;
-	trigger->timer = (short)ticks;
+	s_weapon *trigger_base = (s_weapon *)((byte *)WEAPON_GET(weapon_index) + trigger_index * sizeof(s_weapon_trigger));
+	trigger_base->triggers[0].state = 2;
+	trigger_base->triggers[0].timer = (short)ticks;
 	function_1058b0(weapon_index, trigger_index + 7, true);
 	function_105fa0(weapon_index, 13);
 }
@@ -3756,8 +3759,8 @@ void __stdcall function_104150(long weapon_index, short barrel_index)
             vector3f up;
             real ax = (real)fabs(shot_direction->i), ay = (real)fabs(shot_direction->j), az = (real)fabs(shot_direction->k);
             if (ax <= ay && ax <= az) { up.i = 0.0f; up.j = shot_direction->k; up.k = -shot_direction->j; }
-            else if (ay <= az) { up.i = -shot_direction->k; up.j = 0.0f; up.k = shot_direction->i; }
-            else { up.i = shot_direction->j; up.j = -shot_direction->i; up.k = 0.0f; }
+            else if (!(ay <= az)) { up.i = shot_direction->j; up.j = -shot_direction->i; up.k = 0.0f; }
+            else { up.i = -shot_direction->k; up.j = 0.0f; up.k = shot_direction->i; }
             function_30bf0(&up);
             *(vector3f *)(creation + 0x34) = up;
             function_1055b0(shot_direction, &up, i, WEAPON_SHORT_AT(barrel_definition, 0x68),
