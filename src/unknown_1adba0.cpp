@@ -333,6 +333,7 @@ short __stdcall function_1ae360(long actor_index, s_slot *slot)
 // @retail 0x1ae3b0
 short __stdcall function_1ae3b0(long actor_index, s_slot *slot)
 {
+	short result;
 	s_actor_view *actor = actor_get(actor_index);
 	s_ai_actor_view_344 *view = ACTOR_VIEW_344(actor);
 	s_actor_entry_4be0 *entry = (s_actor_entry_4be0 *)function_1e4be0(actor_index);
@@ -347,13 +348,18 @@ short __stdcall function_1ae3b0(long actor_index, s_slot *slot)
 			flag = false;
 		view->unknown449 = flag;
 		view->unknown44a = flag;
-		if (flag && !(*(byte *)function_1e4a50(actor->unknown054) & 1))
+		if (flag)
 		{
-			view->unknown480 = true;
-			return g_46fbe4;
+			long local_0 = function_1e4a50(actor->unknown054);
+			result = g_46fbe4;
+			if (!(*(byte *)local_0 & 1))
+				view->unknown480 = true;
+			goto local_1;
 		}
 	}
-	return g_46fbe4;
+	result = g_46fbe4;
+local_1:
+	return result;
 }
 
 /* ---- the handlers ---- */
@@ -465,6 +471,12 @@ short __stdcall function_1ae680(long arg_0, s_slot *arg_1)
 	return g_46fbe4;
 }
 
+s_slot_handler_0 g_47ddf8 =
+{
+	0x13, 0, 0, -2, 0, function_1ae680
+};
+
+
 struct s_1ae440
 {
 	byte field_0[0x1c];
@@ -518,6 +530,12 @@ short __stdcall function_1ae440(long arg_0, s_slot *arg_1)
 	}
 	return g_46fbe4;
 }
+
+s_slot_handler_0 g_47dde4 =
+{
+	0x14, 0, 0, -2, 0, function_1ae440
+};
+
 
 
 struct s_1adff0

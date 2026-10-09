@@ -332,7 +332,7 @@ short function_1a6ea0(s_action_node **out, s_candidate_list *list, s_action_node
 	if (list)
 		count = list->count;
 
-	for (;;)
+	do
 	{
 		s_candidate_entry *entry = 0;
 
@@ -346,14 +346,14 @@ short function_1a6ea0(s_action_node **out, s_candidate_list *list, s_action_node
 			case 1:
 				entry = 0;
 				break;
+			case 3:
+				if (current != entry->key)
+					entry = 0;
+				break;
 			case 2:
 				if (nodes[j].key == entry->key)
 					j++;
 				else
-					entry = 0;
-				break;
-			case 3:
-				if (current != entry->key)
 					entry = 0;
 				break;
 			case 4:
@@ -374,15 +374,15 @@ short function_1a6ea0(s_action_node **out, s_candidate_list *list, s_action_node
 		else
 		{
 			if (j >= node_count)
-				return out_count;
+				break;
 			out[out_count] = &nodes[j];
 			current = nodes[j].key;
 			j++;
 		}
 		out_count++;
-		if (out_count >= 0x32)
-			return out_count;
 	}
+	while (out_count < 0x32);
+	return out_count;
 }
 
 // @retail 0x1a6f70
@@ -954,7 +954,8 @@ short __stdcall function_1a79e0(long actor_index, short level, bool active)
 {
 	short count = 0;
 	s_slot *slot = actor_slot_get(actor_index, level);
-	short result = function_1a7030(actor_index, level, *(long *)&active, &level);
+	short local_0;
+	short result = function_1a7030(actor_index, level, *(long *)&active, &local_0);
 
 	if (result == g_46fbec)
 		return g_46fbe4;
@@ -963,7 +964,7 @@ short __stdcall function_1a79e0(long actor_index, short level, bool active)
 	short score;
 	short index;
 	s_action_node **nodes = function_1a73c0(actor_index, slot->type, &valid, &count);
-	short choice = function_1a75f0(actor_index, nodes, 0, level == NONE ? count : slot->unknown4, slot, active, level, valid, false, &score, &index);
+	short choice = function_1a75f0(actor_index, nodes, 0, local_0 == NONE ? count : slot->unknown4, slot, *(long *)&active, local_0, valid, false, &score, &index);
 
 	if ((result == g_46fbe4 && score > 0) || score > 1)
 	{
@@ -1011,6 +1012,15 @@ bool function_e4050(long object_index);
 bool function_109e00(long object_index, vector3f *velocity, bool definition_flag_required);
 void havok_component_rigid_body_point_velocity_get(long rigid_body_index, s_havok_component *component, point3f const *point, vector3f *velocity);
 
+#pragma optimize("g", off)
+PRIVATE __forceinline void function_1a68a2(vector3f const *arg_0, real arg_1, vector3f *arg_2)
+{
+    arg_2->i = arg_0->i * arg_1;
+    arg_2->j = arg_0->j * arg_1;
+    arg_2->k = arg_0->k * arg_1;
+}
+#pragma optimize("", on)
+
 // @retail 0x1a68a0
 void function_1a68a0(long object_index, vector3f *velocity)
 {
@@ -1021,10 +1031,10 @@ void function_1a68a0(long object_index, vector3f *velocity)
 		if (unit->parent_index == NONE && !(unit->flags_c1 & 1) && unit->movement_type == 1 && !function_e4050(object_index))
 		{
 			/* The queried support velocity uses a separate scratch vector in retail. */
-			vector3f reference = *g_4687a4;
-			point3f position;
-			vector3f support_velocity;
-			if (!function_109e00(object_index, &support_velocity, false) && unit->support_index != NONE)
+			struct s_1a68a1 { vector3f field_0; point3f field_c; vector3f field_18; };
+			s_1a68a1 local_3;
+			local_3.field_0 = *g_4687a4;
+			if (!function_109e00(object_index, &local_3.field_18, false) && unit->support_index != NONE)
 			{
 				s_surface_support_view *support = (s_surface_support_view *)function_badc0(unit->support_index, NONE);
 				if (support && support->component_index != NONE)
@@ -1034,21 +1044,19 @@ void function_1a68a0(long object_index, vector3f *velocity)
 					long clamped = body_index < 0 ? 0 : body_index > component->body_count - 1 ? component->body_count - 1 : body_index;
 					if (clamped == body_index)
 					{
-						function_b9dd0(object_index, &position);
-						havok_component_rigid_body_point_velocity_get(unit->body_index, (s_havok_component *)component, &position, &support_velocity);
+						function_b9dd0(object_index, &local_3.field_c);
+						havok_component_rigid_body_point_velocity_get(unit->body_index, (s_havok_component *)component, &local_3.field_c, &local_3.field_18);
 					}
 				}
 			}
 			function_ba1d0(object_index, velocity, NULL);
 			vector3f relative;
-			relative.i = velocity->i - reference.i;
-			relative.j = velocity->j - reference.j;
-			relative.k = velocity->k - reference.k;
+			relative.i = velocity->i - local_3.field_0.i;
+			relative.j = velocity->j - local_3.field_0.j;
+			relative.k = velocity->k - local_3.field_0.k;
 			real projection = unit->normal.i * relative.i + unit->normal.k * relative.k + unit->normal.j * relative.j;
 			vector3f projected;
-			projected.i = unit->normal.i * projection;
-			projected.j = unit->normal.j * projection;
-			projected.k = unit->normal.k * projection;
+			function_1a68a2(&unit->normal, projection, &projected);
 			velocity->i -= projected.i;
 			velocity->j -= projected.j;
 			velocity->k -= projected.k;

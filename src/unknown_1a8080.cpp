@@ -89,9 +89,10 @@ bool function_1a80e0(long index, short type, s_slot *data, short slot)
 // @retail 0x1a8220
 bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e)
 {
-	s_slot_owner_entry *entry = OWNER_ENTRY(index);
 	short best = -1;
-	short threshold = a;
+	bool result = false;
+	s_slot_owner_entry *entry = OWNER_ENTRY(index);
+	short threshold = (short)unknown;
 	short i = 0;
 
 	do
@@ -111,16 +112,18 @@ bool function_1a8220(long index, short a, short b, long unknown, short c, short 
 	}
 	while (i < 3);
 
-	if (best == -1)
-		return false;
-	s_slot_entry *p = &entry->entries[best];
-	p->type = a;
-	p->field8 = b;
-	p->field4 = c;
-	p->priority = a;
-	p->field6 = d;
-	p->field2 = e;
-	return true;
+	if (best != -1)
+	{
+		s_slot_entry *p = &entry->entries[best];
+		p->type = a;
+		p->field8 = b;
+		p->field4 = c;
+		p->priority = (short)unknown;
+		p->field6 = d;
+		p->field2 = e;
+		result = true;
+	}
+	return result;
 }
 
 // @retail 0x1a82d0
