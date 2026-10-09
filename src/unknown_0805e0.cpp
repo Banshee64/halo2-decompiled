@@ -604,8 +604,9 @@ void function_80490(const s_cached_player_identity *identity, const s_cached_pla
 		g_51055c = true;
 }
 
+#pragma inline_depth(0)
 // @retail 0x80330
-long function_80330(const s_cached_player_identity *identity, long position)
+long __stdcall function_80330(const s_cached_player_identity *identity, long position)
 {
 	s_cached_player_source source;
 	function_1537f0((s_profile_record *)&source);
@@ -620,6 +621,7 @@ long function_80330(const s_cached_player_identity *identity, long position)
 		g_4cf98c[index].flags |= 10;
 	return index;
 }
+#pragma inline_depth(8)
 
 // @retail 0x7fe90
 long function_7fe90(const s_cached_player_identity *identity, long position, const s_cached_player_source *source)
@@ -716,6 +718,12 @@ void __fastcall function_805d0(s_network_session_player *player)
   (const s_cached_player_source *)((const byte *)player + 0xa8), false, true);
 }
 
+#pragma inline_depth(0)
+static __forceinline void function_80441(long arg_0)
+{
+ function_7fdf0(arg_0);
+}
+#pragma inline_depth(8)
 // @retail 0x80440
 void function_80440(const s_cached_player_identity *identity, s_recent_player *player)
 {
@@ -724,7 +732,7 @@ void function_80440(const s_cached_player_identity *identity, s_recent_player *p
  if (index == NONE)
   index = function_80330(identity, position);
  memcpy(player, &g_4cf98c[index].player, sizeof(*player));
- function_7fdf0(index);
+ function_80441(index);
 }
 
 bool g_510554;

@@ -99,15 +99,16 @@ struct s_team_value_row
 PRIVATE __forceinline bool update_team_value_row(s_team_value_row *destination, const short *source)
 {
 	bool same = true;
+    short *values = destination->values;
 	if (destination->first != source[0]) { destination->first = source[0]; same = false; }
-	if (destination->values[0] != source[1]) { destination->values[0] = source[1]; same = false; }
-	if (destination->values[1] != source[2]) { destination->values[1] = source[2]; same = false; }
-	if (destination->values[2] != source[3]) { destination->values[2] = source[3]; same = false; }
-	if (destination->values[3] != source[4]) { destination->values[3] = source[4]; same = false; }
-	if (destination->values[4] != source[5]) { destination->values[4] = source[5]; same = false; }
-	if (destination->values[5] != source[6]) { destination->values[5] = source[6]; same = false; }
-	if (destination->values[6] != source[7]) { destination->values[6] = source[7]; same = false; }
-	if (destination->values[7] != source[8]) { destination->values[7] = source[8]; same = false; }
+	if (values[0] != source[1]) { values[0] = source[1]; same = false; }
+	if (values[1] != source[2]) { values[1] = source[2]; same = false; }
+	if (values[2] != source[3]) { values[2] = source[3]; same = false; }
+	if (values[3] != source[4]) { values[3] = source[4]; same = false; }
+	if (values[4] != source[5]) { values[4] = source[5]; same = false; }
+	if (values[5] != source[6]) { values[5] = source[6]; same = false; }
+	if (values[6] != source[7]) { values[6] = source[7]; same = false; }
+	if (values[7] != source[8]) { values[7] = source[8]; same = false; }
 	return same;
 }
 

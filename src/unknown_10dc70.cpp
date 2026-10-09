@@ -207,7 +207,7 @@ real function_10e8e0(real t);
 #define VIBRATION_VERSION 0x96c
 
 // @retail 0x10de40
-void function_10de40(s_vibration_curve_set *set, s_vibration_output *output, real time, real blend, bool skip_special)
+void function_10de40(s_vibration_curve_set *set, s_vibration_output *output, real volatile time, real blend, bool skip_special)
 {
 	output->time = time;
 	if (set->size > 0x10)

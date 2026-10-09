@@ -90,6 +90,12 @@ void function_81f80(void)
 struct s_081550_fields;
 void function_081550(s_081550_fields *fields);
 
+#pragma inline_depth(0)
+static __forceinline void function_821c1(s_081550_fields *arg_0)
+{
+ function_081550(arg_0);
+}
+#pragma inline_depth(8)
 // @retail 0x821c0
 long function_821c0(void **arg_f0f1ad, c_replication_view_storage **out_storage)
 {
@@ -101,12 +107,14 @@ long function_821c0(void **arg_f0f1ad, c_replication_view_storage **out_storage)
 	{
 		view = views->data + (index & 0xffff) * 0xb4;
 		if (view)
-			function_081550((s_081550_fields *)view);
+			function_821c1((s_081550_fields *)view);
 		if (g_4d87e4)
 		{
 			s_record_pool *data = (s_record_pool *)g_4d87f0;
 			long storage_index = datum_new_at_index_with_salt(data, index);
-			storage = new (data->data + (storage_index & 0xffff) * 0xad30) c_replication_view_storage;
+			storage = (c_replication_view_storage *)(data->data + (storage_index & 0xffff) * 0xad30);
+			if (storage)
+				new (storage) c_replication_view_storage;
 		}
 	}
 	*arg_f0f1ad = view;

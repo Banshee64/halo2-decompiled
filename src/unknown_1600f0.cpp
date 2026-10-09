@@ -360,6 +360,7 @@ byte *record_pool_lookup(s_record_pool *data, long datum_index);
 // @retail 0x162c50
 bool function_162c50(long player_index, long *spectated_player_index)
 {
+	bool result = false;
 	s_game_engine_respawn_player *player = game_engine_player_get(player_index);
 
 	if (player->unit_index == NONE)
@@ -382,15 +383,16 @@ bool function_162c50(long player_index, long *spectated_player_index)
 				if (g_510c54->game_time - player->respawn_time < ticks)
 				{
 					*spectated_player_index = other_index;
-					return true;
+					result = true;
 				}
-				return false;
+				goto done;
 			}
 		}
 	}
 	player->flags &= ~0x1000;
 	player->respawn_time = 0;
-	return false;
+	done:
+	return result;
 }
 
 /* an iterator over the players (0x19f240 skips the inactive ones) */
@@ -703,7 +705,8 @@ void function_161f30(long player_index)
 // @retail 0x1628f0
 void function_1628f0(long player_index, char state)
 {
-	s_game_engine_player_info *info = (s_game_engine_player_info *)&g_4e9ae8->players[player_index & 0xffff];
+	long index = player_index & 0xffff;
+	s_game_engine_player_info *info = (s_game_engine_player_info *)&g_4e9ae8->players[index];
 
 	if (g_4e6948->mode != 4)
 	{
@@ -765,7 +768,7 @@ void function_1628f0(long player_index, char state)
 		}
 		if (previous != info->state && game_engine_get())
 		{
-			long slot = g_4e9ae8->slots[(short)player_index];
+			long slot = g_4e9ae8->slots[(short)index];
 
 			if (slot != NONE)
 			{

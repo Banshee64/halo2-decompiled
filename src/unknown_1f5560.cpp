@@ -61,9 +61,9 @@ bool function_1f5110(long actor_index, point2f const *direction, real distance,
         if (vertical_distance > 0.0f)
         {
             point3f origin;
-            origin.x = 0.5f * (actor->position.x + *(real *)((byte *)actor + 0x22c));
-            origin.y = 0.5f * (actor->position.y + *(real *)((byte *)actor + 0x230));
-            origin.z = 0.5f * (actor->position.z + *(real *)((byte *)actor + 0x234));
+            origin.x = 0.5f * (actor->position.x + *(real volatile *)((byte *)actor + 0x22c));
+            origin.y = 0.5f * (actor->position.y + *(real volatile *)((byte *)actor + 0x230));
+            origin.z = 0.5f * (actor->position.z + *(real volatile *)((byte *)actor + 0x234));
             horizontal.i = direction->x * distance;
             horizontal.j = direction->y * distance;
             horizontal.k = 0.0f;
@@ -75,7 +75,7 @@ bool function_1f5110(long actor_index, point2f const *direction, real distance,
                 vertical = true;
                 if (vertical_distance < FLT_MAX)
                 {
-                    point3f end = { horizontal.i + origin.x, horizontal.j + origin.y, horizontal.k + origin.z };
+                    point3f end = { *(real volatile *)&horizontal.i + origin.x, *(real volatile *)&horizontal.j + origin.y, horizontal.k + origin.z };
                     vector3f down = { g_4687bc->i * vertical_distance, g_4687bc->j * vertical_distance, g_4687bc->k * vertical_distance };
                     if (!function_1de630(0x1808c2d, bsp, &hit, FLT_MAX, 0, NULL, &end, &down))
                         result = false;
@@ -1164,7 +1164,9 @@ real function_1f99d0(long actor_index, long object_index, short type, point2f co
     point2f direction = { target->x - origin->x, target->y - origin->y };
     movement_normalize2d(&direction);
     point2f side = { 0.0f - direction.y, direction.x };
-    bool left = facing->y * side.y + facing->x * side.x > 0.0f;
+    volatile bool left = true;
+    if (!(facing->y * side.y + facing->x * side.x > 0.0f))
+        left = false;
     point2f center;
     if (type == 0)
     {
