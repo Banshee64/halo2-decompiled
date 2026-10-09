@@ -221,17 +221,18 @@ void __stdcall function_2b07e2(c_class_2b01eb *widget, long frame)
     dword green = (long)(globals ? *(real *)((byte *)globals + 0x58) * 255.0f : 255.0f);
     dword blue = (long)(globals ? *(real *)((byte *)globals + 0x5c) * 255.0f : 255.0f);
     dword color = (((alpha << 8) | red) << 8 | green) << 8 | blue;
-    short x, y;
+    short y, x;
     function_2363d4((short_rectangle2d const *)frame, &x, &y);
-    bool show_label = g_54d59f && widget->has_screen() && widget->v11() != 6;
+    bool volatile show_label = g_54d59f && widget->has_screen() && widget->v11() != 6;
     s_float_rect rectangle;
-    function_22ea81(widget, &rectangle, (short_rectangle2d const *)frame);
-    s_widget_bounds bounds;
-    bounds.top = (short)rectangle.y0 + y;
-    bounds.left = (short)rectangle.x0 + x;
-    bounds.bottom = (short)rectangle.y1 + y;
-    bounds.right = (short)rectangle.x1 + x;
-    function_147cbc((s_13c051 const *)&bounds, color);
+ s_float_rect *volatile rectangle_reference = &rectangle;
+    function_22ea81(widget, rectangle_reference, (short_rectangle2d const *)frame);
+    struct { s_widget_bounds bounds; s_widget_bounds outline; } draw;
+    draw.bounds.top = (short)rectangle.y0 + y;
+    draw.bounds.left = (short)rectangle.x0 + x;
+    draw.bounds.bottom = (short)rectangle.y1 + y;
+    draw.bounds.right = (short)rectangle.x1 + x;
+    function_147cbc((s_13c051 const *)&draw.bounds, color);
     if (show_label)
     {
         c_user_interface_text_buffer_32 text;
@@ -239,16 +240,16 @@ void __stdcall function_2b07e2(c_class_2b01eb *widget, long frame)
         word label[16];
         unicode_string_snprintf(label, 16, (word const *)L"%d", widget->value0a);
         text.setup(label, 0, g_46873c, 0, NONE, 0, NONE);
-        s_widget_bounds outline = widget->bounds;
-        if (outline.right - outline.left > 0 && outline.bottom - outline.top > 0)
+        draw.outline = widget->bounds;
+        if (draw.outline.right - draw.outline.left > 0 && draw.outline.bottom - draw.outline.top > 0)
         {
-            outline.left += x;
-            outline.right += x;
-            outline.top += y;
-            outline.bottom += y;
-            function_22cd48(&text, (short_rectangle2d const *)&outline, (short_rectangle2d const *)&outline,
+            draw.outline.left += x;
+            draw.outline.right += x;
+            draw.outline.top += y;
+            draw.outline.bottom += y;
+            function_22cd48(&text, (short_rectangle2d const *)&draw.outline, (short_rectangle2d const *)&draw.outline,
                 depth, widget->animation.scale, (short_rectangle2d const *)frame);
-            function_235d69((short_rectangle2d const *)&outline, depth, (short_rectangle2d const *)frame, g_4686f8);
+            function_235d69((short_rectangle2d const *)&draw.outline, depth, (short_rectangle2d const *)frame, g_4686f8);
         }
     }
 }
@@ -619,10 +620,16 @@ c_class_1473c9 *__stdcall function_231db5(s_screen_parameters *parameters);
 
 /* ---- screens ---- */
 
+__forceinline c_level_select_screen::c_level_select_screen(long a, long b, word user_flags) :
+ c_screen_with_menu(0xb, a, b, user_flags, &list),
+ list(user_flags, false)
+{
+}
+
 // @retail 0x2b130a
 c_class_1473c9 *__stdcall function_2b130a(s_screen_parameters *parameters)
 {
-	c_level_select_screen *screen = new c_level_select_screen(parameters->a, parameters->b, parameters->user_flags, false);
+	c_level_select_screen *screen = new c_level_select_screen(parameters->a, parameters->b, parameters->user_flags);
 
 	if (screen)
 	{
@@ -851,7 +858,7 @@ void c_campaign_options_list::v3()
 // @retail 0x2b186e
 bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real *fraction, long *error)
 {
-	bool done = list->read.done;
+	bool done = *(byte *)&list->read.done != 0;
 
 	*fraction = list->read.progress;
 	if (list->read.done)
@@ -4607,6 +4614,7 @@ void c_friends_options_list::handle_item(s_controller_reference **controller, lo
 		s_screen_parameters parameters;
 		s_list_item_iterator iterator;
 		long count;
+  long entry_offset;
 
 		switch (datum->item)
 		{
@@ -4630,6 +4638,7 @@ void c_friends_options_list::handle_item(s_controller_reference **controller, lo
 				iterator.iterator.index = NONE;
 				iterator.iterator.datum_index = NONE;
 				count = 0;
+    entry_offset = 0;
 				while (count < entry_count)
 				{
 					s_online_member *member;
@@ -4641,7 +4650,9 @@ void c_friends_options_list::handle_item(s_controller_reference **controller, lo
 					member = (s_online_member *)iterator.item;
 					if (member->recipient.xuid && !function_19acc6((_XUID const *)&member->recipient.xuid) && !(member->flags & 0x30) && (member->flags & 1))
 					{
-						((s_message_recipient *)entries)[count++] = member->recipient;
+						*(s_message_recipient *)((byte *)entries + entry_offset) = member->recipient;
+      ++count;
+      entry_offset += sizeof(s_message_recipient);
 					}
 				}
 				if (count > 0)
@@ -4670,6 +4681,7 @@ void c_friends_options_list::handle_item(s_controller_reference **controller, lo
 				iterator.iterator.index = NONE;
 				iterator.iterator.datum_index = NONE;
 				count = 0;
+    entry_offset = 0;
 				iterator.iterator.data = source;
 				while (count < entry_count)
 				{
@@ -4682,7 +4694,9 @@ void c_friends_options_list::handle_item(s_controller_reference **controller, lo
 					member = (s_online_member *)iterator.item;
 					if (member->recipient.xuid && !(member->flags & 0x30))
 					{
-						((s_message_recipient *)entries)[count++] = member->recipient;
+						*(s_message_recipient *)((byte *)entries + entry_offset) = member->recipient;
+      ++count;
+      entry_offset += sizeof(s_message_recipient);
 					}
 				}
 				if (count > 0)
@@ -5848,4 +5862,54 @@ void c_widget_45adf0::v4(long frame)
         function_22a664(&quad, &coordinates, definition->tag_index,
             *(short *)((byte *)definition + 0xa), *(long *)((byte *)definition + 0x18));
     }
+}
+
+
+extern dword g_54d5b8;
+
+// @retail 0x2b0328
+void c_class_2b01eb::v3()
+{
+ dword now = g_54d5b8;
+ c_class_1a2c81::v3();
+ if (definition)
+ {
+  s_bitmap_block *block = definition;
+  real rate = *(real *)((byte *)block + 0x24);
+  real period = 0.0f;
+  if (rate >= 0.001f) period = 1000.0f / *(real *)((byte *)block + 0x24);
+  dword frame_duration = (long)period;
+  dword elapsed = now - start_time;
+  real seconds = (dword)value78 > 0 ? (real)(dword)(now - value78) * 0.001f : 0.0f;
+  if ((byte)function_2b0a68((s_widget_view_2b0a *)this))
+  {
+   real progress = value84 < 0.0f ? 0.0f : value84 > 1.0f ? 1.0f : value84;
+   real width = (real)(*(short *)((byte *)block + 0x28) - block->x) * progress;
+   long rounded_width;
+   __asm {
+    fld width
+    fistp rounded_width
+   }
+   bounds.right = bounds.left + (short)rounded_width;
+  }
+  else if (block->tag_index != NONE)
+  {
+   if (frame_duration > 0)
+   {
+    s_bitmap_tag_2b0a *tag = (s_bitmap_tag_2b0a *)g_4e3b44[block->tag_index & 0xffff].bytes;
+    sequence = (elapsed / frame_duration) % tag->count;
+   }
+   s_type_7ba8e9 *data = function_2b0b19((s_widget_view_2b0a *)this);
+   bounds.right = bounds.left + data->width;
+   bounds.bottom = bounds.top - data->height;
+   function_12360((s_bitmap_view *)data, 0.0f);
+  }
+  value7c += *(real *)((byte *)definition + 0x10) * seconds;
+  value80 += *(real *)((byte *)definition + 0x14) * seconds;
+  if (value7c > 1.0f) { real value = value7c; do { real next = value - 1.0f; value = next; } while (value > 1.0f); value7c = value; }
+  if (value80 > 1.0f) { real value = value80; do { real next = value - 1.0f; value = next; } while (value > 1.0f); value80 = value; }
+  if (value7c < 0.0f) { real value = value7c; do { value += 1.0f; } while (value < 0.0f); value7c = value; }
+  if (value80 < 0.0f) { real value = value80; do { value += 1.0f; } while (value < 0.0f); value80 = value; }
+ }
+ value78 = now;
 }

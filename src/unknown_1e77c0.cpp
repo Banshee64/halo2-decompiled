@@ -80,22 +80,7 @@ struct s_request_screen_bounds
 	short top, left, bottom, right;
 };
 
-// @retail 0x1e90b0
-void function_1e90b0(long first, const s_request_screen_bounds *bounds, point2f *points)
-{
-	__m128 left = _mm_cvtsi32_ss(_mm_setzero_ps(), bounds->left);
-	__m128 right = _mm_cvtsi32_ss(_mm_setzero_ps(), bounds->right);
-	__m128 top = _mm_cvtsi32_ss(_mm_setzero_ps(), bounds->top);
-	__m128 bottom = _mm_cvtsi32_ss(_mm_setzero_ps(), bounds->bottom);
-	_mm_store_ss(&points[first % 4].x, left);
-	_mm_store_ss(&points[first % 4].y, top);
-	_mm_store_ss(&points[(first + 1) % 4].x, right);
-	_mm_store_ss(&points[(first + 1) % 4].y, top);
-	_mm_store_ss(&points[(first + 2) % 4].x, right);
-	_mm_store_ss(&points[(first + 2) % 4].y, bottom);
-	_mm_store_ss(&points[(first + 3) % 4].x, left);
-	_mm_store_ss(&points[(first + 3) % 4].y, bottom);
-}
+
 
 PRIVATE inline long next_request_player(long current)
 {
@@ -936,26 +921,32 @@ void function_1e6bd0(long player_index)
   for (long i = 0; i < 32; ++i)
   {
    s_request_transition *transition = &state->transitions[i];
-   if ((word)transition->state == 0)
+   switch ((word)transition->state)
+   {
+   case 0:
    {
     if (selected == NONE || selected > i || i == 31)
      if (function_1e7ab0(local_index, i)) selected = i;
+    break;
    }
-   else if ((word)transition->state == 4)
+   case 4:
    {
     if (--transition->ticks <= 0) { transition->ticks = 0; transition->state = 0; }
+    break;
+   }
    }
   }
   if (selected != NONE)
   {
    s_entry_420 *entry = entry_420_get(selected);
    s_request_transition *transition = &state->transitions[selected];
-   if (selected != *current)
+   long old_current = *current;
+   if (selected != old_current)
    {
-    if (*current != NONE)
+    if (old_current != NONE)
     {
-     state->transitions[*current].ticks = 0;
-     state->transitions[*current].state = 0;
+     state->transitions[old_current].ticks = 0;
+     state->transitions[old_current].state = 0;
     }
     *current = selected;
     *elapsed = 0;
@@ -1068,8 +1059,8 @@ struct s_request_profile_slot
 void __stdcall function_1e75d0(dword flush)
 {
 	(void)&flush;
-	s_request_settings settings;
-	for (long index = next_request_player(NONE); index != NONE; index = next_request_player(index))
+	__declspec(align(8)) s_request_settings settings;
+	for (volatile long index = next_request_player(NONE); index != NONE; index = next_request_player(index))
 	{
 		long player_index = index == NONE ? NONE : g_4e8c20->entries[index];
 		if (player_index != NONE)
@@ -1095,7 +1086,7 @@ void __stdcall function_1e75d0(dword flush)
 					s_local_player_state_view *state = &((s_local_player_state_view *)g_51e9c0)[index];
 					if (state->version == profile_index)
 					{
-						bool changed = false;
+						bool volatile changed = false;
 						if (memcmp(settings.values + 0x128, state->request_flags, sizeof(state->request_flags)))
 						{
 							memcpy(settings.values + 0x128, state->request_flags, sizeof(state->request_flags));

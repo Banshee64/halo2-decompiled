@@ -1258,9 +1258,10 @@ long function_269040(point3f const *center, short team)
 			iterator.pool.data = g_502420;
 			iterator.pool.index = NONE;
 		}
-		long oldest = NONE;
-		long oldest_time = 0x7fffffff;
-		while (next_clump_in_pool(&iterator))
+		bool active = g_4f55d0->active;
+  long volatile oldest = NONE;
+		long volatile oldest_time = 0x7fffffff;
+		while (active && (iterator.current = (s_clump *)data_iterator_next_calling(&iterator.pool)) != NULL)
 		{
 			long time = ((s_clump_activity_view *)iterator.current)->active_time;
 			if (time < oldest_time)
@@ -1487,7 +1488,7 @@ long function_26ace0(long object_index, long actor_index, short type)
 	long const *actor_reference = &actor_index;
 	short const *type_reference = &type;
 	s_actor_view *actor = actor_get(actor_index);
-	long result = NONE;
+	long volatile result = NONE;
 	long clump_index = actor->unknown07c;
 	if (clump_index != NONE)
 	{
@@ -1496,7 +1497,7 @@ long function_26ace0(long object_index, long actor_index, short type)
 		if (prop_index == NONE)
 		{
 			prop_index = function_26a740(object_index, clump);
-			if (prop_index == NONE) return NONE;
+			if (prop_index == NONE) goto done;
 			((s_prop_copy_view *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_prop_copy_view)))->field0c = *type_reference;
 			function_26a960((s_clump *)clump, prop_index);
 		}
@@ -1513,6 +1514,7 @@ long function_26ace0(long object_index, long actor_index, short type)
 			}
 		}
 	}
+done:
 	return result;
 }
 

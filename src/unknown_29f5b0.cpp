@@ -974,7 +974,7 @@ void damage_at_cutscene_flag(short cutscene_flag_index, long definition_index)
 		data.unknown7c = NONE;
 		point3f *position = &flag->position;
 		data.origin = *position;
-		data.position = *position;
+  data.position = data.origin;
 		function_11bed0(&data.location, position);
 		function_d6c80((s_type_1e6529 *)&data, NONE);
 	}
