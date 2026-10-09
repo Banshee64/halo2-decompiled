@@ -45,13 +45,14 @@ real function_13bb90(s_tag_data const *function, real input, real range);
 // @retail 0x134fe0
 real __stdcall function_134fe0(long index, real value)
 {
+	long local_1 = *(long volatile *)&index;
 	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
-	s_interpolator_state *state = &globals->states[index];
+	s_interpolator_state *state = &globals->states[local_1];
 	real result = 0.0f;
 	if (state)
 	{
 		s_scenario_interpolators_view *scenario = (s_scenario_interpolators_view *)g_4e0350;
-		s_scenario_interpolator *definition = &scenario->interpolators[index];
+		s_scenario_interpolator *definition = &scenario->interpolators[local_1];
 		value += state->value18;
 		short scale_index = definition->scale_index;
 		long clamped = scale_index < 0 ? 0 : (scale_index > scenario->interpolator_count - 1 ? scenario->interpolator_count - 1 : scale_index);

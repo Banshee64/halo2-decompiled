@@ -342,8 +342,6 @@ void function_2bdd70(point3f *out, s_spline_2bd *spline, long n, point3f *points
 // @retail 0x2bde90
 void function_2bde90(real t, point3f *out, point3f *points)
 {
-	real t2 = t * t;
-	real t3 = t2 * t;
 	real m[4][4] =
 	{
 		{ -1.0f, 3.0f, -3.0f, 1.0f },
@@ -351,6 +349,8 @@ void function_2bde90(real t, point3f *out, point3f *points)
 		{ -3.0f, 3.0f, 0.0f, 0.0f },
 		{ 1.0f, 0.0f, 0.0f, 0.0f }
 	};
+	real t2 = t * t;
+	real t3 = t2 * t;
 	real r[4];
 	long i = 0;
 
@@ -1287,7 +1287,7 @@ void c_engine_peer_b::q1(dword *value, long unused, s_settings_2c0 *settings)
 
 struct s_effect_owner;
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-long function_b7b40(void *creation);
+long __stdcall function_b7b40(void *creation);
 void __stdcall function_a7870(long object_index);
 void __stdcall function_a7810(dword mask);
 void __stdcall function_be240(long object_index, dword color_mask, color3f const *colors);
@@ -1330,10 +1330,11 @@ struct s_territory_tag
 // @retail 0x2c0980
 long territory_create_item(long player_index, long territory)
 {
+ long const volatile *territory_reference = &territory;
 	s_state_2bf *state = g_51eccc;
-	long result = NONE;
+	
 
-	if ((short)state->w60[territory] != NONE)
+	if ((short)state->w60[*territory_reference] != NONE)
 	{
 		long tag_index = NONE;
 		s_territory_placement placement;
@@ -1343,19 +1344,20 @@ long territory_create_item(long player_index, long territory)
 			tag_index = ((s_territory_tag *)g_4e3b44[g_4e034c->index & 0xffff].bytes)->data->item_tag;
 		}
 		function_b7930(&placement, tag_index, NONE, 0);
-		placement.position = g_4e0350->marker_entries[(short)state->w60[territory]].position;
+		placement.position = g_4e0350->marker_entries[(short)state->w60[*territory_reference]].position;
 		s_player_2be *player = player_get_2be(player_index);
 		placement.color_mask |= 15;
 		function_15f330((s_player_appearance const *)((byte *)player + 0x84), player->team, placement.colors);
 		placement.value_a8 = *(long *)((byte *)player + 0x89);
-		result = function_b7b40(&placement);
+		long result = function_b7b40(&placement);
 		if (result != NONE)
 		{
 			function_a7870(result);
-			function_15e050(result, (short)territory);
+			function_15e050(result, (short)*territory_reference);
 		}
+  return result;
 	}
-	return result;
+	return NONE;
 }
 
 // @retail 0x2c0b70

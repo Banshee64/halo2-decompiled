@@ -77,23 +77,24 @@ void function_8fb30(long task_index, s_online_match_result *output, word *capaci
 			if (*capacity <= count)
 				count = *capacity;
 			long written = 0;
+			s_online_match_result *local_0 = output;
 			for (DWORD i = 0; i < count; i++)
 			{
-				output->key = results[i]->KeyExchangeKey;
-				output->id = results[i]->SessionID;
-				output->address = results[i]->HostAddress;
-				output->public_filled = results[i]->dwPublicFilled;
-				output->public_open = results[i]->dwPublicOpen;
-				output->private_filled = results[i]->dwPrivateFilled;
-				output->private_open = results[i]->dwPrivateOpen;
+				local_0->key = results[i]->KeyExchangeKey;
+				local_0->id = results[i]->SessionID;
+				local_0->address = results[i]->HostAddress;
+				local_0->public_filled = results[i]->dwPublicFilled;
+				local_0->public_open = results[i]->dwPublicOpen;
+				local_0->private_filled = results[i]->dwPrivateFilled;
+				local_0->private_open = results[i]->dwPrivateOpen;
 				if (results[i]->dwNumAttributes == 7)
 				{
 					__int64 properties[7];
 					if (SUCCEEDED(XOnlineMatchSearchParse(results[i], results[i]->dwNumAttributes, g_44050c, properties)))
 					{
-						function_0b4a40(&output->properties, properties);
+						function_0b4a40(&local_0->properties, properties);
 						written++;
-						output++;
+						local_0++;
 					}
 				}
 			}

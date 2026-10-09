@@ -28,23 +28,19 @@ void function_a6660(s_entity_info *info)
 {
 }
 
-// @stub 0xa6810
-bool function_a6810(s_bitstream *stream)
-{
-	return false;
-}
+
 
 
 
 
 // @stub 0xa73b0
-long function_a73b0(s_entity_info *info)
+long __stdcall function_a73b0(s_entity_info *info)
 {
 	return 0;
 }
 
 // @stub 0xb7b40
-long function_b7b40(void *creation)
+long __stdcall function_b7b40(void *creation)
 {
 	return 0;
 }

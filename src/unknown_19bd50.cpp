@@ -104,7 +104,7 @@ struct D3DTexture;
 struct s_level_path { char string[0x104]; };
 s_entry_c *function_19c5f0(long map_id);
 D3DTexture *function_1cfb0(s_bitmap_view *bitmap);
-void *function_1d5e0(s_bitmap_view *bitmap, bool wait, long *pitch);
+void *function_1d5e0(s_bitmap_view *bitmap, long wait, long *pitch);
 bool function_12cb80(s_bitmap_data *bitmap);
 char *level_path_print(s_level_path *path, char const *format, ...);
 s_type_acf665 *function_136710(s_type_acf665 *file, bool replace, const char *name);

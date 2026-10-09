@@ -168,8 +168,8 @@ bool function_26d290(point3f const *origin, point3f const *target, long sector_i
 bool function_26e180(long record_index, s_record_motion_view const *motion, short mode, point3f *reported_point,
 	s_type_c3b527 *output, long *output_sector)
 {
-	s_location_record_view *record = (s_location_record_view *)(g_51eca4->data + (record_index & 0xffff) * sizeof(s_location_record_view));
 	bool result = false;
+	s_location_record_view *record = (s_location_record_view *)(g_51eca4->data + (record_index & 0xffff) * sizeof(s_location_record_view));
 	if (record->type == 1)
 	{
 		vector3f direction = motion->direction;
@@ -177,20 +177,22 @@ bool function_26e180(long record_index, s_record_motion_view const *motion, shor
 		if (function_30bf0(&direction) > 0.0f)
 		{
 			point3f point;
+			real point_z;
 			switch (mode)
 			{
 			case 1:
+				point_z = direction.k * 0.25f + motion->position.z;
 				point.x = direction.i * 0.25f + motion->position.x;
 				point.y = direction.j * 0.25f + motion->position.y;
-				point.z = direction.k * 0.25f + motion->position.z;
 				break;
 			case 2:
+				point_z = motion->position.z - direction.k * 0.25f;
 				point.x = motion->position.x - direction.i * 0.25f;
 				point.y = motion->position.y - direction.j * 0.25f;
-				point.z = motion->position.z - direction.k * 0.25f;
 				break;
 			case 3:
 				point = motion->position;
+				point_z = point.z;
 				break;
 			default:
 				mode = NONE;
@@ -201,6 +203,7 @@ bool function_26e180(long record_index, s_record_motion_view const *motion, shor
 				vector3f side = motion->side;
 				point.x += side.i * 0.15f;
 				point.y += side.j * 0.15f;
+				point.z = point_z;
 				short index = record->point.output_index;
 				if (function_210690(index, &point, &output->point))
 				{
@@ -420,7 +423,7 @@ struct s_collision_result_1697c0;
 bool function_26c590(s_pathfinding_data const *pathfinding, point3f const *origin, long sector_index,
 	long target_sector_index, vector3f const *direction, real distance, s_path_location const *location,
 	s_path_trace_result *trace);
-long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *location, point3f const *point);
+long function_26d100(vector3f const *up, long *location, s_collision_result_1697c0 *collision, point3f const *point);
 
 struct s_record_pathfinding_view
 {
@@ -495,7 +498,7 @@ long function_26d570(long object_index)
 					structure = (s_record_pathfinding_view *)g_4e0348;
 					if (structure->count > 0)
 						saved_pathfinding = structure->pathfinding;
-					entry->owner = function_26d100(up, (s_collision_result_1697c0 *)&collision, (long *)&entry->location, &world);
+					entry->owner = function_26d100(up, (long *)&entry->location, (s_collision_result_1697c0 *)&collision, &world);
 					up = g_4687b0;
 					point.x = up->i * 0.1f + collision.point.x;
 					point.y = up->j * 0.1f + collision.point.y;
@@ -521,4 +524,54 @@ long function_26d570(long object_index)
 		while (--rings_remaining);
 	}
 	return result;
+}
+
+
+// @retail 0x26dde0
+void __stdcall function_26dde0(long actor_index)
+{
+ long const *input_reference = &actor_index;
+ byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+ long owner = *(long *)(actor + 0x3f8);
+ if (owner != NONE)
+ {
+  if (*(long *)(actor + 0x26c) != NONE)
+  {
+   function_26def0(actor_index, NONE);
+   return;
+  }
+  bool has_record = *(long *)(actor + 0x3f4) != NONE;
+  bool valid = function_26df40(*input_reference, owner, has_record);
+  if (valid)
+  {
+   long record_index = *(long *)(actor + 0x3f4);
+   *(short *)(actor + 0x3fc) = 0;
+   if (record_index == NONE)
+   {
+    record_index = function_26db50(*(long volatile *)(actor + 0x3f8), 0);
+    if (record_index == NONE)
+     record_index = function_26d570(*(long volatile *)(actor + 0x3f8));
+    if (record_index != NONE)
+    {
+     function_26dbd0(record_index, actor_index);
+     *(short *)(actor + 0x2c) += g_510c54->field_2_3 * 8;
+    }
+    else
+     goto failure;
+   }
+   else
+    valid = function_26dc90(record_index);
+   if (valid)
+    return;
+  }
+ failure:
+  if (*(long *)(actor + 0x3f4) != NONE)
+   function_26dc20(actor_index);
+  ++*(short *)(actor + 0x3fc);
+  if ((real)*(short *)(actor + 0x3fc) * g_510c54->rate > 5.0f)
+  {
+   function_26def0(actor_index, NONE);
+   *(short *)(actor + 0x2c) = 0;
+  }
+ }
 }

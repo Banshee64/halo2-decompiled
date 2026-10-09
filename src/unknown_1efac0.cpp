@@ -180,14 +180,16 @@ struct s_iterator
 // @retail 0x1efca0
 bool s_iterator::advance()
 {
-	long g = group;
-	long sub_index = sub;
+	long g = NONE;
+	long sub_index;
 	long item_index;
 	s_sub *s = 0;
 	bool next = true;
 
 	if (position != NONE)
 	{
+  g = group;
+  sub_index = sub;
 		s = &table->groups[g].subs[sub_index];
 
 		if (s && item + 1 < s->count)
@@ -677,6 +679,7 @@ dword function_1ef6d0(dword key)
  long *objects = g_51e9cc;
  long index = *key_reference & 0xffff;
  long position = (key >> 16) & 0x1fff;
+ long const *position_reference = &position;
  long kind = key >> 29;
  if (kind == 1)
  {
@@ -698,12 +701,12 @@ dword function_1ef6d0(dword key)
   index = NONE;
  }
  long object_index;
- long next_position = NONE;
+ long volatile next_position = NONE;
  if (index != NONE)
  {
   object_index = objects[index];
   if (object_index != NONE)
-   next_position = function_1ef500(object_index, position);
+   next_position = function_1ef500(object_index, *position_reference);
  }
  if (next_position == NONE)
  {

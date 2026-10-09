@@ -23,9 +23,9 @@ long online_friends_startup(void)
 	{
 		task = online_task_get_unchecked(task_index);
 		if (!task)
-			return task_index;
+			goto local_0;
 		if (!(task->flags & 0x24))
-			return task_index;
+			goto local_0;
 		online_task_restart(task_index);
 		task = online_task_get_unchecked(task_index);
 	}
@@ -33,7 +33,7 @@ long online_friends_startup(void)
 	{
 		task_index = online_task_new_if_logged_on();
 		if (task_index == NONE)
-			return NONE;
+			goto local_0;
 		task = online_task_get_unchecked(task_index);
 	}
 
@@ -48,9 +48,10 @@ long online_friends_startup(void)
 		else
 		{
 			function_6b640(task_index);
-			return NONE;
+			task_index = NONE;
 		}
 	}
+local_0:
 	return task_index;
 }
 

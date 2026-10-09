@@ -85,6 +85,21 @@ PRIVATE __forceinline real function_206094(vector3f *arg_0)
     return local_0;
 }
 
+PRIVATE __forceinline real function_206097(vector3f *arg_0)
+{
+    double local_2 = (double)arg_0->i * arg_0->i;
+    local_2 += (double)arg_0->k * arg_0->k;
+    local_2 += (double)arg_0->j * arg_0->j;
+    real local_0 = (real)sqrt(local_2);
+    if (fabs(local_0) < 0.0001f)
+        return 0.0f;
+    real local_1 = 1.0f / local_0;
+    arg_0->i *= local_1;
+    arg_0->j *= local_1;
+    arg_0->k *= local_1;
+    return local_0;
+}
+
 PRIVATE __forceinline void function_206095(vector3f *arg_0, vector3f const *arg_1)
 {
     arg_0->i += arg_1->i;
@@ -126,11 +141,12 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
         function_206092(&local_5, local_9, local_10);
         function_206095(local_10, &local_4);
         real local_11 = PIN(*(real *)(local_1 + 0x30) * local_0->field_8c * 0.31830987f, -1.0f, 1.0f);
-        if (local_0->field_74.i >= 0.0f)
-            local_11 = -local_11;
+        local_11 = (local_0->field_74.i >= 0.0f ? -1.0f : 1.0f) * local_11;
         real local_12 = -(local_0->field_74.j * *(real *)(local_7 + 0x88));
-        real local_13 = local_11 * local_11 * (local_11 > 0.0f ? 1.0f : -1.0f) * *(real *)(local_7 + 0x88);
-        real local_14 = fabs(local_12) > fabs(local_13) ? local_12 : local_13;
+        real local_13 = local_11 * local_11 * (local_11 != 0.0f ? (local_11 < 0.0f ? -1 : 1) : 0) * *(real *)(local_7 + 0x88);
+        real local_95 = local_12 < 0.0f ? -local_12 : local_12;
+        real local_96 = local_13 < 0.0f ? -local_13 : local_13;
+        real local_14 = local_95 > local_96 ? local_12 : local_13;
         real local_15 = local_14 > 0.0f ? PIN(local_14 - 0.1f, 0.0f, 1.0f) : PIN(local_14 + 0.1f, -1.0f, 0.0f);
         real local_16 = *(real *)(local_1 + 0x2c) * local_15 + 1.0f;
         real local_17 = local_16 * *(real *)(local_8 + 0x20);
@@ -150,18 +166,21 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
                 real local_24 = *(real *)(local_8 + 0x1c);
                 real local_25;
                 real local_26 = *(real *)(local_7 + 0x24);
-                if (fabs(local_23 - local_24) < 0.001f)
-                    local_25 = local_26 > local_24 ? 1.0f : 0.0f;
-                else if (local_23 >= local_24)
-                    local_25 = (PIN(local_26, local_24, local_23) - local_24) / (local_23 - local_24);
+                real local_97 = local_23 - local_24;
+                real local_98 = local_24 - local_23;
+                if ((local_97 < 0.0f ? -local_97 : local_97) < 0.001f ||
+                    (local_98 < 0.0f ? -local_98 : local_98) < 0.001f)
+                    local_25 = local_24 < local_26 ? 1.0f : 0.0f;
+                else if (local_23 > local_24)
+                    local_25 = local_24 < local_26 ? (local_26 < local_23 ? (local_26 - local_24) / local_97 : 1.0f) : 0.0f;
                 else
-                    local_25 = (PIN(local_26, local_23, local_24) - local_24) / (local_23 - local_24);
+                    local_25 = local_23 < local_26 ? (local_26 < local_24 ? (local_24 - local_26) / local_98 : 0.0f) : 1.0f;
                 real local_27 = local_22 > 0.0f ? 1.0f - local_22 / local_18 : 1.0f;
                 real local_28 = (*(real *)g_51e9c4 * local_27 * local_27 - *(real *)(local_8 + 0x14) * function_206091(local_10, &local_19.field_1c)) *
                     *(real *)(local_7 + 0x9c) * *(real *)(local_8 + 8) * local_0->field_6c * local_25;
                 if (*(real *)(local_7 + 0xa0) > 0.0f)
                 {
-                    real local_29 = (real)(((double)((local_6 + 1) / *(long *)(local_1 + 0x3c)) * 0.10000002f + 0.9f) *
+                    real local_29 = (real)(((double)((local_6 + 1) / *(long *)(local_1 + 0x3c)) * 0.10000002384185791f + 0.9f) *
                         g_510c54->game_time * g_510c54->rate * 0.3f + (double)local_6 * 42.0f);
                     local_28 *= 1.0f - *(real *)(local_7 + 0xa0) * (function_17c900(8, local_29) * 0.55f + 0.45f);
                 }
@@ -227,13 +246,13 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
                 hkRigidBody *local_51 = local_49->rigid_bodies.data[local_50].rigid_body;
                 if (!local_51->m_fixed && local_51->m_motion->getType() != 6)
                 {
-                    real local_52 = MAX(1.0f, local_51->m_motion->getMass());
+                    real local_52 = MAX(1.0f, havok_component_rigid_body_get(local_50, local_49)->m_motion->getMass());
                     real local_53 = PIN(local_52, local_0->field_6c * 0.0625f, local_0->field_6c * 16.0f);
                     real local_54 = (local_46->k + 1.0f) * 0.5f / local_53 * *(real *)(local_39 + 0x88);
                     local_54 *= local_54;
                     local_54 = MIN(local_54, MAX(8.0f, g_510c54->field_2_3 * local_47));
                     vector3f local_55;
-                    function_206096(local_46, -g_510c54->rate * local_54, &local_55);
+                    function_206096(local_46, g_510c54->rate * local_54 * -1.0f, &local_55);
                     havok_component_rigid_body_linear_velocity_change(local_50, local_49, &local_55);
                 }
             }
@@ -264,24 +283,30 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
                     local_60.k = local_58.k - local_61.k;
                     *(real *)(local_39 + 0x8c) = function_206093(&local_61) * (function_206091(&local_61, &local_56) > 0.0f ? 1.0f : -1.0f);
                 }
-                *(real *)(local_39 + 0x90) = function_206093(&local_60);
+                real local_66 = function_206093(&local_60);
+                *(real *)(local_39 + 0x90) = local_66;
                 real local_62 = local_39[0x82] ? *(real *)(local_40 + 0x1c) : *(real *)(local_1 + 0x10);
                 real local_63 = local_39[0x82] ? *(real *)(local_40 + 0x20) : *(real *)(local_1 + 4);
                 real local_64 = local_39[0x82] ? *(real *)(local_40 + 0x24) : *(real *)(local_40 + 0x18);
-                vector3f local_65 = local_39[0x82] || local_39[0x83] ? local_58 : local_60;
-                real local_66 = function_206093(&local_65);
+                vector3f *local_65 = &local_60;
+                if (local_39[0x82] || local_39[0x83])
+                {
+                    local_65 = &local_58;
+                    local_66 = function_206093(local_65);
+                }
                 real local_67 = 1.0f - PIN((*(real *)(local_1 + 0x14) - local_46->k) / (*(real *)(local_1 + 0x14) - *(real *)(local_1 + 0x18)), 0.0f, 1.0f);
                 if (local_66 > local_64)
                 {
-                    function_206094(&local_65);
+                    vector3f local_99 = *local_65;
+                    function_206094(&local_99);
                     real local_68 = (real)sqrt(local_62 * 0.9f);
-                    function_206096(&local_65, -(*(real *)(local_40 + 8) * local_68 * local_67 * *(real *)(local_39 + 0x88)), &local_42);
+                    function_206096(&local_99, -(*(real *)(local_40 + 8) * local_68 * local_67 * *(real *)(local_39 + 0x88)), &local_42);
                     local_39[0x81] = true;
                 }
                 else
                 {
                     real local_69 = (real)sqrt(local_63 * 0.9f);
-                    function_206096(&local_65, -(local_69 * *(real *)(local_40 + 8) * g_510c54->rate * local_67 * *(real *)(local_39 + 0x88)), &local_42);
+                    function_206096(local_65, -(local_69 * *(real *)(local_40 + 8) * g_510c54->rate * local_67 * *(real *)(local_39 + 0x88)), &local_42);
                     local_31++;
                 }
                 local_48 = local_60;
@@ -290,9 +315,13 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
             if (*(real *)(local_40 + 0xc) > 0.0001f && local_46->k > *(real *)(local_1 + 0x18))
             {
                 real local_70 = MAX(0.0f, *(real *)(local_39 + 0x90) - *(real *)(local_40 + 0x18));
-                if (function_206094(&local_48) == 0.0f)
+                if (function_206097(&local_48) == 0.0f)
                     local_48 = *g_4687b0;
-                real local_71 = *(real *)(local_40 + 0xc) - *(real *)(local_39 + 0x84) - 0.0001f;
+                real local_71 = -(*(real *)(local_40 + 0xc) - *(real *)(local_39 + 0x84) - 0.0001f);
+                point3f local_100;
+                local_100.x = local_46->i * local_71 + *(real *)(local_39 + 0x34);
+                local_100.y = local_46->j * local_71 + *(real *)(local_39 + 0x38);
+                local_100.z = local_46->k * local_71 + *(real *)(local_39 + 0x3c);
                 s_impact_data local_72;
                 local_72.unknown00 = false;
                 local_72.component_a = *(long *)(local_2 + 0xb4);
@@ -301,25 +330,22 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
                 local_72.component_b = NONE;
                 local_72.unknown14 = NONE;
                 local_72.material_b.m_index = *(short *)(local_39 + 0xb0);
-                local_72.position.x = *(real *)(local_39 + 0x34) - local_46->i * local_71;
-                local_72.position.y = *(real *)(local_39 + 0x38) - local_46->j * local_71;
-                local_72.position.z = *(real *)(local_39 + 0x3c) - local_46->k * local_71;
+                local_72.position = local_100;
                 local_72.normal = *local_46;
                 local_72.type = local_38;
                 local_72.unknown38 = false;
                 local_72.shape.type = NONE;
                 local_72.shape.index = NONE;
-                bool local_73 = local_39[0x82] || local_39[0x83];
-                function_2078f0(&local_0->field_0, &local_72, &local_48, local_70, local_73);
+                function_2078f0(&local_0->field_0, &local_72, &local_48, local_70, local_39[0x82] || local_39[0x83]);
                 local_72.unknown38 = true;
-                long local_74 = function_2078f0(&local_0->field_0, &local_72, &local_48, local_70, local_73);
+                long local_74 = function_2078f0(&local_0->field_0, &local_72, &local_48, local_70, local_39[0x82] || local_39[0x83]);
                 if (local_74 != NONE)
                 {
                     long local_75;
                     for (local_75 = 0; local_75 < local_33; local_75++)
                         if (local_35[local_75] == local_74)
                             break;
-                    if (local_75 == local_33 && local_33 < 32)
+                    if (local_75 == local_33 && (dword)local_33 < 32)
                         local_35[local_33++] = local_74;
                 }
             }
@@ -334,20 +360,21 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
         if (local_41 && local_39[0x80])
         {
             vector3f *local_76 = (vector3f *)(local_39 + 4);
-            real local_77 = function_206091(local_76, &local_42);
+            real local_77 = local_42.i * local_76->i + local_76->k * local_42.k + local_76->j * local_42.j;
             vector3f local_78;
             function_206096(local_76, local_77, &local_78);
-            if (local_77 > 0.0f)
-                local_0->field_70 -= function_206093(&local_78);
+            real local_95 = (real)sqrt((double)local_78.i * local_78.i + (double)local_78.k * local_78.k + (double)local_78.j * local_78.j);
+            if (function_206091(local_76, &local_42) > 0.0f)
+                local_0->field_70 -= local_95;
             else
-                local_0->field_70 += function_206093(&local_78);
+                local_0->field_70 += local_95;
         }
     }
     for (long local_79 = 0; ; local_79++)
     {
         long local_80 = local_3->unknown20;
-        byte *local_81 = local_80 == NONE ? NULL : g_51ec00->data + (local_80 & 0xffff) * 0x40;
-        long local_82 = local_81 ? *(short *)(local_81 + 2) : 0;
+        byte *local_81 = g_51ec00->data + (local_80 & 0xffff) * 0x40;
+        long local_82 = local_80 == NONE ? 0 : *(short *)(g_51ec00->data + (local_80 & 0xffff) * 0x40 + 2);
         if (local_79 >= local_82)
             break;
         long local_83 = *(long *)(local_81 + 4 + local_79 * 4);
@@ -359,7 +386,7 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
         {
             if (local_35[local_86] == local_83)
             {
-                for (long local_87 = 0; local_87 < local_82; local_87++)
+                for (long local_87 = 0; local_87 < (local_80 == NONE ? 0 : *(short *)(local_81 + 2)); local_87++)
                 {
                     long local_88 = *(long *)(local_81 + 4 + local_87 * 4);
                     byte *local_89 = g_51ebfc->data + (local_88 & 0xffff) * 0xa0;
@@ -378,7 +405,7 @@ bool __stdcall function_206090(s_vehicle_physics_state *arg_0, vector3f *arg_1, 
         {
             while (*(short *)(local_84 + 8) > 0)
             {
-                if (*(short *)(local_84 + 8) == 1 && (char)local_84[0x10] == 1)
+                if (*(short *)(local_84 + 8) == 1 && PIN((char)local_84[0x10], 1, 1) == (char)local_84[0x10])
                 {
                     long local_90, local_91;
                     impact_rigid_body_indices_get((s_impact *)local_84, local_83, &local_90, &local_91);

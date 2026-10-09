@@ -124,13 +124,9 @@ void function_2b98b0(s_particle_2b96 const *particle, s_particle_2b96 const *oth
     vector3f b = other->velocity;
     normalize_particle_vector_2b(&a);
     normalize_particle_vector_2b(&b);
-    vector3f delta;
-    delta.i = (b.i - a.i) * scale;
-    delta.j = (b.j - a.j) * scale;
-    delta.k = (b.k - a.k) * scale;
-    result->i += delta.i;
-    result->j += delta.j;
-    result->k += delta.k;
+    result->i += (b.i - a.i) * scale;
+    result->j += (b.j - a.j) * scale;
+    result->k += (b.k - a.k) * scale;
 }
 
 PRIVATE __forceinline real particle_separation_squared_values(real z, real y, real x)

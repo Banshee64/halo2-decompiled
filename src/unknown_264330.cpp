@@ -19,8 +19,8 @@ void function_268c60(long actor_index);
 long function_25d810(long object_index, long actor_index, bool create);
 bool function_25ccd0(s_type_5cfb45 *state, long object_index, short value, s_2640c0 *motion);
 void function_265c30(long prop_index, long actor_index, bool active);
-void __stdcall function_265290(long actor_index, long prop_index);
-void __stdcall function_265550(long actor_index, long prop_index);
+bool __stdcall function_265290(long actor_index, long prop_index);
+bool __stdcall function_265550(long actor_index, long prop_index);
 void function_ba1d0(long object_index, vector3f *linear, vector3f *angular);
 void function_cb7e0(long unit_index, vector3f *vector);
 long function_10f8f0(long object_index);
@@ -416,8 +416,7 @@ long function_25c9d0(long actor_index, long prop_ref_index, bool player, long si
 long function_25cb60(long actor_index, long object_index, short type, void *sample,
 	void *point, long location, long sight);
 short function_25cca0(long prop_ref_index);
-short function_263810(long actor_index, point3f const *origin, point3f const *point,
-	point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range);
+short function_263810(point3f const *origin, long actor_index, point3f const *point, point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range);
 void function_26bfa0(long object_index, long *location_index, s_location_view *location);
 real function_296600(long actor_index, long prop_ref_index);
 
@@ -521,8 +520,7 @@ void __stdcall function_264b50(long actor_index, long prop_ref_index, s_2641c0 *
 						*(short *)((byte *)sample + 0x28), sample, other_mode, false,
 						*(long *)(actor + 0x26c) != NONE, alternate, current ? (long *)(actor + 0x348) : NULL);
 					view->unknown8c = (short)other_sight;
-					view->unknown8a = function_263810(actor_index, (point3f const *)sample, (point3f const *)((byte *)state + 0x30),
-						NULL, 2, (short)other_sight, true, NULL);
+					view->unknown8a = function_263810((point3f const *)sample, actor_index, (point3f const *)((byte *)state + 0x30), NULL, 2, (short)other_sight, true, NULL);
 				}
 				else
 				{
@@ -570,3 +568,117 @@ void __stdcall function_264b50(long actor_index, long prop_ref_index, s_2641c0 *
 	}
 	function_25d690(reference)->unknown64 = true;
 }
+
+
+long function_1e4a10(long index);
+
+// @retail 0x265550
+bool __stdcall function_265550(long actor_index, long prop_ref_index)
+{
+ byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+ byte *reference = g_502418->data + (prop_ref_index & 0xffff) * 0x3c;
+ bool result = false;
+ real range = 0.0f;
+ byte *definition = (byte *)function_1e4a10(*(long *)(actor + 0x54));
+ if (definition)
+  range = *(real *)(definition + 0x64);
+ if ((double)range > 0.0 && *(short *)(reference + 0x24) >= 1 && range + 10.0f > *(real *)(reference + 0x28))
+ {
+  short state = *(short *)(actor + 0x358);
+  if (state < 1 || (state == 1 && *(long *)(actor + 0x360) != *(long *)(reference + 0x20) &&
+   *(real *)(actor + 0x394) > *(real *)(reference + 0x28)))
+  {
+   byte *prop = g_50241c->data + (*(long *)(reference + 8) & 0xffff) * 0xc4;
+   memset(actor + 0x358, 0, 0x58);
+   *(short *)(actor + 0x358) = 1;
+   *(long *)(actor + 0x360) = *(long *)(reference + 0x20);
+   *(real *)(actor + 0x36c) = range;
+   *(short *)(actor + 0x35a) = !prop[0x23];
+   function_25b910(actor_index, prop_ref_index);
+   result = true;
+  }
+
+ }
+ return result;
+}
+
+
+
+bool function_2651e0(long object_index, short *volatile output_index);
+
+// @retail 0x265290
+bool __stdcall function_265290(long actor_index, long prop_ref_index)
+{
+ byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+ byte *reference = g_502418->data + (prop_ref_index & 0xffff) * 0x3c;
+ long object_index = *(long *)(reference + 0x20);
+ byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+ byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+ bool result = false;
+ bool const *result_reference = &result;
+ if (*(long *)(object + 0x248) == NONE && 13.5f > *(real *)(reference + 0x28))
+ {
+  short state = *(short *)(actor + 0x358);
+  if (state < 4 || (state == 4 && *(long *)(actor + 0x360) != object_index &&
+   *(real *)(actor + 0x394) > *(real *)(reference + 0x28)))
+  {
+   result = function_2651e0(object_index, NULL);
+   if (*result_reference)
+   {
+    memset(actor + 0x358, 0, 0x58);
+    *(short *)(actor + 0x358) = 4;
+    *(long *)(actor + 0x360) = *(long *)(reference + 0x20);
+    *(real *)(actor + 0x36c) = 3.5f;
+    *(short *)(actor + 0x35a) = 0;
+    *(long *)(actor + 0x368) = prop_ref_index;
+    *(long *)(actor + 0x364) = NONE;
+    function_25b910(actor_index, prop_ref_index);
+    goto done;
+   }
+  }
+ }
+ long other_index = *(long *)(actor + 0x26c);
+ if (other_index != NONE)
+ {
+  byte *other = *(byte **)(g_4e0300->data + (other_index & 0xffff) * 12 + 8);
+  byte *other_definition = g_4e3b44[*(long *)other & 0xffff].bytes;
+  bool lower = *(short *)(other_definition + 0x244) < *(short *)(definition + 0x244);
+  bool const *lower_reference = &lower;
+  if (!*lower_reference)
+   goto done;
+ }
+ if ((bool)(((dword)*(dword *)(definition + 0x1ec) >> 7) & 1))
+ {
+  vector3f *velocity = (vector3f *)(object + 0x88);
+  if (velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k > 1.0f &&
+   *(real *)(definition + 4) + 10.0f > *(real *)(reference + 0x28))
+  {
+   short state = *(short *)(actor + 0x358);
+   if (state < 3 || (state == 3 && *(long *)(actor + 0x360) != *(long *)(reference + 0x20) &&
+    *(real *)(actor + 0x394) > *(real *)(reference + 0x28)))
+   {
+    memset(actor + 0x358, 0, 0x58);
+    *(short *)(actor + 0x358) = 3;
+    *(long *)(actor + 0x360) = *(long *)(reference + 0x20);
+    real range = *(real *)(definition + 4);
+    long owner = *(long *)(object + 0x248);
+    long const *owner_reference = &owner;
+    *(long *)(actor + 0x364) = owner;
+    *(real *)(actor + 0x36c) = range;
+    *(short *)(actor + 0x35a) = 0;
+    *(long *)(actor + 0x368) = prop_ref_index;
+    if (*owner_reference != NONE)
+    {
+     byte *unit = *(byte **)(g_4e0300->data + (owner & 0xffff) * 12 + 8);
+     if (!function_1df560(*(short *)(actor + 0x24), *(short *)(unit + 0x138)))
+      *(short *)(actor + 0x35a) = 1;
+    }
+    function_25b910(actor_index, prop_ref_index);
+    result = true;
+   }
+  }
+ }
+done:
+ return *result_reference;
+}
+

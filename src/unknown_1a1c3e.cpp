@@ -362,12 +362,15 @@ char motion_sensor_object_type(long local_player_index, long object_index)
 // @retail 0x1a1faf
 void motion_sensor_blip_set_type(long local_player_index, long object_index, s_motion_sensor_blip *blip)
 {
+	s_motion_sensor_blip *volatile *local_0 = (s_motion_sensor_blip *volatile *)&blip;
 	char type = motion_sensor_object_type(local_player_index, object_index);
+	s_motion_sensor_blip *local_1 = *local_0;
+	volatile char local_2 = type;
 
-	blip->type = type;
+	local_1->type = type;
 	if (object_index == NONE)
 	{
-		blip->height = 0;
+		local_1->height = 0;
 	}
 	else
 	{
@@ -377,14 +380,24 @@ void motion_sensor_blip_set_type(long local_player_index, long object_index, s_m
 		if (mask & 3)
 		{
 			short height = SENSOR_DEFINITION(object->definition_index)->height194;
-			blip->height = (char)(height < 0 ? 0 : (height > 3 ? 3 : height));
-			if (g_4e6948->state == 2 && (type == 7 || type == 8))
-				blip->height = 2;
+			if (height < 0)
+				height = 0;
+			else if (height > 3)
+				height = 3;
+			local_1 = *local_0;
+			local_1->height = (char)height;
+			if (g_4e6948->state == 2 && (local_2 == 7 || local_2 == 8))
+				local_1->height = 2;
 		}
 		else if (mask & 0x1000)
 		{
 			short height = SENSOR_DEFINITION(object->definition_index)->heightc2;
-			blip->height = (char)(height < 0 ? 0 : (height > 3 ? 3 : height));
+			if (height < 0)
+				height = 0;
+			else if (height > 3)
+				height = 3;
+			local_1 = *local_0;
+			local_1->height = (char)height;
 		}
 	}
 }
@@ -394,20 +407,25 @@ bool motion_sensor_object_valid(long object_index)
 {
 	s_sensor_object *object = (s_sensor_object *)function_badc0(object_index, NONE);
 	bool result = false;
-
-	if (object)
+	long mask;
+	if (!object)
+		goto local_0;
+	mask = 1 << object->type;
+	if (mask & 3)
 	{
-		long mask = 1 << object->type;
-		bool skip;
-		if (mask & 3)
-			skip = object->unknown13c != NONE;
-		else if (mask & 0x1000)
-			skip = TEST_FIELD_BIT(SENSOR_DEFINITION(object->definition_index)->flagbc_6);
-		else
-			skip = true;
-		if (!skip && !TEST_FIELD_BIT(object->flags10a_2))
-			result = true;
+		if (object->unknown13c != NONE)
+			goto local_0;
 	}
+	else
+	{
+		if (!(mask & 0x1000))
+			goto local_0;
+		if (TEST_FIELD_BIT(SENSOR_DEFINITION(object->definition_index)->flagbc_6))
+			goto local_0;
+	}
+	if (!TEST_FIELD_BIT(object->flags10a_2))
+		result = true;
+local_0:
 	return result;
 }
 
@@ -547,10 +565,20 @@ void motion_sensor_clear_objects(void)
 // @retail 0x1a2505
 void motion_sensor_update_other_objects(void)
 {
-	point3f positions[4];
-	bool valid[4];
+	struct
+	{
+		point3f field_0[4];
+		s_sensor_object *volatile field_30;
+		s_type_f1af8e field_34;
+		bool field_44[4];
+		real field_48;
+		volatile long field_4c;
+	} local_0;
+	point3f (&positions)[4] = local_0.field_0;
+	bool (&valid)[4] = local_0.field_44;
 	real range = g_510c94->motion_sensor_range * 1.5f;
-	real range_squared = range * range;
+	real &range_squared = local_0.field_48;
+	range_squared = range * range;
 	long i;
 
 	for (i = 0; i < 4; i++)
@@ -567,21 +595,22 @@ void motion_sensor_update_other_objects(void)
 		}
 	}
 
-	s_type_f1af8e iterator;
+	s_type_f1af8e &iterator = local_0.field_34;
 	function_bae80(&iterator, 0x1003, 1);
 	s_sensor_object *object;
-	while ((object = (s_sensor_object *)function_baeb0(&iterator)) != NULL)
+	while ((object = (s_sensor_object *)function_baeb0(&iterator), local_0.field_30 = object, object) != NULL)
 	{
 		if (motion_sensor_object_valid(iterator.object_index))
 		{
-			bool room = false;
+			volatile bool room = false;
 			s_motion_sensor_player *sensor = g_51e994->players;
-			for (i = 0; i < 4; i++, sensor++)
+			point3f *local_1 = positions;
+			for (*(long *)&local_0.field_4c = 0; local_0.field_4c < 4; (*(long *)&local_0.field_4c)++, sensor++, local_1++)
 			{
-				if (valid[i] && sensor->other_count + sensor->nearby_count < 16)
+				if (valid[local_0.field_4c] && sensor->other_count + sensor->nearby_count < 16)
 				{
-					real dy = object->position.y - positions[i].y;
-					real dx = object->position.x - positions[i].x;
+					real dy = object->position.y - local_1->y;
+					real dx = object->position.x - local_1->x;
 					room = true;
 					if (range_squared >= dx * dx + dy * dy)
 						sensor->motion_sensor_add_other_object(iterator.object_index);
@@ -603,7 +632,7 @@ void motion_sensor_build_sample(long local_player_index)
 	sample->count = 0;
 	if (unit_index != NONE)
 	{
-		real angle = -(g_4ed284->entries[local_player_index].yaw + 1.5707964f);
+		volatile real angle = 0.0f - (g_4ed284->entries[local_player_index].yaw + 1.5707964f);
 		real sine = (real)sin(angle);
 		real scale = 1.0f / g_510c94->motion_sensor_range;
 		real cosine = (real)cos(angle);
@@ -615,7 +644,7 @@ void motion_sensor_build_sample(long local_player_index)
 		{
 			long object_index = sensor->objects[i];
 			s_sensor_object *object = (s_sensor_object *)function_badc0(object_index, NONE);
-			if (object && motion_sensor_object_visible(object_index))
+			if (object && (byte)motion_sensor_object_visible(object_index))
 			{
 				real dx = object->position.x - origin.x;
 				real dy = object->position.y - origin.y;
