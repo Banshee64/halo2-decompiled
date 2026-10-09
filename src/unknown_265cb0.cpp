@@ -1391,7 +1391,7 @@ bool function_2651e0(long object_index, short *volatile output_index)
 
 
 // @retail 0x264260
-long function_264260(vector3f const *facing, vector3f const *direction, real distance)
+long function_264260(vector3f const *direction, vector3f const *facing, real distance)
 {
 	real cosine = 0.0f - (direction->k * facing->k + direction->j * facing->j + direction->i * facing->i);
 	real lateral;

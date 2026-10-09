@@ -116,7 +116,7 @@ void function_13e8a0()
 }
 
 // @retail 0x13eb20
-void function_13eb20(short count, short const *tab_stops)
+void function_13eb20(short const *tab_stops, short count)
 {
 	g_4e73a0.tab_stop_count = count > 16 ? 16 : count;
 	if (g_4e73a0.tab_stop_count > 0)

@@ -584,15 +584,15 @@ void function_17c0e0(long contrail_index, short count, bool force)
 				s_contrail_point_datum *previous;
 				short point_count;
 
-				if (*first_index == NONE)
-				{
-					point_count = 1;
-					previous = 0;
-				}
-				else
+				if (!(*first_index == NONE))
 				{
 					previous = CONTRAIL_POINT(*first_index);
 					point_count = count;
+				}
+				else
+				{
+					point_count = 1;
+					previous = 0;
 				}
 				if (previous && !memcmp(&marker->matrix.position, &previous->position, sizeof(point3f)) && !force)
 					continue;

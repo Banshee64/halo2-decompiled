@@ -47,6 +47,16 @@ extern bool g_4de2f8;
 extern long g_4de2fc;
 extern long g_4de300[0x800];
 
+// @retail 0x14bf80
+void __stdcall function_14bf80(long player_index, s_player_creation_record const *record)
+{
+	function_14c090(player_index, false, record);
+	++*(long *)g_4e8c20;
+	if (g_4cf770 && !g_4cf77b)
+		function_694c0((c_class_6a600 *)g_4cf77c, player_index);
+	function_157ed0(player_index);
+}
+
 // @retail 0x14bc00
 long function_14bc00(long player_index, s_player_creation_record const *record)
 {

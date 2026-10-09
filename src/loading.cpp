@@ -188,7 +188,9 @@ bool map_load_request_get(s_map_load_request *request)
 		request->copy_only = copy_only;
 	}
 
-	return map_name != NULL;
+	bool return_value = map_name != NULL;
+
+	return return_value;
 }
 
 // @retail 0x163820

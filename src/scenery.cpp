@@ -45,13 +45,27 @@ struct s_scenery_placement
 {
 	byte unknown00[0x4c];
 	short pathfinding_policy;
+	byte unknown4e[2];
+	long entry_count;
+	struct s_scenery_bsp_entry *entries;
+};
+
+struct s_scenery_bsp_entry
+{
+	short field_0;
+	short value;
 };
 
 /* the scenery (the object data) */
 struct s_scenery
 {
 	long definition_index;
-	byte unknown004[0x1a - 4];
+	union
+	{
+		dword object_flags;
+		struct { dword : 22; dword flag22 : 1; dword flag23 : 1; };
+	};
+	byte unknown008[0x1a - 8];
 	short placement_index;
 	byte unknown01c[0xa4 - 0x1c];
 	s_scenery_location location;
@@ -155,17 +169,14 @@ void __stdcall function_10a030(long scenery_index)
 }
 
 // @retail 0x10a040
-short function_10a040(long definition_index, s_scenery_placement *placement)
+short __fastcall function_10a040(long definition_index, s_scenery_placement *placement)
 {
-	short result;
+	s_scenery_placement *const *placement_reference = &placement;
+	short result = 3;
 
-	if (definition_index == NONE)
+	if (definition_index != NONE)
 	{
-		result = 3;
-	}
-	else
-	{
-		switch (placement->pathfinding_policy)
+		switch ((*placement_reference)->pathfinding_policy)
 		{
 		case 0:
 			result = TAG_DATA(s_scenery_definition, definition_index)->pathfinding_policy;
@@ -191,6 +202,39 @@ short function_10a040(long definition_index, s_scenery_placement *placement)
 short function_10a0b0(long scenery_index)
 {
 	return TAG_DATA(s_scenery_definition, SCENERY_GET(scenery_index)->definition_index)->value_c0;
+}
+
+void function_b8b70(long object_index);
+
+// @retail 0x10a0f0
+void __stdcall function_10a0f0(long scenery_index, s_scenery_placement *placement)
+{
+	s_scenery *scenery = SCENERY_GET(scenery_index);
+	(void)&placement;
+	scenery->value_130 = NONE;
+	scenery->flag22 = false;
+	scenery->flag23 = false;
+	scenery->value_132 = function_10a040(scenery->definition_index, placement);
+	switch (scenery->value_132)
+	{
+	case 0:
+	case 3:
+		scenery->flag23 = true;
+		break;
+	case 1:
+		if (g_4686c4 >= 0 && g_4686c4 < placement->entry_count)
+		{
+			s_scenery_bsp_entry *entry = &placement->entries[g_4686c4];
+			scenery->value_130 = entry->value;
+			if (entry->value != NONE)
+				scenery->flag22 = true;
+		}
+		scenery->flag23 = true;
+		break;
+	default:
+		break;
+	}
+	function_b8b70(scenery_index);
 }
 
 // @retail 0x10a390

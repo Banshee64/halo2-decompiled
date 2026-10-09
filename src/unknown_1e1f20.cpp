@@ -587,7 +587,7 @@ bool function_1e1500(long actor_index)
   *(long *)((byte *)state + 0x3f8) = NONE;
   *(short *)((byte *)state + 0x3fc) = 0;
  }
- bool result = function_1e13f0(*index_reference);
+ volatile bool result = function_1e13f0(*index_reference);
  if (result)
  {
   *(short *)((byte *)actor + 0x3e) = g_4686c4;

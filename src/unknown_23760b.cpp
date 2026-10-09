@@ -39,7 +39,7 @@ void __stdcall function_215e60(long index);
 bool function_216120(word *string, long type);
 void function_148a58();
 void function_120df0(long index, wchar_t const *name);
-void function_120e20(long controller_index, long *profile_index);
+void function_120e20(long *profile_index, long controller_index);
 long __stdcall function_1a03a0(long controller_index, word *name);
 bool function_1a0540(s_player_profile_settings *settings, long profile_index);
 void function_19060a(long controller_index, long profile_index);
@@ -1323,7 +1323,11 @@ bool finish_profile_create_2(c_virtual_keyboard_screen *keyboard)
 	s_player_profile_settings settings;
 	long profile_index = function_1a03a0(keyboard->get_controller_index(), keyboard->string);
 
-	if (profile_index != NONE)
+	if (!(profile_index != NONE))
+	{
+		function_148ca8(g_55c154, keyboard->user_flags);
+	}
+	else
 	{
 		s_screen_parameters parameters;
 
@@ -1332,10 +1336,6 @@ bool finish_profile_create_2(c_virtual_keyboard_screen *keyboard)
 		parameters.field_c = 0;
 		function_149f49((s_message *)&parameters, 0, 0, keyboard->user_flags, 5, 4, (long)function_237713);
 		parameters.load(&parameters);
-	}
-	else
-	{
-		function_148ca8(g_55c154, keyboard->user_flags);
 	}
 	return true;
 }
@@ -1364,6 +1364,8 @@ bool finish_profile_create_3(c_virtual_keyboard_screen *keyboard)
 bool finish_profile_rename(c_virtual_keyboard_screen *keyboard)
 {
 	long profile_index = g_54e5d0.profile_index;
+	long current;
+	volatile long saved_profile_index = profile_index;
 	long controller_index = keyboard->get_controller_index();
 
 	if (!(bool)(((dword)profile_index >> 21) & 1))
@@ -1372,10 +1374,10 @@ bool finish_profile_rename(c_virtual_keyboard_screen *keyboard)
 	}
 	if (controller_index != NONE)
 	{
-		long current;
 
-		function_120e20(controller_index, &current);
-		if (current == profile_index)
+		function_120e20(&current, controller_index);
+		long saved_value = saved_profile_index;
+		if (current == saved_value)
 		{
 			function_120df0(controller_index, (wchar_t const *)g_54e5d0.settings.name);
 		}

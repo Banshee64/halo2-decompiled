@@ -77,13 +77,8 @@ struct s_profile_record
 void function_1537f0(s_profile_record *record)
 {
 	memset(record, 0, sizeof(*record));
-	record->value40[0] = 0;
-	record->value40[1] = 0;
-	record->value40[2] = 0;
-	record->value40[3] = 0;
-	record->value70[0] = 0;
-	record->value70[1] = 0;
-	record->value70[2] = 0;
+	memset(record->value40, 0, sizeof(record->value40));
+	memset(record->value70, 0, sizeof(record->value70));
 	record->flag7c = false;
 	record->value7e = NONE;
 	record->value7f = NONE;

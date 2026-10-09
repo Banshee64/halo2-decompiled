@@ -602,7 +602,7 @@ void c_sound_effects::add_effect_sends_direct(s_sound_send_parameters *parameter
 {
 	if (TEST_FLAG(parameters->flags, 2))
 	{
-		bool alternate = TEST_FLAG(parameters->flags, 3) != 0;
+		volatile bool alternate = TEST_FLAG(parameters->flags, 3) != 0;
 		real level = rear ? m_settings.level1c : m_settings.level24;
 		real level2 = rear ? m_settings.level20 : m_settings.level28;
 		sound_stream_append_mixbin(mixbins, alternate ? 0 : 6, level + parameters->level);

@@ -932,20 +932,20 @@ void __stdcall function_2393ae(long controller_index, long rank)
 					{
 						task_index = online_team_member_remove(controller_index, &team.xuid, xuid);
 					}
-					else if (rank > own_rank)
+					else if (rank <= own_rank)
 					{
-						dialog_ok_show(1, 0x5d, 4, 1 << controller_index, 0, 0);
-						return;
-					}
-					else if (rank == 3)
-					{
-						dialog_choice_show(3, 0x75, 4, 1 << controller_index, function_2399da, 0, 0);
-						return;
+						if (rank == 3)
+						{
+							dialog_choice_show(3, 0x75, 4, 1 << controller_index, function_2399da, 0, 0);
+							return;
+						}
+						member.TeamMemberProperties.dwPrivileges = rank;
+						task_index = online_team_member_set_rank(controller_index, &team.xuid, &member);
 					}
 					else
 					{
-						member.TeamMemberProperties.dwPrivileges = rank;
-						task_index = online_team_member_set_rank(controller_index, &team.xuid, &member);
+						dialog_ok_show(1, 0x5d, 4, 1 << controller_index, 0, 0);
+						return;
 					}
 					if (task_index != NONE)
 					{

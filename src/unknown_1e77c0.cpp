@@ -570,7 +570,7 @@ bool function_1e83c0(long local_index, long type)
 {
  s_local_player_state_view *state = &((s_local_player_state_view *)g_51e9c0)[local_index];
  byte *data = (byte *)state;
- bool result = false;
+ volatile bool result = false;
  long player_index = local_index == NONE ? NONE : g_4e8c20->entries[local_index];
  if (player_index != NONE)
  {
