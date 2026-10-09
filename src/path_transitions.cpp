@@ -187,9 +187,12 @@ bool function_270130(s_object_marker const *marker, point3f const *position, rea
 {
     if (marker->unknown6c > 0.f)
     {
-        real distance = (position->z - marker->matrix.position.z) * marker->matrix.up.k +
-            (position->y - marker->matrix.position.y) * marker->matrix.up.j +
-            (position->x - marker->matrix.position.x) * marker->matrix.up.i;
+        vector3f delta;
+        delta.k = position->z - marker->matrix.position.z;
+        delta.j = position->y - marker->matrix.position.y;
+        delta.i = position->x - marker->matrix.position.x;
+        real distance = marker->matrix.up.k * delta.k + marker->matrix.up.j * delta.j +
+            delta.i * marker->matrix.up.i;
         if (distance < 0.f) distance = 0.f;
         else if (distance > marker->unknown6c) distance = marker->unknown6c;
         if (marker->unknown6c > margin * 2.f)
@@ -202,9 +205,9 @@ bool function_270130(s_object_marker const *marker, point3f const *position, rea
             if (distance < 0.f) distance = 0.f;
             else if (distance > marker->unknown6c) distance = marker->unknown6c;
         }
-        out->x = marker->matrix.up.i * distance + marker->matrix.position.x;
-        out->y = marker->matrix.up.j * distance + marker->matrix.position.y;
-        out->z = marker->matrix.up.k * distance + marker->matrix.position.z;
+        out->x = distance * marker->matrix.up.i + marker->matrix.position.x;
+        out->y = distance * marker->matrix.up.j + marker->matrix.position.y;
+        out->z = distance * marker->matrix.up.k + marker->matrix.position.z;
     }
     else
         *out = marker->matrix.position;
