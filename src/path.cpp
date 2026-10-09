@@ -816,9 +816,9 @@ PRIVATE bool function_271630(s_type_f17a25 *state)
 				point.point.y = link->vector.j * t + link->point.point.y;
 				point.point.z = link->vector.k * t + link->point.point.z;
 			}
-			double distance = function_210970(&node->entry_point, &point);
-			real entry_distance = (real)distance;
-			real path_distance = (real)(distance + node->path_distance);
+			real distance = function_210970(&node->entry_point, &point);
+			real entry_distance = distance;
+			real path_distance = distance + node->path_distance;
 			real attractor_distance;
 			real entry_cost;
 			if (input->attractor_valid)
@@ -847,9 +847,9 @@ PRIVATE bool function_271630(s_type_f17a25 *state)
 			real destination_distance;
 			if (destination->destination_valid)
 			{
-				double remaining = function_210970(&point, &destination->destination);
-				destination_distance = (real)remaining;
-				estimated_distance = (real)(remaining + cost);
+				real remaining = function_210970(&point, &destination->destination);
+				destination_distance = remaining;
+				estimated_distance = remaining + cost;
 			}
 			long quantized = (long)(estimated_distance * 10.0f);
 			if (quantized >= 32767 || (input->distance_limit_valid && path_distance > input->distance_limit))
