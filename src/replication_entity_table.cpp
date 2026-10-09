@@ -48,9 +48,8 @@ long replication_table_allocate(s_handle_peers *peers)
 {
 	long first = peers->next_free;
 	long result = NONE;
-	long i;
 
-	for (i = first; i < 1024; i++)
+	for (long i = first; i < 1024; i++)
 	{
 		if (!(peers->peers[i].flags & 1))
 		{
@@ -60,7 +59,7 @@ long replication_table_allocate(s_handle_peers *peers)
 	}
 	if (result == NONE)
 	{
-		for (i = 0; i < peers->next_free; i++)
+		for (long i = 0; i < peers->next_free; i++)
 		{
 			if (!(peers->peers[i].flags & 1))
 			{

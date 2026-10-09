@@ -179,6 +179,12 @@ static inline __int64 message_read_ticks(void)
  __asm rdtsc
 }
 
+static __forceinline __int64 function_8c792(void)
+{
+ volatile long local_0 = 0;
+ volatile long local_1 = 0;
+ __asm rdtsc
+}
 // @retail 0x8c790
 bool function_8c790(const byte *request)
 {
@@ -191,7 +197,7 @@ bool function_8c790(const byte *request)
   dword size = *(dword *)(request + 0x28) - 16;
   if (source && size && function_199560(source, size) == 0x25224)
   {
-   __int64 start = message_read_ticks();
+   __int64 start = function_8c792();
    byte *allocation = 0;
    if (g_4e6464->page_count > 0)
    {
@@ -205,7 +211,7 @@ bool function_8c790(const byte *request)
      }
      else
      {
-      __int64 elapsed = message_read_ticks() - start;
+      __int64 elapsed = function_8c792() - start;
       if (elapsed < 0) elapsed = 0;
       if (timing_ticks_to_seconds(elapsed) >= 1.0f) break;
       D3DDevice_KickPushBuffer();

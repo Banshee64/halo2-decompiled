@@ -792,8 +792,9 @@ bool function_1995a0(const byte *source, dword source_size, byte *destination, l
 // @retail 0x86800
 bool function_86800(dword capacity, c_simulation_view *view, dword source_size, byte *destination)
 {
+ bool result;
  long compressed_size;
- bool result = function_1995a0(game_state_globals.base_address, source_size, destination, &compressed_size, capacity, 9);
+ result = function_1995a0(game_state_globals.base_address, source_size, destination, &compressed_size, capacity, 9);
  if (result)
  {
   long offset = 0;
@@ -809,7 +810,7 @@ bool function_86800(dword capacity, c_simulation_view *view, dword source_size, 
     header.offset = offset;
     if (view_buffer_write(buffer, sizeof(header), &header) == NONE ||
      view_buffer_write(buffer, header.size, destination + offset) == NONE)
-     return false;
+     { result = false; goto local_0; }
     compressed_size -= header.size;
     offset += header.size;
     view->unknownac++;
@@ -820,12 +821,13 @@ bool function_86800(dword capacity, c_simulation_view *view, dword source_size, 
     s_ring_buffer *buffer = (s_ring_buffer *)&view->unknown9c;
     header.offset = offset;
     if (view_buffer_write(buffer, sizeof(header), &header) == NONE)
-     return false;
+     { result = false; goto local_0; }
     view->unknownac++;
     break;
    }
   }
  }
+local_0:
  return result;
 }
 
@@ -983,7 +985,7 @@ void __stdcall function_865d0(c_simulation_view *view)
    break;
   case 1:
    {
-    struct { long offset; long size; byte bytes[0x10000]; } message;
+    struct { long offset; long size; byte bytes[0xfff8]; } message;
     message.offset = 0;
     message.size = 0;
     message.offset = header.value;
