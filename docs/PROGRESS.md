@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7284 functions match
+
+```
+matched 7284 of 11318 game functions (832782 of 2784283 bytes, 29.91%)
+```
+
+45 new matches, none lost:
+- Merge batch r52: the second machine's lanes L, U, F, AC (with @coldspear's #86 fixes), B (+7), D lower (+3), D upper (+14), C (+8), M (+2), P (+1), K (+4) and O (+2); @coldspear's interface quad draw analysis (#260) and a decomp.dev progress-report workflow (#265).
+
+## 2026-10-09: 7239 functions match
+
+```
+matched 7239 of 11318 game functions (823009 of 2784283 bytes, 29.56%)
+```
+
+4 new matches, none lost:
+- Deep lane 3, round 10 (lanes V, X, A and the UI screens): 0x26c2d0, 0x26dde0, 0x265550, 0x2bacbc; eight newly written bodies are active.
+
 ## 2026-10-09: 7235 functions match
 
 ```

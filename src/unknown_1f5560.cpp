@@ -1233,6 +1233,13 @@ bool function_29d6c0(vector3f *direction, s_reference reference);
 real normalize2d(point2f *vector);
 long function_baf80(long object_index);
 
+PRIVATE __forceinline real function_1f9581(point2f const *arg_0, point2f const *arg_1)
+{
+    real local_0 = 0.0f;
+    local_0 = arg_0->x * arg_1->x + arg_0->y * arg_1->y;
+    return local_0;
+}
+
 // @retail 0x1f9580
 bool function_1f9580(long actor_index, s_reference reference)
 {
@@ -1247,7 +1254,7 @@ bool function_1f9580(long actor_index, s_reference reference)
         function_210850(target, &destination);
         vector3f local_0;
         vector3d_from_points3d(&destination, &origin, &local_0);
-        real distance_squared = local_0.k * local_0.k + local_0.j * local_0.j + local_0.i * local_0.i;
+        real distance_squared = local_0.i * local_0.i + local_0.j * local_0.j + local_0.k * local_0.k;
         if (distance_squared < 12.25f)
         {
             vector3f facing;
@@ -1255,18 +1262,22 @@ bool function_1f9580(long actor_index, s_reference reference)
             point2f direction;
             direction.x = facing.i;
             direction.y = facing.j;
-            if (normalize2d(&direction) > 0.0f &&
-                (origin.y - destination.y) * direction.y +
-                (origin.x - destination.x) * direction.x > 1.2f && actor->unit_index != NONE)
+            if (normalize2d(&direction) > 0.0f)
             {
-                vector3f ray;
-                vector3d_from_points3d(&origin, &destination, &ray);
-                s_obstacle_collision collision;
-                collision.material = NONE;
-                if (!function_1697c0(0x1808c2d, &origin, &ray, function_baf80(actor->unit_index),
-                    NONE, (s_collision_result_1697c0 *)&collision) || collision.fraction >= 1.0f ||
-                    (1.0f-collision.fraction)*(1.0f-collision.fraction)*distance_squared < 0.1f)
-                    result = true;
+                point2f local_1;
+                local_1.x = origin.x - destination.x;
+                local_1.y = origin.y - destination.y;
+                if (function_1f9581(&direction, &local_1) > 1.2f && actor->unit_index != NONE)
+                {
+                    s_obstacle_collision collision;
+                    collision.material = NONE;
+                    vector3f ray;
+                    vector3d_from_points3d(&origin, &destination, &ray);
+                    if (!function_1697c0(0x1808c2d, &origin, &ray, function_baf80(actor->unit_index),
+                        NONE, (s_collision_result_1697c0 *)&collision) || collision.fraction >= 1.0f ||
+                        (1.0f-collision.fraction)*(1.0f-collision.fraction)*distance_squared < 0.1f)
+                        result = true;
+                }
             }
         }
     }

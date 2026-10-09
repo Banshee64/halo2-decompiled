@@ -94,14 +94,17 @@ bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 
 	if (actor->unknown040 && !state->unknown17)
 	{
-		if (state->unknown2c == NONE)
-			return false;
-		result = function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, false);
-		if (result)
+		if (state->unknown2c != NONE)
 		{
-			actor->unknown4cc = 1.0f;
-			state->unknown17 = true;
+			result = function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, false);
+			if (result)
+			{
+				actor->unknown4cc = 1.0f;
+				state->unknown17 = true;
+			}
 		}
+		else
+			result = false;
 	}
 	return result;
 }

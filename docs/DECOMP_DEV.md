@@ -68,29 +68,26 @@ is still required before uploading, so the statuses are the ones just checked.
 
 `build/` is gitignored. Do not commit the report.
 
-## Uploading (not wired up)
+## Uploading
 
 decomp.dev only sees a report that the default branch publishes as an artifact.
-A repo admin has to register the project at <https://decomp.dev/manage/new> and
-install the [decomp.dev GitHub app](https://github.com/apps/decomp-dev). No
-secret is required for the artifact itself. Suggested version slug: `retail`
-(this repo's disc build; `config/files.json` calls it `default`), artifact
-name `retail_report`.
+`.github/workflows/decomp-dev.yml` does that: on every push to `main` it runs
+`python tools/decomp_dev_export.py -o build/report.json` (the exporter does not
+need the XBE or the XDK, and the job holds no secrets) and uploads the file as
+the artifact `retail_report`. Suggested version slug: `retail` (this repo's
+disc build; `config/files.json` calls it `default`). The file inside the
+artifact is named `report.json`; if decomp.dev expects another name, change
+`-o` and `path` in the workflow.
 
-This draft does not add a workflow. When a listing is wanted, a push to `main`
-can run the exporter (it does not need the XBE or the XDK) and upload
-`build/decomp.dev.json`:
+Nothing reaches decomp.dev until a repo admin registers the project at
+<https://decomp.dev/manage/new> and installs the
+[decomp.dev GitHub app](https://github.com/apps/decomp-dev). The workflow can
+also be started by hand (`workflow_dispatch`), which seeds the first report once
+that is done.
 
-```yaml
-- run: python tools/decomp_dev_export.py -o build/decomp.dev.json
-- uses: actions/upload-artifact@v4
-  with:
-    name: retail_report
-    path: build/decomp.dev.json
-```
-
-Run `python tools/check.py` in that workflow first once the retail XBE is
-available to CI, then pass `--check-report build/report.json`, so the listing
-is not stuck on whatever statuses were last committed to the CSV. Until
-`check.py` records a matched-byte count for `near` functions, the fuzzy
-percent will keep equalling the full-match percent.
+The statuses in the report are the ones last committed to the CSV. If the
+retail XBE ever becomes available to CI, run `python tools/check.py` in the
+workflow first and pass `--check-report build/report.json`, so the listing is
+not stuck on whatever statuses were last committed. Until `check.py` records a
+matched-byte count for `near` functions, the fuzzy percent will keep equalling
+the full-match percent.

@@ -659,7 +659,7 @@ s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *
 	byte *parameters = (byte *)context;
 	s_type_b36ac5 *positions = (s_type_b36ac5 *)entries;
 	s_reference result = g_470fa0;
-	bool in_range = false;
+	bool within_limit = false;
 	bool finite_distance = false;
 	short selected = NONE;
 	real best_score = 0.0f;
@@ -819,7 +819,7 @@ s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *
 			}
 		}
 		if (*(real *)(parameters + 0x1c) > position->unknown18)
-			in_range = true;
+			within_limit = true;
 		else
 		{
 			position->unknown4c = false;
@@ -827,12 +827,12 @@ s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *
 				finite_distance = true;
 		}
 	}
-	if (!in_range && !finite_distance && !parameters[0x56] && !actor[0x264] &&
+	if (!within_limit && !finite_distance && !parameters[0x56] && !actor[0x264] &&
 		(*(long *)(actor + 0x28c) == NONE || (*has_path && count > 0 && *(short *)(scratch + 0xae) < 8)))
 		++*(short *)(actor + 0x5e8);
 	else
 		*(short *)(actor + 0x5e8) = 0;
-	if (parameters[0x15] && !in_range)
+	if (parameters[0x15] && !within_limit)
 	{
 		dword *seed = (dword *)g_4e7408;
 		*seed = *seed * 0x19660d + 0x3c6ef35f;

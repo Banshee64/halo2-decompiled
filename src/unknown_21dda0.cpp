@@ -174,7 +174,7 @@ long sound_voice_matches(s_voice_playing_sound const *sound, s_sound_voice const
 
 	if (source == sound->source &&
 		voice->ambient == TEST_BIT(sound->location.flags, 0) &&
-		sound_classes_match((char)voice->sound_class, ((s_sound_tag_class_view *)g_4e3b44[sound->definition_index & 0xffff].bytes)->sound_class))
+		(byte)sound_classes_match((char)voice->sound_class, ((s_sound_tag_class_view *)g_4e3b44[sound->definition_index & 0xffff].bytes)->sound_class))
 	{
 		if (source)
 		{
