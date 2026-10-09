@@ -229,8 +229,11 @@ long function_1d3880(s_havok_component const *component, long *constraints, long
 {
 	*constraints = component->unknown88.size * sizeof(s_havok_component_element48);
 	*contacts = (component->unknown7c.capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element0c);
-	long capacity = component->unknown94 ? component->unknown94->capacity_and_flags : 0;
-	*other = (capacity & 0x7fffffff) * sizeof(s_havok_component_element08);
+	s_havok_array08 *local_0 = component->unknown94;
+	long capacity = (long)local_0;
+	if (local_0)
+		capacity = local_0->capacity_and_flags & 0x7fffffff;
+	*other = capacity * sizeof(s_havok_component_element08);
 	*bodies = (component->rigid_bodies.capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_rigid_body);
 	for (long i = 0; i < component->rigid_bodies.size; i++)
 	{
