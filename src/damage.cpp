@@ -3105,7 +3105,7 @@ short __stdcall function_d88f0(long object_index, long marker_name)
 
 /* damages an object's region of a name */
 // @retail 0xd8a40
-void function_d8a40(string_handle region_name, long object_index, real damage)
+void function_d8a40(long object_index, string_handle region_name, real damage)
 {
 	if (object_index != NONE)
 	{

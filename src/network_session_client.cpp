@@ -143,6 +143,13 @@ bool c_session_client::function_06dd00(long a, s_session_remote *remote)
 	return result;
 }
 
+static __forceinline void function_6ddb0(s_allocator_globals *arg_0, s_session_request *arg_1)
+{
+ arg_0->allocator->release(arg_1, NONE);
+ if (arg_1)
+  arg_0->count--;
+}
+
 // @retail 0x6ddb0
 void session_client_remove_request(c_session_client *client, s_session_request *request)
 {
@@ -154,10 +161,7 @@ void session_client_remove_request(c_session_client *client, s_session_request *
 		*link = (*link)->next;
 		long info;
 		g_4d87f8->allocator->get_info(request, &info);
-		s_allocator_globals *globals = g_4d87f8;
-		globals->allocator->release(request, NONE);
-		if (request)
-			globals->count--;
+		function_6ddb0(g_4d87f8, request);
 		client->request_count--;
 	}
 }

@@ -180,6 +180,11 @@ void *function_123d40(char const *name, char const *type, long size);
 char *function_11c9c0(char *buffer, long maximum_count, char const *format, ...);
 s_record_pool *function_296270(char const *name, long size, long count);
 
+PRIVATE __forceinline s_record_pool *function_1cabc1(long arg_0, long arg_1, char *arg_2, char const *arg_3, char const *arg_4)
+{
+ return function_296270(function_11c9c0(arg_2, 0x100, arg_3, arg_4), arg_0, arg_1);
+}
+
 // @retail 0x1cabc0
 void function_1cabc0(s_cluster_partition *partition, char const *name, long payload_size)
 {
@@ -188,8 +193,6 @@ void function_1cabc0(s_cluster_partition *partition, char const *name, long payl
 	(void)&payload_size;
 	char label[256];
 	partition->cluster_first_data_references = (long *)function_123d40(NULL, NULL, 0x800);
-	function_11c9c0(label, sizeof(label), "cluster %s", name);
-	partition->data_references = function_296270(label, payload_size, 0x800);
-	function_11c9c0(label, sizeof(label), "%s cluster", name);
-	partition->cluster_references = function_296270(label, 0, 0x800);
+	partition->data_references = function_1cabc1(payload_size, 0x800, label, "cluster %s", name);
+	partition->cluster_references = function_1cabc1(0, 0x800, label, "%s cluster", name);
 }

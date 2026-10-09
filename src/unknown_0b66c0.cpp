@@ -186,16 +186,18 @@ static __forceinline char *upload_copy_ab(char *destination, char const *source,
 // @retail 0xb62b0
 s_upload_ab *function_b62b0(s_upload_ab *upload)
 {
+    char *content_type = upload->content_type;
+    char *filename = upload->filename;
     *(volatile char *)upload->path = 0;
     *(volatile char *)upload->header = 0;
     *(volatile char *)upload->part = 0;
     *(volatile char *)upload->ending = 0;
-    *(volatile char *)upload->content_type = 0;
-    *(volatile char *)upload->filename = 0;
+    *(volatile char *)content_type = 0;
+    *(volatile char *)filename = 0;
     *(volatile char *)upload->extra_headers = 0;
     upload->kind = 0;
-    upload_copy_ab(upload->content_type, "text/plain", sizeof(upload->content_type));
-    upload_copy_ab(upload->filename, "blob", sizeof(upload->filename));
+    upload_copy_ab(content_type, "text/plain", sizeof(upload->content_type));
+    upload_copy_ab(filename, "blob", sizeof(upload->filename));
     return upload;
 }
 

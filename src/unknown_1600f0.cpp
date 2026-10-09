@@ -703,7 +703,8 @@ void function_161f30(long player_index)
 // @retail 0x1628f0
 void function_1628f0(long player_index, char state)
 {
-	s_game_engine_player_info *info = (s_game_engine_player_info *)&g_4e9ae8->players[player_index & 0xffff];
+	long index = player_index & 0xffff;
+	s_game_engine_player_info *info = (s_game_engine_player_info *)&g_4e9ae8->players[index];
 
 	if (g_4e6948->mode != 4)
 	{
@@ -765,7 +766,7 @@ void function_1628f0(long player_index, char state)
 		}
 		if (previous != info->state && game_engine_get())
 		{
-			long slot = g_4e9ae8->slots[(short)player_index];
+			long slot = g_4e9ae8->slots[(short)index];
 
 			if (slot != NONE)
 			{

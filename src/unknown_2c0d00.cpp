@@ -183,7 +183,8 @@ void obstacle_tangent_directions(point2f const *point, s_obstacle_list const *li
 // @retail 0x2c0d00
 bool obstacle_list_add(s_obstacle_list *list, word flags, point2f const *center, long object_index, real radius)
 {
-	s_obstacle *obstacle;
+	real volatile const *radius_reference = &radius;
+    s_obstacle *obstacle;
 
 	if (list->count == 64)
 	{
@@ -201,8 +202,9 @@ bool obstacle_list_add(s_obstacle_list *list, word flags, point2f const *center,
 	obstacle->flags = flags;
 	obstacle->group = NONE;
 	obstacle->object_index = object_index;
-	obstacle->center = *center;
-	obstacle->radius = radius;
+		obstacle->center.y = *(real volatile const *)&center->y;
+    *(long *)&obstacle->center.x = *(long const *)&center->x;
+    obstacle->radius = *radius_reference;
 	return true;
 }
 
