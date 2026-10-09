@@ -194,7 +194,9 @@ def test_swap_ternary_negates():
 def test_swap_args_trades_two_arguments():
     swap = permute.mut_swap_args
     seen = {swap('\n\tf(a, 0x2a, b);\n', random.Random(s)) for s in range(60)}
-    assert seen == {'\n\tf(0x2a, a, b);\n', '\n\tf(b, 0x2a, a);\n', '\n\tf(a, b, 0x2a);\n'}
+    swaps = {'\n\tf(0x2a, a, b);\n', '\n\tf(b, 0x2a, a);\n', '\n\tf(a, b, 0x2a);\n'}
+    rotations = {'\n\tf(0x2a, b, a);\n', '\n\tf(b, a, 0x2a);\n'}      # an argument moved two places
+    assert seen == swaps | rotations
     assert swap('\n\tf( a , b );\n', rng()) == '\n\tf( b , a );\n'
     assert swap('\n\tf("a,b", c);\n', rng()) == '\n\tf(c, "a,b");\n'
     nested = {swap('\n\tf(g(a, b), c);\n', random.Random(s)) for s in range(60)}

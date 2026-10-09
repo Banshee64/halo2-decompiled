@@ -838,31 +838,62 @@ def _literal_spans(text):
     return spans
 
 
-def mut_swap_args(body, rng):
-    """f(a, b, c) -> f(b, a, c): two arguments of one call trade places (any two; neighbours and equal kinds
-    are likelier). What the call means changes, so a variant is kept only when its code gets closer to retail."""
+def _arg_orders(texts):
+    """[(weight, order)] for each way to rearrange a call's arguments: a swap of two (neighbours and arguments of the
+    same kind are likelier) or one argument moved two or more places, which also covers a rotation of three."""
+    n, seen, found = len(texts), {tuple(texts)}, []
+    for i in range(n):
+        for j in range(i + 1, n):
+            order = list(range(n))
+            order[i], order[j] = j, i
+            weight = (3 if j == i + 1 else 1) * (2 if _arg_kind(texts[i]) == _arg_kind(texts[j]) else 1)
+            found.append((weight, order))
+    for i in range(n):
+        for j in range(n):
+            if abs(i - j) >= 2:
+                order = [k for k in range(n) if k != i]
+                order.insert(j, i)
+                found.append((1, order))
+    unique = []
+    for weight, order in found:
+        key = tuple(texts[k] for k in order)
+        if key not in seen:
+            seen.add(key)
+            unique.append((weight, order))
+    return unique
+
+
+def _rearranged(body, spans, texts, order):
+    """body with the arguments at spans replaced by texts[k] for k in order (spacing around each kept)."""
+    out = body
+    for (a, b), k in reversed(list(zip(spans, order))):   # right to left, so earlier spans keep their place
+        lead = len(out[a:b]) - len(out[a:b].lstrip())
+        trail = len(out[a:b]) - len(out[a:b].rstrip())
+        out = out[:a + lead] + texts[k] + out[b - trail:]
+    return out
+
+
+def _calls(body):
+    """[(spans, texts)] for each call in body with two or more arguments, outside comments and strings."""
     calls, literals = [], _literal_spans(body)
     for m in CALLEE.finditer(body):
         if any(a <= m.start() < b for a, b in literals):
             continue
         got = _call_args(body, m.end() - 1)
         if got and len(got[0]) >= 2:
-            texts = [body[a:b].strip() for a, b in got[0]]
-            pairs = [(i, j) for i in range(len(texts)) for j in range(i + 1, len(texts)) if texts[i] != texts[j]]
-            if pairs:
-                calls.append((got[0], texts, pairs))
+            calls.append((got[0], [body[a:b].strip() for a, b in got[0]]))
+    return calls
+
+
+def mut_swap_args(body, rng):
+    """f(a, b, c) -> f(b, a, c) or f(b, c, a): two arguments of one call trade places, or one moves two or more
+    places. What the call means changes, so a variant is kept only when its code gets closer to retail."""
+    calls = [(spans, texts, orders) for spans, texts in _calls(body) if (orders := _arg_orders(texts))]
     if not calls:
         return None
-    spans, texts, pairs = rng.choice(calls)
-    weights = [(3 if j == i + 1 else 1) * (2 if _arg_kind(texts[i]) == _arg_kind(texts[j]) else 1) for i, j in pairs]
-    i, j = rng.choices(pairs, weights)[0]
-    out = body
-    for k, other in ((j, i), (i, j)):          # right to left, so the earlier span keeps its place
-        a, b = spans[k]
-        lead = len(body[a:b]) - len(body[a:b].lstrip())
-        trail = len(body[a:b]) - len(body[a:b].rstrip())
-        out = out[:a + lead] + texts[other] + out[b - trail:]
-    return out
+    spans, texts, orders = rng.choice(calls)
+    order = rng.choices([o for _, o in orders], [w for w, _ in orders])[0]
+    return _rearranged(body, spans, texts, order)
 
 
 SCALARS = r'(?:unsigned long|unsigned short|unsigned char|long|short|char|byte|word|dword|int|real|bool)'
