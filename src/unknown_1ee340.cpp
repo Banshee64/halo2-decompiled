@@ -606,14 +606,14 @@ void c_shape_owner::query_box(const c_query_transform *matrix, const __m128 *ext
    s_query_owner *owner = &globals->owners[instance->owner];
    if (owner->surface_count <= 0x2000)
    {
-    c_instance_surface_query *query = (c_instance_surface_query *)(owner->shape + 0x50);
+    byte *volatile shape = owner->shape;
     c_query_transform transform, local;
     query_transform(&instance->matrix, &transform);
     local.inverse_product(&transform, matrix);
     query_remove_key(keys, i);
     long first = keys->count;
     --i;
-    query->query_box(&local, extent, tolerance, keys);
+    ((c_instance_surface_query *)(shape + 0x50))->query_box(&local, extent, tolerance, keys);
     query_remap_keys(keys, first, instance_index);
    }
   }

@@ -210,7 +210,12 @@ long function_1eb8a0(
 
 				real k = s->fast ? 12.f : 8.f;
 				real t = step * 0.375f;
-				real e = PIN(t, 0.001f, globals->rate * k);
+				real e = 0.001f;
+				if (!(0.001f > t))
+				{
+					real cap = globals->rate * k;
+					e = t > cap ? cap : t;
+				}
 				real third = e * 0.33333334f;
 				real up = e * 4.f;
 				real down = (e - third) * 3.f;
@@ -256,7 +261,12 @@ long function_1eb8a0(
 
 				real k2 = s->fast ? 12.f : 8.f;
 				real t2 = len3 * 0.375f;
-				real e2 = PIN(t2, 0.001f, globals->rate * k2);
+				real e2 = 0.001f;
+				if (!(0.001f > t2))
+				{
+					real cap2 = globals->rate * k2;
+					e2 = t2 > cap2 ? cap2 : t2;
+				}
 				real third2 = e2 * 0.33333334f;
 				real up2 = e2 * 4.f;
 				real down2 = (e2 - third2) * 3.f;
@@ -316,19 +326,26 @@ long function_1eb8a0(
 	}
 
 	out->position = *q;
+	globals = g_510c54;
 
 	if (s->active)
 	{
 		real k3 = s->fast ? 12.f : 8.f;
 		real t3 = s->distance * 0.375f;
-		real e3 = PIN(t3, 0.001f, globals->rate * k3);
+		real e3 = 0.001f;
+				if (!(0.001f > t3))
+				{
+					real cap3 = globals->rate * k3;
+					e3 = t3 > cap3 ? cap3 : t3;
+				}
 		long counter = s->counter;
-		real cnt = (real)counter;
+		real volatile cnt = (real)counter;
 		real w = s->direction.k * q->k + s->direction.j * q->j + q->i * s->direction.i;
 		if (counter == 0)
 			q = g_4687a4;
 		w = w * globals->rate;
-		vector3f qr = *q;
+		vector3f qr;
+		qr.k = q->k; qr.i = q->i; qr.j = q->j;
 		real third3 = e3 * 0.33333334f;
 		real lo = (w - third3) * 3.f * 0.5f;
 		real hi = (e3 - third3) * 3.f * 0.5f;
@@ -658,3 +675,56 @@ bool function_1ec500(long object_index)
  }
  return result;
 }
+
+
+struct s_havok_component;
+void havok_component_rigid_bodies_activate(s_havok_component *component);
+bool function_109e00(long object_index, vector3f *velocity, bool definition_flag_required);
+void function_b7740(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity, bool skip_update);
+void function_1c4b00(long object_index, void *linear, void *angular, long force);
+void __stdcall function_b9b90(long object_index, bool disable);
+void function_b7360(long object_index);
+void function_bba20(long object_index);
+void __stdcall function_b8890(long object_index);
+
+// @retail 0x1ed340
+void __stdcall function_1ed340(void *physics, long object_index)
+{
+ long const *input_reference = &object_index;
+ struct s_release_object_view
+ {
+  byte unknown00[0xb4];
+  long component_index;
+  byte unknownb8[8];
+  word flag0 : 1;
+  word flag1 : 1;
+  word flag2 : 1;
+  word flag3 : 1;
+  word flag4 : 1;
+  word flag5 : 1;
+  word flag6 : 1;
+  word remaining : 9;
+ };
+ s_release_object_view *object = *(s_release_object_view **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
+ *(long *)((byte *)physics + 0x14) = NONE;
+ *(long *)((byte *)physics + 0x18) = NONE;
+ if (!TEST_FIELD_BIT(object->flag6))
+ {
+  s_havok_component *component = (s_havok_component *)(g_51e9b8->data + (*(long volatile *)((byte *)object + 0xb4) & 0xffff) * 0xa0);
+  vector3f velocity;
+  if (function_109e00(*input_reference, &velocity, false))
+  {
+   function_b7740(object_index, &velocity, NULL, false);
+   function_1c4b00(object_index, &velocity, NULL, 1);
+   if (velocity.i * velocity.i + velocity.j * velocity.j + velocity.k * velocity.k > 0.0001f)
+   {
+    function_b9b90(object_index, false);
+    function_b7360(object_index);
+    function_bba20(object_index);
+   }
+  }
+  function_b8890(object_index);
+  havok_component_rigid_bodies_activate(component);
+ }
+}
+

@@ -262,8 +262,7 @@ struct s_actor_variant_definition
 long function_1e06b0(long tag_index)
 {
 	s_actor_variant_definition *definition = (s_actor_variant_definition *)g_4e3b44[tag_index & 0xffff].bytes;
-	long result = 0;
-	if (definition->count == 1)
+		if (definition->count == 1)
 		return definition->entries[0].value;
 	if (definition->count > 1)
 	{
@@ -305,10 +304,10 @@ long function_1e06b0(long tag_index)
 			dword seed = g_4e7408->unknown0 * 0x19660d + 0x3c6ef35f;
 			g_4e7408->unknown0 = seed;
 			short choice = (short)(((seed >> 16) * choice_count) >> 16);
-			result = definition->entries[choices[choice]].value;
+			return definition->entries[choices[choice]].value;
 		}
 	}
-	return result;
+	return 0;
 }
 
 void function_290bf0(long perception_index, short team);
@@ -856,9 +855,9 @@ void __stdcall function_28e090(long actor_index, long perception_index);
 // @retail 0x1e02f0
 long __stdcall function_1e02f0(long squad_index, long entry_index, long unit_index, long perception_index, bool flag)
 {
-	long result = NONE;
-	long resolved_squad = squad_index;
-	long const *unit_reference = &unit_index;
+	
+	
+	long const volatile *unit_reference = &unit_index;
 	long const *perception_reference = &perception_index;
 	bool const *flag_reference = &flag;
 	byte *squad = NULL;
@@ -879,14 +878,14 @@ long __stdcall function_1e02f0(long squad_index, long entry_index, long unit_ind
 			else
 			{
 				if (!(squad_index & 0xffff0000))
-					resolved_squad = (*(short *)squad << 16) | (squad_index & 0xffff);
-				function_203d70(actor_index, (short)resolved_squad, false);
+					squad_index = (*(short *)squad << 16) | (squad_index & 0xffff);
+				function_203d70(actor_index, (short)squad_index, false);
 			}
 			byte *unit = *unit_reference == NONE ? NULL : (byte *)ai_object_get(*unit_reference);
 			short team = 0;
-			if (resolved_squad != NONE)
+			if (squad_index != NONE)
 			{
-				byte *entry = *(byte **)((byte *)g_4e0350 + 0x164) + (resolved_squad & 0xffff) * 0x74;
+				byte *entry = *(byte **)((byte *)g_4e0350 + 0x164) + (squad_index & 0xffff) * 0x74;
 				if (entry)
 					team = *(short *)(entry + 0x24);
 			}
@@ -910,10 +909,10 @@ long __stdcall function_1e02f0(long squad_index, long entry_index, long unit_ind
 				function_1e1a00(actor_index, 0);
 			}
 			else
-				result = actor_index;
+				return actor_index;
 		}
 	}
-	return result;
+	return NONE;
 }
 
 #include "unit_requests.h"
