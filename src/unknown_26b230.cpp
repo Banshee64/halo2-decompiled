@@ -1312,13 +1312,13 @@ long function_26a4f0(s_clump_activity_view *clump, short priority)
 		if (result == NONE)
 		{
 			long time = g_510c54->game_time;
-			short removed = 0;
+			long removed = 0;
 			long selected;
 			do
 			{
-				selected = NONE;
-				real best_score = 0.0f;
 				s_clump_pool_iterator iterator;
+				real best_score = 0.0f;
+				selected = NONE;
 				if (g_4f55d0->active)
 				{
 					iterator.pool.data = g_502420;

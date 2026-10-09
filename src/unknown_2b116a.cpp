@@ -828,9 +828,11 @@ void c_campaign_options_list::v3()
 			s_screen_parameters parameters;
 			c_campaign_options_screen *screen;
 
+			long difficulty = *(short volatile *)&header.difficulty;
+			long level = header.level;
 			g_54e7c0 = 1;
-			g_54e7c4 = header.level;
-			function_148d42(header.difficulty);
+			g_54e7c4 = level;
+			function_148d42(difficulty);
 			g_54e7cc = true;
 			parameters.field_c = 0;
 			function_149f49((s_message *)&parameters, 0, 0, user_flags, 5, 4, (long)function_2b1467);
@@ -2029,22 +2031,29 @@ c_feedback_list::c_feedback_list(word user_flags, long mode) :
 	c_class_1474e8(user_flags),
 	handler(this, (list_item_method)&c_feedback_list::handle_item)
 {
-	s_feedback_target target;
-	byte local_a4c1eb[0x20];
-	unsigned __int64 clan_id;
-	bool in_clan;
+	
+#pragma pack(push, 4)
+	struct s_feedback_scratch
+	{
+		byte buffer[0x20];
+		s_feedback_target target;
+		unsigned __int64 clan_id;
+		bool in_clan;
+	};
+#pragma pack(pop)
+	s_feedback_scratch scratch;
 	unsigned __int64 *xuid;
 
 	this->mode = mode;
-	function_14887e((s_screen_settings_54dc6c *)&target);
-	xuid = feedback_target_xuid(&target);
-	if (function_8c150(g_4771c8, 0, xuid, local_a4c1eb, &clan_id) && clan_id)
+	function_14887e((s_screen_settings_54dc6c *)&scratch.target);
+	xuid = feedback_target_xuid(&scratch.target);
+	if (function_8c150(g_4771c8, 0, xuid, scratch.buffer, &scratch.clan_id) && scratch.clan_id)
 	{
-		in_clan = true;
+		scratch.in_clan = true;
 	}
 	else
 	{
-		in_clan = false;
+		scratch.in_clan = false;
 	}
 	data = user_interface_data_new("feedback list", 10, 4);
 	function_16b790(data);
@@ -2057,7 +2066,7 @@ c_feedback_list::c_feedback_list(word user_flags, long mode) :
 		list_item_add(this, 4);
 		list_item_add(this, 5);
 		list_item_add(this, 6);
-		if (in_clan)
+		if (scratch.in_clan)
 		{
 			list_item_add(this, 7);
 		}
@@ -3287,7 +3296,7 @@ void c_playlist_listing_screen::v3()
 			if (index != NONE)
 			{
 				c_class_1a2c81 *name_text = find_child(6, 3, false);
-				c_class_1a2c81 *description_text = find_child(6, 4, false);
+				c_class_1a2c81 *volatile description_text = find_child(6, 4, false);
 
 				if (name_text)
 				{
@@ -4567,7 +4576,7 @@ void c_clan_options_list::handle_item(s_controller_reference **controller, long 
 
 			if (player_slot_get_identity(controller_index, &identity))
 			{
-				bool member = function_1a334a(controller_index, (_XUID const *)&identity);
+				long volatile member = function_1a334a(controller_index, (_XUID const *)&identity);
 
 				if (identity.type != 1 && member)
 				{
@@ -4924,9 +4933,9 @@ void c_potential_squad_leader_player_list::v20(c_class_1a2c81 *widget, long inde
 	{
 		s_squad_leader_datum *datum = &((s_squad_leader_datum *)data->data)[widget_item(widget)->value70 & 0xffff];
 
-		if (function_19a951(datum->player_index))
+		if (function_19a951(*(long volatile *)&datum->player_index))
 		{
-			word *name = (word *)function_19aaa5(datum->player_index);
+			word *name = (word *)function_19aaa5(*(long volatile *)&datum->player_index);
 
 			text->function_22f52e()->set_text(name);
 		}
