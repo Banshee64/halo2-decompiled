@@ -145,6 +145,7 @@ bool c_object_type_definition::v14(long a1, long a2, long a3, long a4, long a5, 
 // @retail 0xa0960
 bool c_object_type_definition::v15(long a, long b, long c, long d, s_bitstream *stream)
 {
+	c_object_type_definition const *volatile saved_definition = this;
 	if (function_a6d50(b, d, stream) && stream->bit_position <= stream->size_in_bytes * 8)
 	{
 		return true;
@@ -298,6 +299,7 @@ void c_turret_entity_definition::v26(long index, long b, s_entity_state *state)
 // @retail 0xa3a00
 long c_object_type_definition::v27(long a, long b, long c, long d)
 {
+	c_object_type_definition const *volatile saved_definition = this;
 	return function_a5e70(a, b & 0x3ff, d);
 }
 
