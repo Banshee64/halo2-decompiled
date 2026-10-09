@@ -270,7 +270,7 @@ long session_peer_map_add_connected(s_session_peer_map *map, const s_session_mem
 }
 
 // @retail 0x63ca0
-long count_bits(dword value)
+inline long count_bits(dword value)
 {
 	value = ((value >> 1) & 0x55555555) + (value & 0x55555555);
 	value = ((value >> 2) & 0x33333333) + (value & 0x33333333);
@@ -477,10 +477,11 @@ bool session_summary_remove_machine(s_session_summary *summary, s_session_id *id
 // @retail 0x63550
 bool session_summary_add_machine(s_session_summary *summary, s_session_id *id, const XUID *machine_user, const long *values288, long player_count, XUID *players, const long *values248)
 {
+    bool local_0 = false;
 	if (summary->player_count + player_count > 16 || summary->machine_count >= 16)
-		return false;
+		goto local_1;
 	if (function_0632e0(summary, id) != NONE || function_063510(players, summary, player_count))
-		return false;
+		goto local_1;
 
 	for (long i = 0; i < player_count; i++)
 	{
@@ -494,7 +495,9 @@ bool session_summary_add_machine(s_session_summary *summary, s_session_id *id, c
 	summary->machine_users[summary->machine_count] = *machine_user;
 	summary->machine_times[summary->machine_count] = function_75870();
 	summary->machine_count++;
-	return true;
+    local_0 = true;
+local_1:
+    return local_0;
 }
 
 static inline bool session_peer_map_is_reachable(s_session_peer_map *map, const s_session_member_header *member)
