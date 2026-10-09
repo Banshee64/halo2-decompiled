@@ -187,8 +187,10 @@ void c_simulation_view::detach(void)
 {
 	if (type == 2 && buffer)
 		release_buffer();
-	world->views[world_index] = 0;
-	world->view_count--;
+	c_class_6a600 *local_0 = world;
+	long local_1 = world_index;
+	local_0->views[local_1] = 0;
+	local_0->view_count--;
 	world = 0;
 	world_index = NONE;
 }
@@ -418,6 +420,7 @@ bool c_simulation_view::handle_player_update(bool failed, long a, long b, dword 
 	return result;
 }
 
+#pragma optimize("t", off)
 // @retail 0x86ad0
 bool c_simulation_view::has_pending_entity(void)
 {
@@ -434,6 +437,7 @@ bool c_simulation_view::has_pending_entity(void)
 	}
 	return false;
 }
+#pragma optimize("", on)
 
 // @retail 0x85cb0
 bool c_simulation_view::function_85cb0(void)

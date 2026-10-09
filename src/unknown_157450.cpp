@@ -1370,7 +1370,7 @@ long function_15ac50(long index)
 }
 
 // @retail 0x15b1e0
-void function_15b1e0(long object_index, s_netgame_entry_state *entries, long index)
+void function_15b1e0(long object_index, long index, s_netgame_entry_state *entries)
 {
 	s_engine_object *object = engine_object_get(object_index);
 
@@ -1934,7 +1934,7 @@ void function_15adb0(s_netgame_entry_state *entries)
 		{
 			if (entries[index].index != NONE)
 			{
-				function_15b1e0(entries[index].index, entries, index);
+				function_15b1e0(entries[index].index, index, entries);
 			}
 			entries[index].value04 = 0;
 			entries[index].index = iterator.object_index;
@@ -4192,7 +4192,8 @@ PRIVATE __forceinline long sweep_rank_mode()
 // @retail 0x158e90
 long function_158e90(long team)
 {
-    return function_23f360(sweep_rank_mode(), team) / 2;
+    bool mode = g_4e6948->flag1128 != 0;
+    return function_23f360((long)mode, team) / 2;
 }
 
 PRIVATE __forceinline bool sweep_team_active(long team)

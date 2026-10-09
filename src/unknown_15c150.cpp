@@ -181,15 +181,16 @@ void function_15c550()
 			function_157ae0();
 			if (game_engine_get_statborg())
 				game_engine_get_statborg()->valid = true;
+			long current_time = g_510c54->game_time;
 			globals = g_4e9ae8;
-			*(long *)((byte *)globals + 0x70) = g_510c54->game_time;
+			*(long *)((byte *)globals + 0x70) = current_time;
 			if (g_4e6948->mode != 4)
 			{
 				s_game_options_view *options = g_4e6948;
 				s_transition_player_iterator iterator;
 				iterator.data = g_4e8c24;
-				iterator.datum_index = NONE;
 				iterator.absolute_index = NONE;
+				iterator.datum_index = NONE;
 				while (function_19f240((long *)&iterator))
 				{
 					long index = iterator.datum_index & 0xffff;
@@ -234,7 +235,7 @@ void function_15ca10()
 			case 2:
 				if (--*(long *)((byte *)globals + 0xc00) <= 0)
 				{
-					if (globals->w6e < 31)
+					if ((short)globals->w6e < 31)
 						function_15fe50(3);
 					else
 						function_15ba00();
@@ -251,8 +252,7 @@ void function_15ca10()
 			{
 				if (globals->lc04 == 1)
 				{
-					long winner = function_15b330(false);
-					function_15b3a0(winner, 0);
+					function_15b3a0(function_15b330(false), 0);
 					globals = g_4e9ae8;
 				}
 				if (globals->lc04 != 1)

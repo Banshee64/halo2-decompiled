@@ -114,13 +114,13 @@ c_vertex_shape::c_vertex_shape(s_shape_source *source, byte type, long data, lon
 	long user_data, const transform4x3f *matrix)
 {
 	s_shape_source *const *source_reference = &source;
-	const byte *type_reference = &type;
-	const long *data_reference = &data;
+	const volatile byte *type_reference = &type;
+	const volatile long *data_reference = &data;
 	const long *index_reference = &index;
 	const long *user_reference = &user_data;
 	user = 0;
 	vertex_count = 0;
-	kind = *type_reference;
+	*(byte volatile *)&kind = *type_reference;
 	value = *data_reference;
 	radius = 0.01f;
 	surface_index = *index_reference;
@@ -298,19 +298,17 @@ short g_54e898;
 // @retail 0x1ee410
 void function_1ee410(const s_lookup_source *source, short *result)
 {
+    short value = g_54e898;
 	if (source->tag_index != NONE)
 	{
 		s_tag_instance_ref *tags = (s_tag_instance_ref *)g_4e3b44;
-		*result = tags[(word)source->tag_index].data->entries[source->index].value10;
+		value = tags[(word)source->tag_index].data->entries[source->index].value10;
 	}
 	else if (source->index != NONE)
 	{
-		*result = g_4e0348->entries[source->index].value08;
+		value = g_4e0348->entries[source->index].value08;
 	}
-	else
-	{
-		*result = g_54e898;
-	}
+    *result = value;
 }
 
 struct s_count_entry
@@ -711,7 +709,7 @@ struct s_type_1a7926
  transform4x3f *field_50;
 };
 
-bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+bool function_20a9a0(s_type_1a7926 *matrices, long object_index);
 extern long *g_51e9cc;
 
 struct c_child_transform : c_havok_reference_counted
@@ -753,7 +751,7 @@ c_child_transform *function_1ef070(dword key, void *storage)
  else
  {
   s_type_1a7926 info;
-  function_20a9a0(object_index, &info);
+  function_20a9a0(&info, object_index);
   byte *physics = (byte *)info.node_indices;
   byte *group = *(byte **)(physics + 0xc4) + *(signed char *)(region + 5) * 12;
   byte *entry = *(byte **)(group + 8) + *(signed char *)(choice + 6) * 12;

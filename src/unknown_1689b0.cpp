@@ -1136,12 +1136,13 @@ bool function_16a7c0(point3f const *from, point3f const *to, long ignore_object_
 {
 	vector3f vector;
 	s_collision_result_1697c0 collision;
-	bool moved = false;
+	bool moved;
 
 	vector.i = to->x - from->x;
 	vector.j = to->y - from->y;
-	vector.k = to->z - from->z;
 	collision.material_type = NONE;
+	moved = false;
+	vector.k = to->z - from->z;
 	if (function_1697c0(0x2490000f, from, &vector, ignore_object_index, ignore_unit_index, &collision))
 	{
 		if (collision.end_location.cluster_index != NONE)
@@ -1160,8 +1161,8 @@ bool function_16a7c0(point3f const *from, point3f const *to, long ignore_object_
 	}
 	else
 	{
-		*result = *to;
 		moved = true;
+		*result = *to;
 	}
 	return moved;
 }

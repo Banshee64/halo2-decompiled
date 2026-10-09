@@ -1137,8 +1137,8 @@ bool function_1cb5f0(long node_count, s_animation_state *state, real seconds, s_
 			counter->unknown0 = 0;
 			counter->unknown3 = 0;
 			memcpy(orientations, targets, node_count * 0x20);
-			result = true;
 			function_1d9240((s_1d9240 *)counter, true, seconds);
+			result = true;
 		}
 	}
 	return result;

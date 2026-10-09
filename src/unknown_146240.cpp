@@ -20,9 +20,10 @@ void random_initialize(void)
 
 	g_4e7408 = globals;
 	globals->unknown0 = 0x78a8;
-	dword seed = (dword)time(0);
-	seed = (dword)rand() ^ GetTickCount() ^ seed;
-	g_4e7408->seed = seed;
+	dword time_seed = (dword)time(0);
+	dword seed = (dword)rand();
+	seed ^= GetTickCount();
+	g_4e7408->seed = seed ^ time_seed;
 }
 
 // @retail 0x1462b0
