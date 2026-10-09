@@ -1268,7 +1268,7 @@ void function_16ff10(long user_index)
 real g_468d28 = 1.0f;
 
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 extern s_bsp3d *g_4e033c;
 extern short g_4686c4;
 struct s_unknown_13bf00;
@@ -1566,7 +1566,7 @@ void __stdcall function_16f280(real dt)
 			cluster_index = NONE;
 			if (g_4686c4 != NONE)
 			{
-				long leaf_index = function_14a280(g_4e033c, &g_4e9bd4[user_index].state.position, 0);
+				long leaf_index = function_14a280(g_4e033c, 0, &g_4e9bd4[user_index].state.position);
 
 				if (leaf_index != NONE)
 				{

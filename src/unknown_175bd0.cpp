@@ -236,7 +236,7 @@ static inline s_effect_datum *effect_try_and_get(long effect_index)
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 struct s_effect_structure_leaf
 {
@@ -263,7 +263,7 @@ static inline void effect_location_from_point(s_location *location, point3f *poi
 	}
 	else
 	{
-		long leaf_index = function_14a280(g_4e033c, point, 0);
+		long leaf_index = function_14a280(g_4e033c, 0, point);
 
 		location->leaf_index = leaf_index;
 		long cluster_index = leaf_index != NONE ? ((s_effect_structure_bsp *)g_4e0348)->leaves[leaf_index].cluster_index : NONE;
@@ -1446,7 +1446,7 @@ long function_176780(long object_index, s_effect_owner const *owner, real scale_
 }
 
 // @retail 0x176870
-void function_176870(long object_index, s_effect_owner const *owner, long marker_name, real scale_a, long tag_index, short unknown18, real scale_b, point3f const *origin, vector3f const *direction)
+void function_176870(s_effect_owner const *owner, long object_index, long marker_name, real scale_a, long tag_index, short unknown18, real scale_b, point3f const *origin, vector3f const *direction)
 {
 	s_effect_parameters parameters;
 	s_effect_marker markers[2];

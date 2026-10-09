@@ -80,7 +80,7 @@ short __stdcall function_1b5aa0(long actor_index, s_slot *slot, bool active)
 				{
 					if (state->unknown10 != NONE && state->unknown14 + state->unknown10 == g_510c54->game_time &&
 						function_26ba60(node->unknown08, actor_index, actor->unknown07c))
-						function_1fb7e0(actor_index, 0x2c, NULL, node->object_index, NONE);
+						function_1fb7e0(0x2c, actor_index, NULL, node->object_index, NONE);
 					result = g_46fbe8;
 				}
 			}

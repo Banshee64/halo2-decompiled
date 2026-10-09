@@ -80,7 +80,7 @@ void function_266540(long actor_index)
 					(real)(g_510c54->game_time - view->unknown14) > g_510c54->rate * 8.0f &&
 					function_20e190(object_index) > 0.0f)
 				{
-					function_1fb7e0(*actor_reference, 0xb7, NULL, node->object_index, NONE);
+					function_1fb7e0(0xb7, *actor_reference, NULL, node->object_index, NONE);
 					prop->unknown35 = 1;
 				}
 			}
@@ -248,9 +248,9 @@ short function_263ed0(long actor_index, s_perception_origin_view const *origin, 
 			long cluster_a = origin->location.cluster_index;
 			long cluster_b = location->cluster_index;
 			s_structure_bsp_view *bsp = (s_structure_bsp_view *)g_4e0348;
-			if (!function_249c20(cluster_b, cluster_a, bsp))
+			if (!function_249c20(bsp, cluster_b, cluster_a))
 			{
-				real distance = function_249d60(cluster_b, cluster_a, bsp) * 1.3333333730697632f;
+				real distance = function_249d60(bsp, cluster_b, cluster_a) * 1.3333333730697632f;
 				real direct_distance = (real)sqrt(distance_squared);
 				distance = distance > direct_distance ? distance : direct_distance;
 				if (range > distance)
@@ -1575,10 +1575,10 @@ void function_266640(long actor_index)
 			if (elapsed == first)
 			{
 				if (player->player_index != NONE)
-					function_1fb7e0(*actor_reference, 0xa8, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
+					function_1fb7e0(0xa8, *actor_reference, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
 			}
 			else if (elapsed == second && player->player_index != NONE)
-				function_1fb7e0(*actor_reference, 0xa9, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
+				function_1fb7e0(0xa9, *actor_reference, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
 		}
 		else *(short *)(data + 0x30e) = 0;
 	}
