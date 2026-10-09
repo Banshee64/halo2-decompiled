@@ -1956,19 +1956,21 @@ bool function_21a250(long definition_index, dword sound_flags, long identifier, 
 			long next_definition = NONE;
 			long local_2e47c8 = NONE;
 			dword impulse_states = track_definition->flags & 1;
-			if (track_definition->flags & 2)
+			bool impulse_start = TEST_FIELD_BIT((track_definition->flags >> 1) & 1);
+			bool impulse_alternate = TEST_FIELD_BIT((track_definition->flags >> 2) & 1);
+			if (impulse_start)
 				impulse_states |= 4;
 			else
 				impulse_states &= ~4;
-			if (track_definition->flags & 2)
+			if (impulse_start)
 				impulse_states |= 0x40;
 			else
 				impulse_states &= ~0x40;
-			if (track_definition->flags & 4)
+			if (impulse_alternate)
 				impulse_states |= 8;
 			else
 				impulse_states &= ~8;
-			if (track_definition->flags & 4)
+			if (impulse_alternate)
 				impulse_states |= 0x20;
 			else
 				impulse_states &= ~0x20;
@@ -2048,10 +2050,22 @@ bool function_21a250(long definition_index, dword sound_flags, long identifier, 
 					looping_sound_fade_out(fade_duration, track->sound_index);
 				continue;
 			}
-			bool current_alternate = ((1 << track->field_c_4) & 0x58) != 0;
-			bool alternate_end = current_alternate && ((track_definition->flags & 0x10) || track_definition->alternate_end_sound_index != NONE);
-			long end_definition = alternate_end ? track_definition->alternate_end_sound_index : track_definition->end_sound_index;
-			bool impulse_end = (track_definition->flags & (alternate_end ? 0x10 : 2)) != 0;
+			dword current_alternate = (1 << track->field_c_4) & 0x58;
+			bool alternate_end;
+			long end_definition;
+			bool impulse_end;
+			if (current_alternate && ((track_definition->flags & 0x10) || track_definition->alternate_end_sound_index != NONE))
+			{
+				end_definition = track_definition->alternate_end_sound_index;
+				alternate_end = true;
+				impulse_end = TEST_FIELD_BIT((track_definition->flags >> 4) & 1);
+			}
+			else
+			{
+				end_definition = track_definition->end_sound_index;
+				alternate_end = false;
+				impulse_end = TEST_FIELD_BIT((track_definition->flags >> 1) & 1);
+			}
 			if (track->sound_index != NONE)
 			{
 				if (!impulse_end && end_definition == NONE && (definition->flags & 2))

@@ -217,9 +217,11 @@ bool function_1173e0(long object_index, long index)
 		point3f origin = *(point3f *)(surface_object_header(object_index)->object + 0x30);
 		for (long i = 0; i < definition->vertex_count; ++i)
 		{
-			record->vertices[i].position.x = definition->vertices[i].position.x + origin.x;
-			record->vertices[i].position.y = definition->vertices[i].position.y + origin.y;
-			record->vertices[i].position.z = definition->vertices[i].position.z + origin.z;
+			s_surface_vertex *vertex = &record->vertices[i];
+			point3f *source = &definition->vertices[i].position;
+			vertex->position.x = source->x + origin.x;
+			vertex->position.y = source->y + origin.y;
+			vertex->position.z = source->z + origin.z;
 			record->pinned[i >> 5] &= ~(1 << (i & 31));
 		}
 		for (long iteration = 0; iteration < 5; ++iteration) function_117790(index);
@@ -430,9 +432,11 @@ void __stdcall function_118430(long index)
 	s_surface_definition *definition = surface_definition(record);
 	for (long i = 0; i < definition->vertex_count; ++i)
 	{
-		record->vertices[i].position = definition->vertices[i].position;
-		record->vertices[i].previous = definition->vertices[i].position;
-		record->vertices[i].normal = *g_4687ac;
+		s_surface_vertex *vertex = &record->vertices[i];
+		point3f *source = &definition->vertices[i].position;
+		vertex->position = *source;
+		vertex->previous = *source;
+		vertex->normal = *g_4687ac;
 	}
 	record->origin = *g_468788;
 	function_117a80(index);
