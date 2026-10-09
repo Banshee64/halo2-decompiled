@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7224 functions match
+
+```
+matched 7224 of 11318 game functions (819704 of 2784283 bytes, 29.44%)
+```
+
+4 new matches, none lost:
+- Deep lane 3, near-length tuning (lanes V, X, A and the UI screens): 0x1e4390, 0x260160, 0x2a40e0, 0x2b83db, and closer bodies for 29 more.
+
 ## 2026-10-08: 7220 functions match
 
 ```

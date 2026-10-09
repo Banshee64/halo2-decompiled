@@ -363,8 +363,7 @@ bool function_26d370(point3f const *point, vector3f const *direction, plane3f co
 real function_30bf0(vector3f *vector);
 
 // @retail 0x263810
-short function_263810(long actor_index, point3f const *origin, point3f const *point,
-	point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range)
+short function_263810(point3f const *origin, long actor_index, point3f const *point, point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range)
 {
 	long const *actor_reference = &actor_index;
 	point3f const *const *endpoint_reference = &endpoint;
@@ -395,15 +394,16 @@ short function_263810(long actor_index, point3f const *origin, point3f const *po
 					plane3f plane;
 					plane.n = *(vector3f *)((byte *)actor + 0x2c0);
 					plane.d = origin->y * plane.n.j + origin->z * plane.n.k + origin->x * plane.n.i;
-					real amount;
-					if (function_26d370(point, &motion, &plane, &amount) && amount >= 0.0f)
+					real volatile amount;
+					if (function_26d370(point, &motion, &plane, (real *)&amount) && amount >= 0.0f)
 					{
-						if (amount > 1.0f) amount = 1.0f;
-						if (amount > 0.0f)
+						real clipped_amount = amount;
+						if (clipped_amount > 1.0f) clipped_amount = 1.0f;
+						if (clipped_amount > 0.0f)
 						{
-							delta.i = motion.i * amount + point->x - origin->x;
-							delta.j = motion.j * amount + point->y - origin->y;
-							delta.k = motion.k * amount + point->z - origin->z;
+							delta.i = motion.i * clipped_amount + point->x - origin->x;
+							delta.j = motion.j * clipped_amount + point->y - origin->y;
+							delta.k = motion.k * clipped_amount + point->z - origin->z;
 						}
 					}
 				}
@@ -800,13 +800,14 @@ struct s_object_activity_flags
 };
 
 // @retail 0x267370
-real function_267370(long object_index)
+real function_267370(long volatile object_index)
 {
-	long const *object_reference = &object_index;
+	long const volatile *object_reference = &object_index;
 	real result = 0.0f;
-	if (*object_reference != NONE)
+	long initial_object_index = *object_reference;
+	if (initial_object_index != NONE)
 	{
-		s_slot_object_view *object = object_get(*object_reference);
+		s_slot_object_view *object = object_get(initial_object_index);
 		s_actor_view *actor = NULL;
 		byte *settings = NULL;
 		if (((s_prop_threshold_table *)g_4e034c)->count > 0)

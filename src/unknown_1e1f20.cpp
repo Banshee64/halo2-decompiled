@@ -34,8 +34,8 @@ long function_1e1f20(long actor_index)
 	s_actor_view *actor = actor_get(actor_index);
 	long result = NONE;
 
-	if (actor->unknown268 && actor->unknown274 != NONE)
-		result = unit_get_current_weapon(actor->unknown274);
+	if (actor->unknown268 && *(long volatile *)&actor->unknown274 != NONE)
+		result = unit_get_current_weapon(*(long volatile *)&actor->unknown274);
 	if (result == NONE && actor->unknown018 != NONE)
 		result = unit_get_current_weapon(actor->unknown018);
 	return result;
