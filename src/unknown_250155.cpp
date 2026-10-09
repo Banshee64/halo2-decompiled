@@ -2553,7 +2553,7 @@ void function_2520ff(c_class_1a2c81 *screen)
 
 		if (entry)
 		{
-			long s_type_b8a6a0 = entry->s_type_b8a6a0;
+			long s_type_b8a6a0 = *(long const volatile *)&entry->s_type_b8a6a0;
 			c_class_1a2c81 *bitmap = screen->find_child(8, 10, false);
 
 			if (bitmap)

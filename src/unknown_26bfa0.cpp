@@ -199,7 +199,7 @@ struct s_location_target_view
 long function_1e3480(long object_index);
 
 // @retail 0x26c240
-void function_26c240(s_location_target_view *target, long object_index)
+void function_26c240(long object_index, s_location_target_view *target)
 {
 	long actor_index = function_1e3480(object_index);
 	if (actor_index != NONE)

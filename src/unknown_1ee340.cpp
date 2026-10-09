@@ -477,6 +477,11 @@ struct s_bounds_source
 	s_bounds_vertex *vertices;
 };
 
+PRIVATE __forceinline void bounds_half_extent_set(real maximum, real minimum, real volatile *destination)
+{
+    *destination = (maximum - minimum) * 0.5f;
+}
+
 // @retail 0x1eed40
 c_shape_global_owner::c_shape_global_owner()
 {
@@ -498,9 +503,9 @@ c_shape_global_owner::c_shape_global_owner()
 	center.y = (bounds.y1 + bounds.y0) * 0.5f;
 	center.z = (bounds.z1 + bounds.z0) * 0.5f;
 	center.w = 0.0f;
-	extent.x = (bounds.x1 - bounds.x0) * 0.5f;
-	extent.y = (bounds.y1 - bounds.y0) * 0.5f;
-	extent.z = (bounds.z1 - bounds.z0) * 0.5f;
+	bounds_half_extent_set(bounds.x1, bounds.x0, &extent.x);
+	bounds_half_extent_set(bounds.y1, bounds.y0, &extent.y);
+	bounds_half_extent_set(bounds.z1, bounds.z0, &extent.z);
 	extent.w = 0.0f;
 }
 

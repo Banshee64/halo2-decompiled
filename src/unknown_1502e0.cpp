@@ -73,6 +73,13 @@ struct s_view_entry
 	bool flag8e;
 	bool flag8f;
 	byte unknown90[0x94 - 0x90];
+
+	__forceinline void clear_flags()
+	{
+		if (flag8e)
+			flag8f = true;
+		index28 = NONE;
+	}
 };
 
 struct s_view_globals
@@ -159,21 +166,19 @@ bool function_1518f0(s_target_candidate *candidate, dword type_mask)
 	return player_candidate_has_type(candidate, type_mask);
 }
 
+PRIVATE __forceinline void local_player_view_clear(s_view_globals *views, short index)
+{
+	views->entries[index].clear_flags();
+}
+
 // @retail 0x1520f0
 void function_1520f0(long player_index)
 {
-	short local_index = tail_player_get(player_index)->local_index;
+	s_tail_player const volatile *player = tail_player_get(player_index);
+	short local_index = player->local_index;
 
 	if (local_index != NONE)
-	{
-		s_view_entry *entry = &((s_view_globals *)g_4ed284)->entries[local_index];
-
-		if (entry->flag8e)
-		{
-			entry->flag8f = true;
-		}
-		entry->index28 = NONE;
-	}
+		local_player_view_clear((s_view_globals *)g_4ed284, local_index);
 }
 
 // @retail 0x152340
@@ -1379,8 +1384,8 @@ void function_1523c0()
         long next = data_find_index(players, index + 1);
         if (next == NONE)
             break;
-        long datum = data_datum_index(players, next);
         byte *player = players->data + players->size * next;
+        long datum = ((long)*(short const volatile *)player << 16) | next;
         s_player_configuration_copy configuration;
         index = next;
         memcpy(&configuration, player + 0xd4, sizeof(configuration));

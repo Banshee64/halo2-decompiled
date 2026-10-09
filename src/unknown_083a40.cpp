@@ -462,8 +462,8 @@ bool function_84630(long channel_index, s_simulation_world_owner *watcher, long 
     switch (world->state)
     {
     case 2: type = 2; break;
-    case 3: type = 1; break;
     case 4: type = 4; break;
+    case 3: type = 1; break;
     case 5: type = 3; break;
     default: __assume(0);
     }

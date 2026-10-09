@@ -910,9 +910,8 @@ bool network_session_player_set_properties(c_class_58d20 *session, const byte *p
 			s_network_message_player_properties message;
 			memset(&message, 0, sizeof(message));
 			s_session_id const *local_0 = (s_session_id const *)&session->unknown1c;
-			message.session_id.a = local_0->a;
+			*(__int64 *)&message.session_id = *(__int64 *)local_0;
 			message.slot = slot;
-			message.session_id.b = local_0->b;
 			message.unknown0c = unknown0c;
 			message.unknowna0 = unknowna0;
 			memcpy(message.properties, properties, sizeof(message.properties));
@@ -1687,8 +1686,8 @@ bool network_session_host_set_id49f0(c_class_58d20 *session, const s_session_id 
 			}
 			else
 			{
-				session->value49f0 = 0;
-				session->value49f4 = 0;
+				s_session_id *local_0 = (s_session_id *)&session->value49f0;
+                memset(local_0, 0, sizeof(*local_0));
 			}
 			session->update_count++;
 			result = true;
@@ -2954,9 +2953,9 @@ bool network_session_handle_parameters_request(const s_network_message_parameter
 		}
 		if (message->change_value49a1)
 		{
-			byte current = session->data49a1[0];
+			byte current = *(volatile byte *)&session->data49a1[0];
 			byte value = message->value49a1;
-			if (current != value)
+			if (value != current)
 			{
 				session->data49a1[0] = value;
 				changed = true;

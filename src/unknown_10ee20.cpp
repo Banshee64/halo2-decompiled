@@ -122,11 +122,11 @@ PRIVATE __forceinline bool channel_valid(c_animation_channel const *channel)
 }
 
 /* whether a channel has stopped playing (0xe6800, inlined) */
-PRIVATE inline bool channel_stopped(c_animation_channel const *channel)
+PRIVATE inline long channel_stopped(c_animation_channel const *channel)
 {
-	bool playing = (channel->flags & 1) && !(channel->unknown11 & 9);
+	long playing = (channel->flags & 1) && !(channel->unknown11 & 9);
 
-	return !playing;
+	return !(byte)playing;
 }
 
 // @retail 0x10ee20
