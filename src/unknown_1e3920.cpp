@@ -276,7 +276,7 @@ void function_1e28b0(long actor_index, const vector3f *direction, real magnitude
 
 __forceinline void actor_direction_between_points(const point3f *position, const s_type_c3b527 *target, vector3f *direction)
 {
-	function_210c90(target, position, direction);
+	function_210c90(position, target, direction);
 }
 
 // @retail 0x1e3370

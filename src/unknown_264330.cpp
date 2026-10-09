@@ -95,7 +95,7 @@ void function_264940(long actor_index, long prop_ref_index)
 		{
 			if (category <= 2)
 			{
-				function_1fb7e0(actor_index, 0xa3, NULL, object_index, NONE);
+				function_1fb7e0(0xa3, actor_index, NULL, object_index, NONE);
 				prop[0x31] = true;
 				*(short *)(actor + 0x30e) = 0;
 			}

@@ -90,9 +90,9 @@ short __stdcall function_1b2630(long actor_index, s_slot *slot, bool active)
 			if (view && function_26ba60(node->unknown08, actor_index, actor->unknown07c))
 			{
 				if (view->unknown70 == 0)
-					function_1fb7e0(actor_index, 0x2e, NULL, node->object_index, NONE);
+					function_1fb7e0(0x2e, actor_index, NULL, node->object_index, NONE);
 				else
-					function_1fb7e0(actor_index, 0x30, NULL, node->object_index, NONE);
+					function_1fb7e0(0x30, actor_index, NULL, node->object_index, NONE);
 			}
 		}
 	}
@@ -213,10 +213,10 @@ bool __stdcall function_1b23c0(long actor_index, s_slot *slot)
         {
             byte *prop = g_50241c->data + (node->unknown08 & 0xffff) * 0xc4;
             if (!prop[0x32])
-                prop[0x32] = function_1fb7e0(actor_index, 0x31, NULL, node->object_index, NONE);
+                prop[0x32] = function_1fb7e0(0x31, actor_index, NULL, node->object_index, NONE);
         }
         else
-            function_1fb7e0(actor_index, 0x36, NULL, node->object_index, NONE);
+            function_1fb7e0(0x36, actor_index, NULL, node->object_index, NONE);
     }
     function_1f86a0(actor_index);
     return result;

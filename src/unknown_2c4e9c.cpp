@@ -3293,7 +3293,7 @@ c_campaign_level_handles_list::c_campaign_level_handles_list(word user_flags, bo
 	long last_level = function_190565();
 	s_data_datum_iterator iterator;
 
-	if (alternate && last_level <= 0x68)
+	if (this->alternate && last_level <= 0x68)
 	{
 		last_level = 0x68;
 	}

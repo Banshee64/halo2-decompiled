@@ -90,7 +90,7 @@ bool __stdcall function_1b6930(long actor_index, s_slot *slot)
 
 	function_1b6010(node->unknown08);
 	if (view && view->unknown70 == 0 && function_26ba60(node->unknown08, actor_index, actor->unknown07c))
-		function_1fb7e0(actor_index, 0x4c, NULL, node->object_index, NONE);
+		function_1fb7e0(0x4c, actor_index, NULL, node->object_index, NONE);
 	return true;
 }
 
