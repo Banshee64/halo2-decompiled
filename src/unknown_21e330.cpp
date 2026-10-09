@@ -507,13 +507,13 @@ void function_21f960(dword size, dword const *buffer)
 {
 	if (buffer && size)
 	{
-		long count = (size - 4) >> 2;
+		struct { s_bit_iterator field_0; dword field_8; dword field_c; long field_10; } local_2;
+		local_2.field_10 = (size - 4) >> 2;
 
-		for (long i = 0; i < count; i += (EFFECT_DATA(i)->size + 0xf) >> 2)
+		for (long i = 0; i < local_2.field_10; i += (EFFECT_DATA(i)->size + 0xf) >> 2)
 		{
 			if (!(EFFECT_DATA(i)->flags & 2))
 			{
-				struct { s_bit_iterator field_0; dword field_8; dword field_c; } local_2;
 
 				local_2.field_0.mask = EFFECT_DATA(i)->effect_mask;
 				local_2.field_0.index = NONE;
@@ -725,9 +725,8 @@ PRIVATE inline real reverb_decibels_add(long first, long second)
 void function_21ece0(long effect_index, s_sound_driver_reverb const *reverb)
 {
 	DSFX_HIGH_LEVEL_EFFECT_DESCRIPTION description;
-	long gain = function_2197f0(g_468834);
-
 	description.effectType = DSFX_EFFECT_TYPE_I3DL2REVERB;
+	volatile long gain = function_2197f0(g_468834);
 	description.I3DL2Reverb.lRoom = (long)(function_12aff0(-64.0f, 0.0f,
 		reverb_decibels_add(*(long const *)&reverb->room, gain), true) * 6400.0f - 6400.0f);
 	description.I3DL2Reverb.lRoomHF = (long)(function_12aff0(-64.0f, 0.0f,
@@ -969,6 +968,26 @@ extern "C" DWORD g_dwDirectSoundDeltaPanicCount;
 
 void function_1915f0(void);
 
+PRIVATE inline s_sound_stream *function_21ec01(s_sound_stream *arg_0)
+{
+	return arg_0;
+}
+
+PRIVATE inline s_sound_stream *function_21ec02(s_sound_stream *arg_0)
+{
+	return arg_0;
+}
+
+PRIVATE inline s_sound_stream *function_21ec03(s_sound_stream *arg_0)
+{
+	return arg_0;
+}
+
+PRIVATE inline s_sound_stream *function_21ec04(s_sound_stream *arg_0)
+{
+	return arg_0;
+}
+
 // @retail 0x21ec00
 void function_21ec00(void)
 {
@@ -1000,15 +1019,19 @@ void function_21ec00(void)
 
 		/* retail keeps a jump table here whose four cases are all empty;
 		   no source shape for it found yet */
-		switch (stream->state)
+		switch (((s_sound_stream const volatile *)stream)->state)
 		{
 		case 0:
+			stream = function_21ec01(stream);
 			break;
 		case 1:
+			stream = function_21ec02(stream);
 			break;
 		case 2:
+			stream = function_21ec03(stream);
 			break;
 		case 3:
+			stream = function_21ec04(stream);
 			break;
 		}
 	}

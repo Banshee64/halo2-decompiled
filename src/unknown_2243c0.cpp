@@ -79,7 +79,7 @@ void __stdcall function_2243c0(s_interface_definition *arg_0, long arg_1, long a
 			local_0.field_8 = 0;
 			local_0.field_c = 1.0f;
 			byte const *local_3 = *(byte const *const *)(local_2 + 0x90);
-			short local_4 = **(short const *const *)(local_3 + 0x60);
+			long local_4 = **(short const *const *)(local_3 + 0x60);
 			if (local_4 != NONE)
 			{
 				long local_5 = *(long const *)(*(byte const *const *)(local_3 + 8) + local_4 * 12);

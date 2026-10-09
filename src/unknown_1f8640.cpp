@@ -288,8 +288,13 @@ void __stdcall function_1f8510(bool full_frame, vector3f const *vector, vector3f
 	}
 	else
 	{
-		out->i = vector->i * forward->i + forward->j * vector->j;
-		out->j = vector->i * (0.0f - forward->j) + forward->i * vector->j;
+		real local_0 = forward->i;
+		real local_1 = forward->j;
+		real local_2 = 0.0f;
+		real local_3 = vector->i * local_0 + vector->j * local_1;
+		real local_4 = local_2 - local_1;
+		out->i = local_3;
+		out->j = vector->i * local_4 + vector->j * local_0;
 		out->k = 0.0f;
 		function_30bf0(out);
 	}

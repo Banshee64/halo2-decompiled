@@ -94,14 +94,17 @@ bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 
 	if (actor->unknown040 && !state->unknown17)
 	{
-		if (state->unknown2c == NONE)
-			return false;
-		result = function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, false);
-		if (result)
+		if (state->unknown2c != NONE)
 		{
-			actor->unknown4cc = 1.0f;
-			state->unknown17 = true;
+			result = function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, false);
+			if (result)
+			{
+				actor->unknown4cc = 1.0f;
+				state->unknown17 = true;
+			}
 		}
+		else
+			result = false;
 	}
 	return result;
 }
@@ -170,7 +173,7 @@ void __stdcall function_1b3880(long actor_index, s_slot *slot)
 			actor->unknown4a2 = true;
 			if (!state->unknown16 && node)
 			{
-				function_1fb7e0(actor_index, 0x60, NULL, node->object_index, NONE);
+				function_1fb7e0(0x60, actor_index, NULL, node->object_index, NONE);
 				state->unknown16 = true;
 			}
 		}
@@ -245,7 +248,7 @@ short __stdcall function_1b3f60(long actor_index, s_slot *slot, bool active)
 	if (actor_get(actor_index)->unknown504 == 2)
 	{
 		if (state->unknown10 != NONE)
-			function_1fb7e0(actor_index, 0x63, NULL, actor_get(state->unknown10)->unknown018, NONE);
+			function_1fb7e0(0x63, actor_index, NULL, actor_get(state->unknown10)->unknown018, NONE);
 		return g_46fbe4;
 	}
 	return result;
@@ -330,7 +333,7 @@ short __stdcall function_1b4390(long actor_index, short level, bool active)
 		case 1: type = 0x5d; break;
 		case 2: type = 0x5e; break;
 		}
-		function_1fb7e0(actor_index, type, NULL, NONE, NONE);
+		function_1fb7e0(type, actor_index, NULL, NONE, NONE);
 		state->unknown16 = true;
 	}
 	return result;
@@ -529,7 +532,7 @@ short __stdcall function_1b4560(long actor_index, s_slot *slot)
                 function_259a0(&g_4e7408->unknown0) < *(real *)(entry + 0x2c) && actor->unknown07c != NONE &&
                 function_255b10(actor_index, (s_type_c3b527 *)((byte *)view + 0x18), NONE, false))
             {
-                function_1fb7e0(actor_index, 0x21, 0, *(long *)((byte *)node + 0x20), NONE);
+                function_1fb7e0(0x21, actor_index, 0, *(long *)((byte *)node + 0x20), NONE);
             }
         }
     }

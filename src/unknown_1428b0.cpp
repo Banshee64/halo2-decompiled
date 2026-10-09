@@ -153,7 +153,7 @@ matrix3x3 *function_142bf0(
 	matrix3x3 *out)
 {
 	matrix3x3 temp;
-	real one_over_scale = 1.f / scale;
+	real one_over_scale;
 	real const *m;
 	real *r = (real *)out;
 	short i, j;
@@ -163,6 +163,7 @@ matrix3x3 *function_142bf0(
 		in = &temp;
 	}
 	m = (real const *)in;
+	one_over_scale = 1.f / scale;
 	for (i = 0; i < 3; i++)
 	{
 		for (j = 0; j < 3; j++)
@@ -171,7 +172,7 @@ matrix3x3 *function_142bf0(
 			short i2 = i > 0 ? i - 1 : 2;
 			short j1 = j < 2 ? j + 1 : 0;
 			short j2 = j > 0 ? j - 1 : 2;
-			r[j * 3 + i] = (m[i1 * 3 + j1] * m[i2 * 3 + j2] - m[i1 * 3 + j2] * m[i2 * 3 + j1]) * (1.f / scale);
+			r[j * 3 + i] = (m[i1 * 3 + j1] * m[i2 * 3 + j2] - m[i1 * 3 + j2] * m[i2 * 3 + j1]) * one_over_scale;
 		}
 	}
 	return out;

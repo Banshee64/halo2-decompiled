@@ -1722,7 +1722,7 @@ static inline void event_write_direction(s_bitstream *stream, vector3f const *di
 	function_194bc0(stream, direction);
 }
 
-void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+void simulation_write_position(long bits, s_bitstream *stream, real const *position, bool keep_inside);
 void simulation_read_position(s_bitstream *stream, real *position, long bits);
 
 struct s_surface_damage_event_data
@@ -1750,7 +1750,7 @@ void c_breakable_surface_damage_event_definition::v9(long a, void const *data, s
 		function_194bc0(stream, &event->direction);
 	real const *local_0 = &event->position.i;
 	real const *const *local_1 = &local_0;
-	simulation_write_position(*local_1, 13, stream, false);
+	simulation_write_position(13, stream, *local_1, false);
 	scenario_object_name_encode(event->object_name, stream);
 }
 
@@ -1761,7 +1761,7 @@ void c_unit_grenade_release_event_definition::v9(long a, void const *data, s_bit
 	stream_write_checked(stream, event->type, 1);
 	real const *local_0 = &event->position.i;
 	real const *const *local_1 = &local_0;
-	simulation_write_position(*local_1, 16, stream, false);
+	simulation_write_position(16, stream, *local_1, false);
 	function_194bc0(stream, &event->velocity);
 }
 

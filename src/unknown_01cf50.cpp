@@ -1,6 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "index_cache_storage.h"
 #include <xtl.h>
 #include <string.h>
 #include <math.h>
@@ -703,14 +704,17 @@ bool function_14560(long tag, short stage, short fallback, short fallback_index,
 }
 
 // @retail 0x1d5e0
-void *function_1d5e0(s_bitmap_view *bitmap, bool wait, long *pitch)
+void *function_1d5e0(s_bitmap_view *bitmap, long wait, long *pitch)
 {
     void *result = NULL;
     D3DTexture *texture = function_1cfb0(bitmap);
     if (texture)
     {
         D3DLOCKED_RECT rectangle;
-        D3DTexture_LockRect(texture, 0, &rectangle, NULL, wait ? 0 : D3DLOCK_NOOVERWRITE);
+        dword flags = 0;
+        if (!wait)
+            flags = D3DLOCK_NOOVERWRITE;
+        D3DTexture_LockRect(texture, 0, &rectangle, NULL, flags);
         *pitch = rectangle.Pitch;
         result = rectangle.pBits;
     }
@@ -1224,7 +1228,7 @@ void __stdcall function_1c710(void *memory)
 }
 
 // @retail 0x1c4a0
-void function_1c4a0(s_shader_cache *state)
+void __cdecl function_1c4a0(s_shader_cache *state)
 {
 	state->streams_changed = false;
 	state->descriptors_changed = false;
@@ -1495,6 +1499,11 @@ s_cache_record *function_1e2d0(void)
 	return result;
 }
 
+PRIVATE inline real render_bounds_midpoint(real const *pair)
+{
+    return (pair[0] + pair[1]) * 0.5f;
+}
+
 // @retail 0x1cdd0
 void function_1cdd0(real const *bounds, byte flags)
 {
@@ -1524,7 +1533,7 @@ void function_1cdd0(real const *bounds, byte flags)
 			constants[2] = (bounds[5] - bounds[4]) * 0.5f;
 			constants[3] = 1.0f;
 			constants[4] = (bounds[1] + bounds[0]) * 0.5f;
-			constants[5] = (bounds[2] + bounds[3]) * 0.5f;
+			constants[5] = (*(real const volatile *)(bounds + 2) + bounds[3]) * 0.5f;
 			constants[6] = (bounds[4] + bounds[5]) * 0.5f;
 			constants[7] = 0.0f;
 		}
@@ -1533,7 +1542,7 @@ void function_1cdd0(real const *bounds, byte flags)
 			constants[8] = (bounds[7] - bounds[6]) * 0.5f;
 			constants[9] = (bounds[9] - bounds[8]) * 0.5f;
 			constants[10] = (bounds[6] + bounds[7]) * 0.5f;
-			constants[11] = (bounds[9] + bounds[8]) * 0.5f;
+			constants[11] = render_bounds_midpoint(bounds + 8);
 		}
 	}
 	if (active || g_485af1)
@@ -1640,8 +1649,8 @@ void function_123b0(void)
     dword flags = XGetVideoFlags();
     if (standard == 3)
         g_485ac0 = (byte)flags & 0x40 ? 60 : 50;
-    byte wide = (byte)((flags >> 4) & 1);
     byte low = (byte)(flags & 1);
+    byte wide = (byte)((flags >> 4) & 1);
     flags &= 8;
     g_485ac2 = low;
     g_485ac3 = wide;
@@ -1713,7 +1722,7 @@ void function_14ac0(void)
 long g_4858b8;
 
 // @retail 0x1d4b0
-void function_1d4b0(long format, bool alternate, bool *linear, long *result)
+void function_1d4b0(long format, bool alternate, long *result, bool *linear)
 {
 	*linear = false;
 	switch (format)
@@ -2247,7 +2256,7 @@ bool g_47fe85 = true;
 typedef void (__stdcall *t_4b220_fill)(void *, long, void *);
 
 // @retail 0x4b220
-long function_4b220(long mode, long primitive, long stride, t_4b220_fill fill, void *context, long count)
+long function_4b220(long count, long mode, long primitive, long stride, t_4b220_fill fill, void *context)
 {
 	long result = NONE;
 	long const *mode_reference = &mode;
@@ -2453,10 +2462,10 @@ struct s_queued_material_payload
 	void (__stdcall *begin)(void *);
 	t_4b220_fill fill;
 	void (__stdcall *end)(void *);
-	long stride;
-	long format;
 	long primitive;
+	long format;
 	long count;
+	long stride;
 	byte data[1];
 };
 
@@ -2471,7 +2480,7 @@ void __stdcall function_35b00(void *payload)
 	select_immediate_descriptor(request->format);
 	function_1c710(g_51f0f0);
 	function_1cf50();
-	function_4b220(0, request->primitive, request->stride, request->fill, request->data, request->count);
+	function_4b220(request->count, 0, request->primitive, request->stride, request->fill, request->data);
 	if (request->end)
 		request->end(request->data);
 }
@@ -2514,10 +2523,12 @@ struct s_42760_entry
 s_42760_entry g_4c152c[32];
 long g_4c19ac;
 
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x42760
 void function_42760(long flags)
 {
-    long count = g_4c19ac;
+    volatile long count = g_4c19ac;
     long i = 0;
     if (count > 0)
     {
@@ -2532,6 +2543,7 @@ void function_42760(long flags)
                 record->type = 0;
                 record->active = false;
                 ++g_4b6280.count;
+                _ReadWriteBarrier();
                 record->type = 3;
                 record->flags = 0;
                 record->callback = function_423c0;
@@ -2550,6 +2562,7 @@ void function_42760(long flags)
       } while (i < count);
     }
 }
+#pragma function(_ReadWriteBarrier)
 
 struct s_42850_payload
 {
@@ -2609,9 +2622,13 @@ struct s_429a0_payload
 void function_429a0(byte type, long a, long b, long c, point3f const *position,
     point3f const *endpoint, vector3f const *first, vector3f const *second, real opacity)
 {
-    if (g_4b6280.count < 1024)
+    if (g_4b6280.count >= 1024)
     {
-        s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[g_4b6280.count++];
+        if (g_4b6280.available) g_4b6280.available = false;
+        return;
+    }
+    {
+        s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[g_4b6280.count];
         record->type = 0;
         record->active = false;
         s_429a0_payload *payload = (s_429a0_payload *)record->payload;
@@ -2619,12 +2636,16 @@ void function_429a0(byte type, long a, long b, long c, point3f const *position,
         payload->a = a;
         payload->b = b;
         payload->c = c;
+        ++g_4b6280.count;
         payload->position = *position;
         payload->endpoint = *(endpoint ? endpoint : position);
         payload->first = *first;
         payload->second = *second;
         long value = (long)(opacity * 256.0f);
-        payload->opacity = (byte)(value < 0 ? 0 : value > 255 ? 255 : value);
+        long clamped = 0;
+        if (value >= 0)
+            clamped = value > 255 ? 255 : value;
+        payload->opacity = (byte)clamped;
         vector3f delta;
         delta.i = position->x - g_4b9da0.x;
         delta.j = position->y - g_4b9da0.y;
@@ -2637,9 +2658,8 @@ void function_429a0(byte type, long a, long b, long c, point3f const *position,
         depth += g_4b9dac.i * delta.i;
         record->depth = 0.0f - depth;
         record->position = *position;
+    
     }
-    else if (g_4b6280.available)
-        g_4b6280.available = false;
 }
 
 struct s_1c8c0_stream
@@ -2708,7 +2728,6 @@ bool function_1c8c0(byte const *definition, dword mask,
 bool function_1caa0(long tag, byte const *selection, word const *kind, byte const *definition,
     s_1c8c0_stream const *third, s_1c8c0_stream const *second, s_1c8c0_stream const *first)
 {
-    long mode = *(word const *)(selection + 0x14);
     signed char index;
     switch (*kind)
     {
@@ -2719,6 +2738,7 @@ bool function_1caa0(long tag, byte const *selection, word const *kind, byte cons
     case 5: index = (signed char)selection[0x11]; break;
     default: index = (signed char)selection[0x10]; break;
     }
+    long mode = *(word const *)(selection + 0x14);
     long shader = function_1cb20(mode, index, tag);
     function_1c590((s_shader_cache *)g_51f0f0, tag, shader);
     dword mask = function_1cb70(tag, shader);
@@ -2787,7 +2807,7 @@ bool __stdcall function_1d2f0(D3DSurface *surface, byte *bitmap)
     *(short *)(bitmap + 0xa) = 0;
     bool linear;
     long format;
-    function_1d4b0(description.Format, false, &linear, &format);
+    function_1d4b0(description.Format, false, &format, &linear);
     if (format == NONE)
         return false;
     *(short *)(bitmap + 0xc) = (short)format;
@@ -3278,14 +3298,6 @@ bool function_12420()
 
 
 
-struct s_44940_entry
-{
-    dword unknown00;
-    long tag;
-    dword unknown08;
-    dword flags;
-    byte unknown10[0x10];
-};
 extern s_44940_entry g_4ba138[850];
 extern byte g_485a75, g_485a76;
 void function_15370(short mode);
@@ -4115,6 +4127,8 @@ void function_47930(word flags, long format, long mode)
 byte g_46713c = true;
 extern dword g_4b8324;
 
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x4fe20
 void function_4fe20(void)
 {
@@ -4124,6 +4138,7 @@ void function_4fe20(void)
         g_4b82ec = 0;
         D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
         D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+        _ReadWriteBarrier();
         D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
         g_4b82e8 = 1;
         D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
@@ -4143,6 +4158,7 @@ void function_4fe20(void)
         g_46713c = false;
     }
 }
+#pragma function(_ReadWriteBarrier)
 
 PRIVATE inline void texture_surface_dimensions(long index, long *width, long *height)
 {
@@ -5592,15 +5608,7 @@ void function_46ea0(long tag, point3f const *position)
     } while (i < 16);
 }
 
-struct s_index_cache
-{
-	long index;
-	short count;
-	short unknown06;
-	long values[256];
-};
 
-extern s_index_cache g_4c6b00[8];
 extern long g_50943c, g_509440;
 struct s_2cb30_state
 {
@@ -5638,15 +5646,7 @@ void function_41040(short index, long part_index, long group, byte weight,
     s_render_part_context const *context, long material_override, bool force,
     dword and_mask, dword or_mask);
 void *function_449e0(short index, bool load, bool instance);
-extern s_44940_entry g_4c6700[32];
-struct s_first_index_cache_44ac0
-{
-    s_44940_entry entries[32];
-    long index;
-    short count;
-    short unknown406;
-};
-s_first_index_cache_44ac0 g_4c62f8;
+s_index_cache_storage g_4c62f8;
 bool function_460d0(dword const *mask, short index, long part_index);
 
 // @retail 0x44ac0
@@ -5668,20 +5668,14 @@ void __stdcall function_44ac0(long group, dword selection_mask, long level)
                 if (g_50943c < 32)
                     ((word *)g_4c6b00[7].values)[g_50943c++] = (word)index;
             }
-            else if (!g_509440)
+            else
             {
-                if (g_4c62f8.count < 32)
+                long count = g_4c62f8.records.blocks[g_509440].count;
+                if (count < 32)
                 {
-                    g_4c62f8.entries[g_4c62f8.count] = *entry;
-                    ++g_4c62f8.count;
+                    g_4c62f8.records.blocks[g_509440].entries[count] = *entry;
+                    ++g_4c62f8.records.blocks[g_509440].count;
                 }
-            }
-            else if (g_4c6b00[g_509440 - 1].count < 32)
-            {
-                s_44940_entry *entries = g_509440 == 1 ? g_4c6700 :
-                    (s_44940_entry *)g_4c6b00[g_509440 - 2].values;
-                entries[g_4c6b00[g_509440 - 1].count] = *entry;
-                ++g_4c6b00[g_509440 - 1].count;
             }
             continue;
         }

@@ -88,7 +88,7 @@ void __stdcall function_1c1640(long actor_index, s_slot *slot)
 short __stdcall function_1c1670(long actor_index, s_slot *slot, bool active)
 {
 	s_slot_15 *state = (s_slot_15 *)slot;
-	short result = g_46fbe8;
+	long result = g_46fbe8;
 	s_actor_view *actor = actor_get(actor_index);
 	s_prop_node_view *node;
 
@@ -149,15 +149,11 @@ bool __stdcall function_1c1730(long actor_index, s_slot *slot)
 
 			memset(&search, 0, sizeof(search));
 			search.type = 0;
-			for (prop_index = actor_get(actor_index)->first_prop_index; prop_index != NONE; )
+			for (prop_index = actor_get(actor_index)->first_prop_index; prop_index != NONE && search.point_count < 32; )
 			{
 				s_prop_node_view *prop = prop_node_get(prop_index);
 
 				prop_index = prop->next_index;
-				if (search.point_count >= 32)
-				{
-					break;
-				}
 				if (prop->type == 1)
 				{
 					s_prop_state_point_15 *s_type_5cfb45 = (s_prop_state_point_15 *)prop_node_state(prop);

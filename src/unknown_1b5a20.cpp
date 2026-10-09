@@ -80,7 +80,7 @@ short __stdcall function_1b5aa0(long actor_index, s_slot *slot, bool active)
 				{
 					if (state->unknown10 != NONE && state->unknown14 + state->unknown10 == g_510c54->game_time &&
 						function_26ba60(node->unknown08, actor_index, actor->unknown07c))
-						function_1fb7e0(actor_index, 0x2c, NULL, node->object_index, NONE);
+						function_1fb7e0(0x2c, actor_index, NULL, node->object_index, NONE);
 					result = g_46fbe8;
 				}
 			}
@@ -280,7 +280,11 @@ bool __stdcall function_1b5f30(long actor_index, s_slot *slot)
 		s_2605d0_request request;
 		bool unknown;
 
-		request_initialize(&request);
+		s_2605d0_request *local_0 = &request;
+		memset(local_0, 0, sizeof(*local_0));
+		*(volatile bool *)&local_0->unknown015 = true;
+		*(volatile short *)&local_0->unknown69a = 1;
+		*(volatile bool *)&local_0->unknown698 = true;
 		request.type = 8;
 
 		s_reference reference = function_2605d0(actor_index, &request, 0, 0, scratch, &unknown);

@@ -105,13 +105,14 @@ void function_1a06f0(s_key_set *set, long *best_key, long *best_index)
 void function_1a0750(s_player_profile *profile)
 {
 	memset(profile, 0, sizeof(s_player_profile));
-	profile->unknown118 = 10;
-	profile->unknown119 = 0;
-	profile->unknown11a = 0;
-	profile->unknown11b = 10;
-	profile->unknown11d = 0;
-	profile->unknown11e = 0;
-	profile->flags_0 = true;
+	*(volatile byte *)&profile->unknown118 = 10;
+	*(volatile byte *)&profile->unknown119 = 0;
+	*(volatile byte *)&profile->unknown11a = 0;
+	*(volatile byte *)&profile->unknown11b = 10;
+	*(volatile byte *)&profile->unknown11d = 0;
+	*(volatile byte *)&profile->unknown11e = 0;
+	dword *local_0 = (dword *)((byte *)profile + 4);
+	*local_0 |= 1;
 	profile->unknown102 = 3;
 	profile->unknownfc = 0;
 	profile->unknown100 = 0;
@@ -123,12 +124,12 @@ void function_1a07b0(s_player_profile *profile, long type)
 {
 	memset(profile, 0, sizeof(s_player_profile));
 	wide_string_copy(profile->name, L"Guest", 31);
-	profile->unknown118 = 10;
-	profile->unknown119 = 0;
-	profile->unknown11a = 0;
-	profile->unknown11b = 10;
-	profile->unknown11d = 0;
-	profile->unknown11e = 0;
+	*(volatile byte *)&profile->unknown118 = 10;
+	*(volatile byte *)&profile->unknown119 = 0;
+	*(volatile byte *)&profile->unknown11a = 0;
+	*(volatile byte *)&profile->unknown11b = 10;
+	*(volatile byte *)&profile->unknown11d = 0;
+	*(volatile byte *)&profile->unknown11e = 0;
 	profile->flags_0 = true;
 	profile->unknown102 = 3;
 	profile->unknownfc = 0;
@@ -139,9 +140,9 @@ void function_1a07b0(s_player_profile *profile, long type)
 		profile->unknown101 = 0;
 		break;
 	case 1:
-		profile->unknown100 = 0;
-		profile->unknown101 = 0;
-		profile->unknownfc_0 = true;
+		*(volatile byte *)&profile->unknown100 = 0;
+		*(volatile byte *)&profile->unknown101 = 0;
+		profile->unknownfc |= 1;
 		break;
 	}
 }
@@ -242,7 +243,14 @@ PRIVATE inline long function_1a03a1(long arg_0)
 	return (long)(g_4e7408->seed >> 16) % arg_0;
 }
 
-// @retail 0x1a03a0
+/* Retail uses two stack arguments and ret 8. With the standard marker,
+   this body matches all 413 bytes; without it the unused first argument
+   is removed and three instructions differ. No retail data or code holds
+   its address. Callers 0x238537, 0x2385d6, 0x238642 and 0x2386c5 use
+   register conventions themselves and push both arguments. Declaring
+   __stdcall alone and the earlier parameter-address trial did not retain
+   the unused stack argument. */
+// @retail 0x1a03a0 standard
 long __stdcall function_1a03a0(long arg_0, word *arg_1)
 {
 	s_player_profile local_0;

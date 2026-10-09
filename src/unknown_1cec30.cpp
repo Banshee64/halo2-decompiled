@@ -219,7 +219,7 @@ bool s_component_property_view::function_1d3550(long key, bool *positive, real *
 	}
 	if (found)
 	{
-		*positive = result > 0.0f;
+		*positive = *value > 0.0f;
 	}
 	return found;
 }
@@ -1039,7 +1039,7 @@ void function_1d2460(s_havok_component *component)
 
 class c_material_shape;
 void function_182b90(c_material_shape *shape, hkEntity const *entity,
-	real *friction, short *material, real *restitution);
+	real *friction, real *restitution, short *material);
 
 struct s_component_contact_body
 {
@@ -1080,7 +1080,7 @@ void function_1cfd10(s_component_contact_pair const *contact, s_havok_component 
 		while (root->parent)
 			root = root->parent;
 		hkEntity *entity = root->type == 1 ? root->entity : NULL;
-		function_182b90(body->shape, entity, &friction[i], &material, &restitution);
+		function_182b90(body->shape, entity, &restitution, &friction[i], &material);
 	}
 	scale *= function_1cfd11(friction);
 	s_game_time_globals *time = g_510c54;
@@ -1477,7 +1477,7 @@ struct s_contact_link_array : s_havok_array08
 };
 
 // @retail 0x1d1e40
-void function_1d1e40(hkEntity const *entity, s_havok_component *component, long component_index, long kind, long shape_index)
+void function_1d1e40(long component_index, s_havok_component *component, hkEntity const *entity, long kind, long shape_index)
 {
 	(void)&component;
 	(void)&kind;

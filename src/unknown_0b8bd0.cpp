@@ -108,7 +108,7 @@ void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angu
 	if (object->havok_component_index != NONE)
 	{
 		s_object_query_havok_component *component = &((s_object_query_havok_component *)g_51e9b8->data)[object->havok_component_index & 0xffff];
-		long rigid_body_index = (short)(component->rigid_body_index >= 0 && component->rigid_body_index < component->rigid_body_count ? component->rigid_body_index : NONE);
+		long rigid_body_index = component->rigid_body_index >= 0 && component->rigid_body_index < component->rigid_body_count ? (short)component->rigid_body_index : (short)NONE;
 
 		if (rigid_body_index != NONE)
 		{

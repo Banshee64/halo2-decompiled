@@ -793,7 +793,9 @@ void __stdcall function_269de0(long object_index, s_clump_activity_view const *c
 bool function_26add0(long prop_index)
 {
 	bool result = false;
-	s_clump_prop *prop = &((s_clump_prop *)g_50241c->data)[prop_index & 0xffff];
+	s_clump_prop *const props = (s_clump_prop *)g_50241c->data;
+    s_clump_prop *const *props_reference = &props;
+    s_clump_prop *prop = &(*props_reference)[prop_index & 0xffff];
 	if (*(short *)((byte *)prop + 4) >= 1)
 	{
 		result = true;
@@ -1210,34 +1212,40 @@ void function_26a960(s_clump *clump, long prop_index)
 long function_26bc60(long clump_index)
 {
 	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
-	real count = 0.0f;
-	real value = 0.0f;
-	long team = ((s_clump volatile *)clump)->team;
-	long side = function_20f040((short)team);
-	s_clump_pool_iterator iterator;
+	struct
+	{
+		real count;
+		real value;
+		s_clump_pool_iterator iterator;
+		long team;
+	} state;
+	state.count = 0.0f;
+	state.value = 0.0f;
+	state.team = ((s_clump volatile *)clump)->team;
+	long side = function_20f040((short)state.team);
 	if (g_4f55d0->active)
 	{
-		iterator.pool.data = g_502420;
-		iterator.pool.index = NONE;
+		state.iterator.pool.data = g_502420;
+		state.iterator.pool.index = NONE;
 	}
 	for (;;)
 	{
 		s_clump *other = NULL;
 		if (g_4f55d0->active)
-			other = (s_clump *)data_iterator_next_inlined(&iterator.pool);
-		iterator.current = other;
+			other = (s_clump *)data_iterator_next_inlined(&state.iterator.pool);
+		state.iterator.current = other;
 		if (!other)
 			break;
 		long other_side = function_20f040(other->team);
 		if ((short)other_side == (short)side)
 		{
-			count += other->divisor;
-			value += (short)other->unknown3e;
+			state.count += other->divisor;
+			state.value += (short)other->unknown3e;
 		}
 	}
-	if (count * 0.2f > value)
+	if (state.count * 0.2f > state.value)
 		return 1;
-	if (count * 0.8f > value)
+	if (state.count * 0.8f > state.value)
 		return 0;
 	return 2;
 }
@@ -1256,9 +1264,10 @@ long function_269040(point3f const *center, short team)
 			iterator.pool.data = g_502420;
 			iterator.pool.index = NONE;
 		}
-		long oldest = NONE;
-		long oldest_time = 0x7fffffff;
-		while (next_clump_in_pool(&iterator))
+		bool active = g_4f55d0->active;
+  long volatile oldest = NONE;
+		long volatile oldest_time = 0x7fffffff;
+		while (active && (iterator.current = (s_clump *)data_iterator_next_calling(&iterator.pool)) != NULL)
 		{
 			long time = ((s_clump_activity_view *)iterator.current)->active_time;
 			if (time < oldest_time)
@@ -1310,13 +1319,13 @@ long function_26a4f0(s_clump_activity_view *clump, short priority)
 		if (result == NONE)
 		{
 			long time = g_510c54->game_time;
-			short removed = 0;
+			long removed = 0;
 			long selected;
 			do
 			{
-				selected = NONE;
-				real best_score = 0.0f;
 				s_clump_pool_iterator iterator;
+				real best_score = 0.0f;
+				selected = NONE;
 				if (g_4f55d0->active)
 				{
 					iterator.pool.data = g_502420;
@@ -1485,7 +1494,7 @@ long function_26ace0(long object_index, long actor_index, short type)
 	long const *actor_reference = &actor_index;
 	short const *type_reference = &type;
 	s_actor_view *actor = actor_get(actor_index);
-	long result = NONE;
+	long volatile result = NONE;
 	long clump_index = actor->unknown07c;
 	if (clump_index != NONE)
 	{
@@ -1494,7 +1503,7 @@ long function_26ace0(long object_index, long actor_index, short type)
 		if (prop_index == NONE)
 		{
 			prop_index = function_26a740(object_index, clump);
-			if (prop_index == NONE) return NONE;
+			if (prop_index == NONE) goto done;
 			((s_prop_copy_view *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_prop_copy_view)))->field0c = *type_reference;
 			function_26a960((s_clump *)clump, prop_index);
 		}
@@ -1511,6 +1520,7 @@ long function_26ace0(long object_index, long actor_index, short type)
 			}
 		}
 	}
+done:
 	return result;
 }
 
@@ -1794,7 +1804,7 @@ void function_269870(long clump_index)
 {
     s_clump_activity_view *clump = (s_clump_activity_view *)clump_get(clump_index);
     byte *structure = (byte *)g_4e0348;
-    short count = 0, selected = 0, cursor = 0;
+    short count = 0, cursor = 0, selected = 0;
     real distance = 50.0f;
     s_iterator actors;
     actors.next = clump->first_actor;

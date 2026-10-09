@@ -626,11 +626,12 @@ long network_session_interface_get_members_status(long *progress)
 	if (network_session_get(&session) && SESSION_STATE_IS_LIVE(session->state))
 	{
 		long member_count = session->member_count;
+        long *local_0 = &session->members[0].unknown88;
 		status = 4;
 		lowest = 100;
-		for (long i = 0; i < member_count; i++)
+		for (long i = 0; i < member_count; i++, local_0 = (long *)((byte *)local_0 + 0x10c))
 		{
-			long member_status = session->members[i].unknown88;
+			long member_status = local_0[0];
 			if (member_status == 1)
 			{
 				status = 1;
@@ -647,8 +648,8 @@ long network_session_interface_get_members_status(long *progress)
 				else if (member_status == 2)
 				{
 					status = member_status;
-					if (lowest > session->members[i].unknown8c)
-						lowest = session->members[i].unknown8c;
+					if (lowest > local_0[1])
+						lowest = local_0[1];
 				}
 			}
 		}
@@ -1192,11 +1193,8 @@ void network_session_interface_update_player_properties(c_class_58d20 *session)
 
 	long owner = session->value10;
 	byte *parameters = session_get_data_4db0(session);
-	if (!parameters)
-	{
-		memset(g_4cd868.data400[owner], 0, sizeof(g_4cd868.data400[owner]));
-		return;
-	}
+	if (parameters)
+    {
 	byte *previous = g_4cd868.data400[owner];
 	if (!memcmp(previous, parameters, sizeof(g_4cd868.data400[owner])) && g_4cd868.value3f4[owner] == session->value4c)
 		return;
@@ -1287,6 +1285,11 @@ void network_session_interface_update_player_properties(c_class_58d20 *session)
 	}
 	g_4cd868.value3f4[owner] = session->value4c;
 	memcpy(previous, parameters, sizeof(g_4cd868.data400[owner]));
+    }
+	else
+	{
+		memset(g_4cd868.data400[owner], 0, sizeof(g_4cd868.data400[owner]));
+	}
 }
 
 /* the periodic update of one session: the local users' players, the local
@@ -1560,13 +1563,26 @@ bool function_7ed20(const s_message_identities *message, s_message_identity *com
 s_surface_description *function_192e60(long index);
 long function_193250(s_surface_description *variant);
 
+struct s_66050
+{
+    byte field_0[8];
+    long field_8;
+    s_session_member field_c[16];
+    long field_10cc;
+    dword field_10d0;
+    s_network_session_player field_10d4[16];
+};
+
+#pragma optimize("s", on)
+#pragma inline_depth(0)
 // @retail 0x66050
 long function_66050(c_class_58d20 *session, long variant_index)
 {
  bool missing = false;
  bool compatible;
  long current = session->member_index;
- compatible = function_7ed20((const s_message_identities *)&session->value4c, 0, &missing, &compatible);
+ s_66050 *local_0 = (s_66050 *)&session->value4c;
+ compatible = function_7ed20((const s_message_identities *)local_0, 0, &missing, &compatible);
  s_surface_description *variant = function_192e60(variant_index);
  volatile long result = 0;
  if (!variant)
@@ -1577,21 +1593,21 @@ long function_66050(c_class_58d20 *session, long variant_index)
  if (variant->type == 5 || variant->type == 2 || variant->type == 4)
  {
   for (long i = 0; i < 16; i++)
-   if ((session->player_mask & (1 << i)) && (session->players[i].user_flags & 3))
+   if ((local_0->field_10d0 & (1 << i)) && (local_0->field_10d4[i].user_flags & 3))
    {
     result = 12;
     return result;
    }
  }
  for (long i = 0; i < 16; i++)
-  if ((session->player_mask & (1 << i)) && session->players[i].user_flags == 0xbad00000)
+  if ((local_0->field_10d0 & (1 << i)) && local_0->field_10d4[i].user_flags == 0xbad00000)
   {
    result = 13;
    return result;
   }
- for (long member = 0; member < session->member_count; member++)
+ for (long member = 0; member < local_0->field_8; member++)
  {
-  long state = *(long *)((byte *)&session->members[member] + 0xac + variant_index * 4);
+  long state = *(long *)((byte *)&local_0->field_c[member] + 0xac + variant_index * 4);
   if (state != 1)
   {
    if (!state)
@@ -1602,7 +1618,7 @@ long function_66050(c_class_58d20 *session, long variant_index)
   }
  }
  for (long i = 0; i < 16; i++)
-  if ((session->player_mask & (1 << i)) && (signed char)session->players[i].propertiesa8[0x81] < variant->field5e4)
+  if ((local_0->field_10d0 & (1 << i)) && (signed char)local_0->field_10d4[i].propertiesa8[0x81] < variant->field5e4)
   {
    result = 15;
    return result;
@@ -1619,7 +1635,7 @@ long function_66050(c_class_58d20 *session, long variant_index)
   minimum = variant->field5fc;
  else
   minimum = variant->field5f0;
- long count = session->player_count;
+ long count = local_0->field_10cc;
  if (count < minimum)
  {
   result = 6;
@@ -1632,7 +1648,7 @@ long function_66050(c_class_58d20 *session, long variant_index)
  }
  if (variant->type == 5)
  {
-  function_7e100(current, (const s_member_quality_collection *)&session->value4c, 0, 0, 0, &current);
+  function_7e100(current, (const s_member_quality_collection *)local_0, 0, 0, 0, &current);
   long required;
   switch (variant->type)
   {
@@ -1648,6 +1664,8 @@ long function_66050(c_class_58d20 *session, long variant_index)
  }
  return result;
 }
+#pragma inline_depth(8)
+#pragma optimize("", on)
 
 // @retail 0x63e90
 long __stdcall function_63e90(long index)
@@ -1789,7 +1807,7 @@ bool __stdcall function_64d70(s_session_browser_summary *output)
    output->option = option;
    output->map_variant = map_variant;
    output->teams = (variant[0x48] & 1) != 0;
-   if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->index == 2 && state == 3)
+   if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 2 && state == 3)
    {
     statistics = true;
     function_158850(&output->score_type, &output->score_limit);

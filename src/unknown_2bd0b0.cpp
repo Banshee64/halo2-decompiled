@@ -78,8 +78,7 @@ long function_2bd0b0(long excluded)
 
 		if (excluded != g_5092f0[index])
 		{
-			result = g_5092f0[index];
-			break;
+			return g_5092f0[index];
 		}
 	}
 	return result;
@@ -96,7 +95,9 @@ bool c_game_engine_45c878::v23()
 	g_5092e8 = 0;
 	for (short i = 0; i < globals->marker_count; i++)
 	{
-		short type = globals->marker_entries[i].key_a;
+		s_marker_entry const *const entry = &globals->marker_entries[i];
+        s_marker_entry const *const *entry_reference = &entry;
+        short type = (*entry_reference)->key_a;
 
 		if (type >= 11 && type <= 18)
 		{
@@ -277,10 +278,10 @@ PRIVATE __forceinline long find_hill_team_player_2bd(word team_mask)
 void function_2bd460(long before_players, long after_players)
 {
     word before = (word)function_2bd330(before_players);
-    word after = (word)function_2bd330(after_players);
+    volatile word after = (word)function_2bd330(after_players);
     if (before != after && after != 0)
     {
-        long multiple = (after - 1) & after;
+        long volatile multiple = (after - 1) & after;
         if (!multiple)
         {
             long player = find_hill_team_player_2bd(after);

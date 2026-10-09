@@ -95,7 +95,7 @@ void function_20f5a0(s_audio_priority_record *current, s_audio_priority_record c
 struct s_audio_queue;
 extern s_audio_queue *g_4f939c;
 extern s_record_pool *g_4f9398;
-long function_20f040(short team);
+long __declspec(noinline) function_20f040(short team);
 struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
 
@@ -1010,7 +1010,7 @@ bool function_211b30(byte const *location, real const *position, byte flags, vec
 {
 	(void)&position;
 	(void)&flags;
-	long index = NONE;
+	short index = NONE;
 	short cluster = *(short const *)(location + 4);
 	if (cluster != NONE)
 	{
@@ -1486,7 +1486,7 @@ void function_210be0(s_type_c3b527 const *a, s_type_c3b527 const *b, vector3f *o
 }
 
 // @retail 0x210c90
-void function_210c90(s_type_c3b527 const *a, point3f const *b, vector3f *out)
+void function_210c90(point3f const *b, s_type_c3b527 const *a, vector3f *out)
 {
 	if (a->output_index == NONE)
 	{

@@ -332,7 +332,7 @@ bool function_101640(long weapon_index);
 bool function_e68c0(long type, long unit_index);
 struct s_effect_owner;
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-long function_b7b40(void *data);
+long __stdcall function_b7b40(void *data);
 void function_101980(long weapon_index, short rounds_loaded, short magazine_index, short rounds_total);
 void function_10cdf0(long object_index);
 void function_10ca80(long object_index, long a);

@@ -20,7 +20,7 @@ struct s_type_1a7926
 transform4x3f *function_ba160(long object_index, transform4x3f *matrix);
 
 // @retail 0x20a9a0
-bool function_20a9a0(long object_index, s_type_1a7926 *matrices)
+bool function_20a9a0(s_type_1a7926 *matrices, long object_index)
 {
 	bool result = false;
 	byte *object = *(byte **)(g_4e0300->data + (object_index & 0xffff) * 12 + 8);
@@ -113,7 +113,7 @@ void function_20aa70(vector3f *out, s_anim_data *data, long index_, real *w)
 	}
 }
 // @retail 0x20ab60
-void function_20ab60(vector3f *sum, s_anim_data *data, real *w)
+void function_20ab60(s_anim_data *data, vector3f *sum, real *w)
 {
 	s_anim_header *h;
 	byte *p;

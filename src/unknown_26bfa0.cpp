@@ -36,7 +36,7 @@ struct s_location_structure_view
 void function_dfdb0(long object_index, long *unknown, long *location_index, point3f *point, long *a, long *b);
 void function_f1070(long object_index, long *unknown, long *location_index, point3f *point, long *a, long *b);
 bool function_210420(point3f const *point, long object_index, long marker, s_type_c3b527 *node_point); /* unknown_210420.cpp */
-long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point);
+long function_26d100(vector3f const *up, long *unknown, s_collision_result_1697c0 *collision, point3f const *point);
 
 /* finds the location of the object's root: a unit's (0), a vehicle's (1),
    otherwise the pathfinding location under its center */
@@ -54,41 +54,39 @@ void function_26bfa0(long object_index, long *location_index, s_location_view *l
 	}
 
 	s_location_object *object = LOCATION_OBJECT(root);
-	long index = NONE;
-	long a = NONE;
-	long b = NONE;
-	point3f point;
+	struct { long index, a, b; point3f point; } query;
+ query.index = NONE; query.a = NONE; query.b = NONE;
 
 	switch (object->type)
 	{
 	case 0:
-		function_dfdb0(root, 0, &index, &point, &a, &b);
-		result = index;
+		function_dfdb0(root, 0, &query.index, &query.point, &query.a, &query.b);
+		result = query.index;
 		if (*location_reference)
 		{
 			if (result != NONE)
 			{
-				function_210420(&point, a, b, &(*location_reference)->point);
+				function_210420(&query.point, query.a, query.b, &(*location_reference)->point);
 			}
 			else
 			{
-				(*location_reference)->point.point = point;
+				(*location_reference)->point.point = query.point;
 				(*location_reference)->point.output_index = NONE;
 			}
 		}
 		break;
 	case 1:
-		function_f1070(root, 0, &index, &point, &a, &b);
-		result = index;
+		function_f1070(root, 0, &query.index, &query.point, &query.a, &query.b);
+		result = query.index;
 		if (*location_reference)
 		{
 			if (result != NONE)
 			{
-				function_210420(&point, a, b, &(*location_reference)->point);
+				function_210420(&query.point, query.a, query.b, &(*location_reference)->point);
 			}
 			else
 			{
-				(*location_reference)->point.point = point;
+				(*location_reference)->point.point = query.point;
 				(*location_reference)->point.output_index = NONE;
 			}
 		}
@@ -101,9 +99,9 @@ void function_26bfa0(long object_index, long *location_index, s_location_view *l
 			{
 				s_collision_result_1697c0 collision;
 
-				point = object->center;
+				query.point = object->center;
 				collision.unknown24 = NONE;
-				result = function_26d100(g_4687b0, &collision, (long *)*location_reference, &point);
+				result = function_26d100(g_4687b0, (long *)*location_reference, &collision, &query.point);
 			}
 		}
 		break;
@@ -199,7 +197,7 @@ struct s_location_target_view
 long function_1e3480(long object_index);
 
 // @retail 0x26c240
-void function_26c240(s_location_target_view *target, long object_index)
+void function_26c240(long object_index, s_location_target_view *target)
 {
 	long actor_index = function_1e3480(object_index);
 	if (actor_index != NONE)
@@ -218,3 +216,47 @@ void function_26c240(s_location_target_view *target, long object_index)
 		function_26bfa0(object_index, &target->location_index, &target->location);
 	}
 }
+
+
+// @retail 0x26c2d0
+void __stdcall function_26c2d0(long prop_index)
+{
+ s_prop_node_view *node = (s_prop_node_view *)(g_502418->data + (prop_index & 0xffff) * 0x3c);
+ struct s_prop_location_cache_view
+ {
+  long unknown00;
+  point3f position;
+  byte unknown10[0x44 - 0x10];
+  long location_index;
+  s_type_c3b527 location;
+  bool valid;
+ };
+ s_prop_location_cache_view *state = (s_prop_location_cache_view *)function_25d690((s_prop_datum *)node);
+ short kind = *(short *)((byte *)node + 0x24);
+ if (kind >= 1 && kind <= 2)
+ {
+  long object_index = *(long *)((byte *)node + 0x20);
+  if (function_26be90(object_index) || !state->valid)
+  {
+   function_26c240(object_index, (s_location_target_view *)state);
+   state->valid = true;
+  }
+ }
+ else if (!state->valid)
+ {
+  s_location_structure_view *structure = (s_location_structure_view *)g_4e0348;
+  struct
+  {
+   void *pathfinding;
+   s_collision_result_1697c0 collision;
+   byte unknown50[0x60 - 0x50];
+  } request;
+  request.pathfinding = 0;
+  if (structure->pathfinding_count > 0)
+   request.pathfinding = structure->pathfinding;
+  request.collision.unknown24 = NONE;
+  state->location_index = function_26d100(g_4687b0, (long *)&state->location, &request.collision, &state->position);
+  state->valid = true;
+ }
+}
+

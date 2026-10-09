@@ -571,7 +571,7 @@ void function_11af90(long unit_index, short mode)
 /* puts the units of an object list into the free seats (passing a filter) of
    the vehicle; returns how many got in */
 // @retail 0x11b0c0
-short function_11b0c0(long vehicle_index, long filter_range, long list_index)
+short function_11b0c0(long vehicle_index, long filter_range, long volatile list_index)
 {
 	long result = 0;
 	if (vehicle_index != NONE && !TEST_FIELD_BIT(unit_get_11a4d0(vehicle_index)->flag10a_2))

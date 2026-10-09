@@ -113,24 +113,40 @@ PRIVATE __forceinline void function_1d8f51(transform4x3f *arg_0, point3f const *
     arg_0->position = *arg_1;
 }
 
+struct s_1d8f53
+{
+	long field_0;
+	s_render_model_marker_group *field_4;
+	long field_8;
+};
+
+#pragma optimize("g", off)
+PRIVATE __forceinline void function_1d8f54(real *arg_0)
+{
+	*arg_0 = 0.0f - *arg_0;
+}
+#pragma optimize("g", on)
+
 PRIVATE __forceinline long function_1d8f52(long marker_group_index, long render_model_index, byte const *region_permutations,
 	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, long count)
 {
 	s_object_marker **local_1 = &markers;
 	s_object_marker *local_2;
 	long result = 0;
+	s_1d8f53 local_3;
 
 	if (marker_group_index != NONE)
 	{
-		s_render_model_marker_group *group = &render_model_view_get(render_model_index)->marker_groups[marker_group_index];
-		long i;
+		local_3.field_4 = &render_model_view_get(render_model_index)->marker_groups[marker_group_index];
 
-		if (group->marker_count > 0)
+		local_3.field_8 = 0;
+		if (local_3.field_4->marker_count > 0)
 		{
 			local_2 = *local_1;
-			for (i = 0; i < group->marker_count; i++)
+			local_3.field_0 = 0;
+			while (true)
 			{
-				s_render_model_marker *marker = &group->markers[i];
+				s_render_model_marker *marker = (s_render_model_marker *)((byte *)local_3.field_4->markers + local_3.field_0);
 
 				if (marker_permutation_visible(region_permutations, marker))
 				{
@@ -156,10 +172,14 @@ PRIVATE __forceinline long function_1d8f52(long marker_group_index, long render_
 					if (mirrored)
 					{
 						out->matrix.left.i = 0.0f - out->matrix.left.i;
-						out->matrix.left.j = 0.0f - out->matrix.left.j;
-						out->matrix.left.k = 0.0f - out->matrix.left.k;
+						function_1d8f54(&out->matrix.left.j);
+						function_1d8f54(&out->matrix.left.k);
 					}
 				}
+				local_3.field_8++;
+				local_3.field_0 += sizeof(s_render_model_marker);
+				if (local_3.field_8 >= local_3.field_4->marker_count)
+					break;
 			}
 		}
 	}
@@ -167,10 +187,10 @@ PRIVATE __forceinline long function_1d8f52(long marker_group_index, long render_
 }
 
 // @retail 0x1d8f50
-short function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
+long function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
 	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, long count)
 {
-	return (short)function_1d8f52(marker_group_index, render_model_index, region_permutations,
+	return function_1d8f52(marker_group_index, render_model_index, region_permutations,
 		node_remapping, field_50, mirrored, markers, count);
 }
 

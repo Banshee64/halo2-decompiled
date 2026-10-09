@@ -80,7 +80,7 @@ void function_266540(long actor_index)
 					(real)(g_510c54->game_time - view->unknown14) > g_510c54->rate * 8.0f &&
 					function_20e190(object_index) > 0.0f)
 				{
-					function_1fb7e0(*actor_reference, 0xb7, NULL, node->object_index, NONE);
+					function_1fb7e0(0xb7, *actor_reference, NULL, node->object_index, NONE);
 					prop->unknown35 = 1;
 				}
 			}
@@ -248,9 +248,9 @@ short function_263ed0(long actor_index, s_perception_origin_view const *origin, 
 			long cluster_a = origin->location.cluster_index;
 			long cluster_b = location->cluster_index;
 			s_structure_bsp_view *bsp = (s_structure_bsp_view *)g_4e0348;
-			if (!function_249c20(cluster_b, cluster_a, bsp))
+			if (!function_249c20(bsp, cluster_b, cluster_a))
 			{
-				real distance = function_249d60(cluster_b, cluster_a, bsp) * 1.3333333730697632f;
+				real distance = function_249d60(bsp, cluster_b, cluster_a) * 1.3333333730697632f;
 				real direct_distance = (real)sqrt(distance_squared);
 				distance = distance > direct_distance ? distance : direct_distance;
 				if (range > distance)
@@ -363,8 +363,7 @@ bool function_26d370(point3f const *point, vector3f const *direction, plane3f co
 real function_30bf0(vector3f *vector);
 
 // @retail 0x263810
-short function_263810(long actor_index, point3f const *origin, point3f const *point,
-	point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range)
+short function_263810(point3f const *origin, long actor_index, point3f const *point, point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range)
 {
 	long const *actor_reference = &actor_index;
 	point3f const *const *endpoint_reference = &endpoint;
@@ -395,15 +394,16 @@ short function_263810(long actor_index, point3f const *origin, point3f const *po
 					plane3f plane;
 					plane.n = *(vector3f *)((byte *)actor + 0x2c0);
 					plane.d = origin->y * plane.n.j + origin->z * plane.n.k + origin->x * plane.n.i;
-					real amount;
-					if (function_26d370(point, &motion, &plane, &amount) && amount >= 0.0f)
+					real volatile amount;
+					if (function_26d370(point, &motion, &plane, (real *)&amount) && amount >= 0.0f)
 					{
-						if (amount > 1.0f) amount = 1.0f;
-						if (amount > 0.0f)
+						real clipped_amount = amount;
+						if (clipped_amount > 1.0f) clipped_amount = 1.0f;
+						if (clipped_amount > 0.0f)
 						{
-							delta.i = motion.i * amount + point->x - origin->x;
-							delta.j = motion.j * amount + point->y - origin->y;
-							delta.k = motion.k * amount + point->z - origin->z;
+							delta.i = motion.i * clipped_amount + point->x - origin->x;
+							delta.j = motion.j * clipped_amount + point->y - origin->y;
+							delta.k = motion.k * clipped_amount + point->z - origin->z;
 						}
 					}
 				}
@@ -800,13 +800,14 @@ struct s_object_activity_flags
 };
 
 // @retail 0x267370
-real function_267370(long object_index)
+real function_267370(long volatile object_index)
 {
-	long const *object_reference = &object_index;
+	long const volatile *object_reference = &object_index;
 	real result = 0.0f;
-	if (*object_reference != NONE)
+	long initial_object_index = *object_reference;
+	if (initial_object_index != NONE)
 	{
-		s_slot_object_view *object = object_get(*object_reference);
+		s_slot_object_view *object = object_get(initial_object_index);
 		s_actor_view *actor = NULL;
 		byte *settings = NULL;
 		if (((s_prop_threshold_table *)g_4e034c)->count > 0)
@@ -1574,10 +1575,10 @@ void function_266640(long actor_index)
 			if (elapsed == first)
 			{
 				if (player->player_index != NONE)
-					function_1fb7e0(*actor_reference, 0xa8, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
+					function_1fb7e0(0xa8, *actor_reference, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
 			}
 			else if (elapsed == second && player->player_index != NONE)
-				function_1fb7e0(*actor_reference, 0xa9, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
+				function_1fb7e0(0xa9, *actor_reference, NULL, *(long *)(g_4e8c24->data + (g_4f55cc[*(short *)(data + 0x310)].player_index & 0xffff) * 0x21c + 0x2c), NONE);
 		}
 		else *(short *)(data + 0x30e) = 0;
 	}

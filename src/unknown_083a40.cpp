@@ -145,18 +145,18 @@ long function_83db0(s_simulation_world_owner *watcher)
 				switch (world->unknown18)
 				{
 				case 3: result = 4; goto done;
-				case 4: result = 3; goto done;
 				case 5: result = 5; goto done;
 				case 6: result = 6; goto done;
+				case 4: result = 3; goto done;
 				}
 			}
 			else
 			{
 				switch (world->unknown18)
 				{
-				case 3: result = 10; goto done;
-				case 4: result = 3; goto done;
 				case 6: result = 13; goto done;
+				case 4: result = 3; goto done;
+				case 3: result = 10; goto done;
 				}
 			}
 			if (watcher->session)
@@ -304,6 +304,19 @@ static __forceinline bool watcher_machine_present(const s_simulation_world_owner
 
 /* the players whose machines have gone leave the game; then the machine
    table becomes the current one */
+#pragma optimize("g", off)
+static __forceinline s_simulation_world_player *function_84272(c_class_6a600 *arg_0, long arg_1)
+{
+ s_simulation_world_player *local_0 = 0;
+ if (arg_1 >= 0 && arg_1 < sizeof(arg_0->players) / sizeof(arg_0->players[0]))
+ {
+  s_simulation_world_player *local_1 = &arg_0->players[arg_1];
+  if (local_1->player_index != NONE)
+   local_0 = local_1;
+ }
+ return local_0;
+}
+#pragma optimize("", on)
 // @retail 0x84270
 void simulation_watcher_update_machines(s_simulation_world_owner *watcher)
 {
@@ -322,7 +335,7 @@ void simulation_watcher_update_machines(s_simulation_world_owner *watcher)
 			if (world->state != 3 && world->state != 5)
 			{
 				long index = i & 0xffff;
-				if (index >= 0 && index < sizeof(world->players) / sizeof(world->players[0]) && world->players[index].player_index != NONE)
+				if (function_84272(world, index) != 0)
 				{
 					s_simulation_world_player *world_player = &world->players[i];
 					if (world_player->flag25)
@@ -462,8 +475,8 @@ bool function_84630(long channel_index, s_simulation_world_owner *watcher, long 
     switch (world->state)
     {
     case 2: type = 2; break;
-    case 3: type = 1; break;
     case 4: type = 4; break;
+    case 3: type = 1; break;
     case 5: type = 3; break;
     default: __assume(0);
     }

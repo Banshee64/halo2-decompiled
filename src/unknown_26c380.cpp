@@ -558,13 +558,13 @@ short function_210310(long object_index, long a);
 bool function_210690(short output_index, point3f const *point, point3f *out);
 
 // @retail 0x26d100
-long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point)
+long function_26d100(vector3f const *up, long *unknown, s_collision_result_1697c0 *collision, point3f const *point)
 {
-    (void)&point;
+    point3f const *const *point_reference = &point;
     point3f start;
-    start.x = up->i * 0.5f + point->x;
-    start.y = up->j * 0.5f + point->y;
-    start.z = up->k * 0.5f + point->z;
+    start.x = up->i * 0.5f + (*point_reference)->x;
+    start.y = up->j * 0.5f + (*point_reference)->y;
+    start.z = up->k * 0.5f + (*point_reference)->z;
     vector3f direction;
     direction.i = up->i * -4.0f;
     direction.j = up->j * -4.0f;
@@ -603,7 +603,7 @@ long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, l
     }
     else if (output)
     {
-        output->point = *point;
+        output->point = **point_reference;
         output->output_index = NONE;
     }
     return result;
@@ -620,6 +620,5 @@ long __stdcall function_26d0e0(point3f const *point, s_type_c3b527 *output, long
 {
     s_downward_collision_result collision;
     *(short *)((byte *)&collision + 0x24) = NONE;
-    return function_26d100(g_4687b0, (s_collision_result_1697c0 *)&collision,
-        (long *)output, point);
+    return function_26d100(g_4687b0, (long *)output, (s_collision_result_1697c0 *)&collision, point);
 }

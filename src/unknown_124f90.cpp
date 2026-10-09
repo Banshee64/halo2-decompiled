@@ -205,7 +205,8 @@ long sound_definition_random_gain(s_sound_definition const *definition)
 {
 	s_sound_class *sound_class = function_xaa8231(definition->class_index);
 
-	return decibels_add(decibels_interpolate(0, sound_class->gain_variance, function_x82e52f(&g_4e7408->seed, __FILE__, __LINE__)), sound_class->gain_base);
+	real volatile local_0 = function_x82e52f(&g_4e7408->seed, __FILE__, __LINE__);
+	return decibels_add(decibels_interpolate(0, sound_class->gain_variance, local_0), sound_class->gain_base);
 }
 
 // @retail 0x1252f0
@@ -721,7 +722,8 @@ void function_126960(s_sound_playback *sound)
 bool sound_voice_promotion_enabled(short voice_index)
 {
 	bool result = true;
-	long sound_index = g_4e6378[voice_index].sound_index;
+	s_sound_voice *local_0 = g_4e6378 + voice_index;
+	long sound_index = *(long const volatile *)&local_0->sound_index;
 
 	if (sound_index != NONE)
 	{
@@ -1125,6 +1127,8 @@ long sound_definition_rate_limited(long definition_index, long *stage_index)
 // @retail 0x127f10
 bool sound_playback_update_source(long sound_index, s_sound_source_callbacks const *source, s_sound_playback_flags *flags)
 {
+	bool local_1 = true;
+	s_sound_playback_flags *const volatile *local_0 = &flags;
 	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
 	long definition_index = sound->definition_index;
 	s_sound_definition *definition = sound_definition_get(definition_index);
@@ -1132,34 +1136,37 @@ bool sound_playback_update_source(long sound_index, s_sound_source_callbacks con
 	if (source)
 	{
 		if (source->update(sound->object_index, definition_index, &sound->marker, &sound->location))
-			return true;
+			return local_1;
 		if (!((1 << SOUND_PLAYBACK_GET(sound_index)->state) & 0x1e) &&
 			!function_124f90((s_sound const *)function_221810(definition->promotion_index)))
 		{
-			flags->source_updated = true;
-			return true;
+			(*local_0)->source_updated = true;
+			return local_1;
 		}
-		flags->source_updated = true;
-		return false;
+		(*local_0)->source_updated = true;
+		local_1 = false;
 	}
+	return local_1;
+}
+static __forceinline bool function_127fc1(long arg_0, s_sound_playback *arg_1, s_sound_playback_flags *arg_2)
+{
+	s_sound_source_callbacks const *local_0 = arg_1->source;
+	if (local_0 && local_0->update && (arg_1->start_time < SOUND_SYSTEM->time || SOUND_SYSTEM->unknown7b))
+		return sound_playback_update_source(arg_0, local_0, arg_2);
 	return true;
 }
+
 // @retail 0x127fc0
 bool sound_playback_update_location(long sound_index)
 {
-	bool result = true;
 	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
 	s_sound_playback_flags *flags = (s_sound_playback_flags *)&sound->flags;
-
+	bool result = true;
 	if (!TEST_FIELD_BIT(flags->flag0) && !TEST_FIELD_BIT(flags->source_updated))
-	{
-		s_sound_source_callbacks const *source = sound->source;
-
-		if (source && source->update && (sound->start_time < SOUND_SYSTEM->time || SOUND_SYSTEM->unknown7b))
-			result = sound_playback_update_source(sound_index, source, flags);
-	}
+		result = function_127fc1(sound_index, sound, flags);
 	return result;
 }
+
 /* ---- gains in decibels, held as real bits ---- */
 
 /* a sound class's volume fade (g_502118, unknown_221490.cpp) */
@@ -1265,7 +1272,7 @@ long function_1251e0(void const *definition_pointer, long gain, real interpolati
 	long lower_decibels = sound_definition_gain_lower(definition);
 	real lower = function_2195f0(*(real *)&lower_decibels);
 	real upper = function_2195f0(*(real *)&upper_decibels);
-	long decibels = function_2197f0((upper - lower) * interpolation + lower);
+	long volatile decibels = function_2197f0((upper - lower) * interpolation + lower);
 	long class_gain = function_127010(definition->promotion_index);
 
 	return decibels_add(decibels, decibels_add(class_gain, gain));
@@ -1874,7 +1881,7 @@ void sound_system_update_time(void)
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 void function_11bed0(s_location *location, point3f const *point);
 long function_16bc00(s_record_pool *data, long index);
 void sound_voices_update_locations(void);
@@ -1922,7 +1929,7 @@ void sound_update_locations(void)
 
 			if (listener->active)
 			{
-				listener->leaf_index = function_14a280(g_4e033c, &listener->position, 0);
+				listener->leaf_index = function_14a280(g_4e033c, 0, &listener->position);
 				listener->cluster_index = listener->leaf_index != NONE ? ((s_structure_bsp_leaves_view *)g_4e0348)->leaves[listener->leaf_index].cluster_index : NONE;
 			}
 		}
@@ -2555,6 +2562,11 @@ bool sound_voice_update(s_voice_playing_sound const *sound, bool *orphaned, long
 point3f *function_142700(transform4x3f const *matrix, point3f const *point, point3f *out);
 void sound_driver_voice_update(long voice_index, s_sound_driver_voice_parameters const *parameters);
 
+static __forceinline void function_129791(s_sound_driver_voice *arg_0)
+{
+	arg_0->flags &= ~2;
+}
+
 // @retail 0x129790
 void function_129790(short voice_index, vector3f const *attenuation)
 {
@@ -2583,7 +2595,7 @@ void function_129790(short voice_index, vector3f const *attenuation)
 				else
 					position = sound->location.spatial.position;
 				if (orphaned)
-					SOUND_DRIVER_GLOBALS->voices[voice->unknown0e].flags &= ~2;
+					function_129791(SOUND_DRIVER_GLOBALS->voices + voice->unknown0e);
 				s_sound_definition *definition = sound_definition_get(sound->definition_index);
 				s_sound_driver_voice_parameters parameters;
 				parameters.position = position;
@@ -2604,7 +2616,7 @@ void function_129790(short voice_index, vector3f const *attenuation)
 				{
 					parameters.occlusion = 0.0f;
 					parameters.obstruction = 0.0f;
-					parameters.decibels = *(real *)((byte *)function_221810(definition->promotion_index) + 0x10);
+					*(long *)&parameters.decibels = *(long *)((byte *)function_221810(definition->promotion_index) + 0x10);
 					parameters.obstruction_rate = 0.0f;
 					parameters.occlusion_rate = 0.0f;
 				}

@@ -37,10 +37,11 @@ long pending_message_find_free(void)
 
 static __forceinline void function_8e215(long arg_0)
 {
- g_4d8c28[arg_0].header = 0;
- g_4d8c28[arg_0].size = 0;
- g_4d8c28[arg_0].task_index = NONE;
- g_4d8c28[arg_0].data = 0;
+ s_pending_message *local_0 = g_4d8c28 + arg_0;
+ local_0->header = 0;
+ local_0->task_index = NONE;
+ local_0->size = 0;
+ local_0->data = 0;
 }
 
 // @retail 0x8e210

@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include "unknown_13eeb0.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -123,18 +124,27 @@ long function_1365a0(s_type_7ba8e9 const *bitmap, short mipmap_index)
 	return bits * width / 8;
 }
 
+PRIVATE __forceinline short function_136601(short arg_1, long arg_2)
+{
+	long local_1 = 0;
+	if (arg_1 != NONE)
+		local_1 = g_453550[arg_2];
+	return local_1;
+}
+
 // @retail 0x136600
-long function_136600(short width, short height, short mipmap_index, short depth, short format, short alignment)
+long function_136600(short width, short height, short mipmap_index, short depth, s_13eeb1 format, short alignment)
 {
 	short mipmap_width = width >> mipmap_index > 1 ? width >> mipmap_index : 1;
 	short mipmap_height = height >> mipmap_index > 1 ? height >> mipmap_index : 1;
 	short mipmap_depth = depth >> mipmap_index > 1 ? depth >> mipmap_index : 1;
-	if (format >= 14 && format <= 16)
+	long local_3 = (short)format;
+	if (local_3 >= 14 && local_3 <= 16)
 	{
 		mipmap_width += -mipmap_width & 3;
 		mipmap_height += -mipmap_height & 3;
 	}
-	short row_size = function_x48d32c(format) * mipmap_width / 8;
+	short row_size = function_136601((short)format, local_3) * mipmap_width / 8;
 	if (alignment > 0)
 	{
 		row_size = (row_size + alignment - 1) & ~(alignment - 1);
@@ -143,12 +153,14 @@ long function_136600(short width, short height, short mipmap_index, short depth,
 }
 
 // @retail 0x1366d0
-long function_1366d0(short width, short height, short depth, short format, short alignment, short mipmap_count)
+long function_1366d0(short width, short height, short depth, short format, short alignment, long mipmap_count)
 {
+	long local_1 = *(long volatile *)&mipmap_count;
 	long total = 0;
-	for (short mipmap_index = 0; mipmap_index <= mipmap_count; mipmap_index++)
+	for (short mipmap_index = 0; mipmap_index <= (short)local_1; mipmap_index++)
 	{
-		total += function_136600(width, height, mipmap_index, depth, format, alignment);
+		s_13eeb1 local_2 = { *(long const *)&format };
+		total += function_136600(width, height, mipmap_index, depth, local_2, alignment);
 	}
 	return total;
 }
@@ -203,10 +215,10 @@ s_type_7ba8e9 *function_1358e0(short width, short height, short mipmap_count, sh
 // @retail 0x135a30
 void *function_135a30(s_type_7ba8e9 const *bitmap, short mipmap_index, short x, short y)
 {
+	short width = bitmap->width;
+	long offset = 0;
 	short minimum = (bitmap->flags & 2) ? 4 : 1;
 	short height = bitmap->height;
-	long offset = 0;
-	short width = bitmap->width;
 	long bits = function_x48d32c(bitmap->format);
 
 	for (short i = 0; i < mipmap_index; i++)
@@ -223,8 +235,8 @@ void *function_135a30(s_type_7ba8e9 const *bitmap, short mipmap_index, short x, 
 // @retail 0x135af0
 void *function_135af0(s_type_7ba8e9 const *bitmap, short x, short y, short z, short mipmap_index)
 {
-	short minimum = (bitmap->flags & 2) ? 4 : 1;
 	short width = bitmap->width;
+	short minimum = (bitmap->flags & 2) ? 4 : 1;
 	short height = bitmap->height;
 	short depth = bitmap->depth;
 	long offset = 0;

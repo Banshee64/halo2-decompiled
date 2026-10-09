@@ -675,6 +675,8 @@ bool __stdcall function_26710(long mode, real const *bounds, real const *t, real
 	}
 }
 
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x26ca0
 bool __stdcall function_26ca0(long mode, real const *bounds, real const *t, real *out, long unused)
 {
@@ -686,25 +688,29 @@ bool __stdcall function_26ca0(long mode, real const *bounds, real const *t, real
 	real const *matrix = g_4b9c74[mode];
 	if (g_509400 <= 0.0f)
 		g_509400 = g_485ae0;
-	if (mode == 0)
-	{
-		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
-		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
-		clip_depth_terms(out, 1.0f);
-		out[0] *= g_4b9d90;
-		out[1] *= g_4b9d90;
-		return true;
-	}
 	if (mode > 0 && mode <= 4)
 	{
 		out[0] = (t[0] * 2.0f - 1.0f) * matrix[6] - (t[1] * 2.0f - 1.0f) * matrix[7] * g_4b9d94 + matrix[9];
+        _ReadWriteBarrier();
 		out[1] = (t[0] * 2.0f - 1.0f) * matrix[10] - (t[1] * 2.0f - 1.0f) * matrix[11] * g_4b9d94 + matrix[13];
 		out[2] = 0.0f;
 		out[3] = 1.0f;
 		return true;
 	}
+	if (mode == 0)
+	{
+		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
+		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
+		clip_depth_terms(out, 1.0f);
+        _ReadWriteBarrier();
+		out[0] *= g_4b9d90;
+        _ReadWriteBarrier();
+		out[1] *= g_4b9d90;
+		return true;
+	}
 	return false;
 }
+#pragma function(_ReadWriteBarrier)
 
 // @retail 0x27960
 bool __stdcall function_27960(long mode, real const *bounds, real const *t, real *out, long unused)
@@ -2010,15 +2016,17 @@ void __stdcall function_34a90(long target, short blend, dword color_write,
     bool use_depth, bool depth_write, real depth, real distortion, real scale,
     long count, bool full_surface, bool viewport_textures)
 {
-    long width = 0, height = 0;
-    function_01dd60(target != NONE ? target : g_4858b8, &width, &height);
+    struct { long width; long height; } dimensions = { 0, 0 };
+    long selected_target = target;
+    if (selected_target == NONE) selected_target = g_4858b8;
+    function_01dd60(selected_target, &dimensions.width, &dimensions.height);
     real bounds[4];
     if (full_surface)
     {
         bounds[0] = 0.0f;
-        bounds[1] = (real)width;
+        bounds[1] = (real)dimensions.width;
         bounds[2] = 0.0f;
-        bounds[3] = (real)height;
+        bounds[3] = (real)dimensions.height;
     }
     else
     {
@@ -2027,8 +2035,8 @@ void __stdcall function_34a90(long target, short blend, dword color_write,
         bounds[2] = (real)g_4b9dd0;
         bounds[3] = (real)g_4b9dd4;
     }
-    real inverse_x = 1.0f / width;
-    real inverse_y = 1.0f / height;
+    real inverse_x = 1.0f / dimensions.width;
+    real inverse_y = 1.0f / dimensions.height;
     s_34a90_parameters parameters;
     parameters.depth = depth >= 0.0f ? depth : 0.0f - depth;
     parameters.distortion = distortion;
@@ -2580,7 +2588,7 @@ void __stdcall function_2a2f0(volatile long tag, volatile real alpha)
         g_4b82ec = 0; D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
         g_4b8448 = 0; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
         g_4b843c = 0; D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 0);
-        g_4b8438 = 0; D3DDevice_SetRenderState(D3DRS_ZENABLE, 0);
+        function_0222d0(D3DRS_ZENABLE, 0);
         g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
 #pragma inline_depth(0)
         memset(&g_484f68, 0, sizeof(g_484f68));
@@ -2637,7 +2645,8 @@ void __stdcall function_2a2f0(volatile long tag, volatile real alpha)
                 height = 1.0f;
                 if (!(local_98083a < 1.0f)) height = local_98083a;
             }
-            long count = *(long *)(definition + 0x44);
+            // Reload the count after the dimension writes.
+            long count = *(volatile long *)(definition + 0x44);
             byte *selected = NULL;
             if (count > 0)
             {

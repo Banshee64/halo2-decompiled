@@ -304,6 +304,16 @@ bool function_2bc1b0(point3f *position, long index);
 point3f *function_b9dd0(long object_index, point3f *result);
 
 /* whether the team's ball, carried by no one, is away from its home marker */
+PRIVATE __forceinline real team_ball_offset_squared(point3f const *home, point3f const *position)
+{
+    vector3f delta;
+    vector3d_from_points3d(position, home, &delta);
+    real result = delta.k * delta.k;
+    result += delta.i * delta.i;
+    result += delta.j * delta.j;
+    return result;
+}
+
 // @retail 0x2bd020
 bool team_ball_away_from_home(long team)
 {
@@ -317,13 +327,9 @@ bool team_ball_away_from_home(long team)
 		if (function_2bc1b0(&home, team))
 		{
 			point3f position;
-			vector3f offset;
 
 			function_b9dd0(entry->item_index, &position);
-			offset.i = home.x - position.x;
-			offset.j = home.y - position.y;
-			offset.k = home.z - position.z;
-			if (offset.j * offset.j + offset.i * offset.i + offset.k * offset.k > 0.25f)
+			if (team_ball_offset_squared(&home, &position) > 0.25f)
 			{
 				result = true;
 			}
@@ -757,10 +763,10 @@ void c_game_engine_derived::v46(long a, long b)
 			if (owner != NONE)
 			{
 				s_event e;
-
+				long team = event_player_get(owner)->team;
 				game_engine_event_initialize_inline(&e, 4, 3);
 				e.cause_player_index = owner;
-				e.cause_team = event_player_get(owner)->team;
+				e.cause_team = team;
 				function_19eb90(&e);
 			}
 		}

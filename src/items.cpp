@@ -103,8 +103,8 @@ void function_10c850(long item_index)
 // @retail 0x10cf50
 bool function_10cf50(long item_index)
 {
-	s_item *item = ITEM_GET(item_index);
 	bool result = false;
+	s_item *item = ITEM_GET(item_index);
 
 	if (TEST_FIELD_BIT(item->flag0) && !TEST_FIELD_BIT(item->flag1))
 		result = true;

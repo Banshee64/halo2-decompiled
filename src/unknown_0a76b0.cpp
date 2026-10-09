@@ -684,7 +684,7 @@ struct s_unit_action_grenade
 
 void function_a7a30(long object_index, dword mask);
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-long function_b7b40(void *data);
+long __stdcall function_b7b40(void *data);
 void __stdcall function_b93b0(long parent_index, long object_index, long node_index);
 vector3f *function_11d000(vector3f const *v, vector3f *out);
 real function_30bf0(vector3f *v);

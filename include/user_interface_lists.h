@@ -706,6 +706,7 @@ public:
 	virtual void v2();
 	virtual void v18(void *parameters);
 	c_level_select_screen(long a, long b, word user_flags, bool alternate);
+ __forceinline c_level_select_screen(long a, long b, word user_flags);
 
 	/* shows the focused level's picture and description */
 	virtual void v3();

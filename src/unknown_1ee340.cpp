@@ -114,13 +114,13 @@ c_vertex_shape::c_vertex_shape(s_shape_source *source, byte type, long data, lon
 	long user_data, const transform4x3f *matrix)
 {
 	s_shape_source *const *source_reference = &source;
-	const byte *type_reference = &type;
-	const long *data_reference = &data;
+	const volatile byte *type_reference = &type;
+	const volatile long *data_reference = &data;
 	const long *index_reference = &index;
 	const long *user_reference = &user_data;
 	user = 0;
 	vertex_count = 0;
-	kind = *type_reference;
+	*(byte volatile *)&kind = *type_reference;
 	value = *data_reference;
 	radius = 0.01f;
 	surface_index = *index_reference;
@@ -201,7 +201,19 @@ void c_vertex_shape::ray_test(bool *hit, const s_shape_ray *ray, s_shape_ray_res
 			projected.x = point.n[first_axis];
 			projected.y = point.n[second_axis];
 			point2f polygon[8];
-			for (long i = 0; i < vertex_count; i++)
+			long i = 0;
+			for (; i + 3 < vertex_count; i += 4)
+			{
+				polygon[i].x = vertices_raw[i * 4 + first_axis];
+				polygon[i].y = vertices_raw[i * 4 + second_axis];
+				polygon[(i + 1)].x = vertices_raw[(i + 1) * 4 + first_axis];
+				polygon[(i + 1)].y = vertices_raw[(i + 1) * 4 + second_axis];
+				polygon[(i + 2)].x = vertices_raw[(i + 2) * 4 + first_axis];
+				polygon[(i + 2)].y = vertices_raw[(i + 2) * 4 + second_axis];
+				polygon[(i + 3)].x = vertices_raw[(i + 3) * 4 + first_axis];
+				polygon[(i + 3)].y = vertices_raw[(i + 3) * 4 + second_axis];
+			}
+			for (; i < vertex_count; ++i)
 			{
 				polygon[i].x = vertices_raw[i * 4 + first_axis];
 				polygon[i].y = vertices_raw[i * 4 + second_axis];
@@ -298,19 +310,17 @@ short g_54e898;
 // @retail 0x1ee410
 void function_1ee410(const s_lookup_source *source, short *result)
 {
+    short value = g_54e898;
 	if (source->tag_index != NONE)
 	{
 		s_tag_instance_ref *tags = (s_tag_instance_ref *)g_4e3b44;
-		*result = tags[(word)source->tag_index].data->entries[source->index].value10;
+		value = tags[(word)source->tag_index].data->entries[source->index].value10;
 	}
 	else if (source->index != NONE)
 	{
-		*result = g_4e0348->entries[source->index].value08;
+		value = g_4e0348->entries[source->index].value08;
 	}
-	else
-	{
-		*result = g_54e898;
-	}
+    *result = value;
 }
 
 struct s_count_entry
@@ -479,6 +489,11 @@ struct s_bounds_source
 	s_bounds_vertex *vertices;
 };
 
+PRIVATE __forceinline void bounds_half_extent_set(real maximum, real minimum, real volatile *destination)
+{
+    *destination = (maximum - minimum) * 0.5f;
+}
+
 // @retail 0x1eed40
 c_shape_global_owner::c_shape_global_owner()
 {
@@ -500,9 +515,9 @@ c_shape_global_owner::c_shape_global_owner()
 	center.y = (bounds.y1 + bounds.y0) * 0.5f;
 	center.z = (bounds.z1 + bounds.z0) * 0.5f;
 	center.w = 0.0f;
-	extent.x = (bounds.x1 - bounds.x0) * 0.5f;
-	extent.y = (bounds.y1 - bounds.y0) * 0.5f;
-	extent.z = (bounds.z1 - bounds.z0) * 0.5f;
+	bounds_half_extent_set(bounds.x1, bounds.x0, &extent.x);
+	bounds_half_extent_set(bounds.y1, bounds.y0, &extent.y);
+	bounds_half_extent_set(bounds.z1, bounds.z0, &extent.z);
 	extent.w = 0.0f;
 }
 
@@ -603,14 +618,14 @@ void c_shape_owner::query_box(const c_query_transform *matrix, const __m128 *ext
    s_query_owner *owner = &globals->owners[instance->owner];
    if (owner->surface_count <= 0x2000)
    {
-    c_instance_surface_query *query = (c_instance_surface_query *)(owner->shape + 0x50);
+    byte *volatile shape = owner->shape;
     c_query_transform transform, local;
     query_transform(&instance->matrix, &transform);
     local.inverse_product(&transform, matrix);
     query_remove_key(keys, i);
     long first = keys->count;
     --i;
-    query->query_box(&local, extent, tolerance, keys);
+    ((c_instance_surface_query *)(shape + 0x50))->query_box(&local, extent, tolerance, keys);
     query_remap_keys(keys, first, instance_index);
    }
   }
@@ -711,7 +726,7 @@ struct s_type_1a7926
  transform4x3f *field_50;
 };
 
-bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+bool function_20a9a0(s_type_1a7926 *matrices, long object_index);
 extern long *g_51e9cc;
 
 struct c_child_transform : c_havok_reference_counted
@@ -753,7 +768,7 @@ c_child_transform *function_1ef070(dword key, void *storage)
  else
  {
   s_type_1a7926 info;
-  function_20a9a0(object_index, &info);
+  function_20a9a0(&info, object_index);
   byte *physics = (byte *)info.node_indices;
   byte *group = *(byte **)(physics + 0xc4) + *(signed char *)(region + 5) * 12;
   byte *entry = *(byte **)(group + 8) + *(signed char *)(choice + 6) * 12;

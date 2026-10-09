@@ -92,7 +92,7 @@ struct s_object_header_view
 
 bool function_10cf50(long item_index);
 long function_1d8f00(long render_model_index, long marker_name);
-short function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
+long function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
 	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, long count);
 void function_b58c0(long index, dword mask);
 void function_b7360(long object_index);
@@ -376,9 +376,9 @@ vector3f *function_11d090(vector3f const *vector, vector3f *out);
 
 static __forceinline void object_cross_ab(vector3f const *a, vector3f const *b, vector3f *out)
 {
-    real i = a->j * b->k - a->k * b->j;
-    real j = a->k * b->i - a->i * b->k;
     real k = a->i * b->j - a->j * b->i;
+    real j = a->k * b->i - a->i * b->k;
+    real i = a->j * b->k - a->k * b->j;
     out->i = i;
     out->j = j;
     out->k = k;

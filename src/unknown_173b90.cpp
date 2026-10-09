@@ -11,7 +11,7 @@
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 struct s_structure_leaf_173b90
 {
@@ -206,7 +206,7 @@ void particle_systems_update_locations(void)
 
 				if (bsp_index != NONE)
 				{
-					location.leaf_index = function_14a280(g_4e033c, &particle_location->position, 0);
+					location.leaf_index = function_14a280(g_4e033c, 0, &particle_location->position);
 					if (location.leaf_index != NONE)
 						location.cluster_index = ((s_structure_bsp_173b90 *)g_4e0348)->leaves[location.leaf_index].cluster_index;
 					else

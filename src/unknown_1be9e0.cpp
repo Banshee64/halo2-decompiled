@@ -172,7 +172,7 @@ short __stdcall function_1beb70(long actor_index, s_slot *slot, bool active)
 					}
 					state->unknown1c = (short)ticks;
 					if ((short)declined > 1)
-						function_1fb7e0(actor_index, 0x86, NULL, NONE, NONE);
+						function_1fb7e0(0x86, actor_index, NULL, NONE, NONE);
 					return result;
 				}
 				if (joint->participant_count + (short)accepted >= 2)

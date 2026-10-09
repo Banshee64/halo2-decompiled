@@ -79,20 +79,24 @@ void function_225730(void)
 	dword time = GetTickCount();
 	long index = NONE;
 	s_unknown_225700_player *player;
+	s_index_table *local_2 = g_4e8c20;
+	byte *local_3;
 	for (long local_0 = 0; local_0 < 4; local_0++)
 	{
-		if (g_4e8c20->entries[local_0] != NONE)
+		if (local_2->entries[local_0] != NONE)
 		{
 			index = local_0;
 			break;
 		}
 	}
 
+	if (index != NONE)
+		local_3 = g_4e8c24->data;
 	while (index != NONE)
 	{
-		long player_index = index != NONE ? g_4e8c20->entries[index] : NONE;
+		long player_index = index != NONE ? local_2->entries[index] : NONE;
 
-		player = (s_unknown_225700_player *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
+		player = (s_unknown_225700_player *)(local_3 + (player_index & 0xffff) * 0x21c);
 		if (player_index != NONE && player->gamepad_index != NONE)
 		{
 			bool changed = true;
@@ -130,7 +134,7 @@ void function_225730(void)
 			long local_1 = NONE;
 			for (; next < 4; next++)
 			{
-				if (g_4e8c20->entries[next] != NONE)
+				if (local_2->entries[next] != NONE)
 				{
 					local_1 = next;
 					break;

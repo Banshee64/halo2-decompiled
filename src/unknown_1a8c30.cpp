@@ -95,7 +95,7 @@ short __stdcall function_1a8c30(long arg_0, s_slot *arg_1)
             if ((local_13 || local_7) && function_1a8a10(&local_10, arg_0, (short)local_8, local_9, 0.0f))
             {
                 s_1a8c30 *local_14 = (s_1a8c30 *)function_1e4c70(arg_0);
-                function_1fb7e0(arg_0, 0x24, NULL, NONE, NONE);
+                function_1fb7e0(0x24, arg_0, NULL, NONE, NONE);
                 if (local_14 && local_14->field_10 > 0.0f &&
                     local_14->field_10 > function_259a0(&g_4e7408->unknown0))
                     local_1 = 0x38;

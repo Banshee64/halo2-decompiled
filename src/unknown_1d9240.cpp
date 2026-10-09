@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "unknown_0259d0.h"
 
 struct s_1d9240
 {
@@ -11,6 +12,13 @@ struct s_1d9240
 	char unknown02;
 	byte flag;
 };
+#pragma optimize("p", on)
+PRIVATE __forceinline real function_1d9241(real arg_0, real arg_1)
+{
+ return arg_0 / arg_1;
+}
+#pragma optimize("", on)
+
 
 // @retail 0x1d9240
 void function_1d9240(s_1d9240 *p, char flag, real x)
@@ -35,7 +43,7 @@ void function_1d9240(s_1d9240 *p, char flag, real x)
 
 	if (n > 0)
 	{
-		if (p->count && (p->flag & 1) == flag && n == p->count)
+		if (p->count && flag == ((char)p->flag & 1) && n == p->count)
 			return;
 
 		if (p->count)
@@ -44,8 +52,8 @@ void function_1d9240(s_1d9240 *p, char flag, real x)
 
 			if (!(denominator > 1.0f))
 				denominator = 1.0f;
-			x = (real)p->value / denominator * (real)(n - 1);
-			value = (long)x;
+			x = function_1d9241((real)p->value, denominator) * (real)(n - 1);
+			value = real_truncate(x);
 		}
 		else
 			value = flag ? 1 : n - 1;
@@ -141,34 +149,36 @@ real function_1d9370(s_1d9240 const *p)
 	if (p->count)
 	{
 		real count = (real)p->count;
-		real t;
 
 		if (!(count > 1.0f))
 		{
 			count = 1.0f;
 		}
-		t = (real)p->value / count;
+		result = (real)p->value / count;
 		switch (p->unknown02)
 		{
 		case 1:
-			t = function_10e8e0(t);
+			result = function_10e8e0(result);
 			break;
 		case 2:
-			t = function_1d9670(t);
+			result = function_1d9670(result);
 			break;
 		case 3:
-			t -= 1.0f;
-			t = 1.0f - t * t;
+			result -= 1.0f;
+			result = 1.0f - result * result;
 			break;
 		case 4:
 		{
-			real u = 1.0f - t;
+			real u = 1.0f - result;
 
-			t = 1.0f - u * u * u;
+			result = 1.0f - u * u * u;
 			break;
 		}
 		}
-		result = PIN(t, 0.0f, 1.0f);
+		if (0.0f > result)
+			result = 0.0f;
+		else if (result > 1.0f)
+			result = 1.0f;
 	}
 	return result;
 }
@@ -200,8 +210,8 @@ void function_1d9470(s_1d9240 const *p, s_blend_orientation const *targets, long
 					targets->quaternion[1] * orientations->quaternion[1] +
 					targets->quaternion[2] * orientations->quaternion[2] +
 					orientations->quaternion[3] * targets->quaternion[3];
-				real target_weight = 1.0f - t;
 				real weight = t;
+				real target_weight = 1.0f - t;
 				real length_squared;
 
 				if (0.0f > dot)

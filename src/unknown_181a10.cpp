@@ -418,7 +418,7 @@ struct s_lookup_source;
 struct s_bsp3d;
 plane3f *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, plane3f *plane);
 void function_1ee410(s_lookup_source const *source, short *result);
-void function_182b90(c_material_shape *shape, hkEntity const *entity, real *friction, short *material, real *restitution);
+void function_182b90(c_material_shape *shape, hkEntity const *entity, real *friction, real *restitution, short *material);
 long havok_entity_property_2002_get(hkEntity const *entity);
 bool function_181db0(long index, vector3f *result);
 
@@ -556,7 +556,7 @@ void c_query_batch_collector::collect(s_batch_contact const *contact)
 		s_query_node *node = (s_query_node *)((s_node *)second)->get_last();
 		hkEntity *entity = node->type == 1 ? node->entity : NULL;
 		real friction, restitution;
-		function_182b90((c_material_shape *)second->shape, entity, &friction, &results[key].material, &restitution);
+		function_182b90((c_material_shape *)second->shape, entity, &friction, &restitution, &results[key].material);
 		if (entity)
 		{
 			index = havok_entity_component_index_get(entity);

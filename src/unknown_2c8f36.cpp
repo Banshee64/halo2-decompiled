@@ -157,18 +157,14 @@ c_button_widget_45d5d0::c_button_widget_45d5d0(short valuef8, word user_flags) :
 static __forceinline c_class_1a2c81 *widget_get_next_wrapped(c_class_1a2c81 *widget)
 {
 	c_class_1a2c81 *result = widget->next;
-
-	if (result == 0)
+	if (result) return result;
+	result = widget;
+step:
+	c_class_1a2c81 *cursor = result->previous;
+	if (cursor)
 	{
-		c_class_1a2c81 *previous;
-
-		result = widget;
-		previous = widget->previous;
-		while (previous != 0)
-		{
-			result = previous;
-			previous = previous->previous;
-		}
+		result = cursor;
+		goto step;
 	}
 	return result;
 }
@@ -177,17 +173,14 @@ static __forceinline c_class_1a2c81 *widget_get_next_wrapped(c_class_1a2c81 *wid
 static __forceinline c_class_1a2c81 *widget_get_previous_wrapped(c_class_1a2c81 *widget)
 {
 	c_class_1a2c81 *result = widget->previous;
-
-	if (!result)
+	if (result) return result;
+	result = widget;
+step:
+	c_class_1a2c81 *cursor = result->next;
+	if (cursor)
 	{
-		c_class_1a2c81 *next = widget->next;
-
-		result = widget;
-		while (next)
-		{
-			result = next;
-			next = result->next;
-		}
+		result = cursor;
+		goto step;
 	}
 	return result;
 }

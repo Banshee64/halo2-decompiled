@@ -34,8 +34,8 @@ struct s_actor_creature
 // @retail 0x1e3480
 long function_1e3480(long object_index)
 {
-	s_actor_object *object = ((s_actor_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	long result = NONE;
+	s_actor_object *object = ((s_actor_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 
 	if ((1 << object->type) & 3)
 	{
@@ -43,11 +43,11 @@ long function_1e3480(long object_index)
 	}
 	else if (object->type == 12 && !object->unknown134)
 	{
-		s_actor_creature *creature = (s_actor_creature *)((byte *)object + object->creature_offset);
+		object = (s_actor_object *)((byte *)object + object->creature_offset);
 
-		if (creature)
+		if (object)
 		{
-			result = creature->actor_index;
+			result = ((s_actor_creature *)object)->actor_index;
 		}
 	}
 	return result;

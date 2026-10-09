@@ -124,13 +124,17 @@ void function_2b98b0(s_particle_2b96 const *particle, s_particle_2b96 const *oth
     vector3f b = other->velocity;
     normalize_particle_vector_2b(&a);
     normalize_particle_vector_2b(&b);
-    vector3f delta;
-    delta.i = (b.i - a.i) * scale;
-    delta.j = (b.j - a.j) * scale;
-    delta.k = (b.k - a.k) * scale;
-    result->i += delta.i;
-    result->j += delta.j;
-    result->k += delta.k;
+    result->i += (b.i - a.i) * scale;
+    result->j += (b.j - a.j) * scale;
+    result->k += (b.k - a.k) * scale;
+}
+
+PRIVATE __forceinline real particle_separation_squared_values(real z, real y, real x)
+{
+    real squared = z * z;
+    squared += y * y;
+    squared += x * x;
+    return squared;
 }
 
 // @retail 0x2b9750
@@ -139,17 +143,23 @@ void function_2b9750(s_particle_2b96 const *other, s_particle_2b96 const *partic
     if (fabs(scale) < 0.0001f)
         return;
     vector3f delta;
+    delta.k = other->position.z - particle->position.z;
     delta.i = other->position.x - particle->position.x;
     delta.j = other->position.y - particle->position.y;
-    delta.k = other->position.z - particle->position.z;
-    union { real value; long bits; } distance;
-    distance.value = delta.i * delta.i + delta.j * delta.j + delta.k * delta.k;
-    distance.bits = (distance.bits >> 1) + 0x1fc00000;
-    real ratio = distance.value / (radius > 0.1f ? radius : 0.1f);
+    real initial_squared = particle_separation_squared_values(delta.k, delta.j, delta.i);
+    real bounded_radius = radius > 0.1f ? radius : 0.1f;
+    radius = initial_squared;
+    *(long *)&radius = (*(long *)&radius >> 1) + 0x1fc00000;
+    real ratio = radius / bounded_radius;
+    delta.k = particle->position.z - other->position.z;
     delta.i = particle->position.x - other->position.x;
     delta.j = particle->position.y - other->position.y;
-    delta.k = particle->position.z - other->position.z;
-    normalize_particle_vector_2b(&delta);
+    real normalized_squared = delta.k * delta.k + delta.j * delta.j + delta.i * delta.i;
+    if (normalized_squared != 0.0f)
+    {
+        real inverse = inverse_sqrt_2b96(normalized_squared);
+        scale_particle_vector_2b(inverse, &delta);
+    }
     if (ratio < 1.0f)
         scale = 0.0f - ratio * scale;
     delta.i *= scale;
@@ -229,15 +239,17 @@ void function_2ba100(s_particle_properties_2ba const *definition, void *system, 
     dword requested = definition->input_mask & 0x107f0;
     function_173ba0(requested, current_system, current_emitter, current_particle, values);
     valid |= requested;
-    for (dword i = 0; i < 3 && remaining; ++i)
+    s_particle_property_entry_2ba *first_properties = properties;
+    for (dword i = 0; i < 3 && remaining; ++i, ++properties)
     {
         dword bit = 1 << i;
         if (remaining & bit)
         {
-            properties_values[i] = function_246cd0(&properties[i].property, values);
+            properties_values[i] = function_246cd0(&properties->property, values);
             remaining &= ~bit;
         }
     }
+    properties = first_properties;
     while (next != NONE)
     {
         s_particle_2b96 *particle = &((s_particle_2b96 *)g_51ec84->data)[next & 0xffff];
@@ -555,13 +567,16 @@ void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void
     c_particle_collision_interface_2b *material = (c_particle_collision_interface_2b *)function_137bd0(
         ((s_particle_system_datum *)system)->function_1751d0()->tag_index);
     dword remaining = definition->constant_mask;
-    long next = first;
-    real coefficients[2] = { 0.0f, 0.0f };
+    long next;
+    real coefficients[2];
     s_particle_cache_2ba cache;
     cache.valid = 0;
     cache.current_system = 0;
     cache.current_emitter = 0;
     cache.current_particle = 0;
+    coefficients[0] = 0.0f;
+    coefficients[1] = 0.0f;
+    next = first;
     if (system)
     {
         cache.current_system = system;
@@ -619,13 +634,13 @@ void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void
         }
         vector3f displacement;
         displacement.i = particle->velocity.i * scale;
+        point3f start = particle->position;
         displacement.j = particle->velocity.j * scale;
         displacement.k = particle->velocity.k * scale;
         vector3f sweep;
         sweep.i = displacement.i * 12.0f;
         sweep.j = displacement.j * 12.0f;
         sweep.k = displacement.k * 12.0f;
-        point3f start = particle->position;
         start.x -= displacement.i;
         start.y -= displacement.j;
         start.z -= displacement.k;
@@ -650,17 +665,19 @@ void __stdcall function_2b9060(s_particle_properties_2ba const *definition, void
                 }
                 vector3f const *normal = (vector3f const *)(collision.storage + 0x28);
                 real keep = 1.0f - coefficients[0];
-                real dot = particle->velocity.i * normal->i;
-                dot += normal->k * particle->velocity.k;
-                dot += normal->j * particle->velocity.j;
+                vector3f velocity;
+                velocity.i = particle->velocity.i;
+                velocity.j = particle->velocity.j;
+                velocity.k = particle->velocity.k;
+                real dot = velocity.i * normal->i + normal->k * velocity.k + normal->j * velocity.j;
                 vector3f perpendicular;
                 perpendicular.i = dot * normal->i;
                 perpendicular.j = dot * normal->j;
                 perpendicular.k = dot * normal->k;
                 vector3f tangent;
-                tangent.i = particle->velocity.i - perpendicular.i;
-                tangent.j = particle->velocity.j - perpendicular.j;
-                tangent.k = particle->velocity.k - perpendicular.k;
+                tangent.i = velocity.i - perpendicular.i;
+                tangent.j = velocity.j - perpendicular.j;
+                tangent.k = velocity.k - perpendicular.k;
                 particle->position.x = normal->i * 0.005f + collision.value.point.x;
                 particle->position.y = normal->j * 0.005f + collision.value.point.y;
                 particle->position.z = normal->k * 0.005f + collision.value.point.z;
