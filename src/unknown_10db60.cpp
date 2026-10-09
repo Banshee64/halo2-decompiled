@@ -221,7 +221,8 @@ void function_10e920(long object_index)
 
 	memset(&state->block_5c, 0, sizeof(state->block_5c));
 	state->block_5c.value_6c = NONE;
-	state->block_5c.animation_5c = function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), 0x800004d);
+	c_type_709360 animation = function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), 0x800004d);
+	state->block_5c.animation_5c = animation;
 }
 
 /* unknown_1cafc0.cpp's animation state */

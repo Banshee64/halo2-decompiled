@@ -194,7 +194,7 @@ short __stdcall function_bb050(long a, dword type_mask, void const *location, po
 void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
 void __stdcall function_bd020(long object_index);
 void function_bba20(long object_index);
-bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+bool function_20a9a0(s_type_1a7926 *matrices, long object_index);
 void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_havok_component *component,
 	vector3f const *velocity);
 void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_havok_component *component,
@@ -580,7 +580,7 @@ PRIVATE void machine_keyframe_rigid_bodies(long machine_index, bool keyframed)
 	s_machine *machine = MACHINE_GET(machine_index);
 	s_type_1a7926 matrices;
 
-	if (machine->havok_component_index == NONE || !function_20a9a0(machine_index, &matrices))
+	if (machine->havok_component_index == NONE || !function_20a9a0(&matrices, machine_index))
 		return;
 
 	s_havok_component *component = havok_component_get(machine->havok_component_index);

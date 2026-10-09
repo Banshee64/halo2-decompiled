@@ -212,7 +212,7 @@ PRIVATE void font_character_header_verify(s_font_character_header *header);
 PRIVATE void font_cache_character_wait_header_offset(s_font_character *character, bool wait);
 PRIVATE void font_cache_character_read_header(s_font_character *character, bool wait);
 PRIVATE void font_cache_character_wait_header(s_font_character *character, bool wait);
-PRIVATE bool font_cache_character_update(bool wait, long datum_index);
+PRIVATE bool font_cache_character_update(long datum_index, bool wait);
 PRIVATE void *font_cache_pixels_get(long pixels_index, bool wait);
 PRIVATE bool font_cache_character_allocate_pixels(long datum_index, bool wait);
 PRIVATE byte *font_cache_pixels_get_buffer(long pixels_index);
@@ -292,18 +292,18 @@ long font_cache_get_character(long font_index, long character, dword flags)
 	{
 		do
 		{
-			ready = font_cache_character_update(wait, datum_index);
+			ready = font_cache_character_update(datum_index, wait);
 		}
 		while (wait && !ready);
 	}
 
 	FONT_CHARACTER(datum_index)->last_used_frame = g_54d588;
 
-	if (ready)
+	if (!ready)
 	{
-		return datum_index;
+		return NONE;
 	}
-	return NONE;
+	return datum_index;
 }
 
 // @retail 0x140870
@@ -595,7 +595,7 @@ PRIVATE void font_cache_character_wait_header(s_font_character *character, bool 
 }
 
 // @retail 0x141020
-PRIVATE bool font_cache_character_update(bool wait, long datum_index)
+PRIVATE bool font_cache_character_update(long datum_index, bool wait)
 {
 	s_font_character *character = FONT_CHARACTER(datum_index);
 	bool result = false;
@@ -679,9 +679,10 @@ void font_cache_pixels_dispose(void)
 		g_54d580 = NULL;
 	}
 
-	if (g_54d57c)
+	s_record_pool *pool = g_54d57c;
+	if (pool)
 	{
-		data_dispose(g_54d57c);
+		data_dispose(pool);
 		g_54d57c = NULL;
 	}
 }

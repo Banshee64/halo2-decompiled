@@ -649,9 +649,11 @@ bool function_1ec500(long object_index)
   long index = (g_510c54->game_time + (object_index & 0xffff)) % scenario->count;
   if (!(g_51e9c8->bits[index >> 5] & (1 << (index & 31))))
   {
-   short volume = scenario->volumes[index];
-   if (volume != NONE)
-    result = function_11c5b0(object_index, volume);
+   short const *const volume_reference = &scenario->volumes[index];
+   short const *const *reference = &volume_reference;
+   word volume = **reference;
+   if (volume != 0xffff)
+    result = function_11c5b0(object_index, (short)volume);
   }
  }
  return result;
