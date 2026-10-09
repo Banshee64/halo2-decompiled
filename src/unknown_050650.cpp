@@ -886,6 +886,18 @@ PRIVATE bool function_297660(long actor_index, bool use_aiming_direction, bool u
 	return result;
 }
 
+static inline void actor_looking_rotate_in_place(vector3f *vector, vector3f const *axis, real sine, real cosine)
+{
+	real parallel = (axis->i * vector->i + axis->j * vector->j + axis->k * vector->k) * (1.f - cosine);
+	vector3f cross;
+	cross.i = vector->j * axis->k - vector->k * axis->j;
+	cross.j = vector->k * axis->i - vector->i * axis->k;
+	cross.k = vector->i * axis->j - vector->j * axis->i;
+	vector->i = vector->i * cosine + axis->i * parallel - cross.i * sine;
+	vector->j = vector->j * cosine + axis->j * parallel - cross.j * sine;
+	vector->k = vector->k * cosine + axis->k * parallel - cross.k * sine;
+}
+
 struct s_actor_looking_structure_view
 {
 	byte unknown000[0xc4];
@@ -927,18 +939,14 @@ PRIVATE bool function_297d30(long actor_index, s_type_952051 *specification)
 					for (short i = 0; i < 8; i++, rotation_index++, direction++)
 					{
 						*direction = actor->forward;
+						real fraction = 1.f;
 						real sine = (real)sin((real)rotation_index * 0.785398185f);
 						real cosine = (real)cos((real)rotation_index * 0.785398185f);
-						vector3f const *axis = g_4687b0;
-						real parallel = (axis->i * direction->i + axis->j * direction->j + axis->k * direction->k) * (1.f - cosine);
-						vector3f rotated;
-						rotated.i = direction->i * cosine + axis->i * parallel - (direction->j * axis->k - direction->k * axis->j) * sine;
-						rotated.j = direction->j * cosine + axis->j * parallel - (direction->k * axis->i - direction->i * axis->k) * sine;
-						rotated.k = direction->k * cosine + axis->k * parallel - (direction->i * axis->j - direction->j * axis->i) * sine;
-						*direction = rotated;
+						actor_looking_rotate_in_place(direction, g_4687b0, sine, cosine);
 						function_26c590(actor->location.unknown10, NULL, &trace, pathfinding,
 							&actor->location.point.point, NONE, direction, 5.f, 0);
-						real fraction = *(byte *)&trace.unknown00 ? trace.distance * 0.2f : 1.f;
+						if (*(byte *)&trace.unknown00)
+							fraction = trace.distance * 0.2f;
 						real score = direction->i * forward.i + direction->k * forward.k + direction->j * forward.j;
 						score = (0.6f > score ? 0.6f : score) * fraction;
 						if (score > best_score)
