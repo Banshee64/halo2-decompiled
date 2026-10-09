@@ -1392,8 +1392,8 @@ void function_103b70(long weapon_index, short trigger_index)
 void function_103bd0(long weapon_index, short trigger_index)
 {
 	long unit_index = weapon_get_owner_unit_index(weapon_index);
-	long ticks = g_510c54->field_2_3;
 	s_weapon *weapon = WEAPON_GET(weapon_index);
+	long ticks = ((s_game_time_globals const volatile *)g_510c54)->field_2_3;
 
 	weapon->triggers[trigger_index].timer = (short)ticks;
 	weapon->triggers[trigger_index].state = 6;

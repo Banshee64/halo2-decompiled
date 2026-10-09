@@ -183,7 +183,8 @@ void obstacle_tangent_directions(point2f const *point, s_obstacle_list const *li
 // @retail 0x2c0d00
 bool obstacle_list_add(s_obstacle_list *list, word flags, point2f const *center, long object_index, real radius)
 {
-	s_obstacle *obstacle;
+	real volatile const *radius_reference = &radius;
+    s_obstacle *obstacle;
 
 	if (list->count == 64)
 	{
@@ -201,8 +202,9 @@ bool obstacle_list_add(s_obstacle_list *list, word flags, point2f const *center,
 	obstacle->flags = flags;
 	obstacle->group = NONE;
 	obstacle->object_index = object_index;
-	obstacle->center = *center;
-	obstacle->radius = radius;
+		obstacle->center.y = *(real volatile const *)&center->y;
+    *(long *)&obstacle->center.x = *(long const *)&center->x;
+    obstacle->radius = *radius_reference;
 	return true;
 }
 
@@ -300,7 +302,7 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
             if (other_actor_index != NONE)
             {
                 s_actor_view *other = actor_get(other_actor_index);
-                bool enemy = actor && function_1df560(actor->unknown024, other->unknown024);
+                bool enemy = actor && function_1df560(other->unknown024, actor->unknown024);
                 if (*((byte *)other + 0x5d0) && (!actor || actor->unknown26c == NONE))
                 {
                     point3f center;
@@ -313,7 +315,7 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
                     {
                         vector3f const *other_direction = (vector3f const *)((byte *)other + 0x5ec);
                         real dot = offset.k * other_direction->k + offset.j * other_direction->j + offset.i * other_direction->i;
-                        if (dot > magnitude3d(direction) * 0.7071067690849304f)
+                        if (dot > magnitude3d(other_direction) * 0.7071067690849304f)
                             continue;
                     }
                 }
@@ -341,14 +343,14 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
             if (actor && actor->unknown26c == NONE)
             {
                 short team = *(short *)(object + 0x138);
-                skip_classification = team == actor->unknown024 || !function_1df560(actor->unknown024, team);
+                skip_classification = team == actor->unknown024 || !function_1df560(team, actor->unknown024);
             }
         }
         else if (type == 7)
         {
             byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
             word device_flags = *(word *)(definition + 0x11e);
-            if (!(device_flags & 1) || ((device_flags & 2) && *(real *)(object + 0x140) == 1.0f && !(object[0x1cc] & 1)))
+            if (!(device_flags & 1) || ((device_flags & 2) && (*(real *)(object + 0x140) == 1.0f || !(object[0x1cc] & 1))))
                 device_spheres = true;
         }
         else if (type == 11)
@@ -363,7 +365,7 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
         offset.k = *(real *)(object + 0x38) - position->z;
         real object_radius = *(real *)(object + 0x3c) + radius;
         real distance_squared = offset.k * offset.k + offset.j * offset.j + offset.i * offset.i;
-        if (object_radius * object_radius < distance_squared)
+        if (!(object_radius * object_radius >= distance_squared))
             continue;
         byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
         if (TEST_FIELD_BIT(((s_obstacle_definition_flags_2c *)(definition + 2))->no_obstacle))
@@ -473,22 +475,19 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
                 if (dot > 0.0f && vehicle_index != NONE)
                 {
                     short team = *(short *)(object + 0x138);
-                    if (team == actor->unknown024 || !function_1df560(actor->unknown024, team))
+                    if (team == actor->unknown024 || !function_1df560(team, actor->unknown024))
                     {
                         byte *vehicle = (byte *)ai_object_get(vehicle_index);
                         long vehicle_actor_index = *(long *)(vehicle + 0x12c);
-                        bool forward = false;
+                        byte *vehicle_actor = NULL;
                         if (vehicle_actor_index != NONE)
-                        {
-                            byte *vehicle_actor = (byte *)actor_get(vehicle_actor_index);
-                            if (vehicle_actor[0x5d0])
-                            {
-                                vector3f const *heading = (vector3f const *)(vehicle_actor + 0x5ec);
-                                forward = heading->k * direction->k + heading->j * direction->j + direction->i * heading->i > 0.0f;
-                            }
-                        }
+                            vehicle_actor = (byte *)actor_get(vehicle_actor_index);
                         vector3f const *velocity = (vector3f const *)(object + 0x88);
-                        if (forward || velocity->k * direction->k + velocity->j * direction->j + direction->i * velocity->i > 0.0f)
+                        if ((vehicle_actor_index != NONE && vehicle_actor[0x5d0] &&
+                                *(real *)(vehicle_actor + 0x5f4) * direction->k +
+                                *(real *)(vehicle_actor + 0x5f0) * direction->j +
+                                direction->i * *(real *)(vehicle_actor + 0x5ec) > 0.0f) ||
+                            velocity->k * direction->k + velocity->j * direction->j + direction->i * velocity->i > 0.0f)
                         {
                             obstacle_flags |= 0x200;
                             blocking = true;
@@ -545,7 +544,7 @@ void __stdcall function_2c0d60(vector3f const *previous_direction, long actor_in
             squared += difference.j * difference.j;
             squared += difference.i * difference.i;
             real combined_radius = local_a47c5e + radius;
-            if (combined_radius * combined_radius < squared)
+            if (!(combined_radius * combined_radius >= squared))
                 continue;
             long moving = 0;
             if (type == 0)

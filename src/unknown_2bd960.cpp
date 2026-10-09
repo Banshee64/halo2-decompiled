@@ -779,14 +779,12 @@ bool c_game_engine_a::v23()
 		state->l70[j] = NONE;
 	g_51eccc = state;
 
-	short n = g_4e6948->s22e;
-	if (n < 1)
-		n = 1;
+	short raw_n = g_4e6948->s22e;
+    long n = raw_n < 1 ? 1 : raw_n;
 	state->w110 = g_510c54->field_2_3 * n;
 
-	short m = g_4e6948->s230;
-	if (m < 1)
-		m = 1;
+	short raw_m = g_4e6948->s230;
+    long m = raw_m < 1 ? 1 : raw_m;
 	state->w112 = m * g_510c54->field_2_3;
 	state->w114 = g_4e6948->w22c;
 	return true;
@@ -926,6 +924,16 @@ static __forceinline void point_list_add_2bf(s_point_list_2bf *list, point3f pos
 }
 
 /* adds the territories the player's team holds to the list */
+PRIVATE __forceinline bool territory_holder_matches_player(long holder, long player_index, s_record_pool *data)
+{
+    if (holder == player_index)
+        return true;
+    if (holder == NONE || !datum_get_inlined(data, holder))
+        return false;
+    s_player_2be *players = (s_player_2be *)data->data;
+    return players[holder & 0xffff].team == players[player_index & 0xffff].team;
+}
+
 // @retail 0x2bf740
 void c_game_engine_b::v2(long list_pointer, long player_index)
 {
@@ -940,9 +948,7 @@ void c_game_engine_b::v2(long list_pointer, long player_index)
 		{
 			long holder = state->l70[i];
 
-			if (holder == player_index ||
-				(holder != NONE && datum_get_inlined(g_4e8c24, holder) &&
-				player_get_2be(holder)->team == player_get_2be(player_index)->team))
+			if (territory_holder_matches_player(holder, player_index, g_4e8c24))
 			{
 				point_list_add_2bf(list, g_4e0350->marker_entries[marker].position,
 					*(real *)&g_502258[35], *(real *)&g_502258[36], *(real *)&g_502258[0], *(real *)&g_502258[1], *(real *)&g_502258[37]);
@@ -951,13 +957,31 @@ void c_game_engine_b::v2(long list_pointer, long player_index)
 	}
 }
 
+PRIVATE __forceinline void territory_marker_extents_include(s_state_2bf *state, long index, point3f const *origin, point3f const *point)
+{
+    real dx = point->x - origin->x;
+    real dy = point->y - origin->y;
+    real distance = (real)sqrt(dx * dx + dy * dy);
+    real below = origin->z - point->z;
+    real above = point->z - origin->z + 0.8f;
+    state->f0[index] = MAX(state->f0[index], distance);
+    state->f20[index] = MAX(state->f20[index], below);
+    state->f40[index] = MAX(state->f40[index], above);
+}
+
+PRIVATE __forceinline void territory_marker_position_copy(point3f *destination, point3f const *source)
+{
+    *destination = *source;
+}
+
 // @retail 0x2bf5b0
 void c_game_engine_a::v34()
 {
 	s_state_2bf *state = g_51eccc;
 	s_palette_source_globals *globals = g_4e0350;
 
-	for (long i = 0; i < 8; i++)
+	word *volatile marker = state->w60;
+	for (long i = 0; i < 8; i++, marker++)
 	{
 		short n = g_4e6948->w22c;
 
@@ -968,21 +992,17 @@ void c_game_engine_a::v34()
 
 			if (count >= 1)
 			{
-				state->w60[i] = (word)ids[0];
-				point3f p0 = globals->marker_entries[ids[0]].position;
+				*marker = (word)ids[0];
+				point3f p0;
+				territory_marker_position_copy(&p0, &globals->marker_entries[ids[0]].position);
 				state->f0[i] = 1.0f;
 				state->f20[i] = 0.1f;
 				state->f40[i] = 0.9f;
 				for (long j = 1; j < count; j++)
 				{
-					point3f p = globals->marker_entries[ids[j]].position;
-					real d = (real)sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y));
-					real below = p0.z - p.z;
-					real above = p.z - p0.z + 0.8f;
-
-					state->f0[i] = MAX(state->f0[i], d);
-					state->f20[i] = MAX(state->f20[i], below);
-					state->f40[i] = MAX(state->f40[i], above);
+					point3f p;
+					territory_marker_position_copy(&p, &globals->marker_entries[ids[j]].position);
+					territory_marker_extents_include(state, i, &p0, &p);
 				}
 			}
 		}
@@ -1649,8 +1669,6 @@ void c_game_engine_a::v36(long local_player)
 			list.l20 = NONE;
 			if (!datum_get_inlined(g_4e8c24, state->l70[i]))
 				list.r14 = 0.0f;
-			list.color24 = color;
-			list.color30 = color;
 			list.r3c = 1.0f;
 			list.r40 = 1.0f;
 			list.count = 1;
@@ -1659,6 +1677,8 @@ void c_game_engine_a::v36(long local_player)
 			list.items[0].b = color;
 			list.items[0].r = 1.0f;
 			list.items[0].index = NONE;
+			list.color24 = color;
+			list.color30 = color;
 			function_24e59f(&list);
 			state = g_51eccc;
 		}
@@ -1679,9 +1699,10 @@ void c_game_engine_a::v36(long local_player)
 				{
 					short other_team = ((s_player_2be *)iterator.player)->team;
 					c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
+					short own_team = player->team;
 					bool friendly = false;
 					if (engine)
-						friendly = engine->p27(other_team, player->team);
+						friendly = engine->p27(other_team, own_team);
 					if (!friendly)
 					{
 						s_marker_list list;

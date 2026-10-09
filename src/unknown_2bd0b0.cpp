@@ -96,7 +96,9 @@ bool c_game_engine_45c878::v23()
 	g_5092e8 = 0;
 	for (short i = 0; i < globals->marker_count; i++)
 	{
-		short type = globals->marker_entries[i].key_a;
+		s_marker_entry const *const entry = &globals->marker_entries[i];
+        s_marker_entry const *const *entry_reference = &entry;
+        short type = (*entry_reference)->key_a;
 
 		if (type >= 11 && type <= 18)
 		{

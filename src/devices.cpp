@@ -594,7 +594,7 @@ void __stdcall function_1076e0(long device_index, s_device_placement const *plac
 	if (placement->power_group_index == NONE)
 	{
 		real value = (placement->flags & 1) ? 1.0f : 0.0f;
-		word flags = (word)(((placement->flags & 4) | 0x10) >> 2);
+		dword flags = ((placement->flags & 4) | 0x10) >> 2;
 		long group_index = record_pool_allocate(g_4e0328.groups);
 
 		if (group_index != NONE)

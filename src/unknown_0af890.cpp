@@ -919,7 +919,10 @@ bool __stdcall function_b1c80(s_bitstream *stream, long size, void *message_)
 	{
 		message->part15_valid = function_1957d0(stream);
 		if (message->part15_valid)
-			valid = valid && function_b23d0(stream, &message->part15);
+		{
+			bool decoded = function_b23d0(stream, &message->part15);
+			valid = valid && decoded;
+		}
 	}
 	bool result = valid && !stream_overflowed(stream);
 	if (message->has_value0)

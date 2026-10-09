@@ -593,7 +593,7 @@ bool function_3e9c0(long object_index)
             {
                 byte *object = header->object;
                 long entry = g_4e8c20->entries[index];
-                if (entry == *(long *)(object + 0x13c))
+                if (*(long *)(object + 0x13c) == entry)
                     result = true;
             }
         }
