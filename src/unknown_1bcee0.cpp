@@ -117,9 +117,9 @@ s_slot_handler_1 g_47ebf8 =
 // @retail 0x1bd230
 bool __stdcall function_1bd230(long actor_index, s_slot *slot)
 {
+	bool result = false;
 	s_actor_view *actor = actor_get(actor_index);
 	s_slot_6c *state = (s_slot_6c *)slot;
-	bool result = false;
 
 	if (actor->unknown328 < 12)
 	{
