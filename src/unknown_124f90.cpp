@@ -1913,7 +1913,7 @@ void sound_system_update_time(void)
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 void function_11bed0(s_location *location, point3f const *point);
 long function_16bc00(s_record_pool *data, long index);
 void sound_voices_update_locations(void);
@@ -1961,7 +1961,7 @@ void sound_update_locations(void)
 
 			if (listener->active)
 			{
-				listener->leaf_index = function_14a280(g_4e033c, &listener->position, 0);
+				listener->leaf_index = function_14a280(g_4e033c, 0, &listener->position);
 				listener->cluster_index = listener->leaf_index != NONE ? ((s_structure_bsp_leaves_view *)g_4e0348)->leaves[listener->leaf_index].cluster_index : NONE;
 			}
 		}

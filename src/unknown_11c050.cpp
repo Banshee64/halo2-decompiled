@@ -9,13 +9,13 @@
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 // @retail 0x11bf90
 long function_11bf90(long object_index, point3f *point)
 {
 	short attempts = 0;
-	while (function_14a280(g_4e033c, point, 0) == NONE && attempts++ < 150)
+	while (function_14a280(g_4e033c, 0, point) == NONE && attempts++ < 150)
 		point->z += 0.05f;
 	return attempts == 0;
 }

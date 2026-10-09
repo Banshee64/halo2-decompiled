@@ -326,7 +326,7 @@ void *collision_reference_get_data(s_collision_reference const *reference)
 	return result;
 }
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 point3f *function_142700(transform4x3f const *matrix, point3f const *point, point3f *out);
 
 struct s_168d60_instance;
@@ -368,7 +368,7 @@ bool collision_point_inside_instance(long instance_index, point3f const *point, 
 			point3f local_point;
 
 			function_142700(&instance->matrix, point, &local_point);
-			if (function_14a280((s_bsp3d *)(section + 0x70), &local_point, 0) == NONE)
+			if (function_14a280((s_bsp3d *)(section + 0x70), 0, &local_point) == NONE)
 			{
 				return true;
 			}
@@ -723,7 +723,7 @@ bool __stdcall function_168f40(long flags, s_vehicle_ray const *ray,
 {
 	bool result = false;
 	point3f const *point = &ray->point;
-	long leaf = function_14a280(g_4e033c, (point3f *)point, 0);
+	long leaf = function_14a280(g_4e033c, 0, (point3f *)point);
 	if (leaf == NONE)
 		return true;
 	if ((flags & 2) || (flags & 0xc))
@@ -1027,16 +1027,16 @@ bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const 
 			surface_bsp = NULL;
 		}
 		if (collision->end_location.leaf_index != NONE &&
-			function_14a280(g_4e033c, &collision->point, 0) != collision->end_location.leaf_index ||
+			function_14a280(g_4e033c, 0, &collision->point) != collision->end_location.leaf_index ||
 			surface_bsp && collision->bsp_surface_reference[0] != NONE &&
-			function_14a280(surface_bsp, &collision->point, 0) != collision->bsp_surface_reference[0])
+			function_14a280(surface_bsp, 0, &collision->point) != collision->bsp_surface_reference[0])
 		{
 			collision->point.x += collision->plane.i * 0.000244140625f;
 			collision->point.y += collision->plane.j * 0.000244140625f;
 			collision->point.z += collision->plane.k * 0.000244140625f;
 			function_11bed0((s_location *)&collision->end_location, &collision->point);
 			if (collision->end_location.leaf_index == NONE ||
-				surface_bsp && function_14a280(surface_bsp, &collision->point, 0) == NONE)
+				surface_bsp && function_14a280(surface_bsp, 0, &collision->point) == NONE)
 			{
 				real normal_speed = collision->plane.i * vector->i + collision->plane.j * vector->j +
 					collision->plane.k * vector->k;
@@ -1065,7 +1065,7 @@ bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const 
 					function_11bed0((s_location *)&collision->end_location, &collision->point);
 				}
 				while (0.0f < collision->t && (collision->end_location.leaf_index == NONE ||
-					surface_bsp && function_14a280(surface_bsp, &collision->point, 0) == NONE));
+					surface_bsp && function_14a280(surface_bsp, 0, &collision->point) == NONE));
 			}
 		}
 	}

@@ -97,7 +97,7 @@ byte function_249ed0(short cluster_a, short cluster_b, s_structure_bsp_view *bsp
 
 /* true when sound carries between two clusters */
 // @retail 0x249c20
-bool function_249c20(long cluster_a, long cluster_b, s_structure_bsp_view *bsp)
+bool function_249c20(s_structure_bsp_view *bsp, long cluster_a, long cluster_b)
 {
 	bool result = false;
 
@@ -166,7 +166,7 @@ void function_249d10(s_structure_bsp_view *bsp, dword *bits, long index)
 
 /* the distance sound travels between two clusters */
 // @retail 0x249d60
-real function_249d60(long cluster_a, long cluster_b, s_structure_bsp_view *bsp)
+real function_249d60(s_structure_bsp_view *bsp, long cluster_a, long cluster_b)
 {
 	real local_0 = 255.0f;
 	if (cluster_a == cluster_b)

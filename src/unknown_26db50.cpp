@@ -326,7 +326,7 @@ struct s_record_sector_map
 struct s_bsp3d;
 struct s_slot_entry_list;
 extern s_slot_entry_list *g_4e0340;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 vector2f *function_11df30(vector2f *angles, vector3f const *vector);
 
 PRIVATE __forceinline bool location_entry_active(dword const *bits, long index)
@@ -354,7 +354,7 @@ bool function_26d9c0(long record_index, s_type_c3b527 const *point, short entry_
 			position.x = g_4687b0->i * 0.05f + position.x;
 			position.y = g_4687b0->j * 0.05f + position.y;
 			position.z = g_4687b0->k * 0.05f + position.z;
-			long sector_index = function_14a280((s_bsp3d *)g_4e0340, &position, 0);
+			long sector_index = function_14a280((s_bsp3d *)g_4e0340, 0, &position);
 			if (sector_index == NONE)
 				goto done;
 			entry->sector = ((s_record_sector_map *)g_4e0348)->entries[sector_index].sector;
@@ -503,7 +503,7 @@ long function_26d570(long object_index)
 					point.x = up->i * 0.1f + collision.point.x;
 					point.y = up->j * 0.1f + collision.point.y;
 					point.z = up->k * 0.1f + collision.point.z;
-					long sector = function_14a280((s_bsp3d *)g_4e0340, &point, 0);
+					long sector = function_14a280((s_bsp3d *)g_4e0340, 0, &point);
 					if (sector != NONE)
 						entry->sector = ((s_record_sector_map *)g_4e0348)->entries[sector].sector;
 					if (entry->sector != (word)NONE)

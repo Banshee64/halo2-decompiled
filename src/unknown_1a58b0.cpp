@@ -1775,7 +1775,7 @@ byte function_1a67f0(point3f const *arg_0, point3f const *arg_1, long arg_2, lon
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *arg_0, point3f *arg_1, long arg_2);
+long function_14a280(s_bsp3d *arg_0, long arg_2, point3f *arg_1);
 
 struct s_1a5371
 {
@@ -1795,7 +1795,7 @@ bool __stdcall function_1a5370(s_sort_weight_view const *arg_0, point3f const *a
 {
 	bool local_0 = false;
 	s_sort_candidate_view local_1[0x40];
-	long local_2 = function_14a280(g_4e033c, (point3f *)arg_1, 0);
+	long local_2 = function_14a280(g_4e033c, 0, (point3f *)arg_1);
 	if (local_2 != NONE)
 	{
 		short local_3 = ((s_1a5370 *)g_4e0348)->field_30[local_2].field_0;

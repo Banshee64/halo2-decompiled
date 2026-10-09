@@ -407,6 +407,7 @@ long c_entry_table::read_busy(long a, s_bitstream *stream)
 // @retail 0x8a5c0
 bool c_entry_table::write_creation(dword identifier, dword flags, long a, s_bitstream *stream, long b, dword *written_mask)
 {
+	bool local_0 = true;
 	s_entry *entry = &entries[ENTRY_INDEX(identifier)];
 	c_entry_handler *handler = handlers->handlers[entry->handler_index];
 	*written_mask = 0;
@@ -415,15 +416,16 @@ bool c_entry_table::write_creation(dword identifier, dword flags, long a, s_bits
 	dword mask = handler->get_update_mask();
 	if (mask)
 	{
-		mask &= flags;
-		stream_write_bit(stream, mask != 0);
-		if (mask)
+		dword local_2 = mask & flags;
+		stream_write_bit(stream, local_2 != 0);
+		if (local_2)
 		{
-			if (!handler->v14(true, mask, written_mask, entry->state_size, entry->state, a, stream, b) || *written_mask != mask)
-				return false;
+			if (!handler->v14(true, local_2, written_mask, entry->state_size, entry->state, a, stream, b) || *written_mask != local_2)
+				{ local_0 = false; goto local_1; }
 		}
 	}
-	return true;
+local_1:
+	return local_0;
 }
 
 static __forceinline void release_block(void *block, long *info)
