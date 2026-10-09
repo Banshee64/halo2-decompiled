@@ -583,8 +583,8 @@ vector3f *function_1427f0(
 	return out;
 }
 
-bool function_a0190(vector3f const *vector);
-bool function_a0200(real a, real b);
+inline bool function_a0190(vector3f const *vector);
+__declspec(noinline) bool function_a0200(real a, real b);
 
 // @retail 0x143120
 bool function_143120(
