@@ -169,7 +169,9 @@ rewrites have not helped, let `tools/permute.py` search for you:
 
 It mechanically rewrites the body of the function marked `// @retail 0x<va>`
 (operand swaps, statement and declaration order, integer types of locals,
-temporaries, `if`/`else` branches, `for`/`while`, `+=` forms, `++` forms),
+temporaries, `if`/`else` branches, `for`/`while`, `+=` forms, `++` forms,
+`a = b = 0` chains, a named `bool` for an `&&` condition, `||` and `&&`
+conditions against `else if` and nested `if`, `?:` against `if`/`else`),
 rebuilds, and keeps the variant with the fewest differing instructions; 0 is a
 match. It works on a copy of `src/` in a scratch directory, so your tree is
 untouched; the search is deterministic for a given `--seed`. It prints the

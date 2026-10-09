@@ -117,6 +117,101 @@ def test_split_decl_both_ways():
     assert permute.mut_split_decl('\n\tlong a;\n\ta = b;\n', rng()) == '\n\tlong a = b;\n'
 
 
+def test_logical_operators_respect_precedence():
+    split = permute._split_logical
+    assert split('a && f(b, c) && d[0]', '&&') == ['a', 'f(b, c)', 'd[0]']
+    assert split('a >= b && c <= d', '&&') == ['a >= b', 'c <= d']
+    assert split('a && b || c', '||') == ['a && b', 'c']
+    assert split('a && b || c', '&&') is None
+    assert split('x = a && b', '&&') is None
+    assert split('x <<= 1 && b', '&&') is None
+    assert split('a ? b : c && d', '&&') is None
+    assert split('(a && b)', '&&') is None
+
+
+def test_chain_assign_both_ways():
+    out = permute.mut_chain_assign('\n\ta = b = 0;\n', rng())
+    assert out in ('\n\tb = 0;\n\ta = 0;\n', '\n\ta = 0;\n\tb = 0;\n')
+    assert permute.mut_chain_assign('\n\ta = 0;\n\tb = 0;\n', rng()) in ('\n\ta = b = 0;\n', '\n\tb = a = 0;\n')
+    assert permute.mut_chain_assign('\n\ta = b = 300;\n', rng()) is None  # a narrow b could change what a gets
+    assert permute.mut_chain_assign('\n\ta = b = 2;\n', rng()) is None  # a bool b would make a 1
+    assert permute.mut_chain_assign('\n\ta = 0;\n\tb = 1;\n', rng()) is None
+    assert permute.mut_chain_assign('\n\tp = 0;\n\tp->x = 0;\n', rng()) is None  # the second place depends on p
+
+
+def test_bool_flag_both_ways():
+    src = '\n\tif (a && b) {\n\t\tf();\n\t}\n'
+    out = permute.mut_bool_flag(src, rng())
+    assert out == '\n\tbool flag0 = false;\n\tif (a)\n\t\tflag0 = b;\n\tif (flag0) {\n\t\tf();\n\t}\n'
+    assert permute.mut_bool_flag(out, rng()) == src
+    named = permute.mut_bool_flag('\n\tbool flag0 = false;\n\tx = 1;\n\tif (a && b) {\n\t}\n', rng())
+    assert 'bool flag1 = false;' in named
+    folded = '\n\tbool flag0 = false;\n\tif (a || b)\n\t\tflag0 = c;\n\tif (flag0) {\n\t}\n'
+    assert permute.mut_bool_flag(folded, rng()) == '\n\tif ((a || b) && c) {\n\t}\n'
+    assert permute.mut_bool_flag('\n\tif (a && b || c) {\n\t}\n', rng()) is None
+    assert permute.mut_bool_flag('\n\telse\n\tif (a && b) {\n\t}\n', rng()) is None  # the else would own the declaration
+
+
+def test_or_split_both_ways():
+    src = '\n\tif (a || b) {\n\t\tf();\n\t}\n'
+    out = permute.mut_or_split(src, rng())
+    assert out == '\n\tif (a) {\n\t\tf();\n\t} else if (b) {\n\t\tf();\n\t}\n'
+    assert permute.mut_or_split(out, rng()) == src
+    kept = permute.mut_or_split('\n\tif (a || b) {\n\t\tf();\n\t} else {\n\t\tg();\n\t}\n', rng())
+    assert kept.endswith('} else if (b) {\n\t\tf();\n\t} else {\n\t\tg();\n\t}\n')
+    assert permute.mut_or_split('\n\tif (a || b) {\n\t\tstatic long n;\n\t}\n', rng()) is None  # a copy would be a new n
+
+
+def test_and_split_both_ways():
+    src = '\n\tif (a && b) {\n\t\tf();\n\t}\n'
+    out = permute.mut_or_split(src, rng())
+    assert out == '\n\tif (a) {\n\t\tif (b) {\n\t\t\tf();\n\t\t}\n\t}\n'
+    assert permute.mut_or_split(out, rng()) == src
+    assert permute.mut_or_split('\n\tif (a && b) {\n\t\tf();\n\t} else {\n\t\tg();\n\t}\n', rng()) is None
+    nested_else = '\n\tif (a) {\n\t\tif (b) {\n\t\t\tf();\n\t\t} else {\n\t\t\tg();\n\t\t}\n\t}\n'
+    assert permute.mut_or_split(nested_else, rng()) is None
+
+
+def test_ternary_both_ways():
+    src = '\n\tx = a < b ? 1 : 0;\n'
+    out = permute.mut_ternary(src, rng())
+    assert out == '\n\tif (a < b)\n\t\tx = 1;\n\telse\n\t\tx = 0;\n'
+    assert permute.mut_ternary(out, rng()) == src
+    braced = '\n\tif (a) {\n\t\tx = NONE;\n\t} else {\n\t\tx = 2;\n\t}\n'
+    assert permute.mut_ternary(braced, rng()) == '\n\tx = a ? NONE : 2;\n'
+    assert permute.mut_ternary('\n\ty = x = a ? 1 : 0;\n', rng()) is None  # the condition would be 'x = a'
+    assert permute.mut_ternary('\n\tx = a ? 1 : b;\n', rng()) is None
+    assert permute.mut_ternary('\n\tx = a ? -1 : 0x80000000;\n', rng()) is None  # -1 would become unsigned
+    assert permute.mut_ternary('\n\tif (a)\n\t\tx = 1;\n\telse\n\t\ty = 2;\n', rng()) is None
+
+
+def test_swap_ternary_negates():
+    assert permute.mut_swap_ternary('\n\tx = a == b ? c : d;\n', rng()) == '\n\tx = a != b ? d : c;\n'
+    assert permute.mut_swap_ternary('\n\treturn !f ? 1 : 2;\n', rng()) == '\n\treturn f ? 2 : 1;\n'
+    assert permute.mut_swap_ternary('\n\ty = x = a ? c : d;\n', rng()) is None
+
+
+IDIOMS = '''
+	if (a && b) {
+		x = c ? 1 : 0;
+	}
+	if (a || d) {
+		y = z = 0;
+	}
+	return x ? y : z;
+'''
+
+
+def test_idiom_mutations_keep_the_body_balanced():
+    seen = set()
+    for seed in range(80):
+        out = permute.mutate(IDIOMS, random.Random(seed))
+        if out is not None:
+            seen.add(out)
+            assert out.count('{') == out.count('}') and out.count('(') == out.count(')')
+    assert len(seen) > 20
+
+
 def test_mutate_is_deterministic_and_valid_looking():
     b = body()
     first = [permute.mutate(b, random.Random(7)) for _ in range(3)]

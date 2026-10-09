@@ -455,8 +455,340 @@ def mut_split_decl(body, rng):
     return '\n'.join(lines)
 
 
+# Idiom mutations: the same behaviour spelled the way the original source may have spelled it.
+
+LOOSER = {'&&': {'||', '?', ',', '='}, '||': {'?', ',', '='}}   # operators that bind more loosely than the key
+
+
+def _top_level(text):
+    """The operators of text outside brackets, strings and comments that matter for precedence:
+    '&&', '||', '?', ',' and assignments (plain or compound), as (operator, index) pairs."""
+    found, depth, i = [], 0, 0
+    while i < len(text):
+        j = _skip_literal(text, i)
+        if j != i:
+            i = j
+            continue
+        c = text[i]
+        if c in '([{':
+            depth += 1
+        elif c in ')]}':
+            depth -= 1
+        elif depth == 0:
+            if text.startswith(('&&', '||'), i):
+                found.append((text[i:i + 2], i))
+                i += 2
+                continue
+            if c in '?,':
+                found.append((c, i))
+            elif c == '=':
+                if text.startswith('==', i):
+                    i += 2
+                    continue
+                before = text[max(i - 2, 0):i]
+                if before[-1:] not in ('!', '<', '>') or before in ('<<', '>>'):
+                    found.append(('=', i))
+        i += 1
+    return found
+
+
+def _split_logical(cond, op):
+    """The operands of a top-level 'a op b op c' (op is '&&' or '||'), else None: also None
+    when cond has a looser operator at the top level (a conditional, an assignment, a comma)."""
+    ops = _top_level(cond)
+    if any(o in LOOSER[op] for o, _ in ops):
+        return None
+    cuts = [i for o, i in ops if o == op]
+    if not cuts:
+        return None
+    parts = [cond[a:b].strip() for a, b in zip([0] + [i + 2 for i in cuts], cuts + [len(cond)])]
+    return parts if all(parts) else None
+
+
+def _wrap(text, op):
+    """text as an operand of op, in parentheses when it holds a looser operator."""
+    return f'({text})' if any(o in LOOSER[op] for o, _ in _top_level(text)) else text
+
+
+def _plain_literal(text):
+    """True for a literal that every scalar type, bool included, holds unchanged."""
+    return text in ('0', '1', 'true', 'false')
+
+
+PLACE = r'[A-Za-z_]\w*(?:(?:\.|->)[A-Za-z_]\w*|\[\w+\])?'
+
+
+def _independent(x, y):
+    """True when storing to the place x cannot change where the place y is, nor the reverse."""
+    if not (re.fullmatch(PLACE, x) and re.fullmatch(PLACE, y)):
+        return False
+    return not any(re.fullmatch(r'[A-Za-z_]\w*', p) and p in _names(q) for p, q in ((x, y), (y, x)))
+
+
+def _starts_statement(lines, i, labels=True):
+    """True when line i begins a statement, not the one-statement body of an if, else, for or while;
+    a label before it counts as a start only with labels=True (a declaration cannot follow one)."""
+    before = next((l.strip() for l in reversed(lines[:i]) if l.strip() and not l.strip().startswith('//')), ';')
+    if before.endswith(':') and labels:
+        return re.fullmatch(r'(?:case\b[^:]*|default|\w+)\s*:', before) is not None
+    return before.endswith((';', '{', '}'))
+
+
+CHAIN = re.compile(r'^(?P<indent>[ \t]*)(?P<a>[A-Za-z_][\w.\->\[\]]*)\s*=\s*(?P<b>[A-Za-z_][\w.\->\[\]]*)\s*=\s*'
+                   r'(?P<v>\w+)\s*;\s*$')
+PLAIN = re.compile(r'^(?P<indent>[ \t]*)(?P<a>[A-Za-z_][\w.\->\[\]]*)\s*=\s*(?P<v>\w+)\s*;\s*$')
+
+
+def mut_chain_assign(body, rng):
+    """'a = b = 0;' <-> 'b = 0; a = 0;': the chain stores to b first, the pair in either order.
+    Only 0, 1, true and false, so that a bool or narrow b cannot change what a receives."""
+    lines = body.split('\n')
+    cands = []
+    for i, line in enumerate(lines):
+        if not _starts_statement(lines, i):
+            continue
+        m = CHAIN.match(line)
+        if m and _plain_literal(m.group('v')) and _independent(m.group('a'), m.group('b')):
+            cands.append(('split', i))
+        m = PLAIN.match(line)
+        if m and _plain_literal(m.group('v')) and i + 1 < len(lines):
+            n = PLAIN.match(lines[i + 1])
+            if n and n.group('indent') == m.group('indent') and n.group('v') == m.group('v') \
+                    and _independent(m.group('a'), n.group('a')):
+                cands.append(('merge', i))
+    if not cands:
+        return None
+    kind, i = rng.choice(cands)
+    if kind == 'split':
+        m = CHAIN.match(lines[i])
+        order = rng.choice([(m.group('b'), m.group('a')), (m.group('a'), m.group('b'))])
+        lines[i:i + 1] = [f'{m.group("indent")}{x} = {m.group("v")};' for x in order]
+    else:
+        m, n = PLAIN.match(lines[i]), PLAIN.match(lines[i + 1])
+        first, second = rng.choice([(m, n), (n, m)])
+        lines[i:i + 2] = [f'{m.group("indent")}{first.group("a")} = {second.group("a")} = {m.group("v")};']
+    return '\n'.join(lines)
+
+
+def _if_head(line):
+    """(indent, condition, rest of the line) of a line that starts with 'if (', else None."""
+    m = re.match(r'^([ \t]*)if\s*\(', line)
+    end = _split_top(line, m.end() - 1) if m else None
+    return (m.group(1), line[m.end():end - 1], line[end:]) if end else None
+
+
+def mut_bool_flag(body, rng):
+    """'if (a && b) S' <-> 'bool flag0 = false; if (a) flag0 = b; if (flag0) S': a named bool gets a home."""
+    lines = body.split('\n')
+    cands = []
+    for i, line in enumerate(lines):
+        h = _if_head(line)
+        if h and h[2].strip() in ('', '{') and _split_logical(h[1], '&&'):
+            if _starts_statement(lines, i, labels=False):
+                cands.append(('name', i))
+        m = re.match(r'^([ \t]*)bool\s+(flag\d+)\s*=\s*false;\s*$', line)
+        if m and i + 3 < len(lines) and len(re.findall(r'\b%s\b' % m.group(2), body)) == 3:
+            a = _if_head(lines[i + 1])
+            b = re.match(r'^[ \t]*%s\s*=\s*([^;]+);\s*$' % m.group(2), lines[i + 2])
+            c = _if_head(lines[i + 3])
+            if a and b and c and a[2].strip() == '' and c[1].strip() == m.group(2):
+                cands.append(('inline', i))
+    if not cands:
+        return None
+    kind, i = rng.choice(cands)
+    if kind == 'name':
+        ind, cond, rest = _if_head(lines[i])
+        parts = _split_logical(cond, '&&')
+        n = 0
+        while re.search(r'\bflag%d\b' % n, body):
+            n += 1
+        lines[i:i + 1] = [f'{ind}bool flag{n} = false;', f'{ind}if ({parts[0]})',
+                          f'{ind}\tflag{n} = {" && ".join(parts[1:])};', f'{ind}if (flag{n}){rest}']
+    else:
+        ind = re.match(r'^[ \t]*', lines[i]).group(0)
+        first = _if_head(lines[i + 1])[1].strip()
+        second = re.match(r'^[ \t]*\w+\s*=\s*([^;]+);', lines[i + 2]).group(1).strip()
+        rest = _if_head(lines[i + 3])[2]
+        lines[i:i + 4] = [f'{ind}if ({_wrap(first, "&&")} && {_wrap(second, "&&")}){rest}']
+    return '\n'.join(lines)
+
+
+def _braced_if(body, m):
+    """For the match m of 'if (': (condition, end of the condition, index of '{', index of '}'), else None."""
+    end = _split_top(body, m.end() - 1)
+    if end is None:
+        return None
+    k = end
+    while k < len(body) and body[k] in ' \t\r\n':
+        k += 1
+    if k >= len(body) or body[k] != '{':
+        return None
+    return body[m.end():end - 1], end, k, match_brace(body, k)
+
+
+def _flat(text):
+    return re.sub(r'\s+', ' ', text).strip()
+
+
+def _line_indent(body, pos):
+    return re.match(r'[ \t]*', body[body.rfind('\n', 0, pos) + 1:]).group(0)
+
+
+def _deeper(block):
+    return re.sub(r'\n(?=[^\n])', '\n\t', block)
+
+
+def _shallower(block):
+    return re.sub(r'(?<=\n)\t', '', block)
+
+
+def mut_or_split(body, rng):
+    """'if (a || b) {S}' <-> 'if (a) {S} else if (b) {S}' and
+    'if (a && b) {S}' (without an else) <-> 'if (a) { if (b) {S} }'."""
+    cands = []
+    for m in re.finditer(r'(?:\belse\s+)?\bif\s*\(', body):
+        info = _braced_if(body, m)
+        if not info:
+            continue
+        cond, end, k, close = info
+        block = body[k:close + 1]
+        chain = re.compile(r'\s*else\s+if\s*\(').match(body, close + 1)
+        has_else = re.compile(r'\s*else\b').match(body, close + 1) is not None
+        ors = _split_logical(cond, '||')
+        if ors and len(ors) == 2 and not re.search(r'^[ \t]*\w+:[ \t]*$|\bstatic\b', block, re.M):
+            cands.append(('split_or', m, end, k, close, ors))
+        if chain:
+            other = _braced_if(body, chain)
+            if other and _flat(body[other[2]:other[3] + 1]) == _flat(block):
+                cands.append(('join_or', m, end, k, close, (cond, other[0], other[3])))
+        if m.group(0).startswith('else') or has_else:
+            continue
+        ands = _split_logical(cond, '&&')
+        if ands and len(ands) == 2:
+            cands.append(('split_and', m, end, k, close, ands))
+        inner = body[k + 1:close].strip()
+        im = re.match(r'if\s*\(', inner)
+        sub = _braced_if(inner, im) if im else None
+        if sub and sub[3] == len(inner) - 1 and not re.compile(r'\s*else\b').match(inner, sub[3] + 1):
+            cands.append(('join_and', m, end, k, close, (cond, sub[0], inner[sub[1]:])))
+    if not cands:
+        return None
+    kind, m, end, k, close, ops = rng.choice(cands)
+    head, gap, block = body[m.start():m.end()], body[end:k], body[k:close + 1]
+    stop = close + 1
+    if kind == 'split_or':
+        new = f'{head}{ops[0]}){gap}{block} else if ({ops[1]}){gap}{block}'
+    elif kind == 'split_and':
+        indent = _line_indent(body, m.start())
+        inner_gap = gap if '\n' not in gap else f'\n{indent}\t'
+        new = (f'{head}{ops[0]}){gap}{{\n{indent}\tif ({ops[1]}){inner_gap}{_deeper(block)}\n{indent}}}')
+    elif kind == 'join_or':
+        new = f'{head}{_wrap(ops[0], "||")} || {_wrap(ops[1], "||")}){gap}{block}'
+        stop = ops[2] + 1
+    else:
+        new = f'{head}{_wrap(ops[0], "&&")} && {_wrap(ops[1], "&&")}){gap}{_shallower(ops[2].strip())}'
+    return body[:m.start()] + new + body[stop:]
+
+
+ARM = r'(?:-?\d\w*|NONE|true|false)'
+TERNARY = re.compile(r'^(?P<indent>[ \t]*)(?P<lhs>[A-Za-z_][\w.\->\[\]]*)\s*=(?!=)\s*(?P<cond>[^?;:]+?)\s*\?\s*(?P<a>'
+                     + ARM + r')\s*:\s*(?P<b>' + ARM + r')\s*;\s*$')
+ARM_STORE = re.compile(r'\s*(?P<open>\{\s*)?(?P<lhs>[A-Za-z_][\w.\->\[\]]*)\s*=(?!=)\s*(?P<v>' + ARM + r')\s*;')
+
+
+def _value(literal):
+    if literal in ('true', 'false'):
+        return int(literal == 'true')
+    try:
+        return -1 if literal == 'NONE' else int(literal.rstrip('uUlL'), 0)
+    except ValueError:
+        return None
+
+
+def _arms_ok(a, b):
+    """Both arms are literals that give a ?: the same value as each store: a negative next to an
+    unsigned or 32-bit-wide literal would put them in unsigned arithmetic."""
+    va, vb = _value(a), _value(b)
+    if va is None or vb is None:
+        return False
+    wide = any(re.search(r'[uU][lL]*$', x) or v >= 2 ** 31 for x, v in ((a, va), (b, vb)))
+    return not (wide and (va < 0 or vb < 0))
+
+
+def _arm(body, pos):
+    """(place, literal, end) of a branch at pos that only stores a literal: 'x = 1;' or '{ x = 1; }'."""
+    m = ARM_STORE.match(body, pos)
+    if not m:
+        return None
+    end = m.end()
+    if m.group('open'):
+        close = re.compile(r'\s*\}').match(body, end)
+        if not close:
+            return None
+        end = close.end()
+    return m.group('lhs'), m.group('v'), end
+
+
+def _if_else_stores(body):
+    """(start, end, place, condition, a, b) of each 'if (c) x = A; else x = B;' (braces optional)."""
+    found = []
+    for m in re.finditer(r'\bif\s*\(', body):
+        end = _split_top(body, m.end() - 1)
+        first = _arm(body, end) if end else None
+        e = re.compile(r'\s*else\b').match(body, first[2]) if first else None
+        second = _arm(body, e.end()) if e else None
+        if second and second[0] == first[0] and _arms_ok(first[1], second[1]):
+            found.append((m.start(), second[2], first[0], body[m.end():end - 1].strip(), first[1], second[1]))
+    return found
+
+
+def mut_ternary(body, rng):
+    """'x = c ? 1 : 0;' <-> 'if (c) x = 1; else x = 0;' (literal arms only)."""
+    lines = body.split('\n')
+    cands = []
+    for i, line in enumerate(lines):
+        m = TERNARY.match(line)
+        if m and not {'?', ',', '='} & {o for o, _ in _top_level(m.group('cond'))} \
+                and _arms_ok(m.group('a'), m.group('b')):
+            cands.append(('expand', i))
+    cands += [('fold', f) for f in _if_else_stores(body)]
+    if not cands:
+        return None
+    kind, where = rng.choice(cands)
+    if kind == 'expand':
+        m = TERNARY.match(lines[where])
+        ind, lhs = m.group('indent'), m.group('lhs')
+        lines[where] = (f'{ind}if ({m.group("cond").strip()})\n{ind}\t{lhs} = {m.group("a")};\n'
+                        f'{ind}else\n{ind}\t{lhs} = {m.group("b")};')
+        return '\n'.join(lines)
+    start, end, lhs, cond, a, b = where
+    cond = f'({cond})' if {'?', ',', '='} & {o for o, _ in _top_level(cond)} else cond
+    return body[:start] + f'{lhs} = {cond} ? {a} : {b};' + body[end:]
+
+
+TERNARY_ANY = re.compile(r'^(?P<head>[ \t]*(?:return|[A-Za-z_][\w.\->\[\]]*\s*=(?!=)))\s*(?P<cond>[^?;:]+?)\s*\?\s*'
+                         r'(?P<a>' + OPERAND + r')\s*:\s*(?P<b>' + OPERAND + r')\s*;\s*$')
+
+
+def mut_swap_ternary(body, rng):
+    """'c ? a : b' -> '!c ? b : a' (the condition negated the way mut_swap_if_else negates one)."""
+    lines = body.split('\n')
+    idx = []
+    for i, line in enumerate(lines):
+        m = TERNARY_ANY.match(line)
+        if m and not {'?', ',', '='} & {o for o, _ in _top_level(m.group('cond'))}:
+            idx.append(i)
+    if not idx:
+        return None
+    i = rng.choice(idx)
+    m = TERNARY_ANY.match(lines[i])
+    lines[i] = f'{m.group("head")} {_negate(m.group("cond"))} ? {m.group("b")} : {m.group("a")};'
+    return '\n'.join(lines)
+
+
 MUTATIONS = [mut_swap_operands, mut_reorder, mut_retype, mut_introduce_temp, mut_inline_temp, mut_swap_if_else,
-             mut_for_while, mut_compound, mut_increment, mut_split_decl]
+             mut_for_while, mut_compound, mut_increment, mut_split_decl, mut_chain_assign, mut_bool_flag,
+             mut_or_split, mut_ternary, mut_swap_ternary]
 
 
 def mutate(body, rng, count=None):
