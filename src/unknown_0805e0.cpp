@@ -56,13 +56,14 @@ bool player_configuration_cache_next_recent_player(s_recent_player *player, long
 {
 	bool result = false;
 	long index = *iterator;
+ long local_0;
 	if (index != NONE)
 	{
 		do
 		{
 			s_player_configuration_cache_entry *entry = &g_4cf98c[index];
-			index = entry->next;
-			*iterator = index;
+			local_0 = entry->next;
+			*iterator = local_0;
 			if (!(entry->flags & 4) && (entry->flags & 0x10) &&
 			*(unsigned __int64 *)entry->player.xuid != 0 &&
 			!xuid_is_offline(*(unsigned __int64 *)entry->player.xuid) &&
@@ -73,6 +74,7 @@ bool player_configuration_cache_next_recent_player(s_recent_player *player, long
 					memcpy(player, &entry->player, sizeof(s_recent_player));
 				return true;
 			}
+			index = local_0;
 		} while (index != NONE);
 	}
 	return result;
@@ -556,6 +558,12 @@ struct s_profile_record;
 void function_1537f0(s_profile_record *record);
 long function_7fe90(const s_cached_player_identity *identity, long position, const s_cached_player_source *source);
 
+#pragma inline_depth(0)
+static __forceinline void function_80491(long arg_0)
+{
+ function_7fe40(arg_0);
+}
+#pragma inline_depth(8)
 // @retail 0x80490
 void function_80490(const s_cached_player_identity *identity, const s_cached_player_source *source,
 	bool local, bool recent)
@@ -599,7 +607,7 @@ void function_80490(const s_cached_player_identity *identity, const s_cached_pla
 		changed = changed || !(entry->flags & 16);
 		entry->flags |= 16;
 	}
-	function_7fe40(index);
+	function_80491(index);
 	if (changed || time_changed)
 		g_51055c = true;
 }
@@ -618,7 +626,10 @@ long __stdcall function_80330(const s_cached_player_identity *identity, long pos
 	((byte *)&source.field40)[1] = 10;
 	long index = function_7fe90(identity, position, &source);
 	if (index != NONE)
-		g_4cf98c[index].flags |= 10;
+ {
+  s_player_configuration_cache_entry *local_0 = g_4cf98c + index;
+  local_0->flags |= 10;
+ }
 	return index;
 }
 #pragma inline_depth(8)

@@ -920,8 +920,8 @@ PRIVATE __forceinline void set_bump_component(long stage, D3DTEXTURESTAGESTATETY
 // @retail 0x3c650
 void function_3c650(byte const *state)
 {
-    vector3f camera_forward = g_4b9dac;
-    double angle = atan2((double)camera_forward.i, (double)camera_forward.j) + *(real const *)(state + 0x8c);
+    vector3f view_forward = g_4b9dac;
+    double angle = atan2((double)view_forward.i, (double)view_forward.j) + *(real const *)(state + 0x8c);
     struct { real sine; real cosine; } trig;
     trig.sine = (real)sin(angle);
     trig.cosine = (real)cos(angle);

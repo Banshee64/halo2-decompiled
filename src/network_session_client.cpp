@@ -865,22 +865,19 @@ void function_06fcc0(c_session_state_joining *self)
 {
  s_session_state_joining_view *state = (s_session_state_joining_view *)self;
  if (state->unknowne9)
- {
   state->unknown104 = 1;
-  return;
- }
- if (!state->unknown68)
- {
+ else if (!state->unknown68)
   state->unknown104 = 1;
-  return;
- }
- if (!state->unknownf9)
+ else
  {
-  if (function_6fe90(self, false, true))
-   state->unknownf9 = true;
+  if (!state->unknownf9)
+  {
+   if (function_6fe90(self, false, true))
+    state->unknownf9 = true;
+  }
+  if (state->unknownf9)
+   session_state_joining_check_target(self);
  }
- if (state->unknownf9)
-  session_state_joining_check_target(self);
 }
 
 // @retail 0x6f940

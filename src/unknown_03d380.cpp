@@ -228,14 +228,20 @@ void __stdcall function_67fb0(dword flags)
 	g_4cf77b = 1;
 }
 
+struct s_67fc1
+{
+	byte field_0[0xc];
+	signed long field_c : 8;
+};
+
 // @retail 0x67fc0
 void __stdcall function_67fc0(dword flags)
 {
 	if (flags & 4)
 	{
 		function_593e0();
-		s_simulation_world *world = g_4cf77c;
-		if (GAME_MODE == 1 && world->state == 1)
+		s_simulation_world *world;
+		if (GAME_MODE == 1 && (world = g_4cf77c)->state == 1)
 		{
 			function_6b040((c_class_6a600 *)world);
 			g_4cf772 = 0;
@@ -251,7 +257,9 @@ void __stdcall function_67fc0(dword flags)
 				if (proc)
 					function_162060(proc);
 			}
-			if (GAME_MODE >= 4 && GAME_MODE <= 5)
+			s_67fc1 *local_0 = (s_67fc1 *)g_4e6948;
+			long local_1 = local_0->field_c;
+			if (local_1 >= 4 && local_1 <= 5)
 			{
 				function_162420();
 				function_bb7f0();

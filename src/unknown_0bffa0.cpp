@@ -412,7 +412,7 @@ long function_c3950(long object_index, long *indices, long maximum)
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 real function_30bf0(vector3f *vector);
 
 // @retail 0xc0840
@@ -442,7 +442,7 @@ bool function_c0840(point3f const *start, point3f const *end, point3f *out, real
             point.z = z * travelled + start->z;
             if (bsp_index != NONE)
             {
-                long leaf = function_14a280(bsp, &point, 0);
+                long leaf = function_14a280(bsp, 0, &point);
                 if (leaf != NONE && *(short *)(*(byte **)((byte *)structure + 0x30) + leaf * 8) != NONE)
                 {
                     *distance = travelled;

@@ -124,13 +124,9 @@ void function_2b98b0(s_particle_2b96 const *particle, s_particle_2b96 const *oth
     vector3f b = other->velocity;
     normalize_particle_vector_2b(&a);
     normalize_particle_vector_2b(&b);
-    vector3f delta;
-    delta.i = (b.i - a.i) * scale;
-    delta.j = (b.j - a.j) * scale;
-    delta.k = (b.k - a.k) * scale;
-    result->i += delta.i;
-    result->j += delta.j;
-    result->k += delta.k;
+    result->i += (b.i - a.i) * scale;
+    result->j += (b.j - a.j) * scale;
+    result->k += (b.k - a.k) * scale;
 }
 
 PRIVATE __forceinline real particle_separation_squared_values(real z, real y, real x)
@@ -243,15 +239,17 @@ void function_2ba100(s_particle_properties_2ba const *definition, void *system, 
     dword requested = definition->input_mask & 0x107f0;
     function_173ba0(requested, current_system, current_emitter, current_particle, values);
     valid |= requested;
-    for (dword i = 0; i < 3 && remaining; ++i)
+    s_particle_property_entry_2ba *first_properties = properties;
+    for (dword i = 0; i < 3 && remaining; ++i, ++properties)
     {
         dword bit = 1 << i;
         if (remaining & bit)
         {
-            properties_values[i] = function_246cd0(&properties[i].property, values);
+            properties_values[i] = function_246cd0(&properties->property, values);
             remaining &= ~bit;
         }
     }
+    properties = first_properties;
     while (next != NONE)
     {
         s_particle_2b96 *particle = &((s_particle_2b96 *)g_51ec84->data)[next & 0xffff];

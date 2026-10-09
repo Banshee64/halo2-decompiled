@@ -326,7 +326,7 @@ struct s_record_sector_map
 struct s_bsp3d;
 struct s_slot_entry_list;
 extern s_slot_entry_list *g_4e0340;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 vector2f *function_11df30(vector2f *angles, vector3f const *vector);
 
 PRIVATE __forceinline bool location_entry_active(dword const *bits, long index)
@@ -354,7 +354,7 @@ bool function_26d9c0(long record_index, s_type_c3b527 const *point, short entry_
 			position.x = g_4687b0->i * 0.05f + position.x;
 			position.y = g_4687b0->j * 0.05f + position.y;
 			position.z = g_4687b0->k * 0.05f + position.z;
-			long sector_index = function_14a280((s_bsp3d *)g_4e0340, &position, 0);
+			long sector_index = function_14a280((s_bsp3d *)g_4e0340, 0, &position);
 			if (sector_index == NONE)
 				goto done;
 			entry->sector = ((s_record_sector_map *)g_4e0348)->entries[sector_index].sector;
@@ -423,7 +423,7 @@ struct s_collision_result_1697c0;
 bool function_26c590(s_pathfinding_data const *pathfinding, point3f const *origin, long sector_index,
 	long target_sector_index, vector3f const *direction, real distance, s_path_location const *location,
 	s_path_trace_result *trace);
-long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *location, point3f const *point);
+long function_26d100(vector3f const *up, long *location, s_collision_result_1697c0 *collision, point3f const *point);
 
 struct s_record_pathfinding_view
 {
@@ -498,12 +498,12 @@ long function_26d570(long object_index)
 					structure = (s_record_pathfinding_view *)g_4e0348;
 					if (structure->count > 0)
 						saved_pathfinding = structure->pathfinding;
-					entry->owner = function_26d100(up, (s_collision_result_1697c0 *)&collision, (long *)&entry->location, &world);
+					entry->owner = function_26d100(up, (long *)&entry->location, (s_collision_result_1697c0 *)&collision, &world);
 					up = g_4687b0;
 					point.x = up->i * 0.1f + collision.point.x;
 					point.y = up->j * 0.1f + collision.point.y;
 					point.z = up->k * 0.1f + collision.point.z;
-					long sector = function_14a280((s_bsp3d *)g_4e0340, &point, 0);
+					long sector = function_14a280((s_bsp3d *)g_4e0340, 0, &point);
 					if (sector != NONE)
 						entry->sector = ((s_record_sector_map *)g_4e0348)->entries[sector].sector;
 					if (entry->sector != (word)NONE)
@@ -524,4 +524,54 @@ long function_26d570(long object_index)
 		while (--rings_remaining);
 	}
 	return result;
+}
+
+
+// @retail 0x26dde0
+void __stdcall function_26dde0(long actor_index)
+{
+ long const *input_reference = &actor_index;
+ byte *actor = g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+ long owner = *(long *)(actor + 0x3f8);
+ if (owner != NONE)
+ {
+  if (*(long *)(actor + 0x26c) != NONE)
+  {
+   function_26def0(actor_index, NONE);
+   return;
+  }
+  bool has_record = *(long *)(actor + 0x3f4) != NONE;
+  bool valid = function_26df40(*input_reference, owner, has_record);
+  if (valid)
+  {
+   long record_index = *(long *)(actor + 0x3f4);
+   *(short *)(actor + 0x3fc) = 0;
+   if (record_index == NONE)
+   {
+    record_index = function_26db50(*(long volatile *)(actor + 0x3f8), 0);
+    if (record_index == NONE)
+     record_index = function_26d570(*(long volatile *)(actor + 0x3f8));
+    if (record_index != NONE)
+    {
+     function_26dbd0(record_index, actor_index);
+     *(short *)(actor + 0x2c) += g_510c54->field_2_3 * 8;
+    }
+    else
+     goto failure;
+   }
+   else
+    valid = function_26dc90(record_index);
+   if (valid)
+    return;
+  }
+ failure:
+  if (*(long *)(actor + 0x3f4) != NONE)
+   function_26dc20(actor_index);
+  ++*(short *)(actor + 0x3fc);
+  if ((real)*(short *)(actor + 0x3fc) * g_510c54->rate > 5.0f)
+  {
+   function_26def0(actor_index, NONE);
+   *(short *)(actor + 0x2c) = 0;
+  }
+ }
 }

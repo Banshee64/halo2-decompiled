@@ -268,7 +268,7 @@ long function_1eb020(long tag_index, long body_index, short *material_index)
  return result;
 }
 
-void function_1d1e40(hkEntity const *entity, s_havok_component *component, long component_index, long kind, long shape_index);
+void function_1d1e40(long component_index, s_havok_component *component, hkEntity const *entity, long kind, long shape_index);
 
 // @retail 0x1eb220
 void c_shape_contact_listener::added(s_contact_body const *a, s_contact_body const *b, void *contact)
@@ -282,7 +282,7 @@ void c_shape_contact_listener::added(s_contact_body const *a, s_contact_body con
   if (component_index != NONE)
   {
    long shape_index = havok_entity_property_2002_get(first);
-   function_1d1e40(second, havok_component_get(component_index), component_index, shape_index, contact_kind);
+   function_1d1e40(component_index, havok_component_get(component_index), second, shape_index, contact_kind);
   }
  }
 }

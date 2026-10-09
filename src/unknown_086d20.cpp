@@ -19,7 +19,7 @@ dword function_1959c0(s_bitstream *stream, long count);
 
 /* src/unknown_14a280.cpp */
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 extern s_bsp3d *g_4e033c;
 
 /* the world's bounds, as the quantization reads them */
@@ -37,7 +37,7 @@ static inline real_bounds const *world_bounds(void)
 /* the leaf of the world's bsp a point is in */
 static inline long world_leaf(real const *point)
 {
-	return function_14a280(g_4e033c, (point3f *)point, 0);
+	return function_14a280(g_4e033c, 0, (point3f *)point);
 }
 
 /* the small range of the relative positions */

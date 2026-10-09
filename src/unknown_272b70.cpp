@@ -982,7 +982,7 @@ void function_274e70(long ai_index, bool flag)
 		ai_actor_iterator_new(ai_index, &iterator);
 		while (ai_actor_iterator_next(&iterator))
 		{
-			long actor_index = iterator.actor_index;
+			volatile long actor_index = iterator.actor_index;
 			s_actor_274e70 *actor = (s_actor_274e70 *)actor_datum_get(actor_index);
 			if (flag)
 			{
@@ -2175,8 +2175,7 @@ bool function_276380(long ai_index)
 	long actor_index = function_272b70(ai_index);
 	if (actor_index != NONE)
 	{
-		s_unit_request request;
-		memset(&request, 0, sizeof(request));
+		s_unit_request request = { 0 };
 		result = function_276381(actor_datum_get(actor_index)->unit_index, &request);
 	}
 	return result;

@@ -135,7 +135,7 @@ bool function_828b0(long player_index, s_player_object_motion *result)
 		{
 			s_082b70_object *object = object_get_082b70(parent);
 			if (!((1 << object->type) & 3) || object->occupant != unit_index)
-				return false;
+				goto local_0;
 			unit_index = parent;
 		}
 		if (unit_index != NONE)
@@ -148,11 +148,12 @@ bool function_828b0(long player_index, s_player_object_motion *result)
 				function_b9dd0(unit_index, &result->position);
 				function_b9fc0(unit_index, &result->forward, &result->up);
 				function_ba1d0(unit_index, &result->linear, &result->angular);
-				return true;
+				valid = true;
 			}
 		}
-		return false;
+		goto local_0;
 	}
+local_0:
 	return valid;
 }
 
@@ -303,62 +304,13 @@ void function_823d0(s_weapon_activity_result *output, const byte *input, long ob
 
 #include <math.h>
 
-// @retail 0x824d0
-void function_824d0(const byte *input, s_weapon_activity_result *output, long object_index)
-{
- byte *object = (byte *)object_get_082b70(object_index);
- byte *result = (byte *)output;
- memset(output, 0, 0x34);
- real x = *(const real *)(input + 0x34);
- real y = *(const real *)(input + 0x38);
- real z = *(const real *)(input + 0x3c);
- *(real *)result = (real)atan2(y, x);
- *(real *)(result + 4) = (real)atan2(z, sqrt(x * x + y * y));
- if (*(real *)result < 0.0f)
-  *(real *)result += 6.2831855f;
- *(long *)(result + 8) = *(const long *)(input + 0x14);
- *(long *)(result + 0xc) = *(const long *)(input + 0x18);
- if (*(const dword *)(input + 0x10) & 1) *(word *)(result + 0x10) |= 1; else result[0x10] &= ~1;
- if (*(const dword *)(input + 0x10) & 2) *(word *)(result + 0x10) |= 2; else result[0x10] &= ~2;
- if (*(const dword *)(input + 0x10) & 0x800) result[0x10] |= 4; else result[0x10] &= ~4;
- if (*(const dword *)(input + 0x10) & 0x4000) result[0x10] |= 8; else result[0x10] &= ~8;
- *(long *)(result + 0x12) = *(long *)(object + 0x210);
- if (*(const short *)(input + 6) == *(short *)(result + 0x12))
-  *(long *)(result + 0x12) = *(const long *)(input + 6);
- *(short *)(result + 0x16) = *(const short *)(input + 0xc);
- function_82d20(object_index, (s_object_relevance_source *)(input + 0x58), output);
-}
+void function_824d0(const byte *input, s_weapon_activity_result *output, long object_index);
 
 struct s_player_action;
 void player_action_initialize(s_player_action *action);
 void function_82b30(const s_object_relevance_result *source, s_object_relevance_source *result);
 
-// @retail 0x825e0
-void function_825e0(const s_weapon_activity_result *input, s_player_action *action)
-{
- const byte *source = (const byte *)input;
- byte *result = (byte *)action;
- void (*initialize)(s_player_action *) = player_action_initialize;
- initialize(action);
- *(long *)(result + 4) = *(const long *)source;
- *(long *)(result + 8) = *(const long *)(source + 4);
- *(long *)(result + 0xc) = *(const long *)(source + 8);
- *(long *)(result + 0x10) = *(const long *)(source + 0xc);
- if (source[0x10] & 1) *(dword *)result |= 1; else *(dword *)result &= ~1;
- if (source[0x10] & 2) *(dword *)result |= 2; else *(dword *)result &= ~2;
- if (source[0x10] & 4) *(dword *)result |= 0x800; else *(dword *)result &= ~0x800;
- if (source[0x10] & 8) *(dword *)result |= 0x4000; else *(dword *)result &= ~0x4000;
- *(long *)(result + 0x1e) = *(const long *)(source + 0x12);
- *(word *)(result + 0x24) = *(const word *)(source + 0x16);
- if (source[0x18]) *(dword *)result |= 0x40000; else *(dword *)result &= ~0x40000;
- if (source[0x19]) *(dword *)result |= 0x80000; else *(dword *)result &= ~0x80000;
- if (source[0x1a]) *(dword *)result |= 0x800000; else *(dword *)result &= ~0x800000;
- if (source[0x1b]) *(dword *)result |= 0x1000000; else *(dword *)result &= ~0x1000000;
- function_82b30((const s_object_relevance_result *)(source + 0x20), (s_object_relevance_source *)(result + 0x34));
- if (source[0x30]) *(dword *)result |= 0x40000000; else *(dword *)result &= ~0x40000000;
- if (source[0x31]) *(dword *)result |= 0x80000000; else *(dword *)result &= ~0x80000000;
- result[0x58] = source[0x32];
-}
+
 
 
 struct s_unit_state_c6ef0;

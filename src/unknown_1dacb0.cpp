@@ -641,11 +641,11 @@ bool function_1dceb0(s_graph_iterator3c *iterator, s_graph_tag *graph)
 c_type_709360 function_1dd0b0(s_graph_tag *graph, long name)
 {
 	c_type_709360 animation_id;
+	s_graph_tag *current = graph;
+	long graph_index = NONE;
 
 	if (graph)
 	{
-		s_graph_tag *current = graph;
-		long graph_index = NONE;
 
 		do
 		{

@@ -911,7 +911,8 @@ bool function_06e6b0(c_class_58d20 *s, byte *p)
 		*p = false;
 		return false;
 	}
-	if (g_4cf95c)
+	if (!g_4cf95c)
+		goto local_0;
 	{
 		if (s->state == 7 && !s->flag7420)
 		{
@@ -923,11 +924,12 @@ bool function_06e6b0(c_class_58d20 *s, byte *p)
 		}
 		if (*p)
 		{
-			return true;
+			goto local_0;
 		}
 		*p = true;
 		return network_session_host_leave_to_peer(s, NONE) ? false : true;
 	}
+local_0:
 	return true;
 }
 
@@ -1869,7 +1871,7 @@ bool c_session_state_pre_game::function_06e410()
   if (SESSION_STATE_IS_LIVE(session->state) && session->value49a4 > 1)
   {
    network_session_stop_countdown(session);
-   if (session->type == 2)
+   if (session->value18 == 2)
    {
     long variant = NONE;
     if (SESSION_STATE_IS_LIVE(session->state))

@@ -931,7 +931,7 @@ void function_2a05f0(long effect_index, short cutscene_flag_index)
 }
 
 struct s_effect_owner;
-void function_176870(long object_index, s_effect_owner const *owner, long marker_name, real scale_a, long tag_index, short unknown18, real scale_b, point3f const *origin, vector3f const *direction);
+void function_176870(s_effect_owner const *owner, long object_index, long marker_name, real scale_a, long tag_index, short unknown18, real scale_b, point3f const *origin, vector3f const *direction);
 
 /* creates an effect on a marker of an object */
 // @retail 0x2a0650
@@ -941,7 +941,7 @@ void function_2a0650(long effect_index, long object_index, long marker_name)
 	{
 		s_object_marker marker;
 		if (function_b8d30(object_index, marker_name, &marker, 1, false))
-			function_176870(object_index, NULL, marker_name, 1.0f, effect_index, NONE, 1.0f, NULL, NULL);
+			function_176870(NULL, object_index, marker_name, 1.0f, effect_index, NONE, 1.0f, NULL, NULL);
 	}
 }
 
@@ -974,7 +974,7 @@ void damage_at_cutscene_flag(short cutscene_flag_index, long definition_index)
 		data.unknown7c = NONE;
 		point3f *position = &flag->position;
 		data.origin = *position;
-		data.position = *position;
+  data.position = data.origin;
 		function_11bed0(&data.location, position);
 		function_d6c80((s_type_1e6529 *)&data, NONE);
 	}

@@ -58,7 +58,7 @@ s_actor_type_definition *g_471088[16] =
 
 bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e);
 bool __stdcall function_25d020(long actor_index, long prop_ref_index, long a, long b, long c, long d);
-bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown);
+bool function_1fb7e0(short type, long actor_index, s_1fb7e0_data const *data, long target_index, long unknown);
 bool function_26ba60(long prop_index, long actor_index, long clump_index);
 void function_25c780(long actor_index, long prop_ref_index);
 void function_25c4e0(long prop_ref_index);
@@ -131,7 +131,7 @@ void function_25ac00(long prop_ref_index, long actor_index)
 			bool close = range > datum->unknown28;
 			if ((prop->unknown23 && view && view->unknown2a) || close)
 			{
-				function_1fb7e0(actor_index, 0xc2, NULL, datum->object_index, NONE);
+				function_1fb7e0(0xc2, actor_index, NULL, datum->object_index, NONE);
 				prop->unknown3c = false;
 			}
 		}
@@ -254,33 +254,33 @@ void function_25af70(long arg_0, long arg_1)
 		{
 			if (local_2->unknown39 <= 2)
 			{
-				function_1fb7e0(arg_0, 0x1a, NULL, local_1->object_index, NONE);
+				function_1fb7e0(0x1a, arg_0, NULL, local_1->object_index, NONE);
 			}
 		}
 		else if (function_1a6fe0(arg_0, 0x38) != NONE)
 		{
 			if (local_2->unknown39 <= 2)
 			{
-				function_1fb7e0(arg_0, 0x1b, NULL, local_1->object_index, NONE);
+				function_1fb7e0(0x1b, arg_0, NULL, local_1->object_index, NONE);
 			}
 		}
 		else if (function_26ba40(local_0->unknown07c, arg_0, local_1->prop_index))
 		{
 			if (local_2->unknown69)
 			{
-				function_1fb7e0(arg_0, 0x19, NULL, local_1->object_index, NONE);
+				function_1fb7e0(0x19, arg_0, NULL, local_1->object_index, NONE);
 			}
 			else if (function_1a6fe0(arg_0, 0x1b) != NONE)
 			{
-				function_1fb7e0(arg_0, 0x18, NULL, local_1->object_index, NONE);
+				function_1fb7e0(0x18, arg_0, NULL, local_1->object_index, NONE);
 			}
 			else if (local_2->unknown70 == 0)
 			{
-				function_1fb7e0(arg_0, 0x17, NULL, local_1->object_index, NONE);
+				function_1fb7e0(0x17, arg_0, NULL, local_1->object_index, NONE);
 			}
 			else
 			{
-				function_1fb7e0(arg_0, 0x19, NULL, local_1->object_index, NONE);
+				function_1fb7e0(0x19, arg_0, NULL, local_1->object_index, NONE);
 			}
 		}
 	}
@@ -526,14 +526,14 @@ void function_25d420(long prop_ref_index, short type, long actor_index)
 				switch (type)
 				{
 				case 1:
-					started = function_1fb7e0(actor_index, 0x33, NULL, datum->object_index, NONE);
+					started = function_1fb7e0(0x33, actor_index, NULL, datum->object_index, NONE);
 					break;
 				case 2:
-					started = function_1fb7e0(actor_index, 0x32, NULL, datum->object_index, NONE);
+					started = function_1fb7e0(0x32, actor_index, NULL, datum->object_index, NONE);
 					break;
 				case 3:
-					started = function_1fb7e0(actor_index, 0x35, NULL, datum->object_index, NONE) ||
-						function_1fb7e0(actor_index, 0x3b, NULL, datum->object_index, NONE);
+					started = function_1fb7e0(0x35, actor_index, NULL, datum->object_index, NONE) ||
+						function_1fb7e0(0x3b, actor_index, NULL, datum->object_index, NONE);
 					break;
 				default:
 					return;
@@ -908,11 +908,11 @@ void function_25b620(long prop_ref_index, long actor_index, bool unknown)
 	{
 		if (unknown)
 		{
-			function_1fb7e0(actor_index, 0xd, NULL, datum->object_index, NONE);
+			function_1fb7e0(0xd, actor_index, NULL, datum->object_index, NONE);
 		}
 		else
 		{
-			function_1fb7e0(actor_index, 0xf, NULL, datum->object_index, NONE);
+			function_1fb7e0(0xf, actor_index, NULL, datum->object_index, NONE);
 		}
 	}
 }
@@ -1121,7 +1121,7 @@ void function_25c050(long player_index, long actor_index)
 			{
 				type = 0x6c;
 			}
-			function_1fb7e0(actor_index, type, NULL, target_index, NONE);
+			function_1fb7e0(type, actor_index, NULL, target_index, NONE);
 		}
 		memset(&request, 0, sizeof(request));
 		request.type = 0x1d;
@@ -1589,16 +1589,16 @@ void __stdcall function_25b120(long arg_0, long arg_1, bool arg_2)
 		function_26b7a0(local_1->prop_index, local_0->unknown07c, local_7, &local_8, &local_9, &local_10);
 		if (local_8 && !function_25d690(local_1)->unknown5e && local_10)
 		{
-			if (arg_2 && function_1fb7e0(arg_0, 0xb, NULL, local_1->object_index, NONE))
+			if (arg_2 && function_1fb7e0(0xb, arg_0, NULL, local_1->object_index, NONE))
 				return;
 			if (local_5)
-				function_1fb7e0(arg_0, 6, NULL, local_1->object_index, NONE);
+				function_1fb7e0(6, arg_0, NULL, local_1->object_index, NONE);
 			else if (local_9)
-				function_1fb7e0(arg_0, 0xa, NULL, local_1->object_index, NONE);
+				function_1fb7e0(0xa, arg_0, NULL, local_1->object_index, NONE);
 			else if (local_6)
-				function_1fb7e0(arg_0, 7, NULL, local_1->object_index, NONE);
+				function_1fb7e0(7, arg_0, NULL, local_1->object_index, NONE);
 			else
-				function_1fb7e0(arg_0, 6, NULL, local_1->object_index, NONE);
+				function_1fb7e0(6, arg_0, NULL, local_1->object_index, NONE);
 		}
 	}
 	else if (local_3)

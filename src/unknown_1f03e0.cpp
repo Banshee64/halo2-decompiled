@@ -472,11 +472,16 @@ PRIVATE __forceinline void function_1f1461(vector3f const *arg_0, vector3f const
 	arg_2->k = arg_0->i * arg_1->j - arg_0->j * arg_1->i;
 }
 
+PRIVATE __forceinline byte function_1f1462(dword arg_0)
+{
+	return (arg_0 >> 3) & 1;
+}
+
 // @retail 0x1f1460
 void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *arg_9650d9, vector3f *arg_3a7661)
 {
     byte *settings = *(byte **)(state + 8);
-    if ((*(dword *)settings >> 3) & 1)
+    if (function_1f1462(*(dword *)settings))
     {
         vector3f const *old_up = (vector3f const *)(state + 0x100);
         vector3f up = ground->normal;

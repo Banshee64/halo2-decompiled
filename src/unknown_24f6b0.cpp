@@ -8,11 +8,12 @@ PRIVATE __forceinline void direction_face_point(s_direction_face const *face, ve
 	real x = point->i;
 	real y = point->j;
 	real z = point->k;
-	if (face->scale != 1.f)
+	real local_0 = face->scale;
+	if (local_0 != 1.f)
 	{
-		x *= face->scale;
-		y *= face->scale;
-		z = face->scale * z;
+		x *= local_0;
+		y *= local_0;
+		z = local_0 * z;
 	}
 	out->i = face->axes[2].i * z + face->axes[1].i * y + face->axes[0].i * x + face->origin.i;
 	out->j = face->axes[2].j * z + face->axes[1].j * y + face->axes[0].j * x + face->origin.j;

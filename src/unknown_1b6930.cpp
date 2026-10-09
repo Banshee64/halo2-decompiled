@@ -90,7 +90,7 @@ bool __stdcall function_1b6930(long actor_index, s_slot *slot)
 
 	function_1b6010(node->unknown08);
 	if (view && view->unknown70 == 0 && function_26ba60(node->unknown08, actor_index, actor->unknown07c))
-		function_1fb7e0(actor_index, 0x4c, NULL, node->object_index, NONE);
+		function_1fb7e0(0x4c, actor_index, NULL, node->object_index, NONE);
 	return true;
 }
 
@@ -207,10 +207,11 @@ short function_1b6e50(long actor_index)
 			level = function_1a6fe0(actor_index, 0x2c);
 		if (level != NONE)
 		{
-			s_slot_2b *state = (s_slot_2b *)&actor->slots[level];
+			struct s_1b6e51 { bool field_0; byte field_1; short field_2; };
+			s_1b6e51 const *local_0 = (s_1b6e51 const *)((byte *)&actor->slots[level] + 0xc);
 
-			if (state->unknown0c)
-				result = state->ticks;
+			if (local_0->field_0)
+				result = local_0->field_2;
 		}
 	}
 	return result;
@@ -331,19 +332,31 @@ short __stdcall function_1b7210(long actor_index, s_slot *slot)
 	return result;
 }
 
+PRIVATE __forceinline real function_1b74c1(vector3f const *arg_0, vector3f const *arg_1)
+{
+	return *(real const volatile *)&arg_0->i * arg_1->i + arg_0->j * arg_1->j + arg_0->k * arg_1->k;
+}
+
+PRIVATE __forceinline bool function_1b74c3(long arg_0)
+{
+	bool local_0 = false;
+	local_0 = function_110ab0(arg_0);
+	return local_0;
+}
+
 // @retail 0x1b74c0
 short __stdcall function_1b74c0(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	short result = g_46fbe4;
 
-	if (actor->prop_index != NONE && !function_110ab0(actor->unknown018))
+	if (actor->prop_index != NONE && !function_1b74c3(actor->unknown018))
 	{
 		s_prop_node_view *node = prop_node_get(actor->prop_index);
 		s_prop_view_fields *view = prop_node_view(node);
 
 		if (view && node->unknown28 < 20.0f && view->unknown00 >= 9 &&
-			dot3f(&view->unknown2c, &actor->unknown290) < -0.1f)
+			function_1b74c1(&view->unknown2c, &actor->unknown290) < -0.1f)
 		{
 			result = 0x2a;
 		}
@@ -355,6 +368,11 @@ short __stdcall function_1b74c0(long actor_index, s_slot *slot)
 short __stdcall function_1b75a0(long actor_index)
 {
 	return 0;
+}
+
+PRIVATE __forceinline byte function_1b75b1(long arg_0)
+{
+	return (g_557c40[arg_0 >> 5] >> (arg_0 & 31)) & 1;
 }
 
 // @retail 0x1b75b0
@@ -372,7 +390,7 @@ short __stdcall function_1b75b0(long actor_index, s_slot *slot, bool active)
 			s_slot_handler *handler = g_46eeb8[0x36];
 
 			if (handler->unknown8 != g_46f348 && (handler->mask & g_4ee4ec) == g_4ee4ec &&
-				(((byte *)g_557c40)[0x36 >> 3] & (1 << (0x36 & 7))) != 0)
+				function_1b75b1(0x36) != 0)
 			{
 				result = 0x36;
 			}

@@ -51,8 +51,8 @@ void function_28c470()
 // @retail 0x28c4e0
 void function_28c4e0()
 {
-	vector3f *source = (vector3f *)((byte *)g_sampling_settings.field_30 + (g_5044b8 * 12 + g_sampling_settings.field_30->vector_offset));
+	vector3f *source = (vector3f *)((byte *)g_sampling_settings.field_30 + g_sampling_settings.field_30->vector_offset);
 	vector3f *destination = &g_5044c0->vector;
 
-	*destination = *source;
+	*destination = source[g_5044b8];
 }

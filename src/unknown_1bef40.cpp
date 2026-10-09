@@ -227,7 +227,7 @@ bool function_1bf3f0(long other_index, long actor_index, short type)
 			prop_node_get(actor->prop_index)->unknown08 == prop_node_get(other_prop_index)->unknown08 &&
 			function_1a6fe0(other_index, type) != NONE)
 		{
-			return true;
+			result = true;
 		}
 	}
 	return result;
@@ -260,7 +260,7 @@ bool __stdcall function_1bf4e0(long actor_index, s_slot *slot)
 		type = actor->unknown3d2;
 		actor->unknown3cc = NONE;
 		if (type != NONE)
-			function_1fb7e0(actor_index, type, NULL, actor_get(state->unknown10)->unknown018, NONE);
+			function_1fb7e0(type, actor_index, NULL, actor_get(state->unknown10)->unknown018, NONE);
 		function_1f86a0(actor_index);
 		return true;
 	}

@@ -4,7 +4,13 @@
 #include "unknown_1e46c0.h"
 // @flags /O2 /Gr
 
-void __stdcall function_1e2990(long arg_0, bool arg_1);
+class c_1e2990
+{
+public:
+ void function_1e2990(bool arg_0);
+};
+
+
 
 // @retail 0x1c84a0
 void function_1c84a0(long arg_0, bool arg_1)
@@ -21,7 +27,7 @@ void function_1c84a0(long arg_0, bool arg_1)
     byte *local_2 = g_4f55f0->data + (local_1 & 0xffff) * 0x888;
     long local_3 = local_1;
     local_1 = *(long *)(local_2 + 0x20);
-    function_1e2990(local_3, (bool)arg_1);
+    ((c_1e2990 *)local_3)->function_1e2990(arg_1);
    }
   }
   else
@@ -29,7 +35,7 @@ void function_1c84a0(long arg_0, bool arg_1)
    s_actor_iterator local_4;
    function_x66da2b(&local_4, false);
    while (function_1e46c0(&local_4))
-    function_1e2990(local_4.actor_index, (bool)arg_1);
+    ((c_1e2990 *)local_4.actor_index)->function_1e2990(arg_1);
   }
  }
 }
@@ -59,7 +65,7 @@ long __stdcall function_1c88c0(long arg_0, void *arg_1, long arg_2, bool *arg_3,
   if (local_2->field_0)
   {
    local_0 = 1;
-   function_1e2990(local_2->field_4, true);
+   ((c_1e2990 *)local_2->field_4)->function_1e2990(true);
   }
   else
   {

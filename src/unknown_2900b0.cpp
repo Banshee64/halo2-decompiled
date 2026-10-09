@@ -58,7 +58,7 @@ bool function_28f290(long arg_0, vector3f *arg_1, vector3f *arg_2)
 			point3f local_3;
 			vector3f local_4;
 			function_b9dd0(arg_0, &local_3);
-			function_210c90((s_type_c3b527 const *)(local_2 + 0x30), &local_3, &local_4);
+			function_210c90(&local_3, (s_type_c3b527 const *)(local_2 + 0x30), &local_4);
 			if (function_30bf0(&local_4) > 0.0f)
 			{
 				*arg_1 = local_4;
