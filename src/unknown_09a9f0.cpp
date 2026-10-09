@@ -181,6 +181,8 @@ void c_object_type_definition::v18(s_entity *entity, long b, s_entity_state *sta
 // @retail 0xa07b0
 bool c_object_type_definition::v19(long a, long b, long c, s_entity_data *data)
 {
+    c_object_type_definition *volatile self = this;
+    (void)&self;
 	bool result = false;
 	memset(data, 0, sizeof(s_entity_data));
 	if (function_a5bd0(b))
@@ -226,26 +228,27 @@ void c_turret_entity_definition::v21(s_entity *entity)
 // @retail 0xa5a60
 bool c_object_type_definition::v22(s_entity *entity, long b, s_entity_info *info, long d, long e, long f)
 {
-	bool result = false;
-	entity->object_index = v29(b, info, &d, e, f);
-	if (entity->object_index != NONE)
-	{
-		if (!(OBJECT_HEADER(entity->object_index)->flags & 0x10))
-		{
-			OBJECT(entity->object_index)->field_d4 = entity->field0;
-			function_108e10(entity->object_index);
-			result = true;
-			if (d)
-			{
-				v31(entity->object_index, d, e, f);
-			}
-		}
-		else
-		{
-			entity->object_index = NONE;
-		}
-	}
-	return result;
+    bool result = false;
+    long value = d;
+    entity->object_index = v29(b, info, &value, e, f);
+    if (entity->object_index != NONE)
+    {
+        if (!(OBJECT_HEADER(entity->object_index)->flags & 0x10))
+        {
+            OBJECT(entity->object_index)->field_d4 = entity->field0;
+            function_108e10(entity->object_index);
+            result = true;
+            if (value)
+            {
+                v31(entity->object_index, value, e, f);
+            }
+        }
+        else
+        {
+            entity->object_index = NONE;
+        }
+    }
+    return result;
 }
 
 // @retail 0xa5b10
@@ -959,6 +962,27 @@ bool c_device_type::v14(long a1, long a2, long a3, long a4, long a5, long a6, lo
  return result;
 }
 
+// @retail 0xa4170
+bool c_device_type::v13(long a, s_entity_info *info, s_bitstream *stream)
+{
+ c_object_type_definition const *volatile definition = this;
+ bool valid = function_a6810(info, stream);
+ if (stream->bit_position <= (stream->size_in_bytes << 3) && valid)
+  return true;
+ return false;
+}
+
+// @retail 0xa23a0
+bool c_weapon_type::v13(long a, s_entity_info *info, s_bitstream *stream)
+{
+ c_object_type_definition const *volatile definition = this;
+ bool valid = function_a6810(info, stream);
+ valid = stream->bit_position <= (stream->size_in_bytes << 3) && valid;
+ if (stream->bit_position <= (stream->size_in_bytes << 3) && valid)
+  return true;
+ return false;
+}
+
 // @retail 0xa04f0
 bool c_item_type::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
 {
@@ -1162,4 +1186,39 @@ void c_weapon_type::v31(long a, long b, long c, long d)
    }
   }
  }
+}
+
+// @retail 0xa1120
+bool c_projectile_type::v13(long a, s_entity_info *info, s_bitstream *stream)
+{
+    c_object_type_definition const *volatile definition = this;
+    bool valid = (unsigned char)function_a6810(info, stream) != 0;
+    long *fields = (long *)info->vehicle_data;
+    if (function_1957d0(stream))
+    {
+        fields[0] = function_1959c0(stream, 4);
+        valid = valid && fields[0] >= 0 && fields[0] < 16;
+    }
+    else
+        fields[0] = NONE;
+    if (function_1957d0(stream))
+    {
+        long index = function_1959c0(stream, 10);
+        byte salt = (byte)function_1959c0(stream, 4);
+        fields[1] = index | ((dword)salt << 28);
+        if (function_1957d0(stream))
+            fields[2] = function_1959c0(stream, 5);
+        else
+            fields[2] = NONE;
+    }
+    else
+    {
+        fields[1] = NONE;
+        fields[2] = NONE;
+    }
+    info->vehicle_data[12] = function_1957d0(stream);
+    info->vehicle_data[13] = function_1957d0(stream);
+    if (valid && stream->bit_position <= (stream->size_in_bytes << 3))
+        return true;
+    return false;
 }

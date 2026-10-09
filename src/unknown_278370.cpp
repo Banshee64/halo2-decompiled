@@ -56,8 +56,12 @@ void __cdecl function_3153c0(void *arg_0, void *arg_1, void const *arg_2);
 __forceinline hkEntity *s_278370::function_27838d()
 {
 	s_278370 *local_0 = this;
-	while (local_0->field_c)
-		local_0 = local_0->field_c;
+	s_278370 *local_1 = local_0->field_c;
+	while (local_1)
+	{
+		local_0 = local_1;
+		local_1 = local_0->field_c;
+	}
 	return local_0->field_18 == 1 ? local_0->field_20 : NULL;
 }
 

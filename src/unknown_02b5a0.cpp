@@ -124,7 +124,7 @@ long __stdcall function_3ddd0(long object_index)
 {
     (void)&object_index;
     byte *object = ((s_3dd10_object_header *)g_4e0300->data)[object_index & 0xffff].object;
-    long result = *(long *)(object + 0xcc);
+    long volatile result = *(long *)(object + 0xcc);
     bool initialize = false;
     if (result == NONE || *(long *)(g_509434->data + (result & 0xffff) * 0x100 + 4) != object_index)
     {
@@ -204,7 +204,7 @@ void function_4c640(long object_index, signed char value)
 }
 
 // @retail 0x3dc90
-byte *function_3dc90(long object_index)
+byte *__stdcall function_3dc90(long object_index)
 {
     (void)&object_index;
     byte *result = NULL;
@@ -230,7 +230,8 @@ void function_3e420(long tag, long object_index, signed char *output, byte level
 {
     (void)&level;
     byte *definition = g_4e3b44[tag & 0xffff].bytes;
-    signed char *current = object_index != NONE ? function_3d430(object_index) : NULL;
+    signed char *current = NULL;
+    if (object_index != NONE) current = function_3d430(object_index);
     for (long i = 0; i < *(long *)(definition + 0x1c); ++i)
     {
         byte *group = *(byte **)(definition + 0x20) + i * 16;
@@ -294,8 +295,9 @@ void function_3dfe0(long cache_index, long object_index, real priority)
     if (!elapsed) return;
     byte *object = ((s_3dd10_object_header *)g_4e0300->data)[object_index & 0xffff].object;
     long update_elapsed = g_4ba034 - cache->update_time;
-    bool force = !cache->initialized || !cache->valid;
-    bool update = false;
+    bool volatile force = !cache->initialized || !cache->valid;
+    bool &update = *(bool *)&cache_index;
+    update = false;
     if (elapsed < 0) elapsed = 1;
     if (force) update = true;
     else if (object[0xc1] & 1) return;
