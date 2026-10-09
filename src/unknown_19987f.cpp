@@ -2119,7 +2119,7 @@ bool function_19a902(void)
 {
 	long mode = 0;
 	long state = function_19a2ce(NULL);
-	bool result = false;
+	byte result = 0;
 
 	if (g_4d8ba0)
 	{
