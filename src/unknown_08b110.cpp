@@ -104,29 +104,33 @@ long c_vtable_450cb8::v0(long index, long a2, long a3, long *count, s_item_450cb
 	long result;
 	result = 0;
 	if (index < 0 || index >= handlers->count)
-		return 3;
+		{ result = 3; goto local_0; }
 
 	c_handler_450cb8 * handler;
 	handler = handlers->handlers[index];
-	dword size;
+	long size;
 	size = handler->v2();
 	if (size > 0)
 	{
 		int error;
-		error = 3;
 		void * block;
 		block = function_96e90(size);
 		if (block == 0)
+		{
 			error = 2;
-		else if (handler->v10(size, block, a6))
+			goto local_3;
+		}
+		if (handler->v10(size, block, a6))
 		{
 			s_item_450cb8 * item = &items[(*count)++];
 			item->data = block;
 			item->size = (short)size;
 			item->type = 0xe;
-			return result;
+			goto local_0;
 		}
 
+		error = 3;
+local_3:
 		if (0 != block)
 		{
 			s_allocator_globals * globals;
@@ -136,8 +140,10 @@ long c_vtable_450cb8::v0(long index, long a2, long a3, long *count, s_item_450cb
 			globals->allocator->release(block, NONE);
 			globals->count--;
 		}
-		return error;
+		result = error;
+		goto local_0;
 	}
+	local_0:
 	return result;
 }
 

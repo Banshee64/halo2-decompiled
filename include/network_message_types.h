@@ -158,7 +158,7 @@ byte function_063980(s_bitstream *stream, void *part);                 /* reads 
 void __stdcall function_07cc50(s_bitstream *stream, void *part);       /* writes the parameters' sub-structure at 0x3dc / 0x444 */
 bool function_07d520(s_bitstream *stream, void *part);                 /* reads it */
 void function_86f90(s_bitstream *stream, s_player_action *action);     /* the synchronous message helpers */
-bool function_874c0(s_bitstream *stream, s_player_action *action);
+byte function_874c0(s_bitstream *stream, s_player_action *action);
 bool function_87830(s_player_action *a, s_player_action *b);
 void function_87d00(s_bitstream *stream, void *message);
 bool function_87e90(s_bitstream *stream, void *message);
