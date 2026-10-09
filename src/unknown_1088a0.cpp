@@ -53,7 +53,8 @@ struct s_tag_group_1088a0
 // @retail 0x1088a0
 long function_1088a0(short tag_index)
 {
-	dword group_tag = ((s_tag_group_1088a0 *)&g_4e3b44[tag_index])->group_tag;
+	short const *tag_reference = &tag_index;
+	dword group_tag = ((s_tag_group_1088a0 *)&g_4e3b44[*tag_reference])->group_tag;
 
 	long result = NONE;
 

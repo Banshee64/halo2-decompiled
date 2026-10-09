@@ -156,6 +156,12 @@ void function_15c150()
 	}
 }
 
+PRIVATE __forceinline s_mp_globals *transition_start_time_set(s_mp_globals *globals, long time)
+{
+	*(long *)((byte *)globals + 0x70) = time;
+	return globals;
+}
+
 // @retail 0x15c550
 void function_15c550()
 {
@@ -181,9 +187,7 @@ void function_15c550()
 			function_157ae0();
 			if (game_engine_get_statborg())
 				game_engine_get_statborg()->valid = true;
-			long current_time = g_510c54->game_time;
-			globals = g_4e9ae8;
-			*(long *)((byte *)globals + 0x70) = current_time;
+			globals = transition_start_time_set(g_4e9ae8, g_510c54->game_time);
 			if (g_4e6948->mode != 4)
 			{
 				s_game_options_view *options = g_4e6948;
