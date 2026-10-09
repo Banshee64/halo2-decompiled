@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7239 functions match
+
+```
+matched 7239 of 11318 game functions (823009 of 2784283 bytes, 29.56%)
+```
+
+4 new matches, none lost:
+- Deep lane 3, round 10 (lanes V, X, A and the UI screens): 0x26c2d0, 0x26dde0, 0x265550, 0x2bacbc; eight newly written bodies are active.
+
 ## 2026-10-09: 7235 functions match
 
 ```
