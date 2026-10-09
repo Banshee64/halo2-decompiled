@@ -403,7 +403,7 @@ void c_juggernaut_engine::v30(long killer, long victim, long, long)
 		{
 			function_15b7c0(NONE, killer);
 		}
-		else if (victim != NONE && g_510c9c->players & (1 << victim))
+		else if (victim != NONE && g_510c9c->players & (1 << (char)victim))
 		{
 			juggernaut_set(victim, false);
 			function_192a30(victim);
