@@ -58,11 +58,6 @@ struct s_simulation_player_update;
 struct s_player_creation_record;
 
 
-// @stub 0x14bf80
-void __stdcall function_14bf80(long player_index, const s_player_creation_record *record)
-{
-}
-
 struct s_type_9df9da;
 
 // @stub 0x6bff0

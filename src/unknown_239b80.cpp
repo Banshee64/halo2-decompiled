@@ -230,15 +230,22 @@ short function_239e50(short count, point2f const *points, short *indices)
 		real lowest_y = FLT_MAX;
 		short current = count;
 
-		for (short i = 0; i < count; i++)
 		{
-			if (lowest_y - k_real_epsilon > points[i].y ||
-				lowest_y > points[i].y && lowest_x + k_real_epsilon > points[i].x ||
-				lowest_y + k_real_epsilon > points[i].y && lowest_x - k_real_epsilon > points[i].x)
+			short i = 0;
+			if (i < count)
 			{
-				lowest_x = points[i].x;
-				lowest_y = points[i].y;
-				current = i;
+				do
+				{
+					if (lowest_y - k_real_epsilon > points[i].y ||
+						lowest_y > points[i].y && lowest_x + k_real_epsilon > points[i].x ||
+						lowest_y + k_real_epsilon > points[i].y && lowest_x - k_real_epsilon > points[i].x)
+					{
+						lowest_x = points[i].x;
+						lowest_y = points[i].y;
+						current = i;
+					}
+					i++;
+				} while (i < count);
 			}
 		}
 

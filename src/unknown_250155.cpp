@@ -2716,19 +2716,26 @@ void c_network_squad_browser_screen::v3()
 	{
 		s_widget_item items[16];
 
-		for (i = 0; i < squad->player_count; i++)
 		{
-			items[i].flags |= 1;
-			items[i].value4 = (long)squad->player_names[i];
-			if (has_game)
+			i = 0;
+			if (i < squad->player_count)
 			{
-				items[i].flags |= 2;
-				memcpy(items[i].value48, squad->player_appearances[i], sizeof(items[i].value48));
-				if (squad->has_teams)
+				do
 				{
-					items[i].flags |= 4;
-					items[i].value5c = squad->player_teams[i];
-				}
+					items[i].flags |= 1;
+					items[i].value4 = (long)squad->player_names[i];
+					if (has_game)
+					{
+						items[i].flags |= 2;
+						memcpy(items[i].value48, squad->player_appearances[i], sizeof(items[i].value48));
+						if (squad->has_teams)
+						{
+							items[i].flags |= 4;
+							items[i].value5c = squad->player_teams[i];
+						}
+					}
+					i++;
+				} while (i < squad->player_count);
 			}
 		}
 		function_22f042(items, this, squad->player_count);

@@ -796,10 +796,9 @@ void function_3d000(real const *state)
         state[41] - state[40] > 0.0001f)
     {
         double inverse = 1.0 / state[34];
-        real low = (real)(inverse * state[40] * 16777215.0);
-        real high = (real)(inverse * state[41] * 16777215.0);
-        direction[0] = 1.0f / (high - low);
-        direction[1] = 0.0f - direction[0] * low;
+        struct { real a, b; } local_low_high_record = { (real)(inverse * state[40] * 16777215.0), (real)(inverse * state[41] * 16777215.0) };
+        direction[0] = 1.0f / (local_low_high_record.b - local_low_high_record.a);
+        direction[1] = 0.0f - direction[0] * local_low_high_record.a;
         direction[2] = 0.0f;
         direction[3] = 0.0f;
     }

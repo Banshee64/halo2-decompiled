@@ -551,7 +551,10 @@ void __stdcall function_107000(long device_index, dword const *node_mask, long n
 		long render_model_tag_index = ((s_device_model_definition *)g_4e3b44[model_tag_index & 0xffff].bytes)->render_model_tag_index;
 
 		if (render_model_tag_index != NONE)
-			device_channels_sample(g_4e3b44[render_model_tag_index & 0xffff].bytes, device, node_mask, node_count, transforms);
+			{
+			void const *volatile render_model = g_4e3b44[render_model_tag_index & 0xffff].bytes;
+			device_channels_sample(render_model, device, node_mask, node_count, transforms);
+		}
 	}
 }
 
