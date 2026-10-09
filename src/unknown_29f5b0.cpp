@@ -2206,7 +2206,7 @@ void __stdcall function_2a1ee0(short function_index, long thread_index, bool ini
 
 s_type_f4462a const g_44b6c0 = { _hs_type_short_integer, 0, function_2a1ee0, NULL, 2, { _hs_type_object, _hs_type_string_id } };
 
-void function_d8a40(long region_name, long object_index, real damage);
+void function_d8a40(long object_index, long region_name, real damage);
 
 /* 84: void (object, string_handle, real) */
 // @retail 0x2a1f40
@@ -2216,7 +2216,7 @@ void __stdcall function_2a1f40(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_d8a40(arguments[1], arguments[0], *(real *)&arguments[2]);
+		function_d8a40(arguments[0], arguments[1], *(real *)&arguments[2]);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3007,7 +3007,7 @@ void __stdcall function_2a2e00(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		s_recorded_animation *animation = recorded_animation_find(arguments[0], NULL);
+		s_recorded_animation *animation = recorded_animation_find(NULL, arguments[0]);
 		if (animation)
 			animation->flags |= 3;
 		function_209ae0(thread_index, 0);
@@ -4557,7 +4557,7 @@ void __stdcall function_2a4dc0(short function_index, long thread_index, bool ini
 
 s_type_f4462a const g_44c684 = { _hs_type_void, 0, function_2a4dc0, NULL, 1, { _hs_type_boolean } };
 
-bool function_1df770(short team_a, short team_b);
+bool function_1df770(short team_a, short volatile team_b);
 
 /* the checks around function_1df770 (0x1df770); retail function not identified */
 inline void allegiance_remove(short team_a, short team_b)
@@ -8108,7 +8108,7 @@ inline void point_timer_start(real x, real y, real z, short script_ticks)
 	g_510c5c->start_time = g_510c54->game_time;
 }
 
-void function_154220(short seconds, real x, real y, real z);
+void function_154220(real x, short seconds, real y, real z);
 
 void function_146860(real initial_speed, real speed, real duration);
 
@@ -8135,7 +8135,7 @@ void __stdcall function_2a9640(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_154220(*(short *)&arguments[3], *(real *)&arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_154220(*(real *)&arguments[0], *(short *)&arguments[3], *(real *)&arguments[1], *(real *)&arguments[2]);
 		function_209ae0(thread_index, 0);
 	}
 }

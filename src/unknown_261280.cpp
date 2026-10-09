@@ -24,6 +24,16 @@ struct s_prop_search_request_view
 	point3f point;
 };
 
+PRIVATE __forceinline real point_distance_squared_ordered(point3f const *from, point3f const *to)
+{
+	vector3f delta;
+	vector3d_from_points3d(from, to, &delta);
+	real result = delta.k * delta.k;
+	result += delta.i * delta.i;
+	result += delta.j * delta.j;
+	return result;
+}
+
 // @retail 0x261280
 s_reference function_261280(s_prop_search *search, long actor_index, s_261d20_entry *entry, long *b, byte *buffer, bool *c)
 {
@@ -47,12 +57,7 @@ s_reference function_261280(s_prop_search *search, long actor_index, s_261d20_en
 		{
 			if (request->unknown618)
 			{
-				vector3f vector;
-
-				vector.i = entry->point.x - request->point.x;
-				vector.j = entry->point.y - request->point.y;
-				vector.k = entry->point.z - request->point.z;
-				entry->distance_squared = length_sq3f(&vector);
+				entry->distance_squared = point_distance_squared_ordered(&request->point, &entry->point);
 			}
 			else
 			{

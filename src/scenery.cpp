@@ -442,7 +442,7 @@ struct s_scenery_graph_view
 };
 
 struct s_type_1a7926;
-bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+bool function_20a9a0(s_type_1a7926 *matrices, long object_index);
 
 // @retail 0x10a520
 bool function_10a520(long object_index)
@@ -454,7 +454,7 @@ bool function_10a520(long object_index)
 	if (header->cluster_index == NONE)
 		return result;
 	{
-		if (function_20a9a0(object_index, (s_type_1a7926 *)info))
+		if (function_20a9a0((s_type_1a7926 *)info, object_index))
 			return true;
 		if (definition->model_index != NONE)
 		{

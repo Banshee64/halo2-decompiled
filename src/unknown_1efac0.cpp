@@ -95,8 +95,8 @@ bool s_lookup::initialize(long object_handle)
 		{
 			s_tag_ref_data *b = tags[a->ref0c & 0xffff].data;
 
+			void *pa = (byte *)object + *(short volatile const *)&object->offset11a;
 			void *pb = (byte *)object + object->offset116;
-			void *pa = (byte *)object + object->offset11a;
 
 			pointer_a = pa;
 			handle = object_handle;
@@ -312,10 +312,10 @@ void function_1efbd0(dword id, s_mix_output *output, s_mix_source *source, signe
 			if (entry->id != 0xff && index >= 0 && index < entry->count)
 			{
 				s_mix_item *item = &entry->items[index];
-				byte value = item->value;
+				
 
-				if (value != 0xff)
-					output->values.values[(signed char)entry->id] = value;
+				if (item->value != 0xff)
+					output->values.values[(signed char)entry->id] = item->value;
 			}
 		}
 	}
@@ -501,7 +501,7 @@ struct s_type_1a7926
  transform4x3f *field_50;
 };
 
-bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
+bool function_20a9a0(s_type_1a7926 *matrices, long object_index);
 
 struct s_model_choice
 {
@@ -532,7 +532,7 @@ struct s_model_regions
 PRIVATE inline bool surface_object_has_physics(long object_index)
 {
  s_type_1a7926 info;
- return function_20a9a0(object_index, &info);
+ return function_20a9a0(&info, object_index);
 }
 
 // @retail 0x1ef500
@@ -554,7 +554,7 @@ long function_1ef500(long object_index, long position)
  if (surface_object_has_physics(object_index))
  {
   s_type_1a7926 info;
-  function_20a9a0(object_index, &info);
+  function_20a9a0(&info, object_index);
   s_model_regions *model = *(s_model_regions **)&info.unknown3c[8];
   byte *physics = (byte *)info.node_indices;
   for (; result == NONE && region_index < model->count; ++region_index)
@@ -717,7 +717,7 @@ dword function_1ef6d0(dword key)
  if (index != NONE)
  {
   s_type_1a7926 info;
-  long next_kind = function_20a9a0(object_index, &info) ? 3 : 4;
+  long next_kind = function_20a9a0(&info, object_index) ? 3 : 4;
   return (((next_kind << 13) | next_position) << 16) | index;
  }
  return (dword)NONE;

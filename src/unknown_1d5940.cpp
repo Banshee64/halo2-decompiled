@@ -44,7 +44,7 @@ struct s_1d5944
  struct { char field_0[64]; long field_40; } field_4[257];
 };
 
-bool function_20a9a0(long arg_0, s_type_1a7926 *arg_1);
+bool function_20a9a0(s_type_1a7926 *arg_1, long arg_0);
 s_section_lists *function_181a80(s_section_lists *arg_0, long arg_1, bool arg_2);
 bool function_1d5bf0(s_havok_component *arg_0, s_physics_model_owner *arg_1, char const *arg_2,
  bool arg_3, long arg_4, long *arg_5, dword *arg_6, s_physics_body_groups *arg_7, s_1d5bf0 *arg_8);
@@ -67,7 +67,7 @@ signed char __stdcall function_1d5940(s_havok_component *arg_0, long arg_1, long
  byte *local_7 = (byte *)g_4e0300->data + (arg_0->object_index & 0xffff) * 12;
  if (!(local_7[2] & 1) && !((1 << local_7[3]) & 0x80))
   *(byte *)&arg_1 = 1;
- if (function_20a9a0(arg_0->object_index, (s_type_1a7926 *)&local_3))
+ if (function_20a9a0((s_type_1a7926 *)&local_3, arg_0->object_index))
  {
   function_181a80((s_section_lists *)&local_6, arg_0->object_index, false);
   s_1d5943 *local_8 = (s_1d5943 *)local_3.field_48;

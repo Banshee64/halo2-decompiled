@@ -779,14 +779,12 @@ bool c_game_engine_a::v23()
 		state->l70[j] = NONE;
 	g_51eccc = state;
 
-	short n = g_4e6948->s22e;
-	if (n < 1)
-		n = 1;
+	short raw_n = g_4e6948->s22e;
+    long n = raw_n < 1 ? 1 : raw_n;
 	state->w110 = g_510c54->field_2_3 * n;
 
-	short m = g_4e6948->s230;
-	if (m < 1)
-		m = 1;
+	short raw_m = g_4e6948->s230;
+    long m = raw_m < 1 ? 1 : raw_m;
 	state->w112 = m * g_510c54->field_2_3;
 	state->w114 = g_4e6948->w22c;
 	return true;
@@ -1639,10 +1637,10 @@ void c_game_engine_a::v36(long local_player)
 			s_color_bits color;
 			territory_marker_color(player_index, i, &color);
 			s_marker_list list;
+			list.position = g_4e0350->marker_entries[(short)state->w60[i]].position;
 			list.b0 = 0;
 			list.b1 = 0;
 			list.l4 = 1;
-			list.position = g_4e0350->marker_entries[(short)state->w60[i]].position;
 			list.r14 = 0.4f;
 			list.r18 = 0.1f;
 			list.r1c = 0.0f;

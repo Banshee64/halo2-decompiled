@@ -4425,18 +4425,18 @@ void function_159250(long player_index, real alpha)
 			struct { s_camera camera; s_view view; } projection;
 			word text[0x100];
 		} storage;
+		point2f point = { 0.0f, 0.0f };
 		s_object_marker marker;
 		function_b8d30(player->unit_index, 0x04000095, &marker, 1, false);
-		point3f position = marker.matrix.position;
-		position.z += 0.05f;
-		real x = position.x;
-		real y = position.y;
-		real z = position.z;
-		if (g_4b9e14.scale != 1.0f)
+		real scale = g_4b9e14.scale;
+		real x = marker.matrix.position.x;
+		real y = marker.matrix.position.y;
+		real z = marker.matrix.position.z + 0.05f;
+		if (scale != 1.0f)
 		{
-			x = g_4b9e14.scale * x;
-			y = g_4b9e14.scale * y;
-			z = g_4b9e14.scale * z;
+			x = scale * x;
+			y = scale * y;
+			z = scale * z;
 		}
 		vector3f transformed;
 		transformed.i = g_4b9e14.forward.i * z;
@@ -4460,7 +4460,6 @@ void function_159250(long player_index, real alpha)
 		storage.projection.view.bounds.left = g_4b9dd2;
 		storage.projection.view.bounds.bottom = g_4b9dd4;
 		storage.projection.view.bounds.right = g_4b9dd6;
-		point2f point;
 		if (function_30710(&storage.projection.camera, &transformed, 0, &point, &storage.projection.view))
 		{
 			word *text = storage.text;
