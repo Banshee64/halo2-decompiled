@@ -63,7 +63,7 @@ static inline bool surface_pinned(s_surface_record *record, long i)
 }
 static inline real surface_normalize(vector3f *v)
 {
-	real length = (real)sqrt(v->i*v->i + (v->j*v->j + v->k*v->k));
+	real length = (real)sqrt(v->i*v->i + v->j*v->j + v->k*v->k);
 	if (!(fabs(length) < 0.0001f))
 	{
 		real inverse = 1.0f / length;
@@ -239,8 +239,8 @@ void function_117510(long index)
 		s_surface_vertex *a = &record->vertices[definition->triangle_indices[i]];
 		s_surface_vertex *b = &record->vertices[definition->triangle_indices[i+1]];
 		s_surface_vertex *c = &record->vertices[definition->triangle_indices[i+2]];
-		vector3f u = {c->position.x-a->position.x, c->position.y-a->position.y, c->position.z-a->position.z};
 		vector3f v = {b->position.x-a->position.x, b->position.y-a->position.y, b->position.z-a->position.z};
+		vector3f u = {c->position.x-a->position.x, c->position.y-a->position.y, c->position.z-a->position.z};
 		vector3f normal = {u.k*v.j-u.j*v.k, u.i*v.k-u.k*v.i, u.j*v.i-u.i*v.j};
 		surface_normalize(&normal);
 		a->normal.i += normal.i; a->normal.j += normal.j; a->normal.k += normal.k;
@@ -347,9 +347,9 @@ void function_117c80(vector3f const *input, vector3f *output, real angle)
 	}
 	length = (real)sqrt(output->i*output->i + output->j*output->j);
 	if (!(fabs(length) < 0.0001f)) { real inverse = 1.0f/length; output->i *= inverse; output->j *= inverse; }
-	double horizontal = sqrt(1.0 - (double)output->k*output->k);
-	output->i = (real)(horizontal * output->i);
-	output->j = (real)(horizontal * output->j);
+	real horizontal = (real)sqrt(1.0f - output->k*output->k);
+	output->i *= horizontal;
+	output->j *= horizontal;
 }
 
 static inline dword surface_random()

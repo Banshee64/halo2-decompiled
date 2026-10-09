@@ -265,7 +265,7 @@ bool looping_sound_controllers_initialize(void)
 	{
 		CONTROLLERS->valid = true;
 		record_pool_release_all(CONTROLLERS);
-		byte phase = ((s_looping_sound_system *)g_4e6380)->source_update_phase;
+		byte phase = *((byte *)g_4e6380 + 0x7f);
 		dword seed = function_1462b0();
 		c_class_219e90 *controller = (c_class_219e90 *)g_51ebdc;
 		controller->definition_index = NONE;
