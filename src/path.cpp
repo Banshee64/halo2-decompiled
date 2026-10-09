@@ -970,7 +970,8 @@ PRIVATE void function_271fd0(s_type_f17a25 *state, short node_index, short cost)
 PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 	s_path_node_key_view const *node, s_path_link_view *links, s_type_f17a25 const *state)
 {
-	s_path_links_data_view const *data = (s_path_links_data_view const *)pathfinding;
+	s_pathfinding_data const *const *pathfinding_reference = &pathfinding;
+	s_path_links_data_view const *data = (s_path_links_data_view const *)*pathfinding_reference;
 	long node_index = node->node_index;
 	short output_index = node->entry_point.output_index;
 	short count = 0;
@@ -982,7 +983,6 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 			s_path_surface_link_view const *surface = &data->surfaces[surface_index];
 			if (state->settings.flags & (1 << surface->type))
 			{
-				s_path_link_view *link = &links[count];
 				switch (surface->type)
 				{
 				case 0:
@@ -990,8 +990,9 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 					long edge_index = *(long const *)&surface->unknown04;
 					s_path_edge_view const *edge = &data->edges[edge_index];
 					word next_node = edge->nodes[node_index != edge->nodes[1]];
-					if (next_node != (word)NONE)
+					if ((long)next_node != NONE && next_node != (word)NONE)
 					{
+						s_path_link_view *link = &links[count];
 						link->node_index = next_node;
 						link->index = edge_index;
 						*(short *)&link->type = NONE;
@@ -1010,17 +1011,22 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 				case 1:
 				case 6:
 				{
+					if ((long)surface->unknown04 == NONE || (long)surface->unknown06 == NONE ||
+						(long)surface->unknown08 == NONE || (long)surface->unknown0a == NONE)
+					{
+						break;
+					}
 					if (!state->settings.unknown0c &&
 						(state->settings.unknown08 & surface->unknown0d) <= 0)
 					{
 						break;
 					}
 					word next_node = surface->unknown0e;
-					if (next_node == (word)NONE)
+					if ((long)next_node == NONE || next_node == (word)NONE)
 					{
 						break;
 					}
-					word flags = data->nodes[next_node].flags;
+					short flags = data->nodes[next_node].flags;
 					if (node->flag0d)
 					{
 						vector3f delta;
@@ -1055,12 +1061,13 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 							break;
 						}
 					}
+					s_path_link_view *link = &links[count];
 					*(short *)&link->type = surface->type;
 					link->index = surface_index;
-					link->node_index = next_node;
-					link->flags = flags | 1;
+					link->node_index = surface->unknown0e;
 					link->unknown2c = true;
 					link->unknown2d = true;
+					link->flags = flags | 1;
 					link->point.point = data->vertices[surface->unknown08];
 					link->point.output_index = surface->unknown12;
 					link->unknown2e = surface->type == 6;
@@ -1071,8 +1078,12 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 				}
 				case 2:
 				{
+					if ((long)surface->unknown06 == NONE || (long)surface->unknown08 == NONE)
+					{
+						break;
+					}
 					word next_node = surface->unknown04;
-					if (next_node == (word)NONE)
+					if ((long)next_node == NONE || next_node == (word)NONE)
 					{
 						break;
 					}
@@ -1086,6 +1097,7 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 							break;
 						}
 					}
+					s_path_link_view *link = &links[count];
 					link->index = surface_index;
 					*(short *)&link->type = 2;
 					link->node_index = next_node;
@@ -1101,8 +1113,13 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 				}
 				case 5:
 				{
+					if ((long)surface->unknown06 == NONE || (long)surface->unknown08 == NONE ||
+						(long)surface->unknown0a == NONE)
+					{
+						break;
+					}
 					word next_node = surface->unknown04;
-					if (next_node == (word)NONE)
+					if ((long)next_node == NONE || next_node == (word)NONE)
 					{
 						break;
 					}
@@ -1113,6 +1130,7 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 					{
 						break;
 					}
+					s_path_link_view *link = &links[count];
 					link->index = surface_index;
 					*(short *)&link->type = 5;
 					link->node_index = next_node;
@@ -1141,8 +1159,8 @@ PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
 		{
 			s_path_edge_view const *edge = &data->edges[edge_index];
 			bool reverse = node_index == edge->nodes[1];
-			word next_node = edge->nodes[!reverse];
-			if (next_node != (word)NONE)
+			long next_node = edge->nodes[!reverse];
+			if (next_node != NONE && next_node != 0xffff)
 			{
 				s_path_link_view *link = &links[count];
 				link->index = edge_index;
