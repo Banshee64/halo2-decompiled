@@ -743,7 +743,10 @@ real function_022c30(const point3f *a, const point3f *c, const point3f *b)
 	if (length > 0.0001f)
 	{
 		real inverse = 1.0f / length;
-		result = ((v1.k * inverse) * v2.k + (v1.j * inverse) * v2.j + (v1.i * inverse) * v2.i) * inverse;
+		v1.i *= inverse;
+		v1.j *= inverse;
+		v1.k *= inverse;
+		result = (v1.k * v2.k + v1.j * v2.j + v1.i * v2.i) * inverse;
 	}
 
 	return result;
@@ -1564,7 +1567,8 @@ void __stdcall function_214f0(real passes, real distortion, real strength, real 
         g_484f68.PSFinalCombinerInputsEFG = ((g_485a74 ? 0x1d : 0) | 0xc1100) << 8;
         function_1ccf0(&g_484f68);
         function_34a90(7, 10, 0x1010101, false, false, 1.0f, 0.5f, 1.0f, 4, false, false);
-        long filtered = function_211a0(7, passes, 1.0f, falloff, 8, NONE, NONE, 1, 0, scale, values.second);
+        long (*volatile filter)(long, real, real, real, long, long, long, long, long, real, real) = function_211a0;
+        long filtered = filter(7, passes, 1.0f, falloff, 8, NONE, NONE, 1, 0, scale, values.second);
         function_14f60(0, (short)filtered);
         function_15780(0, 4);
         function_0222d0(D3DRS_ALPHABLENDENABLE, 1);
