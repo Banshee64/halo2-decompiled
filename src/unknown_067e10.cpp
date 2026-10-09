@@ -302,7 +302,7 @@ void function_690d0(c_class_6a600 *world, long actor_index, const dword *state)
 // @retail 0x69580
 void function_69580(c_class_6a600 *world, long player_index)
 {
-	long absolute_index = (word)player_index;
+	long absolute_index = player_index & 0xffff;
 	s_simulation_world_player *player = &world->players[absolute_index];
 	player->unknown20 = 0;
 	player->player_index = NONE;
@@ -459,6 +459,12 @@ bool world_buffer_allocate(c_class_6a600 *world)
 	return result;
 }
 
+static __forceinline void function_6ab11(s_allocator_globals *arg_0, s_simulation_block *arg_1)
+{
+ arg_0->allocator->release(arg_1, NONE);
+ arg_0->count--;
+}
+
 // @retail 0x6ab10
 void function_6ab10(c_class_6a600 *world)
 {
@@ -469,9 +475,7 @@ void function_6ab10(c_class_6a600 *world)
 		long info;
 		if (!g_4d87f8->allocator->get_info(block, &info))
 			info = NONE;
-		s_allocator_globals *globals = g_4d87f8;
-		globals->allocator->release(block, NONE);
-		globals->count--;
+		function_6ab11(g_4d87f8, block);
 		block = next;
 	}
 	world->first_block = 0;
@@ -993,10 +997,10 @@ void simulation_world_view_established(c_class_6a600 *world, c_simulation_view *
 		if (g_4cf778)
 		{
 			g_4cf778 = false;
-			function_6a560(world, true);
-			return;
+			
 		}
-		g_4cf779 = true;
+		else
+            g_4cf779 = true;
 		function_6a560(world, true);
 	}
 }

@@ -112,23 +112,25 @@ void function_1e2a00(long actor_index, bool flag, bool keep)
 // @retail 0x1e32e0
 bool function_1e32e0(long actor_index, bool flag)
 {
-	s_actor_1e1de0 *actor = actor_get_1e1de0(actor_index);
+	s_actor_1e1de0 volatile const *actor = actor_get_1e1de0(actor_index);
 	long unit_index = actor->unit_index;
 	bool result = false;
 
-	if (unit_index == NONE)
-		return result;
-	if (flag)
+	if (unit_index != NONE)
 	{
-		s_object_1e1de0 *unit = object_get_1e1de0(unit_index);
-		unit->flags134 |= 8;
-		unit->value2b8 = 0.25f;
-		if (object_get_1e1de0(unit_index)->index0d4 != NONE)
-			function_b58c0(object_get_1e1de0(unit_index)->index0d4, 0x800000);
+		if (flag)
+		{
+			s_object_1e1de0 *unit = object_get_1e1de0(unit_index);
+			unit->flags134 |= 8;
+			unit->value2b8 = 0.25f;
+			if (object_get_1e1de0(unit_index)->index0d4 != NONE)
+				function_b58c0(object_get_1e1de0(unit_index)->index0d4, 0x800000);
+		}
+		else
+		{
+			function_d0e00(unit_index, 1.0f);
+		}
+		result = true;
 	}
-	else
-	{
-		function_d0e00(unit_index, 1.0f);
-	}
-	return true;
+	return result;
 }
