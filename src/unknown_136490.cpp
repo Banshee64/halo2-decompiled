@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include "unknown_13eeb0.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -123,18 +124,27 @@ long function_1365a0(s_type_7ba8e9 const *bitmap, short mipmap_index)
 	return bits * width / 8;
 }
 
+PRIVATE __forceinline short function_136601(short arg_1, long arg_2)
+{
+	long local_1 = 0;
+	if (arg_1 != NONE)
+		local_1 = g_453550[arg_2];
+	return local_1;
+}
+
 // @retail 0x136600
-long function_136600(short width, short height, short mipmap_index, short depth, short format, short alignment)
+long function_136600(short width, short height, short mipmap_index, short depth, s_13eeb1 format, short alignment)
 {
 	short mipmap_width = width >> mipmap_index > 1 ? width >> mipmap_index : 1;
 	short mipmap_height = height >> mipmap_index > 1 ? height >> mipmap_index : 1;
 	short mipmap_depth = depth >> mipmap_index > 1 ? depth >> mipmap_index : 1;
-	if (format >= 14 && format <= 16)
+	long local_3 = (short)format;
+	if (local_3 >= 14 && local_3 <= 16)
 	{
 		mipmap_width += -mipmap_width & 3;
 		mipmap_height += -mipmap_height & 3;
 	}
-	short row_size = function_x48d32c(format) * mipmap_width / 8;
+	short row_size = function_136601((short)format, local_3) * mipmap_width / 8;
 	if (alignment > 0)
 	{
 		row_size = (row_size + alignment - 1) & ~(alignment - 1);
@@ -149,7 +159,8 @@ long function_1366d0(short width, short height, short depth, short format, short
 	long total = 0;
 	for (short mipmap_index = 0; mipmap_index <= (short)local_1; mipmap_index++)
 	{
-		total += function_136600(width, height, mipmap_index, depth, format, alignment);
+		s_13eeb1 local_2 = { *(long const *)&format };
+		total += function_136600(width, height, mipmap_index, depth, local_2, alignment);
 	}
 	return total;
 }
