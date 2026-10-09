@@ -422,7 +422,8 @@ bool function_270400(long actor_index, long mode, long set, point3f const *posit
     transform4x3f matrix;
     if (actor_index != NONE)
     {
-        if (function_270240(actor_get(actor_index)->unknown018, mode, set, *position_reference, forward, &matrix))
+        s_actor_view *actor = actor_get(actor_index);
+        if (function_270240(actor->unknown018, mode, set, *position_reference, forward, &matrix))
         {
             if (out_position) *out_position = matrix.position;
             if (out_forward) *out_forward = matrix.forward;
