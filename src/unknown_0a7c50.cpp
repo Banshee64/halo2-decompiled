@@ -398,15 +398,19 @@ void function_a8f80(long index, short slot)
     long current = index;
     if (function_a76b0(current, 1))
     {
-        byte *object = EVENT_OBJECT(current);
-        short selected = *(signed char *)(object + 0x212 + slot);
+        s_record_pool *objects = g_4e0300;
+        byte *volatile *headers = &objects->data;
+        byte *object = ((s_event_object_header *)*headers)[current & 0xffff].object;
+        long offset = slot;
+        signed char const volatile *selection = (signed char const volatile *)(object + offset + 0x212);
+        short selected = selection[0];
         if (selected != NONE)
         {
             long item = ((long *)(object + 0x218))[selected];
             if (item != NONE)
             {
-                data.selected = *(signed char *)(object + 0x212 + slot);
-                data.definition = *(long *)EVENT_OBJECT(item);
+                data.selected = selection[0];
+                data.definition = *(long *)((s_event_object_header *)*headers)[item & 0xffff].object;
                 data.slot = slot;
                 function_b5a70(NONE, 17, 1, (long)&index, sizeof(data), &data, g_4ceeb8);
             }
@@ -421,15 +425,19 @@ void function_a9030(long index, short slot)
     long current = index;
     if (function_a76b0(current, 1))
     {
-        byte *object = EVENT_OBJECT(current);
-        short selected = *(signed char *)(object + 0x212 + slot);
+        s_record_pool *objects = g_4e0300;
+        byte *volatile *headers = &objects->data;
+        byte *object = ((s_event_object_header *)*headers)[current & 0xffff].object;
+        long offset = slot;
+        signed char const volatile *selection = (signed char const volatile *)(object + offset + 0x212);
+        short selected = selection[0];
         if (selected != NONE)
         {
             long item = ((long *)(object + 0x218))[selected];
             if (item != NONE)
             {
-                data.selected = *(signed char *)(object + 0x212 + slot);
-                data.definition = *(long *)EVENT_OBJECT(item);
+                data.selected = selection[0];
+                data.definition = *(long *)((s_event_object_header *)*headers)[item & 0xffff].object;
                 data.slot = slot;
                 function_b5a70(NONE, 18, 1, (long)&index, sizeof(data), &data, g_4ceecc);
             }

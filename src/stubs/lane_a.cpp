@@ -13,15 +13,9 @@ void function_159ac0(void)
 
 
 
-// @stub 0xbbfc0
-void __stdcall function_bbfc0(real a, real b, real c, real d, real e)
-{
-}
 
-// @stub 0xbc070
-void __stdcall function_bc070(real a, real b, real c, real d, real e)
-{
-}
+
+
 
 
 // @stub 0xbb670
