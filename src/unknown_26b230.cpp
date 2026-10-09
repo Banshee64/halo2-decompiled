@@ -793,7 +793,9 @@ void __stdcall function_269de0(long object_index, s_clump_activity_view const *c
 bool function_26add0(long prop_index)
 {
 	bool result = false;
-	s_clump_prop *prop = &((s_clump_prop *)g_50241c->data)[prop_index & 0xffff];
+	s_clump_prop *const props = (s_clump_prop *)g_50241c->data;
+    s_clump_prop *const *props_reference = &props;
+    s_clump_prop *prop = &(*props_reference)[prop_index & 0xffff];
 	if (*(short *)((byte *)prop + 4) >= 1)
 	{
 		result = true;

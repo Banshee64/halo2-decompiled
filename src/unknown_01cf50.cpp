@@ -1641,8 +1641,8 @@ void function_123b0(void)
     dword flags = XGetVideoFlags();
     if (standard == 3)
         g_485ac0 = (byte)flags & 0x40 ? 60 : 50;
-    byte wide = (byte)((flags >> 4) & 1);
     byte low = (byte)(flags & 1);
+    byte wide = (byte)((flags >> 4) & 1);
     flags &= 8;
     g_485ac2 = low;
     g_485ac3 = wide;
@@ -2248,7 +2248,7 @@ bool g_47fe85 = true;
 typedef void (__stdcall *t_4b220_fill)(void *, long, void *);
 
 // @retail 0x4b220
-long function_4b220(long mode, long primitive, long stride, t_4b220_fill fill, void *context, long count)
+long function_4b220(long count, long mode, long primitive, long stride, t_4b220_fill fill, void *context)
 {
 	long result = NONE;
 	long const *mode_reference = &mode;
@@ -2454,10 +2454,10 @@ struct s_queued_material_payload
 	void (__stdcall *begin)(void *);
 	t_4b220_fill fill;
 	void (__stdcall *end)(void *);
-	long stride;
-	long format;
 	long primitive;
+	long format;
 	long count;
+	long stride;
 	byte data[1];
 };
 
@@ -2472,7 +2472,7 @@ void __stdcall function_35b00(void *payload)
 	select_immediate_descriptor(request->format);
 	function_1c710(g_51f0f0);
 	function_1cf50();
-	function_4b220(0, request->primitive, request->stride, request->fill, request->data, request->count);
+	function_4b220(request->count, 0, request->primitive, request->stride, request->fill, request->data);
 	if (request->end)
 		request->end(request->data);
 }

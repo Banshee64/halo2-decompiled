@@ -206,7 +206,7 @@ void function_153cd0(long player_index)
 }
 
 // @retail 0x154220
-void function_154220(short seconds, real x, real y, real z)
+void function_154220(real x, short seconds, real y, real z)
 {
 	s_game_time_globals *time = g_510c54;
 	s_game_speed *speed;
