@@ -1472,6 +1472,12 @@ void territories_update_scores()
 	}
 }
 
+PRIVATE inline void advance_territory_counter(short *reset, short *counter)
+{
+	*reset = 0;
+	++*counter;
+}
+
 // @retail 0x2bff80
 void territories_update_holders()
 {
@@ -1482,15 +1488,14 @@ void territories_update_holders()
 	iterator.absolute_index = NONE;
 	iterator.index = NONE;
 	bool active = function_19f240((long *)&iterator);
-	s_state_2bf *state = g_51eccc;
 	while (active)
 	{
 		long player = iterator.index & 0xffff;
-		long territory = (char)state->entries90[player].a;
+		long territory = (char)g_51eccc->entries90[player].a;
 
 		if (territory != NONE && iterator.player->unit_index != NONE)
 		{
-			long holder = state->l70[territory];
+			long holder = g_51eccc->l70[territory];
 
 			if (holder != NONE)
 			{
@@ -1503,29 +1508,26 @@ void territories_update_holders()
 					if (engine)
 					{
 						bool opposing = engine->p27(holder_team, team);
-						state = g_51eccc;
 						if (opposing)
 						{
-							if ((char)state->entries90[holder].a == territory)
+							if ((char)g_51eccc->entries90[holder].a == territory)
 							{
-								state->entries90[player].time_inside = 0;
-								state->entries90[player].time_outside = 0;
-								state->entries90[player].b = 0;
+								g_51eccc->entries90[player].time_inside = 0;
+								g_51eccc->entries90[player].time_outside = 0;
+								g_51eccc->entries90[player].b = 0;
 								function_a7810(1 << (player + 6));
 							}
 							else
 							{
-								state->entries90[player].time_outside = 0;
-								state->entries90[player].time_inside++;
-								if (state->entries90[player].time_inside < (short)state->w110)
+								advance_territory_counter(&g_51eccc->entries90[player].time_outside, &g_51eccc->entries90[player].time_inside);
+								if (g_51eccc->entries90[player].time_inside < (short)g_51eccc->w110)
 								{
-									state->entries90[player].b = (byte)(state->entries90[player].time_inside * 63 / (short)state->w110);
+									g_51eccc->entries90[player].b = (byte)(g_51eccc->entries90[player].time_inside * 63 / (short)g_51eccc->w110);
 									function_a7810(1 << (player + 6));
 								}
 								else
 								{
 									territory_set_holder(NONE, territory, false);
-									state = g_51eccc;
 									changed |= 1 << territory;
 								}
 							}
@@ -1535,17 +1537,15 @@ void territories_update_holders()
 			}
 			else
 			{
-				state->entries90[player].time_inside = 0;
-				state->entries90[player].time_outside++;
-				if (state->entries90[player].time_outside < (short)state->w112)
+				advance_territory_counter(&g_51eccc->entries90[player].time_inside, &g_51eccc->entries90[player].time_outside);
+				if (g_51eccc->entries90[player].time_outside < (short)g_51eccc->w112)
 				{
-					state->entries90[player].b = (byte)(state->entries90[player].time_outside * 63 / (short)state->w112);
+					g_51eccc->entries90[player].b = (byte)(g_51eccc->entries90[player].time_outside * 63 / (short)g_51eccc->w112);
 					game_engine_globals_changed_mask_2bf(1 << (player + 6));
 				}
 				else
 				{
 					territory_set_holder(iterator.index, territory, false);
-					state = g_51eccc;
 					changed |= 1 << territory;
 				}
 			}
@@ -1558,13 +1558,13 @@ void territories_update_holders()
 	while (function_19f240((long *)&iterator))
 	{
 		long player = iterator.index & 0xffff;
-		long territory = (char)state->entries90[player].a;
+		long territory = (char)g_51eccc->entries90[player].a;
 
 		if (territory != NONE && iterator.player->unit_index != NONE && (changed & (1 << territory)))
 		{
-			state->entries90[player].time_outside = 0;
-			state->entries90[player].time_inside = 0;
-			state->entries90[player].b = 0;
+			g_51eccc->entries90[player].time_outside = 0;
+			g_51eccc->entries90[player].time_inside = 0;
+			g_51eccc->entries90[player].b = 0;
 			game_engine_globals_changed_mask_2bf(1 << (player + 6));
 		}
 	}

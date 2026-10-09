@@ -1568,8 +1568,7 @@ bool __stdcall function_29370(void *context)
     if (!g_4b99b0[0] && !g_4b99b0[1]) return false;
     g_509400 = g_485ae0;
     function_14bc0(*(short *)(g_4b99b0 + 0x44), 0, false);
-    for (short stage = 0; stage < 4; ++stage)
-    {
+    { short stage = 0; if (stage < 4) do {
         function_14f60(stage, *(short *)(g_4b99b0 + 0x38));
         D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
         D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
@@ -1582,7 +1581,9 @@ bool __stdcall function_29370(void *context)
         D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
         D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
         D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
-    }
+    
+++stage;
+} while (stage < 4); }
     function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
     function_0222d0(D3DRS_ALPHATESTENABLE, 1);
     function_0222d0(D3DRS_SRCBLEND, D3DBLEND_ONE);
@@ -1720,13 +1721,14 @@ void function_34420(t_34770_begin begin, real const *bounds,
         long remaining = 4;
         do
         {
-            for (long attribute = 15; attribute >= 0; --attribute)
-            {
+            { long attribute = 15; if (attribute >= 0) do {
                 real out[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
                 if (vertex(attribute, bounds, t, out, user))
                     D3DDevice_SetVertexData4f(attribute ? attribute : D3DVSDE_VERTEX,
                         out[0], out[1], out[2], out[3]);
-            }
+            
+--attribute;
+} while (attribute >= 0); }
             t += 2;
         } while (--remaining);
         D3DDevice_End();
@@ -1929,7 +1931,7 @@ void function_24ee0(s_24ee0_state const *state, short mode)
     D3DTexture *texture = (D3DTexture *)function_01dcc0(15);
     texture->Size = 0;
     texture->Format = 0x06610629;
-    long index = state->index;
+    volatile long index = state->index;
     if (index < 0) index = 0;
     else if (index > 1) index = 1;
     real low = state->range.smoothed_low;
@@ -2050,19 +2052,16 @@ void __stdcall function_34a90(long target, short blend, dword color_write,
     if (selected_target == NONE) selected_target = g_4858b8;
     function_01dd60(selected_target, &dimensions.width, &dimensions.height);
     real bounds[4];
-    if (full_surface)
-    {
-        bounds[0] = 0.0f;
-        bounds[1] = (real)dimensions.width;
-        bounds[2] = 0.0f;
-        bounds[3] = (real)dimensions.height;
-    }
-    else
-    {
+    if (!(full_surface)) {
         bounds[0] = (real)g_4b9dd2;
         bounds[1] = (real)g_4b9dd6;
         bounds[2] = (real)g_4b9dd0;
         bounds[3] = (real)g_4b9dd4;
+    } else {
+        bounds[0] = 0.0f;
+        bounds[1] = (real)dimensions.width;
+        bounds[2] = 0.0f;
+        bounds[3] = (real)dimensions.height;
     }
     real inverse_x = 1.0f / dimensions.width;
     real inverse_y = 1.0f / dimensions.height;
@@ -2398,7 +2397,7 @@ bool __stdcall function_23690(s_coefficient_layout const *layout, short order, l
 {
     (void)&layout; (void)&order; (void)&object_index; (void)&vertices;
     (void)&indices; (void)&count; (void)&tag;
-    bool found = false;
+    volatile bool found = false;
     for (short i = 0; i < g_5093e8; ++i)
         if (g_4b89b0[i].key == object_index) found = true;
     if (found || g_5093e8 >= 24) return true;

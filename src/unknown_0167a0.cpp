@@ -992,8 +992,12 @@ void __stdcall function_1ab50(byte *state, word const *range)
     {
         s_texture_stage_parameter const *parameter = &g_46703c[entry[1]];
         D3DTEXTURESTAGESTATETYPE setting = (D3DTEXTURESTAGESTATETYPE)parameter->state;
-        if (entry[2] == 1)
-        {
+        if (!(entry[2] == 1)) {
+            dword color = pack_color3f((color3f *)(state + 0x108) + entry[3]);
+            dword old;
+            D3DDevice_GetTextureStageState(entry[0], setting, &old);
+            D3DDevice_SetTextureStageState(entry[0], setting, (old & 0xff000000) | (color & 0xffffff));
+        } else {
             real value = ((real *)(state + 0x5c))[entry[3]];
             switch (parameter->value_type)
             {
@@ -1012,13 +1016,6 @@ void __stdcall function_1ab50(byte *state, word const *range)
                 D3DDevice_SetTextureStageState(entry[0], setting, rounded_shader_integer(value));
                 break;
             }
-        }
-        else
-        {
-            dword color = pack_color3f((color3f *)(state + 0x108) + entry[3]);
-            dword old;
-            D3DDevice_GetTextureStageState(entry[0], setting, &old);
-            D3DDevice_SetTextureStageState(entry[0], setting, (old & 0xff000000) | (color & 0xffffff));
         }
     }
 }
@@ -1051,7 +1048,7 @@ void __stdcall function_18560(byte *context, word const *range)
     for (long i = 0; i < (*range >> 9); ++i, entry += 4)
     {
         definition = *(byte **)(context + 0xc);
-        word selection = (*(word **)(definition + 0x50))[entry[3]];
+        volatile word selection = (*(word **)(definition + 0x50))[entry[3]];
         short index = (*(short **)(definition + 0x48))[(selection & 0x1ff) * 2];
         byte *parameter = *(byte **)(definition + 0x40) + index * 20;
         s_1b230_function const *curve = (s_1b230_function *)(parameter + 12);
