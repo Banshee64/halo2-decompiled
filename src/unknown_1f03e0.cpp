@@ -472,13 +472,21 @@ PRIVATE __forceinline void function_1f1461(vector3f const *arg_0, vector3f const
 	arg_2->k = arg_0->i * arg_1->j - arg_0->j * arg_1->i;
 }
 
+PRIVATE __forceinline byte function_1f1462(dword arg_0)
+{
+	return (arg_0 >> 3) & 1;
+}
+
 // @retail 0x1f1460
 void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *arg_9650d9, vector3f *arg_3a7661)
 {
-    byte *settings = *(byte **)(state + 8);
-    if ((*(dword *)settings >> 3) & 1)
+    struct s_1f1466 { vector3f *field_0; byte const *field_4; } local_0;
+    local_0.field_0 = arg_3a7661;
+    local_0.field_4 = state;
+    byte *settings = *(byte **)(local_0.field_4 + 8);
+    if (function_1f1462(*(dword *)settings))
     {
-        vector3f const *old_up = (vector3f const *)(state + 0x100);
+        vector3f const *old_up = (vector3f const *)(local_0.field_4 + 0x100);
         vector3f up = ground->normal;
         vector3f axis;
         function_1f1461(old_up, &up, &axis);
@@ -507,7 +515,7 @@ void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *a
             if (cross.k * axis.k + cross.j * axis.j + cross.i * axis.i > 0.0f)
                 up = limited;
         }
-        vector3f const *old_forward = (vector3f const *)(state + 0xf4);
+        vector3f const *old_forward = (vector3f const *)(local_0.field_4 + 0xf4);
         vector3f cross;
         function_1f1461(old_forward, &up, &cross);
         vector3f forward;
@@ -523,12 +531,12 @@ void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *a
             }
         }
         *arg_9650d9 = forward;
-        *arg_3a7661 = up;
+        *local_0.field_0 = up;
     }
     else
     {
-        *arg_9650d9 = *(vector3f const *)(state + 0xf4);
-        *arg_3a7661 = *g_4687b0;
+        *arg_9650d9 = *(vector3f const *)(local_0.field_4 + 0xf4);
+        *local_0.field_0 = *g_4687b0;
         arg_9650d9->k = 0.0f;
         if (function_30bf0(arg_9650d9) == 0.0f)
             *arg_9650d9 = *g_4687a8;
@@ -558,6 +566,7 @@ PRIVATE inline real shape_dot(vector3f const &a, vector3f const &b)
     return a.k * b.k + a.j * b.j + a.i * b.i;
 }
 
+#pragma optimize("s", on)
 // @retail 0x1f0870
 void function_1f0870(byte const *state, byte *out, byte *history, vector3f const *current)
 {
@@ -575,10 +584,22 @@ void function_1f0870(byte const *state, byte *out, byte *history, vector3f const
     real scale = *(real *)(state + 0x20);
     if (!(flags & 1))
     {
-        vector3f left = contact_cross(up, facing);
-        *velocity = shape_scale(facing, input.i * scale);
-        *velocity = shape_add(*velocity, shape_scale(left, input.j * scale));
-        *velocity = shape_add(*velocity, shape_scale(up, input.k * scale));
+        vector3f left;
+        left.i = facing.k * up.j - up.k * facing.j;
+        left.j = up.k * facing.i - up.i * facing.k;
+        left.k = up.i * facing.j - up.j * facing.i;
+        real local_0 = input.i * scale;
+        real local_1 = input.j * scale;
+        real local_2 = input.k * scale;
+        velocity->i = facing.i * local_0;
+        velocity->j = facing.j * local_0;
+        velocity->k = facing.k * local_0;
+        velocity->i += left.i * local_1;
+        velocity->j += left.j * local_1;
+        velocity->k += left.k * local_1;
+        velocity->i += up.i * local_2;
+        velocity->j += up.j * local_2;
+        velocity->k += up.k * local_2;
         gravity = false;
     }
     else if (flags & 4)
@@ -620,7 +641,9 @@ void function_1f0870(byte const *state, byte *out, byte *history, vector3f const
             }
             vector3f forward = contact_cross(left, normal);
             function_30bf0(&forward);
-            desired = shape_add(shape_scale(left, input.j), shape_scale(forward, input.i));
+            desired.i = left.i * input.j + forward.i * input.i;
+            desired.j = left.j * input.j + forward.j * input.i;
+            desired.k = left.k * input.j + forward.k * input.i;
             desired.k += input.k;
             function_30bf0(&desired);
         }
@@ -636,9 +659,18 @@ void function_1f0870(byte const *state, byte *out, byte *history, vector3f const
             {
                 vector3f left = contact_cross(*g_4687b0, basis);
                 function_30bf0(&left);
-                vector3f forward = shape_add(basis, shape_scale(normal, -shape_dot(normal, basis)));
-                left = shape_add(left, shape_scale(normal, -shape_dot(normal, left)));
-                desired = shape_add(shape_scale(left, input.j), shape_scale(forward, input.i));
+                real local_3 = -shape_dot(normal, basis);
+                vector3f forward;
+                forward.i = basis.i + normal.i * local_3;
+                forward.j = basis.j + normal.j * local_3;
+                forward.k = basis.k + normal.k * local_3;
+                real local_4 = -shape_dot(normal, left);
+                left.i += normal.i * local_4;
+                left.j += normal.j * local_4;
+                left.k += normal.k * local_4;
+                desired.i = left.i * input.j + forward.i * input.i;
+            desired.j = left.j * input.j + forward.j * input.i;
+            desired.k = left.k * input.j + forward.k * input.i;
                 desired.k = (desired.k + input.k) * 5.0f;
             }
             function_30bf0(&desired);
@@ -698,6 +730,7 @@ void function_1f0870(byte const *state, byte *out, byte *history, vector3f const
     else
         *(dword *)out &= ~1;
 }
+#pragma optimize("", on)
 
 
 PRIVATE inline void shape_rotate_vector(matrix3x3 const *matrix, vector3f const *input, vector3f *out)

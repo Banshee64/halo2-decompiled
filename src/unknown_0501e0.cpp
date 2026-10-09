@@ -3,6 +3,7 @@
 #include "unknown_0259d0.h"
 #include "unknown_030290.h"
 #include <math.h>
+#include <string.h>
 
 extern point3f g_4b9da0;
 extern vector3f g_4b9dac;
@@ -97,11 +98,6 @@ void function_501e0(s_501e0 const *arg_0, bool arg_1, s_501e0 *arg_2)
     }
     else
     {
-        arg_2->field_0.x = 0.f;
-        arg_2->field_0.y = 0.f;
-        arg_2->field_0.z = 0.f;
-        arg_2->field_c = 0.f;
-        arg_2->field_10 = 0.f;
-        arg_2->field_14 = 0;
+        memset(arg_2, 0, sizeof(*arg_2));
     }
 }

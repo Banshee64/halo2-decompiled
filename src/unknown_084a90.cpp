@@ -157,11 +157,11 @@ void simulation_player_collection_apply_update(s_type_c67652 *collection, const 
 	{
 		long other_index = update->other_player_index;
 		s_simulation_owner_player *other = &collection->players[other_index];
+		bool player_present = (collection->player_mask & (1 << update->player_index)) != 0;
 		bool player_left = player->flag0c;
 		bool other_left = other->flag0c;
 		long player_time = player->time;
 		long other_time = other->time;
-		bool player_present = (collection->player_mask & (1 << update->player_index)) != 0;
 
 		if (collection->player_mask & (1 << other_index))
 			collection->player_mask |= 1 << update->player_index;
@@ -205,6 +205,7 @@ void simulation_player_collection_apply_update(s_type_c67652 *collection, const 
 		player->machine = update->machine;
 		player->controller_index = update->controller_index;
 		player->unknown20 = update->unknown20;
+	case 4:
 		memcpy(player->configuration, update->configuration, sizeof(player->configuration));
 		break;
 	default:

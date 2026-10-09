@@ -459,7 +459,7 @@ bool g_4c8780;
 dword g_4c8784;
 long g_4c8788, g_4c878c;
 long g_4c8790;
-void function_144f0(long tag, short stage, short fallback, short fallback_index, short index, real priority);
+void function_144f0(long tag, short stage, long fallback, short fallback_index, short index, real priority);
 void function_1cf50(void);
 
 // @retail 0x44040
@@ -773,6 +773,8 @@ void *function_44940(short index, bool instance)
 	return *(byte **)(structure + 0x13c) + definition_index * 0xc8;
 }
 
+__declspec(noinline) void *function_449e0(short index, bool load, bool instance);
+
 // @retail 0x449e0
 void *function_449e0(short index, bool load, bool instance)
 {
@@ -789,17 +791,20 @@ void *function_449e0(short index, bool load, bool instance)
 	else
 	{
 		byte *structure = (byte *)g_4e0348;
-		byte *section;
 		if (!*instance_reference)
-			section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+		{
+			byte *section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+			if (!load || function_12de70((s_geometry_block_info *)(section + 0x28), 3))
+				result = *(void **)(section + 0x50);
+		}
 		else
 		{
 			byte *instances = *(byte **)(structure + 0x144);
 			short definition_index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
-			section = *(byte **)(structure + 0x13c) + definition_index * 0xc8;
+			byte *section = *(byte **)(structure + 0x13c) + definition_index * 0xc8;
+			if (!load || function_12de70((s_geometry_block_info *)(section + 0x28), 3))
+				result = *(void **)(section + 0x50);
 		}
-		if (!load || function_12de70((s_geometry_block_info *)(section + 0x28), 3))
-			result = *(void **)(section + 0x50);
 	}
 	return result;
 }
@@ -892,7 +897,7 @@ void function_458d0(short index, bool ranges, s_geometry_visibility_list const *
 		{
 			word *mapping = *(word **)(geometry + 0x34);
 			long offset = *(long *)(geometry + 8);
-			long end = mapping[(short)first->indices[i + 1] + offset];
+			word end = mapping[(short)first->indices[i + 1] + offset];
 			for (long j = mapping[(short)first->indices[i] + offset]; j <= end; ++j)
 			{
 				dword bit = (*(word **)(geometry + 0x34))[(short)j];

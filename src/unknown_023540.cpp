@@ -723,7 +723,20 @@ bool __stdcall function_27960(long mode, real const *bounds, real const *t, real
 	case 0:
 		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
 		out[1] = (bounds[3] - bounds[2]) * t[1] + bounds[2];
-		clip_depth_terms(out, g_509400);
+		{
+		real x = g_509400;
+		real scale = g_485ad4.hi / (g_485ad4.hi - g_485ad4.lo);
+		real depth = scale * x;
+		depth -= g_485ad4.lo * scale;
+		depth = depth / x * 16777215.0f;
+		if (0.0f > depth) depth = 0.0f;
+		else if (depth > 16777215.0f) depth = 16777215.0f;
+		out[2] = depth;
+		real reciprocal = x / g_485ad4.hi * 16777215.0f;
+		if (0.0f > reciprocal) reciprocal = 0.0f;
+		else if (reciprocal > 16777215.0f) reciprocal = 16777215.0f;
+		out[3] = reciprocal;
+		}
 		return true;
 	case 1:
 		out[0] = (bounds[1] - bounds[0]) * t[0] + bounds[0];
@@ -778,15 +791,20 @@ void *function_24490(long key, s_24490_definition *definition, long entry_key)
 	long index = find_table_entry(key);
 	if (index == NONE)
 		return NULL;
+	long maximum = definition->count - 1;
 	long group = 5 - (short)g_4b89b0[index].unknown4;
-	if (group > definition->count - 1)
-		group = definition->count - 1;
-	s_24490_group *selected = &definition->groups[group];
-	for (long i = 0; i < selected->count; ++i)
+	if (group >= maximum)
+		group = maximum;
+	long entry_count = definition->groups[group].count;
+	long i = 0;
+	if (entry_count > 0)
 	{
-		if (selected->entries[i].key == entry_key)
+		s_24490_entry *current = definition->groups[group].entries;
+		do
 		{
-			long count = selected->entries[i].count / 5;
+		if (current->key == entry_key)
+		{
+			long count = current->count / 5;
 			if (!function_12de70(&definition->block, 3))
 				return NULL;
 			byte *data = definition->data;
@@ -795,6 +813,10 @@ void *function_24490(long key, s_24490_definition *definition, long entry_key)
 			*(long *)(data + 8) = size;
 			return data;
 		}
+	
+			++i;
+			++current;
+		} while (i < entry_count);
 	}
 	return NULL;
 }
@@ -2244,7 +2266,7 @@ void __stdcall function_352e0(long target, bool multiple)
         *multiple_reference ? 0.5f : 0.0f, 1.0f, count, true, true);
 }
 
-void function_144f0(long tag, short stage, short fallback, short fallback_index, short index, real priority);
+void function_144f0(long tag, short stage, long fallback, short fallback_index, short index, real priority);
 void function_0224f0(dword stage, D3DTEXTURESTAGESTATETYPE type, dword value);
 dword function_1cc30(long index);
 dword __cdecl function_131fc0(real alpha);

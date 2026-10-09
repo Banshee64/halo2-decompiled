@@ -731,9 +731,7 @@ struct s_first_person_marker;
 short first_person_weapon_get_markers(long weapon_index, long marker_name, s_first_person_marker *markers, short count);
 bool function_3e9c0(long object_index);
 long function_b8c40(long object_index, short entry_index);
-bool function_2dba0(long tag, vector3f const *direction, bool alternate,
-    long kind, long index, long marker_index, point3f const *position, color3f const *color,
-    real alpha, real amount, real scale);
+bool function_2dba0(long tag, vector3f const *direction, long kind, long index, long marker_index, point3f const *position, color3f const *color, real alpha, real amount, real scale, bool alternate);
 void function_42850(long object_index, long tag_index, point3f const *position,
     vector3f const *first, vector3f const *second, real scale, real width,
     vector3f const *third);
@@ -768,16 +766,10 @@ void __stdcall function_c3340(long light_index, long unused)
                     count = 1;
                 }
                 for (long i = 0; i < count; i++)
-                    function_2dba0(*(long *)(definition + 0x94), &markers[i].matrix.forward,
-                        function_3e9c0(*(long *)(light + 0x4c)), 2, absolute_index, i,
-                        &markers[i].matrix.position, (color3f *)(light + 0xd4),
-                        1.0f - *(real *)(light + 0xc8), *(real *)(light + 0xd0), 1.0f);
+                    function_2dba0(*(long *)(definition + 0x94), &markers[i].matrix.forward, 2, absolute_index, i, &markers[i].matrix.position, (color3f *)(light + 0xd4), 1.0f - *(real *)(light + 0xc8), *(real *)(light + 0xd0), 1.0f, function_3e9c0(*(long *)(light + 0x4c)));
             }
             else
-                function_2dba0(*(long *)(definition + 0x94), (vector3f *)(light + 0xac),
-                    function_3e9c0(*(long *)(light + 0x4c)), 2, absolute_index, 0,
-                    (point3f *)(light + 0x84), (color3f *)(light + 0xd4),
-                    1.0f - *(real *)(light + 0xc8), *(real *)(light + 0xd0), 1.0f);
+                function_2dba0(*(long *)(definition + 0x94), (vector3f *)(light + 0xac), 2, absolute_index, 0, (point3f *)(light + 0x84), (color3f *)(light + 0xd4), 1.0f - *(real *)(light + 0xc8), *(real *)(light + 0xd0), 1.0f, function_3e9c0(*(long *)(light + 0x4c)));
         }
         if ((light[2] & 2) && *(long *)(definition + 0xa0) != NONE)
         {

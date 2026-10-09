@@ -89,10 +89,12 @@ short __stdcall function_1b3590(long actor_index, s_slot *slot, bool active)
 bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
-	s_slot_64 *state = (s_slot_64 *)slot;
+	bool local_0 = actor->unknown040;
+	s_slot *volatile *local_1 = &slot;
+	s_slot_64 *state = (s_slot_64 *)*local_1;
 	bool result = true;
 
-	if (actor->unknown040 && !state->unknown17)
+	if (local_0 && !state->unknown17)
 	{
 		if (state->unknown2c != NONE)
 		{
@@ -104,7 +106,7 @@ bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 			}
 		}
 		else
-			result = false;
+			return false;
 	}
 	return result;
 }
@@ -123,6 +125,60 @@ short __stdcall function_1b3670(long actor_index)
 			result = 3;
 	}
 	return result;
+}
+
+struct s_1b36e0
+{
+    long field_0;
+    short field_4;
+    short field_6;
+    short field_8;
+    bool field_a;
+    bool field_b;
+    long field_c;
+    s_type_c3b527 field_10;
+    long field_20;
+    real field_24;
+};
+
+void __stdcall function_26c2d0(long arg_0);
+extern "C" void * __cdecl memset(void *, int, unsigned int);
+
+// @retail 0x1b36e0
+bool __stdcall function_1b36e0(long actor_index, s_slot *slot)
+{
+    s_actor_view *local_0 = actor_get(actor_index);
+    s_1b36e0 *local_3 = (s_1b36e0 *)((byte *)slot + 0xc);
+    s_prop_node_view *local_1 = prop_node_get(local_0->prop_index);
+    s_prop_state_view *local_2 = prop_node_state(local_1);
+    byte *local_4 = &object_get(local_1->object_index)->unknownb2;
+    *local_4 |= 1;
+    memset(local_3, 0, sizeof(*local_3));
+    real local_5 = g_510c54->field_2_3 * 15.0f;
+    long local_6;
+    __asm
+    {
+        fld local_5
+        fistp local_6
+    }
+    local_3->field_6 = (short)local_6;
+    local_5 = g_510c54->field_2_3 * 4.0f;
+    __asm
+    {
+        fld local_5
+        fistp local_6
+    }
+    local_3->field_4 = (short)local_6;
+    local_3->field_0 = local_0->prop_index;
+    local_3->field_24 = 1.5f;
+    function_26c2d0(local_0->prop_index);
+    local_3->field_8 = 2;
+    local_3->field_10 = local_2->unknown48;
+    long local_7 = *(long *)((byte *)local_2 + 0x44);
+    local_3->field_a = false;
+    local_3->field_b = false;
+    local_3->field_20 = local_7;
+    return true;
 }
 
 // @retail 0x1b3820

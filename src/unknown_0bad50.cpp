@@ -90,8 +90,8 @@ void __stdcall function_ba410(long object_index, long region_name, long arg_dbe8
     if (definition->model_index != NONE)
     {
         long region_index = function_16d1d0(definition->model_index, (string_handle)region_name);
-        long count = object->regions_size / 10;
         char *regions = (char *)object + object->regions_offset;
+        long count = object->regions_size / 10;
         memcpy(previous, regions, count);
         if (((byte *)header)[3] == 6 && *(short *)((byte *)object + 0x1a) != NONE &&
             !(((byte *)object)[0x12c] & 2))
@@ -105,8 +105,7 @@ void __stdcall function_ba410(long object_index, long region_name, long arg_dbe8
                 {
                     regions[i] = (char)variant;
                     s_region_change_ab *change = (s_region_change_ab *)(regions + count * 2) + i;
-                    change->variant = 0xff;
-                    change->state = 0;
+                    *(word *)change = 0xff;
                     change->flags = 0;
                     change->stamp = NONE;
                 }

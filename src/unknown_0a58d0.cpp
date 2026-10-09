@@ -14,7 +14,7 @@ void *function_122c10(long group_tag, long tag_index);
 void function_11df60(vector3f const *rotation, vector3f *forward, vector3f *up);
 
 // Retail 0xa6660; the active stub remains in unknown_09a9f0.cpp.
-void function_a6660(s_entity_info const *info, s_bitstream *stream)
+void __stdcall function_a6660(s_entity_info const *info, s_bitstream *stream)
 {
 	scenario_object_name_encode(info->definition_index, stream);
 	stream_write_bit(stream, info->field0 != NONE);
@@ -948,7 +948,7 @@ void __stdcall function_a7870(long index)
 #include "flags_writer.h"
 void simulation_write_position(long bits, s_bitstream *stream, real const *position, bool keep_inside);
 void function_194830(s_bitstream *stream, bool value);
-void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f const *up);
+void function_194d30(s_bitstream *stream, vector3f const *up, vector3f const *forward);
 void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real hi, long bits);
 void function_1947e0(s_bitstream *stream, dword value, long bits);
 
@@ -985,7 +985,7 @@ bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
  }
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 2, "forward-and-up-exists"))
-  function_194d30(stream, (vector3f const *)(state + 0xc), (vector3f const *)(state + 0x18));
+  function_194d30(stream, (vector3f const *)(state + 0x18), (vector3f const *)(state + 0xc));
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 3, "scale-exists"))
   z_encode_state_scalar(stream, *(real const *)(state + 0x24), 0.0f, 12.699999809265137f, 7);
@@ -1037,11 +1037,11 @@ matrix3x3 *function_141e10(matrix3x3 *out, quaternionf const *q);
 
 PRIVATE inline void z_orientation_matrix(vector3f const *forward, vector3f const *up, matrix3x3 *matrix)
 {
+ matrix->forward = *forward;
+ matrix->up = *up;
  matrix->left.i = up->j * forward->k - forward->j * up->k;
  matrix->left.j = forward->i * up->k - forward->k * up->i;
  matrix->left.k = up->i * forward->j - forward->i * up->j;
- matrix->forward = *forward;
- matrix->up = *up;
 }
 
 // @retail 0xa9b40
