@@ -312,7 +312,7 @@ extern double g_4858a0;
 extern bool g_5093f4;
 extern real g_4b8940[9], g_4b8964[9], g_4b8988[9];
 void function_022750(real const *a, long size, real const *b, real *out, real t);
-void function_143600(real const *rotation, long order, real const *coefficients, real *result);
+real *function_143600(real const *rotation, unsigned long order, real const *coefficients, real *result);
 
 // @retail 0x22850
 void function_22850(void)

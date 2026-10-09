@@ -3752,8 +3752,8 @@ void __stdcall function_104150(long weapon_index, short barrel_index)
             vector3f up;
             real ax = (real)fabs(shot_direction->i), ay = (real)fabs(shot_direction->j), az = (real)fabs(shot_direction->k);
             if (ax <= ay && ax <= az) { up.i = 0.0f; up.j = shot_direction->k; up.k = -shot_direction->j; }
-            else if (ay <= az) { up.i = -shot_direction->k; up.j = 0.0f; up.k = shot_direction->i; }
-            else { up.i = shot_direction->j; up.j = -shot_direction->i; up.k = 0.0f; }
+            else if (!(ay <= az)) { up.i = shot_direction->j; up.j = -shot_direction->i; up.k = 0.0f; }
+            else { up.i = -shot_direction->k; up.j = 0.0f; up.k = shot_direction->i; }
             function_30bf0(&up);
             *(vector3f *)(creation + 0x34) = up;
             function_1055b0(shot_direction, &up, i, WEAPON_SHORT_AT(barrel_definition, 0x68),

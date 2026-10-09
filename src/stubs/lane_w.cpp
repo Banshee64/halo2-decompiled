@@ -41,10 +41,6 @@ void __stdcall function_174220(bool)
 {
 }
 
-// @stub 0x143600
-void function_143600(float const *, long, float const *, float *)
-{
-}
 
 struct s_2f970_view;
 struct s_speed_result;

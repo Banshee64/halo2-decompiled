@@ -1579,16 +1579,16 @@ void __stdcall function_16f280(real dt)
 			}
 			if (!g_510c50 || !((s_16f280_flags *)g_510c50)->active)
 			{
-				if (g_4ea934)
+				if (!(g_4ea934))
+				{
+					function_3f500(cluster_index);
+				}
+				else
 				{
 					if (cluster_index != NONE)
 					{
 						function_3f450(cluster_index);
 					}
-				}
-				else
-				{
-					function_3f500(cluster_index);
 				}
 			}
 		}

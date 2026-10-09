@@ -879,26 +879,40 @@ void function_1509e0(long player_index, long weapon_index, bool *modes)
 	long held[2];
 	long pending[2];
 	long count = 0;
-	for (long hand = 0; hand < 2; hand++)
 	{
-		s_player_pickup_unit *current = (s_player_pickup_unit *)tail_object_get(player->unit_index);
-		short slot = current->held_slots[hand];
-		held[hand] = slot == NONE ? NONE : current->weapons[slot];
-		s_player_pickup_unit *next = (s_player_pickup_unit *)tail_object_get(player->unit_index);
-		short next_slot = next->pending_slots[hand];
-		pending[hand] = next_slot == NONE ? NONE : next->weapons[next_slot];
-		if (held[hand] != NONE && (bool)((player_weapon_flags(held[hand]) >> 3) & 1))
+		long hand = 0;
+		if (hand < 2)
 		{
-			(*modes_reference)[hand] = false;
-			(*modes_reference)[hand + 2] = false;
+			do
+			{
+				s_player_pickup_unit *current = (s_player_pickup_unit *)tail_object_get(player->unit_index);
+				short slot = current->held_slots[hand];
+				held[hand] = slot == NONE ? NONE : current->weapons[slot];
+				s_player_pickup_unit *next = (s_player_pickup_unit *)tail_object_get(player->unit_index);
+				short next_slot = next->pending_slots[hand];
+				pending[hand] = next_slot == NONE ? NONE : next->weapons[next_slot];
+				if (held[hand] != NONE && (bool)((player_weapon_flags(held[hand]) >> 3) & 1))
+				{
+					(*modes_reference)[hand] = false;
+					(*modes_reference)[hand + 2] = false;
+				}
+				hand++;
+			} while (hand < 2);
 		}
 	}
 	if (unit->parent_index != NONE)
 	{
-		for (long hand = 0; hand < 2; hand++)
 		{
-			(*modes_reference)[hand] = false;
-			(*modes_reference)[hand + 2] = false;
+			long hand = 0;
+			if (hand < 2)
+			{
+				do
+				{
+					(*modes_reference)[hand] = false;
+					(*modes_reference)[hand + 2] = false;
+					hand++;
+				} while (hand < 2);
+			}
 		}
 	}
 	for (long slot = 0; slot < 4; slot++)

@@ -761,16 +761,17 @@ byte g_470a39 = 1;
 // @retail 0x23ea80
 bool function_23ea80(long tag, transform4x3f const *matrix, long stage, long pass, long variant)
 {
+	long *tag_reference = &tag;
 	(void)&stage;
 	(void)&pass;
 	(void)&variant;
 	bool result = false;
-	dword kind = ((dword *)g_4e3b44)[(short)tag * 4];
+	dword kind = ((dword *)g_4e3b44)[(short)(*tag_reference) * 4];
 	long const *reference;
 	if (kind == 0x5052544d || kind == 0x70727433)
-		reference = function_137bd0(tag)->function_x947334();
+		reference = function_137bd0((*tag_reference))->function_x947334();
 	else
-		reference = *(long const **)(g_4e3b44[tag & 0xffff].bytes + 0x24);
+		reference = *(long const **)(g_4e3b44[(*tag_reference) & 0xffff].bytes + 0x24);
 	byte *groups = *(byte **)(g_4e3b44[*reference & 0xffff].bytes + 0x5c);
 	long first = **(word **)(groups + 4) & 0x1ff;
 	long second = (*(word **)(groups + 0xc))[first + stage] & 0x1ff;
@@ -793,7 +794,7 @@ bool function_23ea80(long tag, transform4x3f const *matrix, long stage, long pas
 	constants[10] = matrix->up.k;
 	constants[11] = matrix->position.z;
 	D3DDevice_SetVertexShaderConstant(78, constants, 3);
-	function_1bbf0(tag, 0, pass, variant, 0, 10000.0f);
+	function_1bbf0((*tag_reference), 0, pass, variant, 0, 10000.0f);
 	function_1cf50();
 	long binding_tag = *(long *)(shader + 0x100);
 	long entry = stage + 7;

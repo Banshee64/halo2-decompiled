@@ -371,8 +371,9 @@ long first_person_character_to_interface(long character)
 void first_person_nodes_remap(transform4x3f const *base, transform4x3f *out, long out_count,
 	transform4x3f const *nodes, long const *node_map, long render_model_index)
 {
+	long const *out_count_reference = &out_count;
 	s_first_person_render_model *model = (s_first_person_render_model *)g_4e3b44[render_model_index & 0xffff].bytes;
-	long count = MIN(model->node_count, out_count);
+	long count = MIN(model->node_count, *out_count_reference);
 	long i;
 
 	for (i = 0; i < count; i++, out++)

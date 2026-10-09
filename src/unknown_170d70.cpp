@@ -148,20 +148,23 @@ vector3f *function_170c00(vector3f const *first_forward, vector3f const *first_u
 	return matrix4x3_rotation_between(&first, &second, out);
 }
 
+__declspec(noinline) void function_170bb0(real const *first, real const *second, real *out);
+
 // @retail 0x170bb0
 void function_170bb0(real const *first, real const *second, real *out)
 {
+	real const * *first_reference = &first;
 	long count = 10;
 	do
 	{
-		*out++ = *first++ - *second++;
+		*out++ = *(*first_reference)++ - *second++;
 	} while (--count);
 	count = 1;
 	do
 	{
-		function_170c00((vector3f const *)first, (vector3f const *)(first + 3),
+		function_170c00((vector3f const *)(*first_reference), (vector3f const *)((*first_reference) + 3),
 			(vector3f const *)second, (vector3f const *)(second + 3), (vector3f *)out);
-		first += 6;
+		(*first_reference) += 6;
 		second += 6;
 		out += 3;
 	} while (--count);
@@ -1480,4 +1483,132 @@ void function_171830(point3f const *point, vector3f const *forward,
 		fraction = center_fraction;
 	}
 	*distance *= fraction;
+}
+
+void function_3f500(long cluster_index);
+double g_45e4c8 = -3.4028234663852886e+38;
+
+// @retail 0x170fd0
+void __stdcall function_170fd0(long user_index)
+{
+	s_motion_channels_1701f0 *state = (s_motion_channels_1701f0 *)g_4e9bd4 + user_index;
+	s_view_setup *view = (s_view_setup *)((byte *)state + 0xb8);
+	point3f position = *(point3f *)&state->current[0];
+	real distance = state->current[8];
+	if (0.0f > distance) distance = 0.0f;
+	else if (distance > 1.0f) distance = 1.0f;
+	vector3f *forward = (vector3f *)&state->current[10];
+	vector3f *up = (vector3f *)&state->current[13];
+	if (!function_a74c0(forward, up))
+	{
+		*forward = *g_4687a8;
+		*up = *g_4687b0;
+	}
+	real field_of_view = state->current[9];
+	if (g_54e858 > field_of_view) field_of_view = g_54e858;
+	else if (field_of_view > g_54e85c) field_of_view = g_54e85c;
+	state->current[9] = field_of_view;
+	if (-50000.0f > position.x) position.x = -50000.0f;
+	else if (position.x > 50000.0f) position.x = 50000.0f;
+	if (-50000.0f > position.y) position.y = -50000.0f;
+	else if (position.y > 50000.0f) position.y = 50000.0f;
+	if (-50000.0f > position.z) position.z = -50000.0f;
+	else if (position.z > 50000.0f) position.z = 50000.0f;
+	if (0.0f > distance) distance = 0.0f;
+	else if (distance > g_54e860) distance = g_54e860;
+	real direction_x = forward->i;
+	real direction_y = forward->j;
+	real magnitude = (real)sqrt(direction_y * direction_y + direction_x * direction_x);
+	if (!(fabs(magnitude) < 0.0001f))
+	{
+		real inverse = 1.0f / magnitude;
+		direction_x *= inverse;
+		direction_y *= inverse;
+	}
+	position.x += state->current[4] * direction_y + state->current[3] * direction_x;
+	position.y = state->current[3] * direction_y - state->current[4] * direction_x + position.y;
+	position.z = state->current[5] + position.z;
+	view->forward = *forward;
+	view->up = *up;
+	vector3f *offset = (vector3f *)((byte *)state + 0xcc);
+	offset->i = 0.0f - state->first_derivative[0];
+	offset->j = 0.0f - state->first_derivative[1];
+	offset->k = 0.0f - state->first_derivative[2];
+	view->field_of_view = field_of_view;
+	view->aspect = 1.33333337f;
+	view->scale_x = state->current[6];
+	view->scale_y = state->current[7];
+	function_171d90(view);
+	if (*((byte *)state + 0xb6))
+	{
+		transform4x3f const *matrix = (transform4x3f *)((byte *)state + 0x14c);
+		point3f scaled = position;
+		if (matrix->scale != 1.0f)
+		{
+			scaled.x *= matrix->scale;
+			scaled.y *= matrix->scale;
+			scaled.z *= matrix->scale;
+		}
+		position.x = matrix->up.i * scaled.z + matrix->left.i * scaled.y + matrix->forward.i * scaled.x + matrix->position.x;
+		position.y = matrix->up.j * scaled.z + matrix->left.j * scaled.y + matrix->forward.j * scaled.x + matrix->position.y;
+		position.z = matrix->up.k * scaled.z + matrix->left.k * scaled.y + matrix->forward.k * scaled.x + matrix->position.z;
+		vector3f source = *offset;
+		if (matrix->scale != 1.0f)
+		{
+			source.i *= matrix->scale; source.j *= matrix->scale; source.k *= matrix->scale;
+		}
+		offset->i = matrix->up.i * source.k + matrix->left.i * source.j + matrix->forward.i * source.i;
+		offset->j = matrix->up.j * source.k + matrix->left.j * source.j + matrix->forward.j * source.i;
+		offset->k = matrix->up.k * source.k + matrix->left.k * source.j + matrix->forward.k * source.i;
+		source = view->forward;
+		if (matrix->scale != 1.0f)
+		{
+			source.i *= matrix->scale; source.j *= matrix->scale; source.k *= matrix->scale;
+		}
+		view->forward.i = matrix->up.i * source.k + matrix->left.i * source.j + matrix->forward.i * source.i;
+		view->forward.j = matrix->up.j * source.k + matrix->left.j * source.j + matrix->forward.j * source.i;
+		view->forward.k = matrix->up.k * source.k + matrix->left.k * source.j + matrix->forward.k * source.i;
+		source = view->up;
+		if (matrix->scale != 1.0f)
+		{
+			source.i *= matrix->scale; source.j *= matrix->scale; source.k *= matrix->scale;
+		}
+		view->up.i = matrix->up.i * source.k + matrix->left.i * source.j + matrix->forward.i * source.i;
+		view->up.j = matrix->up.j * source.k + matrix->left.j * source.j + matrix->forward.j * source.i;
+		view->up.k = matrix->up.k * source.k + matrix->left.k * source.j + matrix->forward.k * source.i;
+		vector3f const *translation = (vector3f const *)((byte *)state + 0x4c);
+		offset->i += translation->i;
+		offset->j += translation->j;
+		offset->k += translation->k;
+	}
+	if (!(state->flags & 0x10) && distance == 0.0f)
+		function_171830(&position, &view->forward, &view->up, &distance, 0.02f);
+	view->position.x = position.x - view->forward.i * distance;
+	view->position.y = position.y - view->forward.j * distance;
+	view->position.z = position.z - view->forward.k * distance;
+	if (-50000.0f > view->position.x) view->position.x = -50000.0f;
+	else if (view->position.x > 50000.0f) view->position.x = 50000.0f;
+	if (-50000.0f > view->position.y) view->position.y = -50000.0f;
+	else if (view->position.y > 50000.0f) view->position.y = 50000.0f;
+	if (-50000.0f > view->position.z) view->position.z = -50000.0f;
+	else if (view->position.z > 50000.0f) view->position.z = 50000.0f;
+	s_location location;
+	function_11bed0(&location, &view->position);
+	if (location.cluster_index != NONE)
+	{
+		if (location.cluster_index != view->location.cluster_index && location.cluster_index >= 0 &&
+			location.cluster_index < *(long *)((byte *)g_4e0348 + 0x9c))
+			function_3f500(location.cluster_index);
+		view->location = location;
+	}
+	long player_index = user_index == NONE ? NONE : g_4e8c20->entries[user_index];
+	byte *player = g_4e8c24->data + (player_index & 0xffff) * 0x21c;
+	if (*(long *)(player + 0x2c) == NONE && !(player[2] & 8) && *g_510c70 == g_4686c4)
+	{
+		long cluster_index = g_510c70[user_index + 1];
+		if (cluster_index >= 0 && cluster_index < *(long *)((byte *)g_4e0348 + 0x9c))
+			function_3f500(cluster_index);
+	}
+	if (fabs(g_45e4c8) < 0.05f)
+		view->position.z -= 1.0f;
 }
