@@ -331,26 +331,17 @@ long function_30cd0(bool a, bool b)
 // @retail 0x30d10
 long function_30d10(bool a, bool b, bool c)
 {
-	if (BIT(0))
-		return -1;
-	if (!(*g_4858c4 & 0x20))
+	if (BIT(0)) return NONE;
+	if (*g_4858c4 & 0x20) return 2;
+	if (!BIT(2) || !b)
 	{
-		if (!BIT(2) || !b)
-		{
-			if (BIT(1) && a)
-				return 2;
-			return -1;
-		}
-		if (!c)
-		{
-			if (BIT(6))
-				return 6;
-			if (BIT(4))
-				return BIT(5) ? 3 : 4;
-			return (byte)(g_4ba014 >> 3) & 1;
-		}
+		if (BIT(1) && a) return 2;
+		return NONE;
 	}
-	return 2;
+	if (c) return 2;
+	if (BIT(6)) return 6;
+	if (BIT(4)) return BIT(5) ? 3 : 4;
+	return (long)((byte)(g_4ba014 >> 3)) & 1;
 }
 
 // @retail 0x30da0

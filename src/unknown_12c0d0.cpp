@@ -326,6 +326,19 @@ byte __stdcall texture_cache_entry_state(long datum_index)
 	return result;
 }
 
+union s_12d1a1
+{
+    long field_0;
+    bool field_4;
+};
+
+static __forceinline s_12d1a1 function_12d1a1(D3DResource *arg_0)
+{
+    s_12d1a1 local_0;
+    local_0.field_0 = D3DResource_IsBusy(arg_0);
+    return local_0;
+}
+
 // @retail 0x12d1a0
 bool __stdcall texture_cache_entry_busy(long datum_index)
 {
@@ -335,15 +348,29 @@ bool __stdcall texture_cache_entry_busy(long datum_index)
 	{
 		if (entry->hardware_format == NONE)
 			return false;
-		if (!entry->resident || D3DResource_IsBusy(&entry->resource))
+		if (!entry->resident)
 			return true;
-		return false;
+		return function_12d1a1(&entry->resource).field_4;
 	}
 	return true;
 }
 
 /* the physical memory's callback when a block is freed: waits for the GPU to
    be done with the texture, then forgets it */
+static __forceinline bool __stdcall function_12d201(long arg_0)
+{
+    s_texture_cache_entry *local_0 = texture_cache_entry_get(arg_0);
+    if (!(local_0->flags & 1) && (!(local_0->flags & 2) || g_4e6479))
+    {
+        if (local_0->hardware_format == NONE)
+            return false;
+        if (!local_0->resident || D3DResource_IsBusy(&local_0->resource))
+            return true;
+        return false;
+    }
+    return true;
+}
+
 // @retail 0x12d200
 void __stdcall texture_cache_block_delete(long datum_index)
 {
@@ -351,7 +378,7 @@ void __stdcall texture_cache_block_delete(long datum_index)
 
 	if (entry->bitmap)
 	{
-		while (texture_cache_entry_busy(datum_index))
+		while (function_12d201(datum_index))
 		{
 			async_globals.tasks_added = function_120bf0();
 			if (entry->resident)

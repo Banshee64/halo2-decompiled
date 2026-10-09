@@ -652,10 +652,11 @@ bool function_291670(short trigger_volume_index, bool all_players)
 			result &= inside;
 		else if (inside)
 		{
-			result = true;
-			break;
+			result = inside;
+			goto local_0;
 		}
 	}
+local_0:
 	return result;
 }
 

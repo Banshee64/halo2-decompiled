@@ -208,11 +208,11 @@ game_module_proc g_46e320[30] =
 // @retail 0x3d380
 void __stdcall function_3d380(dword flags)
 {
-	s_type_f1af8e iterator;
+	struct { s_object *object; s_type_f1af8e iterator; } iteration;
 
-	function_bae80(&iterator, 0, 0);
-	for (s_object *object = function_baeb0(&iterator); object; object = function_baeb0(&iterator))
-		object->unknownCC = NONE;
+	function_bae80(&iteration.iterator, 0, 0);
+	for (iteration.object = function_baeb0(&iteration.iterator); iteration.object; iteration.object = function_baeb0(&iteration.iterator))
+		iteration.object->unknownCC = NONE;
 }
 
 // @retail 0x43970
