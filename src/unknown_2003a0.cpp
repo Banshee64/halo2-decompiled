@@ -2559,7 +2559,7 @@ void function_201c80(void)
 
 struct s_effect_owner;
 void function_b7930(void *arg_0, long arg_1, long arg_2, s_effect_owner const *arg_3);
-long function_b7b40(void *arg_0);
+long __stdcall function_b7b40(void *arg_0);
 void __stdcall function_a7870(long arg_0);
 void function_11dfb0(vector2f const *arg_0, vector3f *arg_1, vector3f *arg_2);
 long function_203780(long arg_0, short arg_1, short arg_2, bool arg_3);

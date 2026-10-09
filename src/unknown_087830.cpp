@@ -60,7 +60,7 @@ bool function_87830(s_player_action *new_action, s_player_action *action)
 #include "bitstream.h"
 #include <string.h>
 
-bool function_07ca70(s_bitstream *stream, void *destination);
+byte function_07ca70(s_bitstream *stream, void *destination);
 void function_07c5a0(s_bitstream *stream, const void *source);
 
 // @retail 0x87930

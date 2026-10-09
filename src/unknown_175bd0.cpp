@@ -399,7 +399,7 @@ dword vector3d_compress(vector3f const *vector);
 long function_189060(long object_index, short value, real scale, point3f const *position, vector3f const *direction, long tag_index);
 long function_1895f0(s_sound_position const *position, real scale, long tag_index);
 void function_bb950(long object_index, bool add, long delta);
-long function_b7b40(void *creation);
+long __stdcall function_b7b40(void *creation);
 void function_1ca290(long tag_index, long ticks, long object_index, long node_index, real lower, real upper, transform4x3f const *matrix);
 struct s_type_1e6529;
 void function_d6660(s_type_1e6529 *data, long definition_index); /* damage.cpp */

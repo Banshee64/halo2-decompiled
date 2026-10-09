@@ -164,7 +164,7 @@ void __stdcall function_a7810(dword mask);
 void __stdcall function_a7870(long object_index);
 struct s_effect_owner;
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-long function_b7b40(void *data);
+long __stdcall function_b7b40(void *data);
 void function_15e050(long object_index, short value);
 void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
