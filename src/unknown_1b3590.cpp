@@ -89,10 +89,12 @@ short __stdcall function_1b3590(long actor_index, s_slot *slot, bool active)
 bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
-	s_slot_64 *state = (s_slot_64 *)slot;
+	bool local_0 = actor->unknown040;
+	s_slot *volatile *local_1 = &slot;
+	s_slot_64 *state = (s_slot_64 *)*local_1;
 	bool result = true;
 
-	if (actor->unknown040 && !state->unknown17)
+	if (local_0 && !state->unknown17)
 	{
 		if (state->unknown2c != NONE)
 		{
@@ -104,7 +106,7 @@ bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 			}
 		}
 		else
-			result = false;
+			return false;
 	}
 	return result;
 }
