@@ -200,13 +200,42 @@ long sound_get_outer_cone_gain(s_sound const *sound, long definition_index)
 	return function_xaa8231(sound_definition_get(definition_index)->class_index)->outer_cone_gain;
 }
 
+struct s_125261
+{
+    long field_0;
+};
+
+struct s_125262
+{
+    real field_0;
+};
+
+static __forceinline s_125262 function_125262(long arg_0, real const volatile *arg_1, long arg_2)
+{
+    s_125262 local_0;
+    local_0.field_0 = *(real *)&arg_0;
+    long volatile local_1 = arg_2;
+    real local_2 = *(real const volatile *)&local_1;
+    local_0.field_0 = (local_0.field_0 - local_2) * *arg_1 + local_2;
+    return local_0;
+}
+
+
+static __forceinline s_125261 function_125261(long arg_0, s_125262 arg_1)
+{
+    s_125261 local_0;
+    arg_1.field_0 += *(real *)&arg_0;
+    local_0.field_0 = *(long *)&arg_1.field_0;
+    return local_0;
+}
+
 // @retail 0x125260
 long sound_definition_random_gain(s_sound_definition const *definition)
 {
 	s_sound_class *sound_class = function_xaa8231(definition->class_index);
 
 	real volatile local_0 = function_x82e52f(&g_4e7408->seed, __FILE__, __LINE__);
-	return decibels_add(decibels_interpolate(0, sound_class->gain_variance, local_0), sound_class->gain_base);
+	return function_125261(sound_class->gain_base, function_125262(sound_class->gain_variance, &local_0, 0)).field_0;
 }
 
 // @retail 0x1252f0
@@ -1150,10 +1179,11 @@ bool sound_playback_update_source(long sound_index, s_sound_source_callbacks con
 }
 static __forceinline bool function_127fc1(long arg_0, s_sound_playback *arg_1, s_sound_playback_flags *arg_2)
 {
-	s_sound_source_callbacks const *local_0 = arg_1->source;
-	if (local_0 && local_0->update && (arg_1->start_time < SOUND_SYSTEM->time || SOUND_SYSTEM->unknown7b))
-		return sound_playback_update_source(arg_0, local_0, arg_2);
-	return true;
+    bool local_1 = true;
+    s_sound_source_callbacks const *local_0 = arg_1->source;
+    if (local_0 && local_0->update && (arg_1->start_time < SOUND_SYSTEM->time || SOUND_SYSTEM->unknown7b))
+        local_1 = sound_playback_update_source(arg_0, local_0, arg_2);
+    return local_1;
 }
 
 // @retail 0x127fc0
@@ -1264,6 +1294,7 @@ long function_127010(short class_index)
 
 /* a sound's gain in decibels: between its definition's bounds, with its
    class's and the caller's */
+#pragma inline_depth(0)
 // @retail 0x1251e0
 long function_1251e0(void const *definition_pointer, long gain, real interpolation)
 {
@@ -1277,6 +1308,7 @@ long function_1251e0(void const *definition_pointer, long gain, real interpolati
 
 	return decibels_add(decibels, decibels_add(class_gain, gain));
 }
+#pragma inline_depth(255)
 
 /* requests the chunk a playing sound is at; true once it is loaded. Retail
    keeps the sound on the stack (ret 4): its address is taken */

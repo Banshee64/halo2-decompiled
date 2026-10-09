@@ -607,6 +607,7 @@ void function_12e480(void)
 
 /* the geometry cache's frame: its memory's clock, the predicted blocks'
    requests and the low-memory message */
+#pragma optimize("s", on)
 // @retail 0x12dd80
 void geometry_cache_update(void)
 {
@@ -630,3 +631,4 @@ void geometry_cache_update(void)
 		function_12e480();
 	}
 }
+#pragma optimize("", on)
