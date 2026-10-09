@@ -4046,7 +4046,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00129790,784,game,speed,a16 pad,,,0012abe0 00142700 002197f0 0021dff0 00220e00 00221810,src/unknown_124f90.cpp,todo
 00129aa0,1152,game,unknown,a16,,,00125060 0012a6d0 0012abe0 0012ad30 00142700 001427f0 00188ea0 002195f0 002197f0 00221810,src/unknown_124f90.cpp,todo
 00129f20,191,game,unknown,a16,,,00218850 002ae500,src/unknown_124f90.cpp,matched
-00129fe0,119,game,speed,a16 pad,,,00221810,src/unknown_124f90.cpp,todo
+00129fe0,119,game,speed,a16 pad,,,00221810,src/unknown_124f90.cpp,near
 0012a060,68,game,speed,a16 pad,,,00129fe0 002ae750,src/unknown_124f90.cpp,matched
 0012a0b0,255,game,speed,a16 pad,,,00218ac0 00218b00 0021f5d0 002ae500,src/unknown_124f90.cpp,todo
 0012a1b0,620,game,speed,a16 pad,,,00222770 00222930,src/unknown_12a1b0.cpp,todo
@@ -4140,7 +4140,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0012e960,409,game,speed,a16 pad,,,0014b240,src/scenario_fog_clusters.cpp,todo
 0012eb00,1192,game,speed,a16 pad ebp,,,00134fe0,src/unknown_12eb00.cpp,todo
 0012efb0,3817,game,speed,a16 pad,,,0012e960 0012eb00 00130f60 00131030 001317a0 00320560,src/unknown_12efb0.cpp,todo
-0012fea0,788,game,speed,a16 pad,,,001318a0,src/unknown_12fea0.cpp,todo
+0012fea0,788,game,speed,a16 pad,,,001318a0,src/unknown_12fea0.cpp,matched
 001301c0,1032,game,speed,a16 pad,,,,src/unknown_1301c0.cpp,matched
 001305d0,1494,game,speed,a16 pad,,,0016e210,src/unknown_1301c0.cpp,matched
 00130bb0,547,game,speed,a16 pad,,,,src/unknown_1301c0.cpp,matched

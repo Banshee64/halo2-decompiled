@@ -233,7 +233,7 @@ struct plane2f { vector2f n; real d; };
 plane3f *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, plane3f *plane);
 real function_11cf50(vector3f const *a, vector3f const *b);
 bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
-void function_120790(real *out, real const *plane, real const *point, short axis, byte side);
+real *function_120790(real *out, real const *plane, real const *point, short axis, byte side);
 short function_23a6f0(point2f *output, short count, point2f const *points,
 	plane2f const *plane, short capacity, dword *point_mask, bool *clipped, real epsilon);
 
