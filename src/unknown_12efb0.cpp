@@ -30,6 +30,13 @@ struct s_fog_accumulator
 	real weight;
 	real remaining;
 };
+struct s_12efb6
+{
+	color3f field_0;
+	real field_c;
+	real field_10;
+	real field_14;
+};
 struct s_weighted_accumulator
 {
 	real a[3];
@@ -59,7 +66,7 @@ long function_130f60(s_palette_owner const *owner, long *palette_index);
 void function_131030(long tag_index, vector3f const *view_direction, s_fog_accumulator *first, s_fog_accumulator *second, s_fog_accumulator *third);
 void function_1317a0(s_weighted_accumulator *acc, real const *a, real const *b, real c0, real c1, real c2, real c3, real t);
 
-real g_547f80;
+real g_547f80 = 1.0f;
 
 static __forceinline real function_12efb1(real arg_0)
 {
@@ -68,17 +75,17 @@ static __forceinline real function_12efb1(real arg_0)
 	return arg_0;
 }
 
-static __forceinline void function_12efb2(s_fog_accumulator *arg_0, real const *arg_1, real arg_2)
+static __forceinline void function_12efb2(s_fog_accumulator *arg_0, real const *arg_1, real arg_2, real arg_3, real arg_4, real arg_5)
 {
-	arg_2 = function_12efb1(arg_2);
-	arg_0->color.red += arg_1[0] * arg_2;
-	arg_0->color.green += arg_1[1] * arg_2;
-	arg_0->color.blue += arg_1[2] * arg_2;
-	arg_0->intensity += arg_1[3] * arg_2;
-	arg_0->distance += arg_1[4] * arg_2;
-	arg_0->height += arg_1[5] * arg_2;
-	arg_0->weight += arg_2;
-	arg_0->remaining *= 1.0f - arg_2;
+	arg_5 = function_12efb1(arg_5);
+	arg_0->color.red += arg_1[0] * arg_5;
+	arg_0->color.green += arg_1[1] * arg_5;
+	arg_0->color.blue += arg_1[2] * arg_5;
+	arg_0->intensity += arg_2 * arg_5;
+	arg_0->distance += arg_3 * arg_5;
+	arg_0->height += arg_4 * arg_5;
+	arg_0->weight += arg_5;
+	arg_0->remaining *= 1.0f - arg_5;
 }
 
 static __forceinline void function_12efb3(s_fog_accumulator *arg_0, s_fog_accumulator const *arg_1, real arg_2)
@@ -112,15 +119,15 @@ static __forceinline void function_12efb4(s_fog_accumulator const *arg_0, real *
 	}
 }
 
-static __forceinline void function_12efb5(s_fog_accumulator *arg_0, real const *arg_1, real arg_2)
+static __forceinline void function_12efb5(s_12efb6 *arg_0, real const *arg_1, real arg_2)
 {
 	arg_2 = function_12efb1(arg_2);
-	arg_0->color.red += arg_1[0] * arg_2;
-	arg_0->color.green += arg_1[1] * arg_2;
-	arg_0->color.blue += arg_1[2] * arg_2;
-	arg_0->intensity += (arg_1[3] == 0.0f ? 1.0f : arg_1[3]) * arg_2;
-	arg_0->weight += arg_2;
-	arg_0->remaining *= 1.0f - arg_2;
+	arg_0->field_0.red += arg_1[0] * arg_2;
+	arg_0->field_0.green += arg_1[1] * arg_2;
+	arg_0->field_0.blue += arg_1[2] * arg_2;
+	arg_0->field_c += (arg_1[3] == 0.0f ? 1.0f : arg_1[3]) * arg_2;
+	arg_0->field_10 += arg_2;
+	arg_0->field_14 *= 1.0f - arg_2;
 }
 
 // @retail 0x12efb0
@@ -136,7 +143,7 @@ void function_12efb0(long arg_0, point3f const *arg_1, vector3f const *arg_2, s_
 	s_fog_accumulator local_6 = {0};
 	s_fog_accumulator local_7 = {0};
 	s_fog_accumulator local_8 = {0};
-	s_fog_accumulator local_9 = {0};
+	s_12efb6 local_9 = {0};
 	s_weighted_accumulator local_10;
 	memset(&local_10, 0, sizeof(local_10));
 	local_5.remaining = 1.0f;
@@ -144,7 +151,7 @@ void function_12efb0(long arg_0, point3f const *arg_1, vector3f const *arg_2, s_
 	local_7.remaining = 1.0f;
 	local_8.remaining = 1.0f;
 	local_10.remainder = 1.0f;
-	local_9.remaining = 1.0f;
+	local_9.field_14 = 1.0f;
 	for (long local_11 = 0; local_11 < local_4; local_11++)
 	{
 		s_fog_cluster_distance *local_12 = &local_0[local_11];
@@ -172,9 +179,9 @@ void function_12efb0(long arg_0, point3f const *arg_1, vector3f const *arg_2, s_
 					arg_3->field_f0 = *(word *)((byte *)local_18 + 0xf0);
 				if (local_21 > 0.0f)
 				{
-					function_12efb2(&local_5, local_19 + 1, local_21);
-					function_12efb2(&local_6, local_19 + 9, local_21);
-					function_12efb2(&local_7, local_19 + 17, local_21);
+					function_12efb2(&local_5, local_19 + 1, local_19[6], local_19[7], local_19[8], local_21);
+					function_12efb2(&local_6, local_19 + 9, local_19[13], local_19[14], local_19[15], local_21);
+					function_12efb2(&local_7, local_19 + 17, local_19[20], local_19[22], local_19[21], local_21);
 					if (local_19[0x29] > 0.0f && *(long *)((byte *)local_18 + 0xd4) != NONE)
 					{
 						real const *local_22 = local_19 + 0x22;
@@ -281,12 +288,12 @@ local_30:
 		arg_3->field_70[9] = local_10.c[3] * local_34;
 		arg_3->field_6c = local_2;
 	}
-	if (local_9.weight > 0.0f)
+	if (local_9.field_10 > 0.0f)
 	{
-		real local_35 = 1.0f / local_9.weight;
-		arg_3->field_e0[0] = function_12efb1((1.0f - local_9.remaining) * local_9.color.red * local_35);
-		arg_3->field_e0[1] = function_12efb1(local_9.color.green * local_35);
-		arg_3->field_e0[2] = function_12efb1(local_9.color.blue * local_35);
-		arg_3->field_e0[3] = local_9.intensity * local_35;
+		real local_35 = 1.0f / local_9.field_10;
+		arg_3->field_e0[0] = function_12efb1((1.0f - local_9.field_14) * local_9.field_0.red * local_35);
+		arg_3->field_e0[1] = function_12efb1(local_9.field_0.green * local_35);
+		arg_3->field_e0[2] = function_12efb1(local_9.field_0.blue * local_35);
+		arg_3->field_e0[3] = local_9.field_c * local_35;
 	}
 }

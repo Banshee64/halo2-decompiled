@@ -71,17 +71,18 @@ void function_12ba90(void)
 // @retail 0x12bad0
 void function_12bad0(void)
 {
+	bool local_0 = false;
 	s_510c50_view *state = (s_510c50_view *)g_510c50;
-	bool revert = state->revert_requested;
+	bool revert = state->revert_requested != local_0;
 
-	if (revert && state->revert_checked)
+	if (revert && state->revert_checked != local_0)
 	{
 		revert = !function_163b60();
 	}
-	main_globals.unknown72 = false;
+	main_globals.unknown72 = local_0;
 	if (revert)
 	{
-		main_globals.unknown75 = false;
+		main_globals.unknown75 = local_0;
 		main_globals.unknown6f = true;
 		main_globals.unknown74 = true;
 	}
