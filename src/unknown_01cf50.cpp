@@ -6024,8 +6024,8 @@ void function_1cf80();
 // @retail 0x37a60
 bool __stdcall function_37a60(void *context)
 {
-    long viewport_width = (short)g_48564e - (short)g_48564a;
-    long viewport_height = (short)g_48564c - (short)g_485648;
+    long view_span_x = (short)g_48564e - (short)g_48564a;
+    long view_span_y = (short)g_48564c - (short)g_485648;
     byte *input = (byte *)context;
     byte *view = input + g_485600 * 0xb8;
     struct s_filter_vertex { real x, y; byte unknown08[0x10]; point2f coordinates[3]; };
@@ -6105,8 +6105,8 @@ bool __stdcall function_37a60(void *context)
         else if (w > 16777215.0f) w = 16777215.0f;
         real x = (real)(short)g_48564a;
         real y = (real)(short)g_485648;
-        real width = (real)viewport_width;
-        real height = (real)viewport_height;
+        real width = (real)view_span_x;
+        real height = (real)view_span_y;
         g_4670bc = true;
         function_16b10((s_render_reset_state *)g_485b48);
         vertices[0].x = x - 0.5f; vertices[0].y = y - 0.5f;
