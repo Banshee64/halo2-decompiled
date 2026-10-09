@@ -35,8 +35,15 @@ real function_218e50(long tag_index, short set_index, short permutation_index, s
 
 		if (count > 0)
 		{
-			short index = sample_index < 0 ? 0 : (sample_index > count - 1 ? (short)(count - 1) : sample_index);
-			return data->samples[index + entry->sample_offset] * (1.0f / 255.0f);
+			if (sample_index < 0)
+				count = 0;
+			else
+			{
+				--count;
+				if (sample_index <= count)
+					count = sample_index;
+			}
+			return data->samples[(short)count + entry->sample_offset] * (1.0f / 255.0f);
 		}
 	}
 	return 0.0f;
