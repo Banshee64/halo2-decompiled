@@ -613,18 +613,22 @@ void function_aa9e0(long index, point3f const *previous_position, vector3f const
   if (previous_position)
   {
    real x = *(real *)(object + 0x64) - previous_position->x;
-   real y = *(real *)(object + 0x68) - previous_position->y;
-   real z = *(real *)(object + 0x6c) - previous_position->z;
-   *(real *)(object + 0x270) += x;
+   real y = *(real *)(object + 0x68);
+   real z = *(real *)(object + 0x6c);
+   real accumulated_x = *(real *)(object + 0x270);
+   y -= previous_position->y;
+   z -= previous_position->z;
+   accumulated_x += x;
+   *(real *)(object + 0x270) = accumulated_x;
    *(real *)(object + 0x274) += y;
    *(real *)(object + 0x278) += z;
   }
   vector3f difference;
   if (velocity)
   {
-   difference.i = (velocity->i - *(real *)(object + 0x88)) * elapsed;
-   difference.j = (velocity->j - *(real *)(object + 0x8c)) * elapsed;
    difference.k = (velocity->k - *(real *)(object + 0x90)) * elapsed;
+   difference.j = (velocity->j - *(real *)(object + 0x8c)) * elapsed;
+   difference.i = (velocity->i - *(real *)(object + 0x88)) * elapsed;
   }
   s_object_child_iterator iterator;
   function_d0620(index, &iterator);
@@ -633,9 +637,9 @@ void function_aa9e0(long index, point3f const *previous_position, vector3f const
    byte *child = (byte *)((s_object_header *)objects->data)[iterator.child_index & 0xffff].object;
    if (velocity)
    {
-    *(real *)(child + 0x270) += difference.i;
-    *(real *)(child + 0x274) += difference.j;
-    *(real *)(child + 0x278) += difference.k;
+    *(real *)(child + 0x270) = difference.i + *(real *)(child + 0x270);
+    *(real *)(child + 0x274) = difference.j + *(real *)(child + 0x274);
+    *(real *)(child + 0x278) = difference.k + *(real *)(child + 0x278);
    }
    *(dword *)(child + 0x134) |= 0x10000000;
   }
@@ -1201,3 +1205,48 @@ void function_a7ab0(long index)
  }
 }
 #pragma function(_ReadWriteBarrier)
+
+
+PRIVATE inline long creation_definition_lookup(byte *globals, long index)
+{
+    long result = NONE;
+    if (globals)
+    {
+        long count = *(long *)(globals + 0x3d8);
+        if (count > 0 && (index < 0 ? 0 : index > count - 1 ? count - 1 : index) == index)
+            result = (*(long **)(globals + 0x3dc))[index];
+    }
+    return result;
+}
+
+// @retail 0xa6810
+bool function_a6810(s_entity_info *info, s_bitstream *stream)
+{
+    long definition_index = NONE;
+    long index = function_1959c0(stream, 9) - 1;
+    byte *globals = (byte *)g_4e0350;
+    if (index != NONE)
+        definition_index = creation_definition_lookup(globals, index);
+    info->definition_index = definition_index;
+    if (function_1957d0(stream))
+        info->field0 = function_1959c0(stream, 13);
+    else
+        info->field0 = NONE;
+    info->byte8 = (byte)(function_1959c0(stream, 7) - 1);
+    if (function_1957d0(stream))
+    {
+        ((byte *)info)[0xc] = (byte)function_1959c0(stream, 6);
+        ((byte *)info)[0xd] = (byte)function_1959c0(stream, 6);
+        ((byte *)info)[0xe] = (byte)function_1959c0(stream, 4);
+    }
+    else
+    {
+        ((byte *)info)[0xc] = 0;
+        ((byte *)info)[0xd] = 0;
+        ((byte *)info)[0xe] = 0;
+    }
+    bool valid = stream->bit_position <= stream->size_in_bytes * 8 && info->definition_index != NONE;
+    if (info->byte8 != 0xff)
+        valid = valid && (char)info->byte8 >= 0 && (char)info->byte8 < *(long *)(globals + 0x120);
+    return valid;
+}
