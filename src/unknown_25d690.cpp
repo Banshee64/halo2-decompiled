@@ -1178,8 +1178,7 @@ struct s_perception_origin_view;
 struct s_object_motion_view;
 short function_263ed0(long actor_index, s_perception_origin_view const *origin, point3f const *point,
 	s_location const *location, short type, short mode);
-short function_263810(long actor_index, point3f const *origin, point3f const *point,
-	point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range);
+short function_263810(point3f const *origin, long actor_index, point3f const *point, point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range);
 void function_2640c0(long object_index, s_object_motion_view *result);
 
 // @retail 0x25cb60
@@ -1237,7 +1236,7 @@ long function_25c9d0(long arg_0, long arg_1, bool arg_2, long arg_3, void *arg_4
 		local_7 = 2;
 	else
 		local_7 = local_0->unknown084 >= 4;
-	return function_263810(arg_0, (point3f const *)arg_5, (point3f const *)arg_4, (point3f const *)(arg_5 + 0xc), 2, (short)arg_3, local_6, (bool *)arg_6);
+	return function_263810((point3f const *)arg_5, arg_0, (point3f const *)arg_4, (point3f const *)(arg_5 + 0xc), 2, (short)arg_3, local_6, (bool *)arg_6);
 }
 
 /* decides whether the actor reacts to its current prop */
@@ -1278,7 +1277,7 @@ long function_1caa10(long arg_0);
 bool function_f0f90(long arg_0);
 bool function_26bf10(long arg_0);
 struct s_location_target_view;
-void function_26c240(s_location_target_view *arg_0, long arg_1);
+void function_26c240(long arg_1, s_location_target_view *arg_0);
 long function_baf80(long arg_0);
 bool function_1e1de0(long arg_0);
 
@@ -1344,7 +1343,7 @@ bool function_25ccd0(s_type_5cfb45 *arg_0, long arg_1, short arg_2, s_2640c0 *ar
 		}
 	}
 	if (function_26bf10(arg_1))
-		function_26c240((s_location_target_view *)arg_0, arg_1);
+		function_26c240(arg_1, (s_location_target_view *)arg_0);
 	else
 		arg_0->unknown58 = false;
 	s_slot_object_view *local_8 = object_get(function_baf80(arg_1));
