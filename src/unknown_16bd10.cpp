@@ -415,8 +415,8 @@ void function_16c4f0(short camera_point_index, short ticks)
 		pan->position = point->position;
 		function_141ce0(point->orientation[0], point->orientation[1], point->orientation[2], &matrix);
 		rotation.forward = matrix.forward;
-		rotation.left = matrix.left;
 		rotation.up = matrix.up;
+		rotation.left = matrix.left;
 		function_141f60(&rotation, &pan->rotation);
 		pan->start_time = g_510c54->game_time;
 		camera_velocity_profile_new(&pan->profile, (real)ticks * (1.0f / 30.0f), 0.0f, 0.0f, 1.0f, 1.0f);

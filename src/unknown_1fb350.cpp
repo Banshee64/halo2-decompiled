@@ -90,7 +90,7 @@ PRIVATE __forceinline byte *function_1fb762(s_record_pool_iterator *arg_0)
 }
 
 // @retail 0x1fb760
-s_recorded_animation *recorded_animation_find(long object_index, long *datum_index)
+s_recorded_animation *recorded_animation_find(long *datum_index, long object_index)
 {
 	s_record_pool_iterator iterator;
 	s_recorded_animation *animation;
@@ -121,7 +121,7 @@ s_recorded_animation *recorded_animation_find(long object_index, long *datum_ind
 long recorded_animation_get_frames(long object_index)
 {
 	real frames;
-	s_recorded_animation *animation = recorded_animation_find(object_index, 0);
+	s_recorded_animation *animation = recorded_animation_find(0, object_index);
 	long result = 0;
 
 	if (animation && animation->object_index == object_index)
@@ -243,7 +243,7 @@ bool function_1fb360(long unit_index, short recording_index, long flags)
 		if (recording_index < scenario->recorded_animation_count)
 		{
 			long datum_index;
-			s_recorded_animation *animation = recorded_animation_find(unit_index, &datum_index);
+			s_recorded_animation *animation = recorded_animation_find(&datum_index, unit_index);
 			s_scenario_recorded_animation *recording = &scenario->field_114[recording_index];
 
 			if (!recorded_animation_playing(unit_index))

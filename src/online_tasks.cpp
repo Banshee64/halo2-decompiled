@@ -182,8 +182,8 @@ s_type_9df9da *function_6b910(long task_index)
 // @retail 0x6ba80
 long online_task_get_title(long task_index)
 {
-	s_type_9df9da *task = online_task_try_get(task_index);
 	long result = 0;
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	if (task)
 	{
@@ -335,8 +335,8 @@ long online_task_get_title(long task_index)
 // @retail 0x6bd10
 long online_task_get_description(long task_index)
 {
-	s_type_9df9da *task = online_task_try_get(task_index);
 	long result = 0;
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	if (task)
 	{

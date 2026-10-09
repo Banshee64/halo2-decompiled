@@ -61,13 +61,13 @@ bool __stdcall function_8c900(const byte *messages)
 		dword error;
 		if (function_136970(&file, 2, &error))
 		{
-			long language;
 			if (g_47ff38 == NONE)
 			{
 				g_47ff38 = function_11ca80(XGetLanguage());
 			}
-			language = g_47ff38;
-			if (function_136d00(&file, messages + language * 0x200, 0x200) &&
+			const byte *local_0 = messages + g_47ff38 * 0x200;
+			long language = g_47ff38;
+			if (function_136d00(&file, local_0, 0x200) &&
 				function_136d00(&file, messages + 0x1200 + language * 0x4004, 0x4004))
 				result = true;
 			if (CloseHandle(file.handle))

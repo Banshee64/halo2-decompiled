@@ -213,7 +213,7 @@ void function_1df6c0(short team_a, short team_b, bool team_b_provokes, bool team
 }
 
 // @retail 0x1df770
-bool function_1df770(short team_a, short team_b)
+bool function_1df770(short team_a, short volatile team_b)
 {
 	bool result = false;
 

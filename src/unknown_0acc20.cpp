@@ -384,21 +384,25 @@ void __stdcall time_synchronize_encode(s_bitstream *stream, long unknown, s_time
 {
 	function_1955d0(stream, message, 0x40);
 	stream_write_checked(stream, message->type, 1);
-	dword time;
 	switch (message->type)
 	{
 	case 0:
-		time = GetTickCount();
-		break;
+	{
+		dword time = GetTickCount();
+		function_195720(stream, time, 0x20);
+		return;
+	}
 	case 1:
-		time = network_session_time_since_start((const s_session_id *)message);
+	{
+		dword time = network_session_time_since_start((const s_session_id *)message);
 		function_195720(stream, message->unknown08, 0x20);
 		function_195720(stream, message->unknown10, 0x20);
-		break;
+		function_195720(stream, time, 0x20);
+		return;
+	}
 	default:
 		__assume(0);
 	}
-	function_195720(stream, time, 0x20);
 }
 
 // @retail 0xad9e0
