@@ -856,12 +856,20 @@ PRIVATE bool function_297660(long actor_index, bool use_aiming_direction, bool u
 						real pitch_maximum = pitch + g_55e5cc;
 						real yaw_limit = angles[0] * scale;
 						real negative_yaw_limit = 0.f - yaw_limit;
+						if (!(yaw_minimum > negative_yaw_limit))
+							yaw_minimum = negative_yaw_limit;
+						if (yaw_maximum > yaw_limit)
+							yaw_maximum = yaw_limit;
 						real pitch_lower_limit = scale * -0.17453292f;
+						if (!(pitch_minimum > pitch_lower_limit))
+							pitch_minimum = pitch_lower_limit;
 						real pitch_upper_limit = scale * 0.17453292f;
-						yaw_lower = (yaw_minimum > negative_yaw_limit ? yaw_minimum : negative_yaw_limit) - yaw;
-						yaw_upper = (yaw_maximum > yaw_limit ? yaw_limit : yaw_maximum) - yaw;
-						pitch_lower = (pitch_minimum > pitch_lower_limit ? pitch_minimum : pitch_lower_limit) - pitch;
-						pitch_upper = (pitch_maximum > pitch_upper_limit ? pitch_upper_limit : pitch_maximum) - pitch;
+						if (pitch_maximum > pitch_upper_limit)
+							pitch_maximum = pitch_upper_limit;
+						yaw_lower = yaw_minimum - yaw;
+						yaw_upper = yaw_maximum - yaw;
+						pitch_lower = pitch_minimum - pitch;
+						pitch_upper = pitch_maximum - pitch;
 					}
 				}
 			}
