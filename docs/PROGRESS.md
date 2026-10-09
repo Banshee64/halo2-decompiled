@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-08: 7220 functions match
+
+```
+matched 7220 of 11318 game functions (819010 of 2784283 bytes, 29.42%)
+```
+
+12 new matches, none lost:
+- Deep lane 2, second exact-length pass: 0x1076e0, 0x1088a0, 0x108d30, 0x108d90, 0x10e480, 0x1520f0, 0x1523c0, 0x162c50, 0x22dfa9, 0x23ba90, 0x2520ff.
+- Deep lane 3: 0x1eed40, and the retail-confirmed points of @coldspear's review of 0x2c0d60 (#86 item 38).
+
 ## 2026-10-08: 7208 functions match
 
 ```
