@@ -583,7 +583,7 @@ static __forceinline long object_query_next_ab(s_record_pool *data, long index)
 bool function_bba80(long object_index)
 {
     volatile bool result = false;
-    long root = NONE;
+    volatile long root = NONE;
     long index = object_index;
     s_object_header_view *headers = (s_object_header_view *)g_4e0300->data;
     while (index != NONE)

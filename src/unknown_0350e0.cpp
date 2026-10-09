@@ -2685,7 +2685,7 @@ bool __stdcall function_3d7f0(long object_index, real *out_alpha, bool *out_spec
     s_scalar_object_header *header = &((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff];
     byte *object = header->object;
     byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
-    long kind = *(signed char *)(object + 0xaa);
+    volatile long kind = *(signed char *)(object + 0xaa);
     real alpha = 0.0f;
     bool result = false;
     if (!(object[6] & 1))
