@@ -363,15 +363,16 @@ void __stdcall function_221980(
 	long value_bits,
 	real time)
 {
+	char const *local_0 = name;
 	long i;
 
 	for (i = 0; i < k_sound_class_count; i++)
 	{
-		if (*g_470090[i] && strstr(g_470090[i], name))
+		if (*g_470090[i] && strstr(g_470090[i], local_0))
 		{
 			s_sound_class_fade *fade = &g_502118[i];
-			long bits = value_bits;
-			real value = *(real *)&bits;
+			*(long volatile *)&name = value_bits;
+			real value = *(real *)&name;
 			dword target;
 
 			if (value < -64.0f)
