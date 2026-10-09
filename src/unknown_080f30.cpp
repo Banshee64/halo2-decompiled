@@ -252,20 +252,29 @@ struct s_pending_message_storage : s_pending_message_header
  long capacity;
 };
 
+static __forceinline __int64 function_80e13(void)
+{
+ volatile long local_0 = 0;
+ volatile long local_1 = 0;
+ __asm rdtsc
+}
 // @retail 0x80e10
 bool function_80e10(s_pending_message_storage *request, void **output, long *size)
 {
  long capacity = request->capacity;
+ long const *local_0 = &capacity;
  bool result = false;
  if ((dword)capacity >= 16 && !request->data)
  {
-  __int64 start = pending_read_ticks();
+  __int64 start = function_80e13();
   void *allocation = 0;
   if (capacity > 0 && g_4e6464->page_count > 0)
   {
    long attempts = 0;
-   while (!(allocation = (void *)function_12d2f0(capacity, (long)request, 0, (long)function_812d0)))
+   for (;;)
    {
+    allocation = (void *)function_12d2f0(*(volatile long *)local_0, (long)request, 0, (long)function_812d0);
+    if (allocation) break;
     if (attempts < 90)
     {
      attempts++;
@@ -273,10 +282,10 @@ bool function_80e10(s_pending_message_storage *request, void **output, long *siz
     }
     else
     {
-     __int64 elapsed = pending_read_ticks() - start;
+     __int64 elapsed = function_80e13() - start;
      if (elapsed < 0)
       elapsed = 0;
-     if (timing_ticks_to_seconds(elapsed) >= 1.0f)
+     if (!(timing_ticks_to_seconds(elapsed) < 1.0f))
       break;
      D3DDevice_KickPushBuffer();
      D3DDevice_IsBusy();
