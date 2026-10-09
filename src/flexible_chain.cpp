@@ -129,16 +129,17 @@ long __stdcall function_115da0(long tag_index, long object_index)
 			s_chain_record *record = (s_chain_record *)(g_4e0334->data + (result & 0xffff) * sizeof(s_chain_record));
 			record->unknown04 = 0;
 			record->fixed = definition->segment_count < 2;
-			record->origin.x = record->origin.y = record->origin.z = 0.f;
-			point3f position = record->origin;
+			point3f *origin = &record->origin;
+			origin->x = origin->y = origin->z = 0.f;
+			point3f position = *origin;
 			record->tag_index = tag_index;
 			record->object_index = object_index;
 			record->idle_ticks = 0;
 			short i;
 			for (i = 0; i < definition->segment_count; ++i)
 			{
-				s_chain_segment *segment = &definition->segments[i];
 				s_chain_node *node = &record->nodes[i];
+				s_chain_segment *segment = &definition->segments[i];
 				node->position = position;
 				node->velocity.i = node->velocity.j = node->velocity.k = 0.f;
 				node->ticks = 0;
@@ -242,13 +243,12 @@ void __stdcall function_1161f0(s_chain_record *record, s_chain_definition *defin
 	function_116750(record, definition, &location, &origin, &forward);
 	if (!record->fixed && dt > 0.f)
 	{
-		real inverse_dt = 1.f / dt;
-		vector3f vertical = { 0.f, 0.f, 1.f };
 		point3f previous, predicted;
 		for (short i = 0; i < definition->segment_count + 1; ++i)
 		{
+			real inverse_dt = 1.f / dt;
 			s_chain_node *node = &record->nodes[i];
-			s_chain_segment *segment = &definition->segments[i == definition->segment_count ? i - 1 : i];
+			s_chain_segment *segment = &definition->segments[i == definition->segment_count ? definition->segment_count - 1 : i];
 			real stiffness = definition->stiffness * segment->stiffness;
 			++node->ticks;
 			point3f position;
@@ -284,6 +284,7 @@ void __stdcall function_1161f0(s_chain_record *record, s_chain_definition *defin
 			if (.0001f > fabs(length) || length == 0.f)
 				axis = *g_4687ac;
 			vector3f offset = segment->rest_offset;
+			vector3f vertical = { 0.f, 0.f, 1.f };
 			real angle = function_11ce20(&direction, &vertical);
 			real sine = (real)sin(angle);
 			real cosine = (real)cos(angle);
