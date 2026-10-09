@@ -52,6 +52,43 @@ bool recorded_animation_playing(long object_index)
 }
 
 /* the recorded animation of an object, and its datum index */
+PRIVATE __forceinline long function_1fb761(s_record_pool *arg_0, long arg_1)
+{
+	long local_0 = NONE;
+	if (arg_1 >= 0)
+	{
+		for (; arg_1 < *(long const volatile *)&arg_0->high_water_index; arg_1++)
+		{
+			if (arg_0->bitmap[arg_1 >> 5] & (1 << (arg_1 & 0x1f)))
+			{
+				local_0 = arg_1;
+				break;
+			}
+		}
+	}
+	return local_0;
+}
+
+PRIVATE __forceinline byte *function_1fb762(s_record_pool_iterator *arg_0)
+{
+	s_record_pool *local_0 = arg_0->data;
+	long local_1 = function_1fb761(local_0, arg_0->index + 1);
+	byte *local_2;
+	if (local_1 != NONE)
+	{
+		local_2 = local_0->data + local_0->size * local_1;
+		arg_0->index = local_1;
+		arg_0->datum_index = (*(short *)local_2 << 16) | local_1;
+	}
+	else
+	{
+		arg_0->index = local_0->maximum_count;
+		arg_0->datum_index = NONE;
+		local_2 = 0;
+	}
+	return local_2;
+}
+
 // @retail 0x1fb760
 s_recorded_animation *recorded_animation_find(long object_index, long *datum_index)
 {
@@ -63,7 +100,7 @@ s_recorded_animation *recorded_animation_find(long object_index, long *datum_ind
 	iterator.data = g_4f5724;
 	iterator.index = NONE;
 	iterator.datum_index = NONE;
-	while ((animation = (s_recorded_animation *)data_iterator_next_inlined(&iterator)) != 0)
+	while ((animation = (s_recorded_animation *)function_1fb762(&iterator)) != 0)
 	{
 		if (animation->object_index == object_index)
 		{
@@ -91,11 +128,13 @@ long recorded_animation_get_frames(long object_index)
 	{
 		frames = (real)animation->ticks * g_510c54->rate * 30.0f;
 
+		long local_0;
 		__asm
 		{
 			fld frames
-			fistp result
+			fistp local_0
 		}
+		result = local_0;
 	}
 
 	return result;
