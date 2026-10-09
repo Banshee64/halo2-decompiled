@@ -162,17 +162,18 @@ bool function_1518f0(s_target_candidate *candidate, dword type_mask)
 // @retail 0x1520f0
 void function_1520f0(long player_index)
 {
-	short local_index = tail_player_get(player_index)->local_index;
+	s_tail_player const volatile *player = tail_player_get(player_index);
+	short local_index = player->local_index;
 
 	if (local_index != NONE)
 	{
-		s_view_entry *entry = &((s_view_globals *)g_4ed284)->entries[local_index];
+		s_view_globals *views = (s_view_globals *)g_4ed284;
 
-		if (entry->flag8e)
+		if (views->entries[local_index].flag8e)
 		{
-			entry->flag8f = true;
+			views->entries[local_index].flag8f = true;
 		}
-		entry->index28 = NONE;
+		views->entries[local_index].index28 = NONE;
 	}
 }
 

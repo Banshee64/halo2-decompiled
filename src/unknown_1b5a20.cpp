@@ -280,7 +280,11 @@ bool __stdcall function_1b5f30(long actor_index, s_slot *slot)
 		s_2605d0_request request;
 		bool unknown;
 
-		request_initialize(&request);
+		s_2605d0_request *local_0 = &request;
+		memset(local_0, 0, sizeof(*local_0));
+		*(volatile bool *)&local_0->unknown015 = true;
+		*(volatile short *)&local_0->unknown69a = 1;
+		*(volatile bool *)&local_0->unknown698 = true;
 		request.type = 8;
 
 		s_reference reference = function_2605d0(actor_index, &request, 0, 0, scratch, &unknown);

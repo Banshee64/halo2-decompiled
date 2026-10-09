@@ -74,7 +74,9 @@ long function_10ae60(long object_index, long marker_name)
 				real dy = child->position.y - marker.node_matrix.position.y;
 				real dz = child->position.z - marker.node_matrix.position.z;
 
-				if (1.0f > sqrt(dy * dy + dx * dx + dz * dz))
+				real length_squared = dx * dx + dz * dz;
+				length_squared += dy * dy;
+				if (1.0f > sqrt(length_squared))
 					return child_index;
 			}
 			child_index = child->next_object_index;
