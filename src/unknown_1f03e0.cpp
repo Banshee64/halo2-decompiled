@@ -831,7 +831,7 @@ PRIVATE inline real contact_normalize(vector3f *vector)
 }
 
 // @retail 0x1f2250
-long function_1f2250(vector3f const *velocity, byte const *request, vector3f const *input,
+bool function_1f2250(vector3f const *velocity, byte const *request, vector3f const *input,
     bool moving, vector3f *out, long *surface, real *speed, long *object_index)
 {
     byte *component = g_51e9b8->data + (*(long *)(request + 0x40) & 0xffff) * 0xa0;
@@ -962,7 +962,7 @@ long function_1f2250(vector3f const *velocity, byte const *request, vector3f con
         if (object != NONE && (*object_index == NONE || ((1 << g_4e0300->data[(object & 0xffff) * 12 + 3]) & 1)))
             *object_index = object;
     }
-    return count && out->k > *(real *)(settings + 0x54) ? 1 : 0;
+    return count && out->k > *(real *)(settings + 0x54);
 }
 
 
