@@ -112,7 +112,6 @@ bool function_1f3230(long actor_index, real radius)
 	point3f *position = &actor->position;
 	vector3f delta;
 	real distance_squared;
-	bool result = false;
 
 	if (target->output_index == NONE)
 	{
@@ -125,7 +124,8 @@ bool function_1f3230(long actor_index, real radius)
 		function_210850(target, &point);
 		vector3d_from_points3d(&point, position, &delta);
 	}
-	distance_squared = length_sq3f(&delta);
+	distance_squared = delta.k * delta.k + delta.j * delta.j + delta.i * delta.i;
+	bool result = false;
 
 	if (actor->unknown26c == NONE && actor->unknown4ae)
 	{

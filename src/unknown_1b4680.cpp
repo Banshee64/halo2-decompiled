@@ -343,6 +343,14 @@ struct s_actor_type_definition
 extern s_actor_type_definition *g_471088[16];
 
 /* unless a clump member is of the type that leads the actor's type */
+PRIVATE __forceinline real function_1b52a1(void)
+{
+    s_random_globals *local_0 = g_4e7408;
+    dword *local_1 = &local_0->unknown0;
+    *local_1 = 1664525 * *local_1 + 1013904223;
+    return (real)(*local_1 >> 16) * (1.f / 65535.f);
+}
+
 // @retail 0x1b52a0
 short __stdcall function_1b52a0(long actor_index, s_slot *slot)
 {
@@ -356,7 +364,7 @@ short __stdcall function_1b52a0(long actor_index, s_slot *slot)
 		s_actor_view *other = actor_get(index);
 
 		index = other->next_index;
-		if (other->unknown004 == type->leader_type)
+		if (other->unknown004 == *(short const volatile *)&type->leader_type)
 			return g_46fbe4;
 	}
 
@@ -364,7 +372,7 @@ short __stdcall function_1b52a0(long actor_index, s_slot *slot)
 	{
 		s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
 
-		if (!character || character->unknown2c > slot_random())
+		if (!character || character->unknown2c > function_1b52a1())
 		{
 			s_slot_38 *state = (s_slot_38 *)slot;
 
