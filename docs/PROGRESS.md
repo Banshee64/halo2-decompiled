@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7235 functions match
+
+```
+matched 7235 of 11318 game functions (821770 of 2784283 bytes, 29.51%)
+```
+
+11 new matches, none lost:
+- Deep lane 1, round 9 (lanes W, Z, AB and AD): 0x1cdd0, 0x30710, 0x3c9a0, 0xa07f0, 0xa0a60, 0xa3c00, 0xa6810, 0xaf320, 0xaf5f0, 0xb91d0, 0xbfc30, and the retail-confirmed points of @coldspear's reviews (#86 items 29-31 and 39).
+
 ## 2026-10-09: 7224 functions match
 
 ```
