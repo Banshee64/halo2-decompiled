@@ -469,7 +469,7 @@ bool function_26f3f0(s_pathfinding_data *pathfinding, long surface_index,
        node field: 0x270ffb passes its mutable node +0x18 in EDI. */
     s_type_c3b527 *start_out = const_cast<s_type_c3b527 *>(entry);
     s_transition_surface *surface = (s_transition_surface *)&pathfinding->surfaces[surface_index];
-    bool result = false;
+    bool volatile result = false;
     switch (surface->type)
     {
     case 1:
@@ -518,7 +518,8 @@ bool function_26f3f0(s_pathfinding_data *pathfinding, long surface_index,
                     out->output_index = surface->destination_output;
                     *parent_node_index_out = parent_node_index;
                     *out_node_index = surface->destination_node;
-                    return true;
+                    result = true;
+                    break;
                 }
             }
             start_out->point = *a;
@@ -534,17 +535,18 @@ bool function_26f3f0(s_pathfinding_data *pathfinding, long surface_index,
         {
             point3f const *position = &pathfinding->vertices[surface->vertices[2]];
             point3f const *direction_point = &pathfinding->vertices[surface->vertices[3]];
-            vector3f direction;
-            direction.i = direction_point->x * -1.f;
-            direction.j = direction_point->y * -1.f;
-            direction.k = direction_point->z * -1.f;
+            vector3f direction = *(vector3f const *)direction_point;
+            direction.i = direction.i * -1.f;
+            direction.j = direction.j * -1.f;
+            direction.k = direction.k * -1.f;
             if (actor_index != NONE && function_270400(actor_index, 0x05000534, 0x05000049,
                 position, &direction, NULL, (long *)start_out, NULL, parent_node_index_out))
             {
                 out->point = *position;
                 out->output_index = parent_point->output_index;
                 *out_node_index = surface->vertices[0];
-                return true;
+                result = true;
+                break;
             }
             *start_out = *parent_point;
             *parent_node_index_out = parent_node_index;
