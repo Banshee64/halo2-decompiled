@@ -224,10 +224,11 @@ bool __stdcall function_1aefc0(long actor_index, s_slot *slot)
 }
 
 // @retail 0x1af0a0
-short __stdcall function_1af0a0(long actor_index, s_slot *slot, bool active)
+short __stdcall function_1af0a0(long actor_index, s_slot *slot, s_slot *arg_2)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	s_slot_0f *state = (s_slot_0f *)slot;
+	s_slot_0f *local_0 = (s_slot_0f *)arg_2;
 	short result = g_46fbe4;
 
 	if (actor->prop_index != NONE)
@@ -236,11 +237,11 @@ short __stdcall function_1af0a0(long actor_index, s_slot *slot, bool active)
 		short other = g_46fbe8;
 		if (state->unknown12)
 		{
-			state->timer = 3;
-			state->ticks = 2;
-			state->unknown0d = true;
-			state->unknown12 = true;
-			state->unknown0c = true;
+			local_0->timer = 3;
+			local_0->ticks = 2;
+			local_0->unknown0d = true;
+			local_0->unknown12 = true;
+			local_0->unknown0c = true;
 			result = 5;
 		}
 		else if (prop->unknown27 >= 2 ||
@@ -452,7 +453,7 @@ s_slot_handler_2 g_47de70 =
 {
 	{
 		0xf, 2, 0, -2, 0,
-		function_1aef40, function_1af0a0, function_1aefc0, 0, NONE, {0},
+		function_1aef40, (t_slot_evaluate)function_1af0a0, function_1aefc0, 0, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
 	(t_slot_proc)function_1af810, function_1afb30, function_1afcf0
