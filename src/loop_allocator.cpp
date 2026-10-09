@@ -312,13 +312,14 @@ bool loop_reallocate(s_loop_allocator *loop, void **pointer, long size, char con
 		goto local_1;
 	}
 
-	void *new_pointer;
-	if (loop_allocate(loop, &new_pointer, size, file, line))
+	void *volatile *local_3 = (void *volatile *)&file;
+	if (loop_allocate(loop, (void **)local_3, size, file, line))
 	{
-		memcpy(new_pointer, *pointer, block->size - loop_block_header_size(loop));
+		void *const volatile *local_4 = pointer;
+		memcpy((*local_3), *local_4, block->size - loop_block_header_size(loop));
 		loop_free(loop, pointer);
-		((s_loop_block *)new_pointer - 1)->owner = (*local_2)->field3c ? NULL : pointer;
-		*pointer = new_pointer;
+		((s_loop_block *)(*local_3) - 1)->owner = (*local_2)->field3c ? NULL : pointer;
+		*pointer = (*local_3);
 		local_0 = true;
 	}
 	local_1:
