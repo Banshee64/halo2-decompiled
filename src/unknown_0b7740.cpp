@@ -67,24 +67,30 @@ struct s_velocity_object_header
 
 void function_b58c0(long index, dword mask);
 
+static __forceinline dword object_velocity_write(s_velocity_object *object, vector3f const *linear, vector3f const *angular)
+{
+    dword mask = 0;
+    if (linear)
+    {
+        object->linear_velocity = *linear;
+        mask |= 0x10;
+    }
+    if (angular)
+    {
+        object->angular_velocity = *angular;
+        mask |= 0x20;
+    }
+    return mask;
+}
+
 // @retail 0xb7740
 void function_b7740(long object_index, vector3f const *linear_velocity,
 	vector3f const *angular_velocity, bool skip_update)
 {
-	dword update_mask = 0;
 	object_index &= 0xffff;
 	s_record_pool *objects = g_4e0300;
 	s_velocity_object *object = ((s_velocity_object_header *)objects->data)[object_index].object;
-	if (linear_velocity)
-	{
-		object->linear_velocity = *linear_velocity;
-		update_mask |= 0x10;
-	}
-	if (angular_velocity)
-	{
-		object->angular_velocity = *angular_velocity;
-		update_mask |= 0x20;
-	}
+	dword update_mask = object_velocity_write(object, linear_velocity, angular_velocity);
 	if (!skip_update && update_mask)
 	{
 		long index = ((s_velocity_object_header *)objects->data)[object_index].object->synchronization_index;
@@ -247,6 +253,36 @@ extern void *g_4de2e0;
 extern void *g_4de2e4;
 extern void *g_4de2d4;
 extern void *g_4de2d8;
+
+extern void *g_4de2e8;
+
+struct s_cluster_partition
+{
+    long *cluster_first_data_references;
+    s_record_pool *data_references;
+    s_record_pool *cluster_references;
+};
+
+void function_1cadf0(s_cluster_partition *partition, long reference_index, long data_index, long payload_size, void const *payload);
+
+// @retail 0xb8b70
+void function_b8b70(long object_index)
+{
+    s_object_partition_header_ab *header = &((s_object_partition_header_ab *)g_4e0300->data)[object_index & 0xffff];
+    s_object_partition_view_ab *object = header->object;
+    if ((*((byte *)header + 2) & 0x40) && (bool)((object->flags >> 9) & 1))
+    {
+        s_object_partition_record_ab record;
+        function_b88e0(object_index, &record);
+        s_cluster_partition partition =
+        {
+            (long *)g_4de2e0,
+            (s_record_pool *)g_4de2e4,
+            (s_record_pool *)g_4de2e8
+        };
+        function_1cadf0(&partition, *(long *)((byte *)object + 0x60), object_index, sizeof(record), &record);
+    }
+}
 
 struct s_partition_object_link_ab
 {

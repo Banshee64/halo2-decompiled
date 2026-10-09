@@ -208,12 +208,12 @@ long function_a5e70(long object_index, long flags, long state_pointer)
 	if (flags & 0x100)
 	{
 		s_object_a5e70 *current = OBJECT(object_index);
-		signed char *entry = (signed char *)current + current->offset11a;
-		long count = current->count118 / 10;
+		signed char *entry = (signed char *)current + *(short volatile *)&current->offset11a;
+		long count = *(short volatile *)&current->count118 / 10;
 		if (state->count == count && count > 0)
 		{
-			entry += count * 2 + 1;
 			byte *bytes = state->bytes;
+			entry += count * 2 + 1;
 			for (long n = count; n > 0; n--)
 			{
 				if (*bytes != *entry)
