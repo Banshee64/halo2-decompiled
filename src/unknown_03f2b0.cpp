@@ -528,7 +528,7 @@ long function_34060(long mode, dword flags)
 }
 
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 struct s_leaf_cluster
 {
@@ -553,7 +553,7 @@ bool function_2b720(point3f *point, long *cluster, long *leaf)
     long *const *cluster_reference = &cluster;
     s_leaf_cluster_map *map = (s_leaf_cluster_map *)g_4e0348;
     bool result = false;
-    long index = function_14a280(map->bsp, point, 0);
+    long index = function_14a280(map->bsp, 0, point);
     if (index != NONE)
     {
         *leaf = index;

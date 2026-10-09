@@ -559,7 +559,7 @@ void function_26dc20(long actor_index);
 void function_11bed0(s_location *location, point3f const *point);
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 struct s_actor_leaf_view
 {
@@ -619,7 +619,7 @@ bool function_1e1500(long actor_index)
    }
    else
    {
-    long leaf = function_14a280(g_4e033c, &point, 0);
+    long leaf = function_14a280(g_4e033c, 0, &point);
     *(long *)(block + 0x28) = leaf;
     *(short *)(block + 0x2c) = leaf == NONE ? NONE : ((s_actor_bsp_view *)g_4e0348)->leaves[leaf].cluster;
    }
@@ -936,7 +936,7 @@ long function_1e0dc0(short team, long unit_index, short request_value, short squ
 	real *limits = (real *)function_1e4a10(*(long *)(unit + 0x3d8));
 	if (limits)
 	{
-		short difficulty = g_4e6948->state == 1 ? g_4e6948->difficulty : 1;
+		long difficulty = g_4e6948->state == 1 ? g_4e6948->difficulty : 1;
 		real body, shield;
 		switch (difficulty)
 		{

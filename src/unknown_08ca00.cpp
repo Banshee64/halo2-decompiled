@@ -104,6 +104,12 @@ s_name_list *name_list_clear(s_name_list *list);
 void function_08cc20(s_name_buffer *buffer, const wchar_t *name);
 bool function_1368f0(s_type_acf665 *file);
 
+#pragma inline_depth(0)
+static __forceinline bool function_8ca71(s_type_acf665 *arg_0, dword arg_1, bool arg_2)
+{
+ return function_136bf0(arg_0, arg_1, arg_2);
+}
+#pragma inline_depth(8)
 // @retail 0x8ca70
 bool __stdcall function_8ca70(long mode, s_name_buffer *output)
 {
@@ -127,13 +133,17 @@ bool __stdcall function_8ca70(long mode, s_name_buffer *output)
 				{
 					s_name_list list;
 					name_list_clear(&list);
-					function_136bf0(&file, 0x200, true);
-					if (function_136ca0(&file, &list, sizeof(list), true) && list.count <= 32)
+					function_8ca71(&file, 0x200, true);
+					if (function_136ca0(&file, &list, sizeof(list), true))
+					{
+					long local_1 = list.count;
+					if (local_1 <= 32)
 					{
 						g_4e7408->seed = g_4e7408->seed * 0x19660d + 0x3c6ef35f;
-						short index = (short)(((g_4e7408->seed >> 16) * (short)list.count) >> 16);
+						short index = (short)(((g_4e7408->seed >> 16) * (short)local_1) >> 16);
 						function_08cc20(output, list.names[index].name);
 						result = true;
+					}
 					}
 				}
 				else

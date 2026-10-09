@@ -90,7 +90,7 @@ bool __stdcall function_1b6930(long actor_index, s_slot *slot)
 
 	function_1b6010(node->unknown08);
 	if (view && view->unknown70 == 0 && function_26ba60(node->unknown08, actor_index, actor->unknown07c))
-		function_1fb7e0(actor_index, 0x4c, NULL, node->object_index, NONE);
+		function_1fb7e0(0x4c, actor_index, NULL, node->object_index, NONE);
 	return true;
 }
 
@@ -207,10 +207,11 @@ short function_1b6e50(long actor_index)
 			level = function_1a6fe0(actor_index, 0x2c);
 		if (level != NONE)
 		{
-			s_slot_2b *state = (s_slot_2b *)&actor->slots[level];
+			struct s_1b6e51 { bool field_0; byte field_1; short field_2; };
+			s_1b6e51 const *local_0 = (s_1b6e51 const *)((byte *)&actor->slots[level] + 0xc);
 
-			if (state->unknown0c)
-				result = state->ticks;
+			if (local_0->field_0)
+				result = local_0->field_2;
 		}
 	}
 	return result;
@@ -369,7 +370,7 @@ short __stdcall function_1b75a0(long actor_index)
 	return 0;
 }
 
-PRIVATE __forceinline long function_1b75b1(long arg_0)
+PRIVATE __forceinline byte function_1b75b1(long arg_0)
 {
 	return (g_557c40[arg_0 >> 5] >> (arg_0 & 31)) & 1;
 }

@@ -141,7 +141,7 @@ bool function_1f3230(long actor_index, real radius)
 				previous = &actor->path_start;
 
 			function_210be0(previous, target, &segment);
-			function_210c90(target, position, &offset);
+			function_210c90(position, target, &offset);
 			if (dot3f(&offset, &segment) < 0.0f)
 				result = true;
 		}
@@ -158,7 +158,7 @@ bool function_1f3230(long actor_index, real radius)
 			s_moving_object *unit = moving_object_get(actor->unit_index);
 			vector3f offset;
 
-			function_210c90(target, position, &offset);
+			function_210c90(position, target, &offset);
 			if (dot3f(&unit->velocity, &offset) < 0.0f)
 				result = true;
 		}

@@ -291,9 +291,10 @@ void __stdcall function_1f8510(bool full_frame, vector3f const *vector, vector3f
 		real local_0 = forward->i;
 		real local_1 = forward->j;
 		real local_2 = 0.0f;
-		real local_3 = vector->i * local_0 + vector->j * local_1;
-		real local_4 = local_2 - local_1;
-		out->i = local_3;
+		real local_5 = vector->i * local_0;
+		real local_6 = vector->j * local_1;
+		real local_4 = local_2 - forward->j;
+		out->i = local_5 + local_6;
 		out->j = vector->i * local_4 + vector->j * local_0;
 		out->k = 0.0f;
 		function_30bf0(out);

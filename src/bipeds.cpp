@@ -3297,7 +3297,7 @@ void function_e3910(long arg_159e6d)
 }
 
 struct s_1fb7e0_data;
-bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown);
+bool function_1fb7e0(short type, long actor_index, s_1fb7e0_data const *data, long target_index, long unknown);
 bool function_10f340(long unit_index, long mode, long set);
 real magnitude3d(vector3f const *v);
 
@@ -3376,7 +3376,7 @@ void __stdcall function_e3380(long arg_159e6d)
 				{
 					type = 0x56;
 				}
-				function_1fb7e0(biped->actor_index, type, NULL, NONE, NONE);
+				function_1fb7e0(type, biped->actor_index, NULL, NONE, NONE);
 			}
 		}
 	}

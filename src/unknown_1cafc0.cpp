@@ -380,13 +380,11 @@ bool s_animation_state::channel_start(c_animation_channel *channel, c_type_70936
 
 	if (graph_tag_index != NONE)
 	{
-		c_type_709360 id = animation_id;
-
 		if (channel_flags & 0x10)
 		{
-			id = variant_get(animation_id);
+			animation_id = variant_get(animation_id);
 		}
-		if (channel->set(graph_tag_index, channel_flags, id, unknown08, unknown0c, unknown0d, unknown0e))
+		if (channel->set(graph_tag_index, channel_flags, animation_id, unknown08, unknown0c, unknown0d, unknown0e))
 		{
 			if (channel_flags & 4)
 			{
@@ -719,6 +717,7 @@ PRIVATE inline short animation_event_next(s_animation const *animation, long typ
 c_type_709360 *s_animation_state::transition_find(c_type_709360 *result, long mode, long set, bool *blend)
 {
 	c_type_709360 none;
+	c_type_709360 local_0;
 
 	*blend = false;
 	if (g_46fbf5)
@@ -773,24 +772,19 @@ c_type_709360 *s_animation_state::transition_find(c_type_709360 *result, long mo
 				}
 			}
 		}
-		if (transition.index != NONE)
-		{
-			if (event_transition.index == NONE)
-			{
-				*result = transition;
-				return result;
-			}
-		}
+		if (transition.index != NONE && event_transition.index == NONE)
+			local_0 = transition;
 		else if (event_transition.index == NONE)
 		{
 			*blend = found;
-			*result = none;
-			return result;
+			local_0 = none;
 		}
-		*result = event_transition;
-		return result;
+		else
+			local_0 = event_transition;
 	}
-	*result = none;
+	else
+		local_0 = none;
+	*result = local_0;
 	return result;
 }
 

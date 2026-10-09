@@ -832,7 +832,7 @@ bool __stdcall function_1aa750(long arg_0, s_slot *arg_1, bool arg_2)
 		local_3->field_30 = 0;
 	local_3->field_15 = 0;
 	if (local_0->prop_index != NONE)
-		function_1fb7e0(arg_0, 0x1f, NULL, prop_node_get(local_0->prop_index)->object_index, NONE);
+		function_1fb7e0(0x1f, arg_0, NULL, prop_node_get(local_0->prop_index)->object_index, NONE);
 	if (!arg_2)
 	{
 		s_1aa750 *local_9 = (s_1aa750 *)function_1e4a50(local_0->unknown054);

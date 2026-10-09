@@ -217,16 +217,9 @@ bool function_1f5560(long actor_index, vector3f *facing)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
 
-	if (actor->unknown26c == NONE)
-	{
-		if (actor->unknown622)
-			vector3d_set(facing, actor->unknown624 * actor->unknown62c, actor->unknown628 * actor->unknown62c, actor->unknown630);
-		actor->unknown622 = false;
-	}
-	else
-	{
-		actor->unknown622 = false;
-	}
+	if (actor->unknown26c == NONE && actor->unknown622)
+		vector3d_set(facing, actor->unknown624 * actor->unknown62c, actor->unknown628 * actor->unknown62c, actor->unknown630);
+	actor->unknown622 = false;
 	return true;
 }
 
@@ -929,7 +922,6 @@ real function_1f9e70(long actor_index, long object_index, point2f const *positio
     real turning_scale = 1.0f;
     real velocity_scale = 1.0f;
     real approach_scale = 1.0f;
-    real following_scale = 1.0f;
     real speed_scale = *(real *)(actor + 0x4b4) != 0.0f ? *(real *)(actor + 0x4b4) : 1.0f;
     if (!ignore_facing)
     {
@@ -974,6 +966,7 @@ real function_1f9e70(long actor_index, long object_index, point2f const *positio
             approach_scale = (1.0f - minimum) / radius * remaining + minimum;
         }
     }
+    real following_scale = 1.0f;
     if (actor[0x50c] && *(short *)(actor + 0x504) == 1 && *(short *)(actor + 0x5b0) == 7 &&
         *(long *)(actor + 0x5ac) != NONE)
     {
@@ -1157,11 +1150,13 @@ PRIVATE inline real movement_normalize2d(point2f *v)
 real function_1f99d0(long actor_index, long object_index, short type, point2f const *target,
     point2f const *origin, point2f const *facing, s_obstacle_list const *obstacles)
 {
+    point2f const *volatile *local_0 = &origin;
+    point2f const *local_1 = *local_0;
     s_actor_view *actor = actor_get(actor_index);
     byte *entry = (byte *)function_1e5450(actor_index, object_get(object_index)->tag_index);
     real result = 0.0f;
     real radius = *(real *)(entry + 0x28);
-    point2f direction = { target->x - origin->x, target->y - origin->y };
+    point2f direction = { target->x - local_1->x, target->y - local_1->y };
     movement_normalize2d(&direction);
     point2f side = { 0.0f - direction.y, direction.x };
     volatile bool left = true;
@@ -1186,16 +1181,16 @@ real function_1f99d0(long actor_index, long object_index, short type, point2f co
     real side_radius = left ? 0.0f - radius : radius;
     center.x += side.x * side_radius;
     center.y += side.y * side_radius;
-    real lateral = center.y * side.y + center.x * side.x - (origin->y * side.y + origin->x * side.x);
-    real forward = center.y * direction.y + center.x * direction.x - (origin->x * direction.x + origin->y * direction.y);
+    real lateral = center.y * side.y + center.x * side.x - (local_1->y * side.y + local_1->x * side.x);
+    real forward = center.y * direction.y + center.x * direction.x - (local_1->x * direction.x + local_1->y * direction.y);
     if (forward > radius * 0.11f)
     {
         real fraction = forward > radius * 1.3f ? 1.0f : (forward - radius * 0.11f) / (radius * 1.189999938f);
         real offset = (fraction * 1.5f - 1.0f) * lateral;
-        point2f desired = { center.x + offset * side.x - origin->x, center.y + offset * side.y - origin->y };
+        point2f desired = { center.x + offset * side.x - local_1->x, center.y + offset * side.y - local_1->y };
         real distance = movement_normalize2d(&desired);
         vector3f local_direction = { desired.x, desired.y, 0.0f };
-        point3f local_origin = { origin->x, origin->y, actor->position.z };
+        point3f local_origin = { local_1->x, local_1->y, actor->position.z };
         function_210770(actor->unknown27c.point.output_index, &local_direction, &local_direction);
         function_210690(actor->unknown27c.point.output_index, &local_origin, &local_origin);
         long sector = *(long *)((byte *)actor + 0x28c);
@@ -1209,7 +1204,7 @@ real function_1f99d0(long actor_index, long object_index, short type, point2f co
                 return result;
         }
         real cosine = desired.x * direction.x + desired.y * direction.y;
-        cosine = cosine > 1.0f ? 1.0f : cosine;
+        cosine = (real)(cosine > 1.0f ? 1.0 : cosine);
         cosine = cosine < -1.0f ? -1.0f : (cosine > 1.0f ? 1.0f : cosine);
         result = (real)acos(cosine);
         if (left) result = 0.0f - result;

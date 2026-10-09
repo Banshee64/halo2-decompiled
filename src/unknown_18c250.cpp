@@ -442,7 +442,7 @@ void sound_audible_clusters_update(void)
 		{
 			for (long cluster_index = 0; cluster_index < bsp->cluster_count; cluster_index++)
 			{
-				if (function_249d60(cluster_index, listener->cluster_index, bsp) < 256.0f)
+				if (function_249d60(bsp, cluster_index, listener->cluster_index) < 256.0f)
 				{
 					g_54e8a0[cluster_index >> 5] |= 1 << (cluster_index & 31);
 				}

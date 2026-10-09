@@ -457,7 +457,7 @@ void function_1eece0(s_surface_key_array *array, void *volatile owner)
 }
 
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 // @retail 0x1efdc0
 bool function_1efdc0(s_lookup *lookup, const point3f *point)
@@ -487,7 +487,7 @@ bool function_1efdc0(s_lookup *lookup, const point3f *point)
    local.z = matrix->up.k * z + matrix->up.j * y + matrix->up.i * x;
   }
   else local.x = local.y = local.z = 0.0f;
-  if (function_14a280((s_bsp3d *)iterator.current, &local, 0) == NONE)
+  if (function_14a280((s_bsp3d *)iterator.current, 0, &local) == NONE)
    return true;
  }
  return false;

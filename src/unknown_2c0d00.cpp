@@ -827,11 +827,11 @@ PRIVATE __forceinline bool path_node_open_2c(s_pathfinding_data const *data, lon
 bool function_2c3030(s_pathfinding_data const *data, point2f const *origin, real radius,
     long edge_index, bool side, point2f *result)
 {
-    long previous_vertex = NONE;
-    long first_vertex = NONE;
+    volatile long previous_vertex = NONE;
+    volatile long first_vertex = NONE;
     for (;;)
     {
-        s_pathfinding_edge const *edge = &data->edges[edge_index];
+        s_pathfinding_edge const *volatile edge = &data->edges[edge_index];
         bool first_open = path_node_open_2c(data, edge_node_2c(edge, 0));
         long node_index = edge_node_2c(edge, !first_open);
         if (!path_node_open_2c(data, node_index))
@@ -1029,7 +1029,8 @@ bool function_26c4e0(s_type_c3b527 const *start, s_type_c3b527 const *end,
 void __stdcall function_2c2060(s_type_f17a25 *query, short count, s_path_step_view const *points,
     short *result_count, s_path_step_view *result, bool *complete)
 {
-    real radius = (real)(query->source.radius + 0.05);
+    volatile real source_radius = query->source.radius;
+    real radius = (real)(source_radius + 0.05);
     s_pathfinding_data *data = *(long *)((byte *)g_4e0348 + 0xc4) > 0 ?
         *(s_pathfinding_data **)((byte *)g_4e0348 + 0xc8) : 0;
     if (!data)
@@ -1054,7 +1055,7 @@ void __stdcall function_2c2060(s_type_f17a25 *query, short count, s_path_step_vi
         short next = NONE;
         long edge = 0xffff;
         bool found = false;
-        short output_index;
+        volatile short output_index;
         if (entry->type != NONE)
             next = index;
         else

@@ -286,8 +286,8 @@ bool function_1b90b0(long actor_index, long object_index)
 // @retail 0x1b9190
 long function_1b9190(long object_index, long *rider_index)
 {
-	s_slot_object_view *object = object_get(object_index);
 	long result = NONE;
+	s_slot_object_view *object = object_get(object_index);
 
 	if (rider_index)
 		*rider_index = NONE;
@@ -297,9 +297,10 @@ long function_1b9190(long object_index, long *rider_index)
 
 		if (child->type == 0 && child->player_index != NONE)
 		{
+			result = child->player_index;
 			if (rider_index)
 				*rider_index = child_index;
-			return child->player_index;
+			break;
 		}
 		child_index = child->next_object_index;
 	}
@@ -492,13 +493,19 @@ void __stdcall function_1ba3f0(long actor_index, s_slot *slot, s_slot_target_lis
 		s_object_seat seats[0x40];
 
 		function_c8a40(element->object_index, seats, &count, 0x40);
-		for (short i = 0; i < count; i++)
+		if (count > 0)
 		{
-			s_object_seat *seat = &seats[i];
-			s_object_header_view *header = object_header_get(seat->object_index);
+			s_object_seat *seat = seats;
+			long local_0 = (word)count;
+			do
+			{
+				s_object_header_view *header = object_header_get(seat->object_index);
 
-			if (header->type == 1)
-				object_seat_unreserve((s_slot_object_view *)header->object, seat->seat_index);
+				if (header->type == 1)
+					object_seat_unreserve((s_slot_object_view *)header->object, seat->seat_index);
+				seat++;
+			}
+			while (--local_0);
 		}
 	}
 }
@@ -850,7 +857,7 @@ short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active)
 					if (actor->unknown266)
 						result = g_46fbe8;
 					if (!element->unknown84)
-						function_1fb7e0(actor_index, 0x39, NULL, NONE, NONE);
+						function_1fb7e0(0x39, actor_index, NULL, NONE, NONE);
 				}
 			}
 			return result;
@@ -1133,7 +1140,7 @@ long __stdcall function_1ba090(long actor_index, s_slot *slot)
                 if (TEST_FIELD_BIT(seat->flags.bit2)) type = 0x65;
                 else if (TEST_FIELD_BIT(seat->flags.bit3)) type = 0x67;
                 else type = 0x68;
-                function_1fb7e0(actor_index, type, 0, selection->object_index, NONE);
+                function_1fb7e0(type, actor_index, 0, selection->object_index, NONE);
                 function_f5d10(selection->object_index, selection->seat_index, true);
             }
         }
@@ -1250,7 +1257,7 @@ event:
             {
                 s_vehicle_tag_view *definition = (s_vehicle_tag_view *)g_4e3b44[*(long *)vehicle & 0xffff].bytes;
                 if (!TEST_FIELD_BIT(definition->seats[seat_index].flags.bit11))
-                    function_1fb7e0(actor_index, 0x66, 0, vehicle_index, NONE);
+                    function_1fb7e0(0x66, actor_index, 0, vehicle_index, NONE);
             }
         }
 done:

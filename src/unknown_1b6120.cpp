@@ -126,7 +126,7 @@ long __stdcall function_1b6120(long actor_index, s_slot *slot)
 				}
 				else if (function_26ba60(node->unknown08, actor_index, actor->unknown07c))
 				{
-					function_1fb7e0(actor_index, 0x4e, NULL, node->object_index, NONE);
+					function_1fb7e0(0x4e, actor_index, NULL, node->object_index, NONE);
 				}
 
 				if (element->unknown90 == -1.0f || (real)view->unknown0c > element->unknown90)
@@ -219,7 +219,7 @@ short __stdcall function_1b6450(long actor_index, s_slot *slot, bool active)
 						joint->unknown8c++;
 						if (joint->state == 1 && !joint->unknown81 &&
 							function_26ba60(node->unknown08, actor_index, actor->unknown07c) &&
-							function_1fb7e0(actor_index, 0x4d, NULL, joint->object_index, NONE))
+							function_1fb7e0(0x4d, actor_index, NULL, joint->object_index, NONE))
 						{
 							joint->unknown81 = true;
 						}
@@ -235,7 +235,7 @@ short __stdcall function_1b6450(long actor_index, s_slot *slot, bool active)
 				s_50241c_element_25 *element = element_50241c_25_get(node->unknown08);
 
 				if (!element->unknown33)
-					element->unknown33 = function_1fb7e0(actor_index, 0x4f, NULL, joint->object_index, NONE);
+					element->unknown33 = function_1fb7e0(0x4f, actor_index, NULL, joint->object_index, NONE);
 			}
 		}
 	}

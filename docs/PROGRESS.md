@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7311 functions match
+
+```
+matched 7311 of 11318 game functions (838786 of 2784283 bytes, 30.13%)
+```
+
+11 new matches, none lost:
+- Merge batch r53: the second machine's lane B round 9 (#274, +4), lane D lower round 9 (#275, +2), lane D upper round 9 (#276, +3) and lane C round 42 (#277, +2).
+
+## 2026-10-09: 7300 functions match
+
+```
+matched 7300 of 11318 game functions (836500 of 2784283 bytes, 30.04%)
+```
+
+4 new matches, none lost:
+- Deep lane 3, round 12: 0x18cb10, 0x1fb940, 0x263ed0, 0x26bc60. Two are the other machine's functions that matched once function_249c20 and function_249d60 took retail's parameter order.
+
+## 2026-10-09: 7296 functions match
+
+```
+matched 7296 of 11318 game functions (835327 of 2784283 bytes, 30.00%)
+```
+
+12 new matches, none lost:
+- Deep lane 3, round 11 (closest first): 0x1aea20, 0x1b4bd0, 0x1b4d90, 0x1e3370, 0x1eb220, 0x25ac00, 0x25d420, 0x266540, 0x26d9c0, 0x272af0, 0x2a0650, 0x2bb801. Six of them are the other machine's functions that matched once the parameter order of a helper they call (function_1fb7e0, function_14a280) was corrected.
+
 ## 2026-10-09: 7284 functions match
 
 ```
