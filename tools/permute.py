@@ -6,7 +6,26 @@ It works on a copy of src/, include/ and config/ in a scratch build root, so
 the repository is never modified unless --write is given, and then only with a
 strictly better variant of the one function.
 
+--fast scores each variant on a reduced image instead of the whole program
+(tools/build.py's build(units=...)): the function's own source, and the
+sources that define its callees in retail, their callees in turn, and so on
+through every decompiled callee (--depth N stops after N levels), linked with
+the ballast, the library objects the full image takes (their calls pin the
+conventions of what they call) and unresolved externals allowed. A try
+recompiles only the function's source and links a small part of the program.
+The search starts with a full build of the original. A variant that scores
+better on the reduced image is scored again by a full build, and becomes the
+best only if that build agrees it is better, so the best variant, the only
+one --write writes, always has a full-build score. Both scores are printed.
+Without --tries, --time-limit alone bounds a fast search, from the end of that
+first build. --jobs N runs N fast scorers at once on one search, each in its
+own scratch root with its own seed (S, S + 1, ...). A fast search links its
+images, reduced and full, as .img files in build/permute/<va>/, one folder per
+scratch root, never as .exe (antivirus software flags the reduced ones), and
+removes them when it ends.
+
     python tools/permute.py <va> [--tries N] [--seed S] [--time-limit SECONDS] [--write]
+                            [--fast [--jobs N] [--depth N]]
 """
 import argparse
 import difflib
@@ -16,7 +35,9 @@ import re
 import shutil
 import sys
 import tempfile
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
 import build
@@ -27,6 +48,7 @@ from pe import Pe
 from xbe import FUNCTIONS_CSV, ROOT, Xbe, retail_xbe_path
 
 WORST = 10 ** 6
+DEFAULT_TRIES = 200
 INT_TYPES = ['long', 'int', 'short', 'unsigned long', 'dword']
 CHAR_TYPES = ['char', 'byte']
 NOT_NAMES = {'long', 'int', 'short', 'unsigned', 'char', 'byte', 'dword', 'word', 'const', 'void', 'static', 'sizeof',
@@ -453,10 +475,11 @@ def mutate(body, rng, count=None):
 # ------------------------------------------------------------------ scoring
 
 class Scorer:
-    """Builds a scratch root and scores variants of one function's source file."""
+    """Builds a scratch root and scores variants of one function's source file.
+    image, if given, is where the build links the image (see build.build)."""
 
-    def __init__(self, va, root, xdk=None):
-        self.va, self.root, self.xdk = va, root, xdk
+    def __init__(self, va, root, xdk=None, image=None):
+        self.va, self.root, self.xdk, self.image = va, root, xdk, image
         retail_path = retail_xbe_path()
         if not os.path.exists(retail_path):
             raise SystemExit(f'retail XBE not found at {retail_path}')
@@ -472,14 +495,26 @@ class Scorer:
         self.marked = marked[0]
         self.path = os.path.join(root, self.marked.path)
 
+    def build(self):
+        """Builds the scratch root: (map path, image path)."""
+        if self.image is None:
+            return build.build(self.root, self.xdk), os.path.join(self.root, 'build', build.EXE_NAME)
+        return build.build(self.root, self.xdk, image=self.image), self.image
+
     def score_text(self, text):
         """Writes text as the source file and returns (score, first-difference text)."""
         with open(self.path, 'w', encoding='utf-8', newline='') as f:
             f.write(text)
         try:
-            map_path = build.build(self.root, self.xdk)
+            return self.score_image(*self.build())
+        except (SystemExit, StopIteration, ValueError, OSError, KeyError):
+            return WORST, 'build failed'
+
+    def score_image(self, map_path, exe_path):
+        """(score, first-difference text) of the function in a built image."""
+        try:
             linkmap = LinkMap.read(map_path)
-            image = Pe(os.path.join(self.root, 'build', build.EXE_NAME))
+            image = Pe(exe_path)
             marked = build.marked_sources(self.root)
             stubs = build.stub_sources(self.root)
             standin_calls = check.StandinCalls(linkmap, image, marked)
@@ -513,12 +548,66 @@ def _within_all(fixups, window):
     return check._within(fixups, *window)
 
 
+# ------------------------------------------------------------ reduced image
+
+def reduced_units(va, rows, markers, depth=None):
+    """The sources of the reduced image that scores va (tools/build.py's
+    build(units=...)): the one that marks va and those that mark its callees in
+    retail (the calls column of config/functions.csv, with @retail or @stub
+    markers), followed through callees that are themselves marked @retail, to
+    depth levels (None: all the way). Link-time code generation fits a call to
+    its callee's code, and that code to the callee's own callees, so leaving a
+    callee out changes how the target calls it. A stub is a leaf: it is built
+    without LTCG. A callee that no source marks comes from the libraries."""
+    where = {m.retail: m.path for m in markers}
+    decompiled = {m.retail for m in markers if not m.stub}
+    seen, frontier, level = {va}, [va], 0
+    while frontier and (depth is None or level < depth):
+        level += 1
+        found = [int(t, 16) for f in frontier if f in decompiled for t in rows.get(f, {}).get('calls', '').split()]
+        frontier = [c for c in dict.fromkeys(found) if c not in seen]
+        seen.update(frontier)
+    return {where[f] for f in seen if f in where}
+
+
+LTCG_LIBRARIES = {name[:-len('.lib')] for name in build.LIBRARIES if name.endswith('ltcg.lib')}  # built with /GL
+
+
+def library_symbols(linkmap):
+    """One public symbol of each object an image (given its LinkMap) took from
+    a library built without LTCG. A reduced image that takes the same objects
+    (/INCLUDE) keeps the standard conventions their calls force on the
+    functions they call, such as the compiler's vector iterators."""
+    found = {}
+    for s in linkmap.symbols:
+        library, colon, _ = s.object.partition(':')
+        if colon and not s.static and library not in LTCG_LIBRARIES:
+            found.setdefault(s.object, s.name)
+    return sorted(found.values())
+
+
+class FastScorer(Scorer):
+    """A Scorer that builds a reduced image (see reduced_units): only the
+    target's source is recompiled, and the link leaves out most of the program.
+    The image is linked to image; include lists symbols the link takes in (see
+    library_symbols). Scores come from the same comparison as the full
+    image's."""
+
+    def __init__(self, va, root, image, xdk=None, depth=None, include=()):
+        super().__init__(va, root, xdk, image)
+        self.units = reduced_units(va, self.rows, build.marked_sources(root) + build.stub_sources(root), depth)
+        self.include = include
+
+    def build(self):
+        return build.build(self.root, self.xdk, units=self.units, image=self.image, include=self.include), self.image
+
+
 def prepare_scratch(scratch):
     for d in ('src', 'include', 'config', 'build'):
         s = os.path.join(ROOT, d)
         if os.path.isdir(s):
             shutil.copytree(s, os.path.join(scratch, d), copy_function=shutil.copy2,
-                            ignore=shutil.ignore_patterns('*.exe', '*.map') if d == 'build' else None)
+                            ignore=shutil.ignore_patterns('*.exe', '*.map', 'permute') if d == 'build' else None)
 
 
 @dataclass
@@ -530,6 +619,10 @@ class Result:
     tries: int
     seconds: float
     note: str = ''
+    # --fast: baseline and best are still full-build scores; these are the reduced image's
+    fast_baseline: int = None
+    fast_best: int = None
+    confirmations: int = 0
 
 
 def run(va, tries=200, seed=0, time_limit=None, scratch=None, log=print):
@@ -573,19 +666,182 @@ def run(va, tries=200, seed=0, time_limit=None, scratch=None, log=print):
             shutil.rmtree(scratch, ignore_errors=True)
 
 
+# --------------------------------------------------------------- --fast search
+
+class FastSearch:
+    """The state of a --fast search, shared by its workers. The search walks as
+    the default one does, but on scores from the reduced image: a variant that
+    scores no worse than the walk's position becomes the position. One that
+    scores better is first confirmed: confirm (a full build) scores it, and it
+    becomes the best, and the position, only when that score beats the best's
+    full score. The best is the only variant ever written, so every written
+    variant's score comes from a full build: baseline, the original's full
+    score, to start with."""
+
+    def __init__(self, prefix, body, suffix, confirm, baseline, log=print):
+        self.prefix, self.original, self.suffix = prefix, body, suffix
+        self.confirm, self.log = confirm, log
+        self.lock = threading.Lock()  # guards the state below
+        self.confirming = threading.Lock()  # one full build at a time
+        self.walk, self.walk_score = body, None  # the position and its reduced-image score
+        self.fast_baseline = None
+        self.best, self.best_score = body, baseline  # the best and its full-build score
+        self.baseline = baseline
+        self.seen = {body}
+        self.tries = 0
+        self.confirmations = 0
+        self.done = False
+
+    def text(self, body):
+        return self.prefix + body + self.suffix
+
+    def start(self, score, note):
+        """Records the original's reduced-image score (each worker scores it once)."""
+        with self.lock:
+            if self.fast_baseline is None:
+                self.fast_baseline = self.walk_score = score
+                self.log(f'baseline: {score} differing instructions on the reduced image ({note})')
+            elif score != self.fast_baseline:
+                self.log(f'warning: a worker scored the original {score}, not {self.fast_baseline}')
+
+    def propose(self, rng, tries):
+        """(a new variant of the position, its try number), or (None, None) when
+        the search is over or no new variant turns up."""
+        with self.lock:
+            if self.done or self.tries >= tries:
+                return None, None
+            for _ in range(50):
+                candidate = mutate(self.walk, rng)
+                if candidate is not None and candidate not in self.seen:
+                    self.seen.add(candidate)
+                    self.tries += 1
+                    return candidate, self.tries
+            self.log('no new mutations available')
+            self.done = True
+            return None, None
+
+    def offer(self, candidate, score, note, n):
+        """Takes a variant's reduced-image score; confirms it if it is better."""
+        with self.lock:
+            if score > self.walk_score:
+                return
+            if score == self.walk_score:
+                self.walk = candidate
+                return
+        with self.confirming:
+            with self.lock:
+                if self.done or score >= self.walk_score:  # another worker moved on meanwhile
+                    return
+            full, full_note = self.confirm(self.text(candidate))
+            with self.lock:
+                self.confirmations += 1
+                better = full < self.best_score
+                self.log(f'try {n}: {score} on the reduced image ({note}), {full} in the full image ({full_note}): '
+                         + ('new best' if better else 'rejected'))
+                if better:
+                    self.best, self.best_score = candidate, full
+                    self.walk, self.walk_score = candidate, score
+                    self.done = full == 0
+
+
+def _work(search, scorer, rng, tries, deadline):
+    """One worker of a --fast search."""
+    search.start(*scorer.score_text(search.text(search.original)))
+    while deadline is None or time.time() < deadline:
+        candidate, n = search.propose(rng, tries)
+        if candidate is None:
+            break
+        score, note = scorer.score_text(search.text(candidate))
+        search.offer(candidate, score, note, n)
+
+
+def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, jobs=1, depth=None):
+    """The --fast search with jobs workers, each scoring on its own scratch root
+    with its own seed (seed, seed + 1, ...), and one more root for the full
+    builds: first the original's, whose map gives the library objects the
+    reduced images take in, then those that confirm. tries None: 200, or no
+    limit with a time limit, which starts after that first build. The images
+    are linked in build/permute/<va>/ of the repository, one folder per root,
+    as .img files (see build.build)."""
+    if tries is None:
+        tries = DEFAULT_TRIES if time_limit is None else float('inf')
+    own = scratch is None
+    scratch = scratch or tempfile.mkdtemp(prefix='permute_')
+    images = os.path.join(ROOT, 'build', 'permute', f'{va:08x}')
+    try:
+        names = ['full', *(f'fast{k}' for k in range(jobs))]
+        roots = [os.path.join(scratch, name) for name in names]
+        for root in roots:
+            os.makedirs(root, exist_ok=True)
+            prepare_scratch(root)
+        full = Scorer(va, roots[0], image=os.path.join(images, 'full', 'halo2.img'))
+        scorers = [FastScorer(va, root, os.path.join(images, name, 'reduced.img'), depth=depth)
+                   for name, root in zip(names[1:], roots[1:])]
+        log(f'reduced image: {len(scorers[0].units)} sources: ' + ', '.join(sorted(scorers[0].units)))
+        with open(os.path.join(ROOT, full.marked.path), encoding='utf-8', newline='') as f:
+            original = f.read()
+        start, end = find_body(original, va)
+        t0 = time.time()
+        baseline, note = full.score_text(original)
+        log(f'baseline: {baseline} differing instructions in the full image ({note}; {time.time() - t0:.0f}s)')
+        map_path = os.path.splitext(full.image)[0] + '.map'
+        if os.path.exists(map_path):
+            include = library_symbols(LinkMap.read(map_path))
+            for scorer in scorers:
+                scorer.include = include
+        search = FastSearch(original[:start], original[start:end], original[end:], full.score_text, baseline, log)
+        t0 = time.time()
+        deadline = None if time_limit is None else t0 + time_limit
+        with ThreadPoolExecutor(jobs) as pool:
+            work = [pool.submit(_work, search, s, random.Random(seed + k), tries, deadline)
+                    for k, s in enumerate(scorers)]
+            try:
+                for w in work:
+                    w.result()  # a worker's exception, or Ctrl-C, stops the others after their current try
+            finally:
+                search.done = True
+        return Result(search.baseline, search.best_score, search.text(search.best), original, search.tries,
+                      time.time() - t0, fast_baseline=search.fast_baseline, fast_best=search.walk_score,
+                      confirmations=search.confirmations)
+    finally:
+        shutil.rmtree(images, ignore_errors=True)
+        if own:
+            shutil.rmtree(scratch, ignore_errors=True)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('address', help='retail address of a function marked // @retail in src/')
-    ap.add_argument('--tries', type=int, default=200)
+    ap.add_argument('--tries', type=int, default=None,
+                    help='default 200; with --fast and --time-limit, as many as the time allows')
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--time-limit', type=float, default=None, help='seconds')
     ap.add_argument('--write', action='store_true', help='write a strictly better variant back to the source file')
+    ap.add_argument('--fast', action='store_true',
+                    help='score on a reduced image; a full build confirms each improvement')
+    ap.add_argument('--jobs', type=int, default=1, help='with --fast: scorers working in parallel')
+    ap.add_argument('--depth', type=int, default=None,
+                    help='with --fast: follow callees only this many levels (default: all)')
     args = ap.parse_args()
+    if args.jobs < 1 or (args.jobs > 1 and not args.fast):
+        ap.error('--jobs takes a positive count, and needs --fast')
+    if args.depth is not None and (args.depth < 0 or not args.fast):
+        ap.error('--depth takes a count of levels, and needs --fast')
     va = check.parse_addresses([args.address]).pop()
-    result = run(va, args.tries, args.seed, args.time_limit)
+    if args.fast:
+        result = run_fast(va, args.tries, args.seed, args.time_limit, jobs=args.jobs, depth=args.depth)
+    else:
+        result = run(va, DEFAULT_TRIES if args.tries is None else args.tries, args.seed, args.time_limit)
     rate = result.tries / result.seconds if result.seconds else 0
-    print(f'{result.tries} tries in {result.seconds:.1f}s ({rate:.2f} tries/s); '
-          f'best score {result.best} (baseline {result.baseline})' + (' MATCH' if result.best == 0 else ''))
+    if args.fast:
+        print(f'{result.tries} tries in {result.seconds:.1f}s ({rate:.2f} tries/s); reduced image: best '
+              f'{result.fast_best} (baseline {result.fast_baseline}); full image: best {result.best} '
+              f'(baseline {result.baseline}), {result.confirmations} confirming builds'
+              + (' MATCH' if result.best == 0 else ''))
+    else:
+        print(f'{result.tries} tries in {result.seconds:.1f}s ({rate:.2f} tries/s); '
+              f'best score {result.best} (baseline {result.baseline})' + (' MATCH' if result.best == 0 else ''))
+    # with --fast too, both scores come from full builds
     if result.best < result.baseline:
         diff = ''.join(difflib.unified_diff(result.original.splitlines(True), result.text.splitlines(True),
                                             'a/src', 'b/src'))

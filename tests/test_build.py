@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 import build
@@ -319,6 +321,17 @@ def test_stub_sources_reads_only_the_stubs_folder(tmp_path):
     assert [m.name for m in stub_sources(str(tmp_path))] == ['hkVector4_length']
     assert [m.name for m in build.marked_sources(str(tmp_path))][0] == 'function_163ba0'
     assert all(not m.stub for m in build.marked_sources(str(tmp_path)))
+
+
+def test_markers_are_read_again_when_a_source_changes(tmp_path):
+    (tmp_path / 'src').mkdir()
+    source = tmp_path / 'src' / 'crc.cpp'
+    source.write_text(SOURCE)
+    assert [m.retail for m in build.marked_sources(str(tmp_path))] == [0x163ba0, 0x163c00, 0x259d0]
+    source.write_text(SOURCE.replace('0x163c00', '0x163c10'))
+    stat = source.stat()
+    os.utime(source, ns=(stat.st_atime_ns, stat.st_mtime_ns + 10 ** 9))  # a later write, whatever the clock's resolution
+    assert [m.retail for m in build.marked_sources(str(tmp_path))] == [0x163ba0, 0x163c10, 0x259d0]
 
 
 def test_entry_source_leaves_fltused_to_libcmt():
