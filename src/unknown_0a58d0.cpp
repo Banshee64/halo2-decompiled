@@ -1176,6 +1176,8 @@ void function_a7b30(long index)
  }
 }
 
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0xa7ab0
 void function_a7ab0(long index)
 {
@@ -1186,8 +1188,10 @@ void function_a7ab0(long index)
   function_108e80(index);
   object->field_d4 = NONE;
   object->field_d8 = 0;
+  _ReadWriteBarrier();
+  long state = ((s_z_state_world *)g_4cf77c)->state;
   s_z_state_world *world = (s_z_state_world *)g_4cf77c;
-  if (world->state == 4 || world->state == 5)
+  if (state == 4 || state == 5)
   {
    s_z_entity_record *entity = &world->database->entities[identifier & 0x3ff];
    entity->active = false;
@@ -1196,3 +1200,4 @@ void function_a7ab0(long index)
   function_b8540(index);
  }
 }
+#pragma function(_ReadWriteBarrier)

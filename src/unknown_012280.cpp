@@ -59,12 +59,16 @@ void __stdcall XMemFree(PVOID pAddress, DWORD dwAllocAttributes)
 	switch (((XALLOC_ATTRIBUTES *)&dwAllocAttributes)->dwAllocatorId)
 	{
 	case 0x82:
-		if (g_510c3c == pAddress)
+	{
+		PVOID address = *(PVOID volatile *)&pAddress;
+		if (g_510c3c == address)
 		{
 			g_510c40 = false;
 			return;
 		}
-		break;
+		XMemFreeDefault(address, dwAllocAttributes);
+		return;
+	}
 	case 0x89:
 	case 0x8a:
 		voice_free(pAddress, dwAllocAttributes);
