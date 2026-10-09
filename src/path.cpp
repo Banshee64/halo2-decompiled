@@ -294,8 +294,57 @@ bool function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
 	real *attractor_distance = (real *)a;
 	vector3f *direction = (vector3f *)b;
+	bool result = false;
 	short index = function_272700(state, unknown);
-	if (index == NONE)
+	if (index != NONE)
+	{
+		s_path_node_key_view *node = &lookup->nodes[index];
+		real path_distance = function_210970(&node->entry_point, target) + node->path_distance;
+		real closest_distance = 0.0f;
+		if (input->attractor_valid)
+		{
+			point3f start_point, end_point, closest;
+			function_210850(&node->entry_point, &start_point);
+			function_210850(target, &end_point);
+			function_272740(&input->attractor_point, &start_point, &end_point, &closest);
+			double dx = (double)closest.x - input->attractor_point.x;
+			double dy = (double)closest.y - input->attractor_point.y;
+			double dz = (double)closest.z - input->attractor_point.z;
+			real value = (real)sqrt(dz * dz + dx * dx + dy * dy);
+			closest_distance = value > node->attractor_distance ? node->attractor_distance : value;
+		}
+		if (attractor_distance)
+		{
+			*attractor_distance = closest_distance;
+		}
+		*distance = path_distance;
+		result = true;
+		if (direction)
+		{
+			short child = NONE;
+			short current = index;
+			do
+			{
+				node = &lookup->nodes[current];
+				node->child = child;
+				child = current;
+				current = node->parent;
+			}
+			while (current != NONE);
+			current = child;
+			real accumulated = 0.0f;
+			while (current != NONE && accumulated < 0.8f)
+			{
+				node = &lookup->nodes[current];
+				current = node->child;
+				accumulated += node->entry_distance;
+			}
+			s_type_c3b527 const *end = current == NONE ? target : &node->entry_point;
+			function_210be0(&input->start, end, direction);
+			function_30bf0(direction);
+		}
+	}
+	else
 	{
 		if (attractor_distance)
 		{
@@ -306,53 +355,8 @@ bool function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 			*direction = *g_4687a4;
 		}
 		*distance = FLT_MAX;
-		return false;
 	}
-	s_path_node_key_view *node = &lookup->nodes[index];
-	real path_distance = function_210970(&node->entry_point, target) + node->path_distance;
-	real closest_distance = 0.0f;
-	if (input->attractor_valid)
-	{
-		point3f start_point, end_point, closest;
-		function_210850(&node->entry_point, &start_point);
-		function_210850(target, &end_point);
-		function_272740(&input->attractor_point, &start_point, &end_point, &closest);
-		double dx = (double)closest.x - input->attractor_point.x;
-		double dy = (double)closest.y - input->attractor_point.y;
-		double dz = (double)closest.z - input->attractor_point.z;
-		real value = (real)sqrt(dz * dz + dx * dx + dy * dy);
-		closest_distance = value > node->attractor_distance ? node->attractor_distance : value;
-	}
-	if (attractor_distance)
-	{
-		*attractor_distance = closest_distance;
-	}
-	*distance = path_distance;
-	if (direction)
-	{
-		short child = NONE;
-		short current = index;
-		do
-		{
-			node = &lookup->nodes[current];
-			node->child = child;
-			child = current;
-			current = node->parent;
-		}
-		while (current != NONE);
-		current = child;
-		real accumulated = 0.0f;
-		while (current != NONE && accumulated < 0.8f)
-		{
-			node = &lookup->nodes[current];
-			current = node->child;
-			accumulated += node->entry_distance;
-		}
-		s_type_c3b527 const *end = current == NONE ? target : &node->entry_point;
-		function_210be0(&input->start, end, direction);
-		function_30bf0(direction);
-	}
-	return true;
+	return result;
 }
 
 // @retail 0x270d90

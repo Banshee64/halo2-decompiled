@@ -165,9 +165,9 @@ PRIVATE void function_297560(long actor_index)
 	}
 	actor->idle_aiming_timer = (short)rounded_ticks;
 	actor->idle_looking_timer = (short)rounded_ticks;
+	actor->idle_aiming_direction = actor->forward;
 	actor->idle_aiming_direction_type = 4;
 	actor->idle_looking_direction_type = 4;
-	actor->idle_aiming_direction = actor->forward;
 	actor->idle_looking_direction = actor->forward;
 }
 
