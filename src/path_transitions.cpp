@@ -384,7 +384,7 @@ bool function_270240(long object_index, long mode, long set, point3f const *posi
 // @retail 0x2702a0
 bool function_2702a0(long actor_index, long mode, long set, long target_mode, long target_set,
     point3f const *position, vector3f const *forward, point3f *out_position,
-    vector3f *out_forward, long *location, long *node_index)
+    long *location, vector3f *out_forward, long *node_index)
 {
     point3f *const *reference = &out_position;
     bool result = false;
