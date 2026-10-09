@@ -80,15 +80,18 @@ bool __stdcall function_1b2de0(long actor_index, s_slot *slot)
 	return true;
 }
 
+/* Keep the call to 0x258b20; the lookup stays in this body. */
+#pragma inline_depth(0)
 // @retail 0x1b2e00
 void __stdcall function_1b2e00(long actor_index, s_slot *slot)
 {
-	s_actor_view *actor = actor_get(actor_index);
+	s_actor_view *actor = (s_actor_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_view));
 	s_slot_04 *state = (s_slot_04 *)slot;
 
 	if (!state->unknown11 && actor->unknown85c != NONE)
 		function_258b20(actor->unknown85c, actor_index);
 }
+#pragma inline_depth(255)
 
 // @retail 0x1b2e40
 short __stdcall function_1b2e40(long actor_index, s_slot *slot, bool active)

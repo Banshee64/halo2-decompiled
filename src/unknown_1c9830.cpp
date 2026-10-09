@@ -333,22 +333,29 @@ PRIVATE void function_1dfaa0(dword *vector, long bit, bool value)
 		vector[bit >> 5] &= ~(1 << (bit & 31));
 }
 
-// @retail 0x1df9c0
+/* All 213 bytes match with the standard convention. Without this marker,
+   the same body takes the pointer in a register and returns ret 8.
+   Retail has no absolute reference to this address; its four callers
+   (0x1df500, 0x1df6c0, 0x1df770, 0x1df820) push all three arguments.
+   Direct pointer copies, parameter references and a force-inline helper
+   all used ret 8. Keeping the earlier guard held ret 12 but gave 217 bytes. */
+// @retail 0x1df9c0 standard
 PRIVATE void __stdcall function_1df9c0(s_type_e695f2 *volatile allegiance, bool broken, bool removed)
 {
-	if (!removed && allegiance->broken == broken)
+	s_type_e695f2 *local_0 = *(s_type_e695f2 *const *)&allegiance;
+	if (!removed && local_0->broken == broken)
 		return;
 
-	allegiance->broken = broken;
-	if (allegiance->team_a < k_maximum_game_teams && allegiance->team_b < k_maximum_game_teams)
+	local_0->broken = broken;
+	if (local_0->team_a < k_maximum_game_teams && local_0->team_b < k_maximum_game_teams)
 	{
-		function_1dfaa0(g_4f55ec->ally_bits, allegiance->team_a * k_maximum_game_teams + allegiance->team_b, !removed);
-		function_1dfaa0(g_4f55ec->ally_bits, allegiance->team_b * k_maximum_game_teams + allegiance->team_a, !removed);
-		function_1dfaa0(g_4f55ec->peace_bits, allegiance->team_a * k_maximum_game_teams + allegiance->team_b, !broken);
-		function_1dfaa0(g_4f55ec->peace_bits, allegiance->team_b * k_maximum_game_teams + allegiance->team_a, !broken);
+		function_1dfaa0(g_4f55ec->ally_bits, local_0->team_a * k_maximum_game_teams + local_0->team_b, !removed);
+		function_1dfaa0(g_4f55ec->ally_bits, local_0->team_b * k_maximum_game_teams + local_0->team_a, !removed);
+		function_1dfaa0(g_4f55ec->peace_bits, local_0->team_a * k_maximum_game_teams + local_0->team_b, !broken);
+		function_1dfaa0(g_4f55ec->peace_bits, local_0->team_b * k_maximum_game_teams + local_0->team_a, !broken);
 	}
-	allegiance->changed = true;
-	function_1c9830(allegiance->team_a, allegiance->team_b, broken, removed);
+	local_0->changed = true;
+	function_1c9830(local_0->team_a, local_0->team_b, broken, removed);
 }
 
 #include "data_array.h"

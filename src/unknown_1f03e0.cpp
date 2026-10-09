@@ -115,16 +115,16 @@ extern short g_54e898;
 // @retail 0x1f03e0
 void function_1f03e0(s_shape_state *state)
 {
-	state->unknown0c = NONE;
+	*(volatile long *)&state->unknown0c = NONE;
 	state->point = *(point3f *)g_4687a4;
-	state->unknown62 = false;
+	*(volatile bool *)&state->unknown62 = false;
 	state->normal = *g_4687b0;
-	state->material = g_47d8e0;
-	state->unknown58 = NONE;
-	state->unknown5c = NONE;
-	state->unknown1c = NONE;
-	state->unknown20 = NONE;
-	state->unknown70 = 0.0f;
+	*(volatile short *)&state->material = g_47d8e0;
+	*(volatile long *)&state->unknown58 = NONE;
+	*(volatile long *)&state->unknown5c = NONE;
+	*(volatile long *)&state->unknown1c = NONE;
+	*(volatile long *)&state->unknown20 = NONE;
+	*(volatile real *)&state->unknown70 = 0.0f;
 	state->matrix = *g_4687d0;
 }
 
@@ -181,15 +181,16 @@ struct s_component
 // @retail 0x1f1df0
 void function_1f1df0(long component_index, long material_index, vector3f const *normal, s_shape_state *state)
 {
-	short local_0 = 0;
+	union { short field_0; word field_2; } local_0;
+	local_0.field_0 = 0;
 	s_component *component = (s_component *)(g_51e9b8->data + (component_index & 0xffff) * sizeof(s_component));
 
 	state->normal = *normal;
 	if (material_index != NONE)
-		local_0 = component->materials[material_index].material;
+		local_0.field_0 = component->materials[material_index].material;
 	else
-		local_0 = g_54e898;
-	state->material = local_0;
+		local_0.field_0 = g_54e898;
+	state->material = (short)local_0.field_2;
 }
 
 struct s_shape_carrier_contact
@@ -464,16 +465,23 @@ void function_1f2a80(vector3f const *velocity, byte const *request, bool moving,
         *out = *g_4687b0;
 }
 
+PRIVATE __forceinline void function_1f1461(vector3f const *arg_0, vector3f const *arg_1, vector3f *arg_2)
+{
+	arg_2->i = arg_0->j * arg_1->k - arg_0->k * arg_1->j;
+	arg_2->j = arg_0->k * arg_1->i - arg_0->i * arg_1->k;
+	arg_2->k = arg_0->i * arg_1->j - arg_0->j * arg_1->i;
+}
+
 // @retail 0x1f1460
 void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *arg_9650d9, vector3f *arg_3a7661)
 {
     byte *settings = *(byte **)(state + 8);
-    vector3f const *old_forward = (vector3f const *)(state + 0xf4);
-    vector3f const *old_up = (vector3f const *)(state + 0x100);
     if ((*(dword *)settings >> 3) & 1)
     {
+        vector3f const *old_up = (vector3f const *)(state + 0x100);
         vector3f up = ground->normal;
-        vector3f axis = contact_cross(*old_up, up);
+        vector3f axis;
+        function_1f1461(old_up, &up, &axis);
         bool rotate = true;
         if (function_30bf0(&axis) == 0.0f)
         {
@@ -486,24 +494,28 @@ void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *a
         if (rotate)
         {
             vector3f limited = *old_up;
-            double angle = (double)g_510c54->rate * 5.235987663269043f;
+            real angle = g_510c54->rate * 5.235987663269043f;
             real sine = (real)sin(angle);
             real cosine = (real)cos(angle);
             real dot = (limited.k * axis.k + limited.j * axis.j + limited.i * axis.i) * (1.0f - cosine);
-            vector3f cross = contact_cross(limited, axis);
+            vector3f cross;
+            function_1f1461(&limited, &axis, &cross);
             limited.i = dot * axis.i + limited.i * cosine - cross.i * sine;
             limited.j = axis.j * dot + limited.j * cosine - cross.j * sine;
             limited.k = axis.k * dot + limited.k * cosine - cross.k * sine;
-            cross = contact_cross(limited, up);
+            function_1f1461(&limited, &up, &cross);
             if (cross.k * axis.k + cross.j * axis.j + cross.i * axis.i > 0.0f)
                 up = limited;
         }
-        vector3f cross = contact_cross(*old_forward, up);
-        vector3f forward = contact_cross(up, cross);
+        vector3f const *old_forward = (vector3f const *)(state + 0xf4);
+        vector3f cross;
+        function_1f1461(old_forward, &up, &cross);
+        vector3f forward;
+        function_1f1461(&up, &cross, &forward);
         if (function_30bf0(&forward) == 0.0f)
         {
-            cross = contact_cross(up, *old_up);
-            forward = contact_cross(up, cross);
+            function_1f1461(&up, old_up, &cross);
+            function_1f1461(&up, &cross, &forward);
             if (function_30bf0(&forward) == 0.0f)
             {
                 up = *g_4687b0;
@@ -515,7 +527,7 @@ void function_1f1460(byte const *state, s_shape_state const *ground, vector3f *a
     }
     else
     {
-        *arg_9650d9 = *old_forward;
+        *arg_9650d9 = *(vector3f const *)(state + 0xf4);
         *arg_3a7661 = *g_4687b0;
         arg_9650d9->k = 0.0f;
         if (function_30bf0(arg_9650d9) == 0.0f)

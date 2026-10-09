@@ -209,13 +209,13 @@ short __stdcall function_1bda60(long actor_index, s_slot *slot, bool active)
 	s_5d_element *element = (s_5d_element *)element_502424_get(state->element_index);
 	short result = g_46fbe8;
 
-	if (element->object_index != NONE && state->unknown20 != NONE && element->unknown7c >= element->unknown86 &&
-		function_f5dc0(element->object_index))
+	if (!(element->object_index != NONE && state->unknown20 != NONE && element->unknown7c >= element->unknown86 &&
+		function_f5dc0(element->object_index)))
 	{
-		return result;
+		result = g_46fbe4;
+		element->unknown02 = 2;
 	}
-	element->unknown02 = 2;
-	return g_46fbe4;
+	return result;
 }
 
 // @retail 0x1bdd70
