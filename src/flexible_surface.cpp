@@ -267,6 +267,7 @@ void __stdcall function_117790(long index)
 			s_surface_link *link = &definition->links[i];
 			point3f *a = &record->vertices[link->a].position;
 			point3f *b = &record->vertices[link->b].position;
+			real rest_length = link->length;
 			vector3f delta = {b->x-a->x, b->y-a->y, b->z-a->z};
 			real squared = delta.k*delta.k + delta.j*delta.j + delta.i*delta.i;
 			long bits = (*(long *)&squared >> 1) + 0x1fc00000;
@@ -274,7 +275,7 @@ void __stdcall function_117790(long index)
 			if (length < 0.0001f) length = 0.0001f;
 			real inverse = 1.0f / length;
 			delta.i *= inverse; delta.j *= inverse; delta.k *= inverse;
-			real rest_squared = link->length * link->length;
+			real rest_squared = rest_length * rest_length;
 			real correction = (rest_squared / (length*length + rest_squared) - 0.5f) * length;
 			delta.i *= correction; delta.j *= correction; delta.k *= correction;
 			if (!surface_pinned(record, link->a))
