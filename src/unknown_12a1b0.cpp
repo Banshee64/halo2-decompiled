@@ -1259,6 +1259,20 @@ void __stdcall function_127320(long datum, long count);
 void function_128500(long sound_index, s_looping_voice_counts *counts);
 short function_128a60(long sound_index, short count, short const *voice_indices);
 
+/* the body of looping_sound_get_permutations with clearing, as retail
+   expands it in function_21c190 */
+static inline dword looping_sound_take_permutations(s_type_5ef569 *sound, looping_sound_definition *definition, s_looping_playback_definition *playback, long track_index, short arg_58ecd0)
+{
+	if ((definition->flags & 0x30) && sound->controller_index != NONE)
+	{
+		dword *permutations = &((s_type_06b94f *)sound->track_storage)[track_index].permutations;
+		dword result = *permutations;
+		*permutations = 0;
+		return result;
+	}
+	return function_2194c0((s_packed_value *)&g_51ebd4->sets[playback->pitch_range_base + arg_58ecd0], (s_animation_ref *)playback);
+}
+
 // @retail 0x21c190
 bool function_21c190(s_type_5ef569 *sound, s_type_06b94f *track, long sound_index, dword *seed)
 {
@@ -1274,19 +1288,10 @@ bool function_21c190(s_type_5ef569 *sound, s_type_06b94f *track, long sound_inde
 
 	/* Retail expands the permutation helpers here, but calls them from
 	   function_21b940. Keep the same shared/local mask rules. */
-	dword permutations;
-	if ((definition->flags & 0x30) && sound->controller_index != NONE)
-	{
-		dword *mask = &((s_type_06b94f *)sound->track_storage)[playing->loop.track_index].permutations;
-		permutations = *mask;
-		*mask = 0;
-	}
-	else
-		permutations = function_2194c0((s_packed_value *)&g_51ebd4->sets[playback->pitch_range_base + arg_58ecd0], (s_animation_ref *)playback);
+	dword permutations = looping_sound_take_permutations(sound, definition, playback, playing->loop.track_index, arg_58ecd0);
 
-	long previous = NONE;
-	if (!(definition->flags & 0x30))
-		previous = (short)function_219370((s_animation_state *)&g_51ebd4->sets[playback->pitch_range_base + playing->pitch_range_index], (s_animation_ref *)playback);
+	long previous = !(definition->flags & 0x30) ?
+		(short)function_219370((s_animation_state *)&g_51ebd4->sets[playback->pitch_range_base + playing->pitch_range_index], (s_animation_ref *)playback) : NONE;
 	short permutation = function_219110((s_set_ref *)playback, arg_58ecd0, &permutations, (short)previous, seed, NULL, false);
 	if ((definition->flags & 0x30) && sound->controller_index != NONE)
 		((s_type_06b94f *)sound->track_storage)[playing->loop.track_index].permutations = permutations;
