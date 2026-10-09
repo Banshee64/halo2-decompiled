@@ -624,30 +624,29 @@ PRIVATE bool function_2713f0(s_type_f17a25 *state)
 {
 	s_path_input_view *input = (s_path_input_view *)&state->source;
 	s_path_destination_view *destination = (s_path_destination_view *)state;
-	s_pathfinding_data *pathfinding = (s_pathfinding_data *)state->pathfinding;
-	if (!pathfinding)
+	real distance = 0.0f;
+	long quantized = 0;
+	if (!state->pathfinding)
 	{
 		return false;
 	}
-	long node_count = *(long *)pathfinding;
+	long node_count = *(long *)state->pathfinding;
 	if (input->start_node_index < 0 || input->start_node_index >= node_count ||
 		!(input->start.point.z > -1000.0f))
 	{
 		return false;
 	}
-	real distance = 0.0f;
-	long quantized = 0;
 	if (destination->destination_valid)
 	{
-		double length = function_210970(&input->start, &destination->destination);
-		distance = (real)length;
-		quantized = (long)(length * 10.0);
+		real length = function_210970(&input->start, &destination->destination);
+		distance = length;
+		quantized = (long)(length * 10.0f);
 		if (quantized >= 32767)
 		{
 			return false;
 		}
 	}
-	s_pathfinding_node *sector = &pathfinding->nodes[input->start_node_index];
+	s_pathfinding_node *sector = &((s_pathfinding_data *)state->pathfinding)->nodes[input->start_node_index];
 	short index = state->unknownae++;
 	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
 	s_path_node_key_view *node = &lookup->nodes[index];
