@@ -152,14 +152,15 @@ long online_message_download_attachment(long details_task_index, long property, 
 				if (SUCCEEDED(XOnlineMessageDownloadAttachmentToMemory((XONLINETASK_HANDLE)local_c5a52a->handle, (WORD)function_8eda0(property),
 					(PBYTE)buffer, size, NULL, (PXONLINETASK_HANDLE)&task->handle)))
 				{
+					long local_0 = local_c5a52a->controller_index;
 					task->flags = 1;
 					task->type = 39;
-					task->controller_index = local_c5a52a->controller_index;
+					task->controller_index = local_0;
 				}
 				else
 				{
 					function_6b640(task_index);
-					return NONE;
+					task_index = NONE;
 				}
 			}
 		}
@@ -547,7 +548,8 @@ void online_message_block_set_properties(s_state_block *block, long controller_i
 	{
 		long length = wcslen(text);
 		value = XGetLanguage();
-		online_message_block_set_property(block, 3, (length + 1) * sizeof(wchar_t), text);
+		long local_0 = (length + 1) * sizeof(wchar_t);
+		online_message_block_set_property(block, 3, local_0, text);
 		online_message_block_set_property(block, 4, sizeof(value), &value);
 	}
 	if (block->unknown210 > 0)
@@ -569,7 +571,11 @@ void online_message_block_set_properties(s_state_block *block, long controller_i
 	else if (block->unknown4 == 2)
 	{
 		if (player_slot_get_identity(controller_index, (s_player_identity *)&identity))
-			online_message_block_set_property(block, 6, (wcslen(identity.name) + 1) * sizeof(wchar_t), identity.name);
+		{
+			long local_1 = wcslen(identity.name);
+			long local_2 = (local_1 + 1) * sizeof(wchar_t);
+			online_message_block_set_property(block, 6, local_2, identity.name);
+		}
 		else
 			block->unknown8 = 4;
 	}

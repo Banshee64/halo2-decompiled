@@ -333,12 +333,26 @@ bool c_entry_table::function_08af70(long handler_index, long *size, void **data)
 	return result;
 }
 
+#pragma optimize("g", off)
+static __forceinline void *function_8b011(long arg_0, s_allocator_globals *arg_1)
+{
+ void *local_0 = arg_1->allocator->allocate(arg_0, 0, 0);
+ if (!local_0)
+ {
+  arg_1->allocator->compact(0);
+  local_0 = arg_1->allocator->allocate(arg_0, 0, 0);
+ }
+ if (local_0)
+  arg_1->count++;
+ return local_0;
+}
+#pragma optimize("", on)
 // @retail 0x8b010
 bool c_entry_table::function_08b010(long handler_index, long *size, void **data)
 {
 	bool result = true;
 	long block_size = handlers->handlers[handler_index]->get_state_size();
-	void *block = allocate_block(block_size);
+	void *block = function_8b011(block_size, g_4d87f8);
 	if (block)
 	{
 		memset(block, 0, block_size);

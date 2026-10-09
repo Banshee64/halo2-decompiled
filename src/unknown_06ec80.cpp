@@ -18,76 +18,94 @@ union s_6ec80
     __int64 field_2;
 };
 
+#pragma pack(push, 1)
+struct s_6ec81
+{
+    s_unknown_108 *field_0;
+    union { long field_0; short field_1; } field_4;
+    byte *field_8;
+    byte *field_c;
+    long field_10;
+    long field_14;
+    s_unknown_3648 *field_18;
+    long field_1c;
+    long field_20;
+    long field_24;
+    __int64 field_28;
+};
+
+#pragma pack(pop)
 // @retail 0x6ec80
 bool function_06ec80(c_class_58d20 *arg_0, bool arg_1)
 {
+    s_6ec81 local_25;
     volatile bool local_0 = false;
     bool local_1 = true;
-    long local_2 = NONE;
-    long local_3 = NONE;
-    byte *local_4 = 0;
-    long local_5 = NONE;
+    local_25.field_1c = NONE;
+    local_25.field_14 = NONE;
+    local_25.field_c = 0;
+    local_25.field_24 = NONE;
     if (arg_0->state > 2 && arg_0->state <= 8)
-        local_5 = arg_0->value4da8;
-    __int64 local_6 = -1;
+        local_25.field_24 = arg_0->value4da8;
+    local_25.field_28 = -1;
     if (arg_0->state > 2 && arg_0->state <= 8)
     {
-        ((long *)&local_6)[0] = arg_0->value4da0;
-        ((long *)&local_6)[1] = arg_0->value4da4;
+        ((long *)&local_25.field_28)[0] = arg_0->value4da0;
+        ((long *)&local_25.field_28)[1] = arg_0->value4da4;
     }
-    byte *local_7 = 0;
+    local_25.field_8 = 0;
     if (arg_0->state > 2 && arg_0->state <= 8)
-        local_7 = arg_0->data4db0;
-    short local_8 = NONE;
+        local_25.field_8 = arg_0->data4db0;
+    local_25.field_4.field_0 = NONE;
     if (arg_0->state > 2 && arg_0->state <= 8)
-        local_8 = arg_0->value5dd0;
-    long local_9 = NONE;
+        local_25.field_4.field_1 = arg_0->value5dd0;
+    local_25.field_10 = NONE;
     if (arg_0->state > 2 && arg_0->state <= 8)
-        local_9 = arg_0->value4dac;
-    long local_10 = NONE;
+        local_25.field_10 = arg_0->value4dac;
+    local_25.field_20 = NONE;
     long local_11 = arg_0->value18;
-    arg_0->get_values_4d08(&local_2, &local_3, &local_4);
-    s_unknown_108 *local_12 = 0;
-    s_unknown_3648 *local_13 = 0;
+    arg_0->get_values_4d08(&local_25.field_1c, &local_25.field_14, &local_25.field_c);
+    local_25.field_0 = 0;
+    local_25.field_18 = 0;
     if (arg_0->state > 2 && arg_0->state <= 8 && arg_0->flag4f20)
     {
-        local_12 = &arg_0->data4f24;
-        local_13 = &arg_0->data4f90;
+        local_25.field_0 = &arg_0->data4f24;
+        local_25.field_18 = &arg_0->data4f90;
     }
     if (arg_1)
     {
-        local_10 = arg_0->get_value_49c8();
-        if (local_10 == NONE)
+        local_25.field_20 = arg_0->get_value_49c8();
+        if (local_25.field_20 == NONE)
             local_1 = false;
     }
-    if (local_3 == NONE)
+    if (local_25.field_14 == NONE)
         local_1 = false;
-    if (!local_4 || !*local_4)
+    if (!local_25.field_c || !*local_25.field_c)
         local_1 = false;
-    if (!local_7)
+    if (!local_25.field_8)
         local_1 = false;
     dword local_14 = 0;
-    if (local_12 && local_13)
+    if (local_25.field_0 && local_25.field_18)
     {
         long local_15 = 0;
         do
         {
-            if (((s_session_player *)local_13)[local_15].active)
+            if (((s_session_player *)local_25.field_18)[local_15].active)
                 local_14 |= 1 << local_15;
             local_15++;
         } while (local_15 < 16);
-        if (!local_12->data[0] || !local_14)
+        if (!local_25.field_0->data[0] || !local_14)
             local_1 = false;
     }
     else
         local_1 = false;
-    if (local_9 >= 0 && local_9 < 3 && local_1)
+    if (local_25.field_10 >= 0 && local_25.field_10 < 3 && local_1)
     {
         bool local_16 = arg_0->current_member == arg_0->member_index;
         long local_17 = arg_0->player_count;
         long local_18 = arg_0->member_count;
         s_session_machine local_19 = *(s_session_machine *)((byte *)&arg_0->members[arg_0->current_member] + 0xa);
-        if ((short)local_8 != NONE)
+        if ((short)local_25.field_4.field_1 != NONE)
         {
             if (local_17 > 2)
                 local_1 = false;
@@ -96,46 +114,45 @@ bool function_06ec80(c_class_58d20 *arg_0, bool arg_1)
         }
         if (local_1)
         {
-            long local_20;
-            switch (local_9)
+            switch (local_25.field_10)
             {
-            case 0: local_20 = 1; break;
-            case 1: local_20 = local_16 ? 3 : 2; break;
-            case 2: local_20 = local_16 ? 5 : 4; break;
+            case 0: local_25.field_10 = 1; break;
+            case 1: local_25.field_10 = local_16 ? 3 : 2; break;
+            case 2: local_25.field_10 = local_16 ? 5 : 4; break;
             default: __assume(0);
             }
             s_6ec80 local_21;
             function_138110((s_game_options *)&local_21);
             s_session_options *local_22 = &local_21.field_0;
-            *(long *)(local_21.field_1 + 0x14) = local_2;
-            *(long *)(local_21.field_1 + 0x18) = local_3;
-            strncpy(local_22->name, (char *)local_4, sizeof(local_22->name));
+            *(long *)(local_21.field_1 + 0x14) = local_25.field_1c;
+            *(long *)(local_21.field_1 + 0x18) = local_25.field_14;
+            strncpy(local_22->name, (char *)local_25.field_c, sizeof(local_22->name));
             local_22->name[sizeof(local_22->name) - 1] = 0;
-            local_22->unknown4 = (char)local_20;
+            local_22->unknown4 = (char)local_25.field_10;
             switch (local_11)
             {
             case 0: local_22->unknown5 = 1; break;
             case 1: local_22->unknown5 = 2; break;
             case 2: local_22->unknown5 = 3; break;
             }
-            *(long *)(local_21.field_1 + 8) = ((long *)&local_6)[0];
-            *(long *)(local_21.field_1 + 0xc) = ((long *)&local_6)[1];
-            *(long *)(local_21.field_1 + 0x10) = local_5;
-            if ((short)local_8 != NONE)
+            *(long *)(local_21.field_1 + 8) = ((long *)&local_25.field_28)[0];
+            *(long *)(local_21.field_1 + 0xc) = ((long *)&local_25.field_28)[1];
+            *(long *)(local_21.field_1 + 0x10) = local_25.field_24;
+            if ((short)local_25.field_4.field_1 != NONE)
             {
                 local_22->type = 1;
-                local_22->unknown12a = (short)local_8;
+                local_22->unknown12a = (short)local_25.field_4.field_1;
                 local_22->unknown12c = local_17 > 1;
                 local_22->unknown12d[0] = 0;
             }
             else
             {
                 local_22->type = 2;
-                memcpy(local_22->unknown134, local_7, sizeof(local_22->unknown134));
-                *(long *)(local_21.field_1 + 0x130) = local_10;
+                memcpy(local_22->unknown134, local_25.field_8, sizeof(local_22->unknown134));
+                *(long *)(local_21.field_1 + 0x130) = local_25.field_20;
             }
-            memcpy(&local_22->machine_mask, local_12, sizeof(*local_12));
-            memcpy(local_22->players, local_13, sizeof(*local_13));
+            memcpy(&local_22->machine_mask, local_25.field_0, sizeof(*local_25.field_0));
+            memcpy(local_22->players, local_25.field_18, sizeof(*local_25.field_18));
             local_22->local_machine_valid = true;
             local_22->local_machine = local_19;
             g_510548 = false;

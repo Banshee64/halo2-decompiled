@@ -565,7 +565,9 @@ bool avoidance_search(s_pathfinding_data const *pathfinding, s_avoidance_search 
 			{
 				point2f point;
 
-				avoidance_point_along2d(&node->position, &node->direction, node->distance, &point);
+				real distance = node->distance;
+                point.x = distance * node->direction.x + node->position.x;
+                point.y = node->direction.y * distance + node->position.y;
 				search->value1e = avoidance_add_node(search, &point, false, search->value18, NONE, NONE,
 					node->distance, search->best_index);
 			}

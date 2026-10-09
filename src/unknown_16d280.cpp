@@ -149,7 +149,7 @@ void *render_model_get_model_definition(long render_model_index)
 void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward, vector3f const *up);
 void __stdcall function_1421f0(transform4x3f *out, rigid_transform_scaled const *orientation);
 
-#define MACRO_D9C4AE 253
+#define MACRO_D9C4AE 255
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 
 // @retail 0x16d9c0
@@ -164,9 +164,10 @@ void render_model_build_node_matrices(vector3f const *forward, vector3f const *u
 	if (definition->node_count > 0)
 	{
 		long read_index = 0;
-		long write_index = 1;
+		long write_index;
 
 		local_03e996[0] = 0;
+		write_index = 1;
 		do
 		{
 			long node_index = local_03e996[read_index++];

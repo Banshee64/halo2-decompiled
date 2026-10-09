@@ -31,11 +31,11 @@ void s_text_widget_a::initialize(const s_short_rectangle *rectangle, const color
 	this->color_a = *color_a;
 	this->color_b = *color_b;
 	unicode_string_copy(this->text, text, text_length);
+	this->flag = flag;
 	text_bounds = bounds;
 	text_bounds.top--;
 	text_bounds.left += 2;
 	text_bounds.right -= 2;
-	this->flag = flag;
 	valid = 1;
 }
 
@@ -49,11 +49,11 @@ void s_text_widget_b::initialize(const s_short_rectangle *rectangle, const color
 	this->color_a = *color_a;
 	this->color_b = *color_b;
 	unicode_string_copy(this->text, text, text_length);
+	this->flag = flag;
 	text_bounds = bounds;
 	text_bounds.top--;
 	text_bounds.left += 2;
 	text_bounds.right -= 2;
-	this->flag = flag;
 	valid = 1;
 }
 
@@ -67,11 +67,11 @@ void s_text_widget_c::initialize(const s_short_rectangle *rectangle, const color
 	this->color_a = *color_a;
 	this->color_b = *color_b;
 	unicode_string_copy(this->text, text, text_length);
+	this->flag = flag;
 	text_bounds = bounds;
 	text_bounds.top--;
 	text_bounds.left += 2;
 	text_bounds.right -= 2;
-	this->flag = flag;
 	valid = 1;
 }
 
@@ -85,11 +85,11 @@ void s_text_widget_d::initialize(const s_short_rectangle *rectangle, const color
 	this->color_a = *color_a;
 	this->color_b = *color_b;
 	unicode_string_copy(this->text, text, text_length);
+	this->flag = flag;
 	text_bounds = bounds;
 	text_bounds.top--;
 	text_bounds.left += 2;
 	text_bounds.right -= 2;
-	this->flag = flag;
 	valid = 1;
 }
 
