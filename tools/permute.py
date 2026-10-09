@@ -786,9 +786,156 @@ def mut_swap_ternary(body, rng):
     return '\n'.join(lines)
 
 
+# What the edits that turned near functions into matches did (the last change to the body, from the history of
+# config/functions.csv): in the largest group two arguments of a call traded places; next came volatile reads and
+# qualifiers, then locals that take the address of a field or hoist a loop's declaration.
+
+CALLEE = re.compile(r'(?<![\w$])(?!(?:if|while|for|switch|return|sizeof)\b)[A-Za-z_]\w*[ \t]*\(')
+
+
+def _call_args(text, open_index):
+    """([(start, end) of each argument], index after the call) for the call whose '(' is at open_index."""
+    end = _split_top(text, open_index)
+    if end is None:
+        return None
+    spans, depth, start, i = [], 0, open_index + 1, open_index + 1
+    while i < end - 1:
+        j = _skip_literal(text, i)
+        if j != i:
+            i = j
+            continue
+        if text[i] in '([{':
+            depth += 1
+        elif text[i] in ')]}':
+            depth -= 1
+        elif text[i] == ',' and depth == 0:
+            spans.append((start, i))
+            start = i + 1
+        i += 1
+    spans.append((start, end - 1))
+    return spans, end
+
+
+def _arg_kind(arg):
+    arg = arg.strip()
+    if re.fullmatch(r'-?\d\w*|NONE|NULL|true|false', arg):
+        return 'literal'
+    if arg.startswith('&'):
+        return 'address'
+    if re.match(r'\([A-Za-z_][\w \t\*]*\)', arg):
+        return 'cast'
+    return 'value'
+
+
+def _literal_spans(text):
+    """The (start, end) of each comment, string and character literal in text."""
+    spans, i = [], 0
+    while i < len(text):
+        j = _skip_literal(text, i)
+        if j != i:
+            spans.append((i, j))
+        i = max(j, i + 1)
+    return spans
+
+
+def mut_swap_args(body, rng):
+    """f(a, b, c) -> f(b, a, c): two arguments of one call trade places (any two; neighbours and equal kinds
+    are likelier). What the call means changes, so a variant is kept only when its code gets closer to retail."""
+    calls, literals = [], _literal_spans(body)
+    for m in CALLEE.finditer(body):
+        if any(a <= m.start() < b for a, b in literals):
+            continue
+        got = _call_args(body, m.end() - 1)
+        if got and len(got[0]) >= 2:
+            texts = [body[a:b].strip() for a, b in got[0]]
+            pairs = [(i, j) for i in range(len(texts)) for j in range(i + 1, len(texts)) if texts[i] != texts[j]]
+            if pairs:
+                calls.append((got[0], texts, pairs))
+    if not calls:
+        return None
+    spans, texts, pairs = rng.choice(calls)
+    weights = [(3 if j == i + 1 else 1) * (2 if _arg_kind(texts[i]) == _arg_kind(texts[j]) else 1) for i, j in pairs]
+    i, j = rng.choices(pairs, weights)[0]
+    out = body
+    for k, other in ((j, i), (i, j)):          # right to left, so the earlier span keeps its place
+        a, b = spans[k]
+        lead = len(body[a:b]) - len(body[a:b].lstrip())
+        trail = len(body[a:b]) - len(body[a:b].rstrip())
+        out = out[:a + lead] + texts[other] + out[b - trail:]
+    return out
+
+
+SCALARS = r'(?:unsigned long|unsigned short|unsigned char|long|short|char|byte|word|dword|int|real|bool)'
+FIELD = r'(?:[A-Za-z_]\w*(?:(?:\.|->)[A-Za-z_]\w*|\[[\w ]+\])+|g_\w+)'     # a field, an element or a global
+PLAIN_READ = re.compile(r'^(?P<head>[ \t]*(?P<type>' + SCALARS + r')[ \t]+\w+[ \t]*=[ \t]*)(?P<field>' + FIELD
+                        + r')[ \t]*;[ \t]*$')
+VOLATILE_READ = re.compile(r'^(?P<head>[ \t]*(?P<type>' + SCALARS + r')[ \t]+\w+[ \t]*=[ \t]*)'
+                           r'\*\((?:const )?volatile (?P=type) \*\)&(?P<field>' + FIELD + r')[ \t]*;[ \t]*$')
+LITERAL_STORE = re.compile(r'^(?P<indent>[ \t]*)(?P<place>' + FIELD + r')[ \t]*=[ \t]*'
+                           r'(?P<value>-?\d\w*|NONE|true|false)[ \t]*;[ \t]*$')
+VOLATILE_STORE = re.compile(r'^(?P<indent>[ \t]*)\*\(volatile \w+ \*\)&(?P<place>' + FIELD + r')[ \t]*=[ \t]*'
+                            r'(?P<value>[^;]+);[ \t]*$')
+
+
+def mut_volatile_read(body, rng):
+    """'T x = p->f;' <-> 'T x = *(volatile T *)&p->f;' (a global too), and
+    'p->f = 0;' <-> '*(volatile T *)&p->f = 0;': the access goes to memory, at T's width."""
+    lines = body.split('\n')
+    cands = [(i, 'wrap') for i, l in enumerate(lines) if PLAIN_READ.match(l)]
+    cands += [(i, 'plain') for i, l in enumerate(lines) if VOLATILE_READ.match(l)]
+    cands += [(i, 'store') for i, l in enumerate(lines) if LITERAL_STORE.match(l)]
+    cands += [(i, 'unstore') for i, l in enumerate(lines) if VOLATILE_STORE.match(l)]
+    if not cands:
+        return None
+    i, kind = rng.choice(cands)
+    if kind == 'wrap':
+        m = PLAIN_READ.match(lines[i])
+        lines[i] = f'{m.group("head")}*(volatile {m.group("type")} *)&{m.group("field")};'
+    elif kind == 'plain':
+        m = VOLATILE_READ.match(lines[i])
+        lines[i] = f'{m.group("head")}{m.group("field")};'
+    elif kind == 'store':
+        m = LITERAL_STORE.match(lines[i])
+        width = ('bool' if m.group('value') in ('true', 'false')
+                 else rng.choice(['long', 'long', 'long', 'short', 'byte']))
+        lines[i] = f'{m.group("indent")}*(volatile {width} *)&{m.group("place")} = {m.group("value")};'
+    else:
+        m = VOLATILE_STORE.match(lines[i])
+        lines[i] = f'{m.group("indent")}{m.group("place")} = {m.group("value")};'
+    return '\n'.join(lines)
+
+
+POINTER_LOCAL = re.compile(r'^(?P<indent>[ \t]*)(?P<type>(?:const )?[A-Za-z_]\w*)(?P<volatile> volatile)?'
+                           r'(?P<const> const)?[ \t]*\*[ \t]*(?P<name>\w+)[ \t]*=[ \t]*(?P<rest>[^;]+;[ \t]*)$')
+
+
+def mut_volatile_pointer(body, rng):
+    """'T *p = e;' <-> 'T volatile *p = e;': every read through p goes to memory."""
+    lines = body.split('\n')
+    cands = []
+    for i, l in enumerate(lines):
+        m = POINTER_LOCAL.match(l)
+        if m and m.group('type') not in ('return', 'else', 'case', 'goto', 'delete'):
+            cands.append(i)
+    if not cands:
+        return None
+    i = rng.choice(cands)
+    m = POINTER_LOCAL.match(lines[i])
+    volatile = '' if m.group('volatile') else ' volatile'
+    lines[i] = (f'{m.group("indent")}{m.group("type")}{volatile}{m.group("const") or ""} *{m.group("name")} = '
+                f'{m.group("rest")}')
+    return '\n'.join(lines)
+
+
 MUTATIONS = [mut_swap_operands, mut_reorder, mut_retype, mut_introduce_temp, mut_inline_temp, mut_swap_if_else,
              mut_for_while, mut_compound, mut_increment, mut_split_decl, mut_chain_assign, mut_bool_flag,
-             mut_or_split, mut_ternary, mut_swap_ternary]
+             mut_or_split, mut_ternary, mut_swap_ternary, mut_swap_args,
+             mut_volatile_read, mut_volatile_pointer]
+
+
+# Tried more often: call arguments traded places in a fifth of the edits that made a near function match, and
+# statement order or operand order in a few more (see the comment above mut_swap_args). The rest weigh 1.
+WEIGHTS = {mut_swap_args: 6, mut_reorder: 2, mut_swap_operands: 2}
 
 
 def mutate(body, rng, count=None):
@@ -797,8 +944,9 @@ def mutate(body, rng, count=None):
     changed = False
     for _ in range(count):
         order = MUTATIONS[:]
-        rng.shuffle(order)
-        for mut in order:
+        while order:
+            mut = rng.choices(order, [WEIGHTS.get(m, 1) for m in order])[0]
+            order.remove(mut)
             new = mut(body, rng)
             if new is not None and new != body:
                 body, changed = new, True

@@ -191,6 +191,41 @@ def test_swap_ternary_negates():
     assert permute.mut_swap_ternary('\n\ty = x = a ? c : d;\n', rng()) is None
 
 
+def test_swap_args_trades_two_arguments():
+    swap = permute.mut_swap_args
+    seen = {swap('\n\tf(a, 0x2a, b);\n', random.Random(s)) for s in range(60)}
+    assert seen == {'\n\tf(0x2a, a, b);\n', '\n\tf(b, 0x2a, a);\n', '\n\tf(a, b, 0x2a);\n'}
+    assert swap('\n\tf( a , b );\n', rng()) == '\n\tf( b , a );\n'
+    assert swap('\n\tf("a,b", c);\n', rng()) == '\n\tf(c, "a,b");\n'
+    nested = {swap('\n\tf(g(a, b), c);\n', random.Random(s)) for s in range(60)}
+    assert nested == {'\n\tf(c, g(a, b));\n', '\n\tf(g(b, a), c);\n'}
+    assert swap('\n\tf(a, a);\n', rng()) is None and swap('\n\tf(a);\n', rng()) is None
+    assert swap('\n\tif (a, b) return (c, d);\n', rng()) is None
+    assert swap('\n\t// f(a, b)\n\tx = 1;\n', rng()) is None  # a comment is not a call
+
+
+def test_volatile_forms_both_ways():
+    read = permute.mut_volatile_read
+    assert read('\n\tlong x = p->f;\n', rng()) == '\n\tlong x = *(volatile long *)&p->f;\n'
+    assert read('\n\tlong x = *(volatile long *)&p->f;\n', rng()) == '\n\tlong x = p->f;\n'
+    assert read('\n\treal v = g_4cf478;\n', rng()) == '\n\treal v = *(volatile real *)&g_4cf478;\n'
+    assert read('\n\te->pending = true;\n', rng()) == '\n\t*(volatile bool *)&e->pending = true;\n'
+    assert read('\n\t*(volatile bool *)&e->pending = true;\n', rng()) == '\n\te->pending = true;\n'
+    assert read('\n\tlong x = f(p);\n', rng()) is None
+    pointer = permute.mut_volatile_pointer
+    assert pointer('\n\ts_slot *h = g[type];\n', rng()) == '\n\ts_slot volatile *h = g[type];\n'
+    assert pointer('\n\ts_slot volatile *h = g[type];\n', rng()) == '\n\ts_slot *h = g[type];\n'
+    assert pointer('\n\ts_slot const *h = g[type];\n', rng()) == '\n\ts_slot volatile const *h = g[type];\n'
+    assert pointer('\n\treturn *p = 3;\n', rng()) is None
+
+
+def test_mutate_favours_the_edits_that_worked_before():
+    body = '\n\tlong a = 1;\n\tlong b = 2;\n\tx = a + b;\n\tf(a, b);\n'
+    firsts = [permute.mutate(body, random.Random(s), count=1) for s in range(300)]
+    swapped = sum(1 for out in firsts if out is not None and 'f(b, a);' in out)
+    assert swapped > 300 * 0.25
+
+
 IDIOMS = '''
 	if (a && b) {
 		x = c ? 1 : 0;
@@ -204,7 +239,7 @@ IDIOMS = '''
 
 def test_idiom_mutations_keep_the_body_balanced():
     seen = set()
-    for seed in range(80):
+    for seed in range(200):
         out = permute.mutate(IDIOMS, random.Random(seed))
         if out is not None:
             seen.add(out)
