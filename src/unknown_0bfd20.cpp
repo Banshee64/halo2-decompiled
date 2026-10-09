@@ -40,9 +40,9 @@ real g_547634;
 real g_547638;
 
 // @retail 0xbfd20
-void function_0bfd20(word object_index)
+void function_0bfd20(long object_index)
 {
-	s_object_hdr *object = ((s_object_header *)g_4e0300->data)[object_index].object;
+	s_object_hdr *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	s_match_globals *globals = g_4e0348;
 	if (TEST_FIELD_BIT(g_4e3b44[(object->tag_index & 0xffff)].flags->flag0))
 	{
@@ -181,7 +181,7 @@ void function_bfcc0(void)
 	} state;
 	function_bae80(&state.iterator, 0, 0);
 	while ((state.object = function_baeb0(&state.iterator)) != 0)
-		function_0bfd20((word)state.iterator.object_index);
+		function_0bfd20(state.iterator.object_index);
 }
 
 

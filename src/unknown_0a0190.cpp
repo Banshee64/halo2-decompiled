@@ -14,12 +14,14 @@ static inline bool function_x41b793(real value)
 }
 
 // @retail 0xa0190
-bool function_a0190(vector3f const *vector)
+inline bool function_a0190(vector3f const *vector)
 {
 	real difference = length_sq3f(vector) - 1.0f;
 
 	return function_x41b793(difference) && fabs(difference) < k_real_tolerance;
 }
+
+__declspec(noinline) bool function_a0200(real a, real b);
 
 // @retail 0xa0200
 bool function_a0200(real a, real b)
