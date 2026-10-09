@@ -90,7 +90,7 @@ PRIVATE __forceinline void rotate_direction(vector3f *vector, const vector3f *ax
 }
 
 // @retail 0x1ecf50
-void function_1ecf50(s_direction_rotation_input *input, vector3f *up, vector3f *forward)
+void function_1ecf50(vector3f *forward, vector3f *up, s_direction_rotation_input *input)
 {
 	if (!(input->flags & 0x40))
 	{
@@ -98,7 +98,7 @@ void function_1ecf50(s_direction_rotation_input *input, vector3f *up, vector3f *
 		dot = PIN(dot, -1.0f, 1.0f);
 		if (!(fabs(dot - 1.0f) < 0.0001f))
 		{
-			real angle = (real)acos(PIN(dot, -1.0f, 1.0f));
+			real volatile angle = (real)acos(PIN(dot, -1.0f, 1.0f));
 			if (angle != 0.0f)
 			{
 				vector3f axis;
@@ -108,7 +108,7 @@ void function_1ecf50(s_direction_rotation_input *input, vector3f *up, vector3f *
 				if (function_30bf0(&axis) != 0.0f)
 				{
 					real sine = (real)sin(angle);
-					real cosine = (real)cos(angle);
+					real volatile cosine = (real)cos(angle);
 					*up = input->up;
 					*forward = input->forward;
 					rotate_direction(up, &axis, sine, cosine);

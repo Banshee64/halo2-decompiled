@@ -416,8 +416,7 @@ long function_25c9d0(long actor_index, long prop_ref_index, bool player, long si
 long function_25cb60(long actor_index, long object_index, short type, void *sample,
 	void *point, long location, long sight);
 short function_25cca0(long prop_ref_index);
-short function_263810(long actor_index, point3f const *origin, point3f const *point,
-	point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range);
+short function_263810(point3f const *origin, long actor_index, point3f const *point, point3f const *endpoint, char posture, short mode, bool use_facing, bool *out_of_range);
 void function_26bfa0(long object_index, long *location_index, s_location_view *location);
 real function_296600(long actor_index, long prop_ref_index);
 
@@ -521,8 +520,7 @@ void __stdcall function_264b50(long actor_index, long prop_ref_index, s_2641c0 *
 						*(short *)((byte *)sample + 0x28), sample, other_mode, false,
 						*(long *)(actor + 0x26c) != NONE, alternate, current ? (long *)(actor + 0x348) : NULL);
 					view->unknown8c = (short)other_sight;
-					view->unknown8a = function_263810(actor_index, (point3f const *)sample, (point3f const *)((byte *)state + 0x30),
-						NULL, 2, (short)other_sight, true, NULL);
+					view->unknown8a = function_263810((point3f const *)sample, actor_index, (point3f const *)((byte *)state + 0x30), NULL, 2, (short)other_sight, true, NULL);
 				}
 				else
 				{

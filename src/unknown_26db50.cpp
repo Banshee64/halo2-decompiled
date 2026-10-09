@@ -168,8 +168,8 @@ bool function_26d290(point3f const *origin, point3f const *target, long sector_i
 bool function_26e180(long record_index, s_record_motion_view const *motion, short mode, point3f *reported_point,
 	s_type_c3b527 *output, long *output_sector)
 {
-	s_location_record_view *record = (s_location_record_view *)(g_51eca4->data + (record_index & 0xffff) * sizeof(s_location_record_view));
 	bool result = false;
+	s_location_record_view *record = (s_location_record_view *)(g_51eca4->data + (record_index & 0xffff) * sizeof(s_location_record_view));
 	if (record->type == 1)
 	{
 		vector3f direction = motion->direction;
@@ -177,20 +177,22 @@ bool function_26e180(long record_index, s_record_motion_view const *motion, shor
 		if (function_30bf0(&direction) > 0.0f)
 		{
 			point3f point;
+			real point_z;
 			switch (mode)
 			{
 			case 1:
+				point_z = direction.k * 0.25f + motion->position.z;
 				point.x = direction.i * 0.25f + motion->position.x;
 				point.y = direction.j * 0.25f + motion->position.y;
-				point.z = direction.k * 0.25f + motion->position.z;
 				break;
 			case 2:
+				point_z = motion->position.z - direction.k * 0.25f;
 				point.x = motion->position.x - direction.i * 0.25f;
 				point.y = motion->position.y - direction.j * 0.25f;
-				point.z = motion->position.z - direction.k * 0.25f;
 				break;
 			case 3:
 				point = motion->position;
+				point_z = point.z;
 				break;
 			default:
 				mode = NONE;
@@ -201,6 +203,7 @@ bool function_26e180(long record_index, s_record_motion_view const *motion, shor
 				vector3f side = motion->side;
 				point.x += side.i * 0.15f;
 				point.y += side.j * 0.15f;
+				point.z = point_z;
 				short index = record->point.output_index;
 				if (function_210690(index, &point, &output->point))
 				{

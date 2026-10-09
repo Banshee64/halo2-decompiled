@@ -307,10 +307,11 @@ bool function_260160(long actor_index, s_prop_search *search, s_261d20_entry *en
 {
     s_type_b36ac5 *position = (s_type_b36ac5 *)entry;
     s_type_967e20 *context = (s_type_967e20 *)search;
-    long count = *(long *)((byte *)g_4e0348 + 0xc4);
+    byte *header = (byte *)g_4e0348;
+    long count = *(long *)(header + 0xc4);
     long *data = NULL;
     if (count > 0)
-        data = *(long **)((byte *)g_4e0348 + 0xc8);
+        data = *(long **)(header + 0xc8);
     position->score = 0.0f;
     position->unknown50 = 0.0f;
     position->unknown4c = true;

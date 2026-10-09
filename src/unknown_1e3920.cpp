@@ -187,11 +187,12 @@ s_actor_moving *function_1e47d0(s_actor_point_request *request)
 		}
 		if (request->index == NONE)
 			return NULL;
+		long next_actor_index = request->next_actor_index;
 		s_actor_moving *actor = NULL;
-		if (request->next_actor_index != NONE)
+		if (next_actor_index != NONE)
 		{
-			actor = actor_moving_get(request->next_actor_index);
-			request->actor_index = request->next_actor_index;
+			actor = actor_moving_get(next_actor_index);
+			request->actor_index = next_actor_index;
 			request->next_actor_index = *(long *)((byte *)actor + 0x80);
 		}
 		if (actor)
@@ -483,7 +484,7 @@ void function_690d0(c_class_6a600 *world, long actor_index, const dword *state);
 void function_1e4390(long actor_index)
 {
 	s_actor_control_view *actor = (s_actor_control_view *)actor_moving_get(actor_index);
-	s_unit_control_view *unit = (s_unit_control_view *)moving_object_get(actor->unit_index);
+	s_unit_control_view *unit = (s_unit_control_view *)moving_object_get(*(long volatile *)&actor->unit_index);
 	if (unit->player_index == NONE || *((byte *)g_4e8c20 + 6))
 	{
 		s_actor_control_request state;
@@ -500,10 +501,10 @@ void function_1e4390(long actor_index)
 		state.third = actor->third;
 		if (actor->reset)
 		{
-			function_cbf60(actor->unit_index, true);
+			function_cbf60(*(long volatile *)&actor->unit_index, true);
 			actor->reset = false;
 		}
-		function_c6de0(actor->unit_index, &state);
+		function_c6de0(*(long volatile *)&actor->unit_index, &state);
 		if (unit->simulation_index != NONE && !g_4cf772 && *(long *)((byte *)g_4cf77c + 8) != 0)
 			function_690d0((c_class_6a600 *)g_4cf77c, unit->simulation_index, (const dword *)&state);
 	}
@@ -528,7 +529,7 @@ long __stdcall function_cbd80(long object_index, long *holder_index);
 void *function_1e5280(long actor_index, long key);
 void function_118e80(long object_index, vector3f *forward);
 real normalize2d(point2f *vector);
-real function_267370(long object_index);
+real function_267370(long volatile object_index);
 
 // @retail 0x1e3b60
 void function_1e3b60(long actor_index)
