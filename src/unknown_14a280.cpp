@@ -225,17 +225,18 @@ extern bool g_4e7411;
 short function_14a6d0(short cluster_index, real cosine, point3f const *point, vector3f const *direction,
 	real maximum_distance, real scale, short maximum_count, short *clusters, short *count)
 {
+	short *cluster_index_reference = &cluster_index;
 	short stack[0x200];
 	short stack_count = 1;
 	short cluster_count = 0;
 
 	g_4e7414++;
 	g_4e7411 = true;
-	if (g_4e7418[cluster_index] != g_4e7414)
+	if (g_4e7418[(*cluster_index_reference)] != g_4e7414)
 	{
-		g_4e7418[cluster_index] = g_4e7414;
+		g_4e7418[(*cluster_index_reference)] = g_4e7414;
 	}
-	stack[0] = cluster_index;
+	stack[0] = (*cluster_index_reference);
 	do
 	{
 		s_structure_bsp_portals_view *bsp = (s_structure_bsp_portals_view *)g_4e0348;

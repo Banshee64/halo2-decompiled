@@ -2,6 +2,26 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7356 functions match
+
+```
+matched 7356 of 11318 game functions (849316 of 2784283 bytes, 30.50%)
+```
+
+23 new matches, none lost:
+- Deep lane 2, near-length (lanes S, T, R, Q, N, H and the UI core): 16 matches including 0x1015a0, 0x10f3b0, 0x10fcd0, 0x1922a0 and 0x252ed8.
+- Deep lane 1, new bodies and mid-length tuning in the same lanes: 0x10a040, 0x14bf80, 0x156fe0, 0x213d20, 0x2a1800.
+- Deep lane 3, large functions: 0x2bff80 (688 bytes) and 0x15ee30 (556 bytes).
+
+## 2026-10-09: 7333 functions match
+
+```
+matched 7333 of 11318 game functions (844696 of 2784283 bytes, 30.34%)
+```
+
+6 new matches, none lost:
+- Deep lane 3, round 13 (in lanes W, Z, AB and AD): 0xa4170, 0xa23a0, 0xa1120, 0xb5f10, 0x24970, 0x3dc90; sixteen newly written bodies are active.
+
 ## 2026-10-09: 7327 functions match
 
 ```

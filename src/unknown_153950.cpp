@@ -71,7 +71,8 @@ void function_153950(void)
 				if (slot->decay[i] > 0)
 				{
 					long value = slot->decay[i] - decay;
-					slot->decay[i] = value < 0 ? 0 : value;
+					byte mask = (byte)((value < 0) - 1);
+					slot->decay[i] = (byte)value & mask;
 				}
 				i++;
 			}

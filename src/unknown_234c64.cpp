@@ -432,14 +432,14 @@ void c_window_channel_45997c::update()
 				}
 				break;
 			case 2:
-				if (state >= 2)
+				if (!(state >= 2))
 				{
-					m3c = 1.f;
+					m3c = 0.f;
 					value = 1.f;
 				}
 				else
 				{
-					m3c = 0.f;
+					m3c = 1.f;
 					value = 1.f;
 				}
 				break;

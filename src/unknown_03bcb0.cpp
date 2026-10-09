@@ -51,7 +51,7 @@ bool function_3bea0(void)
 #include <string.h>
 struct s_frustum_1648d0;
 struct s_camera_163db0;
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result);
 void function_141590(transform4x3f const *in, transform4x3f *out);
 real function_30bf0(vector3f *vector);
 
@@ -119,7 +119,7 @@ void function_441b0(s_planar_camera_source const *source, s_planar_camera *state
 	state->corners[3].y = rectangle->y1;
 	state->count = 4;
 	state->valid = true;
-	function_163db0((s_frustum_1648d0 *)state->frustum, rectangle, (s_camera_163db0 *)state, 0);
+	function_163db0((s_camera_163db0 *)state, rectangle, 0, (s_frustum_1648d0 *)state->frustum);
 }
 
 struct s_3c9a0_matrix
@@ -796,10 +796,9 @@ void function_3d000(real const *state)
         state[41] - state[40] > 0.0001f)
     {
         double inverse = 1.0 / state[34];
-        real low = (real)(inverse * state[40] * 16777215.0);
-        real high = (real)(inverse * state[41] * 16777215.0);
-        direction[0] = 1.0f / (high - low);
-        direction[1] = 0.0f - direction[0] * low;
+        struct { real a, b; } local_low_high_record = { (real)(inverse * state[40] * 16777215.0), (real)(inverse * state[41] * 16777215.0) };
+        direction[0] = 1.0f / (local_low_high_record.b - local_low_high_record.a);
+        direction[1] = 0.0f - direction[0] * local_low_high_record.a;
         direction[2] = 0.0f;
         direction[3] = 0.0f;
     }

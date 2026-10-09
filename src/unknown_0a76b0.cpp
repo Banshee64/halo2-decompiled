@@ -149,7 +149,7 @@ void function_bba20(long object_index);
 void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
 bool function_0c7070(long unit_index);
 void function_cf040(long unit_index, short type);
-bool function_10f3b0(long object_index, long name, long unknown);
+byte function_10f3b0(long object_index, long name, long unknown);
 bool function_10f340(long object_index, long name, long unknown);
 bool function_10f630(long object_index, long *first, long *second);
 bool __stdcall function_110ab0(long unit_index);
@@ -1178,7 +1178,7 @@ bool function_e8510(long unit_index, bool immediate, bool silent, bool primary)
 }
 
 bool function_10fd40(long unit_index, long action_name, long state_name, bool flag);
-bool function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
+byte function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
 void __stdcall function_d0870(long weapon_index, long unit_index, bool secondary);
 void __stdcall function_fff40(long a, long b);
 
@@ -2920,7 +2920,7 @@ struct s_damage_owner
 	short team;
 };
 
-bool function_f5dc0(long object_index);
+__declspec(noinline) bool function_f5dc0(long object_index);
 void object_get_damage_owner(long object_index, s_damage_owner *owner);
 
 /* flips a vehicle back over (type 33): the way it rolls, from how far over
@@ -4437,7 +4437,7 @@ void function_168896(long user_index, long weapon_index, long field_x11c898, lon
 /* sets a user's first person weapon state, with the unit's matching
    requests (types 54 to 59) and ready ticks */
 // @retail 0xee680
-void function_ee680(long user_index, long state, bool secondary, long weapon_index)
+void function_ee680(long user_index, long state, long secondary, long weapon_index)
 {
 	if (user_index != NONE)
 	{

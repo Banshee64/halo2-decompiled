@@ -57,7 +57,7 @@ long __stdcall function_d1a30(long ignore_object_index, point3f const *point, s_
                 vector3f direction = *g_4687a4;
                 color3f color = *(color3f *)g_468718;
                 real strength = 0.0f;
-                long count = *(long *)(sky + 0x78);
+                long volatile count = *(long *)(sky + 0x78);
                 if (count > 0)
                 {
                     byte *lights = *(byte **)(sky + 0x7c);
@@ -558,8 +558,8 @@ bool function_d1d70(s_structure_lightmap_triangle const *triangle, s_mesh **out)
 		s_surface_geometry_resource *resource = (s_surface_geometry_resource *)(definitions + definition_index * 0xc8);
 		if (function_12de70(&resource->block, 3))
 		{
+			result = true;
 			*out = resource->sections;
-			return true;
 		}
 	}
 	else if (*(long const *)triangle->unknown08 == NONE)
@@ -957,8 +957,8 @@ long function_d1850(long object_index, long value, s_effect_color_query *query)
         if (*(long *)(bsp + 0x1c) != NONE && *(long *)(bsp + 4) == *(long *)((byte *)g_4e0348 + 8))
         {
             s_object *object = OBJECT_FROM_INDEX(object_index);
-            byte *definition = g_4e3b44[object->tag_index & 0xffff].bytes;
-            long flags = 0;
+            byte *volatile definition = g_4e3b44[object->tag_index & 0xffff].bytes;
+            long volatile flags = 0;
             if ((bool)((*(dword *)((byte *)object + 4) >> 13) & 1)) flags = 1;
             if ((bool)((definition[2] >> 1) & 1)) flags |= 1;
             point3f *point = (point3f *)((byte *)object + 0x30);
@@ -1173,12 +1173,12 @@ void function_d4080(s_effect_color_query const *query, long type, s_lighting_rec
 	(void)&flag;
 	vector3f normal = *(vector3f const *)query;
 	real length = (real)sqrt(normal.i * normal.i + normal.j * normal.j + normal.k * normal.k);
-	bool mobile = type == 0 || type == 1 || type == 2;
+	volatile bool mobile = type == 0 || type == 1 || type == 2;
 	record->length = lighting_normalize_ordered(&normal, (normal.i * normal.i + normal.k * normal.k) + normal.j * normal.j);
 	color3f base, lightmap;
 	unpack_color3f(query->color_a, &base);
 	unpack_color3f(query->color_b, &lightmap);
-	long tag_index = *(long *)((byte *)g_4e0350 + 0x33c);
+	volatile long tag_index = *(long *)((byte *)g_4e0350 + 0x33c);
 	if (tag_index == NONE)
 		tag_index = *(long *)((byte *)g_4e034c + 0x184);
 	s_lighting_parameter_block *block = (s_lighting_parameter_block *)g_4e3b44[tag_index & 0xffff].bytes;
@@ -1397,6 +1397,7 @@ bool function_d16d0(s_structure_lightmap_triangle const *triangle, color3f *out,
         {
             byte *bsp = (byte *)g_4e0344->locations;
             long index = triangle->instance_index;
+            real u = 0.0f, v = 0.0f;
             byte *entry;
             if (index != NONE)
                 entry = *(byte **)(bsp + 0x4c) + index * 4;
@@ -1404,7 +1405,7 @@ bool function_d16d0(s_structure_lightmap_triangle const *triangle, color3f *out,
                 entry = *(byte **)(bsp + 0x2c) + triangle->cluster_index * 4;
             short bitmap_index = *(short *)entry;
             long palette_index = (signed char)entry[2];
-            real u = 0.0f, v = 0.0f;
+
             color3f color = *(color3f *)g_468714;
             function_d2bf0(mesh, triangle->lightmap_part_index, triangle->u, triangle->v, &u, &v);
             if (function_d2f90(0, bitmap_index, palette_index, u, v, &color) == 0)
@@ -1475,7 +1476,7 @@ PRIVATE __forceinline void surface_sample_unpack(short const *source, s_sample_p
 long __stdcall function_d1e10(void const *surface, s_effect_color_query *query, long flags, long value)
 {
     s_structure_lightmap_triangle const *triangle = (s_structure_lightmap_triangle const *)surface;
-    long result = 2;
+    volatile long result = 2;
     if (*(long const *)triangle->unknown08 == NONE)
     {
         s_mesh *mesh = NULL;

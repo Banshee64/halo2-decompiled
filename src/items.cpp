@@ -12,14 +12,19 @@
 struct s_item
 {
 	long definition_index;
-	dword object_flags;
+	union
+	{
+		dword object_flags;
+		struct { dword : 7; dword object_flag7 : 1; };
+	};
 	byte unknown008[0x14 - 8];
 	long parent_index;
 	byte unknown018[0x28 - 0x18];
 	s_location location;
 	byte unknown030[0x64 - 0x30];
 	point3f position;
-	byte unknown070[0x88 - 0x70];
+	vector3f forward;
+	vector3f up;
 	vector3f linear_velocity;
 	vector3f angular_velocity;
 	byte unknown0a0[0xc1 - 0xa0];
@@ -424,10 +429,36 @@ extern s_slot_entry_list *g_4e0340;
 struct s_bsp3d;
 plane3f *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, plane3f *plane);
 real function_30bf0(vector3f *vector);
-vector3f *random_unit_vector(vector3f *result, dword *seed);
-struct s_location;
 void function_b75a0(long object_index, point3f const *position, vector3f const *forward,
 	vector3f const *up, s_location const *location, bool flag);
+
+// @retail 0x10b360
+void function_10b360(long object_index)
+{
+	s_item *item = ITEM_GET(object_index);
+	byte *definition = g_4e3b44[item->definition_index & 0xffff].bytes;
+	if (item->parent_index == NONE && !TEST_FIELD_BIT(item->object_flag7) &&
+		(definition[0xbc] & 1) && !(fabs(item->up.k - 1.0f) < 0.0001f))
+	{
+		vector3f *up = &item->up;
+		*up = *g_4687b0;
+		real side_i = item->forward.k * up->j - up->k * item->forward.j;
+		real side_j = up->k * item->forward.i - item->forward.k * up->i;
+		real side_k = up->i * item->forward.j - item->forward.i * up->j;
+		vector3f *forward = &item->forward;
+		real forward_k = up->j * side_i - up->i * side_j;
+		real forward_j = up->i * side_k - up->k * side_i;
+		real forward_i = up->k * side_j - up->j * side_k;
+		forward->i = forward_i;
+		forward->j = forward_j;
+		forward->k = forward_k;
+		if (function_30bf0(forward) == 0.0f)
+			*forward = *g_4687a8;
+		function_b75a0(object_index, &item->position, forward, up, &item->location, false);
+	}
+}
+vector3f *random_unit_vector(vector3f *result, dword *seed);
+struct s_location;
 void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity,
 	vector3f const *angular_velocity);
 
