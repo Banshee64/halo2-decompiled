@@ -126,7 +126,7 @@ bool __stdcall function_19be00(s_content_item *item, s_map_package *package)
 			if (!entry)
 				return false;
 			long tag_index = entry->tag_index;
-			long bitmap_tag_index = entry->bitmap_tag_index;
+			volatile long bitmap_tag_index = entry->bitmap_tag_index;
 			memset(entry, 0, sizeof(*entry));
 			memcpy(entry->descriptions, package->descriptions, sizeof(entry->descriptions));
 			entry->flags = package->flags;

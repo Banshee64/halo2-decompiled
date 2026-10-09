@@ -51,7 +51,7 @@ bool function_3bea0(void)
 #include <string.h>
 struct s_frustum_1648d0;
 struct s_camera_163db0;
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result);
 void function_141590(transform4x3f const *in, transform4x3f *out);
 real function_30bf0(vector3f *vector);
 
@@ -119,7 +119,7 @@ void function_441b0(s_planar_camera_source const *source, s_planar_camera *state
 	state->corners[3].y = rectangle->y1;
 	state->count = 4;
 	state->valid = true;
-	function_163db0((s_frustum_1648d0 *)state->frustum, rectangle, (s_camera_163db0 *)state, 0);
+	function_163db0((s_camera_163db0 *)state, rectangle, 0, (s_frustum_1648d0 *)state->frustum);
 }
 
 struct s_3c9a0_matrix

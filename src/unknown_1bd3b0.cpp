@@ -52,7 +52,7 @@ struct s_5d_object_tag
 	short unknown244;
 };
 
-bool function_f5dc0(long object_index);
+__declspec(noinline) bool function_f5dc0(long object_index);
 
 real function_30bf0(vector3f *v);
 long function_1fa7f0(void);

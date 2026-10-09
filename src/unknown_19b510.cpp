@@ -250,6 +250,7 @@ c_dialog_ok_screen::c_dialog_ok_screen(long a, long b, word user_flags) :
 void c_dialog_ok_screen::v18(void *parameters)
 {
 	c_class_1a2c81 *volatile widget = (c_class_1a2c81 *)function_1480ff(screen_id);
+	widget = &button;
 	s_screen_layout layout =
 	{
 		0,
@@ -259,7 +260,6 @@ void c_dialog_ok_screen::v18(void *parameters)
 		}
 	};
 
-	widget = &button;
 	build(&layout);
 	{
 		c_class_1a2c81 **parent = &button.parent;

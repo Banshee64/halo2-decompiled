@@ -671,7 +671,7 @@ struct s_view_collection_1733e0
 struct s_frustum_1648d0;
 struct s_camera_163db0;
 struct s_16e150_bits;
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result);
 void function_16de20(short index, s_16e150_bits const *table, dword *output);
 bool __stdcall function_134950(long a, long b, void const *context);
 void sort_4byte(long *elements, unsigned long count, void *unused, bool (__stdcall *compare)(long, long, void const *), void const *context);
@@ -703,7 +703,7 @@ void function_1733e0(s_view_collection_1733e0 *collection, long cluster_index, b
 				{
 					s_view_volume_1733e0 *volume = &collection->volumes[volume_index];
 					collection->volume_count = volume_index + 1;
-					function_163db0((s_frustum_1648d0 *)volume, (box2f const *)(camera + 0xa0), (s_camera_163db0 const *)camera, 0);
+					function_163db0((s_camera_163db0 const *)camera, (box2f const *)(camera + 0xa0), 0, (s_frustum_1648d0 *)volume);
 					++cluster->counts[0];
 					if (cluster->heads[0] == NONE)
 						cluster->heads[0] = volume_index;
@@ -746,8 +746,7 @@ bool function_172ee0(long *cluster_map, s_pool_lists const *lists, s_pool *pool,
 		{
 			s_view_volume_1733e0 *volume = &collection->volumes[volume_index];
 			collection->volume_count = volume_index + 1;
-			if (function_163db0((s_frustum_1648d0 *)volume, (box2f const *)&entry->rect,
-				(s_camera_163db0 const *)(cameras + entry->key * 0x1bc), entry->key))
+			if (function_163db0((s_camera_163db0 const *)(cameras + entry->key * 0x1bc), (box2f const *)&entry->rect, entry->key, (s_frustum_1648d0 *)volume))
 			{
 				volume->cluster_index = cluster_slot;
 				volume->distance = entry->unknown24;

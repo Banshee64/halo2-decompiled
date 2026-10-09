@@ -128,18 +128,19 @@ void c_widget::v15(c_widget *widget)
 // @retail 0x22ebc3
 void c_widget::v16()
 {
-	c_widget *widget = next;
-	if (!widget)
+	c_widget *candidate = next;
+	if (!candidate)
 	{
 		c_widget *p = prev;
-		widget = this;
+		candidate = this;
 		while (p)
 		{
-			widget = p;
-			p = widget->prev;
+			candidate = p;
+			p = candidate->prev;
 		}
 	}
-	while (widget)
+	c_widget *widget;
+	while ((widget = candidate) != 0)
 	{
 		if (widget->function_22e37f())
 		{
@@ -147,7 +148,7 @@ void c_widget::v16()
 			widget->function_22ecb4(true);
 			return;
 		}
-		c_widget *candidate = widget->next;
+		candidate = widget->next;
 		if (!candidate)
 		{
 			c_widget *p = widget->prev;
@@ -158,25 +159,25 @@ void c_widget::v16()
 				p = candidate->prev;
 			}
 		}
-		widget = candidate;
 	}
 }
 
 // @retail 0x22ec1b
 void c_widget::v17()
 {
-	c_widget *widget = prev;
-	if (!widget)
+	c_widget *candidate = prev;
+	if (!candidate)
 	{
 		c_widget *p = next;
-		widget = this;
+		candidate = this;
 		while (p)
 		{
-			widget = p;
-			p = widget->next;
+			candidate = p;
+			p = candidate->next;
 		}
 	}
-	while (widget)
+	c_widget *widget;
+	while ((widget = candidate) != 0)
 	{
 		if (widget->function_22e37f())
 		{
@@ -184,7 +185,7 @@ void c_widget::v17()
 			widget->function_22ecb4(true);
 			return;
 		}
-		c_widget *candidate = widget->prev;
+		candidate = widget->prev;
 		if (!candidate)
 		{
 			c_widget *p = widget->next;
@@ -195,7 +196,6 @@ void c_widget::v17()
 				p = candidate->next;
 			}
 		}
-		widget = candidate;
 	}
 }
 

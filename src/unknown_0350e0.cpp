@@ -83,7 +83,7 @@ void __stdcall function_39e50(real step)
 
 struct s_frustum_1648d0;
 struct s_camera_163db0;
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result);
 void function_141590(transform4x3f const *in, transform4x3f *out);
 real function_30bf0(vector3f *vector);
 

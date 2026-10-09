@@ -145,7 +145,7 @@ struct s_team_entry
 
 long function_19f3c0(long, long);
 bool function_19f240(long *iterator);
-void function_1967d0(long a, long b, long c, long delta);
+void function_1967d0(long a, long c, long b, long delta);
 void function_1970a0(long b, long a, long delta);
 void function_197210(long player_index, long value14, long value10);
 void game_engine_event_initialize(s_event *event, long type, long subtype);
@@ -175,7 +175,7 @@ bool function_bacc0(long object_index, long index, point3f const *point);
 bool function_138860();
 bool function_138880();
 void function_15fe70(long player_index);
-void function_15b3a0(long team, long a);
+void function_15b3a0(long team, bool a);
 
 /* ---- the game engine class whose vtable is at 0x459d18 ---- */
 struct s_marker_update;
@@ -1068,12 +1068,12 @@ void c_game_engine_markers::v30(long killer, long victim, bool suicide, long)
 
 		if (ctf_options()->engine_type == 9)
 		{
-			function_1967d0(absolute_index, 0x14, team, 1);
+			function_1967d0(absolute_index, team, 0x14, 1);
 			function_1970a0(absolute_index, 0x16, 1);
 		}
 		else
 		{
-			function_1967d0(absolute_index, 0x10, team, 1);
+			function_1967d0(absolute_index, team, 0x10, 1);
 			function_1970a0(absolute_index, 0x13, 1);
 		}
 	}
@@ -1120,11 +1120,11 @@ void c_game_engine_markers::v23(long object_index, long unit_index)
 
 					if (ctf_options()->engine_type == 9)
 					{
-						function_1967d0(absolute_index, 0x15, team, 1);
+						function_1967d0(absolute_index, team, 0x15, 1);
 					}
 					else
 					{
-						function_1967d0(absolute_index, 0xf, team, 1);
+						function_1967d0(absolute_index, team, 0xf, 1);
 						function_1970a0(absolute_index, 0x12, 1);
 					}
 				}
@@ -1983,7 +1983,7 @@ void function_242e00(long player_index, long team)
 		long local_0 = ctf_options()->engine_type == 9 ? 0x12 : 0xe;
 		long local_1 = player_index & 0xffff;
 		long local_2 = ctf_player_get(player_index)->team;
-		function_1967d0(local_1, local_0, local_2, 1);
+		function_1967d0(local_1, local_2, local_0, 1);
 	}
 
 	game_engine_event_initialize_inline(&event, ctf_options()->engine_type == 9 ? 10 : 3, 5);
@@ -2121,7 +2121,7 @@ void function_242ba0(long marker_index, long object_index, long player_index)
 		{
 			long absolute_index = player_index & 0xffff;
 
-			function_1967d0(absolute_index, 0x13, ctf_player_get(player_index)->team, 1);
+			function_1967d0(absolute_index, ctf_player_get(player_index)->team, 0x13, 1);
 			function_1970a0(absolute_index, 0x15, 1);
 		}
 

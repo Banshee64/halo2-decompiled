@@ -23,14 +23,17 @@ struct plane2f
 PRIVATE __forceinline bool polygon_clip_intersection_23a430(plane2f const *plane,
 	point2f const *first, point2f const *second, long count, short capacity, point2f *output)
 {
-	real dx = first->x - second->x;
 	real dy = first->y - second->y;
-	real denominator = plane->n.i * dx + plane->n.j * dy;
+	real dx = first->x - second->x;
+	real denominator = plane->n.i * dx;
+	denominator += plane->n.j * dy;
 	if ((denominator < -0.0001f || denominator > 0.0001f) && count < capacity)
 	{
 		real fraction = (plane->n.j * first->y + plane->n.i * first->x - plane->d) / denominator;
-		output->x = first->x - dx * fraction;
-		output->y = first->y - dy * fraction;
+		dx *= fraction;
+		output->x = first->x - dx;
+		dy *= fraction;
+		output->y = first->y - dy;
 		return true;
 	}
 	return false;

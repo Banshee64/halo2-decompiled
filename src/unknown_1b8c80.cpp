@@ -598,7 +598,7 @@ bool function_1ba990(long actor_index, long unit_index, bool force, real near_ra
 	return result;
 }
 
-bool function_f5dc0(long object_index);
+__declspec(noinline) bool function_f5dc0(long object_index);
 long function_25d810(long object_index, long actor_index, bool create);
 bool __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
 
