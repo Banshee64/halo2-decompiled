@@ -510,7 +510,7 @@ short __stdcall function_1ae440(long arg_0, s_slot *arg_1)
 						local_9.point.y += local_8.j * 1.5f;
 						local_9.point.z += local_8.k * 1.5f;
 						if (function_255b10(arg_0, &local_9, local_0->prop_index, false))
-							function_1fb7e0(arg_0, 0x1c, NULL, local_1->object_index, NONE);
+							function_1fb7e0(0x1c, arg_0, NULL, local_1->object_index, NONE);
 					}
 				}
 			}

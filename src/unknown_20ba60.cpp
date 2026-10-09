@@ -43,7 +43,7 @@ struct s_20d0c0
 struct s_audio_queue;
 extern s_audio_queue *g_4f939c;
 
-long function_20f040(short arg_0);
+long __declspec(noinline) function_20f040(short arg_0);
 bool function_114b60(short arg_0, short arg_1, long arg_2, long arg_3, void const *arg_4);
 long function_20f2d0(short arg_1, long arg_0, long arg_2, long arg_3, long arg_4, s_20d0c0 const *arg_5);
 void function_20cbd0(short arg_0, s_audio_priority_table *arg_1, long arg_2,

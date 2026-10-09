@@ -1798,7 +1798,7 @@ void function_269870(long clump_index)
 {
     s_clump_activity_view *clump = (s_clump_activity_view *)clump_get(clump_index);
     byte *structure = (byte *)g_4e0348;
-    short count = 0, selected = 0, cursor = 0;
+    short count = 0, cursor = 0, selected = 0;
     real distance = 50.0f;
     s_iterator actors;
     actors.next = clump->first_actor;

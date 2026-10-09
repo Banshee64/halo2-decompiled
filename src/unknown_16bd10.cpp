@@ -610,7 +610,7 @@ bool camera_scripting_animation_matrix_get(transform4x3f *matrix, real *seconds_
 }
 
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 long structure_leaf_cluster_get(long leaf_index);
 extern s_bsp3d *g_4e033c;
 void function_23bc90(long object_index, point3f *position, vector3f *forward);
@@ -629,7 +629,7 @@ struct s_camera_leaves_view
 
 static __forceinline long camera_cluster_from_point(point3f *point)
 {
-	long leaf_index = function_14a280(g_4e033c, point, 0);
+	long leaf_index = function_14a280(g_4e033c, 0, point);
 	long result;
 
 	if (leaf_index != NONE)
@@ -665,7 +665,7 @@ long camera_scripting_cluster_get(void)
 
 			if (camera_scripting_animation_matrix_get(&matrix, &seconds))
 			{
-				result = structure_leaf_cluster_get(function_14a280(g_4e033c, &matrix.position, 0));
+				result = structure_leaf_cluster_get(function_14a280(g_4e033c, 0, &matrix.position));
 			}
 		}
 		break;
@@ -679,7 +679,7 @@ long camera_scripting_cluster_get(void)
 				vector3f forward;
 
 				function_23bc90(object_index, &position, &forward);
-				result = structure_leaf_cluster_get(function_14a280(g_4e033c, &position, 0));
+				result = structure_leaf_cluster_get(function_14a280(g_4e033c, 0, &position));
 			}
 		}
 		break;

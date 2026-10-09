@@ -61,7 +61,7 @@ bool __stdcall function_1b5700(long actor_index, s_slot *slot)
 		type = 0x3d;
 	}
 	if (actor->unknown344 != NONE)
-		function_1fb7e0(actor_index, type, NULL, prop_node_get(actor->unknown344)->object_index, NONE);
+		function_1fb7e0(type, actor_index, NULL, prop_node_get(actor->unknown344)->object_index, NONE);
 	return true;
 }
 
