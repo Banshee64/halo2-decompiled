@@ -286,8 +286,8 @@ bool function_1b90b0(long actor_index, long object_index)
 // @retail 0x1b9190
 long function_1b9190(long object_index, long *rider_index)
 {
-	s_slot_object_view *object = object_get(object_index);
 	long result = NONE;
+	s_slot_object_view *object = object_get(object_index);
 
 	if (rider_index)
 		*rider_index = NONE;
@@ -297,9 +297,10 @@ long function_1b9190(long object_index, long *rider_index)
 
 		if (child->type == 0 && child->player_index != NONE)
 		{
+			result = child->player_index;
 			if (rider_index)
 				*rider_index = child_index;
-			return child->player_index;
+			break;
 		}
 		child_index = child->next_object_index;
 	}
@@ -492,13 +493,19 @@ void __stdcall function_1ba3f0(long actor_index, s_slot *slot, s_slot_target_lis
 		s_object_seat seats[0x40];
 
 		function_c8a40(element->object_index, seats, &count, 0x40);
-		for (short i = 0; i < count; i++)
+		if (count > 0)
 		{
-			s_object_seat *seat = &seats[i];
-			s_object_header_view *header = object_header_get(seat->object_index);
+			s_object_seat *seat = seats;
+			long local_0 = (word)count;
+			do
+			{
+				s_object_header_view *header = object_header_get(seat->object_index);
 
-			if (header->type == 1)
-				object_seat_unreserve((s_slot_object_view *)header->object, seat->seat_index);
+				if (header->type == 1)
+					object_seat_unreserve((s_slot_object_view *)header->object, seat->seat_index);
+				seat++;
+			}
+			while (--local_0);
 		}
 	}
 }

@@ -584,7 +584,7 @@ short __stdcall function_1b54d0(long actor_index, s_slot *slot)
                 if (distance > 0.0f)
                 {
                     real range = *(real *)(entry + 0x18);
-                    distance = distance > range * 2.0f ? distance * 0.5f : range;
+                    distance = distance > range * 2.0f ? distance * 0.5f : *(real const volatile *)(entry + 0x18);
                     s_type_c3b527 point;
                     point.point.x = actor->position.x + direction.i * distance;
                     point.point.y = actor->position.y + direction.j * distance;

@@ -227,7 +227,7 @@ bool function_1bf3f0(long other_index, long actor_index, short type)
 			prop_node_get(actor->prop_index)->unknown08 == prop_node_get(other_prop_index)->unknown08 &&
 			function_1a6fe0(other_index, type) != NONE)
 		{
-			return true;
+			result = true;
 		}
 	}
 	return result;
