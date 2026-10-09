@@ -679,9 +679,10 @@ void font_cache_pixels_dispose(void)
 		g_54d580 = NULL;
 	}
 
-	if (g_54d57c)
+	s_record_pool *pool = g_54d57c;
+	if (pool)
 	{
-		data_dispose(g_54d57c);
+		data_dispose(pool);
 		g_54d57c = NULL;
 	}
 }

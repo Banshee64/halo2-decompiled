@@ -299,9 +299,10 @@ real function_23ba90(point3f const *point, long player_index, bool deterministic
 
 		real *random_weight_pointer = *(real **)(globals + 0x534);
 		real *const *random_weight_reference = &random_weight_pointer;
+		bool use_seed = *(volatile bool *)&deterministic;
 		double random_weight = **random_weight_reference;
 		real random;
-		if (deterministic)
+		if (use_seed)
 			random = (real)_random(seed, NULL, 0);
 		else
 			random = (real)(dword)_random(&g_4e7408->seed, NULL, 0);
