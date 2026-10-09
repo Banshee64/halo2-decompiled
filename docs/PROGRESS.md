@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7300 functions match
+
+```
+matched 7300 of 11318 game functions (836500 of 2784283 bytes, 30.04%)
+```
+
+4 new matches, none lost:
+- Deep lane 3, round 12: 0x18cb10, 0x1fb940, 0x263ed0, 0x26bc60. Two are the other machine's functions that matched once function_249c20 and function_249d60 took retail's parameter order.
+
 ## 2026-10-09: 7296 functions match
 
 ```
