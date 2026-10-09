@@ -103,6 +103,7 @@ void c_object_type_definition::v11(long a, long b, long c)
 // @retail 0xa3b90
 void c_turret_entity_definition::v12(long a, s_entity_info *info, long c, s_bitstream *stream)
 {
+	c_turret_entity_definition *volatile self = this;
 	function_a6660(info);
 	if (stream->size_in_bytes * 8 - stream->bit_position >= 1 && info->identifier != NONE)
 	{
@@ -731,7 +732,7 @@ bool function_100f00(long weapon_index);
 long c_weapon_type::v27(long a, long b, long c, long d)
 {
  byte *object = (byte *)OBJECT(a);
- long result = ((c_item_type *)this)->c_item_type::v27(a, b & 0x7ff, 0x94, d);
+ volatile long result = ((c_item_type *)this)->c_item_type::v27(a, b & 0x7ff, 0x94, d);
  dword requested = b;
  s_object_view *updated_object = OBJECT(a);
  s_tag_instance *tags = g_4e3b44;

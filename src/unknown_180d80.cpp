@@ -68,12 +68,13 @@ long function_17cfa0(long arg_0, long arg_1, short arg_2, short arg_3, bool arg_
 void __stdcall function_180b60(s_cluster_query const *arg_0, real arg_1, long arg_2);
 dword vector3d_pack(vector3f const *arg_0);
 
-__forceinline real function_180d81(real const *arg_0, real arg_1)
+__forceinline void function_180d81(real const *arg_0, real const *arg_1, real *arg_2)
 {
     real const volatile *local_0 = arg_0;
-    if ((local_0[1] - local_0[0]) * arg_1 + local_0[0] < 0.0f) return 0.0f;
-    if ((local_0[1] - local_0[0]) * arg_1 + local_0[0] > 1.0f) return 1.0f;
-    return (local_0[1] - local_0[0]) * arg_1 + local_0[0];
+    real const volatile *local_1 = arg_1;
+    if ((local_0[1] - local_0[0]) * *local_1 + local_0[0] < 0.0f) *arg_2 = 0.0f;
+    else if ((local_0[1] - local_0[0]) * *local_1 + local_0[0] > 1.0f) *arg_2 = 1.0f;
+    else *arg_2 = (local_0[1] - local_0[0]) * *local_1 + local_0[0];
 }
 __forceinline real function_180d82(void)
 {
@@ -85,15 +86,25 @@ __forceinline void function_180d83(transform4x3f const *arg_0, point3f *arg_1)
     real local_0 = arg_1->x;
     real local_1 = arg_1->y;
     real local_2 = arg_1->z;
+    real local_4;
     if (arg_0->scale != 1.0f)
     {
         local_0 *= arg_0->scale;
         local_1 *= arg_0->scale;
         local_2 *= arg_0->scale;
     }
-    arg_1->x = arg_0->up.i * local_2 + arg_0->left.i * local_1 + arg_0->forward.i * local_0 + arg_0->position.x;
-    arg_1->y = arg_0->forward.j * local_0 + arg_0->up.j * local_2 + arg_0->left.j * local_1 + arg_0->position.y;
-    arg_1->z = arg_0->forward.k * local_0 + arg_0->up.k * local_2 + arg_0->left.k * local_1 + arg_0->position.z;
+    local_4 = arg_0->up.i * local_2;
+    local_4 += local_1 * arg_0->left.i;
+    local_4 += arg_0->forward.i * local_0;
+    arg_1->x = local_4 + arg_0->position.x;
+    local_4 = arg_0->forward.j * local_0;
+    local_4 += arg_0->up.j * local_2;
+    local_4 += arg_0->left.j * local_1;
+    arg_1->y = local_4 + arg_0->position.y;
+    local_4 = arg_0->forward.k * local_0;
+    local_4 += arg_0->up.k * local_2;
+    local_4 += arg_0->left.k * local_1;
+    arg_1->z = local_4 + arg_0->position.z;
 }
 
 #pragma inline_depth(1)
@@ -135,12 +146,12 @@ long __stdcall function_180d80(s_180d84 const *arg_0, transform4x3f const *arg_1
                     s_180d85 local_11;
                     if ((*(short *)(local_2 + 4) == 0 || *(short *)(local_2 + 4) == 1) && function_d47d0(arg_3, &local_11.field_0))
                         local_10 = local_11.field_0.green * 0.5870000123977661f + local_11.field_0.blue * 0.11400000005960464f + local_11.field_0.red * 0.29899999499320984f;
+                    local_11.field_c.k = local_10;
                     for (short local_12 = 0; local_12 < arg_5->field_5000; local_12++)
                     {
                         s_180d80 const *local_13 = &arg_5->field_0[local_12];
-                        local_11.field_c.i = function_180d81(&arg_0->field_ec, local_13->field_c);
-                        local_11.field_c.j = function_180d81(&arg_0->field_f4, local_13->field_10);
-                        local_11.field_c.k = local_10;
+                        function_180d81(&arg_0->field_ec, &local_13->field_c, &local_11.field_c.i);
+                        function_180d81(&arg_0->field_f4, &local_13->field_10, &local_11.field_c.j);
                         local_0[local_12].field_c = vector3d_pack(&local_11.field_c);
                         local_0[local_12].field_0.x = local_13->field_0.x + local_3.i;
                         local_0[local_12].field_0.y = local_13->field_0.y + local_3.j;

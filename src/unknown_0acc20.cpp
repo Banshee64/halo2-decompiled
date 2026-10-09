@@ -412,7 +412,7 @@ bool __stdcall time_synchronize_decode(s_bitstream *stream, long unknown, s_time
 	message->type = (word)function_1959c0(stream, 1);
 	if (!stream_overflowed(stream) && message->type < 2)
 	{
-		bool result = true;
+		volatile bool result = true;
 		switch (message->type)
 		{
 		case 0:

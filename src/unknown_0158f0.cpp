@@ -155,6 +155,8 @@ bool function_015a60(
 	return true;
 }
 
+__declspec(noinline) bool function_015b10(long index, D3DPalette **out);
+
 // @retail 0x15b10
 bool function_015b10(
 	long index,

@@ -381,15 +381,17 @@ bool __stdcall function_0ae7f0(s_bitstream *stream, long unused, s_message_membe
 			{
 				entry->index4 = function_1959c0(stream, 2);
 				bool ok = valid && entry->index4 >= 0 && entry->index4 < 4;
-				bool first = function_07ca70(stream, entry->unknown1c);
+				byte first = function_07ca70(stream, entry->unknown1c);
 				ok = ok && first;
-				bool second = function_07ca70(stream, entry->unknownac);
+				byte second = function_07ca70(stream, entry->unknownac);
 				valid = ok && second;
 				entry->value = function_1959c0(stream, 0x20);
 			}
 		}
 	}
-	message->flag = stream_read_bit(stream);
+	bool tail_flag = stream_read_bit(stream);
+	message = *(s_message_membership_update *volatile *)&message;
+	message->flag = tail_flag;
 	if (message->flag)
 		message->value3 = function_1959c0(stream, 4);
 	if (valid && !stream_overflowed(stream) && (message->value2 == NONE || message->value2 < message->value1))
