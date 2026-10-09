@@ -3604,7 +3604,7 @@ void c_game_engine_variant_category_list::handle_item(s_controller_reference **c
 
 		if (create)
 		{
-			long arg_9db745;
+			short arg_9db745;
 			byte buffer[0x100];
 			s_game_variant variant;
 			long file_index;
