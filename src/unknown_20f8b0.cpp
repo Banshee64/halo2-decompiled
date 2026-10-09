@@ -48,7 +48,7 @@ struct s_audio_object_link
 
 struct s_node_owner;
 void function_20fe20(s_node_owner *owner);
-long function_20f040(short team);
+long __declspec(noinline) function_20f040(short team);
 extern s_record_pool *g_4f9398;
 s_audio_queue *g_4f939c;
 

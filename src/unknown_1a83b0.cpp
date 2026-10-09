@@ -419,7 +419,7 @@ short __stdcall function_1aea20(long arg_0, s_slot *arg_1)
                     local_1->unknown3d8 = 0.0f;
                     local_1->times[10] = g_510c54->game_time;
                     local_1->unknown3f1 = true;
-                    function_1fb7e0(arg_0, 0x25, NULL, NONE, NONE);
+                    function_1fb7e0(0x25, arg_0, NULL, NONE, NONE);
                 }
             }
         }

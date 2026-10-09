@@ -1477,7 +1477,7 @@ struct s_contact_link_array : s_havok_array08
 };
 
 // @retail 0x1d1e40
-void function_1d1e40(hkEntity const *entity, s_havok_component *component, long component_index, long kind, long shape_index)
+void function_1d1e40(long component_index, s_havok_component *component, hkEntity const *entity, long kind, long shape_index)
 {
 	(void)&component;
 	(void)&kind;

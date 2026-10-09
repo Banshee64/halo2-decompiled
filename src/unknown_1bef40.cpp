@@ -260,7 +260,7 @@ bool __stdcall function_1bf4e0(long actor_index, s_slot *slot)
 		type = actor->unknown3d2;
 		actor->unknown3cc = NONE;
 		if (type != NONE)
-			function_1fb7e0(actor_index, type, NULL, actor_get(state->unknown10)->unknown018, NONE);
+			function_1fb7e0(type, actor_index, NULL, actor_get(state->unknown10)->unknown018, NONE);
 		function_1f86a0(actor_index);
 		return true;
 	}

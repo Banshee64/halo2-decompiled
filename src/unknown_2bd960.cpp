@@ -1824,9 +1824,9 @@ void function_2beee0()
     {
         if (iterator.player->time_inside)
         {
-            players |= 1 << iterator.index;
+            players |= 1 << (byte)iterator.index;
             if (game_is_team_game_2be() && iterator.player->team != NONE)
-                teams |= 1 << iterator.player->team;
+                teams |= 1 << (byte)iterator.player->team;
         }
     }
     if ((g_4e6948->flags22c & 1))

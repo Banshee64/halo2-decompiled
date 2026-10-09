@@ -201,7 +201,19 @@ void c_vertex_shape::ray_test(bool *hit, const s_shape_ray *ray, s_shape_ray_res
 			projected.x = point.n[first_axis];
 			projected.y = point.n[second_axis];
 			point2f polygon[8];
-			for (long i = 0; i < vertex_count; i++)
+			long i = 0;
+			for (; i + 3 < vertex_count; i += 4)
+			{
+				polygon[i].x = vertices_raw[i * 4 + first_axis];
+				polygon[i].y = vertices_raw[i * 4 + second_axis];
+				polygon[(i + 1)].x = vertices_raw[(i + 1) * 4 + first_axis];
+				polygon[(i + 1)].y = vertices_raw[(i + 1) * 4 + second_axis];
+				polygon[(i + 2)].x = vertices_raw[(i + 2) * 4 + first_axis];
+				polygon[(i + 2)].y = vertices_raw[(i + 2) * 4 + second_axis];
+				polygon[(i + 3)].x = vertices_raw[(i + 3) * 4 + first_axis];
+				polygon[(i + 3)].y = vertices_raw[(i + 3) * 4 + second_axis];
+			}
+			for (; i < vertex_count; ++i)
 			{
 				polygon[i].x = vertices_raw[i * 4 + first_axis];
 				polygon[i].y = vertices_raw[i * 4 + second_axis];

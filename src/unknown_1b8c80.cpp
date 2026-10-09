@@ -857,7 +857,7 @@ short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active)
 					if (actor->unknown266)
 						result = g_46fbe8;
 					if (!element->unknown84)
-						function_1fb7e0(actor_index, 0x39, NULL, NONE, NONE);
+						function_1fb7e0(0x39, actor_index, NULL, NONE, NONE);
 				}
 			}
 			return result;
@@ -1140,7 +1140,7 @@ long __stdcall function_1ba090(long actor_index, s_slot *slot)
                 if (TEST_FIELD_BIT(seat->flags.bit2)) type = 0x65;
                 else if (TEST_FIELD_BIT(seat->flags.bit3)) type = 0x67;
                 else type = 0x68;
-                function_1fb7e0(actor_index, type, 0, selection->object_index, NONE);
+                function_1fb7e0(type, actor_index, 0, selection->object_index, NONE);
                 function_f5d10(selection->object_index, selection->seat_index, true);
             }
         }
@@ -1257,7 +1257,7 @@ event:
             {
                 s_vehicle_tag_view *definition = (s_vehicle_tag_view *)g_4e3b44[*(long *)vehicle & 0xffff].bytes;
                 if (!TEST_FIELD_BIT(definition->seats[seat_index].flags.bit11))
-                    function_1fb7e0(actor_index, 0x66, 0, vehicle_index, NONE);
+                    function_1fb7e0(0x66, actor_index, 0, vehicle_index, NONE);
             }
         }
 done:

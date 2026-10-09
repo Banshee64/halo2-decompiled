@@ -4,7 +4,7 @@
 // @flags /O2 /arch:SSE /Gr
 
 struct s_bsp3d;
-long function_14a280(s_bsp3d *arg_0, point3f *arg_1, long arg_2);
+long function_14a280(s_bsp3d *arg_0, long arg_2, point3f *arg_1);
 
 struct s_272af0
 {
@@ -27,8 +27,7 @@ short __stdcall function_272af0(s_match_globals *arg_0, point3f const *arg_1)
 {
 	short local_1 = NONE;
 	point3f local_0;
-	long local_2 = function_14a280(((s_272af0 *)arg_0)->field_18,
-		function_272af3(arg_1, g_4687b0, 0.1f, &local_0), 0);
+	long local_2 = function_14a280(((s_272af0 *)arg_0)->field_18, 0, function_272af3(arg_1, g_4687b0, 0.1f, &local_0));
 	if (local_2 != NONE)
 		local_1 = *(short *)(((s_272af0 *)arg_0)->field_30 + local_2 * 8);
 	return local_1;

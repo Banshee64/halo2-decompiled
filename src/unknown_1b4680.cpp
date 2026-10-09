@@ -156,7 +156,7 @@ short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active)
 			s_prop_node_view *node = prop_node_get(actor->prop_index);
 
 			if (function_26ba60(node->unknown08, actor_index, actor->unknown07c))
-				function_1fb7e0(actor_index, 0x2a, NULL, node->object_index, NONE);
+				function_1fb7e0(0x2a, actor_index, NULL, node->object_index, NONE);
 		}
 	}
 	return result;
@@ -509,7 +509,7 @@ void __stdcall function_1b4d90(long actor_index, s_slot *slot, s_1b4d90_group *g
 			if (node->unknown27 < 2 && !group->unknown8c &&
 				function_26ba60(node->unknown08, actor_index, actor->unknown07c))
 			{
-				function_1fb7e0(actor_index, 0x34, NULL, node->object_index, NONE);
+				function_1fb7e0(0x34, actor_index, NULL, node->object_index, NONE);
 				group->unknown8c = true;
 			}
 		}

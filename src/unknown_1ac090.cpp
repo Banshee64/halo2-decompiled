@@ -409,7 +409,7 @@ void __stdcall function_1acfd0(long actor_index, s_slot *slot)
 		}
 		else if (state->unknown20 > 0 && --state->unknown20 == 0)
 		{
-			function_1fb7e0(actor_index, 0x47, NULL, prop->object_index, NONE);
+			function_1fb7e0(0x47, actor_index, NULL, prop->object_index, NONE);
 		}
 	}
 }
@@ -1091,7 +1091,7 @@ bool __stdcall function_1acda0(long arg_0, s_slot *arg_1)
                 (!local_1->unknown25 || local_1->unknown3a && !function_110ab0(local_0->unknown018)))
             {
                 if (local_3)
-                    function_1fb7e0(arg_0, 0x8a, NULL, local_3->object_index, NONE);
+                    function_1fb7e0(0x8a, arg_0, NULL, local_3->object_index, NONE);
                 if (!local_1->unknown3b)
                 {
                     function_e68c0(0, local_0->unknown018);
