@@ -116,8 +116,9 @@ void __stdcall function_46230(short target, real const *bounds)
 // @retail 0x32ac0
 bool function_32ac0(void)
 {
+    bool volatile result = false;
     if (function_14480(*(long *)(g_485a80 + 0x34), 0, 0))
-        return false;
+        return result;
     g_4670bc = true;
     function_16b10((s_render_reset_state *)g_485b48);
     D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, 3);
@@ -205,12 +206,15 @@ void __stdcall function_15ec0(long index)
     function_01dd60(index, &width, &height);
     for (long level = 0; level < count; ++level)
     {
-        real x = (real)width, y = (real)height;
-        real ratio = g_485ad4.hi / (g_485ad4.hi - g_485ad4.lo);
-        real z = (ratio - g_485ad4.lo * ratio) * 16777215.0f;
+        real upper = g_485ad4.hi;
+        real lower = g_485ad4.lo;
+        real y = (real)height;
+        real x = (real)width;
+        real ratio = upper / (upper - lower);
+        real z = (ratio - lower * ratio) * 16777215.0f;
         if (z < 0.0f) z = 0.0f;
         else if (z > 16777215.0f) z = 16777215.0f;
-        real w = (1.0f / g_485ad4.hi) * 16777215.0f;
+        real w = (1.0f / upper) * 16777215.0f;
         if (w < 0.0f) w = 0.0f;
         else if (w > 16777215.0f) w = 16777215.0f;
         function_14bc0((short)index, (short)level, false);
@@ -615,11 +619,12 @@ s_type_7ba8e9 *function_137550(long group_index, short bitmap_index);
 // @retail 0x14390
 bool function_14390(short stage, s_type_7ba8e9 *bitmap, real priority)
 {
+    long slot = stage;
     if (bitmap)
     {
-        g_51f3c8[1][stage] = function_12310((s_bitmap_view *)bitmap, priority);
-        g_485af4[stage] = *(short *)((byte *)bitmap + 4);
-        g_485b04[stage] = *(short *)((byte *)bitmap + 6);
+        g_51f3c8[1][slot] = function_12310((s_bitmap_view *)bitmap, priority);
+        g_485af4[slot] = *(short *)((byte *)bitmap + 4);
+        g_485b04[slot] = *(short *)((byte *)bitmap + 6);
     }
     return true;
 }
@@ -672,7 +677,7 @@ short g_55ece0, g_55ece2;
 // @retail 0x14560
 bool function_14560(long tag, short stage, short fallback, short fallback_index, short index)
 {
-    bool result = false;
+    volatile bool result = false;
     s_type_7ba8e9 *bitmap = NULL;
     if (tag != NONE)
     {
@@ -725,6 +730,7 @@ void *function_1d5e0(s_bitmap_view *bitmap, long wait, long *pitch)
 bool function_143c0(long tag, short index, short stage, real priority)
 {
     bool result = false;
+    long slot = stage;
     if (tag == NONE)
     {
         tag = *(long *)(g_485a80 + 0x64);
@@ -745,10 +751,10 @@ bool function_143c0(long tag, short index, short stage, real priority)
         s_type_7ba8e9 *bitmap = function_137550(tag, index);
         if (bitmap)
         {
-            g_51f3c8[1][stage] = function_12310((s_bitmap_view *)bitmap, priority);
-            g_485af4[stage] = *(short *)((byte *)bitmap + 4);
-            g_485b04[stage] = *(short *)((byte *)bitmap + 6);
-            result = true;
+            g_51f3c8[1][slot] = function_12310((s_bitmap_view *)bitmap, priority);
+            g_485af4[slot] = *(short *)((byte *)bitmap + 4);
+            g_485b04[slot] = *(short *)((byte *)bitmap + 6);
+            return true;
         }
     }
     return result;
@@ -1720,6 +1726,20 @@ void function_14ac0(void)
 }
 
 long g_4858b8;
+
+#if 0
+// Retail 0x14b60. The additional clear call changes matched 0x14ac0's stack frame.
+void __stdcall function_14b60(dword flags, dword color, real depth, byte stencil)
+{
+    dword clear_flags = (flags & 1 ? 0xf0 : 0) | ((flags & 0x1e) << 3) | ((flags >> 5) & 3);
+    if (clear_flags)
+    {
+        if (g_485607 && !g_4858b8)
+            function_14ac0();
+        D3DDevice_Clear(0, NULL, clear_flags, color, depth, stencil);
+    }
+}
+#endif
 
 // @retail 0x1d4b0
 void function_1d4b0(long format, bool alternate, long *result, bool *linear)
@@ -3048,8 +3068,10 @@ void __stdcall function_1e930(long opaque)
         function_0222d0(D3DRS_ALPHATESTENABLE, 0);
         function_0222d0(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
         function_0222d0(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-        function_0222d0(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-        function_0222d0(D3DRS_ZWRITEENABLE, 0);
+        *(volatile long *)&opaque = D3DRS_BLENDOP;
+        function_0222d0((D3DRENDERSTATETYPE)*(volatile long *)&opaque, D3DBLENDOP_ADD);
+        *(volatile long *)&opaque = D3DRS_ZWRITEENABLE;
+        function_0222d0((D3DRENDERSTATETYPE)*(volatile long *)&opaque, 0);
         g_484f68.PSFinalCombinerInputsEFG = 0x1400;
     }
     function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x14), 0);
@@ -3069,7 +3091,9 @@ bool g_55e6bc;
 void function_12d50(real const *projection, bool scaled, real *output)
 {
     real constants[16];
-    D3DDevice_SetDepthClipPlanes((scaled ? 0.15f : 1.0f) * g_485adc, g_485ae0,
+    real near_plane = (scaled ? 0.15f : 1.0f) * g_485adc;
+    real far_plane = g_485ae0;
+    D3DDevice_SetDepthClipPlanes(near_plane, far_plane,
         D3DSDCP_SET_VERTEXPROGRAM_PLANES);
     if (!projection)
         projection = g_48568c;
@@ -3227,7 +3251,9 @@ void function_36580()
     function_0222d0(D3DRS_CULLMODE, 0);
     real x = 1.0f / (short)(g_48564e - g_48564a);
     real y = 1.0f / (short)(g_48564c - g_485648);
+    real extra[24];
     real constants[20];
+    memset(extra, 0, sizeof(extra));
     constants[0] = x * 2.0f;
     constants[1] = 0.0f;
     constants[2] = 0.0f;
@@ -3250,19 +3276,17 @@ void function_36580()
     constants[19] = 1.0f;
     D3DDevice_SetVertexShaderConstant(81, constants, 5);
 
-    real extra[24];
-    memset(extra, 0, sizeof(extra));
     D3DDevice_SetVertexShaderConstant(86, extra, 6);
     memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSRGBOutputs[0] = 0xc0;
+    g_484f68.PSAlphaOutputs[0] = 0xc0;
     g_484f68.PSTextureModes = 0;
     g_484f68.PSCombinerCount = 1;
     g_484f68.PSRGBInputs[0] = 0x20040000;
     g_484f68.PSAlphaInputs[0] = 0x20140000;
-    g_484f68.PSRGBOutputs[0] = 0xc0;
-    g_484f68.PSAlphaOutputs[0] = 0xc0;
     g_484f68.PSFinalCombinerInputsABCD = 0xc;
     g_484f68.PSFinalCombinerInputsEFG = 0x1c00;
-    D3DDevice_SetPixelShaderProgram(&g_484f68);
+    function_1ccf0(&g_484f68);
     function_1cc60(0);
 }
 
@@ -4547,6 +4571,8 @@ void function_1c0d0(long tag, long stage)
 
 extern real g_4670e4;
 
+extern dword g_4b8340, g_4b8334, g_4b8330;
+
 // @retail 0x4d9c0
 void function_4d9c0(byte const *source, long tag, byte value, short index,
     long first, long second, long third, long fourth)
@@ -4556,10 +4582,13 @@ void function_4d9c0(byte const *source, long tag, byte value, short index,
     real scale = value * *(real const *)(source + 0x2c) * g_4670e4 * 4.0f;
     if (tag == 10)
     {
+        g_4b8340 = 1;
         D3DDevice_SetRenderState(D3DRS_SOLIDOFFSETENABLE, 1);
         real offset = 550.0f;
+        g_4b8334 = *(dword *)&offset;
         D3DDevice_SetRenderState(D3DRS_POLYGONOFFSETZOFFSET, *(dword *)&offset);
         real slope = 2.0f;
+        g_4b8330 = *(dword *)&slope;
         D3DDevice_SetRenderState(D3DRS_POLYGONOFFSETZSLOPESCALE, *(dword *)&slope);
     }
     function_1bd50(*(void **)entry->unknown10);
@@ -4596,6 +4625,7 @@ void function_2d140(long tag, real const *weights, long columns, long rows, s_fi
     g_4c19bc = weights[3];
     if (tag == NONE || g_4b9dd2 >= g_4b9dd6 || g_4b9dd0 >= g_4b9dd4 || g_4858b8)
         return;
+    long width = g_4b9dd6 - g_4b9dd2, height = g_4b9dd4 - g_4b9dd0;
     byte const *definition = g_4e3b44[tag & 0xffff].bytes;
     long material = *(long const *)(definition + 0x44);
     dword group = ((dword *)g_4e3b44)[(short)material * 4];
@@ -4616,7 +4646,6 @@ void function_2d140(long tag, real const *weights, long columns, long rows, s_fi
     }
     real left = (real)g_4b9dd2, right = (real)g_4b9dd6;
     real top = (real)g_4b9dd0, bottom = (real)g_4b9dd4;
-    long width = g_4b9dd6 - g_4b9dd2, height = g_4b9dd4 - g_4b9dd0;
     for (long record_index = 0; record_index < *(long const *)(definition + 0x88); ++record_index)
     {
         byte const *record = *(byte **)(definition + 0x8c) + record_index * 0xac;
@@ -4659,7 +4688,11 @@ void function_2d140(long tag, real const *weights, long columns, long rows, s_fi
                         if (coordinates)
                         {
                             real const *offset = (real const *)&coordinates->offsets[attribute];
-                            for (long component = 0; component < 4; ++component) value[component] += offset[component];
+                            
+                            value[0] += offset[0];
+                            value[1] += offset[1];
+                            value[2] += offset[2];
+                            value[3] += offset[3];
                             if (coordinates->flags[attribute] & 1)
                             {
                                 value[0] *= g_4b9de4;
@@ -5224,7 +5257,7 @@ void function_4c690(long tag, transform4x3f const *nodes)
     byte context[0x74];
     signed char indices[16];
     long node_count;
-    byte *definition = g_4e3b44[tag & 0xffff].bytes;
+    byte *volatile definition = g_4e3b44[tag & 0xffff].bytes;
     D3DDevice_SetRenderState(D3DRS_DEPTHCLIPCONTROL, 16);
     function_2c3b0((s_interface_function_context *)context);
     function_3e420(tag, NONE, indices, 4);
@@ -5245,7 +5278,7 @@ void function_4c690(long tag, transform4x3f const *nodes)
                 if (section_index == 255) continue;
                 byte *section = *(byte **)(definition + 0x28) + section_index * 0x5c;
                 if (!*(word *)(section + 4) || !*(word *)(section + 6) || !*(word *)(section + 8)) continue;
-                byte *geometry = 0;
+                byte *volatile geometry = 0;
                 if (!g_4e6494 || function_12de70((s_geometry_block_info *)(section + 0x38), 0))
                     geometry = *(byte **)(section + 0x34);
                 short transform = *(short *)(section + 0x2c);
@@ -5759,3 +5792,405 @@ bool function_13450(s_depth_parameters_13450 const *parameters)
     return true;
 }
 #endif
+
+extern dword g_4b82f8, g_4b8324;
+dword g_4b8474;
+extern byte g_4c19c0;
+extern dword g_4c1a04;
+struct s_2e9e0_saved { long tag; point3f position; };
+extern s_2e9e0_saved g_4c19c4[4];
+struct s_2e3f0_record;
+long __stdcall function_2e9e0(byte const *context, s_2e3f0_record const *record);
+void function_46ea0(long tag, point3f const *position);
+
+// @retail 0x2df00
+void function_2df00()
+{
+    g_4670bc = true;
+    function_16b10((s_render_reset_state *)g_485b48);
+    function_14bc0(g_485602, 0, true);
+    function_15370(0);
+    if (!(fabs(g_4b8494 - 1.0f) < 0.0001f))
+    {
+        D3DDevice_SetStipple(function_1c290(1.0f));
+        g_4b8494 = 1.0f;
+    }
+    g_4b8448 = 0; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
+    g_4b8308 = 0x10101; D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x10101);
+    g_4b82e8 = 1; D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
+    g_4b82f4 = 0x302; D3DDevice_SetRenderState(D3DRS_SRCBLEND, 0x302);
+    g_4b82f8 = 1; D3DDevice_SetRenderState(D3DRS_DESTBLEND, 1);
+    g_4b8324 = 0x8006; D3DDevice_SetRenderState(D3DRS_BLENDOP, 0x8006);
+    g_4b82ec = 0; D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
+    g_4b8438 = 0; D3DDevice_SetRenderState(D3DRS_ZENABLE, 0);
+    g_4b82e0 = 0x203; D3DDevice_SetRenderState(D3DRS_ZFUNC, 0x203);
+    g_4b82fc = 0; D3DDevice_SetRenderState(D3DRS_ZWRITEENABLE, 0);
+    g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
+    g_4b8474 = 0; D3DDevice_SetVertexShader(0);
+    g_51f3c8[1][0] = NULL;
+    g_51f3c8[1][1] = NULL;
+    g_51f3c8[1][2] = NULL;
+    g_51f3c8[1][3] = NULL;
+    function_1cf50();
+    D3DPIXELSHADERDEF program;
+    memset(&program, 0, sizeof(program));
+    dword *fields = (dword *)&program;
+    fields[0xd8 / 4] = 1;
+    fields[0xd4 / 4] = 0x11002;
+    fields[0x88 / 4] = 0x8081524;
+    fields[0xb4 / 4] = 0xc5;
+    fields[0x8c / 4] = 0xc0c0408;
+    fields[0xb8 / 4] = 0xd4;
+    fields[0x20 / 4] = 0x50f0004;
+    fields[0x24 / 4] = 0xc0d1400;
+    g_484f68 = program;
+    function_1ccf0(&program);
+    function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x54), 0);
+    function_1c710(g_51f0f0);
+    g_4c19c0 = false;
+    g_4c1a04 = 0;
+    function_20bb0(g_4b9ed4, 0xf, NULL, 0, false, (visibility_draw_callback)function_2e9e0);
+    for (long i = 0; i < (long)g_4c1a04; ++i)
+    {
+        point3f position = g_4c19c4[i].position;
+        function_46ea0(g_4c19c4[i].tag, &position);
+    }
+}
+
+struct s_501e0
+{
+    point3f field_0;
+    real field_c;
+    real field_10;
+    dword field_14;
+};
+void function_501e0(s_501e0 const *a, bool perspective, s_501e0 *out);
+long function_30830(point3f const *point, s_camera const *camera, vector3f const *direction,
+    point2f const *scale, bool perspective, bool negate, point2f *out);
+bool __stdcall function_3a5c0(byte const *configuration, real low, real high, long mode,
+    bool center, bool shift, bool clip, bool skip_state, real *depth_out);
+void function_47ea0(short stage, byte flags);
+extern real g_4b9de4;
+extern real g_4b9de0;
+extern dword g_4b8474;
+
+// @retail 0x4f7e0
+bool __stdcall function_4f7e0(long tag, s_501e0 const *points, long count, short bitmap,
+    real cosine, real sine, bool segments, bool perspective, bool filtered)
+{
+    short const volatile *bitmap_reference = &bitmap;
+    short bitmap_index = *bitmap_reference;
+    point2f rotations[256];
+    s_501e0 midpoints[256];
+    if (filtered)
+    {
+        if (!g_46713c)
+        {
+            g_4b8474 = 0;
+            D3DDevice_SetVertexShader(0);
+        }
+        g_46713c = true;
+    }
+    else
+        function_4fe20();
+    short stage = filtered ? 1 : 0;
+    bool skip = tag != NONE ? function_14560(tag, stage, 0, 1, bitmap_index) :
+        function_14480(*(long *)(g_485a80 + 0x34), stage, bitmap_index);
+    if (!skip)
+    {
+        function_47ea0(stage, 0);
+        if (segments)
+        {
+            long total = count - 1;
+            for (long i = 0; i < total; ++i)
+            {
+                function_501e0(points + i, perspective, midpoints + i);
+                vector3f direction;
+                direction.i = points[i + 1].field_0.x - points[i].field_0.x;
+                direction.j = points[i + 1].field_0.y - points[i].field_0.y;
+                direction.k = points[i + 1].field_0.z - points[i].field_0.z;
+                real length = (real)sqrt((double)direction.i * direction.i + (double)direction.k * direction.k + (double)direction.j * direction.j);
+                if (!(fabs(length) < 0.0001f))
+                {
+                    real reciprocal = 1.0f / length;
+                    direction.i *= reciprocal;
+                    direction.j *= reciprocal;
+                    direction.k *= reciprocal;
+                }
+                point2f screen;
+                if (function_30830(&midpoints[i].field_0, NULL, &direction, NULL, true, true, &screen))
+                {
+                    double angle = atan2(screen.y, screen.x);
+                    rotations[i].x = (real)cos(angle);
+                    rotations[i].y = (real)sin(angle);
+                }
+                else
+                {
+                    rotations[i].x = 1.0f;
+                    rotations[i].y = 0.0f;
+                }
+            }
+            s_501e0 const *volatile selected = midpoints;
+            points = selected;
+            count = total;
+        }
+        else
+        {
+            for (long i = 0; i < count; ++i)
+            {
+                rotations[i].x = cosine;
+                rotations[i].y = sine;
+            }
+        }
+        for (long i = 0; i < count; ++i)
+        {
+            real width = points[i].field_c > points[i].field_10 ? points[i].field_c : points[i].field_10;
+            if (filtered)
+            {
+                vector3f delta;
+                delta.i = g_4b9da0.x - points[i].field_0.x;
+                delta.j = g_4b9da0.y - points[i].field_0.y;
+                delta.k = g_4b9da0.z - points[i].field_0.z;
+                real depth = 0.0f - (g_4b9dac.i * delta.i + g_4b9dac.k * delta.k + g_4b9dac.j * delta.j);
+                point3f position = points[i].field_0;
+                real low = depth - points[i].field_10;
+                if (low < g_4b9de0) low = g_4b9de0;
+                else if (low > g_4b9de4) low = g_4b9de4;
+                real high = depth + points[i].field_10;
+                if (high < g_4b9de0) high = g_4b9de0;
+                else if (high > g_4b9de4) high = g_4b9de4;
+                if (high > low && depth != 0.0f)
+                {
+                    real adjusted_depth;
+                    if (function_3a5c0((byte const *)NONE, low, high, 0, true, true, true, false, &adjusted_depth) && depth != adjusted_depth)
+                    {
+                        real scale = (adjusted_depth / depth) * 0.0f + 1.0f;
+                        real shift = 0.0f - (depth - adjusted_depth) * points[i].field_10;
+                        position.x = delta.i * shift + points[i].field_0.x;
+                        position.y = delta.j * shift + points[i].field_0.y;
+                        position.z = delta.k * shift + points[i].field_0.z;
+                        function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x84), 0);
+                        function_1c710(g_51f0f0);
+                        function_1cf50();
+                        real constants[32];
+                        constants[0] = 1.0f;
+                        constants[1] = 0.0f;
+                        constants[2] = 0.0f;
+                        constants[3] = 0.0f;
+                        constants[4] = 0.0f;
+                        constants[5] = 1.0f;
+                        constants[6] = 0.0f;
+                        constants[7] = 0.0f;
+                        constants[8] = 0.0f;
+                        constants[9] = 0.0f;
+                        constants[10] = 1.0f;
+                        constants[11] = 0.0f;
+                        constants[12] = 0.0f;
+                        constants[13] = 0.0f;
+                        constants[14] = 0.0f;
+                        constants[15] = 1.0f;
+                        constants[16] = 1.0f;
+                        constants[17] = 0.0f;
+                        constants[18] = 0.0f;
+                        constants[19] = 0.0f;
+                        constants[20] = 0.0f;
+                        constants[21] = 1.0f;
+                        constants[22] = 0.0f;
+                        constants[23] = 0.0f;
+                        constants[24] = 0.0f;
+                        constants[25] = 0.0f;
+                        constants[26] = 1.0f;
+                        constants[27] = 0.0f;
+                        constants[28] = 0.0f;
+                        constants[29] = 0.0f;
+                        constants[30] = 0.0f;
+                        constants[31] = 1.0f;
+                        D3DDevice_SetVertexShaderConstant(-78, constants, 8);
+                        function_484b0(&position, adjusted_depth, width * scale, points[i].field_10 * scale,
+                            rotations[i].x, rotations[i].y, points[i].field_14);
+                    }
+                }
+            }
+            else
+                function_480a0(&points[i].field_0, width, points[i].field_10,
+                    rotations[i].x, rotations[i].y, points[i].field_14);
+        }
+    }
+    return !skip;
+}
+
+extern short g_485600;
+extern word g_485648, g_48564a, g_48564c, g_48564e;
+extern real g_485658;
+extern dword g_4b82f8, g_4b8324;
+bool __stdcall function_3a5c0(byte const *configuration, real low, real high, long mode,
+    bool center, bool shift, bool clip, bool skip_state, real *depth_out);
+void function_1cf80();
+
+// @retail 0x37a60
+bool __stdcall function_37a60(void *context)
+{
+    long viewport_width = (short)g_48564e - (short)g_48564a;
+    long viewport_height = (short)g_48564c - (short)g_485648;
+    byte *input = (byte *)context;
+    byte *view = input + g_485600 * 0xb8;
+    struct s_filter_vertex { real x, y; byte unknown08[0x10]; point2f coordinates[3]; };
+    s_filter_vertex vertices[4];
+    void (WINAPI *volatile vertex2f)(INT, float, float) = D3DDevice_SetVertexData2f;
+    void (WINAPI *volatile vertex4f)(INT, float, float, float, float) = D3DDevice_SetVertexData4f;
+    {
+
+        real extent = *(real *)(view + 0x134 + 0 * 4);
+        vertices[0].coordinates[0].x = extent * -1.0f;
+        vertices[0].coordinates[0].y = extent * -1.0f;
+        vertices[1].coordinates[0].x = extent;
+        vertices[1].coordinates[0].y = extent * -1.0f;
+        vertices[2].coordinates[0].x = extent * -1.0f;
+        vertices[2].coordinates[0].y = extent;
+        vertices[3].coordinates[0].x = extent;
+        vertices[3].coordinates[0].y = extent;
+        }
+    {
+
+        real extent = *(real *)(view + 0x134 + 1 * 4);
+        vertices[0].coordinates[1].x = extent * -1.0f;
+        vertices[0].coordinates[1].y = extent * -1.0f;
+        vertices[1].coordinates[1].x = extent;
+        vertices[1].coordinates[1].y = extent * -1.0f;
+        vertices[2].coordinates[1].x = extent * -1.0f;
+        vertices[2].coordinates[1].y = extent;
+        vertices[3].coordinates[1].x = extent;
+        vertices[3].coordinates[1].y = extent;
+        }
+    {
+
+        real extent = *(real *)(view + 0x134 + 2 * 4);
+        vertices[0].coordinates[2].x = extent * -1.0f;
+        vertices[0].coordinates[2].y = extent * -1.0f;
+        vertices[1].coordinates[2].x = extent;
+        vertices[1].coordinates[2].y = extent * -1.0f;
+        vertices[2].coordinates[2].x = extent * -1.0f;
+        vertices[2].coordinates[2].y = extent;
+        vertices[3].coordinates[2].x = extent;
+        vertices[3].coordinates[2].y = extent;
+        }
+    for (long stage = 0; stage < 3; ++stage)
+    {
+        real constants[4];
+        constants[0] = *(real *)(view + 0x11c + stage * 8) * *(real *)(input + 0x48 + stage * 4);
+        constants[1] = *(real *)(view + 0x120 + stage * 8) * *(real *)(input + 0x48 + stage * 4);
+        constants[2] = 0.0f;
+        constants[3] = 0.0f;
+        D3DDevice_SetVertexShaderConstantFast(-75 + stage, constants, 1);
+    }
+    byte configuration[0x34] = { 0 };
+    configuration[0] = true;
+    real gain = *(real *)(view + 0x14c) * *(real *)(view + 0x148);
+    real red = *(real *)(view + 0xec) * gain;
+    real green = *(real *)(view + 0xf0) * gain;
+    real blue = *(real *)(view + 0xf4) * gain;
+    *(real *)(configuration + 8) = red < 0.0f ? 0.0f : (red > 1.0f ? 1.0f : red);
+    *(real *)(configuration + 0x14) = green < 0.0f ? 0.0f : (green > 1.0f ? 1.0f : green);
+    *(real *)(configuration + 0x20) = blue < 0.0f ? 0.0f : (blue > 1.0f ? 1.0f : blue);
+    real r = *(real *)(input + 0x98);
+    real g = *(real *)(input + 0x9c);
+    real b = *(real *)(input + 0xa0);
+    *(real *)(configuration + 0x28) = r < 0.0f ? 0.0f : (r > 1.0f ? 1.0f : r);
+    *(real *)(configuration + 0x2c) = g < 0.0f ? 0.0f : (g > 1.0f ? 1.0f : g);
+    *(real *)(configuration + 0x30) = b < 0.0f ? 0.0f : (b > 1.0f ? 1.0f : b);
+    real depth;
+    if (function_3a5c0(configuration, *(real *)(input + 0x80), *(real *)(input + 0x84), 3,
+        false, false, true, true, &depth))
+    {
+        real ratio = g_485ad4.hi / (g_485ad4.hi - g_485ad4.lo);
+        real z = ((ratio * depth - ratio * g_485ad4.lo) / depth) * 16777215.0f;
+        if (z < 0.0f) z = 0.0f;
+        else if (z > 16777215.0f) z = 16777215.0f;
+        real w = (depth / g_485ad4.hi) * 16777215.0f;
+        if (w < 0.0f) w = 0.0f;
+        else if (w > 16777215.0f) w = 16777215.0f;
+        real x = (real)(short)g_48564a;
+        real y = (real)(short)g_485648;
+        real width = (real)viewport_width;
+        real height = (real)viewport_height;
+        g_4670bc = true;
+        function_16b10((s_render_reset_state *)g_485b48);
+        vertices[0].x = x - 0.5f; vertices[0].y = y - 0.5f;
+        vertices[1].x = width + x - 0.5f; vertices[1].y = y - 0.5f;
+        vertices[2].x = x - 0.5f; vertices[2].y = height + y - 0.5f;
+        vertices[3].x = width + x - 0.5f; vertices[3].y = height + y - 0.5f;
+        function_14bc0((short)g_4858b8, 0, true);
+        function_14f60(0, 3);
+        D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSU, 3);
+        D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSV, 3);
+        D3DDevice_SetTextureStageState(0, D3DTSS_ADDRESSW, 3);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MAGFILTER, 1);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MINFILTER, 1);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MIPFILTER, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MAXANISOTROPY, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MIPMAPLODBIAS, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_MAXMIPLEVEL, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_COLORSIGN, 0);
+        D3DDevice_SetTextureStageState(0, D3DTSS_ALPHAKILL, 0);
+        g_4b8308 = 0x10101; D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x10101);
+        g_4b82e8 = 1; D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
+        g_4b82f4 = 1; D3DDevice_SetRenderState(D3DRS_SRCBLEND, 1);
+        g_4b82f8 = 0x303; D3DDevice_SetRenderState(D3DRS_DESTBLEND, 0x303);
+        g_4b8324 = 0x8006; D3DDevice_SetRenderState(D3DRS_BLENDOP, 0x8006);
+        function_0222d0(D3DRS_BLENDCOLOR, 0xffffff);
+        g_4b82ec = 1; D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 1);
+        function_0222d0(D3DRS_ALPHAFUNC, 0x204);
+        function_0222d0(D3DRS_ALPHAREF, 0);
+        g_4b8448 = 0; D3DDevice_SetRenderState(D3DRS_CULLMODE, 0);
+        g_4b843c = 0; D3DDevice_SetRenderState(D3DRS_STENCILENABLE, 0);
+        g_4b8438 = depth > g_485658 ? 2 : 0; D3DDevice_SetRenderState(D3DRS_ZENABLE, g_4b8438);
+        function_0222d0(D3DRS_ZWRITEENABLE, 0);
+        function_0222d0(D3DRS_ZFUNC, 0x203);
+        g_4b8450 = 0; D3DDevice_SetRenderState(D3DRS_ZBIAS, 0);
+        for (long stage = 1; stage < 4; ++stage)
+        {
+            function_143c0(*(long *)(input + 4 + (stage - 1) * 8), 0, (short)stage, 0.0f);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, 1);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, 1);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, 1);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, 2);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, 2);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, 2);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, 0);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, 0);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
+            D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
+        }
+        function_1cf80();
+        function_1cbe0(0x15, 0, 0);
+        function_1c710(g_51f0f0);
+        D3DDevice_Begin((D3DPRIMITIVETYPE)9);
+        vertex2f(1, vertices[0].x, vertices[0].y);
+        vertex2f(2, vertices[0].coordinates[0].x, vertices[0].coordinates[0].y);
+        vertex2f(3, vertices[0].coordinates[1].x, vertices[0].coordinates[1].y);
+        vertex2f(4, vertices[0].coordinates[2].x, vertices[0].coordinates[2].y);
+        vertex4f(0, vertices[0].x, vertices[0].y, z, w);
+        vertex2f(1, vertices[1].x, vertices[1].y);
+        vertex2f(2, vertices[1].coordinates[0].x, vertices[1].coordinates[0].y);
+        vertex2f(3, vertices[1].coordinates[1].x, vertices[1].coordinates[1].y);
+        vertex2f(4, vertices[1].coordinates[2].x, vertices[1].coordinates[2].y);
+        vertex4f(0, vertices[1].x, vertices[1].y, z, w);
+        vertex2f(1, vertices[2].x, vertices[2].y);
+        vertex2f(2, vertices[2].coordinates[0].x, vertices[2].coordinates[0].y);
+        vertex2f(3, vertices[2].coordinates[1].x, vertices[2].coordinates[1].y);
+        vertex2f(4, vertices[2].coordinates[2].x, vertices[2].coordinates[2].y);
+        vertex4f(0, vertices[2].x, vertices[2].y, z, w);
+        vertex2f(1, vertices[3].x, vertices[3].y);
+        vertex2f(2, vertices[3].coordinates[0].x, vertices[3].coordinates[0].y);
+        vertex2f(3, vertices[3].coordinates[1].x, vertices[3].coordinates[1].y);
+        vertex2f(4, vertices[3].coordinates[2].x, vertices[3].coordinates[2].y);
+        vertex4f(0, vertices[3].x, vertices[3].y, z, w);
+        D3DDevice_End();
+        D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
+        D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+        D3DDevice_SetRenderState(D3DRS_ZENABLE, 2);
+        D3DDevice_SetPixelShader(0);
+    }
+    return true;
+}

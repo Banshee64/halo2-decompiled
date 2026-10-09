@@ -419,9 +419,9 @@ real function_30bf0(vector3f *vector);
 bool function_c0840(point3f const *start, point3f const *end, point3f *out, real *distance)
 {
     vector3f direction;
-    direction.i = end->x - start->x;
-    direction.j = end->y - start->y;
-    direction.k = end->z - start->z;
+    direction.i = (real)((double)end->x - start->x);
+    direction.j = (real)((double)end->y - start->y);
+    direction.k = (real)((double)end->z - start->z);
     bool result = false;
     real travelled = 0.0f;
     real step = 0.001f;
@@ -581,8 +581,9 @@ void function_c1a80(s_light_frame_ab const *frame, s_light_shape_ab *shape, s_li
         }
         else
         {
-            shape->cone_render.slope_x = (real)tan(shape->cone.values[2] * 0.5f);
-            shape->cone_render.slope_y = shape->cone_render.slope_x * shape->cone_render.aspect;
+            double slope = tan(shape->cone.values[2] * 0.5f);
+            shape->cone_render.slope_x = (real)slope;
+            shape->cone_render.slope_y = (real)(slope * shape->cone_render.aspect);
         }
         shape->cone_render.width = shape->cone.values[0];
         shape->cone_render.height = shape->cone_render.aspect * shape->cone.values[0];
@@ -1027,6 +1028,38 @@ struct s_cluster_partition
 
 void function_1cae40(s_cluster_partition *partition, long data_index, long *first_cluster_reference);
 
+// @retail 0xc3220
+void function_c3220(long light_index)
+{
+    s_light_delete_view *light = &((s_light_delete_view *)g_4e030c->data)[light_index & 0xffff];
+    if (light->flags & 2)
+    {
+        s_cluster_partition partition =
+        {
+            (long *)g_4e0310,
+            (s_record_pool *)g_4e0314,
+            (s_record_pool *)g_4e0318
+        };
+        function_1cae40(&partition, light_index, &light->first_cluster_reference);
+        light->flags &= ~8;
+    }
+}
+
+// @retail 0xc0110
+void function_c0110()
+{
+    s_record_pool_iterator iterator;
+    iterator.data = g_4e030c;
+    iterator.index = NONE;
+    iterator.datum_index = NONE;
+    byte *light;
+    while ((light = data_iterator_next_inlined(&iterator)) != 0)
+    {
+        if (*(long *)(light + 0x4c) == NONE && *(long *)(light + 0x58) == NONE && (light[2] & 8))
+            function_c3220(iterator.datum_index);
+    }
+}
+
 // @retail 0xc3260
 void __stdcall function_c3260(long light_index, bool clear_object_flag)
 {
@@ -1070,4 +1103,92 @@ void __stdcall function_c3260(long light_index, bool clear_object_flag)
             *(dword *)(object + 4) &= ~0x40;
     }
     record_pool_release(lights, *light_index_reference);
+}
+
+#include "object_queries.h"
+#include "object_markers.h"
+struct s_partition_location;
+void function_1cac60(dword const *bits, s_cluster_partition *partition, long data_index,
+    long *first_cluster_reference, point3f const *point, real radius, s_partition_location const *location,
+    long payload_size, void const *payload, bool *overflow);
+bool first_person_weapon_get_marker(long object_index, long marker_name, point3f *position, vector3f *forward, vector3f *up);
+bool __stdcall function_16a8e0(long flags, point3f const *point, real radius, long a, long b, point3f *out, real *distance);
+void function_11bed0(s_location *location, point3f const *point);
+point3f *transform4x3f_apply_point(transform4x3f const *matrix, point3f const *point, point3f *out);
+
+// @retail 0xc2d00
+void __stdcall function_c2d00(long light_index)
+{
+    union { s_object_marker marker; s_cluster_partition partition; } scratch;
+    byte *light = g_4e030c->data + (light_index & 0xffff) * 0x110;
+    byte *definition = g_4e3b44[*(long *)(light + 4) & 0xffff].bytes;
+    if (!(*(word *)(light + 2) & 2))
+        return;
+    if (*(word *)(light + 2) & 4)
+        function_c0840((point3f *)(light + 0x84), (point3f *)(light + 0x90),
+            (point3f *)(light + 0xa0), (real *)(light + 0x9c));
+    if (*(short *)(light + 0x54) != NONE)
+    {
+        long marker_name = function_b8c40(*(long *)(light + 0x4c), *(short *)(light + 0x54));
+        bool first_person = (*(long *)definition & 0x20) &&
+            first_person_weapon_get_marker(*(long *)(light + 0x4c), marker_name,
+                (point3f *)(light + 0x84), (vector3f *)(light + 0xac), (vector3f *)(light + 0xb8));
+        if (!first_person)
+        {
+            function_b8d30(*(long *)(light + 0x4c), marker_name, &scratch.marker, 1, false);
+            *(point3f *)(light + 0x84) = scratch.marker.matrix.position;
+            *(vector3f *)(light + 0xac) = scratch.marker.matrix.forward;
+            *(vector3f *)(light + 0xb8) = scratch.marker.matrix.up;
+        }
+        *(real *)(light + 0x90) = *(real *)(light + 0x84) + *(real *)(light + 0xac);
+        *(real *)(light + 0x94) = *(real *)(light + 0x88) + *(real *)(light + 0xb0);
+        *(real *)(light + 0x98) = *(real *)(light + 0x8c) + *(real *)(light + 0xb4);
+    }
+    else if (*(long *)(light + 0x58) != NONE)
+    {
+        struct s_header { byte unknown00[8]; byte *object; };
+        byte *object = ((s_header *)g_4e0300->data)[*(long *)(light + 0x58) & 0xffff].object;
+        transform4x3f *matrix = (transform4x3f *)(object + *(short *)(object + 0x116)) + *(short *)(light + 0x5c);
+        transform4x3f_apply_point(matrix, (point3f *)(light + 0x60), (point3f *)(light + 0x84));
+        vector3f *forward = (vector3f *)(light + 0x6c);
+        vector3f *up = (vector3f *)(light + 0x78);
+        vector3f *world_forward = (vector3f *)(light + 0xac);
+        vector3f *world_up = (vector3f *)(light + 0xb8);
+        world_forward->i = matrix->up.i * forward->k + matrix->left.i * forward->j + matrix->forward.i * forward->i;
+        world_forward->j = matrix->forward.j * forward->i + matrix->up.j * forward->k + matrix->left.j * forward->j;
+        world_forward->k = matrix->forward.k * forward->i + matrix->up.k * forward->k + matrix->left.k * forward->j;
+        world_up->i = matrix->up.i * up->k + matrix->left.i * up->j + matrix->forward.i * up->i;
+        world_up->j = matrix->forward.j * up->i + matrix->up.j * up->k + matrix->left.j * up->j;
+        world_up->k = matrix->forward.k * up->i + matrix->up.k * up->k + matrix->left.k * up->j;
+        *(real *)(light + 0x90) = *(real *)(light + 0x84) + world_forward->i;
+        *(real *)(light + 0x94) = *(real *)(light + 0x88) + world_forward->j;
+        *(real *)(light + 0x98) = *(real *)(light + 0x8c) + world_forward->k;
+    }
+    function_c28b0(light_index);
+    if (!(light[2] & 8) && *(short *)(light + 0x48) == NONE &&
+        (*(long *)definition & 0x8000) && *(real *)(light + 0x24) > 0.0f)
+    {
+        real distance;
+        function_16a8e0(0xd800001, (point3f *)(light + 0x18), *(real *)(light + 0x24),
+            light_index, NONE, (point3f *)(light + 0x18), &distance);
+        *(point3f *)(light + 0x38) = *(point3f *)(light + 0x18);
+    }
+    s_location *location = (s_location *)(light + 0x44);
+    function_11bed0(location, (point3f *)(light + 0x38));
+    if (*(short *)(light + 0x48) == NONE && (!(light[2] & 1) || (*(long *)definition & 8)))
+    {
+        if (*(long *)(light + 0x4c) != NONE)
+            object_get_root_location(*(long *)(light + 0x4c), location);
+        else if (*(long *)(light + 0x58) != NONE)
+            object_get_root_location(*(long *)(light + 0x58), location);
+        else
+            function_11bed0(location, (point3f *)(light + 0x18));
+    }
+    bool overflow;
+    scratch.partition.cluster_first_data_references = (long *)g_4e0310;
+    scratch.partition.data_references = (s_record_pool *)g_4e0314;
+    scratch.partition.cluster_references = (s_record_pool *)g_4e0318;
+    function_1cac60(NULL, &scratch.partition, light_index, (long *)(light + 0x10), (point3f *)(light + 0x18),
+        *(real *)(light + 0x24), (s_partition_location *)location, 0, NULL, &overflow);
+    light[2] |= 8;
 }

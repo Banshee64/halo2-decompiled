@@ -3,8 +3,7 @@
 #include "unknown_0259d0.h"
 
 struct s_location;
-// @stub 0xb77d0
-void __stdcall function_b77d0(long object_index, union vector3f const *linear_velocity, union vector3f const *angular_velocity) { }
+
 /* attaches an object to a parent's node */
 // @stub 0xb93b0
 void __stdcall function_b93b0(long parent_index, long object_index, long node_index) { }

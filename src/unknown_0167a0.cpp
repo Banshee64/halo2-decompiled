@@ -510,9 +510,9 @@ bool function_1b790(byte const *state, long index, real *out, long mode)
     real sx = values[7];
     real sy = values[8];
     transform4x3f matrix;
-    memset(&matrix, 0, sizeof(matrix));
     real sine = 0.0f;
     real cosine = 1.0f;
+    memset(&matrix, 0, sizeof(matrix));
     if (!(fabs(values[13]) < 0.0001f))
     {
         volatile real rounded_angle = values[13] * 6.2831854820251465f;
@@ -520,12 +520,12 @@ bool function_1b790(byte const *state, long index, real *out, long mode)
         sine = sinf(angle);
         cosine = cosf(angle);
     }
-    matrix.forward.i = sx * cosine;
     matrix.forward.j = 0.0f - sx * sine;
-    matrix.left.i = sy * sine;
-    matrix.left.j = sy * cosine;
     matrix.position.x = (1.0f - cosine + sine) * sx * 0.5f + values[10];
+    matrix.left.i = sy * sine;
     matrix.position.y = (1.0f - cosine - sine) * values[8] * 0.5f + values[11];
+    matrix.forward.i = sx * cosine;
+    matrix.left.j = sy * cosine;
     matrix.up.k = values[9];
     matrix.position.z = values[12];
     switch (mode)
@@ -628,10 +628,11 @@ bool function_1b580(byte const *definition, long component, long unused, long mo
 // @retail 0x17960
 void __stdcall function_17960(byte *state, word const *range)
 {
-    if (*range & 0xfe00)
+    dword initial_range = *range;
+    if (initial_range & 0xfe00)
     {
         byte const *definition = *(byte **)(state + 0xc);
-        byte const *entry = *(byte **)(definition + 0x58) + (*range & 0x1ff) * 4;
+        byte const *entry = *(byte **)(definition + 0x58) + (initial_range & 0x1ff) * 4;
         real *outputs[2] = { (real *)(state + 0x1530), (real *)(state + 0x1630) };
         dword *changed[2] = { (dword *)(state + 0x1730), (dword *)(state + 0x1734) };
         for (long i = 0; i < (*range >> 9); ++i, entry += 4)
@@ -646,7 +647,7 @@ void __stdcall function_17960(byte *state, word const *range)
             long mode = (packed >> 5) & 31;
             if (mode < 5)
             {
-                s_1b230_function const *curve = (s_1b230_function const *)(parameter + 12);
+                s_1b230_function const *volatile curve = (s_1b230_function const *)(parameter + 12);
                 real value = function_1b230(curve, *(long const *)parameter,
                     *(long const *)(parameter + 4), *(real const *)(parameter + 8));
                 if (mode != 4)
@@ -899,10 +900,10 @@ void __stdcall function_1a170(byte *state, word const *range)
 {
     if ((*range & 0xfe00) == 0) return;
     byte const *entry = *(byte **)(*(byte **)(state + 0x20) + 0x3c) + (*range & 0x1ff) * 4;
-    for (long i = 0; i < (*range >> 9); ++i, entry += 4)
+    for (long volatile i = 0; i < (*range >> 9); ++i, entry += 4)
     {
-        s_texture_stage_parameter const *parameter = &g_467020[entry[0]];
-        D3DRENDERSTATETYPE setting = (D3DRENDERSTATETYPE)parameter->state;
+        s_texture_stage_parameter const *volatile parameter = &g_467020[entry[0]];
+        D3DRENDERSTATETYPE volatile setting = (D3DRENDERSTATETYPE)parameter->state;
         if (entry[1] == 1)
         {
             real value = ((real *)(state + 0x5c))[entry[3]];
@@ -911,7 +912,7 @@ void __stdcall function_1a170(byte *state, word const *range)
             case 0:
                 {
                     dword alpha = (dword)rounded_shader_alpha(value) << 24;
-                    dword old;
+                    dword old = 0;
                     D3DDevice_GetRenderState(setting, &old);
                     D3DDevice_SetRenderState(setting, (old & 0xffffff) | alpha);
                 }
@@ -923,7 +924,7 @@ void __stdcall function_1a170(byte *state, word const *range)
         else
         {
             dword color = pack_color3f((color3f *)(state + 0x108) + entry[3]);
-            dword old;
+            dword old = 0;
             D3DDevice_GetRenderState(setting, &old);
             D3DDevice_SetRenderState(setting, (old & 0xff000000) | (color & 0xffffff));
         }

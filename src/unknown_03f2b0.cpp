@@ -1255,8 +1255,8 @@ extern short g_485602;
 // @retail 0x31590
 bool function_31590(long index, s_light_shape_ab *shape)
 {
-    bool result = false;
     volatile bool enabled = false;
+    bool result = false;
     if (index != NONE && function_c3140(index))
     {
         s_render_entry_110 *entry = &((s_render_entry_110 *)g_4e030c->data)[index & 0xffff];
@@ -1904,7 +1904,7 @@ short function_4bcc0(byte *output, long object_index, real distance, long overri
     (void)&cached; (void)&force; (void)&level;
     short result = 0;
     *(dword *)(output + 0x16c) = 0;
-    bool eligible = false;
+    bool volatile eligible = false;
     bool current = false;
     if (!object_or_parent_hidden(object_index))
     {
