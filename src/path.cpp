@@ -251,38 +251,39 @@ PRIVATE bool function_270640(s_type_f17a25 *state, s_type_c3b527 const *point,
 	long node_index, bool *arg_c793c4, s_type_c3b527 *out)
 {
 	short index = function_272700(state, node_index);
-	if (index == NONE)
+	bool result = false;
+	if (index != NONE)
 	{
-		return false;
-	}
-	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
-	s_path_node_key_view *node = &lookup->nodes[index];
-	while (node->parent != NONE)
-	{
-		s_path_node_key_view *parent = &lookup->nodes[node->parent];
-		if (point->output_index != parent->entry_point.output_index)
+		s_path_lookup_view *lookup = (s_path_lookup_view *)state;
+		s_path_node_key_view *node = &lookup->nodes[index];
+		while (node->parent != NONE)
 		{
-			break;
+			s_path_node_key_view *parent = &lookup->nodes[node->parent];
+			if (point->output_index != parent->entry_point.output_index)
+			{
+				break;
+			}
+			s_path_trace_result trace;
+			if (function_26c4e0(point, &parent->entry_point, &trace,
+				(s_pathfinding_data *)state->pathfinding, node_index, parent->node_index, 0))
+			{
+				break;
+			}
+			node = &lookup->nodes[node->parent];
 		}
-		s_path_trace_result trace;
-		if (function_26c4e0(point, &parent->entry_point, &trace,
-			(s_pathfinding_data *)state->pathfinding, node_index, parent->node_index, 0))
+		if (node->parent == NONE)
 		{
-			break;
+			*arg_c793c4 = true;
+			*out = ((s_path_input_view *)&state->source)->start;
 		}
-		node = &lookup->nodes[node->parent];
+		else
+		{
+			*arg_c793c4 = false;
+			*out = node->entry_point;
+		}
+		result = true;
 	}
-	if (node->parent == NONE)
-	{
-		*arg_c793c4 = true;
-		*out = ((s_path_input_view *)&state->source)->start;
-	}
-	else
-	{
-		*arg_c793c4 = false;
-		*out = node->entry_point;
-	}
-	return true;
+	return result;
 }
 
 // @retail 0x270750
