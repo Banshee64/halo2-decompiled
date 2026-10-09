@@ -60,8 +60,6 @@ struct s_squad_choice;
 
 
 
-// @stub 0x1b36e0
-bool __stdcall function_1b36e0(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1b3a80
 bool __stdcall function_1b3a80(long actor_index, s_slot *slot) { return 0; }

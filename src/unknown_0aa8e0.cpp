@@ -138,7 +138,7 @@ void function_ab5e0(s_z_blend_state const *state, s_bitstream *stream)
 }
 
 void simulation_write_position(long bits, s_bitstream *stream, real const *position, bool keep_inside);
-void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f const *up);
+void function_194d30(s_bitstream *stream, vector3f const *up, vector3f const *forward);
 void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real hi, long bits);
 bool __stdcall function_a75d0(vector3f *vector, real maximum);
 
@@ -147,9 +147,20 @@ void function_ab7f0(s_bitstream *stream, s_z_transform_state const *state)
 {
  function_b5650(state->identifier, stream);
  simulation_write_position(16, stream, (real const *)&state->position, false);
- function_194d30(stream, &state->forward, &state->up);
+ function_194d30(stream, &state->up, &state->forward);
  vector3f velocity = state->linear_velocity;
- function_a75d0(&velocity, 350.0f);
+ {
+  real first_squared = velocity.i * velocity.i;
+  real second_squared = velocity.j * velocity.j;
+  real length_squared = (first_squared + second_squared) + velocity.k * velocity.k;
+  if (length_squared > 122500.0f)
+  {
+   real inverse = 350.0f / (real)sqrt(length_squared);
+   velocity.i *= inverse;
+   velocity.j *= inverse;
+   velocity.k *= inverse;
+  }
+ }
  function_194c10(stream, &velocity, 0.03f, 350.0f, 10);
  velocity = state->angular_velocity;
  function_a75d0(&velocity, 30.0f);

@@ -106,22 +106,22 @@ bool function_1b60d0(long index, short type, short level);
 void function_25d420(long prop_index, short type, long actor_index);
 short __stdcall function_272af0(s_match_globals *structure, point3f const *point);
 
-// @retail 0x1b69e0
-bool __stdcall function_1b69e0(long actor_index, long prop_index)
+PRIVATE __forceinline byte function_1b69e6(long arg_0, long arg_1)
 {
-    s_actor_view *actor = actor_get(actor_index);
-    s_prop_node_view *node = prop_node_get(prop_index);
+    s_actor_view *actor = actor_get(arg_1);
+    s_prop_node_view *node = prop_node_get(arg_0);
     s_prop_view_fields *view = prop_node_view(node);
-    bool result = false;
+    byte result = 0;
     if (view)
     {
         s_2605d0_request request;
         memset(&request, 0, sizeof(request));
-        request.type = 5;
-        *((bool *)&request + 4) = true;
-        *(long *)((byte *)&request + 8) = actor->prop_index;
-        *(long *)((byte *)&request + 0xc) = *(long *)((byte *)view + 0xc);
-        *((bool *)&request + 0x10) = false;
+        s_2605d0_request *local_0 = &request;
+        *(short volatile *)&local_0->type = 5;
+        *((bool volatile *)local_0 + 4) = true;
+        *(long volatile *)((byte *)local_0 + 8) = actor->prop_index;
+        *(long volatile *)((byte *)local_0 + 0xc) = *(long *)((byte *)view + 0xc);
+        *((bool volatile *)local_0 + 0x10) = false;
         vector3f *direction = (vector3f *)((byte *)view + 0x94);
         if (direction->i * direction->i + direction->j * direction->j + direction->k * direction->k > 0.0f)
         {
@@ -146,7 +146,7 @@ bool __stdcall function_1b69e0(long actor_index, long prop_index)
         bool unknown;
         long level;
         s_261d20_entry entry;
-        s_reference reference = function_2605d0(actor_index, &request, (long)&entry, (long)&level, scratch, &unknown);
+        s_reference reference = function_2605d0(arg_1, &request, (long)&entry, (long)&level, scratch, &unknown);
         if (!REFERENCE_EQUAL(reference, g_470fa0) && reference.unknown2 >= 0)
         {
             s_1b69e0_choice *choice = *(s_1b69e0_choice **)&entry;
@@ -156,17 +156,23 @@ bool __stdcall function_1b69e0(long actor_index, long prop_index)
             *(long *)((byte *)view + 0x74) = choice->field_14;
             s_262b40_result *target = function_262b40(reference);
             short type = target ? target->unknown10 : NONE;
-            function_1b60d0(node->unknown08, type, reference.unknown2);
-            result = true;
+            function_1b60d0(node->unknown08, reference.unknown2, type);
+            result = 1;
         }
         else
         {
-            function_25d420(prop_index, 2, actor_index);
+            function_25d420(arg_0, 2, arg_1);
             view->unknown4c = true;
         }
         ai_scratch_buffer_release(scratch);
     }
     return result;
+}
+
+// @retail 0x1b69e0
+bool __stdcall function_1b69e0(long actor_index, long prop_index)
+{
+    return function_1b69e6(prop_index, actor_index) != 0;
 }
 
 // @retail 0x1b6c90
@@ -190,6 +196,12 @@ short __stdcall function_1b6c90(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+PRIVATE __forceinline long function_1b6e55(void)
+{
+	long local_0 = 0;
+	return local_0;
+}
+
 // @retail 0x1b6e50
 short function_1b6e50(long actor_index)
 {
@@ -201,7 +213,10 @@ short function_1b6e50(long actor_index)
 		s_actor_view *actor = actor_get(actor_index);
 
 		if (((s_slot_2a *)&actor->slots[level])->unknown0d)
-			return 0;
+		{
+			result = (short)function_1b6e55();
+			goto local_1;
+		}
 		level = function_1a6fe0(actor_index, 0x2b);
 		if (level == NONE)
 			level = function_1a6fe0(actor_index, 0x2c);
@@ -214,6 +229,7 @@ short function_1b6e50(long actor_index)
 				result = local_0->field_2;
 		}
 	}
+local_1:
 	return result;
 }
 

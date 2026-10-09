@@ -71,7 +71,7 @@ void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real 
 }
 
 // @retail 0x194d30
-void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f const *up)
+void function_194d30(s_bitstream *stream, vector3f const *up, vector3f const *forward)
 {
 	vector3f direction;
 	vector3f const *default_forward = g_4687b0;
