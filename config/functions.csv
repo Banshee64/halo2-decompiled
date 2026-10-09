@@ -7680,7 +7680,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00218510,183,game,speed,a16 pad,,,,src/unknown_218420.cpp,matched
 002185d0,212,game,speed,a16 pad,,,0013d170 0016b5f0 002d15da,src/unknown_218850.cpp,matched
 002186b0,61,game,speed,a16 pad,,,,src/sound_cache_dispose.cpp,matched
-002186f0,284,game,speed,a16 pad,,,0013d830 002d62c4 002d63fa 003314b0,src/unknown_218850.cpp,todo
+002186f0,284,game,speed,a16 pad,,,0013d830 002d62c4 002d63fa 003314b0,src/unknown_218850.cpp,matched
 00218810,60,game,speed,a16 pad,,,0013d230,src/unknown_218850.cpp,matched
 00218850,255,game,speed,a16 pad,,,00218a10 002d2084,src/unknown_218850.cpp,matched
 00218950,79,game,speed,a16 pad,,,,src/unknown_218850.cpp,matched
@@ -7828,7 +7828,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 002218e0,8,game,speed,a16 pad,,,,src/unknown_221490.cpp,matched
 002218f0,11,game,speed,a16 pad,,,,src/unknown_221490.cpp,matched
 00221900,120,game,speed,a16 pad,,,,src/unknown_221490.cpp,todo
-00221980,150,game,speed,a16 pad,,,003217c0,src/unknown_221490.cpp,near
+00221980,150,game,speed,a16 pad,,,003217c0,src/unknown_221490.cpp,matched
 00221a20,77,game,speed,a16 pad,,,003217c0,src/unknown_221490.cpp,todo
 00221a70,812,game,speed,a16 pad,,,00020670 0018cac0 00221e30 00249c90 00249d10,src/unknown_221da0.cpp,todo
 00221da0,132,game,speed,a16 pad,,,00249d60,src/unknown_221da0.cpp,todo
@@ -7949,7 +7949,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00227810,370,game,speed,a16 pad,,,00030bf0,src/impacts.cpp,todo
 00227990,339,game,speed,a16 pad,,,000dc3a0,src/impacts.cpp,todo
 00227af0,1708,game,speed,a16 pad,,,00030bf0 001d08e0 00227810,src/impacts.cpp,todo
-002281a0,574,game,speed,a16 pad,,,00141590 001d08e0,src/impacts.cpp,todo
+002281a0,574,game,speed,a16 pad,,,00141590 001d08e0,src/impacts.cpp,matched
 002283e0,221,game,speed,a16 pad,,,,src/impacts.cpp,matched
 002284c0,267,game,speed,a16 pad,,,002285d0,src/impacts.cpp,todo
 002285d0,412,game,speed,a16 pad,,,0011bed0 0011c120 001883e0,src/impacts.cpp,todo
