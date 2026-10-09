@@ -13,7 +13,7 @@ s_record_pool *g_4ea944;
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 bool __stdcall function_bab40(long object_index, long name, real *value);
 void function_17c0e0(long contrail_index, short count, bool force);
 void __stdcall function_17c540(long contrail_index, real dt);
@@ -166,7 +166,7 @@ static inline void contrail_location_from_point(s_location *location, point3f *p
 	}
 	else
 	{
-		long leaf_index = function_14a280(g_4e033c, point, 0);
+		long leaf_index = function_14a280(g_4e033c, 0, point);
 
 		location->leaf_index = leaf_index;
 		cluster_index = leaf_index != NONE ? ((s_contrail_structure_bsp *)g_4e0348)->leaves[leaf_index].cluster_index : NONE;
@@ -311,7 +311,7 @@ void contrails_update_locations(void)
 					}
 					else
 					{
-						long leaf_index = function_14a280(g_4e033c, &point->position, 0);
+						long leaf_index = function_14a280(g_4e033c, 0, &point->position);
 
 						point->location.leaf_index = leaf_index;
 						point->location.cluster_index = leaf_index != NONE ? ((s_contrail_structure_bsp *)g_4e0348)->leaves[leaf_index].cluster_index : NONE;

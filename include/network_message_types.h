@@ -152,13 +152,13 @@ long network_session_time_since_start(const s_session_id *session_id); /* the ti
 void __stdcall function_07ba10(s_bitstream *stream, void *session);    /* writes a session description */
 bool __stdcall function_07c110(s_bitstream *stream, void *session);    /* reads a session description */
 void function_07c5a0(s_bitstream *stream, void const *source);         /* writes a 0x90 byte sub-structure */
-bool function_07ca70(s_bitstream *stream, void *destination);          /* reads it, true when it is valid */
+byte function_07ca70(s_bitstream *stream, void *destination);          /* reads it, true when it is valid */
 void __stdcall function_063690(void *part, s_bitstream *stream);       /* writes the parameters' sub-structure at 0x3c / 0x8c */
 byte function_063980(s_bitstream *stream, void *part);                 /* reads it */
 void __stdcall function_07cc50(s_bitstream *stream, void *part);       /* writes the parameters' sub-structure at 0x3dc / 0x444 */
 bool function_07d520(s_bitstream *stream, void *part);                 /* reads it */
 void function_86f90(s_bitstream *stream, s_player_action *action);     /* the synchronous message helpers */
-bool function_874c0(s_bitstream *stream, s_player_action *action);
+byte function_874c0(s_bitstream *stream, s_player_action *action);
 bool function_87830(s_player_action *a, s_player_action *b);
 void function_87d00(s_bitstream *stream, void *message);
 bool function_87e90(s_bitstream *stream, void *message);

@@ -133,9 +133,9 @@ real function_30bf0(vector3f *vector);
 
 PRIVATE inline void matrix_cross(vector3f const *a, vector3f const *b, vector3f *out)
 {
-	real i = b->k * a->j - a->k * b->j;
-	real j = a->k * b->i - b->k * a->i;
 	real k = b->j * a->i - b->i * a->j;
+	real j = a->k * b->i - b->k * a->i;
+	real i = b->k * a->j - a->k * b->j;
 	out->i = i;
 	out->j = j;
 	out->k = k;
@@ -244,12 +244,13 @@ long function_15d70(long tag, long stage, long pass, bool first, bool second)
 {
 	(void)&pass; (void)&first; (void)&second;
 	byte *definition = g_4e3b44[tag & 0xffff].bytes;
-	long result = 0;
+	long result = NONE;
 	byte *groups = record_format_groups(tag);
 	long group = *(word *)(*(byte **)(groups + 4) + pass * 10) & 0x1ff;
 	word range = (*(word **)(groups + 0xc))[group + stage];
-	if (range >> 9)
+	if (range > 0x1ff)
 	{
+		result = 0;
 		switch (stage)
 		{
 		case 3: result = function_0226d0() ? NONE : 3; break;
@@ -259,8 +260,6 @@ long function_15d70(long tag, long stage, long pass, bool first, bool second)
 		case 13: result = function_30e00(*(word *)(definition + 0x3e) != 0); break;
 		}
 	}
-	else
-		result = NONE;
 	return result;
 }
 
@@ -301,10 +300,11 @@ bool __stdcall function_4dfa0(long tag, long context, long pass, long stage, lon
 // @retail 0x4de20
 bool __stdcall function_4de20(long tag, long context, long pass, long stage, long entry, long handle, s_sort_record *out)
 {
+    bool final_value;
 	(void)&tag; (void)&context; (void)&pass; (void)&stage;
 	(void)&entry; (void)&handle; (void)&out;
 	out->unknown04 = 0;
-	if (stage == 1) return false;
+	if (stage == 1) { final_value = false; goto complete; }
 	byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
 	byte *record = *(byte **)(table + 0x1c) + (((dword)handle >> 8) & 0x3fffff) * 24;
 	long record_tag = (*(long **)((byte *)g_4e0350 + 0x37c))[(signed char)record[0] * 2 + 1];
@@ -320,9 +320,11 @@ bool __stdcall function_4de20(long tag, long context, long pass, long stage, lon
 		out->value10 = (dword)material;
 		out->value08 = 1;
 		out->unknown14 = 0;
-		return function_4cbb0(*(long *)(material + 0x100), 1) != 0;
+		{ final_value = function_4cbb0(*(long *)(material + 0x100), 1) != 0; goto complete; }
 	}
-	return false;
+	{ final_value = false; goto complete; }
+complete:
+    return final_value;
 }
 
 // @retail 0x4e0d0
@@ -753,7 +755,7 @@ void function_41490(long tag, short group, short kind, real distance, t_record_f
         s_41490_record *record = (s_41490_record *)function_1e2d0();
         if (record)
         {
-            vector3f delta;
+            vector3f volatile delta;
             delta.i = position->x - g_485618.position.x;
             delta.j = position->y - g_485618.position.y;
             delta.k = position->z - g_485618.position.z;
@@ -918,40 +920,42 @@ PRIVATE __forceinline void set_bump_component(long stage, D3DTEXTURESTAGESTATETY
 // @retail 0x3c650
 void function_3c650(byte const *state)
 {
-    double angle = atan2(g_4b9dac.i, g_4b9dac.j) + *(real const *)(state + 0x8c);
-    real sine = (real)sin(angle);
-    real cosine = (real)cos(angle);
+    vector3f view_forward = g_4b9dac;
+    double angle = atan2((double)view_forward.i, (double)view_forward.j) + *(real const *)(state + 0x8c);
+    struct { real sine; real cosine; } trig;
+    trig.sine = (real)sin(angle);
+    trig.cosine = (real)cos(angle);
     vector3f const *axis = g_4687b0;
     real xx = axis->i * axis->i;
     real yy = axis->j * axis->j;
     real zz = axis->k * axis->k;
-    real xs = axis->i * sine;
-    real ys = axis->j * sine;
-    real zs = axis->k * sine;
-    real inverse = 1.0f - cosine;
+    real xs = (real)((double)trig.sine * axis->i);
+    real ys = axis->j * trig.sine;
+    real zs = axis->k * trig.sine;
+    real inverse = 1.0f - trig.cosine;
     g_4c1b9c.scale = 1.0f;
-    g_4c1b9c.forward.i = (1.0f - xx) * cosine + xx;
+    g_4c1b9c.forward.i = (1.0f - xx) * trig.cosine + xx;
     g_4c1b9c.forward.j = inverse * axis->i * axis->j + zs;
     g_4c1b9c.forward.k = inverse * axis->i * axis->k - ys;
     g_4c1b9c.left.i = inverse * axis->i * axis->j - zs;
-    g_4c1b9c.left.j = (1.0f - yy) * cosine + yy;
+    g_4c1b9c.left.j = (1.0f - yy) * trig.cosine + yy;
     g_4c1b9c.left.k = inverse * axis->k * axis->j + xs;
     g_4c1b9c.up.i = inverse * axis->i * axis->k + ys;
     g_4c1b9c.up.j = inverse * axis->k * axis->j - xs;
-    g_4c1b9c.up.k = (1.0f - zz) * cosine + zz;
+    g_4c1b9c.up.k = (1.0f - zz) * trig.cosine + zz;
     g_4c1b9c.position.x = g_4c1b9c.position.y = g_4c1b9c.position.z = 0.0f;
     set_bump_component(1, D3DTSS_BUMPENVMAT00, *(real const *)(state + 0x68) * g_4c1b9c.forward.i);
     set_bump_component(1, D3DTSS_BUMPENVMAT01, *(real const *)(state + 0x68) * g_4c1b9c.forward.j);
-    set_bump_component(1, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x68) * g_4c1b9c.left.i);
-    set_bump_component(1, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x68) * g_4c1b9c.left.j);
+    set_bump_component(1, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x68) * g_4c1b9c.left.i);
+    set_bump_component(1, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x68) * g_4c1b9c.left.j);
     set_bump_component(2, D3DTSS_BUMPENVMAT00, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.forward.i);
     set_bump_component(2, D3DTSS_BUMPENVMAT01, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.forward.j);
-    set_bump_component(2, D3DTSS_BUMPENVMAT11, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.i);
-    set_bump_component(2, D3DTSS_BUMPENVMAT10, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.j);
+    set_bump_component(2, D3DTSS_BUMPENVMAT10, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.i);
+    set_bump_component(2, D3DTSS_BUMPENVMAT11, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.j);
     set_bump_component(3, D3DTSS_BUMPENVMAT00, *(real const *)(state + 0x70) * g_4c1b9c.forward.i);
     set_bump_component(3, D3DTSS_BUMPENVMAT01, *(real const *)(state + 0x70) * g_4c1b9c.forward.j);
-    set_bump_component(3, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x70) * g_4c1b9c.left.i);
-    set_bump_component(3, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x70) * g_4c1b9c.left.j);
+    set_bump_component(3, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x70) * g_4c1b9c.left.i);
+    set_bump_component(3, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x70) * g_4c1b9c.left.j);
 }
 
 
@@ -1057,6 +1061,8 @@ void function_41040(short index, long part_index, long group, byte weight,
     s_render_part_context const *context, long material_override, bool force,
     dword and_mask, dword or_mask)
 {
+    part_index = *(long volatile *)&part_index;
+    index = *(short volatile *)&index;
     (void)&group; (void)&weight; (void)&context; (void)&material_override;
     (void)&force; (void)&and_mask; (void)&or_mask;
     s_44940_entry const *entry = &g_4ba138[index];
@@ -1140,13 +1146,14 @@ bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
     long entry_index, long handle, void *record)
 {
     s_sort_record *out = (s_sort_record *)record;
+    tag = *(long volatile *)&tag;
     long key = (byte)handle;
     short index = (short)(handle >> 8);
     s_44940_entry *source = &g_4ba138[index];
     byte *object = *(byte **)source->unknown10;
+    volatile bool result = false;
     long mode = function_15d70(tag, stage, pass, source->tag != NONE,
         (bool)((source->unknown00 >> 10) & 1));
-    bool result = false;
     switch (stage)
     {
     case 3:
@@ -1160,14 +1167,6 @@ bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
         default: mode = 3; break;
         }
         break;
-    case 16:
-    {
-        bool enabled = g_4ba004 && !g_485a75 && !g_485a76;
-        if (!(source->unknown00 & 0x80)) mode = NONE;
-        else if (source->unknown00 & 0x100) mode = enabled ? NONE : 1;
-        else mode = enabled ? 2 : 0;
-        break;
-    }
     case 18:
     {
         byte *definition = g_4e3b44[tag & 0xffff].bytes;
@@ -1193,6 +1192,14 @@ bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
                 (g_4b9f78 > g_4b9f7c ? g_4b9f78 : g_4b9f7c) > 0.0f && object[0x76] < 0xff)
                 mode = 0;
         }
+        break;
+    }
+    case 16:
+    {
+        bool enabled = g_4ba004 && !g_485a75 && !g_485a76;
+        if (!(source->unknown00 & 0x80)) mode = NONE;
+        else if (source->unknown00 & 0x100) mode = enabled ? NONE : 1;
+        else mode = enabled ? 2 : 0;
         break;
     }
     }

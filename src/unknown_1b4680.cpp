@@ -156,7 +156,7 @@ short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active)
 			s_prop_node_view *node = prop_node_get(actor->prop_index);
 
 			if (function_26ba60(node->unknown08, actor_index, actor->unknown07c))
-				function_1fb7e0(actor_index, 0x2a, NULL, node->object_index, NONE);
+				function_1fb7e0(0x2a, actor_index, NULL, node->object_index, NONE);
 		}
 	}
 	return result;
@@ -251,12 +251,11 @@ short __stdcall function_1b4f90(long actor_index, s_slot *slot)
 	return result;
 }
 
-// @retail 0x1b50e0
-short __stdcall function_1b50e0(long actor_index, s_slot *slot)
+PRIVATE __forceinline word function_1b50e1(s_slot *arg_0, long arg_1)
 {
 	short result = g_46fbe4;
-	s_actor_view *actor = actor_get(actor_index);
-	s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
+	s_actor_view *actor = actor_get(arg_1);
+	s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(arg_1);
 
 	if (actor->prop_index != NONE && character && actor->unknown3d8 >= character->unknown0c)
 	{
@@ -268,7 +267,7 @@ short __stdcall function_1b50e0(long actor_index, s_slot *slot)
 			return result;
 		}
 
-		s_slot_38 *state = (s_slot_38 *)slot;
+		s_slot_38 *state = (s_slot_38 *)arg_0;
 
 		state->unknown10 = actor->prop_index;
 		state->unknown14 = 0x3d;
@@ -276,6 +275,12 @@ short __stdcall function_1b50e0(long actor_index, s_slot *slot)
 		return 0x38;
 	}
 	return result;
+}
+
+// @retail 0x1b50e0
+short __stdcall function_1b50e0(long actor_index, s_slot *slot)
+{
+	return (short)function_1b50e1(slot, actor_index);
 }
 
 // @retail 0x1b5180
@@ -338,6 +343,14 @@ struct s_actor_type_definition
 extern s_actor_type_definition *g_471088[16];
 
 /* unless a clump member is of the type that leads the actor's type */
+PRIVATE __forceinline real function_1b52a1(void)
+{
+    s_random_globals *local_0 = g_4e7408;
+    dword *local_1 = &local_0->unknown0;
+    *local_1 = 1664525 * *local_1 + 1013904223;
+    return (real)(*local_1 >> 16) * (1.f / 65535.f);
+}
+
 // @retail 0x1b52a0
 short __stdcall function_1b52a0(long actor_index, s_slot *slot)
 {
@@ -351,7 +364,7 @@ short __stdcall function_1b52a0(long actor_index, s_slot *slot)
 		s_actor_view *other = actor_get(index);
 
 		index = other->next_index;
-		if (other->unknown004 == type->leader_type)
+		if (other->unknown004 == *(short const volatile *)&type->leader_type)
 			return g_46fbe4;
 	}
 
@@ -359,7 +372,7 @@ short __stdcall function_1b52a0(long actor_index, s_slot *slot)
 	{
 		s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
 
-		if (!character || character->unknown2c > slot_random())
+		if (!character || character->unknown2c > function_1b52a1())
 		{
 			s_slot_38 *state = (s_slot_38 *)slot;
 
@@ -504,7 +517,7 @@ void __stdcall function_1b4d90(long actor_index, s_slot *slot, s_1b4d90_group *g
 			if (node->unknown27 < 2 && !group->unknown8c &&
 				function_26ba60(node->unknown08, actor_index, actor->unknown07c))
 			{
-				function_1fb7e0(actor_index, 0x34, NULL, node->object_index, NONE);
+				function_1fb7e0(0x34, actor_index, NULL, node->object_index, NONE);
 				group->unknown8c = true;
 			}
 		}
@@ -579,7 +592,7 @@ short __stdcall function_1b54d0(long actor_index, s_slot *slot)
                 if (distance > 0.0f)
                 {
                     real range = *(real *)(entry + 0x18);
-                    distance = distance > range * 2.0f ? distance * 0.5f : range;
+                    distance = distance > range * 2.0f ? distance * 0.5f : *(real const volatile *)(entry + 0x18);
                     s_type_c3b527 point;
                     point.point.x = actor->position.x + direction.i * distance;
                     point.point.y = actor->position.y + direction.j * distance;

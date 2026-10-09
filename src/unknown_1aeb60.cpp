@@ -344,7 +344,7 @@ void __stdcall function_1afb30(long actor_index, s_slot *slot)
 			long now = g_510c54->game_time;
 			if ((real)(now - timer->time) * g_510c54->rate > 10.0f)
 			{
-				function_1fb7e0(actor_index, 0x96, NULL, node->object_index, NONE);
+				function_1fb7e0(0x96, actor_index, NULL, node->object_index, NONE);
 				timer->time = now;
 			}
 		}
@@ -460,7 +460,7 @@ s_slot_handler_2 g_47de70 =
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *arg_0, point3f *arg_1, long arg_2);
+long function_14a280(s_bsp3d *arg_0, long arg_2, point3f *arg_1);
 long function_baf40(long arg_0);
 long function_11c010(short arg_0, short arg_1);
 struct s_object_motion_view;
@@ -530,7 +530,7 @@ long function_1af5c0(long arg_0, long arg_1, point3f const *arg_2, short arg_3)
 	}
 	else
 		function_1e3b00(local_0->unknown018, arg_3, &local_5, NULL, NULL, &local_9);
-	long local_10 = function_14a280(g_4e033c, &local_9, 0);
+	long local_10 = function_14a280(g_4e033c, 0, &local_9);
 	if (local_10 != NONE)
 		local_10 = *(short *)(((s_1af5c4 *)g_4e0348)->field_30 + local_10 * 8);
 	else

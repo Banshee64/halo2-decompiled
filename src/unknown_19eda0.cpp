@@ -210,7 +210,7 @@ struct s_effect_owner;
 long function_15a090(short const *types, long type, volatile long count);
 void __stdcall function_ccff0(long unit_index);
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-long function_b7b40(void *creation);
+long __stdcall function_b7b40(void *creation);
 bool unit_has_weapon_definition(long unit_index, long definition_index);
 bool __stdcall function_cd0c0(long unit_index, long weapon_index, short mode);
 void __stdcall function_b8540(long object_index);

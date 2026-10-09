@@ -325,6 +325,22 @@ long function_21d110(s_sound_play_state *state, long tag_index)
 	return sound_start(state, tag_index);
 }
 
+PRIVATE __forceinline long function_21d2c1(s_sound_effect_definition *arg_0)
+{
+	long local_0 = NONE;
+	if (arg_0->count)
+	{
+		local_0 = record_pool_allocate(function_x39bdd5());
+		if (local_0 != NONE)
+		{
+			s_sound_effect *local_1 = sound_effect_get(local_0);
+			local_1->definition = arg_0;
+			local_1->record_index = NONE;
+		}
+	}
+	return local_0;
+}
+
 // @retail 0x21d2c0
 long function_21d2c0(long platform_playback, real scale, short priority)
 {
@@ -333,12 +349,12 @@ long function_21d2c0(long platform_playback, real scale, short priority)
 
 	if (sound_effect_get_definition(NONE, platform_playback, &definition))
 	{
-		effect_index = sound_effect_new(definition);
+		effect_index = function_21d2c1(definition);
 		if (effect_index != NONE)
 		{
 			s_sound_effect *effect = sound_effect_get(effect_index);
 			effect->type = 0;
-			effect->scale = scale;
+			sound_effect_get(effect_index)->scale = scale;
 			effect->priority = priority;
 			function_21d630(effect_index, 0);
 		}

@@ -46,14 +46,13 @@ c_class_2b01eb::c_class_2b01eb(s_bitmap_block *definition) :
 	definition(definition),
 	start_time(g_54d5b8),
 	value78(0),
-	value7c(0.0f),
-	value80(0.0f),
-	value84(0.0f),
-	sequence(0),
 	bitmap(0)
 {
+	memset(&value7c, 0, 2 * sizeof(real));
+	value84 = 0.0f;
+	sequence = 0;
 	s_type_7ba8e9 *shown = 0;
-	s_bitmap_group_view *group = 0;
+	s_bitmap_group_view *volatile group = 0;
 	s_widget_bounds bounds;
 
 	value68 = this->definition->value04 - 1;
@@ -370,7 +369,6 @@ void function_2afeae(s_widget_item *item, c_class_1a2c81 *widget)
 // @retail 0x2bacbc
 void function_2bacbc(c_class_1a2c81 *widget, s_widget_group_definition *group, s_widget_point *point)
 {
-	s_widget_bounds bounds;
 	long i;
 
 	for (i = 0; i < group->bitmap_count; i++)
@@ -381,8 +379,9 @@ void function_2bacbc(c_class_1a2c81 *widget, s_widget_group_definition *group, s
 		{
 			short height;
 
-			bitmap->get_bounds(&bounds);
-			height = (short)abs(bounds.bottom - bounds.top);
+			s_widget_bounds bounds;
+   bitmap->get_bounds(&bounds);
+			height = (short)(bounds.bottom - bounds.top >= 0 ? bounds.bottom - bounds.top : bounds.top - bounds.bottom);
 			bounds.top += height;
 			bounds.bottom += height;
 			bounds.top += point->y;
@@ -401,8 +400,9 @@ void function_2bacbc(c_class_1a2c81 *widget, s_widget_group_definition *group, s
 		{
 			short height;
 
-			child->get_bounds(&bounds);
-			height = (short)abs(bounds.bottom - bounds.top);
+			s_widget_bounds bounds;
+   child->get_bounds(&bounds);
+			height = (short)(bounds.bottom - bounds.top >= 0 ? bounds.bottom - bounds.top : bounds.top - bounds.bottom);
 			bounds.top += height;
 			bounds.bottom += height;
 			bounds.top += point->y;
@@ -428,7 +428,7 @@ void function_2bacbc(c_class_1a2c81 *widget, s_widget_group_definition *group, s
 				short height;
 
 				child->get_bounds(&child_bounds);
-				height = (short)abs(child_bounds.bottom - child_bounds.top);
+				height = (short)(child_bounds.bottom - child_bounds.top >= 0 ? child_bounds.bottom - child_bounds.top : child_bounds.top - child_bounds.bottom);
 				child_bounds.top += height;
 				child_bounds.bottom += height;
 				child->value0a = (short)i;
@@ -441,7 +441,8 @@ void function_2bacbc(c_class_1a2c81 *widget, s_widget_group_definition *group, s
 
 		if (text)
 		{
-			text->get_bounds(&bounds);
+			s_widget_bounds bounds;
+   text->get_bounds(&bounds);
 			bounds.top += point->y;
 			bounds.left += point->x;
 			bounds.right += point->x;
@@ -458,8 +459,10 @@ void c_widget_45ad18::place(s_widget_point *origin)
 	if (definition->tag_index != NONE)
 	{
 		s_widget_group_definition *group = (s_widget_group_definition *)g_4e3b44[definition->tag_index & 0xffff].bytes;
-		long rows = definition->rows > 1 ? definition->rows : 1;
-		long columns = definition->columns > 1 ? definition->columns : 1;
+		long rows = 1;
+  if (definition->rows > 1) rows = definition->rows;
+		long columns = 1;
+  if (definition->columns > 1) columns = definition->columns;
 		long column;
 		long row;
 
@@ -478,8 +481,7 @@ void c_widget_45ad18::place(s_widget_point *origin)
 			s_widget_point point;
 			s_widget_bounds group_bounds;
 
-			point.x = definition->x;
-			point.y = definition->y;
+			point = *(s_widget_point *)((byte *)definition + 0xc);
 			point.x += definition->x_step * (short)column + origin->x;
 			point.y += definition->y_step * (short)row + origin->y;
 			function_2bacbc(this, group, &point);

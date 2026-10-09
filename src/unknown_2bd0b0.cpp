@@ -78,8 +78,7 @@ long function_2bd0b0(long excluded)
 
 		if (excluded != g_5092f0[index])
 		{
-			result = g_5092f0[index];
-			break;
+			return g_5092f0[index];
 		}
 	}
 	return result;
@@ -279,10 +278,10 @@ PRIVATE __forceinline long find_hill_team_player_2bd(word team_mask)
 void function_2bd460(long before_players, long after_players)
 {
     word before = (word)function_2bd330(before_players);
-    word after = (word)function_2bd330(after_players);
+    volatile word after = (word)function_2bd330(after_players);
     if (before != after && after != 0)
     {
-        long multiple = (after - 1) & after;
+        long volatile multiple = (after - 1) & after;
         if (!multiple)
         {
             long player = find_hill_team_player_2bd(after);

@@ -88,14 +88,16 @@ void __stdcall function_1c1640(long actor_index, s_slot *slot)
 short __stdcall function_1c1670(long actor_index, s_slot *slot, bool active)
 {
 	s_slot_15 *state = (s_slot_15 *)slot;
-	long result = g_46fbe8;
+	short result = g_46fbe8;
 	s_actor_view *actor = actor_get(actor_index);
 	s_prop_node_view *node;
 
 	if (!actor->unknown223)
 	{
-		return g_46fbe4;
+		result = g_46fbe4;
 	}
+	else
+	{
 	node = prop_node_get(actor->prop_index);
 	if (actor->prop_index != state->prop_index)
 	{
@@ -116,6 +118,7 @@ short __stdcall function_1c1670(long actor_index, s_slot *slot, bool active)
 	else if (2.5f > node->unknown28)
 	{
 		function_1f86a0(actor_index);
+	}
 	}
 	return result;
 }

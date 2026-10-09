@@ -128,7 +128,8 @@ point3f *function_b9ef0(long object_index, point3f *result)
 	if (attachment_index != NONE)
 	{
 		s_unit_eye_attachment *attachment = &((s_unit_eye_attachment *)g_51e9b8->data)[attachment_index & 0xffff];
-		short element_index = (attachment->index >= 0 && attachment->index < attachment->element_count) ? attachment->index : NONE;
+		short element_index = NONE;
+        if (attachment->index >= 0 && attachment->index < attachment->element_count) element_index = attachment->index;
 
 		if (element_index != NONE)
 		{

@@ -100,8 +100,14 @@ void function_268510() {}
 // @stub 0x1e2f50
 void function_1e2f50() {}
 
+class c_1e2990
+{
+public:
+ void function_1e2990(bool arg_0);
+};
+
 // @stub 0x1e2990
-void __stdcall function_1e2990(long arg_0, bool arg_1) {}
+void c_1e2990::function_1e2990(bool arg_0) {}
 
 struct s_311100;
 class c_311100

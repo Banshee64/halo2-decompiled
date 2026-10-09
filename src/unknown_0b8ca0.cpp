@@ -132,61 +132,61 @@ long function_b8ca0(long object_index)
 // @retail 0xb8d30
 short function_b8d30(long object_index, long marker_name, s_object_marker *markers, short count, bool flag)
 {
-	long marker_object_index = object_index;
-	short result = 0;
+    long marker_object_index = object_index;
+    short volatile result = 0;
 
-	if (!flag)
-		marker_object_index = function_b8ca0(object_index);
-	if (marker_object_index != NONE)
-	{
-		s_object_view *object = OBJECT_GET(marker_object_index);
-		long model_index = TAG_DATA(s_object_definition_view, object->definition_index)->model_index;
+    if (!flag)
+        marker_object_index = function_b8ca0(object_index);
+    if (marker_object_index != NONE)
+    {
+        s_object_view *object = OBJECT_GET(marker_object_index);
+        long model_index = TAG_DATA(s_object_definition_view, object->definition_index)->model_index;
 
-		if (model_index != NONE)
-		{
-			byte const *region_permutations = (byte *)object + object->region_permutations_offset;
-			transform4x3f const *field_50 = (transform4x3f *)((byte *)object + object->node_matrices_offset);
-			bool mirrored = TEST_FIELD_BIT(object->mirrored);
-			volatile long node_count = object->node_matrices_size / sizeof(transform4x3f);
-			long render_model_index = TAG_DATA(s_model_definition_view, model_index)->render_model_index;
+        if (model_index != NONE)
+        {
+            byte const *region_permutations = (byte *)object + object->region_permutations_offset;
+            transform4x3f const *field_50 = (transform4x3f *)((byte *)object + object->node_matrices_offset);
+            bool mirrored = TEST_FIELD_BIT(object->mirrored);
+            volatile long node_count = object->node_matrices_size / sizeof(transform4x3f);
+            long render_model_index = TAG_DATA(s_model_definition_view, model_index)->render_model_index;
 
-			result = function_1d8f50(function_1d8f00(render_model_index, marker_name), render_model_index,
-				region_permutations, NULL, field_50, mirrored, markers, count);
-			if (result)
-				return result;
-		}
-	}
+            result = function_1d8f50(function_1d8f00(render_model_index, marker_name), render_model_index,
+                region_permutations, NULL, field_50, mirrored, markers, count);
+            if (result)
+                return result;
+        }
+    }
 
-	{
-		s_object_view *object = OBJECT_GET(object_index);
+    {
+        s_object_view *object = OBJECT_GET(object_index);
 
-		markers->node_index = 0;
-		markers->node_matrix.scale = 1.0f;
-		markers->node_matrix.rotation.forward.i = 1.0f;
-		markers->node_matrix.rotation.forward.j = 0.0f;
-		markers->node_matrix.rotation.forward.k = 0.0f;
-		markers->node_matrix.rotation.left.i = 0.0f;
-		markers->node_matrix.rotation.left.j = 1.0f;
-		markers->node_matrix.rotation.left.k = 0.0f;
-		markers->node_matrix.rotation.up.i = 0.0f;
-		markers->node_matrix.rotation.up.j = 0.0f;
-		markers->node_matrix.rotation.up.k = 1.0f;
-		markers->node_matrix.position.x = 0.0f;
-		markers->node_matrix.position.y = 0.0f;
-		markers->node_matrix.position.z = 0.0f;
-		s_object_view *node_object = OBJECT_GET(object_index);
-		markers->matrix = *(transform4x3f *)((byte *)node_object + node_object->node_matrices_offset);
-		markers->unknown6c = 0.0f;
-		if (TEST_FIELD_BIT(object->mirrored))
-		{
-			markers->matrix.rotation.left.i = 0.0f - markers->matrix.rotation.left.i;
-			markers->matrix.rotation.left.j = 0.0f - markers->matrix.rotation.left.j;
-			markers->matrix.rotation.left.k = 0.0f - markers->matrix.rotation.left.k;
-		}
-		if (!marker_name)
-			result = 1;
-	}
-	return result;
+        markers->node_index = 0;
+        markers->node_matrix.scale = 1.0f;
+        markers->node_matrix.rotation.forward.i = 1.0f;
+        markers->node_matrix.rotation.forward.j = 0.0f;
+        markers->node_matrix.rotation.forward.k = 0.0f;
+        markers->node_matrix.rotation.left.i = 0.0f;
+        markers->node_matrix.rotation.left.j = 1.0f;
+        markers->node_matrix.rotation.left.k = 0.0f;
+        markers->node_matrix.rotation.up.i = 0.0f;
+        markers->node_matrix.rotation.up.j = 0.0f;
+        markers->node_matrix.rotation.up.k = 1.0f;
+        markers->node_matrix.position.x = 0.0f;
+        markers->node_matrix.position.y = 0.0f;
+        markers->node_matrix.position.z = 0.0f;
+        s_object_view *node_object = OBJECT_GET(object_index);
+        markers->matrix = *(transform4x3f *)((byte *)node_object + node_object->node_matrices_offset);
+        markers->unknown6c = 0.0f;
+        if (TEST_FIELD_BIT(object->mirrored))
+        {
+            markers->matrix.rotation.left.i = 0.0f - markers->matrix.rotation.left.i;
+            markers->matrix.rotation.left.j = 0.0f - markers->matrix.rotation.left.j;
+            markers->matrix.rotation.left.k = 0.0f - markers->matrix.rotation.left.k;
+        }
+        if (!marker_name)
+            return 1;
+    }
+    return result;
 }
 
 // Preserve the activation call boundary while inlining the component lookup.
@@ -376,9 +376,9 @@ vector3f *function_11d090(vector3f const *vector, vector3f *out);
 
 static __forceinline void object_cross_ab(vector3f const *a, vector3f const *b, vector3f *out)
 {
-    real i = a->j * b->k - a->k * b->j;
-    real j = a->k * b->i - a->i * b->k;
     real k = a->i * b->j - a->j * b->i;
+    real j = a->k * b->i - a->i * b->k;
+    real i = a->j * b->k - a->k * b->j;
     out->i = i;
     out->j = j;
     out->k = k;
@@ -439,6 +439,21 @@ void function_b9a90(long object_index);
 
 void __stdcall function_b9a50(long object_index);
 
+#if 0
+// Retail 0xb9a50. Activating this dispatcher changes shared unit-call conventions.
+void __stdcall function_b9a50(long object_index)
+{
+    s_object_view *object = OBJECT_GET(object_index);
+    if (object->parent_index != NONE)
+    {
+        if ((1 << object->type) & 3)
+            function_cc590(object_index);
+        else
+            function_b9a90(object_index);
+    }
+}
+#endif
+
 extern void (__stdcall *g_468664[8])(long object_index);
 void __stdcall function_b8540(long object_index);
 
@@ -458,7 +473,15 @@ void __stdcall function_b83b0(long object_index, bool unused)
         if (g_4e6948->mode == 4)
             attached = local_f86fb0->field_x10a40f != NONE;
         if (attached)
-            function_b9a50(child);
+            {
+                if (local_f86fb0->parent_index != NONE)
+                {
+                    if ((1 << local_f86fb0->type) & 3)
+                        function_cc590(child);
+                    else
+                        function_b9a90(child);
+                }
+            }
         else
             function_b83b0(child, false);
         child = next;

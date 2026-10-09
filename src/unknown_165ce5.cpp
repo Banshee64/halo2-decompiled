@@ -1686,7 +1686,7 @@ struct s_16760c_orientation
 
 extern real_quaternion_transform *g_4687d8;
 
-void function_bd970(long weapon_index, s_16760c_render_model *render_model, s_animation_state *state, long unknown,
+void __stdcall function_bd970(long weapon_index, s_16760c_render_model *render_model, s_animation_state *state, long unknown,
 	long node_count, byte *orientations);
 long function_100b40(long magazine_index, long weapon_index, bool weapon_only);
 void function_1416c0(point3f const *position, transform4x3f *out);

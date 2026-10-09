@@ -58,7 +58,7 @@ bool function_28f290(long arg_0, vector3f *arg_1, vector3f *arg_2)
 			point3f local_3;
 			vector3f local_4;
 			function_b9dd0(arg_0, &local_3);
-			function_210c90((s_type_c3b527 const *)(local_2 + 0x30), &local_3, &local_4);
+			function_210c90(&local_3, (s_type_c3b527 const *)(local_2 + 0x30), &local_4);
 			if (function_30bf0(&local_4) > 0.0f)
 			{
 				*arg_1 = local_4;
@@ -100,9 +100,9 @@ vector3f *function_11d090(vector3f const *arg_0, vector3f *arg_1);
 
 __forceinline void function_28e65d(vector3f const *arg_0, vector3f const *arg_1, vector3f *arg_2)
 {
-	real local_0 = arg_1->j * arg_0->i - arg_1->i * arg_0->j;
 	real local_1 = arg_1->i * arg_0->k - arg_1->k * arg_0->i;
 	real local_2 = arg_1->k * arg_0->j - arg_1->j * arg_0->k;
+	real local_0 = arg_1->j * arg_0->i - arg_1->i * arg_0->j;
 	arg_2->i = local_2;
 	arg_2->j = local_1;
 	arg_2->k = local_0;
@@ -236,8 +236,8 @@ __forceinline void function_28f998(point3f const *arg_0, point3f const *arg_1, p
 __forceinline void function_28f9e1(point3f *arg_0, real const &arg_1)
 {
 	arg_0->x *= arg_1;
-	arg_0->y *= arg_1;
-	arg_0->z *= arg_1;
+	((point3f volatile *)arg_0)->y = ((point3f volatile *)arg_0)->y * arg_1;
+	arg_0->z = ((point3f volatile *)arg_0)->z * arg_1;
 }
 
 // @retail 0x28f8d0

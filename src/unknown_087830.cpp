@@ -60,7 +60,7 @@ bool function_87830(s_player_action *new_action, s_player_action *action)
 #include "bitstream.h"
 #include <string.h>
 
-bool function_07ca70(s_bitstream *stream, void *destination);
+byte function_07ca70(s_bitstream *stream, void *destination);
 void function_07c5a0(s_bitstream *stream, const void *source);
 
 // @retail 0x87930
@@ -169,11 +169,17 @@ static __forceinline real action_decode_real(long value, long maximum, real low,
  return ((real)(maximum - value) * low + (real)value * high) * (1.0f / (real)maximum);
 }
 
+#pragma inline_depth(0)
+static __forceinline void function_874c1(s_player_action *arg_0)
+{
+ player_action_initialize(arg_0);
+}
+#pragma inline_depth(8)
 // @retail 0x874c0
-bool function_874c0(s_bitstream *stream, s_player_action *action)
+byte function_874c0(s_bitstream *stream, s_player_action *action)
 {
  s_action_codec_view *result = (s_action_codec_view *)action;
- player_action_initialize(action);
+ function_874c1(action);
  result->control = function_1959c0(stream, 32);
  result->flags = (word)function_1959c0(stream, 9);
  result->yaw = action_decode_real(function_1959c0(stream, 13), 8191, 0.0f, 6.2831855f);
@@ -193,16 +199,19 @@ bool function_874c0(s_bitstream *stream, s_player_action *action)
   result->target = function_1959c0(stream, 32);
   switch (result->target_type)
   {
-  case 1: result->target_byte = (byte)function_1959c0(stream, 4); break;
-  case 4: result->target_slot = (short)function_1959c0(stream, 5); break;
-  case 5: result->target_slot = (short)function_1959c0(stream, 5); break;
+  case 4:
+  case 5:
   case 6: result->target_slot = (short)function_1959c0(stream, 5); break;
+  case 1:
   case 7: result->target_byte = (byte)function_1959c0(stream, 4); break;
   }
  }
  else
   result->target = NONE;
- result->value30 = function_1957d0(stream) ? function_1959c0(stream, 32) : NONE;
+ if (function_1957d0(stream))
+  result->value30 = function_1959c0(stream, 32);
+ else
+  result->value30 = NONE;
  if (function_1957d0(stream))
  {
   result->value50 = action_decode_real(function_1959c0(stream, 4), 15, 0.0f, 1.0f);

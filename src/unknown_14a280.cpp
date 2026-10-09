@@ -28,7 +28,7 @@ struct s_bsp3d
 };
 
 // @retail 0x14a280
-long function_14a280(s_bsp3d *bsp, point3f *point, long index)
+long function_14a280(s_bsp3d *bsp, long index, point3f *point)
 {
 	do
 	{

@@ -90,7 +90,7 @@ bool __stdcall function_1b6930(long actor_index, s_slot *slot)
 
 	function_1b6010(node->unknown08);
 	if (view && view->unknown70 == 0 && function_26ba60(node->unknown08, actor_index, actor->unknown07c))
-		function_1fb7e0(actor_index, 0x4c, NULL, node->object_index, NONE);
+		function_1fb7e0(0x4c, actor_index, NULL, node->object_index, NONE);
 	return true;
 }
 
@@ -106,22 +106,22 @@ bool function_1b60d0(long index, short type, short level);
 void function_25d420(long prop_index, short type, long actor_index);
 short __stdcall function_272af0(s_match_globals *structure, point3f const *point);
 
-// @retail 0x1b69e0
-bool __stdcall function_1b69e0(long actor_index, long prop_index)
+PRIVATE __forceinline byte function_1b69e6(long arg_0, long arg_1)
 {
-    s_actor_view *actor = actor_get(actor_index);
-    s_prop_node_view *node = prop_node_get(prop_index);
+    s_actor_view *actor = actor_get(arg_1);
+    s_prop_node_view *node = prop_node_get(arg_0);
     s_prop_view_fields *view = prop_node_view(node);
-    bool result = false;
+    byte result = 0;
     if (view)
     {
         s_2605d0_request request;
         memset(&request, 0, sizeof(request));
-        request.type = 5;
-        *((bool *)&request + 4) = true;
-        *(long *)((byte *)&request + 8) = actor->prop_index;
-        *(long *)((byte *)&request + 0xc) = *(long *)((byte *)view + 0xc);
-        *((bool *)&request + 0x10) = false;
+        s_2605d0_request *local_0 = &request;
+        *(short volatile *)&local_0->type = 5;
+        *((bool volatile *)local_0 + 4) = true;
+        *(long volatile *)((byte *)local_0 + 8) = actor->prop_index;
+        *(long volatile *)((byte *)local_0 + 0xc) = *(long *)((byte *)view + 0xc);
+        *((bool volatile *)local_0 + 0x10) = false;
         vector3f *direction = (vector3f *)((byte *)view + 0x94);
         if (direction->i * direction->i + direction->j * direction->j + direction->k * direction->k > 0.0f)
         {
@@ -146,7 +146,7 @@ bool __stdcall function_1b69e0(long actor_index, long prop_index)
         bool unknown;
         long level;
         s_261d20_entry entry;
-        s_reference reference = function_2605d0(actor_index, &request, (long)&entry, (long)&level, scratch, &unknown);
+        s_reference reference = function_2605d0(arg_1, &request, (long)&entry, (long)&level, scratch, &unknown);
         if (!REFERENCE_EQUAL(reference, g_470fa0) && reference.unknown2 >= 0)
         {
             s_1b69e0_choice *choice = *(s_1b69e0_choice **)&entry;
@@ -156,17 +156,23 @@ bool __stdcall function_1b69e0(long actor_index, long prop_index)
             *(long *)((byte *)view + 0x74) = choice->field_14;
             s_262b40_result *target = function_262b40(reference);
             short type = target ? target->unknown10 : NONE;
-            function_1b60d0(node->unknown08, type, reference.unknown2);
-            result = true;
+            function_1b60d0(node->unknown08, reference.unknown2, type);
+            result = 1;
         }
         else
         {
-            function_25d420(prop_index, 2, actor_index);
+            function_25d420(arg_0, 2, arg_1);
             view->unknown4c = true;
         }
         ai_scratch_buffer_release(scratch);
     }
     return result;
+}
+
+// @retail 0x1b69e0
+bool __stdcall function_1b69e0(long actor_index, long prop_index)
+{
+    return function_1b69e6(prop_index, actor_index) != 0;
 }
 
 // @retail 0x1b6c90
@@ -190,6 +196,12 @@ short __stdcall function_1b6c90(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+PRIVATE __forceinline long function_1b6e55(void)
+{
+	long local_0 = 0;
+	return local_0;
+}
+
 // @retail 0x1b6e50
 short function_1b6e50(long actor_index)
 {
@@ -201,18 +213,23 @@ short function_1b6e50(long actor_index)
 		s_actor_view *actor = actor_get(actor_index);
 
 		if (((s_slot_2a *)&actor->slots[level])->unknown0d)
-			return 0;
+		{
+			result = (short)function_1b6e55();
+			goto local_1;
+		}
 		level = function_1a6fe0(actor_index, 0x2b);
 		if (level == NONE)
 			level = function_1a6fe0(actor_index, 0x2c);
 		if (level != NONE)
 		{
-			s_slot_2b *state = (s_slot_2b *)&actor->slots[level];
+			struct s_1b6e51 { bool field_0; byte field_1; short field_2; };
+			s_1b6e51 const *local_0 = (s_1b6e51 const *)((byte *)&actor->slots[level] + 0xc);
 
-			if (state->unknown0c)
-				result = state->ticks;
+			if (local_0->field_0)
+				result = local_0->field_2;
 		}
 	}
+local_1:
 	return result;
 }
 
@@ -331,19 +348,31 @@ short __stdcall function_1b7210(long actor_index, s_slot *slot)
 	return result;
 }
 
+PRIVATE __forceinline real function_1b74c1(vector3f const *arg_0, vector3f const *arg_1)
+{
+	return *(real const volatile *)&arg_0->i * arg_1->i + arg_0->j * arg_1->j + arg_0->k * arg_1->k;
+}
+
+PRIVATE __forceinline bool function_1b74c3(long arg_0)
+{
+	bool local_0 = false;
+	local_0 = function_110ab0(arg_0);
+	return local_0;
+}
+
 // @retail 0x1b74c0
 short __stdcall function_1b74c0(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	short result = g_46fbe4;
 
-	if (actor->prop_index != NONE && !function_110ab0(actor->unknown018))
+	if (actor->prop_index != NONE && !function_1b74c3(actor->unknown018))
 	{
 		s_prop_node_view *node = prop_node_get(actor->prop_index);
 		s_prop_view_fields *view = prop_node_view(node);
 
 		if (view && node->unknown28 < 20.0f && view->unknown00 >= 9 &&
-			dot3f(&view->unknown2c, &actor->unknown290) < -0.1f)
+			function_1b74c1(&view->unknown2c, &actor->unknown290) < -0.1f)
 		{
 			result = 0x2a;
 		}
@@ -355,6 +384,11 @@ short __stdcall function_1b74c0(long actor_index, s_slot *slot)
 short __stdcall function_1b75a0(long actor_index)
 {
 	return 0;
+}
+
+PRIVATE __forceinline byte function_1b75b1(long arg_0)
+{
+	return (g_557c40[arg_0 >> 5] >> (arg_0 & 31)) & 1;
 }
 
 // @retail 0x1b75b0
@@ -372,7 +406,7 @@ short __stdcall function_1b75b0(long actor_index, s_slot *slot, bool active)
 			s_slot_handler *handler = g_46eeb8[0x36];
 
 			if (handler->unknown8 != g_46f348 && (handler->mask & g_4ee4ec) == g_4ee4ec &&
-				(((byte *)g_557c40)[0x36 >> 3] & (1 << (0x36 & 7))) != 0)
+				function_1b75b1(0x36) != 0)
 			{
 				result = 0x36;
 			}

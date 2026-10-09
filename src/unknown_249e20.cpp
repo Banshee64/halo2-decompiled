@@ -97,7 +97,7 @@ byte function_249ed0(short cluster_a, short cluster_b, s_structure_bsp_view *bsp
 
 /* true when sound carries between two clusters */
 // @retail 0x249c20
-bool function_249c20(long cluster_a, long cluster_b, s_structure_bsp_view *bsp)
+bool function_249c20(s_structure_bsp_view *bsp, long cluster_a, long cluster_b)
 {
 	bool result = false;
 
@@ -166,24 +166,32 @@ void function_249d10(s_structure_bsp_view *bsp, dword *bits, long index)
 
 /* the distance sound travels between two clusters */
 // @retail 0x249d60
-real function_249d60(long cluster_a, long cluster_b, s_structure_bsp_view *bsp)
+real function_249d60(s_structure_bsp_view *bsp, long cluster_a, long cluster_b)
 {
+	real local_0 = 255.0f;
 	if (cluster_a == cluster_b)
-		return 0.0f;
-
-	if (bsp->audibility_count > 0)
+		local_0 = 0.0f;
+	else if (bsp->audibility_count > 0)
 	{
 		s_structure_audibility *audibility = bsp->audibility;
 		long low = cluster_minimum(cluster_a, cluster_b);
 		long high = cluster_maximum(cluster_a, cluster_b);
 		byte value = audibility->cluster_pair_distances[cluster_pair_index(low, high, bsp->cluster_count)];
-
 		if (!value)
-			return 0.0f;
-		if (value == 0xff)
-			return 256.0f;
-		return (real)(value - 1) * (1.0f / 253.0f) * (audibility->distance_upper - audibility->distance_lower) + audibility->distance_lower;
+			local_0 = 0.0f;
+		else if (value == 0xff)
+			local_0 = 256.0f;
+		else
+		{
+			real local_1 = audibility->distance_lower;
+			real local_2 = audibility->distance_upper;
+			local_0 = (real)(value - 1) * (1.0f / 253.0f);
+			local_2 -= local_1;
+			local_0 *= local_2;
+			local_0 += local_1;
+		}
 	}
-
-	return (real)(function_249ed0((short)cluster_a, (short)cluster_b, bsp) & ~0x80) * (256.0f / 127.0f);
+	else
+		local_0 = (real)(function_249ed0((short)cluster_a, (short)cluster_b, bsp) & ~0x80) * (256.0f / 127.0f);
+	return local_0;
 }

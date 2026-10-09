@@ -261,7 +261,7 @@ static inline void cache_files_unload_tag(long tag_index)
 void cache_files_unload_structure_bsp(s_structure_bsp_reference *bsp)
 {
 	cache_files_unload_tag(bsp->bsp_tag_index);
-	if (bsp->lightmap_tag_index != NONE)
+	if (*(long const volatile *)&bsp->lightmap_tag_index != NONE)
 	{
 		cache_files_unload_tag(bsp->lightmap_tag_index);
 	}
@@ -279,11 +279,11 @@ static inline bool cache_tag_group_is(s_cache_tag_group const *group, long group
 // @retail 0x122c10
 void *function_122c10(long group_tag, long tag_index)
 {
-	s_cache_tag_instance *instance = cache_tag_instance_get(tag_index);
 	void *result = NULL;
+	s_cache_tag_instance *instance = cache_tag_instance_get(tag_index);
 
 	if (instance && cache_tag_group_is(cache_tag_group_get(instance->group_tag), group_tag))
-		return instance->address;
+		result = instance->address;
 	return result;
 }
 

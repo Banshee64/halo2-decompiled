@@ -266,6 +266,16 @@ void simulation_view_baseline_set_active(s_simulation_view_baseline *baseline, b
 	}
 }
 
+#pragma optimize("g", off)
+static __forceinline bool function_861c3(const c_simulation_view *arg_0)
+{
+ bool local_0 = false;
+ long local_1 = arg_0->unknown3c;
+ if (local_1 != NONE)
+  local_0 = *(volatile bool *)&arg_0->flag75;
+ return local_0;
+}
+#pragma optimize("", on)
 // @retail 0x861c0
 void c_simulation_view::update_established(void)
 {
@@ -277,7 +287,7 @@ void c_simulation_view::update_established(void)
 		now_established = state >= 2 && remote_state >= 2;
 		synchronized = state >= 5 && remote_state >= 5;
 	}
-	if (now_established != established())
+	if (now_established != function_861c3(this))
 	{
 		flag75 = now_established;
 		if (!now_established)
@@ -443,20 +453,16 @@ bool c_simulation_view::has_pending_entity(void)
 bool c_simulation_view::function_85cb0(void)
 {
 	bool result = false;
-	if (type == 3)
-	{
-		if (!has_pending_entity())
-			result = true;
-	}
-	else if (type == 4)
-	{
-		if (!has_pending_entity())
-			result = true;
-	}
-	else if (!buffer || unknownac <= 0)
-	{
-		result = true;
-	}
+ if (type == 3)
+  goto local_0;
+ if (type == 4)
+ {
+local_0:
+  if (!has_pending_entity())
+   result = true;
+ }
+ else if (!buffer || unknownac <= 0)
+  result = true;
 	return result;
 }
 /* the input update message (type 0x2b) */
@@ -490,10 +496,14 @@ void simulation_view_baseline_send(s_simulation_view_baseline *baseline)
 	baseline->time = view_time_get();
 }
 
+static __forceinline byte function_86bc2(const c_simulation_view *arg_0)
+{
+ return *(volatile byte *)&arg_0->flag75;
+}
 // @retail 0x86bc0
 void simulation_view_baseline_update(s_simulation_view_baseline *baseline)
 {
-	if ((baseline->view->type == 3 || baseline->view->type == 4) && baseline->view->established() && baseline->active && g_510ca0)
+	if ((baseline->view->type == 3 || baseline->view->type == 4) && (baseline->view->unknown3c != NONE && function_86bc2(baseline->view)) && baseline->active && g_510ca0)
 	{
 		if (baseline->time == NONE || !baseline->state.flag0 && g_510cb1 || function_75890(baseline->time) > g_network_configuration.valued00)
 		{
@@ -603,9 +613,10 @@ bool c_simulation_view::join_data_begin(long field_0_4)
 				}
 				world->flag24 = true;
 				function_69350(this->world, true);
-				return true;
+				result = true;
 			}
-			fail(5);
+			else
+				fail(5);
 		}
 	}
 	return result;

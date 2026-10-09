@@ -208,11 +208,11 @@ game_module_proc g_46e320[30] =
 // @retail 0x3d380
 void __stdcall function_3d380(dword flags)
 {
-	s_type_f1af8e iterator;
+	struct { s_object *object; s_type_f1af8e iterator; } iteration;
 
-	function_bae80(&iterator, 0, 0);
-	for (s_object *object = function_baeb0(&iterator); object; object = function_baeb0(&iterator))
-		object->unknownCC = NONE;
+	function_bae80(&iteration.iterator, 0, 0);
+	for (iteration.object = function_baeb0(&iteration.iterator); iteration.object; iteration.object = function_baeb0(&iteration.iterator))
+		iteration.object->unknownCC = NONE;
 }
 
 // @retail 0x43970
@@ -228,14 +228,20 @@ void __stdcall function_67fb0(dword flags)
 	g_4cf77b = 1;
 }
 
+struct s_67fc1
+{
+	byte field_0[0xc];
+	signed long field_c : 8;
+};
+
 // @retail 0x67fc0
 void __stdcall function_67fc0(dword flags)
 {
 	if (flags & 4)
 	{
 		function_593e0();
-		s_simulation_world *world = g_4cf77c;
-		if (GAME_MODE == 1 && world->state == 1)
+		s_simulation_world *world;
+		if (GAME_MODE == 1 && (world = g_4cf77c)->state == 1)
 		{
 			function_6b040((c_class_6a600 *)world);
 			g_4cf772 = 0;
@@ -251,7 +257,9 @@ void __stdcall function_67fc0(dword flags)
 				if (proc)
 					function_162060(proc);
 			}
-			if (GAME_MODE >= 4 && GAME_MODE <= 5)
+			s_67fc1 *local_0 = (s_67fc1 *)g_4e6948;
+			long local_1 = local_0->field_c;
+			if (local_1 >= 4 && local_1 <= 5)
 			{
 				function_162420();
 				function_bb7f0();

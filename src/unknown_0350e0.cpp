@@ -101,11 +101,28 @@ struct s_motion_state_groups
 // @retail 0x39880
 inline void function_39880(s_motion_state_groups *state)
 {
-	long i;
-	for (i = 0; i < state->large_count; ++i)
-		function_36f50(state->large_entries + i * 0x3a8);
-	for (i = 0; i < state->count; ++i)
-		function_39a80(state->entries + i * 0x8c);
+    if (state->large_count > 0)
+    {
+        long i = 0;
+        long offset = 0;
+        do
+        {
+            function_36f50(state->large_entries + offset);
+            ++i;
+            offset += 0x3a8;
+        } while (i < state->large_count);
+    }
+    if (state->count > 0)
+    {
+        long i = 0;
+        long offset = 0;
+        do
+        {
+            function_39a80(state->entries + offset);
+            ++i;
+            offset += 0x8c;
+        } while (i < state->count);
+    }
 }
 
 real g_4670e4 = 0.85f;
@@ -1005,10 +1022,14 @@ void function_4b160(long first, s_4b160_entry *entries, long mode, long last)
 {
 	(void)&entries;
 	(void)&mode;
-	long const *last_reference = &last;
+	long const volatile *last_reference = &last;
 	long begin = first + 1;
-	for (long i = first; i <= *last_reference; ++i)
 	{
+    long i = first;
+    if (i <= *last_reference)
+    {
+        do
+        {
 		for (long j = begin; j <= *last_reference; ++j)
 		{
 			bool swap;
@@ -1025,7 +1046,11 @@ void function_4b160(long first, s_4b160_entry *entries, long mode, long last)
 				entries[j] = temporary;
 			}
 		}
-	}
+	
+            ++i;
+        } while (i <= *last_reference);
+    }
+}
 }
 
 real g_509418;
@@ -1112,10 +1137,11 @@ real function_336f0(long selector)
         if (g_485a58)
         {
             real const *values = (real const *)g_485a58;
-            real red = values[4] + values[12];
-            real green = values[5] + values[13];
-            real blue = values[6] + values[14];
-            real value = blue * 0.114f + green * 0.587f + red * 0.299f;
+            color3f summed;
+            summed.red = values[4] + values[12];
+            summed.green = values[5] + values[13];
+            summed.blue = values[6] + values[14];
+            real value = summed.blue * 0.114f + summed.green * 0.587f + summed.red * 0.299f;
             return 0.0f > value ? 0.0f : value > 1.0f ? 1.0f : value;
         }
         return 1.0f;
@@ -1169,11 +1195,9 @@ extern vector3f g_4b9dac;
 long g_4b9ed4;
 
 // @retail 0x2dba0
-bool function_2dba0(long tag, vector3f const *direction, bool alternate,
-    long c, long d, long e, point3f const *position, color3f const *color,
-    real alpha, real amount, real scale)
+bool function_2dba0(long tag, vector3f const *direction, long c, long d, long e, point3f const *position, color3f const *color, real alpha, real amount, real scale, bool alternate)
 {
-    bool result = false;
+    bool volatile result = false;
     if (g_4b9ed4 != NONE && tag != NONE && alpha > 0.0f)
     {
         byte *definition = g_4e3b44[tag & 0xffff].bytes;
@@ -1240,7 +1264,8 @@ void function_4baf0(long object_index, real distance, byte *first, byte *second)
         long parent = function_baf80(object_index);
         if (parent != object_index)
         {
-            byte *local_be682a_2 = ((s_scalar_object_header *)g_4e0300->data)[parent & 0xffff].object;
+            word parent_slot = (word)parent;
+            byte *local_be682a_2 = ((s_scalar_object_header *)g_4e0300->data)[parent_slot].object;
             byte *parent_definition = g_4e3b44[*(long *)local_be682a_2 & 0xffff].bytes;
             long parent_model = *(long *)(parent_definition + 0x38);
             if (parent_model != NONE)
@@ -1386,6 +1411,7 @@ struct s_320b0_box
 // @retail 0x320b0
 bool function_320b0(s_320b0_box const *box)
 {
+    real const volatile *box_scale = &box->matrix.scale;
     byte *context = (byte *)g_547f88.context;
     box3f bounds;
     bounds.x0 = 0.0f - box->radius.i;
@@ -1403,11 +1429,11 @@ bool function_320b0(s_320b0_box const *box)
         {
             long i = edge * 2 + endpoint;
             point3f point = ((point3f *)edges)[i];
-            if (box->matrix.scale != 1.0f)
+            if (*box_scale != 1.0f)
             {
-                point.x = box->matrix.scale * point.x;
-                point.y = box->matrix.scale * point.y;
-                point.z = box->matrix.scale * point.z;
+                point.x = *box_scale * point.x;
+                point.y = *box_scale * point.y;
+                point.z = *box_scale * point.z;
             }
             real const *m = (real const *)&box->matrix;
             transformed[i].x = m[1] * point.x + m[7] * point.z + m[4] * point.y + m[10];
@@ -1657,7 +1683,7 @@ long __stdcall function_2e9e0(byte const *context, s_2e3f0_record const *record)
         dword seed = (dword)context >> 5;
         dword hash = 0xffffffff;
         function_163ba0(&hash, &seed, 4);
-        time += (hash & 0xff) * (1.0f / 256.0f) + ((hash >> 8) & 0xff);
+        time = (hash & 0xff) * (1.0f / 256.0f) + time + ((hash >> 8) & 0xff);
     }
     if (*(long *)(definition + 0x4c) > 0)
         attenuation *= function_13bb90((s_tag_data *)*(byte **)(definition + 0x50), time, 0.0f);
@@ -1665,8 +1691,8 @@ long __stdcall function_2e9e0(byte const *context, s_2e3f0_record const *record)
     {
         real base_angle = function_2f2d0(&direction, &position,
             *(short *)(definition + 0x2c), *(real *)(definition + 0x30));
-        real camera_angle = (real)atan2(delta.j * g_4b9e4c.j + delta.i * g_4b9e4c.i + delta.k * g_4b9e4c.k,
-            delta.j * g_4b9e58.j + delta.i * g_4b9e58.i + delta.k * g_4b9e58.k);
+        real camera_angle = (real)atan2((double)delta.j * g_4b9e4c.j + (double)delta.i * g_4b9e4c.i + (double)delta.k * g_4b9e4c.k,
+            (double)delta.j * g_4b9e58.j + (double)delta.i * g_4b9e58.i + (double)delta.k * g_4b9e58.k);
         color3f animated = { 1.0f, 1.0f, 1.0f };
         if (*(long *)(definition + 0x54) > 0)
         {
@@ -1724,8 +1750,8 @@ long __stdcall function_2e9e0(byte const *context, s_2e3f0_record const *record)
                         g_4c19c0 = false;
                     }
                     D3DDevice_SetVertexData2f(8, clamp_2e9e0(1.0f - *(real *)(entry + 0x20)), 0.0f);
-                    real sine = angle == 0.0f ? 0.0f : (real)sin(angle);
-                    real cosine = angle == 0.0f ? 1.0f : (real)cos(angle);
+                    real sine = angle == 0.0f ? 0.0f : (real)sin((double)angle);
+                    real cosine = angle == 0.0f ? 1.0f : (real)cos((double)angle);
                     function_480a0(&point, cosine * size, sine * size, x_scale, y_scale,
                         function_131f40(opacity, &selected));
                 }
@@ -1848,8 +1874,7 @@ void function_3eec0()
                 basis[0].k = 0.0f - direction.k;
                 function_11d000(&basis[0], &basis[2]);
                 function_30bf0(&basis[2]);
-                function_2dba0(tag, basis, false, 3, 0, i, &position,
-                    (color3f const *)((byte const *)g_4686cc + 4), 1.0f - g_4b9f58, 1.0f, 1.0f);
+                function_2dba0(tag, basis, 3, 0, i, &position, (color3f const *)((byte const *)g_4686cc + 4), 1.0f - g_4b9f58, 1.0f, 1.0f, false);
             }
         }
     }
@@ -1961,9 +1986,9 @@ void c_octree_radius_view_ab::function_3f970(short index, plane3f const *planes,
 
 
 
-PRIVATE __forceinline double random_unit_fraction(s_random_globals *random)
+PRIVATE __forceinline real random_unit_fraction(s_random_globals *random)
 {
-    return (double)random_next(&random->seed) * (1.0f / 65535.0f);
+    return (real)random_next(&random->seed) * (1.0f / 65535.0f);
 }
 
 // @retail 0x39a80
@@ -2152,7 +2177,7 @@ long __stdcall function_31910(s_cached_input *output)
 // @retail 0x4a7c0
 void function_4a7c0(s_cached_input_list *state, s_cached_input const *inputs, long count)
 {
-    dword used = 0;
+    dword volatile used = 0;
     for (long i = 0; i < state->count; ++i)
     {
         for (long j = 0; j < count; ++j)
@@ -2175,7 +2200,51 @@ void function_4a7c0(s_cached_input_list *state, s_cached_input const *inputs, lo
             --k;
         }
     }
-    for (long n = 0; n < count; ++n)
+    long n = 0;
+    for (long center = 2; n < count - 3; n += 4, center += 4)
+    {
+        if (state->count < 32 && !(used & (1 << (n + 0))))
+        {
+            state->entries[state->count].input = inputs[n + 0];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << (n + 0);
+        }
+        if (state->count < 32 && !(used & (1 << (center - 1))))
+        {
+            state->entries[state->count].input = inputs[center - 1];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << (center - 1);
+        }
+        if (state->count < 32 && !(used & (1 << center)))
+        {
+            state->entries[state->count].input = inputs[center];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << center;
+        }
+        if (state->count < 32 && !(used & (1 << (center + 1))))
+        {
+            state->entries[state->count].input = inputs[center + 1];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << (center + 1);
+        }
+    }
+    for (; n < count; ++n)
     {
         if (state->count < 32 && !(used & (1 << n)))
         {
@@ -2534,8 +2603,17 @@ struct s_41c80_state
 // @retail 0x41c80
 void function_41c80(short type, s_41c80_state const *state)
 {
-    for (short i = 0; i < state->objects->count; ++i)
-        function_41c20(type, state->objects->indices[i], state->objects->values[i]);
+    s_41c80_objects const *objects = state->objects;
+    long i = 0;
+    if (objects->count > 0)
+    {
+        do
+        {
+            function_41c20(type, objects->indices[(short)i], objects->values[(short)i]);
+            objects = state->objects;
+            ++i;
+        } while (i < objects->count);
+    }
 }
 
 // @retail 0x41980
@@ -2566,8 +2644,7 @@ void __stdcall function_41980(short type, long object_index)
                         {
                             byte *tag = g_4e3b44[entry->tag & 0xffff].bytes;
                             real scale = (tag[0x28] & 0x40) ? matrix->scale : 1.0f;
-                            function_2dba0(entry->tag, &matrix->forward, function_3e9c0(object_index),
-                                0, object_index & 0xffff, added, &matrix->position, &color, 1.0f, amount, scale);
+                            function_2dba0(entry->tag, &matrix->forward, 0, object_index & 0xffff, added, &matrix->position, &color, 1.0f, amount, scale, function_3e9c0(object_index));
                             ++added;
                         }
                         else if (!g_55e6c7)
@@ -2677,9 +2754,9 @@ s_cached_input_list g_5246f8[4];
 // @retail 0x33400
 long function_33400(byte const *list, s_cached_input *output, long mode)
 {
-    long selected = 0;
+    long volatile selected = 0;
     long view = g_4b9ed4 < 0 ? 0 : g_4b9ed4 > 3 ? 3 : g_4b9ed4;
-    long count = *(short const *)(list + 4);
+    long volatile count = *(short const *)(list + 4);
     for (long i = 0; i < count; ++i)
     {
         long object_index = (*(long const **)(list + 0xc))[(short)i];
@@ -2735,18 +2812,24 @@ real g_525980[3];
 // @retail 0x41640
 void function_41640(void)
 {
-    t_41640_draw draw[6] = { function_4e260, function_4ebd0, function_4ebd0,
-        function_4ede0, function_4efa0, function_4efa0 };
     t_41640_fill fill[6] = { (t_41640_fill)function_4de20, (t_41640_fill)function_4dfa0,
         (t_41640_fill)function_4dfa0, (t_41640_fill)function_4e0d0,
         (t_41640_fill)function_4e0d0, (t_41640_fill)function_4e0d0 };
+    t_41640_draw draw[6] = { function_4e260, function_4ebd0, function_4ebd0,
+        function_4ede0, function_4efa0, function_4efa0 };
     byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
     if (!g_4ba025) return;
     byte *definitions = (byte *)g_4e0350;
+    union
+    {
+        dword value;
+        struct { dword view : 8; dword record : 22; dword distance : 2; } fields;
+    } handle;
     for (long view = 0; view < (long)g_509438; ++view)
     {
         s_octree_output *node = &g_4c5700[view];
         byte *range = *(byte **)(table + 0x24) + node->node * 24;
+        handle.fields.view = view;
         for (long i = 0; i < *(short *)(range + 0x12); ++i)
         {
             long record_index = *(long *)(range + 0x14) + i;
@@ -2756,7 +2839,7 @@ void function_41640(void)
             long definition_index = (signed char)record[0];
             if (definition_index < 0 || definition_index >= *(long *)(definitions + 0x378)
                 || *(short *)(record + 0xa) <= 0 || !function_12de70(block, 3)) continue;
-            long tag = (*(long **)(definitions + 0x37c))[definition_index * 2 + 1];
+            long tag = (*(long **)(definitions + 0x37c))[(signed char)record[0] * 2 + 1];
             if (tag == NONE) continue;
             byte *definition = g_4e3b44[tag & 0xffff].bytes;
             long part_index = record[1];
@@ -2787,10 +2870,10 @@ void function_41640(void)
                 point3f camera = g_4b9da0;
                 if (g_525980[distance_class] > distance3d(&camera, &position) - radius)
                 {
-                    dword handle = (view & 0xff) | ((record_index << 8) & 0x3fffff00)
-                        | (distance_class << 30);
+                    handle.fields.record = *(long *)(range + 0x14) + i;
+                    handle.fields.distance = distance_class;
                     function_40e30(0, material, 10000.0f, 0, 0xffff, NONE, 0,
-                        fill[part[4]], (dword)draw[part[4]], (void *)handle);
+                        fill[part[4]], (dword)draw[part[4]], (void *)handle.value);
                 }
             }
         }

@@ -107,12 +107,13 @@ bool function_1f9240(long actor_index, s_path_settings *settings)
 	if (actor->unknown858 != NONE && (script = command_script_get(actor->unknown858))->flag86 &&
 		(script_style = (s_path_mask_tag *)g_4e3b44[script->style88 & 0xffff].bytes)->mask_count > 0)
 	{
-		settings->flags &= script_style->masks[0] << 1;
+		s_path_settings *local_0 = settings;
+		*(dword volatile *)&local_0->flags = settings->flags & (script_style->masks[0] << 1);
 	}
 	else if (actor->unknown030 != NONE)
 	{
 		s_path_squad_view *squad = &((s_path_squad_view *)g_51e9d8->data)[actor->unknown030 & 0xffff];
-		s_path_squad_definition *definition = path_squad_definition_get(squad->definition_index);
+		s_path_squad_definition *definition = path_squad_definition_get(*(short const volatile *)&squad->definition_index);
 
 		if (definition)
 		{

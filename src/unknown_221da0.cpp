@@ -35,7 +35,7 @@ static __forceinline long real_to_long(real value)
 }
 
 struct s_structure_bsp_view;
-real function_249d60(long cluster_a, long cluster_b, s_structure_bsp_view *bsp);
+real function_249d60(s_structure_bsp_view *bsp, long cluster_a, long cluster_b);
 
 /* a sound as the transmission test reads it */
 struct s_sound_transmission_view
@@ -68,7 +68,7 @@ bool function_221da0(long listener_index, s_sound_transmission_view const *sound
 				short listener_cluster = listener->index;
 				if (listener_cluster != NONE &&
 					(*(long *)listener->unknown00 == sound->bsp_index || listener_cluster == sound_cluster ||
-					function_249d60(listener_cluster, sound_cluster, (s_structure_bsp_view *)g_4e0348) * scale < 256.0f))
+					function_249d60((s_structure_bsp_view *)g_4e0348, listener_cluster, sound_cluster) * scale < 256.0f))
 				{
 					result = false;
 				}
@@ -729,7 +729,7 @@ void function_221e30(s_221e30 *arg_0, real const *arg_1, s_local_camera const *a
 		}
 		else if (!arg_0->field_44 && arg_2->index != arg_0->field_3c)
 		{
-			real local_6 = function_249d60(arg_2->index, arg_0->field_3c, local_13);
+			real local_6 = function_249d60(local_13, arg_2->index, arg_0->field_3c);
 			real local_7 = distance3d(&arg_0->field_24, &arg_2->position);
 			local_0 = 1.0f - local_7 / ((local_7 + local_6) > 0.001f ? (local_7 + local_6) : 0.001f);
 		}

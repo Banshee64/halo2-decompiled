@@ -172,20 +172,24 @@ void function_30290(point3f const *p, s_view const *view, s_camera const *camera
 }
 
 // @retail 0x30710
-bool function_30710(s_camera const *camera, vector3f const *v, short_rectangle2d const *rect, point2f *out, s_view const *view)
+bool function_30710(vector3f const *v, short_rectangle2d const *rect, point2f *out, s_camera const *camera, s_view const *view)
 {
 	bool result = false;
 	if (!rect)
 		rect = &view->bounds;
 	if (v->k < 0.f)
 	{
+		real width = (real)(rect->right - rect->left);
+		real height = (real)(rect->bottom - rect->top);
 		real inv = -1.f / v->k;
 		out->x = (camera->unknown78 * v->i + camera->unknown98 * v->k) * inv;
 		out->y = 0.f - (camera->unknown8c * v->j + camera->unknown9c * v->k) * inv;
 		if (out->x >= -1.f && 1.f >= out->x && out->y >= -1.f && 1.f >= out->y)
 			result = true;
-		out->x = (out->x + 1.f) * 0.5f * (real)(rect->right - rect->left) + (real)rect->left;
-		out->y = (out->y + 1.f) * 0.5f * (real)(rect->bottom - rect->top) + (real)rect->top;
+		real scaled_x = (out->x + 1.f) * 0.5f;
+		out->x = scaled_x * width + (real)rect->left;
+		real scaled_y = (out->y + 1.f) * 0.5f;
+		out->y = scaled_y * height + (real)rect->top;
 	}
 	else
 	{
@@ -327,26 +331,17 @@ long function_30cd0(bool a, bool b)
 // @retail 0x30d10
 long function_30d10(bool a, bool b, bool c)
 {
-	if (BIT(0))
-		return -1;
-	if (!(*g_4858c4 & 0x20))
+	if (BIT(0)) return NONE;
+	if (*g_4858c4 & 0x20) return 2;
+	if (!BIT(2) || !b)
 	{
-		if (!BIT(2) || !b)
-		{
-			if (BIT(1) && a)
-				return 2;
-			return -1;
-		}
-		if (!c)
-		{
-			if (BIT(6))
-				return 6;
-			if (BIT(4))
-				return BIT(5) ? 3 : 4;
-			return (byte)(g_4ba014 >> 3) & 1;
-		}
+		if (BIT(1) && a) return 2;
+		return NONE;
 	}
-	return 2;
+	if (c) return 2;
+	if (BIT(6)) return 6;
+	if (BIT(4)) return BIT(5) ? 3 : 4;
+	return (long)((byte)(g_4ba014 >> 3)) & 1;
 }
 
 // @retail 0x30da0

@@ -42,11 +42,3 @@ struct s_2640c0;
 struct s_2641c0;
 
 
-// @stub 0x26c2d0
-void __stdcall function_26c2d0(long arg_0)
-{
-}
-
-
-
-

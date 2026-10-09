@@ -74,7 +74,7 @@ bool c_unit_type::v16(long arg_0, long arg_1, long arg_2)
 bool c_unit_type::v13(long arg_0, s_entity_info *arg_1, s_bitstream *arg_2)
 {
     c_unit_type *volatile local_3 = this;
-    bool local_0 = function_a6810(arg_2);
+    bool local_0 = function_a6810(arg_1, arg_2);
     bool local_1 = function_7efa0(arg_2, (s_player_appearance *)((byte *)arg_1 + 0x10));
     short *local_2 = (short *)((byte *)arg_1 + 0x20);
     if (function_1957d0(arg_2))

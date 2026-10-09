@@ -280,7 +280,7 @@ void function_bb950(long object_index, bool add, long delta)
 			link = &((s_object_header *)g_4e0300->data)[*link & 0xffff].object->next_index;
 		*link = object->next_index;
 		object->next_index = NONE;
-		object->flag14 = 0;
+		*(volatile dword *)((byte *)object + 4) &= ~0x4000;
 		if (TEST_FIELD_BIT(header->flag0))
 			list->count--;
 	}
@@ -295,20 +295,23 @@ real function_c18e0();
 real function_1588b0(long player_index, long type);
 
 // @retail 0xbcc20
-bool __stdcall function_bcc20(long object_index, long id, real *out, bool *active)
+bool __stdcall function_bcc20(long object_index, long volatile id, real *volatile out, bool *volatile active)
 {
     byte *object = (byte *)((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
-    real value = 0.0f;
+    long selector = id;
     bool forced_active = false;
-    bool result = true;
-    switch (id)
+    long saved_object_index = object_index;
+    bool volatile &result = *(bool volatile *)&object_index;
+    result = true;
+    real volatile value = 0.0f;
+    switch (selector)
     {
     case 0x030005a6: value = 1.0f; break;
     case 0x040005a7: value = 0.0f; break;
     case 0x0500055b: value = (bool)((object[0x10a] >> 2) & 1) ? 0.0f : 1.0f; break;
     case 0x0700055c:
         {
-            transform4x3f *matrix = function_b8bd0(object_index, 0);
+            transform4x3f *matrix = function_b8bd0(saved_object_index, 0);
             if (fabs(matrix->forward.k) < 0.995f)
             {
                 real angle = (real)atan2(matrix->forward.i, matrix->forward.j);
@@ -338,9 +341,8 @@ bool __stdcall function_bcc20(long object_index, long id, real *out, bool *activ
     case 0x0c0006b7: value = function_bcb10(); break;
     case 0x0c0006b8: value = function_bcb60(); break;
     case 0x0d000558: value = *(real *)(object + 0xec); break;
-    case 0x0d0005ff: forced_active = function_bc970(object_index, id, &value); break;
     case 0x0f000559: value = *(real *)(object + 0xf0); break;
-    case 0x0f0005aa: value = (((dword)object_index * 0x19660d + 0x3c6ef35f) >> 16) * 0.000015259021893143654f; break;
+    case 0x0f0005aa: value = (((dword)saved_object_index * 0x19660d + 0x3c6ef35f) >> 16) * 0.000015259021893143654f; break;
     case 0x0f0005ac:
         if (g_4e6948->state == 2 && ((1 << object[0xaa]) & 3) && *(long *)(object + 0x13c) != NONE)
         {
@@ -354,21 +356,30 @@ bool __stdcall function_bcc20(long object_index, long id, real *out, bool *activ
     case 0x13000556: value = *(real *)(object + 0xf8); break;
     case 0x130006bb: value = function_c18e0(); break;
     case 0x15000557: value = *(real *)(object + 0xf4); break;
-    case 0x170005fa: forced_active = function_bc970(object_index, id, &value); break;
-    case 0x170005fb: forced_active = function_bc970(object_index, id, &value); break;
     case 0x1800055a: value = *(real *)(object + 0xf0) - 1.0f; break;
-    case 0x180005fc: forced_active = function_bc970(object_index, id, &value); break;
     case 0x1a00071a: value = *(real *)((byte *)g_4de2f4 + 0x70); break;
     case 0x1a00071b: value = *(real *)((byte *)g_4de2f4 + 0x74); break;
     case 0x1a00071c: value = *(real *)((byte *)g_4de2f4 + 0x78); break;
     case 0x1a00071d: value = *(real *)((byte *)g_4de2f4 + 0x7c); break;
-    case 0x1d0005fd: forced_active = function_bc970(object_index, id, &value); break;
-    case 0x1d0005fe: forced_active = function_bc970(object_index, id, &value); break;
+    case 0x0d0005ff: case 0x170005fa: case 0x170005fb:
+    case 0x180005fc: case 0x1d0005fd: case 0x1d0005fe:
+        forced_active = function_bc970(saved_object_index, selector, (real *)&value); break;
     default: result = false; break;
     }
-    value = value < 0.0f ? 0.0f : value > 1.0f ? 1.0f : value;
-    *out = value;
-    *active = forced_active || value > 0.0f;
+    real output_value = value;
+    output_value = output_value < 0.0f ? 0.0f : output_value > 1.0f ? 1.0f : output_value;
+    *out = output_value;
+    if (forced_active)
+    {
+        *active = true;
+        return result;
+    }
+    if (output_value > 0.0f)
+    {
+        *active = true;
+        return result;
+    }
+    *active = false;
     return result;
 }
 
@@ -519,16 +530,16 @@ bool __stdcall function_be8e0(long object_index)
     byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
     if (definition[0x1c] & 1)
     {
-        long count = (long)((dword)(long)*(short *)(object + 0x124) / 12) / 2;
         color3f *base = (color3f *)(object + *(short *)(object + 0x126));
+        long count = (long)((dword)(long)*(short *)(object + 0x124) / 12) / 2;
         color3f *current = base + count;
         if (count > 0)
         {
             result = true;
-            for (long i = 0; i < count; ++i)
+            for (long remaining = count, i = 0; remaining > 0; --remaining, ++i, ++current, ++base)
             {
                 s_colour_choices_ab *entry = &(*(s_colour_choices_ab **)(definition + 0xb0))[i];
-                current[i] = base[i];
+                *current = *base;
                 for (long j = 0; j < entry->function_count; ++j)
                 {
                     s_colour_function_ab *function = &entry->functions[j];
@@ -536,7 +547,7 @@ bool __stdcall function_be8e0(long object_index)
                     {
                         real value;
                         if (!function_bab40(object_index, function->blend_name, &value)) value = 0.0f;
-                        function_131c20(&function->lower, &function->upper, function->flags, value, &current[i]);
+                        function_131c20(&function->lower, &function->upper, function->flags, value, &*current);
                     }
                 }
                 for (long j = 0; j < entry->function_count; ++j)
@@ -546,14 +557,14 @@ bool __stdcall function_be8e0(long object_index)
                     {
                         real value;
                         if (!function_bab40(object_index, function->scale_name, &value)) value = 0.0f;
-                        current[i].red = value * current[i].red;
-                        current[i].green *= value;
-                        current[i].blue *= value;
+                        current->red = value * current->red;
+                        current->green *= value;
+                        current->blue *= value;
                     }
                 }
-                current[i].red = current[i].red < 0.0f ? 0.0f : current[i].red > 1.0f ? 1.0f : current[i].red;
-                current[i].green = current[i].green < 0.0f ? 0.0f : current[i].green > 1.0f ? 1.0f : current[i].green;
-                current[i].blue = current[i].blue < 0.0f ? 0.0f : current[i].blue > 1.0f ? 1.0f : current[i].blue;
+                current->red = current->red < 0.0f ? 0.0f : current->red > 1.0f ? 1.0f : current->red;
+                current->green = current->green < 0.0f ? 0.0f : current->green > 1.0f ? 1.0f : current->green;
+                current->blue = current->blue < 0.0f ? 0.0f : current->blue > 1.0f ? 1.0f : current->blue;
             }
         }
     }

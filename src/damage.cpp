@@ -1850,8 +1850,7 @@ void function_d8cb0(long object_index, s_damage_effect_definition const *definit
 	accumulator->damage -= damage;
 }
 
-void function_176870(long object_index, s_effect_owner const *owner, long marker_name, real scale_a, long tag_index,
-	short unknown18, real scale_b, point3f const *origin, vector3f const *direction);
+void function_176870(s_effect_owner const *owner, long object_index, long marker_name, real scale_a, long tag_index, short unknown18, real scale_b, point3f const *origin, vector3f const *direction);
 void function_176ad0(long marker_count, s_effect_marker *markers, s_effect_owner const *owner,
 	vector3f const *velocity, long tag_index, long unknown30, real scale_a, real scale_b, point3f const *origin,
 	vector3f const *direction, long mode);
@@ -1864,8 +1863,7 @@ void function_d9d60(bool at_marker, long marker_name, long object_index, long ef
 {
 	if (!at_marker)
 	{
-		function_176870(object_index, (s_effect_owner const *)owner, marker_name, 1.0f, effect_index, NONE, 1.0f, NULL,
-			NULL);
+		function_176870((s_effect_owner const *)owner, object_index, marker_name, 1.0f, effect_index, NONE, 1.0f, NULL, NULL);
 	}
 	else
 	{
@@ -3923,7 +3921,7 @@ void havok_component_node_states_get(s_havok_component *component, s_havok_node_
 void havok_component_node_states_set(s_havok_component *component, s_havok_node_states const *states);
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
 point3f *function_b9dd0(long object_index, point3f *result);
-long function_b7b40(void *creation);
+long __stdcall function_b7b40(void *creation);
 void __stdcall function_1c3770(long object_index, dword flags);
 extern s_record_pool *g_51e9b8;
 

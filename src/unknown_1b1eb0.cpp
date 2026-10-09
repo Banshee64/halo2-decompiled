@@ -29,7 +29,7 @@ PRIVATE __forceinline void function_1b1eb2(long arg_0)
 	*(short volatile *)&local_0->unknown5b0 = NONE;
 	*(short volatile *)&local_0->unknown5b4 = 0;
 	*(short volatile *)&local_0->unknown5b6 = 0;
-	*(short volatile *)&local_0->unknown4ac = 0;
+	local_0->unknown4ac = 0;
 	*(short volatile *)&local_0->unknown504 = 0;
 }
 

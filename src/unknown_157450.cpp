@@ -4399,8 +4399,7 @@ void function_15be20()
 #include <wchar.h>
 extern s_camera g_4b9e14;
 extern short g_4b9dd4, g_4b9dd6;
-bool function_30710(s_camera const *camera, vector3f const *vector,
-	short_rectangle2d const *bounds, point2f *point, s_view const *view);
+bool function_30710(vector3f const *vector, short_rectangle2d const *bounds, point2f *point, s_camera const *camera, s_view const *view);
 void parse_text(word *text);
 
 // @retail 0x159250
@@ -4461,7 +4460,7 @@ void function_159250(long player_index, real alpha)
 		storage.projection.view.bounds.left = g_4b9dd2;
 		storage.projection.view.bounds.bottom = g_4b9dd4;
 		storage.projection.view.bounds.right = g_4b9dd6;
-		if (function_30710(&storage.projection.camera, &transformed, 0, &point, &storage.projection.view))
+		if (function_30710(&transformed, 0, &point, &storage.projection.camera, &storage.projection.view))
 		{
 			word *text = storage.text;
 			text[0] = 0;

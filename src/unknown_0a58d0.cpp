@@ -14,7 +14,7 @@ void *function_122c10(long group_tag, long tag_index);
 void function_11df60(vector3f const *rotation, vector3f *forward, vector3f *up);
 
 // Retail 0xa6660; the active stub remains in unknown_09a9f0.cpp.
-void function_a6660(s_entity_info const *info, s_bitstream *stream)
+void __stdcall function_a6660(s_entity_info const *info, s_bitstream *stream)
 {
 	scenario_object_name_encode(info->definition_index, stream);
 	stream_write_bit(stream, info->field0 != NONE);
@@ -613,18 +613,22 @@ void function_aa9e0(long index, point3f const *previous_position, vector3f const
   if (previous_position)
   {
    real x = *(real *)(object + 0x64) - previous_position->x;
-   real y = *(real *)(object + 0x68) - previous_position->y;
-   real z = *(real *)(object + 0x6c) - previous_position->z;
-   *(real *)(object + 0x270) += x;
+   real y = *(real *)(object + 0x68);
+   real z = *(real *)(object + 0x6c);
+   real accumulated_x = *(real *)(object + 0x270);
+   y -= previous_position->y;
+   z -= previous_position->z;
+   accumulated_x += x;
+   *(real *)(object + 0x270) = accumulated_x;
    *(real *)(object + 0x274) += y;
    *(real *)(object + 0x278) += z;
   }
   vector3f difference;
   if (velocity)
   {
-   difference.i = (velocity->i - *(real *)(object + 0x88)) * elapsed;
-   difference.j = (velocity->j - *(real *)(object + 0x8c)) * elapsed;
    difference.k = (velocity->k - *(real *)(object + 0x90)) * elapsed;
+   difference.j = (velocity->j - *(real *)(object + 0x8c)) * elapsed;
+   difference.i = (velocity->i - *(real *)(object + 0x88)) * elapsed;
   }
   s_object_child_iterator iterator;
   function_d0620(index, &iterator);
@@ -633,9 +637,9 @@ void function_aa9e0(long index, point3f const *previous_position, vector3f const
    byte *child = (byte *)((s_object_header *)objects->data)[iterator.child_index & 0xffff].object;
    if (velocity)
    {
-    *(real *)(child + 0x270) += difference.i;
-    *(real *)(child + 0x274) += difference.j;
-    *(real *)(child + 0x278) += difference.k;
+    *(real *)(child + 0x270) = difference.i + *(real *)(child + 0x270);
+    *(real *)(child + 0x274) = difference.j + *(real *)(child + 0x274);
+    *(real *)(child + 0x278) = difference.k + *(real *)(child + 0x278);
    }
    *(dword *)(child + 0x134) |= 0x10000000;
   }
@@ -944,7 +948,7 @@ void __stdcall function_a7870(long index)
 #include "flags_writer.h"
 void simulation_write_position(long bits, s_bitstream *stream, real const *position, bool keep_inside);
 void function_194830(s_bitstream *stream, bool value);
-void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f const *up);
+void function_194d30(s_bitstream *stream, vector3f const *up, vector3f const *forward);
 void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real hi, long bits);
 void function_1947e0(s_bitstream *stream, dword value, long bits);
 
@@ -975,10 +979,13 @@ bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
   function_194830(stream, *(bool const *)(state + 0x4d));
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 1, "position-exists"))
-  simulation_write_position(16, stream, (real const *)state, (byte)a != 0 || f);
+ {
+  long absolute = (byte)a != 0 || f;
+  simulation_write_position(16, stream, (real const *)state, absolute != 0);
+ }
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 2, "forward-and-up-exists"))
-  function_194d30(stream, (vector3f const *)(state + 0xc), (vector3f const *)(state + 0x18));
+  function_194d30(stream, (vector3f const *)(state + 0x18), (vector3f const *)(state + 0xc));
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 3, "scale-exists"))
   z_encode_state_scalar(stream, *(real const *)(state + 0x24), 0.0f, 12.699999809265137f, 7);
@@ -1004,7 +1011,7 @@ bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
  if (flags_writer_begin(&writer, 8, "region-state-exists"))
  {
   stream_write_checked(stream, state[0x50], 4);
-  for (long i = 0; i < 16; ++i) stream_write_checked(stream, state[0x51 + i], 3);
+  for (long volatile i = 0; i < 16; ++i) stream_write_checked(stream, state[0x51 + i], 3);
  }
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 9, "constraint-state-exists"))
@@ -1030,11 +1037,11 @@ matrix3x3 *function_141e10(matrix3x3 *out, quaternionf const *q);
 
 PRIVATE inline void z_orientation_matrix(vector3f const *forward, vector3f const *up, matrix3x3 *matrix)
 {
+ matrix->forward = *forward;
+ matrix->up = *up;
  matrix->left.i = up->j * forward->k - forward->j * up->k;
  matrix->left.j = forward->i * up->k - forward->k * up->i;
  matrix->left.k = up->i * forward->j - forward->i * up->j;
- matrix->forward = *forward;
- matrix->up = *up;
 }
 
 // @retail 0xa9b40
@@ -1201,3 +1208,48 @@ void function_a7ab0(long index)
  }
 }
 #pragma function(_ReadWriteBarrier)
+
+
+PRIVATE inline long creation_definition_lookup(byte *globals, long index)
+{
+    long result = NONE;
+    if (globals)
+    {
+        long count = *(long *)(globals + 0x3d8);
+        if (count > 0 && (index < 0 ? 0 : index > count - 1 ? count - 1 : index) == index)
+            result = (*(long **)(globals + 0x3dc))[index];
+    }
+    return result;
+}
+
+// @retail 0xa6810
+bool function_a6810(s_entity_info *info, s_bitstream *stream)
+{
+    long definition_index = NONE;
+    long index = function_1959c0(stream, 9) - 1;
+    byte *globals = (byte *)g_4e0350;
+    if (index != NONE)
+        definition_index = creation_definition_lookup(globals, index);
+    info->definition_index = definition_index;
+    if (function_1957d0(stream))
+        info->field0 = function_1959c0(stream, 13);
+    else
+        info->field0 = NONE;
+    info->byte8 = (byte)(function_1959c0(stream, 7) - 1);
+    if (function_1957d0(stream))
+    {
+        ((byte *)info)[0xc] = (byte)function_1959c0(stream, 6);
+        ((byte *)info)[0xd] = (byte)function_1959c0(stream, 6);
+        ((byte *)info)[0xe] = (byte)function_1959c0(stream, 4);
+    }
+    else
+    {
+        ((byte *)info)[0xc] = 0;
+        ((byte *)info)[0xd] = 0;
+        ((byte *)info)[0xe] = 0;
+    }
+    bool valid = stream->bit_position <= stream->size_in_bytes * 8 && info->definition_index != NONE;
+    if (info->byte8 != 0xff)
+        valid = valid && (char)info->byte8 >= 0 && (char)info->byte8 < *(long *)(globals + 0x120);
+    return valid;
+}

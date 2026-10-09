@@ -982,7 +982,7 @@ void function_274e70(long ai_index, bool flag)
 		ai_actor_iterator_new(ai_index, &iterator);
 		while (ai_actor_iterator_next(&iterator))
 		{
-			long actor_index = iterator.actor_index;
+			volatile long actor_index = iterator.actor_index;
 			s_actor_274e70 *actor = (s_actor_274e70 *)actor_datum_get(actor_index);
 			if (flag)
 			{
@@ -1897,7 +1897,7 @@ real function_2760a0(long actor_index, long script_index, long name, long sound_
 	return seconds;
 }
 
-bool function_291ea0(long actor_index, long script_index, long arg_80f1d4, real *duration);
+bool function_291ea0(long arg_80f1d4, long script_index, long actor_index, real *duration);
 
 /* the ticks a vocalization of the first actor an ai index names lasts */
 // @retail 0x276160
@@ -1911,7 +1911,7 @@ short function_276160(long ai_index, long arg_80f1d4)
 		if (ai_actor_iterator_next(&iterator))
 		{
 			real seconds;
-			function_291ea0(iterator.actor_index, NONE, arg_80f1d4, &seconds);
+			function_291ea0(arg_80f1d4, NONE, iterator.actor_index, &seconds);
 			if (seconds > g_45dbd8)
 				duration = seconds;
 		}
@@ -2009,7 +2009,7 @@ short function_2761d0(long ai_index, long arg_80f1d4)
 			real best_rating = 0.0f;
 			real seconds = 0.0f;
 
-			function_291ea0(actor_index, NONE, arg_80f1d4, &seconds);
+			function_291ea0(arg_80f1d4, NONE, actor_index, &seconds);
 			if (seconds > g_45dbd8)
 				duration = seconds;
 
@@ -2175,8 +2175,7 @@ bool function_276380(long ai_index)
 	long actor_index = function_272b70(ai_index);
 	if (actor_index != NONE)
 	{
-		s_unit_request request;
-		memset(&request, 0, sizeof(request));
+		s_unit_request request = { 0 };
 		result = function_276381(actor_datum_get(actor_index)->unit_index, &request);
 	}
 	return result;
@@ -2741,14 +2740,15 @@ void function_276b40(long object_index, real a, real b, real c)
 		{
 			s_command_script *target = command_script_get(script_index);
 
-			target->flag52 = true;
-			target->flag46 = false;
-			target->flag51 = false;
+			((s_command_script volatile *)target)->flag52 = true;
+			((s_command_script volatile *)target)->flag46 = false;
+			((s_command_script volatile *)target)->flag51 = false;
 			target->type54 = 1;
 			target->index58 = object_index;
-			command_script_get(script_index)->flag46 = true;
-			command_script_get(script_index)->type48 = 1;
-			command_script_get(script_index)->index4c = object_index;
+			s_command_script *local_0 = command_script_get(script_index);
+			local_0->flag46 = true;
+			local_0->type48 = 1;
+			local_0->index4c = object_index;
 			target->flag50 = true;
 			target->flag51 = true;
 		}

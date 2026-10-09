@@ -3293,7 +3293,7 @@ c_campaign_level_handles_list::c_campaign_level_handles_list(word user_flags, bo
 	long last_level = function_190565();
 	s_data_datum_iterator iterator;
 
-	if (alternate && last_level <= 0x68)
+	if (this->alternate && last_level <= 0x68)
 	{
 		last_level = 0x68;
 	}
@@ -3604,7 +3604,7 @@ void c_game_engine_variant_category_list::handle_item(s_controller_reference **c
 
 		if (create)
 		{
-			long arg_9db745;
+			short arg_9db745;
 			byte buffer[0x100];
 			s_game_variant variant;
 			long file_index;

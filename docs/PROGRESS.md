@@ -2,6 +2,106 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7333 functions match
+
+```
+matched 7333 of 11318 game functions (844696 of 2784283 bytes, 30.34%)
+```
+
+6 new matches, none lost:
+- Deep lane 3, round 13 (in lanes W, Z, AB and AD): 0xa4170, 0xa23a0, 0xa1120, 0xb5f10, 0x24970, 0x3dc90; sixteen newly written bodies are active.
+
+## 2026-10-09: 7327 functions match
+
+```
+matched 7327 of 11318 game functions (843896 of 2784283 bytes, 30.31%)
+```
+
+9 new matches, none lost:
+- Merge batch r54: the second machine's lane F round 15 (#278, +2), lane AC round 22 (#279, +2; also 0x2a81b0 in machine 1's lane A, which calls the newly matched 0x276b40), lane L round 11 (#280, +2) and lane B round 10 (#281, +2).
+
+## 2026-10-09: 7318 functions match
+
+```
+matched 7318 of 11318 game functions (841924 of 2784283 bytes, 30.24%)
+```
+
+7 new matches, none lost:
+- Deep lane 1, near-length tuning (lanes W, Z, AB and AD): 0x1dc40, 0x27960, 0x3d380, 0x41c80, 0x44ac0, 0xa4e20, 0xae7f0.
+
+## 2026-10-09: 7311 functions match
+
+```
+matched 7311 of 11318 game functions (838786 of 2784283 bytes, 30.13%)
+```
+
+11 new matches, none lost:
+- Merge batch r53: the second machine's lane B round 9 (#274, +4), lane D lower round 9 (#275, +2), lane D upper round 9 (#276, +3) and lane C round 42 (#277, +2).
+
+## 2026-10-09: 7300 functions match
+
+```
+matched 7300 of 11318 game functions (836500 of 2784283 bytes, 30.04%)
+```
+
+4 new matches, none lost:
+- Deep lane 3, round 12: 0x18cb10, 0x1fb940, 0x263ed0, 0x26bc60. Two are the other machine's functions that matched once function_249c20 and function_249d60 took retail's parameter order.
+
+## 2026-10-09: 7296 functions match
+
+```
+matched 7296 of 11318 game functions (835327 of 2784283 bytes, 30.00%)
+```
+
+12 new matches, none lost:
+- Deep lane 3, round 11 (closest first): 0x1aea20, 0x1b4bd0, 0x1b4d90, 0x1e3370, 0x1eb220, 0x25ac00, 0x25d420, 0x266540, 0x26d9c0, 0x272af0, 0x2a0650, 0x2bb801. Six of them are the other machine's functions that matched once the parameter order of a helper they call (function_1fb7e0, function_14a280) was corrected.
+
+## 2026-10-09: 7284 functions match
+
+```
+matched 7284 of 11318 game functions (832782 of 2784283 bytes, 29.91%)
+```
+
+45 new matches, none lost:
+- Merge batch r52: the second machine's lanes L, U, F, AC (with @coldspear's #86 fixes), B (+7), D lower (+3), D upper (+14), C (+8), M (+2), P (+1), K (+4) and O (+2); @coldspear's interface quad draw analysis (#260) and a decomp.dev progress-report workflow (#265).
+
+## 2026-10-09: 7239 functions match
+
+```
+matched 7239 of 11318 game functions (823009 of 2784283 bytes, 29.56%)
+```
+
+4 new matches, none lost:
+- Deep lane 3, round 10 (lanes V, X, A and the UI screens): 0x26c2d0, 0x26dde0, 0x265550, 0x2bacbc; eight newly written bodies are active.
+
+## 2026-10-09: 7235 functions match
+
+```
+matched 7235 of 11318 game functions (821770 of 2784283 bytes, 29.51%)
+```
+
+11 new matches, none lost:
+- Deep lane 1, round 9 (lanes W, Z, AB and AD): 0x1cdd0, 0x30710, 0x3c9a0, 0xa07f0, 0xa0a60, 0xa3c00, 0xa6810, 0xaf320, 0xaf5f0, 0xb91d0, 0xbfc30, and the retail-confirmed points of @coldspear's reviews (#86 items 29-31 and 39).
+
+## 2026-10-09: 7224 functions match
+
+```
+matched 7224 of 11318 game functions (819704 of 2784283 bytes, 29.44%)
+```
+
+4 new matches, none lost:
+- Deep lane 3, near-length tuning (lanes V, X, A and the UI screens): 0x1e4390, 0x260160, 0x2a40e0, 0x2b83db, and closer bodies for 29 more.
+
+## 2026-10-08: 7220 functions match
+
+```
+matched 7220 of 11318 game functions (819010 of 2784283 bytes, 29.42%)
+```
+
+12 new matches, none lost:
+- Deep lane 2, second exact-length pass: 0x1076e0, 0x1088a0, 0x108d30, 0x108d90, 0x10e480, 0x1520f0, 0x1523c0, 0x162c50, 0x22dfa9, 0x23ba90, 0x2520ff.
+- Deep lane 3: 0x1eed40, and the retail-confirmed points of @coldspear's review of 0x2c0d60 (#86 item 38).
+
 ## 2026-10-08: 7208 functions match
 
 ```

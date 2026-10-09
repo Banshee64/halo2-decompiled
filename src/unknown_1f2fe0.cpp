@@ -112,7 +112,6 @@ bool function_1f3230(long actor_index, real radius)
 	point3f *position = &actor->position;
 	vector3f delta;
 	real distance_squared;
-	bool result = false;
 
 	if (target->output_index == NONE)
 	{
@@ -125,7 +124,8 @@ bool function_1f3230(long actor_index, real radius)
 		function_210850(target, &point);
 		vector3d_from_points3d(&point, position, &delta);
 	}
-	distance_squared = length_sq3f(&delta);
+	distance_squared = delta.k * delta.k + delta.j * delta.j + delta.i * delta.i;
+	bool result = false;
 
 	if (actor->unknown26c == NONE && actor->unknown4ae)
 	{
@@ -141,7 +141,7 @@ bool function_1f3230(long actor_index, real radius)
 				previous = &actor->path_start;
 
 			function_210be0(previous, target, &segment);
-			function_210c90(target, position, &offset);
+			function_210c90(position, target, &offset);
 			if (dot3f(&offset, &segment) < 0.0f)
 				result = true;
 		}
@@ -158,7 +158,7 @@ bool function_1f3230(long actor_index, real radius)
 			s_moving_object *unit = moving_object_get(actor->unit_index);
 			vector3f offset;
 
-			function_210c90(target, position, &offset);
+			function_210c90(position, target, &offset);
 			if (dot3f(&unit->velocity, &offset) < 0.0f)
 				result = true;
 		}
@@ -215,19 +215,19 @@ bool function_1f3540(long actor_index, vector3f *normal)
 
 	if (actor->unknown605)
 	{
-		if (plane_distance_to_point(&actor->unknown608, &actor->position) <= actor->unknown618 &&
-			actor->unknown61c != 0 &&
-			!actor->unknown5d8)
+		result = true;
+		if (plane_distance_to_point(&actor->unknown608, &actor->position) > actor->unknown618 ||
+			actor->unknown61c == 0 || actor->unknown5d8)
 		{
-			result = true;
-			*normal = actor->unknown608.n;
-			if (actor->unknown61c > 0)
-				actor->unknown61c--;
+			result = false;
+			actor->unknown605 = false;
+			actor->unknown61c = 0;
 		}
 		else
 		{
-			actor->unknown605 = false;
-			actor->unknown61c = 0;
+			*normal = actor->unknown608.n;
+			if (actor->unknown61c > 0)
+				actor->unknown61c--;
 		}
 	}
 

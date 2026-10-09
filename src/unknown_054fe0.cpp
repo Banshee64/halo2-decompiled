@@ -1578,13 +1578,15 @@ struct s_66050
 // @retail 0x66050
 long function_66050(c_class_58d20 *session, long variant_index)
 {
+ volatile long result = variant_index;
+ long local_1 = result;
  bool missing = false;
  bool compatible;
  long current = session->member_index;
  s_66050 *local_0 = (s_66050 *)&session->value4c;
  compatible = function_7ed20((const s_message_identities *)local_0, 0, &missing, &compatible);
- s_surface_description *variant = function_192e60(variant_index);
- volatile long result = 0;
+ s_surface_description *variant = function_192e60(local_1);
+ result = 0;
  if (!variant)
  {
   result = 2;
@@ -1607,7 +1609,7 @@ long function_66050(c_class_58d20 *session, long variant_index)
   }
  for (long member = 0; member < local_0->field_8; member++)
  {
-  long state = *(long *)((byte *)&local_0->field_c[member] + 0xac + variant_index * 4);
+  long state = *(long *)((byte *)&local_0->field_c[member] + 0xac + local_1 * 4);
   if (state != 1)
   {
    if (!state)
@@ -1807,7 +1809,7 @@ bool __stdcall function_64d70(s_session_browser_summary *output)
    output->option = option;
    output->map_variant = map_variant;
    output->teams = (variant[0x48] & 1) != 0;
-   if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->index == 2 && state == 3)
+   if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 2 && state == 3)
    {
     statistics = true;
     function_158850(&output->score_type, &output->score_limit);

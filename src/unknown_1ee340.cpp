@@ -201,7 +201,19 @@ void c_vertex_shape::ray_test(bool *hit, const s_shape_ray *ray, s_shape_ray_res
 			projected.x = point.n[first_axis];
 			projected.y = point.n[second_axis];
 			point2f polygon[8];
-			for (long i = 0; i < vertex_count; i++)
+			long i = 0;
+			for (; i + 3 < vertex_count; i += 4)
+			{
+				polygon[i].x = vertices_raw[i * 4 + first_axis];
+				polygon[i].y = vertices_raw[i * 4 + second_axis];
+				polygon[(i + 1)].x = vertices_raw[(i + 1) * 4 + first_axis];
+				polygon[(i + 1)].y = vertices_raw[(i + 1) * 4 + second_axis];
+				polygon[(i + 2)].x = vertices_raw[(i + 2) * 4 + first_axis];
+				polygon[(i + 2)].y = vertices_raw[(i + 2) * 4 + second_axis];
+				polygon[(i + 3)].x = vertices_raw[(i + 3) * 4 + first_axis];
+				polygon[(i + 3)].y = vertices_raw[(i + 3) * 4 + second_axis];
+			}
+			for (; i < vertex_count; ++i)
 			{
 				polygon[i].x = vertices_raw[i * 4 + first_axis];
 				polygon[i].y = vertices_raw[i * 4 + second_axis];
@@ -477,6 +489,11 @@ struct s_bounds_source
 	s_bounds_vertex *vertices;
 };
 
+PRIVATE __forceinline void bounds_half_extent_set(real maximum, real minimum, real volatile *destination)
+{
+    *destination = (maximum - minimum) * 0.5f;
+}
+
 // @retail 0x1eed40
 c_shape_global_owner::c_shape_global_owner()
 {
@@ -498,9 +515,9 @@ c_shape_global_owner::c_shape_global_owner()
 	center.y = (bounds.y1 + bounds.y0) * 0.5f;
 	center.z = (bounds.z1 + bounds.z0) * 0.5f;
 	center.w = 0.0f;
-	extent.x = (bounds.x1 - bounds.x0) * 0.5f;
-	extent.y = (bounds.y1 - bounds.y0) * 0.5f;
-	extent.z = (bounds.z1 - bounds.z0) * 0.5f;
+	bounds_half_extent_set(bounds.x1, bounds.x0, &extent.x);
+	bounds_half_extent_set(bounds.y1, bounds.y0, &extent.y);
+	bounds_half_extent_set(bounds.z1, bounds.z0, &extent.z);
 	extent.w = 0.0f;
 }
 
@@ -601,14 +618,14 @@ void c_shape_owner::query_box(const c_query_transform *matrix, const __m128 *ext
    s_query_owner *owner = &globals->owners[instance->owner];
    if (owner->surface_count <= 0x2000)
    {
-    c_instance_surface_query *query = (c_instance_surface_query *)(owner->shape + 0x50);
+    byte *volatile shape = owner->shape;
     c_query_transform transform, local;
     query_transform(&instance->matrix, &transform);
     local.inverse_product(&transform, matrix);
     query_remove_key(keys, i);
     long first = keys->count;
     --i;
-    query->query_box(&local, extent, tolerance, keys);
+    ((c_instance_surface_query *)(shape + 0x50))->query_box(&local, extent, tolerance, keys);
     query_remap_keys(keys, first, instance_index);
    }
   }

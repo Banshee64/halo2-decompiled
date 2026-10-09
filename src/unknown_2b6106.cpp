@@ -548,10 +548,10 @@ void c_y_menu_player_selected_screen::update_friend_details(XONLINE_FRIEND const
     word message[256], format[256];
     message[0] = 0;
     format[0] = 0;
-    unsigned row = 0;
-    dword flags = online_friend_get_flags(friend_);
+    volatile unsigned row = 0;
+    volatile dword flags = online_friend_get_flags(friend_);
     bool local = network_session_interface_has_user(&friend_->xuid);
-    bool active = false;
+    volatile bool active = false;
     long player = NONE;
     if (network_session_manager_session_unready() && function_19acc6(&friend_->xuid))
     {

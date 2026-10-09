@@ -73,7 +73,7 @@ void function_17d860(long decal_index);
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+long function_14a280(s_bsp3d *bsp, long index, point3f *point);
 
 struct s_decal_structure_leaf
 {
@@ -193,7 +193,7 @@ void decals_update_locations(void)
 
 			if (g_4686c4 != NONE)
 			{
-				long leaf_index = function_14a280(g_4e033c, &decal->position, 0);
+				long leaf_index = function_14a280(g_4e033c, 0, &decal->position);
 
 				if (leaf_index != NONE)
 				{

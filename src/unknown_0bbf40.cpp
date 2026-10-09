@@ -304,8 +304,8 @@ s_object_gc_entry_ab g_440570[6] =
 // @retail 0xbf380
 void function_bf380()
 {
-    byte scratch[0x2800];
     byte unused[0x200];
+    byte scratch[0x2800];
     long level = NONE;
     byte *globals = (byte *)g_4de2f4;
     if (globals[1])
@@ -322,11 +322,12 @@ void function_bf380()
     if (level != NONE)
     {
         bool critical = false;
+        bool again = false;
         bool gathered = false;
         s_object_gc_entry_ab *entry = g_440570;
         for (;;)
         {
-            byte *state = (byte *)g_4de2f4;
+            byte *volatile state = (byte *)g_4de2f4;
             if (!entry->action)
             {
                 state[1] = 0;
@@ -343,9 +344,13 @@ void function_bf380()
                     entry->gather(level, scratch, sizeof(scratch));
                     gathered = true;
                 }
-                bool again = false;
+                again = false;
                 entry->action(level, scratch, sizeof(scratch), &again, unused, sizeof(unused));
-                if (again)
+                if (!again)
+                {
+                    entry++;
+                    gathered = false;
+                }
                 continue;
             }
             entry++;
@@ -800,11 +805,12 @@ static __forceinline byte *object_bytes_ab(long index)
 // @retail 0xbeb30
 bool __stdcall function_beb30(long object_index)
 {
-    byte *object = object_bytes_ab(object_index);
+    byte *volatile object = object_bytes_ab(object_index);
     byte *unit = (byte *)function_badc0(object_index, 3);
     long player = NONE;
     if (unit) player = *(long *)(unit + 0x13c);
-    bool result = player != NONE;
+    byte &result = *(byte *)&object_index;
+    result = player != NONE;
     if (!result)
     {
         long index = *(long *)(object + 0x10);
