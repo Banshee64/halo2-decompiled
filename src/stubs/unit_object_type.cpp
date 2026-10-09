@@ -36,9 +36,6 @@ void function_10cec0(long unit_index, long weapon_index, long parent_marker_name
 
 /* outside the unit range */
 
-// @stub 0x10b360
-void function_10b360(long object_index) { }
-
 /* in the biped range (PR #28 writes it) */
 
 /* outside the unit range */

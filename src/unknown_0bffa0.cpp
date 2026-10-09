@@ -871,7 +871,7 @@ struct s_camera_163db0;
 extern box2f *g_4687dc;
 void function_11f5f0(box2f *bounds, point2f const *points, long count);
 void function_141590(transform4x3f const *in, transform4x3f *out);
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result);
 
 PRIVATE inline void light_projection_cross_ab(vector3f const *a, vector3f const *b, vector3f *result)
 {
@@ -996,7 +996,7 @@ void __stdcall function_c1d90(s_light_frame_ab const *frame, s_light_shape_ab co
         entry->flag84 = true;
         entry->flag85 = false;
         function_141590(&entry->matrix, &entry->inverse);
-        function_163db0((s_frustum_1648d0 *)entry->frustum, &bounds, (s_camera_163db0 *)entry, 0);
+        function_163db0((s_camera_163db0 *)entry, &bounds, 0, (s_frustum_1648d0 *)entry->frustum);
     }
 }
 

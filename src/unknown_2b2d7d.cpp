@@ -214,7 +214,7 @@ void __stdcall function_2b2ed4(c_y_menu_list *list, bool friends, bool empty,
     word display_name[256];
     display_name[0] = 0;
     long invitations = 0;
-    bool online = false, voice_enabled = false, pending = false, outgoing = false;
+    volatile bool online = false, voice_enabled = false, pending = false, outgoing = false;
     bool player_pending = false, player_outgoing = false, received = false, sent = false, declined = false;
     bool in_session = false, voice_available = false, voice_disabled = false, muted = false;
     bool active = false, joinable = false, self = false;

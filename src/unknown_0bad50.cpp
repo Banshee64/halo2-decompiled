@@ -445,8 +445,7 @@ short function_bb430(long mask, short cluster_count, short const *clusters, shor
         mask = NONE;
     ++g_4de2fc;
     g_4de2f8 = true;
-    for (short i = 0; i < cluster_count; ++i)
-    {
+    { short i = 0; if (i < cluster_count) do {
         short cluster = clusters[i];
         long next;
         long object;
@@ -478,7 +477,9 @@ short function_bb430(long mask, short cluster_count, short const *clusters, shor
                 }
             }
         }
-    }
+    
+++i;
+} while (i < cluster_count); }
 done:
     g_4de2f8 = false;
     return count;

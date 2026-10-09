@@ -145,7 +145,7 @@ void function_1bbcc0(long player_index, long vehicle_index, long seat_index)
 void function_1e3400(long actor_index, long squad_index);
 real function_204950(long actor_index, long squad_index, short mode);
 void function_26def0(long actor_index, long owner_index);
-bool function_f5dc0(long object_index);
+__declspec(noinline) bool function_f5dc0(long object_index);
 
 // @retail 0x1bba70
 void function_1bba70(long actor_index, long vehicle_index, long seat_index)

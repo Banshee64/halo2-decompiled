@@ -1173,12 +1173,12 @@ void function_d4080(s_effect_color_query const *query, long type, s_lighting_rec
 	(void)&flag;
 	vector3f normal = *(vector3f const *)query;
 	real length = (real)sqrt(normal.i * normal.i + normal.j * normal.j + normal.k * normal.k);
-	bool mobile = type == 0 || type == 1 || type == 2;
+	volatile bool mobile = type == 0 || type == 1 || type == 2;
 	record->length = lighting_normalize_ordered(&normal, (normal.i * normal.i + normal.k * normal.k) + normal.j * normal.j);
 	color3f base, lightmap;
 	unpack_color3f(query->color_a, &base);
 	unpack_color3f(query->color_b, &lightmap);
-	long tag_index = *(long *)((byte *)g_4e0350 + 0x33c);
+	volatile long tag_index = *(long *)((byte *)g_4e0350 + 0x33c);
 	if (tag_index == NONE)
 		tag_index = *(long *)((byte *)g_4e034c + 0x184);
 	s_lighting_parameter_block *block = (s_lighting_parameter_block *)g_4e3b44[tag_index & 0xffff].bytes;
@@ -1476,7 +1476,7 @@ PRIVATE __forceinline void surface_sample_unpack(short const *source, s_sample_p
 long __stdcall function_d1e10(void const *surface, s_effect_color_query *query, long flags, long value)
 {
     s_structure_lightmap_triangle const *triangle = (s_structure_lightmap_triangle const *)surface;
-    long result = 2;
+    volatile long result = 2;
     if (*(long const *)triangle->unknown08 == NONE)
     {
         s_mesh *mesh = NULL;

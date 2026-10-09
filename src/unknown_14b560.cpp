@@ -484,7 +484,7 @@ bool function_14d0a0(s_player_action const *action)
 		return false;
 	}
 
-	if (action->field_14_3 < 0.0f || action->field_14_3 > 1.0f)
+	if (!(action->field_14_3 >= 0.0f && action->field_14_3 <= 1.0f))
 	{
 		return false;
 	}
@@ -494,8 +494,8 @@ bool function_14d0a0(s_player_action const *action)
 		return false;
 	}
 
-	if (action->throttle_i < -1.0f || action->throttle_i > 1.0f ||
-		action->throttle_j < -1.0f || action->throttle_j > 1.0f)
+	if (!(action->throttle_i >= -1.0f && action->throttle_i <= 1.0f &&
+		action->throttle_j >= -1.0f && action->throttle_j <= 1.0f))
 	{
 		return false;
 	}
@@ -540,7 +540,15 @@ bool function_14d0a0(s_player_action const *action)
 		return false;
 	}
 
-	return player_action_target_valid(&action->target);
+	s_player_action_target const *target = &action->target;
+	if (!target)
+		return false;
+	short type = (short)target->type;
+	if (type < 0 || type >= 9)
+		return false;
+	if (type != 0 && target->index == NONE)
+		return false;
+	return true;
 }
 
 bool simulation_machine_is_ready(const s_machine_address *address);
