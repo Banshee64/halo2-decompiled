@@ -275,8 +275,8 @@ bool function_b5f10(char const *response, bool *complete)
                 long size = atoi(length_text);
                 if (function_b6220(buffer, end + 4, size, body))
                 {
-                    *complete = function_b6190(body, "DONE");
                     result = true;
+                    *(byte *)complete = function_b6190(body, "DONE");
                 }
             }
         }

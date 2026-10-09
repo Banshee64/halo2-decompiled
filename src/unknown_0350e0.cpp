@@ -1197,7 +1197,7 @@ long g_4b9ed4;
 // @retail 0x2dba0
 bool function_2dba0(long tag, vector3f const *direction, long c, long d, long e, point3f const *position, color3f const *color, real alpha, real amount, real scale, bool alternate)
 {
-    bool result = false;
+    bool volatile result = false;
     if (g_4b9ed4 != NONE && tag != NONE && alpha > 0.0f)
     {
         byte *definition = g_4e3b44[tag & 0xffff].bytes;
@@ -1411,6 +1411,7 @@ struct s_320b0_box
 // @retail 0x320b0
 bool function_320b0(s_320b0_box const *box)
 {
+    real const volatile *box_scale = &box->matrix.scale;
     byte *context = (byte *)g_547f88.context;
     box3f bounds;
     bounds.x0 = 0.0f - box->radius.i;
@@ -1428,11 +1429,11 @@ bool function_320b0(s_320b0_box const *box)
         {
             long i = edge * 2 + endpoint;
             point3f point = ((point3f *)edges)[i];
-            if (box->matrix.scale != 1.0f)
+            if (*box_scale != 1.0f)
             {
-                point.x = box->matrix.scale * point.x;
-                point.y = box->matrix.scale * point.y;
-                point.z = box->matrix.scale * point.z;
+                point.x = *box_scale * point.x;
+                point.y = *box_scale * point.y;
+                point.z = *box_scale * point.z;
             }
             real const *m = (real const *)&box->matrix;
             transformed[i].x = m[1] * point.x + m[7] * point.z + m[4] * point.y + m[10];
@@ -2176,7 +2177,7 @@ long __stdcall function_31910(s_cached_input *output)
 // @retail 0x4a7c0
 void function_4a7c0(s_cached_input_list *state, s_cached_input const *inputs, long count)
 {
-    dword used = 0;
+    dword volatile used = 0;
     for (long i = 0; i < state->count; ++i)
     {
         for (long j = 0; j < count; ++j)
@@ -2199,7 +2200,51 @@ void function_4a7c0(s_cached_input_list *state, s_cached_input const *inputs, lo
             --k;
         }
     }
-    for (long n = 0; n < count; ++n)
+    long n = 0;
+    for (long center = 2; n < count - 3; n += 4, center += 4)
+    {
+        if (state->count < 32 && !(used & (1 << (n + 0))))
+        {
+            state->entries[state->count].input = inputs[n + 0];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << (n + 0);
+        }
+        if (state->count < 32 && !(used & (1 << (center - 1))))
+        {
+            state->entries[state->count].input = inputs[center - 1];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << (center - 1);
+        }
+        if (state->count < 32 && !(used & (1 << center)))
+        {
+            state->entries[state->count].input = inputs[center];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << center;
+        }
+        if (state->count < 32 && !(used & (1 << (center + 1))))
+        {
+            state->entries[state->count].input = inputs[center + 1];
+            state->entries[state->count].last_seen = g_4ba034;
+            state->entries[state->count].created = g_4ba034;
+            state->entries[state->count].initial = state->entries[state->count].input.data[3];
+            state->entries[state->count].elapsed = 0.0f;
+            ++state->count;
+            used |= 1 << (center + 1);
+        }
+    }
+    for (; n < count; ++n)
     {
         if (state->count < 32 && !(used & (1 << n)))
         {
@@ -2709,9 +2754,9 @@ s_cached_input_list g_5246f8[4];
 // @retail 0x33400
 long function_33400(byte const *list, s_cached_input *output, long mode)
 {
-    long selected = 0;
+    long volatile selected = 0;
     long view = g_4b9ed4 < 0 ? 0 : g_4b9ed4 > 3 ? 3 : g_4b9ed4;
-    long count = *(short const *)(list + 4);
+    long volatile count = *(short const *)(list + 4);
     for (long i = 0; i < count; ++i)
     {
         long object_index = (*(long const **)(list + 0xc))[(short)i];
