@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "unknown_0259d0.h"
 
 struct s_1d9240
 {
@@ -11,6 +12,13 @@ struct s_1d9240
 	char unknown02;
 	byte flag;
 };
+#pragma optimize("p", on)
+PRIVATE __forceinline real function_1d9241(real arg_0, real arg_1)
+{
+ return arg_0 / arg_1;
+}
+#pragma optimize("", on)
+
 
 // @retail 0x1d9240
 void function_1d9240(s_1d9240 *p, char flag, real x)
@@ -35,7 +43,7 @@ void function_1d9240(s_1d9240 *p, char flag, real x)
 
 	if (n > 0)
 	{
-		if (p->count && (p->flag & 1) == flag && n == p->count)
+		if (p->count && flag == ((char)p->flag & 1) && n == p->count)
 			return;
 
 		if (p->count)
@@ -44,8 +52,8 @@ void function_1d9240(s_1d9240 *p, char flag, real x)
 
 			if (!(denominator > 1.0f))
 				denominator = 1.0f;
-			x = (real)p->value / denominator * (real)(n - 1);
-			value = (long)x;
+			x = function_1d9241((real)p->value, denominator) * (real)(n - 1);
+			value = real_truncate(x);
 		}
 		else
 			value = flag ? 1 : n - 1;
@@ -202,8 +210,8 @@ void function_1d9470(s_1d9240 const *p, s_blend_orientation const *targets, long
 					targets->quaternion[1] * orientations->quaternion[1] +
 					targets->quaternion[2] * orientations->quaternion[2] +
 					orientations->quaternion[3] * targets->quaternion[3];
-				real target_weight = 1.0f - t;
 				real weight = t;
+				real target_weight = 1.0f - t;
 				real length_squared;
 
 				if (0.0f > dot)
