@@ -113,6 +113,7 @@ void unicode_string_snprintf(word *buffer, long maximum_count, word const *forma
 bool function_b4120(long kind, struct _XUID owner, wchar_t const *filename, wchar_t *arg_d4faef, dword *path_size)
 {
     long facility;
+    unsigned long length = 0;
     switch (kind)
     {
     case 0: facility = 4; break;
@@ -138,7 +139,6 @@ bool function_b4120(long kind, struct _XUID owner, wchar_t const *filename, wcha
         wcsncpy(prefix, L"", 0xff);
         prefix[0xff] = 0;
     }
-    unsigned long length = 0;
     for (; length < 0x100; length++)
         if (!prefix[length]) break;
     if (length > 0)
@@ -190,12 +190,14 @@ bool online_result_get_address(long index, IN_ADDR *address);
 bool function_b40b0()
 {
     long index = (dword)g_547620 % g_5107d8;
-    bool result = false;
+    volatile bool result = false;
+    volatile bool failure = false;
     IN_ADDR address;
     if (online_result_get_address(index, &address))
     {
         if (((s_http_connection_ab *)g_546a8c)->connect(address.s_addr, g_546a80, g_4672d8, false))
-            result = true;
+            return true;
+        else return result;
     }
     return result;
 }
@@ -335,6 +337,8 @@ long function_b4810(long kind, long controller, struct _XUID owner, wchar_t cons
 long function_b4450(long kind, long controller, struct _XUID owner, wchar_t const *filename, byte *buffer, dword size, long *task_out)
 {
     (void)&controller;
+    long *const volatile *output_reference = &task_out;
+    task_out = *output_reference;
     long result = 1;
     *task_out = NONE;
     long facility = storage_facility_ab(kind);
@@ -366,8 +370,8 @@ long function_b4450(long kind, long controller, struct _XUID owner, wchar_t cons
 long function_b4670(long kind, long controller, struct _XUID owner, wchar_t const *filename, char const *directory, long *task_out)
 {
     (void)&controller;
-    long result = 1;
     *task_out = NONE;
+    long result = 1;
     long facility = storage_facility_ab(kind);
     wchar_t path[0x100];
     dword path_size = 0x100;
@@ -390,6 +394,7 @@ long function_b4670(long kind, long controller, struct _XUID owner, wchar_t cons
             result = storage_error_ab(status);
             function_6b640(task_index);
         }
+        else return 1;
     }
     return result;
 }
@@ -436,6 +441,7 @@ long function_b42b0(long kind, long controller, struct _XUID owner, wchar_t cons
             }
             function_6b640(task_index);
         }
+        else return 1;
     }
     return result;
 }

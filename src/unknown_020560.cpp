@@ -570,93 +570,92 @@ real function_020d80(s_slot *slot, bool skip)
 // @retail 0x20f30
 void function_020f30(real a, real b)
 {
-	dword count;
-	dword full;
-	dword half = 0xc00;
+    dword count;
+    dword volatile full;
+    dword half = 0xc00;
 
-	memset(&g_484f68, 0, sizeof(g_484f68));
-	g_484f68.PSTextureModes = 0x8421;
+    memset(&g_484f68, 0, sizeof(g_484f68));
+    g_484f68.PSTextureModes = 0x8421;
 
-	b = PIN(b, 0.0f, 1.0f);
-	a = PIN(a, 0.0f, 1.0f);
+    b = PIN(b, 0.0f, 1.0f);
+    a = PIN(a, 0.0f, 1.0f);
 
-	if (a > 0.0f)
-	{
-		real x = (a + 1.0f) * 0.5f;
-		real scale = 255.0f;
-		long v = 0;
+    if (a > 0.0f)
+    {
+        real x = (a + 1.0f) * 0.5f;
+        x = PIN(x, 0.0f, 1.0f);
+        real scale = 255.0f;
+        long v = 0;
+        __asm
+        {
+            fld x
+            fld scale
+            fmulp st(1), st
+            fistp v
+            shl v, 24
+        }
+        g_484f68.PSConstant1[2] = v;
+        full = 0x30c00;
+        g_484f68.PSAlphaInputs[2] = 0x1c121d12;
+        g_484f68.PSAlphaOutputs[2] = half;
+    }
+    else
+    {
+        full = 0x30c00;
+        g_484f68.PSAlphaInputs[2] = 0x1c201d20;
+        g_484f68.PSAlphaOutputs[2] = full;
+    }
 
-		x = PIN(x, 0.0f, 1.0f);
-		__asm
-		{
-			fld x
-			fld scale
-			fmulp st(1), st
-			fistp v
-			shl v, 24
-		}
-		g_484f68.PSConstant1[2] = v;
-		full = 0x30c00;
-		g_484f68.PSAlphaInputs[2] = 0x1c121d12;
-		g_484f68.PSAlphaOutputs[2] = half;
-	}
-	else
-	{
-		full = 0x30c00;
-		g_484f68.PSAlphaInputs[2] = 0x1c201d20;
-		g_484f68.PSAlphaOutputs[2] = full;
-	}
+    g_484f68.PSAlphaInputs[0] = 0x18201920;
+    g_484f68.PSAlphaOutputs[0] = full;
+    g_484f68.PSAlphaInputs[1] = 0x1a201b20;
+    g_484f68.PSAlphaOutputs[1] = 0x30d00;
+    g_484f68.PSFinalCombinerInputsEFG = 0x1c00;
 
-	g_484f68.PSAlphaInputs[0] = 0x18201920;
-	g_484f68.PSAlphaOutputs[0] = full;
-	g_484f68.PSAlphaInputs[1] = 0x1a201b20;
-	g_484f68.PSAlphaOutputs[1] = 0x30d00;
-	g_484f68.PSFinalCombinerInputsEFG = 0x1c00;
+    count = 3;
 
-	count = 3;
+    if (b > 0.0f)
+    {
+        color3f color;
+        color.red = b;
+        color.green = b;
+        color.blue = b;
+        dword pixel = pack_color3f(&color);
+        g_484f68.PSConstant0[1] = pixel;
+        g_484f68.PSConstant0[4] = pixel;
+        g_484f68.PSConstant0[7] = pixel;
+        g_484f68.PSRGBInputs[0] = 0x8200940;
+        g_484f68.PSRGBOutputs[0] = 0x20c00;
+        g_484f68.PSRGBInputs[1] = 0xcc012020;
+        g_484f68.PSRGBOutputs[1] = full;
+        g_484f68.PSRGBInputs[2] = 0xc082c09;
+        g_484f68.PSRGBOutputs[2] = half;
+        g_484f68.PSRGBInputs[3] = 0xa200b40;
+        g_484f68.PSRGBOutputs[3] = 0x20d00;
+        g_484f68.PSRGBInputs[4] = 0xcd012020;
+        g_484f68.PSRGBOutputs[4] = 0x30d00;
+        g_484f68.PSRGBInputs[5] = 0xd0a2d0b;
+        g_484f68.PSRGBOutputs[5] = 0xd00;
+        g_484f68.PSRGBInputs[6] = 0xc200d40;
+        g_484f68.PSRGBOutputs[6] = 0x20400;
+        g_484f68.PSRGBInputs[7] = 0xc4012020;
+        g_484f68.PSRGBOutputs[7] = 0x30400;
+        g_484f68.PSFinalCombinerInputsABCD = 0x40c0d00;
+        count = 8;
+    }
+    else
+    {
+        g_484f68.PSRGBInputs[0] = 0x8200920;
+        g_484f68.PSRGBOutputs[0] = full;
+        g_484f68.PSRGBInputs[1] = 0xa200b20;
+        g_484f68.PSRGBOutputs[1] = 0x30d00;
+        g_484f68.PSRGBInputs[2] = 0xc200d20;
+        g_484f68.PSRGBOutputs[2] = full;
+        g_484f68.PSFinalCombinerInputsABCD = 0xc;
+    }
 
-	if (b > 0.0f)
-	{
-		color3f color;
-		color.red = b;
-		color.green = b;
-		color.blue = b;
-		dword pixel = pack_color3f(&color);
-		g_484f68.PSConstant0[1] = pixel;
-		g_484f68.PSConstant0[4] = pixel;
-		g_484f68.PSConstant0[7] = pixel;
-		g_484f68.PSRGBInputs[0] = 0x8200940;
-		g_484f68.PSRGBOutputs[0] = 0x20c00;
-		g_484f68.PSRGBInputs[1] = 0xcc012020;
-		g_484f68.PSRGBOutputs[1] = full;
-		g_484f68.PSRGBInputs[2] = 0xc082c09;
-		g_484f68.PSRGBOutputs[2] = half;
-		g_484f68.PSRGBInputs[3] = 0xa200b40;
-		g_484f68.PSRGBOutputs[3] = 0x20d00;
-		g_484f68.PSRGBInputs[4] = 0xcd012020;
-		g_484f68.PSRGBOutputs[4] = 0x30d00;
-		g_484f68.PSRGBInputs[5] = 0xd0a2d0b;
-		g_484f68.PSRGBOutputs[5] = 0xd00;
-		g_484f68.PSRGBInputs[6] = 0xc200d40;
-		g_484f68.PSRGBOutputs[6] = 0x20400;
-		g_484f68.PSRGBInputs[7] = 0xc4012020;
-		g_484f68.PSRGBOutputs[7] = 0x30400;
-		g_484f68.PSFinalCombinerInputsABCD = 0x40c0d00;
-		count = 8;
-	}
-	else
-	{
-		g_484f68.PSRGBInputs[0] = 0x8200920;
-		g_484f68.PSRGBOutputs[0] = full;
-		g_484f68.PSRGBInputs[1] = 0xa200b20;
-		g_484f68.PSRGBOutputs[1] = 0x30d00;
-		g_484f68.PSRGBInputs[2] = 0xc200d20;
-		g_484f68.PSRGBOutputs[2] = full;
-		g_484f68.PSFinalCombinerInputsABCD = 0xc;
-	}
-
-	g_484f68.PSCombinerCount = count | 0x11000;
-	D3DDevice_SetPixelShaderProgram(&g_484f68);
+    g_484f68.PSCombinerCount = count | 0x11000;
+    D3DDevice_SetPixelShaderProgram(&g_484f68);
 }
 
 // @retail 0x222d0
@@ -1199,9 +1198,10 @@ bool __stdcall function_3c270(dword value)
     key.e = 0;
     long index = function_0209b0(&key, &value, 4);
     if (index == NONE) return false;
-    bool valid = false;
+    byte &valid = *(byte *)&value;
+    valid = false;
     bool available;
-    real amount;
+    real &amount = *(real *)&key.b;
     if (g_51f408 && g_51f40c.slots[index].valid)
     {
         long frame = ((long)g_485aa0 + 1) % 3;
@@ -1244,8 +1244,8 @@ void __stdcall function_22070(real strength, real exponent)
 {
     if (strength > 0.0f)
     {
-        strength = (real)PIN(pow((double)(strength > 1.0f ? 1.0f : strength),
-            (double)(exponent > 0.0f ? exponent : 0.0f)), 0.0, 1.0);
+        strength = (real)PIN((real)pow((double)(strength <= 1.0f ? strength : 1.0f),
+            (double)(!(exponent > 0.0f) ? 0.0f : exponent)), 0.0f, 1.0f);
         if (strength > 0.0f)
         {
             function_14f60(0, 18);

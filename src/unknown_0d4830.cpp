@@ -231,56 +231,58 @@ void object_widgets_delete(long object_index)
 // @retail 0xd4ae0
 void object_widget_delete(long object_index, long handle)
 {
-	if (handle != NONE)
-	{
-		s_widget_object_header *header = (s_widget_object_header *)(g_4e0300->data + (object_index & 0xffff) * 12);
-		s_widget_object *object = (s_widget_object *)header->object;
-		long widget_index = object->widget_head;
+    long const volatile *handle_reference = &handle;
+    long handle_value = *handle_reference;
+    if (handle_value != NONE)
+    {
+        s_widget_object_header *header = (s_widget_object_header *)(g_4e0300->data + (object_index & 0xffff) * 12);
+        s_widget_object *object = (s_widget_object *)header->object;
+        long widget_index = object->widget_head;
 
-		if (widget_index != NONE)
-		{
-			s_widget *widget = (s_widget *)(g_4e0320->data + (widget_index & 0xffff) * 12);
+        if (widget_index != NONE)
+        {
+            s_widget *widget = (s_widget *)(g_4e0320->data + (widget_index & 0xffff) * 12);
 
-			if (widget->handle == handle)
-			{
-				object->widget_head = widget->next;
+            if (widget->handle == handle_value)
+            {
+                object->widget_head = widget->next;
 
-				if (widget->handle != NONE)
-					g_467498[widget->type].dispose(widget->handle);
+                if (widget->handle != NONE)
+                    g_467498[widget->type].dispose(widget->handle);
 
-				record_pool_release(g_4e0320, widget_index);
-			}
-			else
-			{
-				long previous_index = widget_index;
+                record_pool_release(g_4e0320, widget_index);
+            }
+            else
+            {
+                long previous_index = widget_index;
 
-				do
-				{
-					s_widget *previous = (s_widget *)(g_4e0320->data + (previous_index & 0xffff) * 12);
-					long next_index = previous->next;
+                do
+                {
+                    s_widget *previous = (s_widget *)(g_4e0320->data + (previous_index & 0xffff) * 12);
+                    long next_index = previous->next;
 
-					if (next_index == NONE)
-						break;
+                    if (next_index == NONE)
+                        break;
 
-					widget = (s_widget *)(g_4e0320->data + (next_index & 0xffff) * 12);
+                    widget = (s_widget *)(g_4e0320->data + (next_index & 0xffff) * 12);
 
-					if (widget->handle == handle)
-					{
-						previous->next = widget->next;
+                    if (widget->handle == handle_value)
+                    {
+                        previous->next = widget->next;
 
-						if (widget->handle != NONE)
-							g_467498[widget->type].dispose(widget->handle);
+                        if (widget->handle != NONE)
+                            g_467498[widget->type].dispose(widget->handle);
 
-						record_pool_release(g_4e0320, next_index);
-						break;
-					}
+                        record_pool_release(g_4e0320, next_index);
+                        break;
+                    }
 
-					previous_index = next_index;
-				}
-				while (true);
-			}
-		}
-	}
+                    previous_index = next_index;
+                }
+                while (true);
+            }
+        }
+    }
 }
 
 // @retail 0xd4bc0
