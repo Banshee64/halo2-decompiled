@@ -334,6 +334,13 @@ def test_markers_are_read_again_when_a_source_changes(tmp_path):
     assert [m.retail for m in build.marked_sources(str(tmp_path))] == [0x163ba0, 0x163c10, 0x259d0]
 
 
+def test_source_objects_name_objects_as_the_build_does(tmp_path):
+    (tmp_path / 'src' / 'stubs').mkdir(parents=True)
+    (tmp_path / 'src' / 'crc.cpp').write_text(SOURCE)
+    (tmp_path / 'src' / 'stubs' / 'havok.cpp').write_text(STUBS)
+    assert build.source_objects(str(tmp_path)) == {'crc.obj': 'src/crc.cpp', 'stubs_havok.obj': 'src/stubs/havok.cpp'}
+
+
 def test_entry_source_leaves_fltused_to_libcmt():
     text = build.entry_source(['void standin_a_0(void);'], ['	standin_a_0();'])
     assert 'fltused' not in text

@@ -9,11 +9,13 @@ strictly better variant of the one function.
 --fast scores each variant on a reduced image instead of the whole program
 (tools/build.py's build(units=...)): the function's own source, and the
 sources that define its callees in retail, their callees in turn, and so on
-through every decompiled callee (--depth N stops after N levels), linked with
-the ballast, the library objects the full image takes (their calls pin the
-conventions of what they call) and unresolved externals allowed. A try
-recompiles only the function's source and links a small part of the program.
-The search starts with a full build of the original. A variant that scores
+through every decompiled callee (--depth N stops after N levels). The search
+starts with a full build of the original, which adds what pins calling
+conventions there: the sources that take the address of the function or of a
+function it calls, the stubs that call one, and the library objects the full
+image takes. The reduced image is linked with those, the ballast, and
+unresolved externals allowed. A try recompiles only the function's source and
+links a small part of the program. A variant that scores
 better on the reduced image is scored again by a full build, and becomes the
 best only if that build agrees it is better, so the best variant, the only
 one --write writes, always has a full-build score. Both scores are printed.
@@ -586,6 +588,36 @@ def library_symbols(linkmap):
     return sorted(found.values())
 
 
+def _rel_target(image, field):
+    return (field + 4 + int.from_bytes(image.read(field, 4), 'little', signed=True)) & 0xFFFFFFFF
+
+
+def pinning_units(linkmap, image, symbol, sources):
+    """The sources that, in a full image (its LinkMap and Pe), pin the calling
+    convention of the function at symbol or of a function it calls directly:
+    those that take such a function's address (link-time code generation keeps
+    the standard convention of a function whose address escapes, such as a
+    callback) and stubs, built without LTCG, that call one. sources maps the
+    map's object names to their sources (build.source_objects)."""
+    start, end = linkmap.extent(symbol)
+    pinned = {symbol.va}
+    for field in linkmap.rel_fixups:
+        if start <= field < end:
+            callee = linkmap.symbol_at(_rel_target(image, field))
+            if callee is not None and callee.va != symbol.va:
+                pinned.add(callee.va)
+    objects = set()
+    for field in image.fixups:
+        if int.from_bytes(image.read(field, 4), 'little') in pinned and linkmap.symbol_at(field):
+            objects.add(linkmap.symbol_at(field).object)
+    for field in linkmap.rel_fixups:
+        caller = linkmap.symbol_at(field)
+        if (caller is not None and sources.get(caller.object, '').startswith('src/stubs/')
+                and _rel_target(image, field) in pinned):
+            objects.add(caller.object)
+    return {sources[o] for o in objects if o in sources}
+
+
 class FastScorer(Scorer):
     """A Scorer that builds a reduced image (see reduced_units): only the
     target's source is recompiled, and the link leaves out most of the program.
@@ -701,6 +733,9 @@ class FastSearch:
             if self.fast_baseline is None:
                 self.fast_baseline = self.walk_score = score
                 self.log(f'baseline: {score} differing instructions on the reduced image ({note})')
+                if score != self.baseline:
+                    self.log(f'warning: the reduced image scores the original {score}, the full image '
+                             f'{self.baseline}; reduced-image scores may not follow full ones for this function')
             elif score != self.fast_baseline:
                 self.log(f'warning: a worker scored the original {score}, not {self.fast_baseline}')
 
@@ -777,7 +812,6 @@ def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, j
         full = Scorer(va, roots[0], image=os.path.join(images, 'full', 'halo2.img'))
         scorers = [FastScorer(va, root, os.path.join(images, name, 'reduced.img'), depth=depth)
                    for name, root in zip(names[1:], roots[1:])]
-        log(f'reduced image: {len(scorers[0].units)} sources: ' + ', '.join(sorted(scorers[0].units)))
         with open(os.path.join(ROOT, full.marked.path), encoding='utf-8', newline='') as f:
             original = f.read()
         start, end = find_body(original, va)
@@ -785,10 +819,16 @@ def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, j
         baseline, note = full.score_text(original)
         log(f'baseline: {baseline} differing instructions in the full image ({note}; {time.time() - t0:.0f}s)')
         map_path = os.path.splitext(full.image)[0] + '.map'
-        if os.path.exists(map_path):
-            include = library_symbols(LinkMap.read(map_path))
+        if baseline < WORST and os.path.exists(map_path):
+            linkmap, image = LinkMap.read(map_path), Pe(full.image)
+            symbol = check.resolve(linkmap, full.marked,
+                                   check.StandinCalls(linkmap, image, build.marked_sources(full.root)))
+            include = library_symbols(linkmap)
+            pinning = pinning_units(linkmap, image, symbol, build.source_objects(full.root))
             for scorer in scorers:
                 scorer.include = include
+                scorer.units |= pinning
+        log(f'reduced image: {len(scorers[0].units)} sources: ' + ', '.join(sorted(scorers[0].units)))
         search = FastSearch(original[:start], original[start:end], original[end:], full.score_text, baseline, log)
         t0 = time.time()
         deadline = None if time_limit is None else t0 + time_limit

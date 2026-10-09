@@ -453,6 +453,17 @@ def stub_sources(root=ROOT):
     return marked
 
 
+def source_objects(root=ROOT):
+    """{an object's name, as build() names it and the linker map shows it: its
+    source ('src/<name>.cpp' or 'src/stubs/<name>.cpp')}."""
+    out = {f'{os.path.splitext(n)[0]}.obj': f'src/{n}' for n in _source_names(root)}
+    folder = os.path.join(root, 'src', 'stubs')
+    if os.path.isdir(folder):
+        out.update({f'stubs_{os.path.splitext(n)[0]}.obj': f'src/stubs/{n}' for n in os.listdir(folder)
+                    if n.endswith('.cpp')})
+    return out
+
+
 def standin_names(marked):
     """{(path, retail address): the name of its stand-in} for markers listed as
     marked_sources() lists them: the k-th marker of src/<stem>.cpp has
