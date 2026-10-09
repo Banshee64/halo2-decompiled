@@ -186,7 +186,7 @@ void function_2fb70(s_2f800_view const *view, box2f const *clip, s_projection_sc
 	out->half_width = half_width;
 	out->offset_x = offset_x;
 	out->offset_y = offset_y;
-	real tangent = (real)tan(view->angle * 0.5f);
+	real tangent = (real)tan((double)view->angle * 0.5f);
 	real aspect = out->width / out->height;
 	if (!(g_4e6948 && g_4e6948->flag && g_4e6948->index != NONE && g_4e6948->state == 3) && g_485ac2)
 	{
@@ -867,10 +867,8 @@ PRIVATE __forceinline real particle_inverse_sqrt(real magnitude)
 // @retail 0x38450
 bool __stdcall function_38450(byte *state, byte const *definition, real remaining)
 {
-    real width = *(real *)(state + 8);
-    real height = *(real *)(state + 0xc);
-    real depth = *(real *)(state + 0x10);
-    real field_14 = *(real *)(state + 0x14);
+    struct s_extent { real width, height, depth, field_14; };
+    s_extent extent = *(s_extent *)(state + 8);
     point3f camera = g_485618.position;
     real fade = 1.0f;
     long nearby_count = 0;
@@ -889,8 +887,7 @@ bool __stdcall function_38450(byte *state, byte const *definition, real remainin
     long count = records->count / players;
     long start = g_485600 * count;
     long limit = (long)(count * g_4670fc);
-    real radius = *(real *)(state + 8) > *(real *)(state + 0xc) ? *(real *)(state + 8) : *(real *)(state + 0xc);
-    radius = radius > *(real *)(state + 0x10) ? radius : *(real *)(state + 0x10);
+    real radius = (*(real *)(state + 8) > *(real *)(state + 0xc) ? *(real *)(state + 8) : *(real *)(state + 0xc)) > *(real *)(state + 0x10) ? (*(real *)(state + 8) > *(real *)(state + 0xc) ? *(real *)(state + 8) : *(real *)(state + 0xc)) : *(real *)(state + 0x10);
     s_sphere_plane_volume *nearby[32];
     byte *structure = (byte *)g_4e0348;
     long volume_count = *(long *)(structure + 0x8c);
@@ -914,11 +911,11 @@ bool __stdcall function_38450(byte *state, byte const *definition, real remainin
             real delta = g_509418;
             particle->age += delta;
             real drift = *(real *)(definition + 0xa8);
-            real varied = particle->jitter_z + (filter_random_fraction() * 2.0 - 1.0) * drift;
+            real varied = particle->jitter_z + (filter_random_fraction() * 2.0 - 1.0f) * drift;
             particle->jitter_z = (real)(varied < -1.0f ? -1.0f : varied > 1.0f ? 1.0f : varied);
-            varied = particle->jitter_x + (filter_random_fraction() * 2.0 - 1.0) * drift;
+            varied = particle->jitter_x + (filter_random_fraction() * 2.0 - 1.0f) * drift;
             particle->jitter_x = (real)(varied < -1.0f ? -1.0f : varied > 1.0f ? 1.0f : varied);
-            varied = particle->jitter_y + (filter_random_fraction() * 2.0 - 1.0) * drift;
+            varied = particle->jitter_y + (filter_random_fraction() * 2.0 - 1.0f) * drift;
             particle->jitter_y = (real)(varied < -1.0f ? -1.0f : varied > 1.0f ? 1.0f : varied);
             real vx = *(real *)(definition + 0x90) * particle->jitter_x + *(real *)(definition + 0x30);
             real vy = *(real *)(definition + 0x94) * particle->jitter_y + *(real *)(definition + 0x34);
@@ -926,7 +923,7 @@ bool __stdcall function_38450(byte *state, byte const *definition, real remainin
             if (!(particle->lifetime > 0.0001f))
                 particle->lifetime = (real)(filter_random_fraction() * 0.7f + 0.1f);
             real inverse = 1.0f / particle->lifetime;
-            vx *= inverse; vy *= inverse; vz *= inverse;
+            vx = inverse * vx; vy = inverse * vy; vz = inverse * vz;
             vz -= *(real *)(definition + 0x9c);
             particle->velocity.i += delta * vx;
             particle->velocity.j += delta * vy;
@@ -947,27 +944,27 @@ bool __stdcall function_38450(byte *state, byte const *definition, real remainin
             vertex->position.z += particle->velocity.k * delta;
             real x = vertex->position.x, y = vertex->position.y, z = vertex->position.z;
             if (g_48568c[0] != 1.0f) { x *= g_48568c[0]; y *= g_48568c[0]; z *= g_48568c[0]; }
-            real px = g_48568c[7] * z + g_48568c[4] * y + g_48568c[1] * x + g_48568c[10];
+            real px = z * g_48568c[7] + y * g_48568c[4] + x * g_48568c[1] + g_48568c[10];
             real py = g_48568c[5] * y + g_48568c[2] * x + g_48568c[8] * z + g_48568c[11];
             real pz = g_48568c[6] * y + g_48568c[3] * x + g_48568c[9] * z + g_48568c[12];
-            if (width > 0.0001f && height > 0.0001f && depth > 0.0001f)
+            if (extent.width > 0.0001f && extent.height > 0.0001f && extent.depth > 0.0001f)
             {
                 bool wrapped = false;
-                px /= width;
+                px /= extent.width;
                 px -= (long)px;
                 if (px < -0.5f) { px += 1.0f; wrapped = true; }
                 else if (px > 0.5f) { px -= 1.0f; wrapped = true; }
-                px *= width;
-                py /= height;
+                px *= extent.width;
+                py /= extent.height;
                 py -= (long)py;
                 if (py < -0.5f) { py += 1.0f; wrapped = true; }
                 else if (py > 0.5f) { py -= 1.0f; wrapped = true; }
-                py *= height;
-                if (pz < 0.0f - depth) wrapped = true;
-                pz /= depth;
+                py *= extent.height;
+                if (pz < 0.0f - extent.depth) wrapped = true;
+                pz /= extent.depth;
                 pz -= (long)pz;
                 if (pz > 0.0f) { pz -= 1.0f; wrapped = true; }
-                pz *= depth;
+                pz *= extent.depth;
                 if (wrapped)
                 {
                     if (g_48568c[13] != 1.0f) { px *= g_48568c[13]; py *= g_48568c[13]; pz *= g_48568c[13]; }
@@ -1008,12 +1005,12 @@ bool __stdcall function_38450(byte *state, byte const *definition, real remainin
             vertex->size = (real)(filter_random_fraction() *
                 (*(real *)(state + 0x28) - *(real *)(state + 0x24)) + *(real *)(state + 0x24));
             particle->age = 0.0f;
-            vertex->position.x = (real)((filter_random_fraction() * 2.0 - 1.0) * depth + camera.x);
-            vertex->position.y = (real)((filter_random_fraction() * 2.0 - 1.0) * width + camera.y);
-            vertex->position.z = (real)((filter_random_fraction() * 2.0 - 1.0) * height + camera.z);
-            particle->jitter_x = (real)(filter_random_fraction() * 2.0 - 1.0);
-            particle->jitter_y = (real)(filter_random_fraction() * 2.0 - 1.0);
-            particle->jitter_z = (real)(filter_random_fraction() * 2.0 - 1.0);
+            vertex->position.x = (real)((filter_random_fraction() * 2.0 - 1.0f) * extent.depth + camera.x);
+            vertex->position.y = (real)((filter_random_fraction() * 2.0 - 1.0f) * extent.width + camera.y);
+            vertex->position.z = (real)((filter_random_fraction() * 2.0 - 1.0f) * extent.height + camera.z);
+            particle->jitter_x = (real)(filter_random_fraction() * 2.0 - 1.0f);
+            particle->jitter_y = (real)(filter_random_fraction() * 2.0 - 1.0f);
+            particle->jitter_z = (real)(filter_random_fraction() * 2.0 - 1.0f);
         }
     }
     return true;

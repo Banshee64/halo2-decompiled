@@ -3923,7 +3923,7 @@ void havok_component_node_states_get(s_havok_component *component, s_havok_node_
 void havok_component_node_states_set(s_havok_component *component, s_havok_node_states const *states);
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
 point3f *function_b9dd0(long object_index, point3f *result);
-long function_b7b40(void *creation);
+long __stdcall function_b7b40(void *creation);
 void __stdcall function_1c3770(long object_index, dword flags);
 extern s_record_pool *g_51e9b8;
 

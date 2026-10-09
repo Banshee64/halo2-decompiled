@@ -31,7 +31,7 @@ struct s_effect_owner;
 struct s_object_ai_data;
 struct s_28dab2;
 void function_b7930(void *arg_0, long arg_1, long arg_2, s_effect_owner const *arg_3);
-long function_b7b40(void *arg_0);
+long __stdcall function_b7b40(void *arg_0);
 void __stdcall function_b8540(long arg_0);
 void function_141ce0(real arg_0, real arg_1, real arg_2, transform4x3f *arg_3);
 long function_1e06b0(long arg_0);

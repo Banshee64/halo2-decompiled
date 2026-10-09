@@ -334,7 +334,7 @@ long function_189760(s_sound_label_play const *play)
 }
 
 // @retail 0x189340
-long function_189340(long object_index, s_sound_source_callbacks const *source, long tag_index, char audible, s_sound_marker const *marker, real scale, long platform_playback, char const *variant)
+long function_189340(long object_index, long tag_index, char audible, s_sound_marker const *marker, s_sound_source_callbacks const *source, real scale, long platform_playback, char const *variant)
 {
 	s_sound_request request;
 
@@ -448,7 +448,7 @@ long function_189400(s_sound_position const *position, long object_index, long t
 					}
 					marker.flag1 = true;
 				}
-				return function_189340(object_index, &g_444b5c, tag_index, 0, &marker, scale, NONE, NULL);
+				return function_189340(object_index, tag_index, 0, &marker, &g_444b5c, scale, NONE, NULL);
 			}
 		}
 	}
@@ -465,7 +465,7 @@ long function_189060(long object_index, short value, real scale, point3f const *
 
 	description.flags = 0;
 	function_1892a0(&description, position, direction, value, tag_index, object_index);
-	return function_189340(object_index, function_189010(object_index, tag_index) ? &g_444b1c : &g_444afc, tag_index, 1, (s_sound_marker *)&description, scale, NONE, NULL);
+	return function_189340(object_index, tag_index, 1, (s_sound_marker *)&description, function_189010(object_index, tag_index) ? &g_444b1c : &g_444afc, scale, NONE, NULL);
 }
 
 // @retail 0x1890c0
@@ -666,8 +666,8 @@ void __stdcall function_189cd0(long tag_index, long object_index, real scale, lo
 					description.flags |= 1;
 				else
 					description.flags &= ~1;
-				sound_index = function_189340(*object_reference, &g_444b3c, tag_index, positioned ? 2 : 1,
-					(s_sound_marker *)&description, scale, function_18d5b0(label), (char const *)&slot->permutation);
+				sound_index = function_189340(*object_reference, tag_index, positioned ? 2 : 1, (s_sound_marker *)&description,
+					&g_444b3c, scale, function_18d5b0(label), (char const *)&slot->permutation);
 				if (sound_index != NONE && *object_reference != NONE)
 				{
 					function_109220(*object_reference, tag_index, sound_index);

@@ -8,5 +8,16 @@
 // @retail 0x279740
 bool __cdecl function_279740(long value)
 {
-	return PIN(value, (long)0x80061000, (long)0x80061000 + (cache_file_globals.loaded ? cache_file_globals.header.unknown1c : 0)) == value;
+    long local_0 = value;
+    if (value < (long)0x80061000)
+        local_0 = (long)0x80061000;
+    else
+    {
+        bool local_1 = cache_file_globals.loaded;
+        long local_2 = cache_file_globals.header.unknown1c;
+        bool const volatile *local_3 = &local_1;
+        if (value > (long)0x80061000 + (local_1 ? local_2 : 0))
+            local_0 = (long)0x80061000 + (*local_3 ? local_2 : 0);
+    }
+    return local_0 == value;
 }

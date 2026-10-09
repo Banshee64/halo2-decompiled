@@ -174,13 +174,13 @@ struct s_reference_filter_view
 // @retail 0x2623a0
 bool function_2623a0(s_reference_filter_view const *filter, long actor_index, s_actor_view *actor, s_reference reference)
 {
+ bool volatile result = true;
 	if (filter)
 	{
 		s_262b40_result *entry = function_262b40(reference);
 		if (!entry || (!filter->allow_a && !filter->allow_b &&
 			(*(long *)((byte *)entry + 0x14) == NONE || !(entry->flags & 0x60))))
 			return false;
-		bool result;
 		bool flag = (bool)(((dword)entry->flags >> 5) & 1);
 		if (filter->require_flag)
 			result = flag;
@@ -205,7 +205,7 @@ bool function_2623a0(s_reference_filter_view const *filter, long actor_index, s_
 		}
 		return result;
 	}
-	return true;
+	return result;
 }
 
 struct s_candidate_range
@@ -266,7 +266,7 @@ short __stdcall function_262180(long actor_index, long block_index, long range_i
                         else if (allowed)
                             goto done;
                     }
-                    for (short index = range->first; *count < *maximum_reference && index < range->first + range->count; ++index)
+                    for (long volatile index = (word)range->first; *count < *maximum_reference && (short)index < range->first + range->count; ++index)
                     {
                         s_reference reference;
                         reference.unknown0 = index;
@@ -307,10 +307,11 @@ bool function_260160(long actor_index, s_prop_search *search, s_261d20_entry *en
 {
     s_type_b36ac5 *position = (s_type_b36ac5 *)entry;
     s_type_967e20 *context = (s_type_967e20 *)search;
-    long count = *(long *)((byte *)g_4e0348 + 0xc4);
+    byte *header = (byte *)g_4e0348;
+    long count = *(long *)(header + 0xc4);
     long *data = NULL;
     if (count > 0)
-        data = *(long **)((byte *)g_4e0348 + 0xc8);
+        data = *(long **)(header + 0xc8);
     position->score = 0.0f;
     position->unknown50 = 0.0f;
     position->unknown4c = true;
@@ -384,7 +385,7 @@ bool function_2601f0(long actor_index, s_type_c3b527 const *point, long sector, 
     long *pathfinding = NULL;
     if (*(long *)((byte *)g_4e0348 + 0xc4) > 0)
         pathfinding = *(long **)((byte *)g_4e0348 + 0xc8);
-    bool result = false;
+    bool volatile result = false;
     if (actor->unknown030 != NONE &&
         ((*sector_reference >= 0 && *sector_reference < *pathfinding) || *((bool *)actor + 0x229)))
     {
@@ -493,7 +494,7 @@ bool __stdcall function_261ec0(long actor_index, long squad_index, s_261d20_entr
     long const *maximum_reference = &maximum_count;
     s_prop_search *const *search_reference = &search;
     byte *squad = g_51e9d8->data + (*squad_reference & 0xffff) * 0x98;
-    bool result = false;
+    bool volatile result = false;
     if (*(long *)(squad + 0x80) != NONE)
     {
         if (*(char *)(squad + 0x30) >= 0)
@@ -597,3 +598,324 @@ short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long 
     }
     return count;
 }
+
+#if 0
+// Active versions alter the matched 0x2605d0 caller frame; retain its original stub.
+#include "props.h"
+#include <string.h>
+typedef bool (__stdcall *t_reference_compare)(long, long, const void *);
+void sort_4byte(long *elements, unsigned long count, void *unused, t_reference_compare compare, const void *context);
+bool __stdcall function_2600e0(long a, long b, void *unused);
+void __stdcall function_25f7b0(long actor_index, s_type_967e20 *context, s_type_b36ac5 *position);
+void function_270590(s_path_source *source, s_type_c3b527 const *point, long node_index);
+
+struct firing_position_post_evaluator
+{
+	short flags;
+	bool (__stdcall *proc)(long, s_type_967e20 *, s_type_b36ac5 *);
+};
+extern firing_position_post_evaluator g_44adf0[12];
+extern s_type_b36ac5 *g_51eca0;
+short g_51ec9c;
+
+struct hash_node
+{
+	void *key;
+	dword hash;
+	hash_node *next;
+	byte data[1];
+};
+struct hash_table
+{
+	byte unknown00[0x20];
+	dword bucket_count;
+	long maximum_count;
+	long data_size;
+	dword (__stdcall *hash_proc)(const void *key);
+	bool (__stdcall *compare_proc)(const void *a, const void *b);
+	c_data_allocator *allocator;
+	hash_node *free_list;
+	hash_node *buckets[1];
+};
+hash_node *function_13e2d0(hash_table *table, void *key);
+
+PRIVATE inline bool reference_owner_find(hash_table *table, void *key, void *data)
+{
+	hash_node *node = function_13e2d0(table, key);
+	if (node && data)
+	{
+		memcpy(data, node->data, table->data_size);
+		return true;
+	}
+	return false;
+}
+
+// Disabled retail draft 0x260670
+s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *request,
+	s_261d20_entry *entries, short count, long reported_entry, long reported_owner, byte *scratch, bool *has_path)
+{
+	byte *actor = (byte *)actor_get(actor_index);
+	s_type_967e20 *context = (s_type_967e20 *)request;
+	byte *parameters = (byte *)context;
+	s_type_b36ac5 *positions = (s_type_b36ac5 *)entries;
+	s_reference result = g_470fa0;
+	bool within_limit = false;
+	bool finite_distance = false;
+	short selected = NONE;
+	real best_score = 0.0f;
+	s_path_source source;
+	s_path_settings settings;
+	long sorted_indices[512];
+	long sort_scratch;
+	*has_path = false;
+	((byte *)g_4f55d0)[3] = true;
+	if (count == 0)
+	{
+		byte *history_actor = (byte *)actor_get(actor_index);
+		*(short *)(history_actor + 0x3fe) = 3;
+		byte *history = history_actor + 0x402;
+		long remaining = 4;
+		do
+		{
+			*(s_reference *)history = g_470fa0;
+			history += 6;
+		} while (--remaining);
+		return g_470fa0;
+	}
+	if (parameters[0x618] && parameters[0x53])
+	{
+		if (parameters[0x56])
+		{
+			for (short i = 0; i < count; i++)
+				function_260530((s_reference_candidate_view *)&positions[i], (s_reference_direction_request *)parameters);
+		}
+		else if (*(long *)(parameters + 0x64c) != NONE)
+		{
+			memset(&source, 0, sizeof(source));
+			source.radius = *(real *)((byte *)function_1e4a50(*(long *)(actor + 0x54)) + 4);
+			source.unknown04 = actor[0x3e4];
+			source.object_index = NONE;
+			source.unknown0c = NONE;
+			function_270590(&source, (s_type_c3b527 *)(parameters + 0x650), *(long *)(parameters + 0x64c));
+			source.unknown4c = 0.0f;
+			source.unknown45 = true;
+			source.unknown48 = 20.0f;
+			function_1f9240(actor_index, &settings);
+			byte *buffer = ai_scratch_buffer_get();
+			function_271300((s_type_f17a25 *)buffer, NULL, &settings, &source, 0);
+			function_2715a0(buffer);
+			for (short i = 0; i < count; i++)
+			{
+				s_type_b36ac5 *position = &positions[i];
+				if ((position->unknown58 && parameters[0x5a]) || (position->unknown59 && parameters[0x58]))
+					function_260530((s_reference_candidate_view *)position, (s_reference_direction_request *)parameters);
+				else
+					function_270750(buffer, position->definition->unknown14, (s_actor_point_target *)position->definition,
+						&position->unknown28, 0, parameters[0x54] ? (long)&position->unknown34 : 0);
+			}
+			ai_scratch_buffer_release(buffer);
+		}
+	}
+	else if (parameters[0x54])
+	{
+		for (short i = 0; i < count; i++)
+		{
+			vector3d_from_points3d((point3f *)(parameters + 0x620), &positions[i].position, &positions[i].unknown34);
+			function_30bf0(&positions[i].unknown34);
+		}
+	}
+	if (parameters[0x55])
+	{
+		for (short i = 0; i < count; i++)
+		{
+			vector3d_from_points3d((point3f *)(parameters + 0x620), &positions[i].position, &positions[i].unknown40);
+			normalize_inline(&positions[i].unknown40);
+		}
+	}
+	if (!parameters[0x56])
+	{
+		function_1f90f0(actor_index, &source);
+		source.unknown45 = true;
+		source.unknown48 = *(real *)(parameters + 0x1c);
+		if (parameters[0x46] && parameters[0x618])
+		{
+			long target_object = NONE;
+			if (*(long *)(parameters + 0x664) != NONE)
+				target_object = prop_ref_get(*(long *)(parameters + 0x664))->object_index;
+			source.unknown28[0] = true;
+			*(point3f *)(source.unknown28 + 4) = *(point3f *)(parameters + 0x620);
+			*(long *)(source.unknown28 + 0x10) = target_object;
+			*(real *)(source.unknown28 + 0x14) = *(real *)(parameters + 0x4c);
+			source.unknown44 = !parameters[0x50];
+			*(real *)(source.unknown28 + 0x18) = *(real *)(parameters + 0x48);
+		}
+		else if (*(short *)(actor + 0x358) > 0)
+		{
+			source.unknown28[0] = true;
+			*(point3f *)(source.unknown28 + 4) = *(point3f *)(actor + 0x370);
+			*(real *)(source.unknown28 + 0x14) = *(real *)(actor + 0x36c);
+			*(long *)(source.unknown28 + 0x10) = *(long *)(actor + 0x360);
+			source.unknown44 = true;
+			*(real *)(source.unknown28 + 0x18) = 10.0f;
+		}
+		function_1f9240(actor_index, &settings);
+		function_271300((s_type_f17a25 *)scratch, NULL, &settings, &source, 0);
+		if (function_2715a0(scratch))
+			*has_path = true;
+	}
+	for (short i = 0; i < count; i++)
+	{
+		s_type_b36ac5 *position = &positions[i];
+		if (parameters[0x618])
+		{
+			vector3f delta;
+			vector3d_from_points3d((point3f *)(parameters + 0x620), &position->position, &delta);
+			position->unknown30 = delta.i * delta.i + delta.k * delta.k + delta.j * delta.j;
+		}
+		vector3f delta;
+		vector3d_from_points3d((point3f *)(actor + 0x238), &position->position, &delta);
+		real distance_squared = delta.i * delta.i + delta.k * delta.k + delta.j * delta.j;
+		real range = *(real *)(parameters + 0x1c);
+		if (range * range > distance_squared)
+		{
+			if (!parameters[0x56] && !(position->unknown58 && parameters[0x5a]) && !(position->unknown59 && parameters[0x58]))
+				function_270750(scratch, position->definition->unknown14, (s_actor_point_target *)position->definition,
+					&position->unknown18, (long)&position->unknown2c, parameters[0x51] ? (long)&position->unknown1c : 0);
+			else
+			{
+				real perpendicular_squared;
+				if (distance_squared > 0.0001f)
+				{
+					vector3f target_delta;
+					vector3d_from_points3d((point3f *)(actor + 0x238), (point3f *)(parameters + 0x620), &target_delta);
+					real t = (target_delta.k * delta.k + target_delta.j * delta.j + target_delta.i * delta.i) / distance_squared;
+					t = t < 0.0f ? 0.0f : t > 1.0f ? 1.0f : t;
+					t = 0.0f - t;
+					target_delta.i = t * delta.i + target_delta.i;
+					target_delta.j = t * delta.j + target_delta.j;
+					target_delta.k = t * delta.k + target_delta.k;
+					perpendicular_squared = target_delta.k * target_delta.k + target_delta.j * target_delta.j + target_delta.i * target_delta.i;
+				}
+				else
+				{
+					vector3f target_delta;
+					vector3d_from_points3d((point3f *)(parameters + 0x620), (point3f *)(actor + 0x238), &target_delta);
+					perpendicular_squared = target_delta.k * target_delta.k + target_delta.j * target_delta.j + target_delta.i * target_delta.i;
+				}
+				position->unknown2c = (real)sqrt((double)perpendicular_squared);
+				real length = (real)sqrt((double)distance_squared);
+				if ((double)0.0001f > fabs((double)length))
+					length = 0.0f;
+				else
+				{
+					real scale = 1.0f / length;
+					delta.i *= scale;
+					delta.j *= scale;
+					delta.k *= scale;
+				}
+				position->unknown18 = length;
+				if (parameters[0x51])
+					position->unknown1c = delta;
+			}
+		}
+		if (*(real *)(parameters + 0x1c) > position->unknown18)
+			within_limit = true;
+		else
+		{
+			position->unknown4c = false;
+			if (FLT_MAX > position->unknown18)
+				finite_distance = true;
+		}
+	}
+	if (!within_limit && !finite_distance && !parameters[0x56] && !actor[0x264] &&
+		(*(long *)(actor + 0x28c) == NONE || (*has_path && count > 0 && *(short *)(scratch + 0xae) < 8)))
+		++*(short *)(actor + 0x5e8);
+	else
+		*(short *)(actor + 0x5e8) = 0;
+	if (parameters[0x15] && !within_limit)
+	{
+		dword *seed = (dword *)g_4e7408;
+		*seed = *seed * 0x19660d + 0x3c6ef35f;
+		selected = (short)(((*seed >> 16) * count) >> 16);
+		*has_path = false;
+		byte *history_actor = (byte *)actor_get(actor_index);
+		*(short *)(history_actor + 0x3fe) = 3;
+		byte *history = history_actor + 0x402;
+		long remaining = 4;
+		do
+		{
+			*(s_reference *)history = g_470fa0;
+			history += 6;
+		} while (--remaining);
+		if (!function_260160(actor_index, (s_prop_search *)context, &entries[selected]))
+			goto done;
+	}
+	else
+	{
+		function_260060(actor_index, count, context, positions);
+		for (short i = 0; i < count; i++)
+			sorted_indices[i] = i;
+		g_51ec9c = count;
+		g_51eca0 = positions;
+		sort_4byte(sorted_indices, count, &sort_scratch, (t_reference_compare)function_2600e0, NULL);
+		context->unknown680 = 0.0f;
+		bool possible = true;
+		for (long evaluator = 0; g_44adf0[evaluator].proc && possible; evaluator++)
+		{
+			if ((1 << context->type) & g_44adf0[evaluator].flags)
+				possible = g_44adf0[evaluator].proc(actor_index, context, NULL);
+		}
+		parameters[0x67c] = possible;
+		for (short i = 0; i < count; i++)
+		{
+			short index = (short)sorted_indices[i];
+			s_type_b36ac5 *position = &positions[index];
+			if (!position->unknown4c || (parameters[0x67c] && best_score >= position->score + context->unknown680))
+				break;
+			if (parameters[0x618])
+				function_25f7b0(actor_index, context, position);
+			position->unknown50 = position->score;
+			if (function_2600a0(actor_index, context, position) && position->score > best_score)
+			{
+				selected = index;
+				best_score = position->score;
+			}
+		}
+		if (selected == NONE)
+			goto done;
+	}
+	if (reported_entry)
+		memcpy((void *)reported_entry, &positions[selected], sizeof(s_type_b36ac5));
+	result = positions[selected].reference;
+	if (reported_owner)
+	{
+		long owner = NONE;
+		reference_owner_find((hash_table *)g_557c6c, *(void **)&result, &owner);
+		*(long *)reported_owner = owner != actor_index ? owner : NONE;
+	}
+	if (actor[0x3f2] && !actor[0x220] && !positions[selected].unknown5b)
+		actor[0x3f2] = false;
+	if (parameters[0x56])
+	{
+		function_1f90f0(actor_index, &source);
+		s_type_f17a25 *path = (s_type_f17a25 *)scratch;
+		path->unknown54 = false;
+		path->unknown90 = NONE;
+		path->unknownae = 0;
+		path->heap_count = 0;
+		path->location.unknown00 = 0;
+		path->location.unknown02 = 0;
+		path->pathfinding = *(long *)((byte *)g_4e0348 + 0xc4) > 0 ? *(void **)((byte *)g_4e0348 + 0xc8) : NULL;
+		path->flags = 0;
+		path->unknownac = false;
+		path->source = source;
+		memset(&path->settings, 0, sizeof(path->settings));
+		path->unknown14188 = 0;
+		memcpy(path->unknown140d4, parameters + 0x6a0, 0xb6);
+		*has_path = true;
+	}
+done:
+	return result;
+}
+
+#endif

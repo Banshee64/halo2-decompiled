@@ -152,7 +152,7 @@ long network_session_time_since_start(const s_session_id *session_id); /* the ti
 void __stdcall function_07ba10(s_bitstream *stream, void *session);    /* writes a session description */
 bool __stdcall function_07c110(s_bitstream *stream, void *session);    /* reads a session description */
 void function_07c5a0(s_bitstream *stream, void const *source);         /* writes a 0x90 byte sub-structure */
-bool function_07ca70(s_bitstream *stream, void *destination);          /* reads it, true when it is valid */
+byte function_07ca70(s_bitstream *stream, void *destination);          /* reads it, true when it is valid */
 void __stdcall function_063690(void *part, s_bitstream *stream);       /* writes the parameters' sub-structure at 0x3c / 0x8c */
 byte function_063980(s_bitstream *stream, void *part);                 /* reads it */
 void __stdcall function_07cc50(s_bitstream *stream, void *part);       /* writes the parameters' sub-structure at 0x3dc / 0x444 */

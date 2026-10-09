@@ -413,9 +413,9 @@ bool c_pcm_codec::get_packet(s_sound_stream *stream, XMEDIAPACKET *packet)
 	s_sound_chunk *chunk = stream->chunks[stream->started_count];
 	byte *data = sound_cache_chunk_get_data(chunk);
 	long size = (long)SOUND_CHUNK_SIZE(chunk) - 0x48;
-	long offset = stream->offset;
+	long volatile offset = stream->offset;
 
-	offset = MIN(offset, MAX(size, 0));
+	if (offset > MAX(size, 0)) offset = MAX(size, 0);
 
 	packet->pvBuffer = data + offset;
 	packet->hCompletionEvent = (HANDLE)chunk;
@@ -805,7 +805,7 @@ void c_sound_effects::add_source_mixbins(s_sound_mixbin_source *source, bool rea
 void c_sound_effects::add_sends(s_sound_send_parameters *parameters, long unused, long mode, s_mixbin_settings *mixbins)
 {
 	bool alternate = TEST_FLAG(parameters->flags, 3) != 0;
-	real level = parameters->level_offset + parameters->level;
+	real volatile level = parameters->level_offset + parameters->level;
 
 	sound_stream_append_mixbin(mixbins, alternate ? 0 : 6, parameters->left_gain);
 	sound_stream_append_mixbin(mixbins, alternate ? 1 : 7, parameters->right_gain);

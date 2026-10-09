@@ -213,11 +213,11 @@ real function_1201a0(vector3f *v, vector3f const *fallback)
 }
 
 // @retail 0x120790
-void function_120790(real *out, real const *plane, real const *point, short axis, byte side)
+real *function_120790(real *out, real const *plane, real const *point, short axis, byte side)
 {
-	short const *entry = g_440b94[side + axis * 2];
-	short a = entry[0];
-	short b = entry[1];
+	long local_0 = side + axis * 2;
+	short a = g_440b94[local_0][0];
+	short b = g_440b94[local_0][1];
 
 	out[a] = point[0];
 	out[b] = point[1];
@@ -225,6 +225,7 @@ void function_120790(real *out, real const *plane, real const *point, short axis
 		out[axis] = 0.f;
 	else
 		out[axis] = (plane[3] - plane[a] * point[0] - plane[b] * point[1]) / plane[axis];
+	return out;
 }
 
 // @retail 0x120810

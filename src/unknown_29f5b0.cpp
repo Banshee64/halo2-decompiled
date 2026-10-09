@@ -964,7 +964,7 @@ void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, sh
 
 /* causes damage at a cutscene flag */
 // @retail 0x2a06a0
-void damage_at_cutscene_flag(long definition_index, short cutscene_flag_index)
+void damage_at_cutscene_flag(short cutscene_flag_index, long definition_index)
 {
 	if (g_4e6948->mode != 4)
 	{
@@ -974,7 +974,7 @@ void damage_at_cutscene_flag(long definition_index, short cutscene_flag_index)
 		data.unknown7c = NONE;
 		point3f *position = &flag->position;
 		data.origin = *position;
-		data.position = *position;
+  data.position = data.origin;
 		function_11bed0(&data.location, position);
 		function_d6c80((s_type_1e6529 *)&data, NONE);
 	}
@@ -1531,7 +1531,7 @@ void __stdcall function_2a11c0(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		damage_at_cutscene_flag(arguments[0], *(short *)&arguments[1]);
+		damage_at_cutscene_flag(*(short *)&arguments[1], arguments[0]);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3098,7 +3098,7 @@ s_type_f4462a const g_44bba4 = { _hs_type_void, 0, function_2a2f80, NULL, 4, { _
 
 long function_10a460(long object_index);
 
-bool function_10a660(long animation_graph_index, long object_index, long animation_name, short frame, long other_object_index, bool a, bool b);
+bool function_10a660(long volatile object_index, long animation_name, short frame, long other_object_index, bool volatile a, bool b, long animation_graph_index);
 
 /* 184: void (scenery, arg_0e6cbc, string_handle) */
 // @retail 0x2a2fd0
@@ -3108,7 +3108,7 @@ void __stdcall function_2a2fd0(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[1], arguments[0], arguments[2], 0, NONE, true, false);
+		function_10a660(arguments[0], arguments[2], 0, NONE, true, false, arguments[1]);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3123,7 +3123,7 @@ void __stdcall function_2a3020(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[1], arguments[0], arguments[2], 0, NONE, true, true);
+		function_10a660(arguments[0], arguments[2], 0, NONE, true, true, arguments[1]);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3138,7 +3138,7 @@ void __stdcall function_2a3070(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[1], arguments[0], arguments[2], 0, arguments[3], true, false);
+		function_10a660(arguments[0], arguments[2], 0, arguments[3], true, false, arguments[1]);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3153,7 +3153,7 @@ void __stdcall function_2a30c0(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[1], arguments[0], arguments[2], 0, arguments[3], true, true);
+		function_10a660(arguments[0], arguments[2], 0, arguments[3], true, true, arguments[1]);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3168,7 +3168,7 @@ void __stdcall function_2a3110(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[1], arguments[0], arguments[2], *(short *)&arguments[3], NONE, true, false);
+		function_10a660(arguments[0], arguments[2], *(short *)&arguments[3], NONE, true, false, arguments[1]);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -6884,7 +6884,7 @@ void __stdcall function_2a7cd0(short function_index, long thread_index, bool ini
 
 s_type_f4462a const g_44d128 = { _hs_type_void, 0, function_2a7cd0, NULL, 0 };
 
-bool function_291ea0(long actor_index, long script_index, long arg_80f1d4, real *duration);
+bool function_291ea0(long arg_80f1d4, long script_index, long actor_index, real *duration);
 
 /* 417: void (string_handle) */
 // @retail 0x2a7cf0
@@ -6897,7 +6897,7 @@ void __stdcall function_2a7cf0(short function_index, long thread_index, bool ini
 		long script_index = g_502410;
 		if (script_index != NONE && g_50240c != NONE)
 		{
-			function_291ea0(g_50240c, script_index, arguments[0], NULL);
+			function_291ea0(arguments[0], script_index, g_50240c, NULL);
 		}
 		function_209ae0(thread_index, 0);
 		hs_thread_set_sleep(thread_index, k_hs_sleep_command_script);

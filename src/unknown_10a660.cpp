@@ -36,8 +36,7 @@ void function_1ccb80(c_animation_channel *channel, real seconds);
 
 /* plays an animation (by graph and name) on an object from a frame */
 // @retail 0x10a660
-bool function_10a660(long animation_graph_index, long object_index, long animation_name, short frame,
-	long attached_object_index, bool interpolate, bool loop)
+bool function_10a660(long volatile object_index, long animation_name, short frame, long attached_object_index, bool volatile interpolate, bool loop, long animation_graph_index)
 {
 	bool result = false;
 

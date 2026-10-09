@@ -559,7 +559,7 @@ bool function_e68c0(long type, long unit_index);
 bool __stdcall function_e2d80(long arg_159e6d);
 bool __stdcall function_e01d0(long arg_159e6d, long *names);
 void __stdcall function_dc5c0(long arg_159e6d, s_biped_physics_output *output);
-void function_1e5af0(s_biped_physics_output *output, void *physics, vector3f const *up, vector3f const *forward);
+void function_1e5af0(void *physics, s_biped_physics_output *output, vector3f const *up, vector3f const *forward);
 bool __stdcall function_e24f0(long arg_159e6d, long *names, s_biped_physics_output *output);
 bool __stdcall function_e0ef0(long arg_159e6d);
 bool __stdcall function_e3c90(long arg_159e6d, long *names, s_biped_physics_output *output);
@@ -684,7 +684,7 @@ bool __stdcall function_dd360(long arg_159e6d)
 		output.unknown52 = NONE;
 		changed |= function_e01d0(arg_159e6d, names);
 		function_dc5c0(arg_159e6d, &output);
-		function_1e5af0(&output, &biped->physics_mode, &biped->up, &biped->forward);
+		function_1e5af0(&biped->physics_mode, &output, &biped->up, &biped->forward);
 		changed |= function_e24f0(arg_159e6d, names, &output);
 		switch (biped->physics_mode)
 		{
@@ -3454,7 +3454,7 @@ bool __stdcall function_e3c90(long arg_159e6d, long *names, s_biped_physics_outp
 		{
 			biped->unknown3a0 = 0.0f;
 			*(real *)((byte *)output + 0x28) = 0.0f;
-			function_1e5af0(output, &biped->physics_mode, &biped->up, &biped->forward);
+			function_1e5af0(&biped->physics_mode, output, &biped->up, &biped->forward);
 		}
 		names[1] = 0xc000043;
 	}
@@ -3966,7 +3966,7 @@ bool __stdcall function_e24f0(long arg_159e6d, long *names, s_biped_physics_outp
 	biped->forward = move.forward;
 	*(vector3f *)((byte *)output + 0xf4) = move.forward;
 	biped->up = move.up;
-	function_1e5af0(output, &biped->physics_mode, &biped->up, &biped->forward);
+	function_1e5af0(&biped->physics_mode, output, &biped->up, &biped->forward);
 	function_e2e90(arg_159e6d, &names[0], &names[1], move.direction, move.value, (byte *)&names[2]);
 	if ((biped->physics_mode == 4 || biped->physics_mode == 5) && move.placed)
 	{
