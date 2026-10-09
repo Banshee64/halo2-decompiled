@@ -405,17 +405,19 @@ void function_118140(long index)
 		real previous_weight = 1.0f - definition->damping;
 		for (long i = 0; i < definition->vertex_count; ++i)
 		{
+			vector3f force = wind;
 			if (!surface_pinned(record, i))
 			{
 				s_surface_vertex *vertex = &record->vertices[i];
 				point3f position = vertex->position;
-				position.x = position.x*current_weight - vertex->previous.x*previous_weight + acceleration.i;
-				position.y = position.y*current_weight - vertex->previous.y*previous_weight + acceleration.j;
-				position.z = position.z*current_weight - vertex->previous.z*previous_weight + acceleration.k;
-				real dot = vertex->normal.i*wind.i + vertex->normal.k*wind.k + vertex->normal.j*wind.j;
-				vector3f force = {wind.i-(wind.i-vertex->normal.i*dot)*definition->tangent_drag,
-					wind.j-(wind.j-vertex->normal.j*dot)*definition->tangent_drag,
-					wind.k-(wind.k-vertex->normal.k*dot)*definition->tangent_drag};
+				point3f previous = vertex->previous;
+				position.x = position.x*current_weight - previous.x*previous_weight + acceleration.i;
+				position.y = position.y*current_weight - previous.y*previous_weight + acceleration.j;
+				position.z = position.z*current_weight - previous.z*previous_weight + acceleration.k;
+				real dot = vertex->normal.i*force.i + vertex->normal.k*force.k + vertex->normal.j*force.j;
+				force.i -= (force.i - vertex->normal.i*dot)*definition->tangent_drag;
+				force.j -= (force.j - vertex->normal.j*dot)*definition->tangent_drag;
+				force.k -= (force.k - vertex->normal.k*dot)*definition->tangent_drag;
 				vertex->previous = vertex->position;
 				position.x += force.i; position.y += force.j; position.z += force.k;
 				vertex->position = position;
