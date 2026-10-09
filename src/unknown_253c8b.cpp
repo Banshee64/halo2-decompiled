@@ -65,15 +65,15 @@ void c_class_19b8b1::function_253b1a(long string_handle)
 // @retail 0x253765
 void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block const *definition)
 {
-	c_class_1473c9 *screen = widget->get_screen();
+	c_class_1473c9 *volatile screen = widget->get_screen();
 	word buffer[0x100];
-	long value14 = 0;
 	long justification;
-	long font = 1;
+	long font;
 
 	widget->value0a = index;
 	widget->value70 = definition->value06;
 	buffer[0] = 0;
+	long value14 = 0;
 	if (definition->flags & 1)
 	{
 		justification = 0;
@@ -88,6 +88,7 @@ void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block con
 	}
 	widget->value68 = definition->value04 - 1;
 	widget->value6a = definition->value28;
+	font = 1;
 	if (!(definition->flags & 8))
 	{
 		font = definition->font;

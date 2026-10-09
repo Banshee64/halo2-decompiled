@@ -3,7 +3,9 @@ import re
 
 import pytest
 
+import build
 import permute
+from linkmap import LinkMap
 
 SOURCE = '''// header { not a body
 // @retail 0x1234
@@ -142,6 +144,7 @@ def test_missing_symbol_is_a_failed_variant_not_a_crash(monkeypatch, tmp_path):
     scorer.va = 0x1000
     scorer.root = str(tmp_path)
     scorer.xdk = None
+    scorer.image = None
     scorer.path = str(tmp_path / 'f.cpp')
     scorer.row = {'size': '4'}
     scorer.rows = {}
@@ -158,3 +161,188 @@ def test_missing_symbol_is_a_failed_variant_not_a_crash(monkeypatch, tmp_path):
 
     assert scorer.score_text('variant') == (permute.WORST, 'not in the image')
     assert (tmp_path / 'f.cpp').read_text() == 'variant'
+
+
+# ------------------------------------------------------------ --fast
+
+def marker(va, path, stub=False):
+    return build.Marked(path, va, f'function_{va:x}', 'void', [], stub)
+
+
+# 0x100 calls 0x200 (decompiled) and 0x300 (a stub); 0x200 calls 0x400, which
+# calls 0x500; 0x300's own callee 0x600 must not be followed (stubs are built
+# without LTCG); 0x700 (library code) has no marker; 0x800 calls 0x100.
+CALLS = {0x100: '00000200 00000300 00000700', 0x200: '00000400', 0x300: '00000600', 0x400: '00000500',
+         0x500: '', 0x600: '', 0x700: '', 0x800: '00000100'}
+ROWS = {va: {'va': f'{va:08x}', 'calls': calls} for va, calls in CALLS.items()}
+MARKERS = [marker(0x100, 'src/a.cpp'), marker(0x200, 'src/b.cpp'), marker(0x300, 'src/stubs/s.cpp', stub=True),
+           marker(0x400, 'src/c.cpp'), marker(0x500, 'src/d.cpp'), marker(0x600, 'src/e.cpp'),
+           marker(0x800, 'src/f.cpp')]
+
+
+def test_reduced_units_follow_retail_callees_to_the_given_depth():
+    assert permute.reduced_units(0x100, ROWS, MARKERS, depth=0) == {'src/a.cpp'}
+    assert permute.reduced_units(0x100, ROWS, MARKERS, depth=1) == {'src/a.cpp', 'src/b.cpp', 'src/stubs/s.cpp'}
+    assert permute.reduced_units(0x100, ROWS, MARKERS, depth=2) == {'src/a.cpp', 'src/b.cpp', 'src/stubs/s.cpp',
+                                                                    'src/c.cpp'}
+    assert permute.reduced_units(0x100, ROWS, MARKERS) == {'src/a.cpp', 'src/b.cpp', 'src/stubs/s.cpp',
+                                                           'src/c.cpp', 'src/d.cpp'}
+
+
+def test_reduced_units_stop_at_stubs_and_leave_out_callers():
+    units = permute.reduced_units(0x100, ROWS, MARKERS)
+    assert 'src/e.cpp' not in units and 'src/f.cpp' not in units
+
+
+def test_reduced_units_survive_call_cycles():
+    rows = {0x100: {'calls': '00000200'}, 0x200: {'calls': '00000100'}}
+    markers = [marker(0x100, 'src/a.cpp'), marker(0x200, 'src/b.cpp')]
+    assert permute.reduced_units(0x100, rows, markers) == {'src/a.cpp', 'src/b.cpp'}
+
+
+MAP = '''  Address         Publics by Value              Rva+Base     Lib:Object
+
+ 0000:00000000       ___safe_se_handler_table   00000000     <absolute>
+ 0001:00000000       ?sqrt@@YAMM@Z              00401000 f i ai.obj
+ 0001:00000010       ??1CLocalTalker@XHVNamespace@@QAE@XZ 00401010 f   xvoice:localtalker.obj
+ 0001:00000020       ?Talk@CLocalTalker@XHVNamespace@@QAEXXZ 00401020 f   xvoice:localtalker.obj
+ 0001:00000030       __fpclear                  00401030 f   libcmt:fpinit.obj
+ 0001:00000040       _D3DDevice_Clear@24        00401040 f   d3d8ltcg:device.obj
+
+ Static symbols
+
+ 0001:00000050       _helper                    00401050 f   libcmt:other.obj
+'''
+
+
+def test_library_symbols_take_one_public_symbol_per_non_ltcg_library_object():
+    assert permute.library_symbols(LinkMap(MAP)) == ['??1CLocalTalker@XHVNamespace@@QAE@XZ', '__fpclear']
+
+
+PINNING_MAP = '''  Preferred load address is 00400000
+
+ 0001:00000000 00001000H .text                   CODE
+ 0002:00000000 00000100H .data                   DATA
+
+  Address         Publics by Value              Rva+Base     Lib:Object
+
+ 0001:00000000       @target@4                  00401000 f   a.obj
+ 0001:00000020       @callee@4                  00401020 f   b.obj
+ 0001:00000040       @other@4                   00401040 f   c.obj
+ 0001:00000060       @stub_caller@4             00401060 f   stubs_s.obj
+ 0001:00000080       @ltcg_caller@4             00401080 f   d.obj
+ 0002:00000000       ?table@@3PAXA              00402000     e.obj
+
+FIXUPS: 1005 60 20
+'''
+
+
+class Image:
+    """A Pe stand-in: absolute fixups and the dwords stored in the image."""
+
+    def __init__(self, fixups, dwords):
+        self.fixups, self.dwords = fixups, dwords
+
+    def read(self, va, size):
+        return self.dwords[va].to_bytes(4, 'little', signed=self.dwords[va] < 0)
+
+
+def test_pinning_units_take_address_takers_and_stub_callers():
+    """target calls callee; e.obj's table holds target's address and c.obj
+    takes callee's; a stub calls target; d.obj's LTCG code calls target."""
+    linkmap = LinkMap(PINNING_MAP)
+    image = Image({0x402000, 0x401045}, {
+        0x401005: 0x401020 - 0x401009, 0x401065: 0x401000 - 0x401069, 0x401085: 0x401000 - 0x401089,
+        0x402000: 0x401000, 0x401045: 0x401020})
+    sources = {'a.obj': 'src/a.cpp', 'b.obj': 'src/b.cpp', 'c.obj': 'src/c.cpp', 'd.obj': 'src/d.cpp',
+               'e.obj': 'src/e.cpp', 'stubs_s.obj': 'src/stubs/s.cpp'}
+    target = linkmap.find('target')[0]
+    assert permute.pinning_units(linkmap, image, target, sources) == {'src/c.cpp', 'src/e.cpp', 'src/stubs/s.cpp'}
+
+
+def search(full, log=None):
+    """A FastSearch over body 'B' (full score 4) whose confirming build scores with full (a dict)."""
+    confirmed = []
+
+    def confirm(text):
+        confirmed.append(text)
+        return full[text], f'full {text}'
+
+    s = permute.FastSearch('<', 'B', '>', confirm, 4, log or (lambda *_: None))
+    s.start(5, 'fast baseline')
+    return s, confirmed
+
+
+def test_fast_improvement_is_confirmed_by_a_full_build():
+    lines = []
+    s, confirmed = search({'<C>': 2}, lines.append)
+    s.offer('C', 3, 'fast C', 1)
+    assert confirmed == ['<C>']
+    assert (s.baseline, s.best, s.best_score, s.walk, s.walk_score) == (4, 'C', 2, 'C', 3)
+    assert s.confirmations == 1
+    assert any('3 on the reduced image' in l and '2 in the full image' in l and 'new best' in l for l in lines)
+
+
+def test_fast_improvement_the_full_build_rejects_moves_nothing():
+    lines = []
+    s, confirmed = search({'<C>': 4}, lines.append)
+    s.offer('C', 3, 'fast C', 1)
+    assert (s.best, s.best_score, s.walk, s.walk_score) == ('B', 4, 'B', 5)
+    assert any('3 on the reduced image' in l and '4 in the full image' in l and 'rejected' in l for l in lines)
+
+
+def test_fast_search_warns_when_the_baselines_disagree():
+    lines = []
+    search({}, lines.append)  # full baseline 4, reduced 5
+    assert any(l.startswith('warning: the reduced image scores the original 5, the full image 4') for l in lines)
+
+
+def test_fast_plateau_moves_the_walk_without_a_full_build():
+    s, confirmed = search({})
+    s.offer('C', 5, 'same', 1)
+    s.offer('D', 6, 'worse', 2)
+    assert (s.walk, s.walk_score, s.best, s.best_score, confirmed) == ('C', 5, 'B', 4, [])
+
+
+def test_fast_search_stops_at_a_full_match():
+    s, confirmed = search({'<C>': 3, '<D>': 0})
+    s.offer('C', 3, '', 1)
+    s.offer('D', 1, '', 2)
+    assert confirmed == ['<C>', '<D>']
+    assert (s.best, s.best_score, s.done) == ('D', 0, True)
+    assert s.propose(random.Random(0), 100) == (None, None)
+
+
+def test_fast_search_best_always_has_a_full_build_score():
+    """A fast scorer that claims every variant improves: each is confirmed,
+    and the best is always a variant whose full score is the lowest seen."""
+    class Fast:
+        n = 100
+
+        def score_text(self, text):
+            Fast.n -= 1
+            return Fast.n, 'fast'
+
+    rng = random.Random(5)
+    full = {}
+
+    def confirm(text):
+        full.setdefault(text, rng.randrange(1, 20))  # never 0, which ends the search
+        return full[text], 'full'
+
+    start, end = permute.find_body(SOURCE, 0x1234)
+    s = permute.FastSearch(SOURCE[:start], SOURCE[start:end], SOURCE[end:], confirm, confirm(SOURCE)[0],
+                           lambda *_: None)
+    permute._work(s, Fast(), random.Random(3), 8, None)
+    assert s.tries == 8 and s.confirmations == 8
+    assert s.best_score == min(full.values()) and full[s.text(s.best)] == s.best_score
+    assert s.text(s.best) in full
+
+
+def test_jobs_needs_fast(monkeypatch, capsys):
+    monkeypatch.setattr(permute.sys, 'argv', ['permute.py', '0x1234', '--jobs', '2'])
+    with pytest.raises(SystemExit):
+        permute.main()
+    assert '--jobs' in capsys.readouterr().err
+
+

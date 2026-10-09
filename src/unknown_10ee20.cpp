@@ -42,7 +42,7 @@ bool function_10f340(long unit_index, long mode, long set)
 }
 
 // @retail 0x10f3b0
-bool function_10f3b0(long unit_index, long mode, long set)
+byte function_10f3b0(long unit_index, long mode, long set)
 {
 	s_unit_animation_view *unit = ((s_unit_animation_header *)g_4e0300->data)[unit_index & 0xffff].unit;
 	s_animation_state *state = (s_animation_state *)((byte *)unit + unit->animation_state_offset);
@@ -63,7 +63,7 @@ bool function_10f3b0(long unit_index, long mode, long set)
 }
 
 // @retail 0x10fcd0
-bool function_10fcd0(long unit_index, long mode, long weapon_class, long weapon_type)
+byte function_10fcd0(long unit_index, long mode, long weapon_class, long weapon_type)
 {
 	s_unit_animation_view *unit = ((s_unit_animation_header *)g_4e0300->data)[unit_index & 0xffff].unit;
 	s_animation_state *state = (s_animation_state *)((byte *)unit + unit->animation_state_offset);

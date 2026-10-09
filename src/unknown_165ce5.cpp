@@ -368,7 +368,7 @@ long first_person_character_to_interface(long character)
 }
 
 // @retail 0x168395
-void first_person_nodes_remap(transform4x3f const *base, transform4x3f *out, long out_count,
+void first_person_nodes_remap(transform4x3f const *base, transform4x3f *out, volatile long out_count,
 	transform4x3f const *nodes, long const *node_map, long render_model_index)
 {
 	s_first_person_render_model *model = (s_first_person_render_model *)g_4e3b44[render_model_index & 0xffff].bytes;
@@ -702,7 +702,7 @@ short first_person_weapon_animation_ticks(long weapon_index, long animation_name
 	{
 		long frame_count = *(short const *)((byte const *)animation + 0x14);
 		long event_frame = function_1dadb0(animation, 4);
-		long frame;
+		long frame = event_frame;
 
 		switch (type)
 		{
@@ -710,7 +710,8 @@ short first_person_weapon_animation_ticks(long weapon_index, long animation_name
 			frame = frame_count;
 			break;
 		case 1:
-			frame = event_frame != NONE ? MIN(frame_count, event_frame) : frame_count;
+			if (event_frame == NONE || frame_count < event_frame)
+				frame = frame_count;
 			break;
 		case 2:
 			frame = function_1dae20(animation);
@@ -1192,7 +1193,7 @@ void __stdcall function_167e86(long user_index, long field_x11c898)
 
 	if (user->unit_index != NONE && user->character_index >= 0 && user->character_index < globals->representation_count)
 	{
-		s_player_representation *representation = &globals->representations[user->character_index];
+		s_player_representation *volatile representation = &globals->representations[user->character_index];
 		s_first_person_unit_view *unit = (s_first_person_unit_view *)first_person_object_get(user->unit_index);
 		long weapon_index = function_cbd50(user->unit_index, unit->weapon_slots[field_x11c898]);
 
@@ -1352,7 +1353,7 @@ real function_0bff60(real a, real b);
 bool function_13cb40(void);
 real function_187420(long player_index);
 short function_187a40(long player_index);
-bool function_11eed0(real *velocity, real *position, real dt, bool wrap, real target, real a, real b, real lo, real hi);
+bool function_11eed0(real *velocity, real *position, volatile real dt, bool wrap, real target, real a, real b, real lo, real hi);
 bool function_c8a10(long unit_index);
 bool function_d03b0(long unit_index);
 void __stdcall function_16760c(long user_index, long field_x11c898);
@@ -1948,8 +1949,8 @@ struct s_168644_marker
 	byte unknown00[2];
 	byte node_index;
 	byte unknown03;
-	quaternionf rotation;
 	point3f position;
+	quaternionf rotation;
 };
 
 struct s_168644_marker_group
@@ -2025,8 +2026,8 @@ void function_168644(long user_index, s_first_person_model *arms, s_first_person
 
 								if (arms_group->marker_count > 0 && weapon_group->marker_count > 0)
 								{
-									s_168644_marker *arms_marker = arms_group->markers;
 									s_168644_marker *weapon_marker = weapon_group->markers;
+									s_168644_marker *arms_marker = arms_group->markers;
 									transform4x3f arms_matrix;
 									transform4x3f weapon_matrix;
 

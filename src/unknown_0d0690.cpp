@@ -628,10 +628,10 @@ void function_d2bf0(s_mesh *mesh, long triangle_index, real u, real v, real *out
 		while (i < mesh->block_count);
 
 		s_triangle *triangle = mesh->triangles + triangle_index;
-		byte *data = found->data;
 
 		if (!compressed)
 		{
+			byte *data = found->data;
 			point2f *pa = (point2f *)data + triangle->a;
 			point2f *pb = (point2f *)data + triangle->b;
 			point2f *pc = (point2f *)data + triangle->c;
@@ -643,11 +643,12 @@ void function_d2bf0(s_mesh *mesh, long triangle_index, real u, real v, real *out
 		}
 		else
 		{
+			byte *data = found->data;
 			point2f a, b, c;
 
 			unpack_point(data, triangle->a, &a);
-			unpack_point(data, triangle->b, &b);
 			unpack_point(data, triangle->c, &c);
+			unpack_point(data, triangle->b, &b);
 
 			*out_a = (c.x - a.x) * v + (b.x - a.x) * u + a.x;
 			*out_b = (c.y - a.y) * v + (b.y - a.y) * u + a.y;
@@ -661,6 +662,13 @@ static inline real pin_real(real value, real minimum, real maximum)
 		return minimum;
 	if (value > maximum)
 		return maximum;
+	return value;
+}
+
+PRIVATE __forceinline real uv_coordinate_pin(real const &value, real minimum, real maximum)
+{
+	if (value < minimum) return minimum;
+	if (value > maximum) return maximum;
 	return value;
 }
 
@@ -687,17 +695,22 @@ void function_d2dc0(s_mesh *mesh, long triangle_index, real u, real v, real *out
 		short *pa = (short *)data + triangle->a * 2;
 		short *pb = (short *)data + triangle->b * 2;
 		short *pc = (short *)data + triangle->c * 2;
+		real ax = (real)pa[0], ay = (real)pa[1];
+		real bx = (real)pb[0], by = (real)pb[1];
+		real cx = (real)pc[0], cy = (real)pc[1];
 		point2f a, b, c;
-
-		unpack_point_at(pa, &a);
-		unpack_point_at(pb, &b);
-		unpack_point_at(pc, &c);
+		a.x = (ax * 2.0f + 1.0f) * (1.0f / 65535.0f);
+		a.y = (ay * 2.0f + 1.0f) * (1.0f / 65535.0f);
+		b.x = (bx * 2.0f + 1.0f) * (1.0f / 65535.0f);
+		b.y = (by * 2.0f + 1.0f) * (1.0f / 65535.0f);
+		c.x = (cx * 2.0f + 1.0f) * (1.0f / 65535.0f);
+		c.y = (cy * 2.0f + 1.0f) * (1.0f / 65535.0f);
 
 		*out_a = (c.x - a.x) * v + (b.x - a.x) * u + a.x;
 		*out_b = (c.y - a.y) * v + (b.y - a.y) * u + a.y;
 	}
-	*out_a = pin_real(*out_a, -1000.0f, 1000.0f);
-	*out_b = pin_real(*out_b, -1000.0f, 1000.0f);
+	*out_a = uv_coordinate_pin(*out_a, -1000.0f, 1000.0f);
+	*out_b = uv_coordinate_pin(*out_b, -1000.0f, 1000.0f);
 }
 
 static inline void unpack_normal(dword value, vector3f *vector)
@@ -915,16 +928,20 @@ long __stdcall function_d2a50(long flags, long object_index, long value, s_effec
         byte *bsp = (byte *)g_4e0344->locations;
         if (*(long *)(bsp + 0x1c) != NONE && *(long *)(bsp + 4) == *(long *)((byte *)g_4e0348 + 8))
         {
-            for (long i = 0; i < count; ++i)
+            vector3f const *direction = directions;
+            for (long volatile i = 0; i < count;)
             {
                 if (result != 2) break;
                 point3f start, hit_point;
                 byte surface[0x38];
-                start.x = point->x - directions[i].i * 0.0010000000474974513f;
-                start.y = point->y - directions[i].j * 0.0010000000474974513f;
-                start.z = point->z - directions[i].k * 0.0010000000474974513f;
-                if (function_14af40((bool)value, &start, &directions[i], object_index, true, surface, &hit_point))
+                start.x = point->x - direction->i * 0.0010000000474974513f;
+                start.y = point->y - direction->j * 0.0010000000474974513f;
+                start.z = point->z - direction->k * 0.0010000000474974513f;
+                if (function_14af40((bool)value, &start, direction, object_index, true, surface, &hit_point))
                     result = function_d1e10(surface, query, flags, value);
+                long next = i + 1;
+                direction++;
+                i = next;
             }
         }
     }
@@ -1173,12 +1190,12 @@ void function_d4080(s_effect_color_query const *query, long type, s_lighting_rec
 	(void)&flag;
 	vector3f normal = *(vector3f const *)query;
 	real length = (real)sqrt(normal.i * normal.i + normal.j * normal.j + normal.k * normal.k);
-	bool mobile = type == 0 || type == 1 || type == 2;
+	volatile bool mobile = type == 0 || type == 1 || type == 2;
 	record->length = lighting_normalize_ordered(&normal, (normal.i * normal.i + normal.k * normal.k) + normal.j * normal.j);
 	color3f base, lightmap;
 	unpack_color3f(query->color_a, &base);
 	unpack_color3f(query->color_b, &lightmap);
-	long tag_index = *(long *)((byte *)g_4e0350 + 0x33c);
+	volatile long tag_index = *(long *)((byte *)g_4e0350 + 0x33c);
 	if (tag_index == NONE)
 		tag_index = *(long *)((byte *)g_4e034c + 0x184);
 	s_lighting_parameter_block *block = (s_lighting_parameter_block *)g_4e3b44[tag_index & 0xffff].bytes;
@@ -1236,15 +1253,19 @@ void function_d4080(s_effect_color_query const *query, long type, s_lighting_rec
 
 #include "unknown_03bcb0.h"
 
+PRIVATE inline D3DTexture *surface_bitmap_cached(s_bitmap_data *bitmap)
+{
+    s_bitmap_predict_view *view = (s_bitmap_predict_view *)bitmap;
+    D3DTexture *texture = NULL;
+    if (view->last_frame > g_4e6488)
+        texture = view->texture;
+    return texture;
+}
+
 PRIVATE __forceinline D3DTexture *surface_bitmap_texture(s_bitmap_data *bitmap, dword flags, real bias)
 {
     s_bitmap_predict_view *view = (s_bitmap_predict_view *)bitmap;
-    long frame = g_4e6488;
-    D3DTexture *texture;
-    if (view->last_frame > frame)
-        texture = view->texture;
-    else
-        texture = NULL;
+    D3DTexture *texture = surface_bitmap_cached(bitmap);
     if (!texture)
     {
         _mm_prefetch((char const *)&view->flags, _MM_HINT_T0);
@@ -1362,7 +1383,7 @@ bool function_d30d0(long tag, long flags, real u, real v, color3f *out)
                 goto sample;
             function_12360((s_bitmap_view *)bitmap, 0.0f);
         }
-        else if (function_1d2f0((D3DSurface *)function_d15e0(bitmap, 0.0f), temporary))
+        else if (result = function_1d2f0((D3DSurface *)function_d15e0(bitmap, 0.0f), temporary))
         {
             bitmap = (s_bitmap_data *)temporary;
             goto sample;
@@ -1476,7 +1497,7 @@ PRIVATE __forceinline void surface_sample_unpack(short const *source, s_sample_p
 long __stdcall function_d1e10(void const *surface, s_effect_color_query *query, long flags, long value)
 {
     s_structure_lightmap_triangle const *triangle = (s_structure_lightmap_triangle const *)surface;
-    long result = 2;
+    volatile long result = 2;
     if (*(long const *)triangle->unknown08 == NONE)
     {
         s_mesh *mesh = NULL;

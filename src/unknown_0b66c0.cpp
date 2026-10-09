@@ -455,7 +455,7 @@ bool function_b6320(s_upload_ab *upload, byte *buffer, long maximum, long *writt
 {
     byte *out = buffer;
     long remaining = maximum;
-    bool result = false;
+    volatile bool result = false;
     bool valid = upload->kind == 2 || upload->kind == 1;
     unsigned long length = 0;
     char const *path = upload->path;

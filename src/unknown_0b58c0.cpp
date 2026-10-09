@@ -249,7 +249,10 @@ long function_b5990(long tag_index, bool flag)
     {
     case 0: result = 9; break;
     case 1: result = flag ? 12 : 15; break;
-    case 2: if (flag) result = 14; break;
+    case 2:
+        if (!flag) return result;
+        result = 14;
+        break;
     case 3: result = 10; break;
     case 4: result = 10; break;
     case 5: result = 13; break;
