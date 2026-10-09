@@ -717,9 +717,9 @@ PRIVATE bool function_271630(s_type_f17a25 *state)
 	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
 	s_path_closest_view *closest = (s_path_closest_view *)state;
 	s_path_location_view *location = (s_path_location_view *)&state->location;
-	s_pathfinding_data *pathfinding = (s_pathfinding_data *)state->pathfinding;
 	real radius = 0.2f > input->radius ? 0.2f : input->radius;
 	real link_penalty = input->link_penalty;
+	bool volatile result = true;
 	s_path_link_view links[64];
 	while (state->heap_count > 1)
 	{
@@ -750,7 +750,7 @@ PRIVATE bool function_271630(s_type_f17a25 *state)
 				break;
 			}
 		}
-		short count = function_272020(pathfinding, node, links, state);
+		short count = function_272020((s_pathfinding_data *)state->pathfinding, node, links, state);
 		for (short i = 0; i < count; ++i)
 		{
 			s_path_link_view *link = &links[i];
@@ -777,7 +777,8 @@ PRIVATE bool function_271630(s_type_f17a25 *state)
 				}
 			}
 			if (blocked || (!input->unknown04 && (link->flags & 2) &&
-				function_1fa6b0(&pathfinding->nodes[link->node_index], pathfinding)))
+				function_1fa6b0(&((s_pathfinding_data *)state->pathfinding)->nodes[link->node_index],
+					(s_pathfinding_data *)state->pathfinding)))
 			{
 				continue;
 			}
@@ -920,7 +921,7 @@ PRIVATE bool function_271630(s_type_f17a25 *state)
 				depth += 2;
 				break;
 			case 2:
-				depth += *(short *)((byte *)&pathfinding->surfaces[link->index] + 0xa) == 0 ? 2 : 1;
+				depth += *(short *)((byte *)&((s_pathfinding_data *)state->pathfinding)->surfaces[link->index] + 0xa) == 0 ? 2 : 1;
 				break;
 			default:
 				++depth;
@@ -946,7 +947,15 @@ PRIVATE bool function_271630(s_type_f17a25 *state)
 			}
 		}
 	}
-	return !destination->destination_valid || destination->destination_radius >= closest->distance;
+	if (destination->destination_valid)
+	{
+		if (destination->destination_radius >= closest->distance)
+		{
+			return true;
+		}
+		return false;
+	}
+	return result;
 }
 
 // @retail 0x271fd0
