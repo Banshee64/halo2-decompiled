@@ -765,7 +765,7 @@ void function_27aa0(void)
     else if (crossing > 0.0f) filter_random_pair(points + *ring);
     if (phase < 0.0f || phase >= 1.0f) return;
     real offsets[4] = { 0.0f, 0.7135000228881836f, 0.34220001101493835f, 0.579800009727478f };
-    long bitmap_count = *(long *)(bitmap + 0x44);
+    volatile long bitmap_count = *(long *)(bitmap + 0x44);
     for (long i = 0; i < 4; ++i)
     {
         if (*(real *)(definition + 0x28) > 0.0f)
@@ -790,7 +790,7 @@ void function_27aa0(void)
     }
     for (long j = 0; j < 4; ++j)
     {
-        long index = (*ring + j) % 4;
+        volatile long index = (*ring + j) % 4;
         real distance = (j + phase) * step + g_4857dc;
         real fraction = (distance - g_4857dc) * inverse_span;
         real weight = (real)(pow(1.0 - pow((double)fabs(fraction * 2.0f - 1.0f), 3.0), 2.0) * g_4b9d98);

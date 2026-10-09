@@ -57,7 +57,7 @@ void function_1421b0(transform4x3f *out, point3f const *position, quaternionf co
 int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
 void function_120220(transform4x3f *mid, transform4x3f *root, transform4x3f *target, transform4x3f *end);
 struct s_render_model_definition;
-void render_model_build_child_node_matrices(s_render_model_definition const *definition, transform4x3f const *parent_matrix,
+void __stdcall render_model_build_child_node_matrices(s_render_model_definition const *definition, transform4x3f const *parent_matrix,
 	long node_index, long node_count, transform4x3f *field_50);
 
 PRIVATE inline s_render_model_view *render_model_view_get(long render_model_index)

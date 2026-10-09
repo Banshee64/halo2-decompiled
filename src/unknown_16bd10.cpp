@@ -776,13 +776,13 @@ void __stdcall function_16c840(long user_index, long unused, s_observer_command 
 						left = camera->point.left;
 						position_distance = dot3f((vector3f *)&command->object_matrix.position, &left);
 						length_squared = dot3f(&left, &left);
-						if (length_squared != 0.0f)
+						if (!(length_squared != 0.0f))
 						{
-							t = 0.0f - (dot3f(&camera->point.offset, &left) - position_distance) / length_squared;
+							t = 0.0f;
 						}
 						else
 						{
-							t = 0.0f;
+							t = 0.0f - (dot3f(&camera->point.offset, &left) - position_distance) / length_squared;
 						}
 						command->object_matrix.position.x = camera->point.left.i * t + camera->point.offset.i;
 						command->object_matrix.position.y = camera->point.left.j * t + camera->point.offset.j;

@@ -875,7 +875,7 @@ static __forceinline s_game_variants_file *variants_buffer_allocate(void)
 // @retail 0x194260
 bool __stdcall game_variants_received(s_pending_message_header *header)
 {
-	bool result = false;
+	byte result = 0;
 	if (header->kind && (header->flags & 2) && *((short *)((byte *)header + 0xe)) == 1)
 	{
 		byte *data = NULL;

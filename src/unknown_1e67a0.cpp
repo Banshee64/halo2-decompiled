@@ -113,15 +113,12 @@ void function_1e6120(s_biped_physics_output *output, void *physics, real rate,
 		}
 		real remaining = 1.0f - blend;
 		real first, second;
-		if (control.i > 0.0f)
-		{
-			first = settings->forward;
-			second = settings->crouched_forward;
-		}
-		else
-		{
+		if (!(control.i > 0.0f)) {
 			first = settings->backward;
 			second = settings->crouched_backward;
+		} else {
+			first = settings->forward;
+			second = settings->crouched_forward;
 		}
 		state->velocity.i = first * remaining + second * blend;
 		state->velocity.j = settings->sideways * remaining + settings->crouched_sideways * blend;
@@ -383,7 +380,7 @@ void function_1e6360(s_biped_physics_output *output, real rate, long object_inde
  }
  if (g_51e9bc)
  {
-  long bits = g_510c54->game_time * *(long *)((byte *)state + 0x18);
+  volatile long bits = g_510c54->game_time * *(long *)((byte *)state + 0x18);
   real x = ((bits & 8) ? 1.0f : -1.0f) * ((bits & 1) ? 1.0f : 0.0f);
   real y = ((bits & 16) ? 1.0f : -1.0f) * ((bits & 2) ? 1.0f : 0.0f);
   real z = ((bits & 32) ? 1.0f : -1.0f) * ((bits & 4) ? 1.0f : 0.0f);

@@ -98,18 +98,20 @@ bool function_109e00(long object_index, vector3f *velocity, bool definition_flag
 // @retail 0x109fd0
 bool function_109fd0(long object_index, vector3f *velocity)
 {
+	long const *object_index_reference = &object_index;
 	bool result = false;
 
-	if (object_index != NONE)
+	if ((*object_index_reference) != NONE)
 	{
 		s_object_list_state *state = g_5107f0;
 
 		for (long i = 0; i < state->object_count; i++)
 		{
-			if (state->object_indices[i] == object_index)
+			if (state->object_indices[i] == (*object_index_reference))
 			{
 				*velocity = state->entries[i].linear_velocity;
-				return true;
+				result = true;
+				break;
 			}
 		}
 	}

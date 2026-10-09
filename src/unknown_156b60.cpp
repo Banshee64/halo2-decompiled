@@ -158,7 +158,8 @@ PRIVATE real render_clamp_156b60(real value)
 void __stdcall function_157020(byte *definition, point3f const *position, vector3f const *forward,
 	real value, long row, long column, long element, long entry)
 {
-	long model = *material_reference_156b60(*(long *)(definition + 4));
+	byte *const *definition_reference = &definition;
+	long model = *material_reference_156b60(*(long *)((*definition_reference) + 4));
 	byte *local_0f244f = *(byte **)((byte *)g_4e3b44 + (model & 0xffff) * 16 + 8);
 	byte *tables = *(byte **)(local_0f244f + 0x5c);
 	word *rows = *(word **)(tables + 4);
@@ -169,16 +170,16 @@ void __stdcall function_157020(byte *definition, point3f const *position, vector
 	long selected = *(long *)(elements + element_index * 10 + 4);
 	byte *selected_definition = *(byte **)((byte *)g_4e3b44 + (selected & 0xffff) * 16 + 8);
 	byte *material = *(byte **)(*(byte **)(selected_definition + 0x20) + 4);
-	real width = render_curve_156b60((s_tag_data *)(definition + 0x1c), value);
-	real length = render_curve_156b60((s_tag_data *)(definition + 0x24), value);
-	s_tag_data *color_curve = (s_tag_data *)(definition + 0xc);
+	real width = render_curve_156b60((s_tag_data *)((*definition_reference) + 0x1c), value);
+	real length = render_curve_156b60((s_tag_data *)((*definition_reference) + 0x24), value);
+	s_tag_data *color_curve = (s_tag_data *)((*definition_reference) + 0xc);
 	real color_value = function_13b390(color_curve, value, 0.0f);
 	color4f color;
 	if (color_curve->address && color_curve->size > 0)
 		unpack_color3f(function_13bc00(color_curve, color_value), (color3f *)&color.red);
 	else
 		*(color3f *)&color.red = *(color3f const *)&g_4686cc->red;
-	color.alpha = render_clamp_156b60(render_curve_156b60((s_tag_data *)(definition + 0x14), value));
+	color.alpha = render_clamp_156b60(render_curve_156b60((s_tag_data *)((*definition_reference) + 0x14), value));
 	color.red = render_clamp_156b60(color.red);
 	color.green = render_clamp_156b60(color.green);
 	color.blue = render_clamp_156b60(color.blue);
@@ -189,7 +190,7 @@ void __stdcall function_157020(byte *definition, point3f const *position, vector
 	D3DDevice_SetVertexShaderConstant(0xae, matrix, 3);
 	g_4e9268 = entry;
 	function_1bd50(&g_4e9268);
-	function_1bbf0(*(long *)(definition + 4), row, column, element, 0, 10000.0f);
+	function_1bbf0(*(long *)((*definition_reference) + 4), row, column, element, 0, 10000.0f);
 	function_1cf50();
 	function_1c590((s_shader_cache *)g_51f0f0, *(long *)(material + 0x100), 8);
 	function_1c6b0(g_51f0f0);
