@@ -60,7 +60,10 @@ void function_80d70(s_cache_property_record *records, long count)
 				if (properties[3].type == 1)
 					valid++;
 				if (valid == 4)
-					g_4cf98c[index].flags &= ~1;
+    {
+     s_player_configuration_cache_entry *local_0 = g_4cf98c + index;
+     local_0->flags &= ~1;
+    }
 			}
 		}
 	}

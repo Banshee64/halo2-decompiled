@@ -725,7 +725,8 @@ HRESULT online_message_block_send_message(long controller_index, s_state_block *
 void __stdcall online_message_block_send_finished(c_online_task_screen *screen)
 {
 	s_message_task_screen *view = (s_message_task_screen *)screen;
-	bool failed = false;
+	volatile byte *local_0 = (volatile byte *)&screen;
+	*local_0 = 0;
 	long error = 0x39;
 	long task_index = view->task_index;
 
@@ -739,15 +740,15 @@ void __stdcall online_message_block_send_finished(c_online_task_screen *screen)
 			s_type_9df9da *task = function_6b910(task_index);
 			if (task)
 				error = function_0b4a20(online_task_continue(task));
-			failed = true;
+			*local_0 = 1;
 		}
 	}
 	s_state_block *block = view->block;
 	if (block && block->unknown4 == 2)
 		friend_request_clear();
 	function_08fa30(block);
-	online_task_screen_finish_inline(screen);
-	if (failed && error != 0x90)
+	online_task_screen_finish_inline((c_online_task_screen *)view);
+	if (*local_0 && error != 0x90)
 		dialog_ok_show(1, error, 4, view->user_flags, 0, 0);
 }
 
