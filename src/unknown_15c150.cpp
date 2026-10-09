@@ -20,7 +20,7 @@ void function_b58c0(long index, dword mask);
 bool function_19f240(long *iterator);
 void function_157ae0();
 long function_15b330(bool teams);
-void function_15b3a0(long player_or_team, long value);
+void function_15b3a0(long player_or_team, bool value);
 void function_15fe50(long value);
 void function_15ba00();
 void function_15dd10();

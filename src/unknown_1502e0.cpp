@@ -674,7 +674,7 @@ struct s_player_target_unit
 	byte flags348;
 };
 
-bool function_f5dc0(long object_index);
+__declspec(noinline) bool function_f5dc0(long object_index);
 bool function_cc0c0(long unit_index);
 short __stdcall function_c8ef0(long unit_index, long object_index, long *target_index, short *seat_index);
 

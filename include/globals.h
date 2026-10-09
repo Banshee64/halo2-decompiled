@@ -1229,7 +1229,15 @@ extern s_structure_bsp_globals *g_4e0344;
 struct s_local_engine_player
 {
 	long index;
-	byte unknown04[8];
+	union
+	{
+		byte unknown04[8];
+		struct
+		{
+			long value04;
+			long value08;
+		};
+	};
 };
 
 struct s_local_engine_state
