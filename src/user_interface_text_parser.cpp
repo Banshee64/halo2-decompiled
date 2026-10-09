@@ -1157,7 +1157,7 @@ void __stdcall parse_target_player_clan_name(long string_handle, word *buffer)
 selected:
 	{
 		s_player_identity_view identity;
-		s_clan_view clan;
+		s_window_manager_df6 clan;
 
 		function_14896e((s_window_manager_754 *)&identity, (s_window_manager_df6 *)&clan);
 		if (identity.xuid)
