@@ -78,8 +78,7 @@ long function_2bd0b0(long excluded)
 
 		if (excluded != g_5092f0[index])
 		{
-			result = g_5092f0[index];
-			break;
+			return g_5092f0[index];
 		}
 	}
 	return result;
