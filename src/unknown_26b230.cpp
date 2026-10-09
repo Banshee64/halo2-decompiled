@@ -1212,34 +1212,40 @@ void function_26a960(s_clump *clump, long prop_index)
 long function_26bc60(long clump_index)
 {
 	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
-	real count = 0.0f;
-	real value = 0.0f;
-	long team = ((s_clump volatile *)clump)->team;
-	long side = function_20f040((short)team);
-	s_clump_pool_iterator iterator;
+	struct
+	{
+		real count;
+		real value;
+		s_clump_pool_iterator iterator;
+		long team;
+	} state;
+	state.count = 0.0f;
+	state.value = 0.0f;
+	state.team = ((s_clump volatile *)clump)->team;
+	long side = function_20f040((short)state.team);
 	if (g_4f55d0->active)
 	{
-		iterator.pool.data = g_502420;
-		iterator.pool.index = NONE;
+		state.iterator.pool.data = g_502420;
+		state.iterator.pool.index = NONE;
 	}
 	for (;;)
 	{
 		s_clump *other = NULL;
 		if (g_4f55d0->active)
-			other = (s_clump *)data_iterator_next_inlined(&iterator.pool);
-		iterator.current = other;
+			other = (s_clump *)data_iterator_next_inlined(&state.iterator.pool);
+		state.iterator.current = other;
 		if (!other)
 			break;
 		long other_side = function_20f040(other->team);
 		if ((short)other_side == (short)side)
 		{
-			count += other->divisor;
-			value += (short)other->unknown3e;
+			state.count += other->divisor;
+			state.value += (short)other->unknown3e;
 		}
 	}
-	if (count * 0.2f > value)
+	if (state.count * 0.2f > state.value)
 		return 1;
-	if (count * 0.8f > value)
+	if (state.count * 0.8f > state.value)
 		return 0;
 	return 2;
 }

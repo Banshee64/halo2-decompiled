@@ -31,7 +31,7 @@ dword *function_1fb940(short cluster_index)
 		memset(g_4f5728, 0, BIT_VECTOR_SIZE_IN_BYTES(bsp->cluster_count));
 		for (i = 0; i < bsp->cluster_count; i++)
 		{
-			if (!function_249c20(cluster_index, i, bsp) && function_249d60(cluster_index, i, bsp) < 40.0f)
+			if (!function_249c20(bsp, cluster_index, i) && function_249d60(bsp, cluster_index, i) < 40.0f)
 				g_4f5728[i >> 5] |= 1 << (i & 31);
 		}
 		g_4f5768 = cluster_index;

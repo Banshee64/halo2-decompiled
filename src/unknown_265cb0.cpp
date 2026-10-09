@@ -248,9 +248,9 @@ short function_263ed0(long actor_index, s_perception_origin_view const *origin, 
 			long cluster_a = origin->location.cluster_index;
 			long cluster_b = location->cluster_index;
 			s_structure_bsp_view *bsp = (s_structure_bsp_view *)g_4e0348;
-			if (!function_249c20(cluster_b, cluster_a, bsp))
+			if (!function_249c20(bsp, cluster_b, cluster_a))
 			{
-				real distance = function_249d60(cluster_b, cluster_a, bsp) * 1.3333333730697632f;
+				real distance = function_249d60(bsp, cluster_b, cluster_a) * 1.3333333730697632f;
 				real direct_distance = (real)sqrt(distance_squared);
 				distance = distance > direct_distance ? distance : direct_distance;
 				if (range > distance)
