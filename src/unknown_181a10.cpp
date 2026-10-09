@@ -248,6 +248,11 @@ static inline real query_coordinate_pin(real value, real lower, real upper)
 
 struct s_vehicle_ray;
 
+__forceinline real function_182801(real arg_0, real const *arg_1, real const *arg_2)
+{
+    return *arg_1 > arg_0 ? *arg_1 : (arg_0 > *arg_2 ? *arg_2 : arg_0);
+}
+
 // @retail 0x182800
 bool function_182800(s_vehicle_ray *ray_data, long excluded_component, void *world_data)
 {
@@ -269,8 +274,8 @@ bool function_182800(s_vehicle_ray *ray_data, long excluded_component, void *wor
 	ray.to.m128_f32[3] = 0.0f;
 	for (long i = 0; i < 3; i++)
 	{
-		ray.from.m128_f32[i] = query_coordinate_pin(result->origin.n[i], world->lower.m128_f32[i], world->upper.m128_f32[i]);
-		ray.to.m128_f32[i] = query_coordinate_pin(end.n[i], world->lower.m128_f32[i], world->upper.m128_f32[i]);
+		ray.from.m128_f32[i] = function_182801(result->origin.n[i], &world->lower.m128_f32[i], &world->upper.m128_f32[i]);
+		ray.to.m128_f32[i] = function_182801(end.n[i], &world->lower.m128_f32[i], &world->upper.m128_f32[i]);
 	}
 	_control87(0x9001f, 0x8001f);
 	_mm_setcsr(_mm_getcsr() | 0x1f80);
@@ -348,6 +353,17 @@ class hkWorld;
 extern hkWorld *g_51e9a4;
 void voice_fpu_enter();
 
+__forceinline void function_183672(point3f *arg_0, point3f const *arg_1, __m128 const *arg_2, real arg_3)
+{
+    vector3f local_0;
+    local_0.i = arg_2->m128_f32[0];
+    local_0.j = arg_2->m128_f32[1];
+    local_0.k = arg_2->m128_f32[2];
+    arg_0->x = local_0.i * arg_3 + arg_1->x;
+    arg_0->y = local_0.j * arg_3 + arg_1->y;
+    arg_0->z = local_0.k * arg_3 + arg_1->z;
+}
+
 // @retail 0x183670
 bool __stdcall function_183670(long component_a, long component_b, point3f *a, point3f *b, real *distance)
 {
@@ -386,18 +402,12 @@ bool __stdcall function_183670(long component_a, long component_b, point3f *a, p
 						{
 							*distance = contacts[k].position_distance.m128_f32[3];
 							real px = contacts[k].position_distance.m128_f32[0];
-							real py = contacts[k].position_distance.m128_f32[1];
 							real pz = contacts[k].position_distance.m128_f32[2];
+							real py = contacts[k].position_distance.m128_f32[1];
 							b->x = px;
-							b->y = py;
 							b->z = pz;
-							real scale = *distance;
-							real x = contacts[k].normal.m128_f32[0];
-							real y = contacts[k].normal.m128_f32[1];
-							real z = contacts[k].normal.m128_f32[2];
-							a->x = x * scale + b->x;
-							a->y = y * scale + b->y;
-							a->z = z * scale + b->z;
+							b->y = py;
+							function_183672(a, b, &contacts[k].normal, *distance);
 							result = true;
 						}
 					}

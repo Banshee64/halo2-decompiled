@@ -564,10 +564,12 @@ void __stdcall function_18a7b0(long datum_index)
 {
 	(void)&datum_index;
 	s_looping_sound *sound = looping_sound_get(datum_index);
+	byte *local_0 = (byte *)sound;
 	s_loop_update_definition *definition = (s_loop_update_definition *)g_4e3b44[sound->tag_index & 0xffff].bytes;
+	bool active;
+	long controller = NONE;
 	real scale = sound->value8;
 	bool previous = TEST_FIELD_BIT(sound->flag_bits.bit8);
-	bool active;
 	if (!(sound->flags & 1))
 		active = function_bab40(loop_update_owner(sound), sound->value14, &scale);
 	else active = !TEST_FIELD_BIT(sound->flag_bits.bit1);
@@ -575,7 +577,6 @@ void __stdcall function_18a7b0(long datum_index)
 	s_looping_sound *current = looping_sound_get(datum_index);
 	if (current->type == 0 && current->byte14 != NONE)
 		identifier = current->tag_index | 0x8000;
-	long controller = NONE;
 	if (((definition->flags & 0x10) && sound->type == 1) || (definition->flags & 0x20))
 	{
 		controller = loop_update_owner(sound);
@@ -600,7 +601,7 @@ void __stdcall function_18a7b0(long datum_index)
 		if (sound->type == 4) flags |= 0x10;
 		else flags &= ~0x10;
 		if ((play_flags & 2) && !TEST_FIELD_BIT(location.flag1) && !function_18d670(&location.spatial.position, radius))
-			sound->flag_bits.bit8 = false;
+			local_0[5] &= 0xfe;
 		else
 		{
 			if (active)
@@ -637,7 +638,7 @@ void __stdcall function_18a7b0(long datum_index)
 					sound->value2 = 3;
 				else sound->value2 = 2;
 			}
-			sound->flag_bits.bit8 = true;
+			local_0[5] |= 1;
 		}
 	}
 	if (sound->value2 == 3 && (sound->flags & 0xe) && (sound->flags & 1))
