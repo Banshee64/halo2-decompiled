@@ -71,8 +71,8 @@ struct s_z_transform_state
 {
 	long identifier;
 	vector3f position;
-	vector3f forward;
 	vector3f up;
+	vector3f forward;
 	vector3f linear_velocity;
 	vector3f angular_velocity;
 };
@@ -81,7 +81,7 @@ struct s_z_transform_state
 bool function_ab9f0(s_z_transform_state const *state)
 {
 	if (state && state->identifier != NONE && function_a7570(&state->position) &&
-		function_a74c0(&state->forward, &state->up) && function_a7570(&state->linear_velocity) &&
+		function_a74c0(&state->up, &state->forward) && function_a7570(&state->linear_velocity) &&
 		function_a7570(&state->angular_velocity))
 		return true;
 	return false;
