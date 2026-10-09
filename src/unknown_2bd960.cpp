@@ -1265,7 +1265,7 @@ void c_engine_peer_b::q1(dword *value, long unused, s_settings_2c0 *settings)
 
 struct s_effect_owner;
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-long function_b7b40(void *creation);
+long __stdcall function_b7b40(void *creation);
 void __stdcall function_a7870(long object_index);
 void __stdcall function_a7810(dword mask);
 void __stdcall function_be240(long object_index, dword color_mask, color3f const *colors);

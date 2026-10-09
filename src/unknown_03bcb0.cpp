@@ -133,9 +133,9 @@ real function_30bf0(vector3f *vector);
 
 PRIVATE inline void matrix_cross(vector3f const *a, vector3f const *b, vector3f *out)
 {
-	real i = b->k * a->j - a->k * b->j;
-	real j = a->k * b->i - b->k * a->i;
 	real k = b->j * a->i - b->i * a->j;
+	real j = a->k * b->i - b->k * a->i;
+	real i = b->k * a->j - a->k * b->j;
 	out->i = i;
 	out->j = j;
 	out->k = k;
@@ -753,7 +753,7 @@ void function_41490(long tag, short group, short kind, real distance, t_record_f
         s_41490_record *record = (s_41490_record *)function_1e2d0();
         if (record)
         {
-            vector3f delta;
+            vector3f volatile delta;
             delta.i = position->x - g_485618.position.x;
             delta.j = position->y - g_485618.position.y;
             delta.k = position->z - g_485618.position.z;
@@ -918,40 +918,42 @@ PRIVATE __forceinline void set_bump_component(long stage, D3DTEXTURESTAGESTATETY
 // @retail 0x3c650
 void function_3c650(byte const *state)
 {
-    double angle = atan2(g_4b9dac.i, g_4b9dac.j) + *(real const *)(state + 0x8c);
-    real sine = (real)sin(angle);
-    real cosine = (real)cos(angle);
+    vector3f camera_forward = g_4b9dac;
+    double angle = atan2((double)camera_forward.i, (double)camera_forward.j) + *(real const *)(state + 0x8c);
+    struct { real sine; real cosine; } trig;
+    trig.sine = (real)sin(angle);
+    trig.cosine = (real)cos(angle);
     vector3f const *axis = g_4687b0;
     real xx = axis->i * axis->i;
     real yy = axis->j * axis->j;
     real zz = axis->k * axis->k;
-    real xs = axis->i * sine;
-    real ys = axis->j * sine;
-    real zs = axis->k * sine;
-    real inverse = 1.0f - cosine;
+    real xs = (real)((double)trig.sine * axis->i);
+    real ys = axis->j * trig.sine;
+    real zs = axis->k * trig.sine;
+    real inverse = 1.0f - trig.cosine;
     g_4c1b9c.scale = 1.0f;
-    g_4c1b9c.forward.i = (1.0f - xx) * cosine + xx;
+    g_4c1b9c.forward.i = (1.0f - xx) * trig.cosine + xx;
     g_4c1b9c.forward.j = inverse * axis->i * axis->j + zs;
     g_4c1b9c.forward.k = inverse * axis->i * axis->k - ys;
     g_4c1b9c.left.i = inverse * axis->i * axis->j - zs;
-    g_4c1b9c.left.j = (1.0f - yy) * cosine + yy;
+    g_4c1b9c.left.j = (1.0f - yy) * trig.cosine + yy;
     g_4c1b9c.left.k = inverse * axis->k * axis->j + xs;
     g_4c1b9c.up.i = inverse * axis->i * axis->k + ys;
     g_4c1b9c.up.j = inverse * axis->k * axis->j - xs;
-    g_4c1b9c.up.k = (1.0f - zz) * cosine + zz;
+    g_4c1b9c.up.k = (1.0f - zz) * trig.cosine + zz;
     g_4c1b9c.position.x = g_4c1b9c.position.y = g_4c1b9c.position.z = 0.0f;
     set_bump_component(1, D3DTSS_BUMPENVMAT00, *(real const *)(state + 0x68) * g_4c1b9c.forward.i);
     set_bump_component(1, D3DTSS_BUMPENVMAT01, *(real const *)(state + 0x68) * g_4c1b9c.forward.j);
-    set_bump_component(1, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x68) * g_4c1b9c.left.i);
-    set_bump_component(1, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x68) * g_4c1b9c.left.j);
+    set_bump_component(1, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x68) * g_4c1b9c.left.i);
+    set_bump_component(1, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x68) * g_4c1b9c.left.j);
     set_bump_component(2, D3DTSS_BUMPENVMAT00, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.forward.i);
     set_bump_component(2, D3DTSS_BUMPENVMAT01, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.forward.j);
-    set_bump_component(2, D3DTSS_BUMPENVMAT11, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.i);
-    set_bump_component(2, D3DTSS_BUMPENVMAT10, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.j);
+    set_bump_component(2, D3DTSS_BUMPENVMAT10, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.i);
+    set_bump_component(2, D3DTSS_BUMPENVMAT11, 0.0f - *(real const *)(state + 0x6c) * g_4c1b9c.left.j);
     set_bump_component(3, D3DTSS_BUMPENVMAT00, *(real const *)(state + 0x70) * g_4c1b9c.forward.i);
     set_bump_component(3, D3DTSS_BUMPENVMAT01, *(real const *)(state + 0x70) * g_4c1b9c.forward.j);
-    set_bump_component(3, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x70) * g_4c1b9c.left.i);
-    set_bump_component(3, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x70) * g_4c1b9c.left.j);
+    set_bump_component(3, D3DTSS_BUMPENVMAT10, *(real const *)(state + 0x70) * g_4c1b9c.left.i);
+    set_bump_component(3, D3DTSS_BUMPENVMAT11, *(real const *)(state + 0x70) * g_4c1b9c.left.j);
 }
 
 

@@ -2870,7 +2870,7 @@ bool __stdcall function_ffc60(long weapon_index, long other_index, long player_i
 long function_101fb0(long object_index);
 void function_1628f0(long player_index, char state);
 void function_d0e60(long unit_index, real amount, real limit);
-void function_bfc30(long unit_index, long value, bool active);
+void function_bfc30(long unit_index, long value, long priority);
 long function_c7100(long unit_index);
 void function_d03e0(long unit_index, long definition_index);
 real function_17ca10(real value, short curve);
@@ -3507,7 +3507,7 @@ bool function_1fddd0(long actor_index, point3f const *origin, vector3f *directio
     long *out_index, real *spread, long *out_object);
 short function_15cca0(long player_index, byte code);
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-long function_b7b40(void *data);
+long __stdcall function_b7b40(void *data);
 void random_vector_in_cone(vector3f const *forward, vector3f *result, dword *seed, real min_angle, real max_angle);
 real function_30bf0(vector3f *vector);
 void __stdcall function_a7870(long object_index);

@@ -56,7 +56,7 @@ struct s_online_search_globals
 	long start_time;
 };
 
-s_online_search_globals g_4d8ecc = { false, { 0 }, { 0 }, NONE, NONE, 0, NULL, 0 };
+s_online_search_globals g_4d8ecc = { 0 };
 
 #define g_4d8ed0 g_4d8ecc.input
 #define g_4d8ef0 g_4d8ecc.task_index
