@@ -464,26 +464,35 @@ static inline real actor_looking_normalize3d(vector3f *vector)
 	return 0.f;
 }
 
+static inline void actor_looking_rotate_in_place(vector3f *vector, vector3f const *axis, real sine, real cosine)
+{
+	real parallel = (axis->i * vector->i + axis->j * vector->j + axis->k * vector->k) * (1.f - cosine);
+	vector3f cross;
+	cross.i = vector->j * axis->k - vector->k * axis->j;
+	cross.j = vector->k * axis->i - vector->i * axis->k;
+	cross.k = vector->i * axis->j - vector->j * axis->i;
+	vector->i = vector->i * cosine + axis->i * parallel - cross.i * sine;
+	vector->j = vector->j * cosine + axis->j * parallel - cross.j * sine;
+	vector->k = vector->k * cosine + axis->k * parallel - cross.k * sine;
+}
+
 static inline void actor_looking_rotate(vector3f *vector, vector3f const *axis, real angle)
 {
 	real sine = (real)sin(angle);
 	real cosine = (real)cos(angle);
-	real parallel = (axis->i * vector->i + axis->j * vector->j + axis->k * vector->k) * (1.f - cosine);
-	vector3f result;
-	result.i = vector->i * cosine + axis->i * parallel - (vector->j * axis->k - vector->k * axis->j) * sine;
-	result.j = vector->j * cosine + axis->j * parallel - (vector->k * axis->i - vector->i * axis->k) * sine;
-	result.k = vector->k * cosine + axis->k * parallel - (vector->i * axis->j - vector->j * axis->i) * sine;
-	*vector = result;
+	actor_looking_rotate_in_place(vector, axis, sine, cosine);
 }
 
 // @retail 0x296e60
 PRIVATE bool function_296e60(point3f const *origin, vector3f const *forward, bool test_collision,
 	real yaw_lower, real yaw_upper, real pitch_lower, real pitch_upper, vector3f *direction)
 {
+	bool const *test_collision_reference = &test_collision;
 	vector3f pitch_axis = { -forward->j, forward->i, 0.f };
 	if (actor_looking_normalize3d(&pitch_axis) == 0.f)
 		pitch_axis = *g_4687ac;
 	vector3f best_direction = *g_4687a8;
+	bool result = false;
 	real best_fraction = 0.f;
 	real yaw_range = yaw_upper - yaw_lower;
 	real arg_58ecd0 = pitch_upper - pitch_lower;
@@ -496,7 +505,7 @@ PRIVATE bool function_296e60(point3f const *origin, vector3f const *forward, boo
 		actor_looking_rotate(&candidate, &pitch_axis, pitch);
 		actor_looking_rotate(&candidate, g_4687b0, yaw);
 		clear = true;
-		if (test_collision)
+		if (*test_collision_reference)
 		{
 			vector3f ray = { candidate.i * 3.f, candidate.j * 3.f, candidate.k * 3.f };
 			s_collision_result_1697c0 collision;
@@ -506,7 +515,8 @@ PRIVATE bool function_296e60(point3f const *origin, vector3f const *forward, boo
 			{
 				actor_looking_normalize3d(&candidate);
 				*direction = candidate;
-				return true;
+				result = true;
+				break;
 			}
 			real fraction = *(real *)((byte *)&collision + 4);
 			if (fraction > best_fraction)
@@ -524,7 +534,7 @@ PRIVATE bool function_296e60(point3f const *origin, vector3f const *forward, boo
 	}
 	/* Retail still draws ten samples when collision testing is disabled,
 	   then returns false without writing the output vector. */
-	return false;
+	return result;
 }
 
 /* The direction decoder has aiming and optional target-point outputs.
@@ -884,18 +894,6 @@ PRIVATE bool function_297660(long actor_index, bool use_aiming_direction, bool u
 		specification->vector = actor->forward;
 	}
 	return result;
-}
-
-static inline void actor_looking_rotate_in_place(vector3f *vector, vector3f const *axis, real sine, real cosine)
-{
-	real parallel = (axis->i * vector->i + axis->j * vector->j + axis->k * vector->k) * (1.f - cosine);
-	vector3f cross;
-	cross.i = vector->j * axis->k - vector->k * axis->j;
-	cross.j = vector->k * axis->i - vector->i * axis->k;
-	cross.k = vector->i * axis->j - vector->j * axis->i;
-	vector->i = vector->i * cosine + axis->i * parallel - cross.i * sine;
-	vector->j = vector->j * cosine + axis->j * parallel - cross.j * sine;
-	vector->k = vector->k * cosine + axis->k * parallel - cross.k * sine;
 }
 
 struct s_actor_looking_structure_view
