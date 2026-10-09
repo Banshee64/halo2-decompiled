@@ -230,5 +230,6 @@ void function_21f8a0(long channel_index,s_looping_channel_properties const *prop
 	function_2201f0(channel_index,(s_sound_channel_parameters const *)effects,true);
 	*((byte *)stream+3)&=~1;
 	function_21fa80(channel_index,properties,NULL,false);
-	*((byte *)stream+3)|=1;
+	volatile byte *local_0 = (volatile byte *)stream + 3;
+	*local_0 |= 1;
 }

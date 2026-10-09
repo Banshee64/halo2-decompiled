@@ -1041,11 +1041,11 @@ struct s_1c4040
 bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_unknown, long excluded_component_index)
 {
 	s_1c4040 local_0;
-	local_0.field_3 = false;
 	s_physics_world_view *world = (s_physics_world_view *)g_51e9a4;
-	local_0.field_c = active ? &world->active_islands : &world->inactive_islands;
+	*(s_simulation_island_array *volatile *)&local_0.field_c = active ? &world->active_islands : &world->inactive_islands;
 	local_0.field_4 = 0x80000000;
 	local_0.field_8 = NONE;
+	local_0.field_3 = false;
 	long i;
 
 	if (!active)

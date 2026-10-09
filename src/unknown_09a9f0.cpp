@@ -118,7 +118,8 @@ void c_turret_entity_definition::v12(long a, s_entity_info *info, long c, s_bits
 // @retail 0xa3c00
 bool c_turret_entity_definition::v13(long a, s_entity_info *info, s_bitstream *stream)
 {
-	bool valid = function_a6810(stream);
+    c_turret_entity_definition const *volatile unused_this = this;
+	bool valid = function_a6810(info, stream);
 	if (function_1957d0(stream))
 	{
 		long index = function_1959c0(stream, 10);
@@ -128,7 +129,11 @@ bool c_turret_entity_definition::v13(long a, s_entity_info *info, s_bitstream *s
 	{
 		info->identifier = NONE;
 	}
-	return stream->bit_position <= stream->size_in_bytes * 8 && valid;
+	if (stream->bit_position <= stream->size_in_bytes * 8 && valid)
+    {
+        return true;
+    }
+    return false;
 }
 
 // @retail 0xa3cd0

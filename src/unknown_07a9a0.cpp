@@ -447,7 +447,7 @@ struct s_player_message_properties
 };
 
 // @retail 0x7ca70
-bool function_07ca70(s_bitstream *stream, void *destination)
+byte function_07ca70(s_bitstream *stream, void *destination)
 {
 	s_player_message_properties *properties = (s_player_message_properties *)destination;
 	read_word_string(stream, properties->name, 32);

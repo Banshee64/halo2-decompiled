@@ -30,6 +30,12 @@ static inline bool controller_world_is_authority(c_class_6a600 *world)
 	return world->state != 3 && world->state != 5;
 }
 
+#pragma inline_depth(0)
+static __forceinline void function_84751(s_player_action *arg_0)
+{
+ player_action_initialize(arg_0);
+}
+#pragma inline_depth(8)
 // @retail 0x84750
 void simulation_controller_initialize(s_simulation_controller *controller, c_class_6a600 *world,
 	long field_00, long field_04, long field_08, const s_machine_address *machine, const t_player_key *key)
@@ -43,7 +49,7 @@ void simulation_controller_initialize(s_simulation_controller *controller, c_cla
 	controller->world = world;
 	controller->field_25 = !controller_world_is_authority(world);
 	controller->field_28 = NONE;
-	player_action_initialize(&controller->action);
+	function_84751(&controller->action);
 }
 
 struct s_replication_sender_view

@@ -156,7 +156,7 @@ void function_2215d0(
 	long out_count = 0;
 	dword changed_mask = 0;
 	dword seen_mask = 0;
-	bool changed = false;
+	bool changed;
 	long i;
 
 	out_mixbins.dwMixBinCount = 0;
@@ -165,6 +165,7 @@ void function_2215d0(
 	if (list && list->count == (long)settings->mixbins.dwMixBinCount)
 	{
 		long count = list->count;
+		changed = false;
 
 		for (i = 0; i < count; i++)
 		{
@@ -223,7 +224,7 @@ void function_2216f0(
 	long out_count = 0;
 	dword changed_mask = 0;
 	dword seen_mask = 0;
-	bool changed = false;
+	bool changed;
 	long i;
 
 	out_mixbins.dwMixBinCount = 0;
@@ -232,6 +233,7 @@ void function_2216f0(
 	if (list && list->count == (long)settings->mixbins.dwMixBinCount)
 	{
 		long count = list->count;
+		changed = false;
 
 		for (i = 0; i < count; i++)
 		{
@@ -562,11 +564,11 @@ short sound_driver_voice_new(
 void function_220fd0(
 	s_sound_driver_volumes const *volumes)
 {
-	s_sound_driver_globals *globals = SOUND_DRIVER_GLOBALS;
+	s_sound_driver_globals *globals;
 	long volume;
 	long i;
 
-	globals->volume_a = PIN(volumes->volume_a, 0.0f, 1.0f);
+	(globals = SOUND_DRIVER_GLOBALS)->volume_a = PIN(volumes->volume_a, 0.0f, 1.0f);
 	globals->volume_b = PIN(volumes->volume_b, 0.0f, 1.0f);
 	globals->volume_c = PIN(volumes->volume_c, 0.0f, 1.0f);
 	globals->volume_d = PIN(volumes->volume_d, 0.0f, 1.0f);

@@ -1010,7 +1010,7 @@ bool function_211b30(byte const *location, real const *position, byte flags, vec
 {
 	(void)&position;
 	(void)&flags;
-	long index = NONE;
+	short index = NONE;
 	short cluster = *(short const *)(location + 4);
 	if (cluster != NONE)
 	{
