@@ -163,9 +163,9 @@ long __stdcall function_3ddd0(long object_index)
         *(long *)(record + 0x44) = object_index;
         *(long *)(record + 0x48) = (long)function_be8b0;
         *(long *)(record + 0xbc) = NONE;
-        object = ((s_3dd10_object_header *)g_4e0300->data)[object_index & 0xffff].object;
-        byte *data = object + *(short *)(object + 0x11a);
-        long bytes = *(short *)(object + 0x118) / 10;
+        byte *copy_object = ((s_3dd10_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+        byte *data = copy_object + *(short *)(copy_object + 0x11a);
+        long bytes = *(short *)(copy_object + 0x118) / 10;
         for (long i = 0; i < 4; ++i)
             memcpy(record + 0xc0 + i * 16, data, bytes);
         *(long *)(object + 0xcc) = result;

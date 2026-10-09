@@ -682,7 +682,10 @@ bool __stdcall function_0b0900(s_bitstream *stream, long unused, s_message_0b090
 	{
 		message->flag1485 = stream_read_bit(stream);
 		if (message->flag1485)
-			valid = valid && function_b23d0(stream, &message->data1488);
+        {
+            bool decoded = function_b23d0(stream, &message->data1488);
+            valid = valid && decoded;
+        }
 	}
 	message->flag14cc = stream_read_bit(stream);
 	if (message->flag14cc)

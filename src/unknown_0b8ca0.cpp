@@ -376,9 +376,9 @@ vector3f *function_11d090(vector3f const *vector, vector3f *out);
 
 static __forceinline void object_cross_ab(vector3f const *a, vector3f const *b, vector3f *out)
 {
-    real i = a->j * b->k - a->k * b->j;
-    real j = a->k * b->i - a->i * b->k;
     real k = a->i * b->j - a->j * b->i;
+    real j = a->k * b->i - a->i * b->k;
+    real i = a->j * b->k - a->k * b->j;
     out->i = i;
     out->j = j;
     out->k = k;

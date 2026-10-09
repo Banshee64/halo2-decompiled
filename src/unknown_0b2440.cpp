@@ -222,7 +222,7 @@ bool __stdcall function_b2a90(s_bitstream *stream, long size, s_synchronous_game
 	message->size = function_1959c0(stream, 13);
 	if (stream_overflowed(stream) || message->unknown00 < 0 || message->size < 0 || message->size > 0xffff || size != message->size + 8)
 		return false;
-	bool valid = true;
+	byte valid = true;
 	if (message->size > 0)
 	{
 		function_195820(stream, data, message->size * 8);

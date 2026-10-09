@@ -4,7 +4,7 @@
 
 struct s_effect_owner;
 void function_b7930(void *arg_1, long arg_2, long arg_3, s_effect_owner const *arg_4);
-long function_b7b40(void *arg_1);
+long __stdcall function_b7b40(void *arg_1);
 void __stdcall function_b8ee0(long arg_1, long arg_2, long arg_3, long arg_4);
 void function_b7680(long arg_1, real arg_2, real arg_3);
 long function_cbe60(long arg_1);
