@@ -278,23 +278,17 @@ void function_245400(long index, s_source_245400 const *source,
 	function_244ca0(height, radius, list, field_00, field_04, material_index,
 		material->field_04, material->field_05, material->field_06, point);
 }
-struct s_245543
-{
-	__forceinline void function_245544(long arg_0,
-		transform4x3f const *arg_2, real arg_3, real arg_4,
-		long arg_5, long arg_6, s_collection_245270 *arg_7) const;
-};
-
-__forceinline void s_245543::function_245544(long arg_0,
+// @retail 0x245540
+void function_245540(long arg_0, s_source_245400 const *arg_1,
 	transform4x3f const *arg_2, real arg_3, real arg_4,
-	long arg_5, long arg_6, s_collection_245270 *arg_7) const
+	long arg_5, long arg_6, s_collection_245270 *arg_7)
 {
-	s_source_245400 const *arg_1 = (s_source_245400 const *)this;
+	(void)&arg_2;
 	s_surface_245400 const *local_0 = &arg_1->field_34[arg_0];
 	long local_1 = local_0->field_08;
-	long local_2 = (short)arg_1->field_2c[local_1].field_00;
-	long local_3 = (short)arg_1->field_2c[*(short *)local_0->field_0a].field_00;
-	if ((short)local_2 != (short)local_3)
+	short local_2 = (short)arg_1->field_2c[local_1].field_00;
+	short local_3 = (short)arg_1->field_2c[*(short *)local_0->field_0a].field_00;
+	if (local_2 != local_3)
 	{
 		point3f const *local_4 = &arg_1->field_3c[((word const *)local_0)[0]].field_00;
 		point3f const *local_5 = &arg_1->field_3c[((word const *)local_0)[1]].field_00;
@@ -305,14 +299,13 @@ __forceinline void s_245543::function_245544(long arg_0,
 		plane3f const *local_7 = *(plane3f const *const *)((byte const *)arg_1 + 0xc);
 		plane3f const *local_8 = &local_7[local_2 & 0x7fff];
 		plane3f const *local_9 = &local_7[local_3 & 0x7fff];
-		bool volatile local_10 = (bool)((local_2 >> 15) & 1);
+		bool local_10 = (bool)((local_2 >> 15) & 1);
 		bool local_11 = (bool)((local_3 >> 15) & 1);
 		if ((local_2 & 0x7fff) != (local_3 & 0x7fff))
 		{
-			real local_22 = *(real const volatile *)&local_8->k;
 			vector3f local_12;
-			local_12.i = local_8->j * local_9->k - local_22 * local_9->j;
-			local_12.j = local_22 * local_9->i - local_8->i * local_9->k;
+			local_12.i = local_8->j * local_9->k - local_8->k * local_9->j;
+			local_12.j = local_8->k * local_9->i - local_8->i * local_9->k;
 			local_12.k = local_8->i * local_9->j - local_8->j * local_9->i;
 			real local_13 = local_12.k * local_6.k + local_12.j * local_6.j + local_12.i * local_6.i;
 			if (local_10 == local_11)
@@ -323,46 +316,37 @@ __forceinline void s_245543::function_245544(long arg_0,
 			else if (!(local_13 < 0.0001f))
 				return;
 		}
-		transform4x3f const *local_18 = arg_2;
 		point3f local_14;
-		if (local_18)
+		if (arg_2)
 		{
 			real local_15 = local_6.i;
 			real local_16 = local_6.j;
 			real local_17 = local_6.k;
-			if (local_18->scale != 1.f)
+			if (arg_2->scale != 1.f)
 			{
-				local_15 = local_18->scale * local_15;
-				local_16 = local_18->scale * local_16;
-				local_17 = local_18->scale * local_17;
+				local_15 = arg_2->scale * local_15;
+				local_16 = arg_2->scale * local_16;
+				local_17 = arg_2->scale * local_17;
 			}
-			local_6.i = local_18->forward.i * local_15 + local_18->left.i * local_16 + local_18->up.i * local_17;
-			local_6.j = local_18->up.j * local_17 + local_15 * local_18->forward.j + local_18->left.j * local_16;
-			local_6.k = local_18->forward.k * local_15 + local_18->left.k * local_16 + local_18->up.k * local_17;
+			local_6.i = arg_2->forward.i * local_15 + arg_2->left.i * local_16 + arg_2->up.i * local_17;
+			local_6.j = arg_2->up.j * local_17 + local_15 * arg_2->forward.j + arg_2->left.j * local_16;
+			local_6.k = arg_2->forward.k * local_15 + arg_2->left.k * local_16 + arg_2->up.k * local_17;
 			local_15 = local_4->x;
 			local_16 = local_4->y;
 			local_17 = local_4->z;
-			if (local_18->scale != 1.f)
+			if (arg_2->scale != 1.f)
 			{
-				local_15 = local_18->scale * local_15;
-				local_16 = local_18->scale * local_16;
-				local_17 = local_18->scale * local_17;
+				local_15 = arg_2->scale * local_15;
+				local_16 = arg_2->scale * local_16;
+				local_17 = arg_2->scale * local_17;
 			}
-			local_14.x = local_18->forward.i * local_15 + local_18->up.i * local_17 + local_18->left.i * local_16 + local_18->position.x;
-			local_14.y = local_15 * local_18->forward.j + local_18->up.j * local_17 + local_18->left.j * local_16 + local_18->position.y;
-			local_14.z = local_18->forward.k * local_15 + local_18->up.k * local_17 + local_18->left.k * local_16 + local_18->position.z;
+			local_14.x = arg_2->forward.i * local_15 + arg_2->up.i * local_17 + arg_2->left.i * local_16 + arg_2->position.x;
+			local_14.y = local_15 * arg_2->forward.j + arg_2->up.j * local_17 + arg_2->left.j * local_16 + arg_2->position.y;
+			local_14.z = arg_2->forward.k * local_15 + arg_2->up.k * local_17 + arg_2->left.k * local_16 + arg_2->position.z;
 			local_4 = &local_14;
 		}
 		function_244de0(local_4, &local_6, arg_3, arg_4, arg_5, arg_6, local_1,
 			arg_1->field_2c[local_1].field_04, arg_1->field_2c[local_1].field_05,
 			arg_1->field_2c[local_1].field_06, arg_7);
 	}
-}
-
-// @retail 0x245540
-void function_245540(long arg_0, s_source_245400 const *arg_1,
-	transform4x3f const *arg_2, real arg_3, real arg_4,
-	long arg_5, long arg_6, s_collection_245270 *arg_7)
-{
-	((s_245543 const *)arg_1)->function_245544(arg_0, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7);
 }
