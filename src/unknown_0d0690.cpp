@@ -507,12 +507,11 @@ s_vertex_block *function_d35a0(long index, s_surface_colour_group *group, bool i
 	if ((resource->flags & 2) && function_12de70(&resource->block, 3))
 	{
 		result = &resource->runtime->data->block;
-		byte type = result->type;
-		long offset = *first_vertex;
-		if (type == 0x2e)
-			offset *= 4;
+		long offset;
+		if (result->type == 0x2e)
+			offset = *first_vertex * 4;
 		else
-			offset *= 3;
+			offset = *first_vertex * 3;
 		result->offset4 = offset;
 		result->offset = offset;
 	}
