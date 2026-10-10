@@ -1028,7 +1028,7 @@ struct s_1ed70_point
 };
 
 // @retail 0x1ed70
-void function_1ed70(color4f const *color, s_1ed70_point const *points, short count)
+void function_1ed70(color4f const *color, s_1ed70_point const *points, volatile short count)
 {
     dword packed = pack_color4f(color);
     function_1ee60(2);

@@ -312,9 +312,12 @@ void __stdcall function_18ca20(long object_index, long tag_index, s_sound_permut
 	if (count > 0 && g_4ed28c->valid && function_badc0(object_index, 3))
 	{
 		s_sound_promotion_state curves;
+		union { dword field_0; real field_4; } local_0;
+		dword const volatile *local_1 = (dword const volatile *)&scale;
+		local_0.field_0 = *local_1;
+		curves.data = entry->data_offset + data->samples;
 		curves.count = count;
-		curves.data = data->samples + entry->data_offset;
-		function_10e480(object_index, tag_index, (s_vibration_curve_set *)&curves, scale);
+		function_10e480(object_index, tag_index, (s_vibration_curve_set *)&curves, local_0.field_4);
 	}
 }
 

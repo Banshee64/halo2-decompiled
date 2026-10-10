@@ -191,7 +191,7 @@ static __forceinline real function_9e522(long arg_0, long arg_1, real arg_2, rea
     return (arg_2 * (arg_1 - arg_0) + arg_3 * arg_0) / arg_1;
 }
 
-bool function_a0190(vector3f const *arg_0);
+inline bool function_a0190(vector3f const *arg_0);
 real __fastcall function_24f6b0(dword arg_0, vector3f *arg_1);
 
 // @retail 0x9e520

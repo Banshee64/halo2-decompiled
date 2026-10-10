@@ -725,8 +725,8 @@ void __stdcall function_60400(c_class_58d20 *session, const byte *current, const
  for (long i = 0; i < *(const long *)(current + 8); i++)
  {
   const byte *member = current + 0xc + i * 0x10c;
-  long old_index = new_to_old[i];
-  if (old_index == NONE)
+  long *local_0 = &new_to_old[i];
+  if ((*local_0) == NONE)
   {
    byte *entry = update + 0x14 + (*(short *)(update + 0x10))++ * 0x104;
    *(short *)entry = NONE;
@@ -739,12 +739,16 @@ void __stdcall function_60400(c_class_58d20 *session, const byte *current, const
   }
   else
   {
-   const byte *old_member = previous + 0xc + old_index * 0x10c;
-   bool changed = member[0x24] != old_member[0x24] || memcmp(member + 0x28, old_member + 0x28, 0xc8);
-   if (changed || i != old_index)
+   const byte *old_member = previous + 0xc + (*local_0) * 0x10c;
+   bool changed = false;
+   if (member[0x24] != old_member[0x24])
+    changed = true;
+   else if (memcmp(member + 0x28, old_member + 0x28, 0xc8))
+    changed = true;
+   if (changed || i != (*local_0))
    {
     byte *entry = update + 0x14 + (*(short *)(update + 0x10))++ * 0x104;
-    *(short *)entry = (short)old_index;
+    *(short *)entry = (short)(*local_0);
     *(short *)(entry + 2) = (short)i;
     memcpy(entry + 4, member, 0x24);
     if (changed)
