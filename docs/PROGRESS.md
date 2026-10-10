@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-10: 7473 functions match
+
+```
+matched 7473 of 11318 game functions (874621 of 2784283 bytes, 31.41%)
+```
+
+1 new matches, none lost:
+- Deep lane 3, second-level blockers: 0xbef30 (281 bytes, newly written); its fifth parameter is a bool, as retail's callers pass it.
+
 ## 2026-10-10: 7472 functions match
 
 ```
