@@ -175,7 +175,7 @@ bool function_bacc0(long object_index, long index, point3f const *point);
 bool function_138860();
 bool function_138880();
 void function_15fe70(long player_index);
-void function_15b3a0(long team, long a);
+void function_15b3a0(long team, bool a);
 
 /* ---- the game engine class whose vtable is at 0x459d18 ---- */
 struct s_marker_update;

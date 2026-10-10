@@ -442,19 +442,58 @@ __inline real normalize3d(vector3f *v)
 	return 0.f;
 }
 
+void function_142390(
+	plane3f const *plane,
+	transform4x3f *out);
+
+static __forceinline void matrix4x3_basis_store(transform4x3f *out, point3f const *position, vector3f const *forward, vector3f const *up)
+{
+	out->scale = 1.f;
+	out->forward = *forward;
+	vector3f left;
+	left.k = forward->j * up->i;
+	left.k -= forward->i * up->j;
+	left.j = up->k * forward->i - forward->k * up->i;
+	left.i = forward->k * up->j;
+	left.i -= up->k * forward->j;
+	out->left.k = left.k;
+	out->left.j = left.j;
+	out->left.i = left.i;
+	out->up = *up;
+	real_point3d_set(&out->position, 0.f, 0.f, 0.f);
+	out->position = *position;
+}
+
+static __forceinline void plane_vector_normalize(vector3f *out, real j)
+{
+    real magnitude = (real)sqrt(out->i * out->i + j * j + out->k * out->k);
+    if (!(fabs(magnitude) < 0.0001f))
+    {
+        real inverse = 1.f / magnitude;
+        out->i = inverse * out->i;
+        out->j = j * inverse;
+        out->k = inverse * out->k;
+    }
+}
+
+static __forceinline void matrix4x3_from_plane(plane3f const *plane, transform4x3f *out)
+{
+	vector3f w;
+	point3f position;
+	function_11d000(&plane->n, &w);
+	plane_vector_normalize(&w, w.j);
+	position.x = plane->d * plane->n.i;
+	position.y = plane->n.j * plane->d;
+	position.z = plane->n.k * plane->d;
+	matrix4x3_basis_store(out, &position, &w, &plane->n);
+}
+
 // @retail 0x142390
 void function_142390(
 	plane3f const *plane,
 	transform4x3f *out)
 {
-	vector3f w;
-	point3f position;
-	function_11d000(&plane->n, &w);
-	normalize3d(&w);
-	position.x = plane->d * plane->n.i;
-	position.y = plane->n.j * plane->d;
-	position.z = plane->n.k * plane->d;
-	function_1420f0(out, &position, &w, &plane->n);
+	matrix4x3_from_plane(plane, out);
 }
 
 int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);

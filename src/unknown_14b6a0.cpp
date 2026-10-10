@@ -77,16 +77,14 @@ long function_14bc00(long player_index, s_player_creation_record const *record)
 	return index;
 }
 
-// @retail 0x14bac0
-void function_14bac0()
+void function_14bac0();
+
+static __forceinline void players_pending_creation_process(s_record_pool_iterator * iterator_reference)
 {
-	s_record_pool_iterator iterator;
-	iterator.data = g_4e8c24;
-	iterator.index = NONE;
-	byte *player;
-	while ((player = data_iterator_next_inlined(&iterator)) != NULL)
+byte *player;
+	while ((player = data_iterator_next_inlined(&(*iterator_reference))) != NULL)
 	{
-		long index = iterator.datum_index;
+		long index = (*iterator_reference).datum_index;
 		if (!(player[2] & 2))
 		{
 			__declspec(align(8)) s_player_creation_record record;
@@ -107,6 +105,17 @@ void function_14bac0()
 		if (!g_4cf77a)
 			player[2] |= 8;
 	}
+}
+
+// @retail 0x14bac0
+void function_14bac0()
+{
+	s_record_pool_iterator iterator;
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	
+	s_record_pool_iterator *iterator_reference = &iterator;
+	players_pending_creation_process(iterator_reference);
 }
 
 // @retail 0x14b6a0

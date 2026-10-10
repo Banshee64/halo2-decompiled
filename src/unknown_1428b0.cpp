@@ -62,6 +62,13 @@ matrix3x3 *function_142d10(
 	return out;
 }
 
+static __forceinline void matrix_row_product(vector3f const *row, matrix3x3 const *b, vector3f *out)
+{
+	out->i = b->forward.i * row->i + b->left.i * row->j + b->up.i * row->k;
+	out->j = b->forward.j * row->i + b->left.j * row->j + b->up.j * row->k;
+	out->k = b->forward.k * row->i + b->left.k * row->j + b->up.k * row->k;
+}
+
 // @retail 0x142eb0
 matrix3x3 *function_142eb0(
 	matrix3x3 const *a,
@@ -79,15 +86,9 @@ matrix3x3 *function_142eb0(
 		temp = *a;
 		a = &temp;
 	}
-	out->forward.i = b->forward.i * a->forward.i + b->left.i * a->forward.j + b->up.i * a->forward.k;
-	out->forward.j = b->forward.j * a->forward.i + b->left.j * a->forward.j + b->up.j * a->forward.k;
-	out->forward.k = b->forward.k * a->forward.i + b->left.k * a->forward.j + b->up.k * a->forward.k;
-	out->left.i = b->forward.i * a->left.i + b->left.i * a->left.j + b->up.i * a->left.k;
-	out->left.j = b->forward.j * a->left.i + b->left.j * a->left.j + b->up.j * a->left.k;
-	out->left.k = b->forward.k * a->left.i + b->left.k * a->left.j + b->up.k * a->left.k;
-	out->up.i = b->forward.i * a->up.i + b->left.i * a->up.j + b->up.i * a->up.k;
-	out->up.j = b->forward.j * a->up.i + b->left.j * a->up.j + b->up.j * a->up.k;
-	out->up.k = b->forward.k * a->up.i + b->left.k * a->up.j + b->up.k * a->up.k;
+	matrix_row_product(&a->forward, b, &out->forward);
+	matrix_row_product(&a->left, b, &out->left);
+	matrix_row_product(&a->up, b, &out->up);
 	return out;
 }
 

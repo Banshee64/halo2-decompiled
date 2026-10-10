@@ -682,12 +682,18 @@ void function_102f70(long weapon_index, short barrel_index)
 	}
 }
 
+static __forceinline s_weapon_trigger_definition *weapon_trigger_definition_get(short const volatile *index, s_weapon_definition *definition)
+{
+	return &definition->triggers[*index];
+}
+
 // @retail 0x103a90
 bool function_103a90(long weapon_index, short trigger_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
-	s_weapon_trigger_definition *trigger = &definition->triggers[trigger_index];
+	short const volatile *trigger_reference = &trigger_index;
+	s_weapon_trigger_definition *trigger = weapon_trigger_definition_get(trigger_reference, definition);
 	short barrel_index = trigger->primary_barrel;
 	bool result = true;
 
@@ -1164,7 +1170,7 @@ real weapon_barrel_estimate_time_to_target(long weapon_index, short barrel_index
 }
 
 long function_166244(long key);
-void function_ee680(long user_index, long state, bool secondary, long weapon_index);
+void function_ee680(long user_index, long state, long secondary, long weapon_index);
 
 static inline long user_get_unit_index(long user_index)
 {
@@ -1181,7 +1187,7 @@ void function_105fa0(long weapon_index, long state)
 {
 	long user_index = function_166244(weapon_index);
 	long unit_index = user_index != NONE ? user_get_unit_index(user_index) : NONE;
-	bool secondary = false;
+	long secondary = 0;
 
 	if (unit_index != NONE)
 	{
@@ -1315,11 +1321,11 @@ void function_101db0(long weapon_index, real heat)
 
 	if (TEST_FIELD_BIT(weapon->in_inventory) && weapon->unit_index != NONE)
 	{
-		long player_index = WEAPON_UNIT_GET(weapon->unit_index)->player_index;
+		long player_index = ((s_weapon_unit_header *)((s_record_pool volatile *)g_4e0300)->data)[weapon->unit_index & 0xffff].unit->player_index;
 		if (player_index != NONE)
 			overheat_disabled = function_159dd0(player_index);
 	}
-	if (TEST_FIELD_BIT(weapon->item_flag3) && weapon->heat < 1.0f && !overheat_disabled)
+	if ((bool)((*(byte const volatile *)((byte *)weapon + 0x12c) >> 3) & 1) && weapon->heat < 1.0f && !overheat_disabled)
 	{
 		weapon->heat = heat + weapon->heat;
 		if (weapon->heat >= 1.0f)
@@ -1450,8 +1456,10 @@ void function_102c60(long weapon_index, short magazine_index, bool interrupted)
 {
 	s_weapon_magazine *magazine = &WEAPON_GET(weapon_index)->magazines[magazine_index];
 
-	if (interrupted || magazine->state != 4)
-		function_105fa0(weapon_index, !interrupted && magazine->state == 3 ? 12 : 0);
+	if (!interrupted && magazine->state == 3)
+		function_105fa0(weapon_index, 12);
+	else if (interrupted || magazine->state != 4)
+		function_105fa0(weapon_index, 0);
 	function_105a80(5, weapon_index, magazine_index);
 }
 
@@ -1639,7 +1647,7 @@ long function_101e80(long object_index);
 
 /* starts reloading a magazine of a weapon, if it can */
 // @retail 0x102a80
-bool function_102a80(long weapon_index, short magazine_index)
+bool function_102a80(long volatile weapon_index, short volatile magazine_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
@@ -1693,6 +1701,7 @@ static inline s_weapon_barrel *weapon_barrel_get(long weapon_index, short barrel
 // @retail 0x101490
 bool function_101490(long weapon_index, long magazine_index)
 {
+	long const volatile *weapon_reference = &weapon_index;
 	s_weapon_definition *definition = WEAPON_DEFINITION(WEAPON_GET(weapon_index));
 	bool result = false;
 
@@ -1704,19 +1713,20 @@ bool function_101490(long weapon_index, long magazine_index)
 		function_b7360(weapon_index);
 		for (i = 0; i < definition->trigger_count; i++)
 		{
-			s_weapon_trigger *trigger = &WEAPON_GET(weapon_index)->triggers[(short)i];
-
-			trigger->state = 0;
-			trigger->timer = 0;
+			s_weapon *weapon = WEAPON_GET(weapon_index);
+			weapon->triggers[(short)i].state = 0;
+			weapon->triggers[(short)i].timer = 0;
 		}
 		for (i = 0; i < definition->barrel_count; i++)
 		{
-			s_weapon_barrel *barrel = weapon_barrel_get(weapon_index, (short)i);
-
-			if (barrel && barrel->state != 1)
-				barrel->flag6 = false;
+			if ((short)i >= 0 && (short)i < 2)
+			{
+				s_weapon_barrel *barrel = &WEAPON_GET(weapon_index)->barrels[(short)i];
+				if (barrel->state != 1)
+					barrel->flag6 = false;
+			}
 			if (definition->reload_style != 1)
-				function_103dd0(weapon_index, (short)i);
+				function_103dd0(*weapon_reference, (short)i);
 		}
 		result = true;
 	}
@@ -1982,9 +1992,9 @@ void function_102d60(long weapon_index, short trigger_index)
 		fld duration
 		fistp ticks
 	}
-	s_weapon_trigger *trigger = &WEAPON_GET(weapon_index)->triggers[trigger_index];
-	trigger->state = 2;
-	trigger->timer = (short)ticks;
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	weapon->triggers[trigger_index].state = 2;
+	weapon->triggers[trigger_index].timer = (short)ticks;
 	function_1058b0(weapon_index, trigger_index + 7, true);
 	function_105fa0(weapon_index, 13);
 }
@@ -2718,8 +2728,9 @@ s_weapon_type_definition_view g_467cd0 =
 };
 
 
-// @retail 0x1023d0
-bool function_1023d0(long weapon_index, long barrel_index)
+bool function_1023d0(long weapon_index, long barrel_index);
+
+static __forceinline bool weapon_barrel_ammunition_check(long weapon_index, long barrel_index)
 {
     s_weapon *weapon = WEAPON_GET(weapon_index);
     s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
@@ -2751,6 +2762,12 @@ bool function_1023d0(long weapon_index, long barrel_index)
         }
     }
     return false;
+}
+
+// @retail 0x1023d0
+bool function_1023d0(long weapon_index, long barrel_index)
+{
+	return weapon_barrel_ammunition_check(weapon_index, barrel_index);
 }
 
 

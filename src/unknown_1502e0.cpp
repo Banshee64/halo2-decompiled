@@ -369,6 +369,13 @@ struct s_horizontal_axes
 
 real function_30bf0(vector3f *v);
 
+static __forceinline void horizontal_left_set(real i, real j, vector3f *left)
+{
+	left->i = 0.0f - j;
+	left->j = i;
+	left->k = 0.0f;
+}
+
 // @retail 0x1502e0
 void function_1502e0(vector3f const *forward, vector3f const *fallback, s_horizontal_axes *axes)
 {
@@ -383,9 +390,7 @@ void function_1502e0(vector3f const *forward, vector3f const *fallback, s_horizo
 			axes->forward = *g_4687a8;
 		}
 	}
-	axes->left.i = 0.0f - axes->forward.j;
-	axes->left.j = axes->forward.i;
-	axes->left.k = 0.0f;
+	horizontal_left_set(axes->forward.i, axes->forward.j, &axes->left);
 }
 
 /* an object is being deleted: the players forget it (one of the object
@@ -674,12 +679,13 @@ struct s_player_target_unit
 	byte flags348;
 };
 
-bool function_f5dc0(long object_index);
+__declspec(noinline) bool function_f5dc0(long object_index);
 bool function_cc0c0(long unit_index);
 short __stdcall function_c8ef0(long unit_index, long object_index, long *target_index, short *seat_index);
 
-// @retail 0x151430
-void function_151430(long object_index, long player_index, s_target_candidate *best)
+void function_151430(long object_index, long player_index, s_target_candidate *best);
+
+static __forceinline void player_object_target_candidate_evaluate(long object_index, long player_index, s_target_candidate *best)
 {
 	long const *player_reference = &player_index;
 	s_target_candidate *const *best_reference = &best;
@@ -731,6 +737,12 @@ void function_151430(long object_index, long player_index, s_target_candidate *b
 			}
 		}
 	}
+}
+
+// @retail 0x151430
+void function_151430(long object_index, long player_index, s_target_candidate *best)
+{
+	player_object_target_candidate_evaluate(object_index, player_index, best);
 }
 
 struct s_tail_transfer_options

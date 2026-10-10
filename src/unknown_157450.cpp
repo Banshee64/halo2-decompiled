@@ -2097,7 +2097,7 @@ void function_15ad30(s_netgame_entry_state *entries)
 }
 
 void __stdcall function_15b650(long team, long delta);
-void function_15b3a0(long player_or_team, long value);
+void function_15b3a0(long player_or_team, bool value);
 
 static __forceinline bool score_teams_enabled()
 {
@@ -2326,11 +2326,11 @@ struct s_round_limit_options
 };
 
 // @retail 0x15b3a0
-void function_15b3a0(long player_or_team, long value)
+void function_15b3a0(long player_or_team, bool value)
 {
 	s_game_engine_globals *globals = function_xaee93d();
 	long wins = 0;
-	long const *value_reference = &value;
+	bool const *value_reference = &value;
 	bool finish = (byte)*value_reference != 0;
 
 	if (player_or_team != NONE)
