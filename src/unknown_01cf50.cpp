@@ -2595,6 +2595,7 @@ struct s_42850_payload
     vector3f third;
 };
 
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x42850
 void function_42850(long a, long b, point3f const *position,
     vector3f const *first, vector3f const *second, real scale, real width,
@@ -2626,10 +2627,13 @@ void function_42850(long a, long b, point3f const *position,
         depth += g_4b9dac.i * delta.i;
         record->depth = 0.0f - depth;
         record->position = *position;
+        _ReadWriteBarrier();
     }
     else if (g_4b6280.available)
         g_4b6280.available = false;
 }
+#pragma function(_ReadWriteBarrier)
+
 
 struct s_429a0_payload
 {
