@@ -84,7 +84,7 @@ long function_26d3f0(long object_index, short type)
 			record->owner = object_index;
 			record->count = 0;
 			record->users = 0;
-			record->type = type;
+			*(volatile short *)&record->type = type;
 			record->active[0] = 0;
 			function_b9fc0(*object_reference, &forward, &up);
 			record->point = location;
