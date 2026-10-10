@@ -146,8 +146,9 @@ bool function_10ee20(s_animation_state *state)
 
 void function_1dacb0(s_graph_tag *graph, c_type_709360 animation_id, real *distance, real *event_distance);
 
-// @retail 0x10fa80
-bool function_10fa80(long unit_index, long mode, long set, short *event_ticks, real *distance, short *duration_ticks, real *event_distance)
+bool function_10fa80(long unit_index, long mode, long set, short *event_ticks, real *distance, short *duration_ticks, real *event_distance);
+
+static __forceinline bool unit_animation_event_timing_lookup(long unit_index, long mode, long set, short *event_ticks, real *distance, short *duration_ticks, real *event_distance)
 {
 	volatile bool result = false;
 	if (unit_index == NONE || ((s_unit_animation_header *)g_4e0300->data)[unit_index & 0xffff].unit->value_b3 == 0)
@@ -208,4 +209,10 @@ bool function_10fa80(long unit_index, long mode, long set, short *event_ticks, r
 		}
 	}
 	return result;
+}
+
+// @retail 0x10fa80
+bool function_10fa80(long unit_index, long mode, long set, short *event_ticks, real *distance, short *duration_ticks, real *event_distance)
+{
+	return unit_animation_event_timing_lookup(unit_index, mode, set, event_ticks, distance, duration_ticks, event_distance);
 }
