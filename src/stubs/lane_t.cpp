@@ -16,10 +16,6 @@ struct s_16760c_render_model;
 
 
 /* lane R's region */
-// @stub 0x170fd0
-void __stdcall function_170fd0(long user_index)
-{
-}
 
 /* unowned */
 

@@ -6,6 +6,18 @@
 #include <new>
 // @flags /O2 /Ob1 /arch:SSE /Gr
 
+struct s_1d96d7
+{
+ byte field_0[2];
+ word field_2 : 5;
+ word field_3 : 1;
+};
+struct s_1d96d8
+{
+ byte field_0[0x10a];
+ word field_10a : 2;
+ word field_10b : 1;
+};
 struct s_type_1e6529;
 struct s_damage_owner
 {
@@ -49,6 +61,10 @@ PRIVATE __forceinline real function_1d96d3(vector3f const *arg_0)
 {
  return (real)sqrt(arg_0->i * arg_0->i + arg_0->j * arg_0->j + arg_0->k * arg_0->k);
 }
+PRIVATE __forceinline real function_1d96d6(vector3f const *arg_0)
+{
+ return (real)sqrt(arg_0->i * arg_0->i + (arg_0->j * arg_0->j + arg_0->k * arg_0->k));
+}
 PRIVATE __forceinline long function_1d96d4()
 {
  real local_0 = g_510c54->field_2_3 * 0.35f;
@@ -80,7 +96,7 @@ void function_1d96d0(long arg_0)
  vector_constructor_iterator(local_3, sizeof(s_collision_damage_entry), 16, function_1d96d5);
  byte *local_4 = (byte *)havok_object_get(local_1);
  byte *local_5 = (byte *)g_4e3b44[*(long *)local_4 & 0xffff].data;
- bool local_6 = !(bool)((local_5[2] >> 5) & 1);
+ bool local_6 = !TEST_FIELD_BIT(((s_1d96d7 *)local_5)->field_3);
  long local_8 = 0;
  s_1d96d1 local_9[16];
  real local_10 = function_1d96d3(&local_0->rigid_bodies.data[0].linear_velocity);
@@ -113,7 +129,7 @@ void function_1d96d0(long arg_0)
   {
    byte *local_24 = (byte *)havok_object_get(local_18);
    byte *local_25 = (byte *)g_4e3b44[*(long *)local_24 & 0xffff].data;
-   local_23 = !(bool)((local_25[2] >> 5) & 1);
+   local_23 = !TEST_FIELD_BIT(((s_1d96d7 *)local_25)->field_3);
   }
   if (!local_21 && local_23 && (local_15 == NONE || local_20 > local_14))
   {
@@ -162,7 +178,7 @@ void function_1d96d0(long arg_0)
   if (local_32 != NONE)
   {
    s_havok_component *local_33 = havok_component_get(local_32);
-   real local_34 = function_1d96d3(&local_33->rigid_bodies.data[0].linear_velocity);
+   real local_34 = function_1d96d6(&local_33->rigid_bodies.data[0].linear_velocity);
    if (g_510c54->game_time - local_33->unknown10 < function_1d96d4())
     local_34 += local_33->unknown14;
    if (local_34 > local_10)
@@ -175,7 +191,7 @@ void function_1d96d0(long arg_0)
    }
   }
  }
- if ((local_13 >= 0.001f || local_14 >= 0.0f) && !(bool)((local_4[0x10a] >> 2) & 1))
+ if ((local_13 >= 0.001f || local_14 >= 0.0f) && !TEST_FIELD_BIT(((s_1d96d8 *)local_4)->field_10b))
  {
   long local_36 = *(long *)(local_5 + 0x38);
   if (local_36 != NONE && *(long *)((byte *)g_4e3b44[local_36 & 0xffff].data + 0x60) > 0)
@@ -217,6 +233,6 @@ void function_1d96d0(long arg_0)
   function_184060(local_3[local_46].instance_index, (byte)local_3[local_46].material_index,
    (s_type_1e6529 *)&local_3[local_46], local_3[local_46].surface_index);
  for (long local_47 = 0; local_47 < local_8; ++local_47)
-  function_1da6d0(local_9[local_47].field_20, local_9[local_47].field_c,
+  function_1da6d0(local_9[local_47].field_c, local_9[local_47].field_20,
    local_9[local_47].field_28, local_9[local_47].field_24, local_9[local_47].field_10);
 }

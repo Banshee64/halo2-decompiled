@@ -229,8 +229,11 @@ long function_1d3880(s_havok_component const *component, long *constraints, long
 {
 	*constraints = component->unknown88.size * sizeof(s_havok_component_element48);
 	*contacts = (component->unknown7c.capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element0c);
-	long capacity = component->unknown94 ? component->unknown94->capacity_and_flags : 0;
-	*other = (capacity & 0x7fffffff) * sizeof(s_havok_component_element08);
+	s_havok_array08 *local_0 = component->unknown94;
+	long capacity = (long)local_0;
+	if (local_0)
+		capacity = local_0->capacity_and_flags & 0x7fffffff;
+	*other = capacity * sizeof(s_havok_component_element08);
 	*bodies = (component->rigid_bodies.capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_rigid_body);
 	for (long i = 0; i < component->rigid_bodies.size; i++)
 	{
@@ -1005,8 +1008,19 @@ void havok_component_rigid_body_state_update(long rigid_body_index, s_havok_comp
 	vector3f angular_velocity;
 
 	havok_component_rigid_body_position_get(rigid_body_index, component, &position);
-	rigid_body_linear_velocity_get(rigid_body_index, component, &linear_velocity);
-	rigid_body_angular_velocity_get(rigid_body_index, component, &angular_velocity);
+	hkRigidBody *local_0 = havok_component_rigid_body_get(rigid_body_index, component);
+	bool local_1 = local_0->m_fixed;
+	if (!local_1)
+		vector3d_from_havok(&linear_velocity, &local_0->m_motion->m_linear_velocity);
+	else
+		linear_velocity = *g_4687a4;
+	vector3f const *local_2 = g_4687a4;
+	long const volatile *local_3 = (long const volatile *)local_2;
+	((long *)&angular_velocity)[0] = local_3[0];
+	((long *)&angular_velocity)[1] = local_3[1];
+	((long *)&angular_velocity)[2] = local_3[2];
+	if (!local_1)
+		vector3d_from_havok(&angular_velocity, &local_0->m_motion->m_angular_velocity);
 	rigid_body->position = position;
 	rigid_body->linear_velocity = linear_velocity;
 	rigid_body->angular_velocity = angular_velocity;

@@ -73,8 +73,8 @@ void random_vector_in_cone(vector3f const *forward, vector3f *result, dword *see
 			real c = (real)cos(angle);
 
 			real dot = result->k * axis.k + result->j * axis.j + result->i * axis.i;
-			real t = dot * (1.0f - c);
 			real x = result->i;
+			real t = dot * (1.0f - c);
 			real y = result->j;
 			real z = result->k;
 

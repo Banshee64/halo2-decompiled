@@ -354,7 +354,7 @@ bool unit_has_weapon_definition(long unit_index, long definition_index);
 bool __stdcall function_cd0c0(long unit_index, long weapon_index, short mode);
 void function_10cd50(long weapon_index);
 bool unit_action_active(long unit_index, long action_type);
-bool function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
+byte function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
 bool function_100880(long weapon_index, long magazine_index);
 void function_c98a0(point2f const *direction, long unit_index, long type, short value);
 bool function_10f930(long object_index, real time, bool from_end);

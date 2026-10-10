@@ -5712,7 +5712,7 @@ void __stdcall function_2a60a0(short function_index, long thread_index, bool ini
 
 s_type_f4462a const g_44cbc8 = { _hs_type_void, 0, function_2a60a0, NULL, 1, { _hs_type_ai } };
 
-bool function_f5dc0(long object_index);
+__declspec(noinline) bool function_f5dc0(long object_index);
 
 /* 350: boolean (vehicle) */
 // @retail 0x2a60f0

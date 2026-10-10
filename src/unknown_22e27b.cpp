@@ -14,7 +14,7 @@
 void unicode_string_copy(word *destination, const word *source, long maximum_count);
 void function_22d2ee(word *string, long maximum_length);
 void function_13ed90(long font);
-void function_2360c3(short_rectangle2d const *bounds, point3f *point);
+void function_2360c3(point3f *point, short_rectangle2d const *bounds);
 void function_13e9c0(word const *text, short_rectangle2d const *bounds,
 	short_rectangle2d *a, short_rectangle2d *b, real scale);
 
@@ -46,8 +46,8 @@ void function_22d13d(c_class_22cc8e *text, short_rectangle2d const *bounds,
 	last.y = (real)bounds->bottom;
 	last.z = depth;
 	long width = bounds->right - bounds->left;
-	function_2360c3(screen, &first);
-	function_2360c3(screen, &last);
+	function_2360c3(&first, screen);
+	function_2360c3(&last, screen);
 	short_rectangle2d projected, measured;
 	projected.top = (short)first.y;
 	long left = (long)first.x;
@@ -1425,7 +1425,7 @@ struct s_text_cursor_settings
 struct s_type_954545;
 s_type_954545 *function_148350(void);
 word *unicode_string_upper(word *string, long maximum_count);
-void function_13eb20(short count, short const *tab_stops);
+void function_13eb20(short const *tab_stops, short count);
 void function_13ec70(color4f const *color);
 void function_13ed50(color4f const *color);
 bool function_13ee20(word const *string, long font);
@@ -1459,12 +1459,13 @@ void function_22cd48(c_class_22cc8e *text, short_rectangle2d const *bounds,
 		s_text_cursor_settings *settings = (s_text_cursor_settings *)function_148350();
 		word cursor_character = settings ? settings->character : 0xdb;
 		unicode_string_copy(buffer, string, 0x400);
-		if (text->cursor >= 0)
+		short const cursor_position = text->cursor;
+		if (cursor_position >= 0)
 		{
 			dword time = g_54d5b8;
 			long cursor = 0x3fe;
-			if (text->cursor <= (short)cursor)
-				cursor = text->cursor;
+			if (cursor_position <= (short)cursor)
+				cursor = cursor_position;
 			buffer[(short)cursor] = cursor_character;
 			buffer[(short)cursor + 1] = 0;
 			text->cursor = (short)cursor;
@@ -1516,8 +1517,8 @@ void function_22cd48(c_class_22cc8e *text, short_rectangle2d const *bounds,
 		last.x = bounds->right;
 		last.y = bounds->bottom;
 		last.z = depth;
-		function_2360c3(screen, &first);
-		function_2360c3(screen, &last);
+		function_2360c3(&first, screen);
+		function_2360c3(&last, screen);
 		short_rectangle2d projected;
 		projected.left = (short)first.x;
 		projected.top = (short)first.y;
@@ -1532,8 +1533,8 @@ void function_22cd48(c_class_22cc8e *text, short_rectangle2d const *bounds,
 			last.x = clip->right;
 			last.y = clip->bottom;
 			last.z = depth;
-			function_2360c3(screen, &first);
-			function_2360c3(screen, &last);
+			function_2360c3(&first, screen);
+			function_2360c3(&last, screen);
 			projected_clip.left = (short)first.x;
 			projected_clip.top = (short)first.y;
 			projected_clip.right = (short)last.x;
@@ -1548,7 +1549,7 @@ void function_22cd48(c_class_22cc8e *text, short_rectangle2d const *bounds,
 		{
 			for (long i = 0; i < text->value38; i++)
 				tab_stops[i] = ((short *)text->unknown28)[i] + projected.left;
-			function_13eb20((short)text->value38, tab_stops);
+			function_13eb20(tab_stops, (short)text->value38);
 		}
 		else
 		{

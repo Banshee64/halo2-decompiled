@@ -11,7 +11,7 @@ real function_30bf0(vector3f *v);
 bool function_11eed0(
 	real *velocity,
 	real *position,
-	real dt,
+	volatile real dt,
 	bool wrap,
 	real target,
 	real a,

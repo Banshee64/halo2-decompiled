@@ -711,8 +711,6 @@ void function_1628f0(long player_index, char state)
 	if (g_4e6948->mode != 4)
 	{
 		long previous = info->state;
-		real ticks;
-		long ticks_long;
 
 		if (state == 0)
 		{
@@ -723,13 +721,14 @@ void function_1628f0(long player_index, char state)
 		else if (info->state == 0)
 		{
 			info->state = state;
-			ticks = g_510c54->field_2_3 * 0.5f;
+			real duration_0 = g_510c54->field_2_3 * 0.5f;
+			long converted_0;
 			__asm
 			{
-				fld ticks
-				fistp ticks_long
+				fld duration_0
+				fistp converted_0
 			}
-			info->state_ticks = (byte)ticks_long;
+			info->state_ticks = (byte)converted_0;
 		}
 		else if (state != info->state)
 		{
@@ -744,13 +743,14 @@ void function_1628f0(long player_index, char state)
 					if (info->state != 3)
 					{
 						info->state = info->next_state;
-						ticks = g_510c54->field_2_3 * 0.5f;
+						real duration_1 = g_510c54->field_2_3 * 0.5f;
+			long converted_1;
 						__asm
 						{
-							fld ticks
-							fistp ticks_long
+							fld duration_1
+							fistp converted_1
 						}
-						info->state_ticks = (byte)ticks_long;
+						info->state_ticks = (byte)converted_1;
 					}
 					info->next_state = state;
 				}
@@ -758,13 +758,14 @@ void function_1628f0(long player_index, char state)
 		}
 		else if (state == 3 || info->next_state != 3)
 		{
-			ticks = g_510c54->field_2_3 * 0.5f;
+			real duration_2 = g_510c54->field_2_3 * 0.5f;
+			long converted_2;
 			__asm
 			{
-				fld ticks
-				fistp ticks_long
+				fld duration_2
+				fistp converted_2
 			}
-			info->state_ticks = (byte)ticks_long;
+			info->state_ticks = (byte)converted_2;
 		}
 		if (previous != info->state && game_engine_get())
 		{

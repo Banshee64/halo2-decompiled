@@ -605,7 +605,7 @@ static inline bool cluster_sphere_accept_ab(long object, s_object_cluster_refere
 // @retail 0xbb050
 short __stdcall function_bb050(long mask, dword type_mask, void const *location, point3f const *position, real radius, long *objects, short maximum_count)
 {
-    short count = 0;
+    short volatile count = 0;
     if (!type_mask) type_mask = 0xffffffff;
     if (!mask) mask = NONE;
     short cluster = *(short *)((byte const *)location + 4);
@@ -983,3 +983,62 @@ transform4x3f const *__stdcall function_bd610(long object_index, byte const *nod
 }
 
 #endif
+
+#include <math.h>
+// @retail 0xbc070
+void __stdcall function_bc070(real a, real b, real c, real d, real e)
+{
+    (void)&a; (void)&b; (void)&c; (void)&d; (void)&e;
+    volatile real *state = (volatile real *)g_4de2f4;
+    real horizontal = a * 0.01745329238474369f;
+    real vertical = b * 0.01745329238474369f;
+    state[0x60 / 4] = (real)(cos(horizontal) * cos(vertical));
+    state[0x64 / 4] = (real)(sin(horizontal) * cos(vertical));
+    state[0x68 / 4] = (real)sin(vertical);
+    state[0x60 / 4] = 0.0f - state[0x60 / 4];
+    state[0x64 / 4] = 0.0f - state[0x64 / 4];
+    state[0x68 / 4] = 0.0f - state[0x68 / 4];
+    state[0x54 / 4] = c;
+    state[0x58 / 4] = d;
+    state[0x5c / 4] = e;
+}
+
+
+// @retail 0xbbfc0
+void __stdcall function_bbfc0(real a, real b, real c, real d, real e)
+{
+    (void)&a; (void)&b; (void)&c; (void)&d; (void)&e;
+    volatile real *state = (volatile real *)g_4de2f4;
+    real horizontal = a * 0.01745329238474369f;
+    real vertical = b * 0.01745329238474369f;
+    state[0x48 / 4] = (real)(cos(horizontal) * cos(vertical));
+    state[0x4c / 4] = (real)(sin(horizontal) * cos(vertical));
+    state[0x50 / 4] = (real)sin(vertical);
+    state[0x48 / 4] = 0.0f - state[0x48 / 4];
+    state[0x4c / 4] = 0.0f - state[0x4c / 4];
+    state[0x50 / 4] = 0.0f - state[0x50 / 4];
+    state[0x3c / 4] = c;
+    state[0x40 / 4] = d;
+    state[0x44 / 4] = e;
+    *(vector3f *)((byte *)state + 0x28) = *(vector3f *)((byte *)state + 0x48);
+    state[0x34 / 4] = 0.8f;
+    state[0x38 / 4] = 0.8f;
+    *(volatile short *)((byte *)state + 0x6c) = NONE;
+}
+
+void function_1c4b00(long object_index, void *linear, void *angular, long force);
+void __stdcall function_b9b90(long object_index, bool disabled);
+// @retail 0xb77d0
+void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity)
+{
+    vector3f const *volatile *angular_reference = &angular_velocity;
+    function_b7740(object_index, linear_velocity, *angular_reference, false);
+    function_1c4b00(object_index, (void *)linear_velocity, (void *)*angular_reference, 1);
+    if ((*angular_reference && (*angular_reference)->i * (*angular_reference)->i + (*angular_reference)->j * (*angular_reference)->j + (*angular_reference)->k * (*angular_reference)->k > 0.0001f) ||
+        (linear_velocity && linear_velocity->i * linear_velocity->i + linear_velocity->j * linear_velocity->j + linear_velocity->k * linear_velocity->k > 0.0001f))
+    {
+        function_b9b90(object_index, false);
+        function_b7360(object_index);
+        function_bba20(object_index);
+    }
+}

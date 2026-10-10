@@ -132,9 +132,20 @@ bool game_engine_globals_read_update(c_game_engine_entity_definition const *defi
 		update->field_c_4 = (byte)function_1959c0(stream, 2);
 		mask |= 2;
 	}
-	if (stream_read_bit(stream))
+	long end = stream->size_in_bytes << 3;
+	long position = stream->bit_position;
+	bool present = false;
+	if (position <= end)
+		present = (stream->data[position / 8] & (1 << (position % 8))) != 0;
+	stream->bit_position = position + 1;
+	if (present)
 	{
-		update->game_finished = stream_read_bit(stream);
+		position = stream->bit_position;
+		bool finished = false;
+		if (position <= end)
+			finished = (stream->data[position / 8] & (1 << (position % 8))) != 0;
+		stream->bit_position = position + 1;
+		update->game_finished = finished;
 		mask |= 4;
 	}
 	if (stream_read_bit(stream))

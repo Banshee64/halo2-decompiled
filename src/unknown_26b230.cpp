@@ -68,7 +68,7 @@ void function_26b290(long clump_index)
 	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
 	real a[13];
 	real b[13];
-	long object_index = clump->first_object;
+	volatile long object_index = clump->first_object;
 	long i;
 
 	for (i = 0; i < 13; i++)

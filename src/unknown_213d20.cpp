@@ -58,6 +58,8 @@ enum
 	_map_location_copied
 };
 
+__declspec(noinline) void cache_copy_hurry(void);
+
 // @retail 0x214d40
 void map_name_from_path(char const *path, char *name)
 {

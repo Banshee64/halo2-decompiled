@@ -376,7 +376,7 @@ void function_b3200(void)
 					entry[0x44] = true;
 					s_qos_result *result = (s_qos_result *)(entry + 0x4c);
 					entry[0x45] = qos_target_result(g_4d8ef4, result, i);
-					if (result->data && function_7c530(result->data, result->data_size, description))
+					if (entry[0x45] && result->data_size > 0 && function_7c530(result->data, result->data_size, description))
 					{
 						memcpy(entry + 0x70, description, sizeof(description));
 						entry[0x6c] = true;

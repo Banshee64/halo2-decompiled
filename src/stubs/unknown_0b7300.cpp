@@ -14,5 +14,4 @@ void __stdcall function_b87b0(long object_index) { }
 void function_bf0f0(s_type_4f0dcc const *datum, long type, long index, s_scenario_block *palette, bool a, bool b) { }
 
 
-// @stub 0xc2d00
-void __stdcall function_c2d00(long light_index) { }
+

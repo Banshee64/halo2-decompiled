@@ -78,8 +78,9 @@ PRIVATE inline void carrier_point_velocity(point3f const *center, vector3f const
 	result->k = linear->k + result->k;
 }
 
-// @retail 0x109a00
-bool function_109a00(long object_index, vector3f *delta, bool rotate, vector3f *velocity)
+bool function_109a00(long object_index, vector3f *delta, bool rotate, vector3f *velocity);
+
+static __forceinline bool carried_object_motion_apply(long object_index, vector3f *delta, bool rotate, vector3f *velocity)
 {
 	s_carried_object_header *headers = (s_carried_object_header *)g_4e0300->data;
 	s_carried_object *object = headers[object_index & 0xffff].object;
@@ -133,9 +134,9 @@ bool function_109a00(long object_index, vector3f *delta, bool rotate, vector3f *
 							object->velocity.i += change.i;
 							object->velocity.j += change.j;
 							object->velocity.k += change.k;
-							delta->i = -change.i;
-							delta->j = -change.j;
-							delta->k = -change.k;
+							delta->i = change.i * -1.0f;
+							delta->j = change.j * -1.0f;
+							delta->k = change.k * -1.0f;
 						}
 						result = true;
 					}
@@ -145,6 +146,12 @@ bool function_109a00(long object_index, vector3f *delta, bool rotate, vector3f *
 		}
 	}
 	return result;
+}
+
+// @retail 0x109a00
+bool function_109a00(long object_index, vector3f *delta, bool rotate, vector3f *velocity)
+{
+	return carried_object_motion_apply(object_index, delta, rotate, velocity);
 }
 
 struct s_carrier_search_view

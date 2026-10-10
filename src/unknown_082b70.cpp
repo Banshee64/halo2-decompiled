@@ -304,31 +304,7 @@ void function_823d0(s_weapon_activity_result *output, const byte *input, long ob
 
 #include <math.h>
 
-// @retail 0x824d0
-void function_824d0(const byte *input, s_weapon_activity_result *output, long object_index)
-{
- byte *object = (byte *)object_get_082b70(object_index);
- byte *result = (byte *)output;
- memset(output, 0, 0x34);
- real x = *(const real *)(input + 0x34);
- real y = *(const real *)(input + 0x38);
- real z = *(const real *)(input + 0x3c);
- *(real *)result = (real)atan2(y, x);
- *(real *)(result + 4) = (real)atan2(z, sqrt(x * x + y * y));
- if (*(real *)result < 0.0f)
-  *(real *)result += 6.2831855f;
- *(long *)(result + 8) = *(const long *)(input + 0x14);
- *(long *)(result + 0xc) = *(const long *)(input + 0x18);
- if (*(const dword *)(input + 0x10) & 1) *(word *)(result + 0x10) |= 1; else result[0x10] &= ~1;
- if (*(const dword *)(input + 0x10) & 2) *(word *)(result + 0x10) |= 2; else result[0x10] &= ~2;
- if (*(const dword *)(input + 0x10) & 0x800) result[0x10] |= 4; else result[0x10] &= ~4;
- if (*(const dword *)(input + 0x10) & 0x4000) result[0x10] |= 8; else result[0x10] &= ~8;
- *(long *)(result + 0x12) = *(long *)(object + 0x210);
- if (*(const short *)(input + 6) == *(short *)(result + 0x12))
-  *(long *)(result + 0x12) = *(const long *)(input + 6);
- *(short *)(result + 0x16) = *(const short *)(input + 0xc);
- function_82d20(object_index, (s_object_relevance_source *)(input + 0x58), output);
-}
+void function_824d0(const byte *input, s_weapon_activity_result *output, long object_index);
 
 struct s_player_action;
 void player_action_initialize(s_player_action *action);

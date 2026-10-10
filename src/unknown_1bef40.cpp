@@ -116,16 +116,28 @@ short __stdcall function_1bef40(long actor_index)
 	return result;
 }
 
+PRIVATE __forceinline void function_1befd1(long arg_0)
+{
+    s_actor_view *local_0 = actor_get(arg_0);
+    *(bool volatile *)&local_0->unknown50c = false;
+    *(short volatile *)&local_0->unknown5b4 = 0;
+    *(short volatile *)&local_0->unknown5b6 = 0;
+    *(long volatile *)&local_0->unknown5ac = NONE;
+    *(short volatile *)&local_0->unknown5b0 = NONE;
+    local_0->unknown4ac = 0;
+    local_0->unknown504 = 0;
+}
+
 // @retail 0x1befd0
 bool __stdcall function_1befd0(long actor_index, s_slot *slot)
 {
 	s_slot_0a *state = (s_slot_0a *)slot;
-	real delay = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 3.0f, 5.0f);
-	real wait = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 0.0f, 0.5f);
+	double delay = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 3.0f, 5.0f);
+	double wait = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 0.0f, 0.5f);
 	real ticks;
 	long rounded;
 
-	actor_reset_state(actor_index);
+	function_1befd1(actor_index);
 	state->reference = g_470fa0;
 
 	ticks = g_510c54->field_2_3 * delay;
@@ -227,7 +239,7 @@ bool function_1bf3f0(long other_index, long actor_index, short type)
 			prop_node_get(actor->prop_index)->unknown08 == prop_node_get(other_prop_index)->unknown08 &&
 			function_1a6fe0(other_index, type) != NONE)
 		{
-			return true;
+			result = true;
 		}
 	}
 	return result;

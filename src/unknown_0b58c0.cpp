@@ -106,14 +106,15 @@ void function_b5920(long identifier)
 	if (state == 4 || state == 5)
 	{
 		s_world_pool *pool = &world->data->pool;
+		s_world_state *saved_state = pool->state;
 		long index = identifier & 0x3ff;
-		byte flags = *(byte *)&pool->state->entries[index];
+		byte flags = *(byte *)&saved_state->entries[index];
 		s_world_slot *slot = &pool->slots[index];
 		*((byte *)slot + 6) = 0;
 		*(long *)((byte *)slot + 8) = NONE;
 		if (flags & 4)
 		{
-			s_world_state *peers = pool->state;
+			s_world_state *peers = saved_state;
 			byte current_flags = *(byte *)&peers->entries[index];
 			if (current_flags & 8)
 				replication_table_update_chain((s_handle_peers *)peers, identifier);
@@ -248,7 +249,10 @@ long function_b5990(long tag_index, bool flag)
     {
     case 0: result = 9; break;
     case 1: result = flag ? 12 : 15; break;
-    case 2: if (flag) result = 14; break;
+    case 2:
+        if (!flag) return result;
+        result = 14;
+        break;
     case 3: result = 10; break;
     case 4: result = 10; break;
     case 5: result = 13; break;

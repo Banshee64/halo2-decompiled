@@ -198,6 +198,12 @@ long function_10f720(long object_index, bool first)
 }
 #define GRAPH_GET(index) ((s_graph_tag *)g_4e3b44[(index) & 0xffff].bytes)
 
+static __forceinline void named_animation_copy(c_type_709360 *out, s_graph_tag *graph, long name)
+{
+	c_type_709360 value = function_1dd0b0(graph, name);
+	memcpy(out, &value, sizeof(value));
+}
+
 // @retail 0x10dbc0
 void function_10dbc0(long object_index)
 {
@@ -206,8 +212,8 @@ void function_10dbc0(long object_index)
 	s_object_state_33e *state = OBJECT_STATE_33E(object);
 
 	memset(&state->transition, 0, sizeof(state->transition));
-	state->transition.animation_34 = function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), 0x8000145);
-	state->transition.animation_30 = function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), 0xc00024d);
+	named_animation_copy(&state->transition.animation_34, GRAPH_GET(animation_state->graph_tag_index), 0x8000145);
+	named_animation_copy(&state->transition.animation_30, GRAPH_GET(animation_state->graph_tag_index), 0xc00024d);
 	state->transition.value_40 = 0.0f;
 	state->transition.value_38 = NONE;
 }

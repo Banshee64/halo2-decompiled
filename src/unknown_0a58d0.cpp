@@ -14,7 +14,7 @@ void *function_122c10(long group_tag, long tag_index);
 void function_11df60(vector3f const *rotation, vector3f *forward, vector3f *up);
 
 // Retail 0xa6660; the active stub remains in unknown_09a9f0.cpp.
-void function_a6660(s_entity_info const *info, s_bitstream *stream)
+void __stdcall function_a6660(s_entity_info const *info, s_bitstream *stream)
 {
 	scenario_object_name_encode(info->definition_index, stream);
 	stream_write_bit(stream, info->field0 != NONE);
@@ -818,7 +818,7 @@ bool function_a6d50(long flags_address, long state_address, s_bitstream *stream)
 {
  s_bitstream *const *stream_reference = &stream;
  stream = *stream_reference;
- bool result = true;
+ volatile bool result = true;
  long *flags = (long *)flags_address;
  byte *state = (byte *)state_address;
  if (function_1957d0(stream))
@@ -834,7 +834,7 @@ bool function_a6d50(long flags_address, long state_address, s_bitstream *stream)
  }
  if (function_1957d0(stream))
  {
-  function_195240(stream, (vector3f *)(state + 0xc), (vector3f *)(state + 0x18));
+  function_195240(stream, (vector3f *)(state + 0x18), (vector3f *)(state + 0xc));
   *flags |= 4;
   result = result && function_a74c0((vector3f *)(state + 0xc), (vector3f *)(state + 0x18));
  }
@@ -948,7 +948,7 @@ void __stdcall function_a7870(long index)
 #include "flags_writer.h"
 void simulation_write_position(long bits, s_bitstream *stream, real const *position, bool keep_inside);
 void function_194830(s_bitstream *stream, bool value);
-void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f const *up);
+void function_194d30(s_bitstream *stream, vector3f const *up, vector3f const *forward);
 void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real hi, long bits);
 void function_1947e0(s_bitstream *stream, dword value, long bits);
 
@@ -979,10 +979,13 @@ bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
   function_194830(stream, *(bool const *)(state + 0x4d));
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 1, "position-exists"))
-  simulation_write_position(16, stream, (real const *)state, (byte)a != 0 || f);
+ {
+  long absolute = (byte)a != 0 || f;
+  simulation_write_position(16, stream, (real const *)state, absolute != 0);
+ }
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 2, "forward-and-up-exists"))
-  function_194d30(stream, (vector3f const *)(state + 0xc), (vector3f const *)(state + 0x18));
+  function_194d30(stream, (vector3f const *)(state + 0x18), (vector3f const *)(state + 0xc));
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 3, "scale-exists"))
   z_encode_state_scalar(stream, *(real const *)(state + 0x24), 0.0f, 12.699999809265137f, 7);
@@ -1008,7 +1011,7 @@ bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
  if (flags_writer_begin(&writer, 8, "region-state-exists"))
  {
   stream_write_checked(stream, state[0x50], 4);
-  for (long i = 0; i < 16; ++i) stream_write_checked(stream, state[0x51 + i], 3);
+  for (long volatile i = 0; i < 16; ++i) stream_write_checked(stream, state[0x51 + i], 3);
  }
  flags_writer_end(&writer);
  if (flags_writer_begin(&writer, 9, "constraint-state-exists"))
@@ -1034,19 +1037,18 @@ matrix3x3 *function_141e10(matrix3x3 *out, quaternionf const *q);
 
 PRIVATE inline void z_orientation_matrix(vector3f const *forward, vector3f const *up, matrix3x3 *matrix)
 {
+ matrix->forward = *forward;
+ matrix->up = *up;
  matrix->left.i = up->j * forward->k - forward->j * up->k;
  matrix->left.j = forward->i * up->k - forward->k * up->i;
  matrix->left.k = up->i * forward->j - forward->i * up->j;
- matrix->forward = *forward;
- matrix->up = *up;
 }
 
 // @retail 0xa9b40
 void function_a9b40(long index, s_z_copy_state *state)
 {
  byte *object = (byte *)((s_object_header *)g_4e0300->data)[index & 0xffff].object;
- real saved_angle = 0.0f;
- real current_angle = 0.0f;
+ struct { real a, b; } local_saved_angle_current_angle_record = { 0.0f, 0.0f };
  matrix3x3 saved_matrix, current_matrix;
  quaternionf saved_rotation, current_rotation, blended;
  vector3f axis;
@@ -1058,9 +1060,9 @@ void function_a9b40(long index, s_z_copy_state *state)
  z_orientation_matrix(current_forward, current_up, &current_matrix);
  function_141f60(&saved_matrix, &saved_rotation);
  function_141f60(&current_matrix, &current_rotation);
- function_11d790(&saved_rotation, &axis, &saved_angle);
- function_11d790(&current_rotation, &axis, &current_angle);
- if (current_angle - saved_angle > 0.0001f)
+ function_11d790(&saved_rotation, &axis, &local_saved_angle_current_angle_record.a);
+ function_11d790(&current_rotation, &axis, &local_saved_angle_current_angle_record.b);
+ if (local_saved_angle_current_angle_record.b - local_saved_angle_current_angle_record.a > 0.0001f)
  {
   real weight = 0.35f;
   real dot = current_rotation.w * saved_rotation.w + current_rotation.k * saved_rotation.k +

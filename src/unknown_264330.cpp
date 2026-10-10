@@ -13,7 +13,7 @@ bool function_1df560(short team, short other_team);
 void function_25b910(long actor_index, long prop_ref_index);
 point3f *function_b9dd0(long object_index, point3f *position);
 real function_30bf0(vector3f *vector);
-long function_264260(vector3f const *facing, vector3f const *direction, real distance);
+long function_264260(vector3f const *direction, vector3f const *facing, real distance);
 short ai_player_index_get(long player_index);
 void function_268c60(long actor_index);
 long function_25d810(long object_index, long actor_index, bool create);
@@ -90,7 +90,7 @@ void function_264940(long actor_index, long prop_ref_index)
 		direction.k = position.z - *(real *)(actor + 0x240);
 		if (function_30bf0(&direction) == 0.0f)
 			direction = *g_4687a8;
-		short category = (short)function_264260(&facing, &direction, *(real *)(reference + 0x28));
+		short category = (short)function_264260(&direction, &facing, *(real *)(reference + 0x28));
 		if (!prop[0x31])
 		{
 			if (category <= 2)
@@ -171,8 +171,12 @@ void __stdcall function_264330(long actor_index, long prop_ref_index, s_2641c0 *
 		function_25ccd0(state, reference->object_index, reference->unknown1c, motion);
 	}
 	state = function_25d690(reference);
-	if (view)
-	{
+	if (!(view)) {
+		real x = state->position.x - context->field_c.x;
+		real y = state->position.y - context->field_c.y;
+		real z = state->position.z - context->field_c.z;
+		reference->unknown28 = (real)sqrt(z * z + y * y + x * x);
+	} else {
 		vector3f *direction = (vector3f *)((byte *)view + 0x2c);
 		direction->i = state->position.x - context->field_c.x;
 		direction->j = state->position.y - context->field_c.y;
@@ -210,15 +214,8 @@ void __stdcall function_264330(long actor_index, long prop_ref_index, s_2641c0 *
 			vector3f facing;
 			if (unit) function_cb7e0(reference->object_index, &facing);
 			else facing = *(vector3f *)(object + 0x70);
-			view->unknown39 = (char)function_264260(&facing, direction, reference->unknown28);
+			view->unknown39 = (char)function_264260(direction, &facing, reference->unknown28);
 		}
-	}
-	else
-	{
-		real x = state->position.x - context->field_c.x;
-		real y = state->position.y - context->field_c.y;
-		real z = state->position.z - context->field_c.z;
-		reference->unknown28 = (real)sqrt(z * z + y * y + x * x);
 	}
 	if (state->unknown66)
 	{

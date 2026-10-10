@@ -38,7 +38,7 @@ struct hash_table
 	hash_node *buckets[1];
 };
 
-hash_table *function_13e1a0(const char *name, long data_size, long bucket_count,
+__declspec(noinline) hash_table *function_13e1a0(const char *name, long data_size, long bucket_count,
 	dword (__stdcall *hash_proc)(const void *key), bool (__stdcall *compare_proc)(const void *key_a, const void *key_b),
 	long maximum_count, c_data_allocator *allocator);
 bool function_13e270(hash_table *table, void *key, const void *data);
@@ -150,7 +150,7 @@ static inline s_font_character_header *font_cache_character_get_header(long datu
 	return header;
 }
 
-static inline void async_wait(bool volatile *done)
+static __forceinline void async_wait(bool volatile *done)
 {
 	if (!*done)
 	{
@@ -326,7 +326,7 @@ bool font_cache_character_load_pixels(long datum_index, dword flags)
 			void *pixels = font_cache_pixels_get(character->pixels_index, wait);
 
 			PHYSICAL_BLOCK(character->pixels_index)->time = g_54d580->time;
-			return pixels != NULL;
+			result = pixels != NULL;
 		}
 	}
 
@@ -647,6 +647,14 @@ PRIVATE bool __stdcall font_cache_compare(const void *key_a, const void *key_b)
 PRIVATE void __stdcall font_cache_pixels_delete(long pixels_index);
 PRIVATE bool __stdcall font_cache_pixels_locked(long pixels_index);
 
+static __forceinline s_physical_object *font_pixels_memory_create(c_data_allocator *allocator)
+{
+    s_physical_object *physical = (s_physical_object *)allocator->allocate(0x30fc);
+    function_13d170(physical, "font pixel data", 0x780, 4, 0x200,
+        font_cache_pixels_delete, font_cache_pixels_locked, 0, allocator);
+    return physical;
+}
+
 // @retail 0x1410d0
 void font_cache_pixels_initialize(void)
 {
@@ -660,9 +668,7 @@ void font_cache_pixels_initialize(void)
 
 	g_54d57c = data_new_inlined("font pixel data", 0x200, sizeof(s_font_pixels), 0, g_468758);
 
-	s_physical_object *physical = (s_physical_object *)g_468758->allocate(0x30fc);
-	function_13d170(physical, "font pixel data", 0x780, 4, 0x200,
-		font_cache_pixels_delete, font_cache_pixels_locked, 0, g_468758);
+	s_physical_object *physical = font_pixels_memory_create(g_468758);
 	g_54d580 = physical;
 	physical->state = 2;
 
@@ -804,7 +810,8 @@ PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword off
 // @retail 0x1414d0
 bool font_cache_predict_character(s_13eeb1 font_index, s_13eeb1 character)
 {
-	if (font_cache_get_character_header(font_index, character, 2))
+	s_font_character_header *(*get_header)(long, long, dword) = font_cache_get_character_header;
+	if (get_header(font_index, character, 2))
 	{
 		return true;
 	}
