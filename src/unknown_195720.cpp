@@ -119,12 +119,12 @@ real function_194a10(vector3f const *axis, real angle, vector3f *out)
 	*out = a;
 	real c = (real)cos(angle);
 	real k = (axis->i * out->i + axis->k * out->k + axis->j * out->j) * (1.f - c);
-	real x = axis->i * k + out->i * c - (axis->k * out->j - out->k * axis->j) * s;
-	real y = out->j * c + axis->j * k - (out->k * axis->i - axis->k * out->i) * s;
-	real z = out->k * c + axis->k * k - (axis->j * out->i - out->j * axis->i) * s;
-	out->i = x;
-	out->j = y;
-	out->k = z;
+	real cross_j = out->k * axis->i - axis->k * out->i;
+	real cross_k = axis->j * out->i - out->j * axis->i;
+	real cross_i = axis->k * out->j - out->k * axis->j;
+	out->i = axis->i * k + out->i * c - cross_i * s;
+	out->j = out->j * c + axis->j * k - cross_j * s;
+	out->k = out->k * c + axis->k * k - cross_k * s;
 	return function_30bf0(out);
 }
 

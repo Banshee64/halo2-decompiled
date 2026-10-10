@@ -180,7 +180,8 @@ bool function_19cb90(s_marker_pair *pair, long player_index)
 {
 	long const *player_reference = &player_index;
 	s_marker_player *player = (s_marker_player *)(g_4e8c24->data + (*player_reference & 0xffff) * sizeof(s_marker_player));
-	point3f destination = g_4e0350->marker_entries[pair->second].position;
+	s_marker_entry const &selected = g_4e0350->marker_entries[pair->second];
+	point3f destination = selected.position;
 	point3f center;
 	real radius;
 	real height;
@@ -189,13 +190,13 @@ bool function_19cb90(s_marker_pair *pair, long player_index)
 	point3f origin = destination;
 	origin.z += extent;
 	byte shapes_storage[0xb808];
-	if (!function_16a440(0x500038, &origin, extent, height, radius, player->unit_index, NONE, (s_shapes *)shapes_storage))
-		return false;
+	if (function_16a440(0x500038, &origin, extent, height, radius, player->unit_index, NONE, (s_shapes *)shapes_storage))
+	{
 	point3f point = destination;
 	point.z += radius;
 	byte result_storage[0x30];
-	if (!function_245ef0((s_shapes *)shapes_storage, &point, (s_shape_result *)result_storage))
-		return false;
+	if (function_245ef0((s_shapes *)shapes_storage, &point, (s_shape_result *)result_storage))
+	{
 	long object_index = *(long *)result_storage;
 	if (object_index != NONE)
 	{
@@ -212,6 +213,9 @@ bool function_19cb90(s_marker_pair *pair, long player_index)
 		}
 	}
 	return true;
+	}
+	}
+	return false;
 }
 
 void marker_get_position_and_angle(long index, point3f *position, real *angle);

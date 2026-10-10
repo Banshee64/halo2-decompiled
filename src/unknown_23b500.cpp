@@ -463,7 +463,7 @@ struct s_spawn_engine_globals_view
 void function_23b8e0(long player_index, s_spawn_influence_list *list)
 {
     /* Retail passes this parameter on the stack. */
-    long const *player_reference = &player_index;
+    long const volatile *player_reference = &player_index;
 	s_spawn_player_view *player = &((s_spawn_player_view *)g_4e8c24->data)[player_index & 0xffff];
 	s_spawn_player_iterator iterator;
 
@@ -476,20 +476,14 @@ void function_23b8e0(long player_index, s_spawn_influence_list *list)
 		long index = iterator.index;
 		long unit_index = other->unit_index;
 
-		if (unit_index != NONE && index != player_index)
+		if (unit_index != NONE && index != *player_reference)
 		{
 			s_spawn_unit_view *unit = ((s_spawn_object_header_view *)g_4e0300->data)[unit_index & 0xffff].object;
 
 			if (!TEST_FIELD_BIT(unit->dead))
 			{
-				if (other->team == player->team)
-				{
-					function_23ba10(1, list, &unit->position);
-				}
-				else
-				{
-					function_23ba10(0, list, &unit->position);
-				}
+				long influence = other->team == player->team ? 1 : 0;
+				function_23ba10(influence, list, &unit->position);
 			}
 		}
 		else
