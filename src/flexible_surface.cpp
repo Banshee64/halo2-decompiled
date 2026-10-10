@@ -73,6 +73,19 @@ static inline real surface_normalize(vector3f *v)
 	return 0.0f;
 }
 
+static inline real surface_normalize_horizontal(vector3f *v)
+{
+	real length = (real)sqrt(v->i*v->i + v->j*v->j);
+	if (!(fabs(length) < 0.0001f))
+	{
+		real inverse = 1.0f / length;
+		v->i *= inverse; v->j *= inverse;
+	}
+	else
+		length = 0.0f;
+	return length;
+}
+
 void function_ba1d0(long, vector3f *, vector3f *);
 real function_30bf0(vector3f *);
 long function_155760(long);
@@ -270,14 +283,14 @@ void __stdcall function_117790(long index)
 			real rest_length = link->length;
 			vector3f delta = {b->x-a->x, b->y-a->y, b->z-a->z};
 			real squared = delta.k*delta.k + delta.j*delta.j + delta.i*delta.i;
-			long bits = (*(long *)&squared >> 1) + 0x1fc00000;
-			real length = *(real *)&bits;
+			real length;
+			*(long *)&length = (*(long *)&squared >> 1) + 0x1fc00000;
 			if (length < 0.0001f) length = 0.0001f;
 			real inverse = 1.0f / length;
 			delta.i *= inverse; delta.j *= inverse; delta.k *= inverse;
 			real rest_squared = rest_length * rest_length;
-			real correction = (rest_squared / (length*length + rest_squared) - 0.5f) * length;
-			delta.i *= correction; delta.j *= correction; delta.k *= correction;
+			length = (rest_squared / (length*length + rest_squared) - 0.5f) * length;
+			delta.i *= length; delta.j *= length; delta.k *= length;
 			if (!surface_pinned(record, link->a))
 			{
 				a->x -= delta.i; a->y -= delta.j; a->z -= delta.k;
@@ -288,7 +301,7 @@ void __stdcall function_117790(long index)
 				b->x += delta.i; b->y += delta.j; b->z += delta.k;
 				if (surface_pinned(record, link->a)) { b->x += delta.i; b->y += delta.j; b->z += delta.k; }
 			}
-			if (fabs(correction) > 2.0f) { function_118430(index); --iteration; }
+			if (fabs(length) > 2.0f) { function_118430(index); --iteration; }
 		}
 		function_117a80(index);
 	}
@@ -334,20 +347,11 @@ void function_117c80(vector3f const *input, vector3f *output, real angle)
 	real limit = (real)cos(angle);
 	*output = *input;
 	if (fabs(input->k) > limit) output->k = input->k < 0.0f ? -limit : limit;
-	real length;
-	if (fabs(output->i) < 0.01f && fabs(output->j) < 0.01f)
+	if (fabs(output->i) < 0.01f && fabs(output->j) < 0.01f || fabs(surface_normalize_horizontal(output)) < 0.0001f)
 	{
 		output->i = 1.0f; output->j = 0.0f;
 	}
-	else
-	{
-		length = (real)sqrt(output->i*output->i + output->j*output->j);
-		if (!(fabs(length) < 0.0001f)) { real inverse = 1.0f/length; output->i *= inverse; output->j *= inverse; }
-		else length = 0.0f;
-		if (fabs(length) < 0.0001f) { output->i = 1.0f; output->j = 0.0f; }
-	}
-	length = (real)sqrt(output->i*output->i + output->j*output->j);
-	if (!(fabs(length) < 0.0001f)) { real inverse = 1.0f/length; output->i *= inverse; output->j *= inverse; }
+	surface_normalize_horizontal(output);
 	real horizontal = (real)sqrt(1.0f - output->k*output->k);
 	output->i *= horizontal;
 	output->j *= horizontal;
@@ -401,7 +405,8 @@ void function_118140(long index)
 	if (record->speed < 1.5f)
 	{
 		vector3f acceleration = *g_4687a4;
-		acceleration.k += definition->gravity * -3.2086613178253174f / (real)g_510c54->field_2_3 * 0.03125f;
+		real gravity = definition->gravity * -3.2086613178253174f;
+		acceleration.k += gravity / (real)g_510c54->field_2_3 * 0.03125f;
 		real current_weight = 2.0f - definition->damping;
 		real previous_weight = 1.0f - definition->damping;
 		for (long i = 0; i < definition->vertex_count; ++i)
@@ -412,13 +417,16 @@ void function_118140(long index)
 				s_surface_vertex *vertex = &record->vertices[i];
 				point3f position = vertex->position;
 				point3f previous = vertex->previous;
-				position.x = position.x*current_weight - previous.x*previous_weight + acceleration.i;
-				position.y = position.y*current_weight - previous.y*previous_weight + acceleration.j;
-				position.z = position.z*current_weight - previous.z*previous_weight + acceleration.k;
+				position.x *= current_weight; position.y *= current_weight; position.z *= current_weight;
+				previous.x *= previous_weight; previous.y *= previous_weight; previous.z *= previous_weight;
+				position.x = position.x - previous.x + acceleration.i;
+				position.y = position.y - previous.y + acceleration.j;
+				position.z = position.z - previous.z + acceleration.k;
 				real dot = vertex->normal.i*force.i + vertex->normal.k*force.k + vertex->normal.j*force.j;
-				force.i -= (force.i - vertex->normal.i*dot)*definition->tangent_drag;
-				force.j -= (force.j - vertex->normal.j*dot)*definition->tangent_drag;
-				force.k -= (force.k - vertex->normal.k*dot)*definition->tangent_drag;
+				vector3f tangent = { force.i - vertex->normal.i*dot, force.j - vertex->normal.j*dot, force.k - vertex->normal.k*dot };
+				real drag = definition->tangent_drag;
+				tangent.i *= drag; tangent.j *= drag; tangent.k *= drag;
+				force.i -= tangent.i; force.j -= tangent.j; force.k -= tangent.k;
 				vertex->previous = vertex->position;
 				position.x += force.i; position.y += force.j; position.z += force.k;
 				vertex->position = position;
