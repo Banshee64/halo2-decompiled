@@ -8784,6 +8784,8 @@ inline void function_xb8400b(char const *name, real gain, short ticks)
 }
 
 /* 615: void (string, real, short_integer) */
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x2aa2c0
 void __stdcall function_2aa2c0(short function_index, long thread_index, bool initialize)
 {
@@ -8791,10 +8793,14 @@ void __stdcall function_2aa2c0(short function_index, long thread_index, bool ini
 	long *arguments = function_209d50(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_221980((char const *)arguments[0], function_2197f0(*(real *)&arguments[1]), (real)*(short *)&arguments[2] * (1.0f / 30.0f));
+		long gain = function_2197f0(*(real *)&arguments[1]);
+		_ReadWriteBarrier();
+		real duration = (real)*(short *)&arguments[2] * (1.0f / 30.0f);
+		function_221980((char const *)arguments[0], gain, duration);
 		function_209ae0(thread_index, 0);
 	}
 }
+#pragma function(_ReadWriteBarrier)
 
 s_type_f4462a const g_44dfd8 = { _hs_type_void, 0, function_2aa2c0, NULL, 3, { _hs_type_string, _hs_type_real, _hs_type_short_integer } };
 
