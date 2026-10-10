@@ -5488,7 +5488,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0018e470,125,game,speed,a16 pad,,,00320890,src/loop_allocator.cpp,matched
 0018e4f0,107,game,speed,a16 pad,,,003314b0,src/loop_allocator.cpp,matched
 0018e560,154,game,speed,a16 pad,,,003314b0,src/loop_allocator.cpp,matched
-0018e600,139,game,speed,a16 pad,,,003314b0,src/loop_allocator.cpp,near
+0018e600,139,game,speed,a16 pad,,,003314b0,src/loop_allocator.cpp,matched
 0018e690,104,game,speed,a16 pad,,,0018e4f0,src/loop_allocator.cpp,matched
 0018e700,133,game,speed,a16 pad ebp,,,0011c1b0 00137d00 00137da0 0014bac0 0018efa0 0018f000 00320560,src/unknown_18e700.cpp,todo
 0018e790,114,game,speed,a16 pad,,,000593e0 003314b0,src/unknown_18ec20.cpp,matched
