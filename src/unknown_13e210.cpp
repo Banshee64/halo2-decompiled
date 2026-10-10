@@ -43,6 +43,10 @@ void hash_table_initialize(hash_table *table)
 	}
 }
 
+__declspec(noinline) hash_table *function_13e1a0(const char *name, long data_size, long bucket_count,
+	hash_table_hash_proc hash_proc, hash_table_compare_proc compare_proc,
+	long maximum_count, c_data_allocator *allocator);
+
 // @retail 0x13e1a0
 hash_table *function_13e1a0(const char *name, long data_size, long bucket_count,
 	hash_table_hash_proc hash_proc, hash_table_compare_proc compare_proc,

@@ -2331,7 +2331,7 @@ void function_15b3a0(long player_or_team, bool value)
 	s_game_engine_globals *globals = function_xaee93d();
 	long wins = 0;
 	bool const *value_reference = &value;
-	bool finish = *value_reference;
+	bool finish = (byte)*value_reference != 0;
 
 	if (player_or_team != NONE)
 	{

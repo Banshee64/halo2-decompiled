@@ -1293,7 +1293,7 @@ long c_helper_b::v5(long size, void *data)
 struct s_address_table;
 long function_199250(s_address_table *table, byte const *address);
 long function_199290(byte *results);
-char *function_1537a0(byte const *address);
+char *__stdcall function_1537a0(byte const *address);
 
 struct s_rating_summary
 {
