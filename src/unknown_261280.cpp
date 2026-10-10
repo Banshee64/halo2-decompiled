@@ -1015,15 +1015,15 @@ void __stdcall function_261510(long actor_index, s_2605d0_request const *request
  }
  if (parameters[0x618] && (type == 0 || type == 3 || type == 2 || type == 6)) parameters[0x55] = 1;
  long weapon = function_1e1f20(actor_index);
- byte *weapon_definition = NULL;
+ byte *local_67e06b_2 = NULL;
  if (weapon != NONE)
  {
   byte *object = *(byte **)(g_4e0300->data + (weapon & 0xffff) * 12 + 8);
-  weapon_definition = (byte *)function_1e5280(actor_index, *(long *)object);
+  local_67e06b_2 = (byte *)function_1e5280(actor_index, *(long *)object);
  }
- if (weapon_definition)
+ if (local_67e06b_2)
  {
-  vector3f *direction = (vector3f *)(weapon_definition + 0x60);
+  vector3f *direction = (vector3f *)(local_67e06b_2 + 0x60);
   if (direction->i * direction->i + direction->j * direction->j + direction->k * direction->k > 0.0001f)
   {
    parameters[0x5fc] = 1;

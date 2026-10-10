@@ -1111,13 +1111,13 @@ s_projected_polygon_173520 *function_173520(long polygon_index, s_polygon_cache_
 			{
 				long index = (result->state == 1 ? count - 1 : 0) * (long)sizeof(point2f);
 				long volatile step = (result->state == 1 ? -1 : 1) * (long)sizeof(point2f);
-				point3f const *clipped_point = clipped;
-				for (long remaining = count; remaining > 0; --remaining, ++clipped_point, index += step)
+				point3f const *local_cb4759 = clipped;
+				for (long remaining = count; remaining > 0; --remaining, ++local_cb4759, index += step)
 				{
 					point2f *point = (point2f *)((byte *)result->points + index);
-					real inverse = -1.0f / clipped_point->z;
-					point->x = clipped_point->x * inverse;
-					point->y = clipped_point->y * inverse;
+					real inverse = -1.0f / local_cb4759->z;
+					point->x = local_cb4759->x * inverse;
+					point->y = local_cb4759->y * inverse;
 					if (bounds.x0 > point->x)
 						bounds.x0 = point->x;
 					if (point->x > bounds.x1)
@@ -1126,7 +1126,7 @@ s_projected_polygon_173520 *function_173520(long polygon_index, s_polygon_cache_
 						bounds.y0 = point->y;
 					if (point->y > bounds.y1)
 						bounds.y1 = point->y;
-					real distance = 0.0f - clipped_point->z;
+					real distance = 0.0f - local_cb4759->z;
 					result->distance = result->distance > distance ? distance : result->distance;
 				}
 				if (result->state == 3)
