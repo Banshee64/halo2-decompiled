@@ -1496,7 +1496,7 @@ void function_bffa0()
 
 
 // @retail 0xc1720
-long __stdcall function_c1720(long object_index, bool remove_from_partition, bool update)
+long __stdcall function_c1720(long object_index, long remove_from_partition, long update)
 {
     s_record_pool *lights = g_4e030c;
     s_record_pool_iterator iterator;
