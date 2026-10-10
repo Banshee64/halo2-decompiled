@@ -3,8 +3,12 @@ many ways, rebuilds, and keeps the variant with the fewest differing
 instructions (0 = MATCH).
 
 It works on a copy of src/, include/ and config/ in a scratch build root, so
-the repository is never modified unless --write is given, and then only with a
-strictly better variant of the one function.
+the repository is never modified unless --write or --write-only-match is
+given, and then only with a strictly better variant of the one function.
+--write writes the best variant whenever it scores better than the original;
+it may behave differently from the original. --write-only-match writes it only
+when a full build finds that it matches retail exactly, so its bytes are
+retail's: that is the option for unattended runs.
 
 --fast scores each variant on a reduced image instead of the whole program
 (tools/build.py's build(units=...)): the function's own source, and the
@@ -26,11 +30,30 @@ images, reduced and full, as .img files in build/permute/<va>/, one folder per
 scratch root, never as .exe (antivirus software flags the reduced ones), and
 removes them when it ends.
 
-    python tools/permute.py <va> [--tries N] [--seed S] [--time-limit SECONDS] [--write]
-                            [--fast [--jobs N] [--depth N]]
+The default search is greedy: the walk moves to a variant that scores no
+worse, and the search ends when the walk's position has no new variants. Its
+mutations (MUTATIONS) are drawn by WEIGHTS.
+--anneal (with --fast) searches by simulated annealing instead, and adds the
+typed mutations (TYPED_MUTATIONS, weight 1). The walk also takes a worse
+variant, with a probability that falls over the run (exp(-delta / T), T
+from 0.8 to 0.2). It restarts from the best, or from the original, after 30
+tries without a new best, or when its position has no new variants left. It
+applies one mutation at a time, sometimes two to four. It ends at the time
+or try limit, or when restarts find nothing new. Only a variant better than
+the best on the reduced image costs a full build, as before. The typed
+mutations read the types the function's source and headers declare. They
+cover the order of independent statements, a call argument held in a local,
+a field cached in a local or read again, x != 0 against x, early returns, a
+volatile local, integer width and signedness, casts, and do/while. No
+variant is scored twice.
+
+    python tools/permute.py <va> [--tries N] [--seed S] [--time-limit SECONDS]
+                            [--write | --write-only-match]
+                            [--fast [--jobs N] [--depth N] [--anneal]]
 """
 import argparse
 import difflib
+import math
 import os
 import random
 import re
@@ -39,6 +62,7 @@ import sys
 import tempfile
 import threading
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
@@ -969,16 +993,1096 @@ MUTATIONS = [mut_swap_operands, mut_reorder, mut_retype, mut_introduce_temp, mut
 WEIGHTS = {mut_swap_args: 6, mut_reorder: 2, mut_swap_operands: 2}
 
 
-def mutate(body, rng, count=None):
-    """Applies 1 or 2 random mutations; None when none applies."""
+# ------------------------------------------------- typed mutations (--anneal)
+#
+# The rewrites below aim at what tells a near miss from a match under LTCG,
+# besides the ones above: statement order, a value held in a local or read
+# again, a local's width and signedness, comparisons with zero, early
+# returns, a volatile local, loop rotation. Most
+# need types (to declare a local), so they take a Context besides the body:
+# the function's parameters and return type, and the text of its source file
+# and the headers it includes, where structures, globals and callees are
+# declared. Each returns None when it has nothing to rewrite.
+
+KEYWORDS = {'return', 'goto', 'delete', 'else', 'case', 'throw', 'new', 'break', 'continue', 'typedef', 'do', 'if',
+            'while', 'for', 'switch', 'sizeof', 'default', 'using', 'namespace', 'operator', 'template', 'public',
+            'private', 'protected', 'friend', 'extern', 'inline', 'virtual', 'true', 'false'}
+SCALAR_WORDS = {'char', 'byte', 'bool', 'short', 'word', 'long', 'dword', 'int', 'unsigned', 'signed', 'real', 'float',
+                'double'}
+QUALIFIERS = {'const', 'volatile', 'static', 'struct', 'class', 'union', 'enum'}
+TYPE = (r'(?:(?:const|volatile|unsigned|signed|struct|class|union|enum|static)\s+)*'
+        r'[A-Za-z_]\w*(?:::[A-Za-z_]\w*)*(?:\s+(?:long|short|int|char|const|volatile)\b)*')
+POINTERS = r'(?:\s*\*\s*(?:const\b|volatile\b)?)*'
+VARIABLE = re.compile(r'(?P<type>' + TYPE + r')(?P<ptr>' + POINTERS + r')\s*\b(?P<name>[A-Za-z_]\w*)\s*'
+                      r'(?P<array>\[[^\]\n]*\])?\s*(?=[=;,)]|$)')
+DECLARATION = re.compile(r'^[ \t]*' + VARIABLE.pattern, re.M)
+COMPARISONS = {'==', '!=', '<', '>', '<=', '>='}
+ASSIGNMENTS = {'=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>='}
+OPERATORS = ['<<=', '>>=', '->', '&&', '||', '==', '!=', '<=', '>=', '<<', '>>', '+=', '-=', '*=', '/=', '%=', '&=',
+             '|=', '^=', '++', '--', '::', '?', ':', '=', '<', '>', '+', '-', '*', '/', '%', '&', '|', '^', ',', '!',
+             '~', '.']
+LVALUE = r'[A-Za-z_]\w*(?:\s*(?:\.|->)\s*[A-Za-z_]\w*|\s*\[[^\[\]\n]*\])*'
+ASSIGNMENT = re.compile(r'^\s*(?P<lhs>' + LVALUE + r')\s*(?P<op><<|>>|[-+*/%&|^])?=(?!=)(?P<rhs>.*);\s*$')
+MEMBER_CHAIN = re.compile(r'(?<![\w.])(?<!->)(?P<chain>[A-Za-z_]\w*(?:\s*(?:->|\.)\s*[A-Za-z_]\w*)+)(?!\s*(?:\(|\[|->|\.|\w))')
+# integer types by (width, signedness); bool stands apart
+WIDTHS = {'char': (1, 's'), 'signed char': (1, 's'), 'byte': (1, 'u'), 'unsigned char': (1, 'u'), 'bool': (1, 'b'),
+          'short': (2, 's'), 'word': (2, 'u'), 'unsigned short': (2, 'u'), 'long': (4, 's'), 'int': (4, 's'),
+          'dword': (4, 'u'), 'unsigned long': (4, 'u'), 'unsigned int': (4, 'u'), 'unsigned': (4, 'u')}
+WIDTH_NAMES = {(1, 's'): 'char', (1, 'u'): 'byte', (2, 's'): 'short', (2, 'u'): 'word', (4, 's'): 'long',
+               (4, 'u'): 'dword'}
+INT_NAMES = '|'.join(sorted(WIDTHS, key=len, reverse=True))
+INT_DECL = re.compile(r'^(?P<indent>[ \t]*)(?P<pre>(?:(?:const|volatile|static)\s+)*)(?P<type>' + INT_NAMES +
+                      r')(?P<rest>[ \t]+[A-Za-z_]\w*\s*[;=,].*)$')  # not an array, which goes to pointers
+CAST = re.compile(r'(?<![\w)\]])\(\s*(?P<type>' + INT_NAMES + r')\s*(?P<ptr>\**)\s*\)')
+
+
+class Context:
+    """What the typed mutations know beyond the body: the function's parameter
+    list and return type, and text (its source file and the headers that file
+    includes) to look up structure fields, globals and callees in."""
+
+    def __init__(self, params='', returns='', text=''):
+        self.params, self.returns, self.text = params, returns, text
+        self._cache = {}
+
+    def _find(self, key, pattern, accept=lambda m: True):
+        if key not in self._cache:
+            self._cache[key] = next((m for m in re.finditer(pattern, self.text, re.M) if accept(m)), None)
+        return self._cache[key]
+
+    def global_type(self, name):
+        """The declared type of a global variable, or None."""
+        m = self._find(('global', name), r'^[ \t]*(?:(?:extern|static)[ \t]+)*' + VARIABLE.pattern.replace(
+            r'(?P<name>[A-Za-z_]\w*)', re.escape(name)), _declares)
+        return _var_type(m) if m else None
+
+    def function_type(self, name):
+        """The return type of a function declared or defined in the text, or None."""
+        m = self._find(('function', name), r'^[ \t]*(?:(?:extern|static|inline|virtual)[ \t]+)*(?P<type>' + TYPE
+                       + r')(?P<ptr>' + POINTERS + r')\s*(?:__\w+\s+)?\b' + re.escape(name) + r'\s*\(', _declares)
+        return _var_type(m) if m else None
+
+    def field_type(self, struct, field, depth=0):
+        """The type of a structure's field (looked up in its bases too), or None."""
+        key = ('field', struct, field)
+        if key in self._cache:
+            return self._cache[key]
+        found = None
+        for m in re.finditer(r'\b(?:struct|class|union)\s+' + re.escape(struct) + r'\s*(?::\s*(?:public\s+|private\s+|'
+                             r'protected\s+)?(?P<base>[A-Za-z_]\w*)\s*)?\{', self.text):
+            try:
+                close = match_brace(self.text, m.end() - 1)
+            except ValueError:
+                continue
+            f = re.search(r'^[ \t]*(?P<type>' + TYPE + r')(?P<ptr>' + POINTERS + r')\s*\b' + re.escape(field)
+                          + r'\s*(?::\s*\w+\s*)?;', self.text[m.end():close], re.M)
+            if f and f.group('type').split()[0] not in KEYWORDS:
+                found = _var_type(f)
+            elif m.group('base') and depth < 4:
+                found = self.field_type(m.group('base'), field, depth + 1)
+            if found:
+                break
+        self._cache[key] = found
+        return found
+
+    def is_type(self, name):
+        """Whether name (a word) names a type: a scalar, or one the text declares."""
+        if name in SCALAR_WORDS:
+            return True
+        return self._find(('type', name), r'\b(?:struct|class|union|enum)\s+' + re.escape(name) + r'\b|\btypedef\b[^;]*\b'
+                          + re.escape(name) + r'\s*;') is not None
+
+
+def _declares(m):
+    return m.group('type').split()[0] not in KEYWORDS
+
+
+def _open_paren(text, close):
+    """The index of the '(' that matches the ')' at close, or None."""
+    depth = 0
+    for i in range(close, -1, -1):
+        if text[i] == ')':
+            depth += 1
+        elif text[i] == '(':
+            depth -= 1
+            if depth == 0:
+                return i
+    return None
+
+
+def _with_includes(text, root, seen):
+    parts = [text]
+    for name in re.findall(r'^[ \t]*#[ \t]*include[ \t]*"([^"]+)"', text, re.M):
+        for folder in ('include', 'src'):
+            path = os.path.normpath(os.path.join(root, folder, name))
+            if os.path.isfile(path):
+                if path not in seen:
+                    seen.add(path)
+                    with open(path, encoding='utf-8', errors='replace') as f:
+                        parts.append(_with_includes(f.read(), root, seen))
+                break
+    return '\n'.join(parts)
+
+
+def function_context(text, start, root=ROOT):
+    """The Context of the function whose body starts at start in text, the
+    source of a file under root."""
+    head = re.sub(r'\bconst\s*$', '', text[:start - 1].rstrip()).rstrip()
+    params = returns = ''
+    if head.endswith(')'):
+        o = _open_paren(head, len(head) - 1)
+        if o is not None:
+            params = head[o + 1:-1]
+            m = re.match(r'(?P<ret>.*?)[\w:~]+\s*$', head[head.rfind('\n', 0, o) + 1:o])
+            if m:
+                ret = re.sub(r'\b(?:static|inline|virtual|__\w+)\b', ' ', m.group('ret'))
+                returns = _normal(ret.replace('*', ' '), ret.count('*')) if ret.strip() else ''
+    return Context(params, returns, _with_includes(text, root, set()))
+
+
+def _normal(type_, stars=0):
+    """A type's text without qualifiers that do not change it here: 'long', 's_item *'."""
+    words = ' '.join(w for w in type_.split() if w not in QUALIFIERS - {'const'})
+    return words + (' ' + '*' * stars if stars else '')
+
+
+def _pointer(t):
+    return t + ('*' if t.endswith('*') else ' *')
+
+
+def _deref(t):
+    return t[:-1].rstrip() if t and t.endswith('*') else None
+
+
+def _struct_name(t):
+    words = [w for w in t.replace('*', ' ').split() if w not in QUALIFIERS]
+    return words[-1] if words else None
+
+
+def _var_type(m):
+    """The type a match of TYPE and POINTERS (and an optional array) declares."""
+    t = _normal(m.group('type'), m.group('ptr').count('*'))
+    return _pointer(t) if m.groupdict().get('array') else t
+
+
+def _is_declaration(m):
+    return (m.group('type').split()[0] not in KEYWORDS and m.group('type').split()[-1] not in KEYWORDS
+            and m.group('name') not in KEYWORDS)
+
+
+def _decl(t, name):
+    return f'{t}{name}' if t.endswith('*') else f'{t} {name}'
+
+
+def _squash(text):
+    return re.sub(r'\s+', '', text)
+
+
+def _address_taken(text, name):
+    """Whether text takes the address of the variable name (&name, not a && b)."""
+    return re.search(r'(?<!&)&\s*%s\b' % re.escape(name), text) is not None
+
+
+def _parens(expr):
+    """expr, in parentheses unless it is a single operand."""
+    return f'({expr})' if _operators(expr) else expr
+
+
+def _zero_compared(expr):
+    """(x, '==' or '!=') when expr is x == 0 or x != 0, else None."""
+    ops = _operators(expr)
+    if len(ops) == 1 and ops[0][1] in ('==', '!=') and expr[ops[0][0] + 2:].strip() == '0':
+        return expr[:ops[0][0]].strip(), ops[0][1]
+    return None
+
+
+def declared_types(body, context=None):
+    """name -> type of the function's parameters and of the locals the body declares."""
+    found = {}
+    if context is not None and context.params:
+        for a, b in _arg_spans(context.params, 0, len(context.params)):
+            m = VARIABLE.match(context.params[a:b].strip())
+            if m and _is_declaration(m):
+                found[m.group('name')] = _var_type(m)
+    for m in DECLARATION.finditer(body):
+        if _is_declaration(m):
+            found.setdefault(m.group('name'), _var_type(m))
+    return found
+
+
+def _arg_spans(text, start, end):
+    """(start, end) of each comma-separated part of text[start:end] at nesting depth 0."""
+    spans, depth, i, s = [], 0, start, start
+    while i < end:
+        j = _skip_literal(text, i)
+        if j != i:
+            i = j
+            continue
+        c = text[i]
+        if c in '([{':
+            depth += 1
+        elif c in ')]}':
+            depth -= 1
+        elif c == ',' and depth == 0:
+            spans.append((s, i))
+            s = i + 1
+        i += 1
+    spans.append((s, end))
+    return spans
+
+
+def _is_cast(inner):
+    """Whether the text between a pair of parentheses reads as a type (a cast) with no context at hand."""
+    inner = inner.strip()
+    if not re.fullmatch(TYPE + POINTERS, inner):
+        return False
+    words = inner.replace('*', ' ').split()
+    return '*' in inner or words[-1] in SCALAR_WORDS
+
+
+def _operators(text):
+    """(index, operator) of the binary and ternary operators at nesting depth 0
+    of an expression (a '(' that reads as a cast makes the next operator unary)."""
+    out, depth, i, operand = [], 0, 0, False
+    while i < len(text):
+        j = _skip_literal(text, i)
+        if j != i:
+            i, operand = j, True
+            continue
+        c = text[i]
+        if c.isspace():
+            i += 1
+        elif c in '([{':
+            if depth == 0 and c == '(' and not operand:
+                close = _split_top(text, i)
+                if close is not None and _is_cast(text[i + 1:close - 1]):
+                    i, operand = close, False
+                    continue
+            depth += 1
+            i += 1
+            operand = False
+        elif c in ')]}':
+            depth -= 1
+            i += 1
+            operand = True
+        elif c.isalnum() or c == '_':
+            i = re.compile(r'[\w.]+').match(text, i).end()
+            operand = True
+        else:
+            op = next(o for o in OPERATORS + [c] if text.startswith(o, i))
+            if op in ('->', '::', '.'):
+                operand = False
+            elif op in ('++', '--') and operand:
+                pass  # postfix
+            else:
+                if depth == 0 and operand:
+                    out.append((i, op))
+                operand = False
+            i += len(op)
+    return out
+
+
+def _parenthesized(text):
+    text = text.strip()
+    return text.startswith('(') and _split_top(text, 0) == len(text)
+
+
+def expr_type(expr, types, context=None):
+    """The type of an expression, as far as declarations tell it, or None."""
+    e = expr.strip()
+    if not e:
+        return None
+    ops = {op for _, op in _operators(e)}
+    if ops & (ASSIGNMENTS | {',', '?', ':'}):
+        return None
+    if ops & ({'&&', '||'} | COMPARISONS):
+        return 'bool'
+    if ops:
+        return 'long'
+    if _parenthesized(e):
+        return expr_type(e[1:-1], types, context)
+    m = re.match(r'\*\s*\(\s*(?P<type>' + TYPE + r')(?P<ptr>' + POINTERS + r')\s*\)', e)
+    if m and m.group('ptr').count('*'):
+        return _normal(m.group('type'), m.group('ptr').count('*') - 1)
+    if e.startswith('('):
+        close = _split_top(e, 0)
+        m = re.fullmatch(r'\s*(?P<type>' + TYPE + r')(?P<ptr>' + POINTERS + r')\s*', e[1:close - 1])
+        if m and (m.group('ptr').count('*') or (context and context.is_type(_struct_name(m.group('type'))))
+                  or _struct_name(m.group('type')) in SCALAR_WORDS):
+            return _var_type(m)
+        return None
+    if e.startswith('!'):
+        return 'bool'
+    if e.startswith(('-', '~')):
+        return 'long'
+    if e.startswith('&'):
+        t = expr_type(e[1:], types, context)
+        return _pointer(t) if t else None
+    if e.startswith('*'):
+        return _deref(expr_type(e[1:], types, context))
+    if re.fullmatch(r'\d[\w.]*', e):
+        return 'real' if re.search(r'\.|^\d+f$', e) and not e.startswith('0x') else 'long'
+    if e in ('true', 'false'):
+        return 'bool'
+    if e == 'NONE':
+        return 'long'
+    m = re.fullmatch(r'(?P<name>[A-Za-z_]\w*)\s*\((?P<args>.*)\)', e, re.S)
+    if m:
+        if _split_top(e, m.start('args') - 1) != len(e) or context is None:
+            return None
+        t = context.function_type(m.group('name'))
+        return None if t == 'void' else t
+    m = re.fullmatch(r'(?P<root>[A-Za-z_]\w*)(?P<rest>(?:\s*(?:\.|->)\s*[A-Za-z_]\w*|\s*\[[^\[\]]*\])*)', e)
+    if not m:
+        return None
+    t = types.get(m.group('root')) or (context.global_type(m.group('root')) if context else None)
+    for step in re.finditer(r'\[[^\[\]]*\]|(?P<op>\.|->)\s*(?P<field>[A-Za-z_]\w*)', m.group('rest')):
+        if t is None:
+            return None
+        if step.group('op') is None:
+            t = _deref(t)
+            continue
+        if step.group('op') == '->':
+            t = _deref(t)
+        if t is None or t.endswith('*') or context is None:
+            return None
+        t = context.field_type(_struct_name(t), step.group('field'))
+    return t
+
+
+def _scalar(t):
+    return t is not None and (t.endswith('*') or _struct_name(t) in SCALAR_WORDS)
+
+
+def _indent_unit(body):
+    return '\t' if re.search(r'^\t', body, re.M) else '    '
+
+
+def _indent(line):
+    return line[:len(line) - len(line.lstrip())]
+
+
+def _indented(text_lines, unit):
+    return [unit + l if l.strip() else l for l in text_lines]
+
+
+def _outdented(text_lines, unit):
+    return [l[len(unit):] if l.startswith(unit) else l for l in text_lines]
+
+
+def _block_lines(text):
+    """The lines of text, without the blank ones it starts and ends with."""
+    lines = text.split('\n')
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return lines
+
+
+def _skip_space(text, i):
+    """The index of the next character at or after i outside whitespace and comments."""
+    while i < len(text):
+        if text[i].isspace():
+            i += 1
+        elif text.startswith(('//', '/*'), i):
+            i = _skip_literal(text, i)
+        else:
+            break
+    return i
+
+
+def _keyword_before(body, pos):
+    """(keyword, its index) of the control statement whose head ends right
+    before pos: 'if', 'while', 'for' or 'switch' with its condition, or
+    'else' or 'do'; (None, None) when there is none."""
+    i = pos - 1
+    while i >= 0 and body[i].isspace():
+        i -= 1
+    if i < 0:
+        return None, None
+    if body[i] == ')':
+        o = _open_paren(body, i)
+        m = re.search(r'\b(if|while|for|switch)\s*$', body[:o]) if o is not None else None
+    else:
+        m = re.search(r'\b(else|do)$', body[:i + 1])
+    return (m.group(1), m.start(1)) if m else (None, None)
+
+
+def _controlled(body, pos):
+    """Whether the statement at pos is the whole body of an if, else, for, while or do without braces."""
+    return _keyword_before(body, pos)[0] in ('if', 'while', 'for', 'else', 'do')
+
+
+def _line_start(lines, i):
+    return sum(len(l) + 1 for l in lines[:i]) + len(_indent(lines[i]))
+
+
+def _opens_statement(lines, i):
+    """Whether a declaration can go before line i: the line begins a statement,
+    or it is the whole body of a control statement (_insert_before braces
+    both then)."""
+    return _starts_statement(lines, i) or _controlled('\n'.join(lines), _line_start(lines, i))
+
+
+def _needs_braces(lines, i):
+    """Whether a declaration put before line i needs braces around the two: line
+    i is the whole body of a control statement, or follows a label, which a
+    declaration cannot, or is a statement (not a declaration) right in a
+    switch, where a later case label would skip the declaration's
+    initialization."""
+    body, pos = '\n'.join(lines), _line_start(lines, i)
+    if _controlled(body, pos) or not _starts_statement(lines, i, labels=False):
+        return True
+    o = _enclosing(body, pos, _brace_map(body))
+    d = DECLARATION.match(lines[i])
+    return o is not None and _block_kind(body, o) == 'switch' and not (d and _is_declaration(d))
+
+
+def _insert_before(lines, i, new, unit):
+    """Inserts the lines new before line i, with braces around them and line i
+    when _needs_braces says so (line i must then be a whole statement)."""
+    if _needs_braces(lines, i):
+        if not lines[i].rstrip().endswith(';'):
+            raise ValueError(f'line {i} is not a whole statement')
+        ind = _indent(lines[i])
+        outer = ind[:-len(unit)] if ind.endswith(unit) else ind
+        lines[i:i + 1] = [outer + '{', *new, lines[i], outer + '}']
+    else:
+        lines[i:i] = new
+
+
+def _statement_line(line):
+    s = line.strip()
+    return _is_simple_statement(line) or (re.match(r'return\b', s) is not None and s.endswith(';'))
+
+
+def _effects(stmt):
+    """(variables written, memory written (lvalue texts), names read, makes a call) of a simple statement."""
+    s = stmt.strip()
+    writes, memory = set(), set()
+    m = DECLARATION.match(stmt)
+    a = ASSIGNMENT.match(s)
+    if m and _is_declaration(m):
+        writes.add(m.group('name'))
+        reads = _names(stmt[m.end('name'):])
+    elif a:
+        lhs = a.group('lhs')
+        if re.fullmatch(r'[A-Za-z_]\w*', lhs):
+            writes.add(lhs)
+            reads = _names(a.group('rhs')) | ({lhs} if a.group('op') else set())
+        else:
+            memory.add(_squash(lhs))
+            reads = _names(lhs) | _names(a.group('rhs'))
+    else:
+        reads = _names(s)
+    writes |= {x or y for x, y in re.findall(r'(?:\+\+|--)\s*([A-Za-z_]\w*)|([A-Za-z_]\w*)\s*(?:\+\+|--)', s)}
+    writes |= set(re.findall(r'(?<!&)&\s*([A-Za-z_]\w*)\b(?!\s*(?:->|\.|\[))', s))
+    return writes, memory, reads, _has_call(s)
+
+
+def _reorderable(a, b):
+    """Whether two simple statements can run in either order: neither writes a
+    variable the other reads or writes, nor memory (an lvalue) the other names,
+    and they do not both make calls."""
+    wa, ma, ra, ca = _effects(a)
+    wb, mb, rb, cb = _effects(b)
+    if (ca and cb) or wa & (wb | rb) or wb & (wa | ra):
+        return False
+    flat_a, flat_b = _squash(a), _squash(b)
+    return not any(x in flat_b for x in ma) and not any(x in flat_a for x in mb)
+
+
+def mut_reorder_fields(body, rng, context=None):
+    """Swaps two adjacent statements that share a name, which mut_reorder
+    leaves alone, when they are independent all the same: stores to two
+    fields through one pointer, or two locals set from one value."""
+    lines = body.split('\n')
+    pairs = []
+    for i in range(len(lines) - 1):
+        a, b = lines[i], lines[i + 1]
+        if not (_is_simple_statement(a) and _is_simple_statement(b)) or _indent(a) != _indent(b):
+            continue
+        if not (_names(a) & _names(b)) and not (_has_call(a) and _has_call(b)):
+            continue  # mut_reorder's
+        if _reorderable(a, b) and not _controlled(body, _line_start(lines, i)):
+            pairs.append(i)
+    if not pairs:
+        return None
+    i = rng.choice(pairs)
+    lines[i], lines[i + 1] = lines[i + 1], lines[i]
+    return '\n'.join(lines)
+
+
+def _call_spans(text):
+    """(open, close) indices of the parentheses of each call's argument list in text."""
+    out = []
+    for m in re.finditer(r'([A-Za-z_]\w*)\s*\(', text):
+        if m.group(1) in KEYWORDS:
+            continue
+        end = _split_top(text, m.end() - 1)
+        if end is not None:
+            out.append((m.end() - 1, end - 1))
+    return out
+
+
+TRIVIAL = re.compile(r'[A-Za-z_]\w*|-?\d[\w.]*|".*"|\'.*\'')
+
+
+def mut_hoist_argument(body, rng, context=None):
+    """Computes a call's argument into a new local just before the statement,
+    so that it is evaluated before the call's other arguments."""
+    lines = body.split('\n')
+    types = declared_types(body, context)
+    cands = []
+    for i, line in enumerate(lines):
+        if not _statement_line(line) or not _opens_statement(lines, i):
+            continue
+        for open_, close in _call_spans(line):
+            for a, b in _arg_spans(line, open_ + 1, close):
+                part = line[a:b]
+                arg = part.strip()
+                if not arg or TRIVIAL.fullmatch(arg) or '++' in arg or '--' in arg:
+                    continue
+                t = expr_type(arg, types, context)  # None for an assignment
+                if t is not None and t != 'void':
+                    s = a + len(part) - len(part.lstrip())
+                    cands.append((i, s, s + len(arg), arg, t))
+    if not cands:
+        return None
+    i, a, b, arg, t = rng.choice(cands)
+    name = _fresh_temp(body)
+    line = lines[i]
+    lines[i] = line[:a] + name + line[b:]
+    _insert_before(lines, i, [f'{_indent(line)}{_decl(t, name)} = {arg};'], _indent_unit(body))
+    return '\n'.join(lines)
+
+
+def _writes_name(line, name):
+    return re.search(r'\b%s\b\s*(?:(?:<<|>>|[-+*/%%&|^])?=(?!=)|\+\+|--)|(?:\+\+|--)\s*%s\b|(?<!&)&\s*%s\b'
+                     % (name, name, name), line) is not None
+
+
+def mut_inline_local(body, rng, context=None):
+    """Replaces a local used once by the expression it is set to, for the
+    types mut_inline_temp leaves alone (short, bool, char, real, ...); a cast
+    keeps the local's type when the expression's differs."""
+    lines = body.split('\n')
+    types = declared_types(body, context)
+    cands = []
+    for i, line in enumerate(lines):
+        m = DECLARATION.match(line)
+        if not m or not _is_declaration(m) or TEMP_DECL.match(line) or m.group('array') \
+                or 'volatile' in m.group('type') + m.group('ptr'):
+            continue
+        e = re.fullmatch(r'\s*=\s*(?P<expr>[^;]+);\s*', line[m.end():])
+        if not e:
+            continue
+        name, expr = m.group('name'), e.group('expr').strip()
+        uses = [j for j, l in enumerate(lines) if j != i and re.search(r'\b%s\b' % name, l)]
+        if len(uses) != 1 or uses[0] < i or len(re.findall(r'\b%s\b' % name, body)) != 2:
+            continue
+        j = uses[0]
+        if _writes_name(lines[j], name) or lines[j].lstrip().startswith(('for', 'while', 'do')):
+            continue
+        if any(_names(expr) & _names(l) or _has_call(l) for l in lines[i + 1:j]):
+            continue
+        cands.append((i, j, name, expr, _var_type(m)))
+    if not cands:
+        return None
+    i, j, name, expr, t = rng.choice(cands)
+    value = _parens(expr)
+    if expr_type(expr, types, context) not in (t, None):
+        value = f'({t}){value}'
+    lines[j] = re.sub(r'\b%s\b' % name, lambda _: value, lines[j])
+    del lines[i]
+    return '\n'.join(lines)
+
+
+def _chain_reads(line):
+    """The member chains (p->a.b) a line reads: (squashed text, start, end)."""
+    out = []
+    for m in MEMBER_CHAIN.finditer(line):
+        before, after = line[:m.start()], line[m.end():]
+        if re.search(r'(?:&|\+\+|--)\s*$', before) or re.match(r'\s*(?:(?:<<|>>|[-+*/%&|^])?=(?!=)|\+\+|--)', after):
+            continue
+        out.append((_squash(m.group('chain')), m.start(), m.end()))
+    return out
+
+
+def _writes_chain(line, key):
+    """Whether a line writes the chain key (squashed), takes its address, or sets the chain's root."""
+    root = re.match(r'[A-Za-z_]\w*', key).group(0)
+    flat = _squash(line)
+    k = re.escape(key)
+    return (re.search(k + r'(?:(?:<<|>>|[-+*/%&|^])?=(?!=)|\+\+|--)', flat) is not None
+            or re.search(r'(?:&|\+\+|--)' + k + r'(?![\w\[])', flat) is not None or _writes_name(line, root))
+
+
+def mut_cache_field(body, rng, context=None):
+    """Reads p->field (or a longer chain) into a new local before its first
+    read, and reads the local instead to the end of that block, or until the
+    field or p is written."""
+    lines = body.split('\n')
+    types = declared_types(body, context)
+    found = {}  # chain -> (the line of its first read, its type)
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if s.startswith(('//', '#', 'else', '}', 'case', 'default')) or not s:
+            continue
+        d = DECLARATION.match(line)
+        whole = _squash(line[d.end():]).lstrip('=').rstrip(';') if d and _is_declaration(d) else None
+        for key, _, _ in _chain_reads(line):
+            if key not in found and key != whole:  # caching all of a local's value only renames it
+                found[key] = i, expr_type(key, types, context)
+    braced = {i: _needs_braces(lines, i) for i, _ in found.values()}  # then the local lives in line i only
+    cands = [k for k, (i, t) in found.items()
+             if _scalar(t) and (not braced[i] or lines[i].rstrip().endswith(';')) and _opens_statement(lines, i)]
+    if not cands:
+        return None
+    key = rng.choice(cands)
+    i, t = found[key]
+    field = re.findall(r'[A-Za-z_]\w*', key)[-1]
+    used = set(re.findall(r'[A-Za-z_]\w*', body)) | set(types)
+    name = field if field not in used and field not in KEYWORDS else _fresh_temp(body)
+    depth = 0
+    for j in range(i, len(lines)):
+        if j > i and (braced[i] or _writes_chain(lines[j], key)):
+            break
+        line = lines[j]
+        for k, a, b in reversed(_chain_reads(line)):
+            if k == key:
+                line = line[:a] + name + line[b:]
+        lines[j] = line
+        depth += line.count('{') - line.count('}')
+        if depth < 0 or (j == i and _writes_chain(lines[j], key)):
+            break
+    _insert_before(lines, i, [f'{_indent(lines[i])}{_decl(t, name)} = {key};'], _indent_unit(body))
+    return '\n'.join(lines)
+
+
+def mut_uncache_field(body, rng, context=None):
+    """Replaces a local set from p->field and read more than once by p->field
+    itself at each read (mut_inline_temp and mut_inline_local take the locals
+    read once)."""
+    lines = body.split('\n')
+    types = declared_types(body, context)
+    cands = []
+    for i, line in enumerate(lines):
+        m = DECLARATION.match(line)
+        if not m or not _is_declaration(m) or m.group('array'):
+            continue
+        e = re.fullmatch(r'\s*=\s*(?P<expr>[^;]+?)\s*;\s*', line[m.end():])
+        if not e or not MEMBER_CHAIN.fullmatch(e.group('expr')):
+            continue
+        name, expr = m.group('name'), e.group('expr')
+        if len(re.findall(r'(?<![.>])\b%s\b' % name, body)) < 3 or any(_writes_name(l, name) for l in lines[i + 1:]):
+            continue
+        if expr_type(expr, types, context) not in (_var_type(m), None):
+            continue
+        cands.append((i, name, expr))
+    if not cands:
+        return None
+    i, name, expr = rng.choice(cands)
+    for j in range(i + 1, len(lines)):
+        lines[j] = re.sub(r'(?<![.>])\b%s\b' % name, lambda _: expr, lines[j])
+    del lines[i]
+    return '\n'.join(lines)
+
+
+def _boolean(expr):
+    """Whether an expression is a comparison, a negation or a logical and/or."""
+    return expr_type(expr, {}) == 'bool'
+
+
+def _bool_operands(text, s, e, out):
+    """Collects (start, end, kind) of the operands of a condition text[s:e]
+    that are tested for truth: kind 'value' (x), 'not' (!x) or 'compare'
+    (x == 0, x != 0)."""
+    while s < e and text[s].isspace():
+        s += 1
+    while e > s and text[e - 1].isspace():
+        e -= 1
+    if s >= e:
+        return
+    part = text[s:e]
+    ops = _operators(part)
+    if _parenthesized(part):
+        if _boolean(part[1:-1]):
+            _bool_operands(text, s + 1, e - 1, out)
+        else:
+            out.append((s, e, 'value'))
+        return
+    for sep in ('||', '&&'):
+        cuts = [k for k, op in ops if op == sep]
+        if cuts:
+            prev = s
+            for k in cuts:
+                _bool_operands(text, prev, s + k, out)
+                prev = s + k + 2
+            _bool_operands(text, prev, e, out)
+            return
+    kinds = {op for _, op in ops}
+    if kinds & (ASSIGNMENTS | {'?', ':', ','}):
+        return
+    if part.startswith('!') and not ops:
+        out.append((s, e, 'not'))
+        rest = part[1:].strip()
+        if _parenthesized(rest) and _boolean(rest[1:-1]):
+            _bool_operands(text, s + part.index('(') + 1, e - 1, out)
+    elif _zero_compared(part):
+        out.append((s, e, 'compare'))
+    elif not kinds & COMPARISONS:
+        out.append((s, e, 'value'))
+
+
+def _zero_test(part, kind):
+    """The other spelling of a truth test: x <-> x != 0, !x <-> x == 0."""
+    if kind == 'value':
+        return f'{_parens(part)} != 0'
+    if kind == 'not':
+        return f'{part[1:].strip()} == 0'
+    x, op = _zero_compared(part)
+    return x if op == '!=' else f'!{_parens(x)}'
+
+
+def mut_zero_compare(body, rng, context=None):
+    """x <-> x != 0 and !x <-> x == 0 where a condition tests x for truth, and
+    b = x <-> b = x != 0 when b is a bool (a local, a field, or the return value)."""
+    types = declared_types(body, context)
+    cands = []
+    for m in re.finditer(r'\b(?:if|while)\s*\(', body):
+        end = _split_top(body, m.end() - 1)
+        if end is not None:
+            found = []
+            _bool_operands(body, m.end(), end - 1, found)
+            cands.extend((s, e, _zero_test(body[s:e], kind)) for s, e, kind in found)
+    sets = [m.span('rhs') for m in re.finditer(r'(?m)^[ \t]*(?P<lhs>(?:bool\s+)?' + LVALUE
+                                               + r')\s*=(?!=)\s*(?P<rhs>[^;]+?)\s*;', body)
+            if m.group('lhs').startswith('bool') or expr_type(m.group('lhs'), types, context) == 'bool']
+    if context is not None and context.returns == 'bool':
+        sets += [m.span('rhs') for m in re.finditer(r'\breturn\s+(?P<rhs>[^;]+?)\s*;', body)]
+    for s, e in sets:
+        rhs = body[s:e]
+        compared = _zero_compared(rhs)
+        if compared and compared[1] == '!=':
+            cands.append((s, e, compared[0]))
+        elif not ({op for _, op in _operators(rhs)} & ({'&&', '||', '?', ':', ','} | COMPARISONS | ASSIGNMENTS)
+                  or rhs in ('true', 'false') or rhs.startswith('!')):
+            cands.append((s, e, f'{_parens(rhs)} != 0'))
+    if not cands:
+        return None
+    s, e, new = rng.choice(cands)
+    return body[:s] + new + body[e:]
+
+
+
+def _brace_map(body):
+    pairs, stack, i = {}, [], 0
+    while i < len(body):
+        j = _skip_literal(body, i)
+        if j != i:
+            i = j
+            continue
+        if body[i] == '{':
+            stack.append(i)
+        elif body[i] == '}' and stack:
+            o = stack.pop()
+            pairs[o], pairs[i] = i, o
+        i += 1
+    return pairs
+
+
+def _block_kind(body, open_):
+    """What the '{' at open_ opens: 'if', 'else', 'while', 'for', 'switch', 'do', 'block' or 'other'."""
+    keyword, _ = _keyword_before(body, open_)
+    before = body[:open_].rstrip()
+    return keyword or ('block' if not before or before[-1] in ';{}:' else 'other')
+
+
+def _enclosing(body, pos, pairs):
+    """The '{' of the innermost block around pos, or None."""
+    best = None
+    for o, c in pairs.items():
+        if body[o] == '{' and o < pos < c and (best is None or o > best):
+            best = o
+    return best
+
+
+def _reaches_return(body, i, name, pairs):
+    """Whether control at i, between statements, goes straight to 'return
+    name;': through ends of blocks (past an if's else), labels, gotos and a
+    switch's break, and nothing else."""
+    for _ in range(64):
+        i = _skip_space(body, i)
+        if i >= len(body):
+            return False
+        if body[i] == '}':
+            o = pairs.get(i)
+            kind = _block_kind(body, o) if o is not None else 'other'
+            if kind not in ('if', 'else', 'block', 'switch'):
+                return False
+            i += 1
+            if kind == 'if':
+                j = _skip_space(body, i)
+                if re.match(r'else\b', body[j:j + 5]):
+                    j = _skip_space(body, j + 4)
+                    if j >= len(body) or body[j] != '{':
+                        return False
+                    i = pairs[j] + 1
+            continue
+        m = re.compile(r'goto\s+([A-Za-z_]\w*)\s*;').match(body, i)
+        if m:
+            label = re.search(r'(?:^|[;{}])\s*%s\s*:(?!:)' % m.group(1), body)
+            if not label:
+                return False
+            i = label.end()
+            continue
+        m = re.compile(r'(?!default\b)[A-Za-z_]\w*\s*:(?!:)').match(body, i)
+        if m:
+            i = m.end()
+            continue
+        if re.compile(r'break\s*;').match(body, i):
+            o = _enclosing(body, i, pairs)
+            while o is not None and _block_kind(body, o) not in ('switch', 'while', 'for', 'do'):
+                o = _enclosing(body, o, pairs)
+            if o is None or _block_kind(body, o) != 'switch':
+                return False
+            i = pairs[o] + 1
+            continue
+        return re.compile(r'return\s+%s\s*;' % re.escape(name)).match(body, i) is not None
+    return False
+
+
+def mut_early_return(body, rng, context=None):
+    """In a function that ends 'return r;' with r a local: 'r = x;' from where
+    control goes straight to that return -> 'return x;' (dropping a goto that
+    follows), and back: 'if (c) { ...; return x; }' followed by the rest of
+    its block -> 'if (c) { ...; r = x; } else { the rest }'."""
+    last = re.search(r'\breturn\s+([A-Za-z_]\w*)\s*;\s*$', body)
+    declared = {m.group('name'): m.start() for m in DECLARATION.finditer(body) if _is_declaration(m)}
+    if not last or last.group(1) not in declared:
+        return None
+    name = last.group(1)
+    pairs = _brace_map(body)
+    cands = []
+    for m in re.finditer(r'(?m)^(?P<ind>[ \t]*)%s\s*=(?!=)\s*(?P<x>[^;]+);' % re.escape(name), body):
+        if _reaches_return(body, m.end(), name, pairs):
+            g = re.compile(r'[ \t]*\n[ \t]*goto\s+\w+\s*;').match(body, m.end())
+            cands.append((m.start(), g.end() if g else m.end(), f'{m.group("ind")}return {m.group("x").strip()};'))
+    for r in re.finditer(r'\breturn\s+(?P<x>[^;]+);', body):
+        if r.start() < last.start():
+            found = _single_exit(body, r, name, declared[name], last.start(), pairs, _indent_unit(body))
+            if found is not None:
+                cands.append(found)
+    if not cands:
+        return None
+    s, e, new = rng.choice(cands)
+    return body[:s] + new + body[e:]
+
+
+def _single_exit(body, r, name, declared_at, last, pairs, unit):
+    """For mut_early_return: (start, end, text) that turns the return r, the
+    last statement of 'if (c) { ...; return x; } rest' (rest: the rest of the
+    block), into 'if (c) { ...; name = x; } else { rest }'; None when that
+    does not keep the meaning."""
+    o = _enclosing(body, r.start(), pairs)
+    if o is not None and _block_kind(body, o) == 'if' and not body[r.end():pairs[o]].strip():
+        then_end, (keyword, if_start) = pairs[o] + 1, _keyword_before(body, o)
+    elif _controlled(body, r.start()):
+        o, then_end, (keyword, if_start) = None, r.end(), _keyword_before(body, r.start())
+    else:
+        return None
+    if keyword != 'if' or if_start < declared_at or re.search(r'\belse\s*$', body[:if_start]):
+        return None
+    k = _skip_space(body, then_end)
+    if re.match(r'else\b', body[k:k + 5]):
+        return None
+    outer = _enclosing(body, if_start, pairs)
+    if outer is not None and _block_kind(body, outer) not in ('if', 'else', 'block'):
+        return None
+    rest_end = pairs[outer] if outer is not None else last
+    rest = _block_lines(body[then_end:rest_end])
+    if any(re.match(r'\s*(?:case\b|default\s*:|[A-Za-z_]\w*\s*:(?!:))', l) for l in rest):
+        return None
+    if not _reaches_return(body, rest_end, name, pairs):
+        return None
+    line = body[body.rfind('\n', 0, if_start) + 1:if_start]
+    ind = line if not line.strip() else _indent(line)
+    assign = f'{name} = {r.group("x").strip()};'
+    if o is not None:
+        then = body[if_start:r.start()] + assign + body[r.end():then_end]
+    else:
+        then = body[if_start:r.start()].rstrip() + f'\n{ind}{{\n{ind}{unit}{assign}\n{ind}}}'
+    if not rest:
+        return if_start, then_end, then
+    closing = body[body.rfind('\n', 0, rest_end) + 1:rest_end]
+    return (if_start, rest_end, then + f'\n{ind}else\n{ind}{{\n' + '\n'.join(_indented(rest, unit)) + f'\n{ind}}}\n'
+            + (closing if not closing.strip() else ''))
+
+
+def mut_volatile_local(body, rng, context=None):
+    """Makes a local itself volatile, which keeps it in memory: 'volatile long
+    x', 's *volatile p'; or takes that away. (mut_volatile_pointer makes what
+    a pointer points to volatile, mut_volatile_read one access.)"""
+    lines = body.split('\n')
+    cands = []
+    for i, line in enumerate(lines):
+        m = DECLARATION.match(line)
+        if not m or not _is_declaration(m) or m.group('array') or 'static' in m.group('type').split():
+            continue
+        if _address_taken(body, m.group('name')) or not _scalar(_var_type(m)):
+            continue
+        cands.append((i, m))
+    if not cands:
+        return None
+    i, m = rng.choice(cands)
+    line, kind, ptr, rest = lines[i], m.group('type'), m.group('ptr'), lines[i][m.end('ptr'):]
+    if '*' in ptr:  # the qualifier after the last '*' is the local's own
+        own = re.search(r'\*\s*volatile\b\s*$', ptr)
+        ptr, rest = (ptr[:own.start()] + '*', rest.lstrip()) if own else (ptr.rstrip() + 'volatile ', rest.lstrip())
+    elif re.search(r'\bvolatile\b', kind):
+        kind = re.sub(r'\bvolatile\b\s*', '', kind)
+    else:
+        kind = 'volatile ' + kind
+    lines[i] = line[:m.start('type')] + kind + ptr + rest
+    return '\n'.join(lines)
+
+
+def _neighbours(t):
+    """Integer types one step from t: the other signedness, or the next width."""
+    width, sign = WIDTHS[t]
+    if sign == 'b':
+        return ['char', 'byte']
+    out = [WIDTH_NAMES[(width, 'u' if sign == 's' else 's')]]
+    out += [WIDTH_NAMES[(w, sign)] for w in (width // 2, width * 2) if (w, sign) in WIDTH_NAMES]
+    if width == 1:
+        out.append('bool')
+    return [n for n in out if n != t]
+
+
+def mut_retype_wide(body, rng, context=None):
+    """Changes a local's integer type to one of another width or signedness
+    (short <-> word, char <-> short, byte <-> bool, ...), the changes
+    mut_retype does not make."""
+    lines = body.split('\n')
+    cands = []
+    for i, line in enumerate(lines):
+        m = INT_DECL.match(line)
+        if not m or _address_taken(body, re.match(r'\s*(\w+)', m.group('rest')).group(1)):
+            continue  # a pointer to it would change type too
+        old = DECL.match(line)
+        family = (CHAR_TYPES if old.group('type') in CHAR_TYPES else INT_TYPES) if old else []
+        choices = [t for t in _neighbours(m.group('type')) if t not in family]
+        if choices:
+            cands.append((i, m, choices))
+    if not cands:
+        return None
+    i, m, choices = rng.choice(cands)
+    lines[i] = m.group('indent') + m.group('pre') + rng.choice(choices) + m.group('rest')
+    return '\n'.join(lines)
+
+
+def mut_recast(body, rng, context=None):
+    """Changes the integer type of a cast, (short)x or *(short *)p, to one of
+    another width or signedness."""
+    cands = list(CAST.finditer(body))
+    if not cands:
+        return None
+    m = rng.choice(cands)
+    t = rng.choice(_neighbours(m.group('type')))
+    ptr = m.group('ptr')
+    return body[:m.start()] + f'({t}{" " + ptr if ptr else ""})' + body[m.end():]
+
+
+def mut_redundant_cast(body, rng, context=None):
+    """Casts a variable where it is read to the type it already has, or takes
+    away such a cast."""
+    types = declared_types(body, context)
+    cands = []
+    for m in re.finditer(r'\((?P<type>' + TYPE + r')(?P<ptr>' + POINTERS + r')\)\s*(?P<name>[A-Za-z_]\w*)\b'
+                         r'(?!\s*(?:\(|\[|\.|->))', body):
+        if types.get(m.group('name')) == _var_type(m):
+            cands.append((m.start(), m.end(), m.group('name')))
+    lines = body.split('\n')
+    offset = 0
+    for line in lines:
+        s = line.strip()
+        if _statement_line(line) or re.match(r'(?:if|while)\s*\(', s):
+            d = DECLARATION.match(line)
+            skip = d.end('name') if d and _is_declaration(d) else 0
+            for m in re.finditer(r'(?<![\w.>&])(?<!\+\+)(?<!--)(?<!::)\b(?P<name>[A-Za-z_]\w*)\b(?!\s*(?:\(|\[|\.|->|\+\+|--|'
+                                 r'(?:<<|>>|[-+*/%&|^])?=(?!=)))', line):
+                t = types.get(m.group('name'))
+                if m.start() >= skip and _scalar(t) and not re.search(r'\)\s*$', line[:m.start()]):
+                    cands.append((offset + m.start(), offset + m.end(), f'({t}){m.group("name")}'))
+        offset += len(line) + 1
+    if not cands:
+        return None
+    a, b, new = rng.choice(cands)
+    return body[:a] + new + body[b:]
+
+
+def mut_do_while(body, rng, context=None):
+    """while (c) { b } <-> if (c) { do { b } while (c); }"""
+    unit = _indent_unit(body)
+    cands = []
+    for m in re.finditer(r'(?m)^(?P<ind>[ \t]*)(?P<kw>while|if)\s*\(', body):
+        close = _split_top(body, m.end() - 1)
+        if close is None:
+            continue
+        k = _skip_space(body, close)
+        if k >= len(body) or body[k] != '{':
+            continue
+        end = match_brace(body, k)
+        ind, cond = m.group('ind'), body[m.end():close - 1].strip()
+        if m.group('kw') == 'while':
+            inner = _indented(_block_lines(body[k + 1:end]), unit)
+            cands.append((m.start(), end + 1, f'{ind}if ({cond})\n{ind}{{\n{ind}{unit}do\n{ind}{unit}{{\n'
+                          + '\n'.join(inner) + f'\n{ind}{unit}}} while ({cond});\n{ind}}}'))
+            continue
+        d = re.compile(r'\s*do\s*\{').match(body, k + 1)
+        if not d:
+            continue
+        dend = match_brace(body, d.end() - 1)
+        w = re.compile(r'\s*while\s*\((?P<c>.*)\)\s*;\s*$', re.S).match(body, dend + 1, end)
+        j = _skip_space(body, end + 1)
+        if w and _squash(w.group('c')) == _squash(cond) and not re.match(r'else\b', body[j:j + 5]):
+            inner = _outdented(_block_lines(body[d.end():dend]), unit)
+            cands.append((m.start(), end + 1, f'{ind}while ({cond})\n{ind}{{\n' + '\n'.join(inner) + f'\n{ind}}}'))
+    if not cands:
+        return None
+    s, e, new = rng.choice(cands)
+    return body[:s] + new + body[e:]
+
+
+TYPED_MUTATIONS = [mut_reorder_fields, mut_hoist_argument, mut_inline_local, mut_cache_field, mut_uncache_field,
+                   mut_zero_compare, mut_early_return, mut_volatile_local, mut_retype_wide, mut_recast,
+                   mut_redundant_cast, mut_do_while]
+WEIGHTS.update(dict.fromkeys(TYPED_MUTATIONS, 1))  # drawn only with --anneal (run_fast's anneal)
+PARSE_ERRORS = (ValueError, IndexError)  # unbalanced text (match_brace), a declaration with nowhere to go
+
+
+def mutate(body, rng, count=None, mutations=None, context=None):
+    """Applies count random mutations (by default 1 or 2), each drawn from
+    mutations (by default MUTATIONS) by WEIGHTS; None when none applies.
+    context is what the typed mutations (TYPED_MUTATIONS) read; one that
+    cannot parse the body applies nowhere."""
     count = count or rng.choice([1, 1, 2])
+    mutations = MUTATIONS if mutations is None else mutations
     changed = False
     for _ in range(count):
-        order = MUTATIONS[:]
+        order = mutations[:]
         while order:
             mut = rng.choices(order, [WEIGHTS.get(m, 1) for m in order])[0]
             order.remove(mut)
-            new = mut(body, rng)
+            if mut in TYPED_MUTATIONS:
+                try:
+                    new = mut(body, rng, context)
+                except PARSE_ERRORS:
+                    new = None
+            else:
+                new = mut(body, rng)
             if new is not None and new != body:
                 body, changed = new, True
                 break
@@ -1166,6 +2270,12 @@ class Result:
     fast_baseline: int = None
     fast_best: int = None
     confirmations: int = 0
+    # --anneal: why the search ended, worse variants the walk took, restarts,
+    # and how many variants scored each reduced-image score
+    end: str = ''
+    uphill: int = 0
+    restarts: int = 0
+    scores: dict = None
 
 
 def run(va, tries=200, seed=0, time_limit=None, scratch=None, log=print):
@@ -1211,28 +2321,80 @@ def run(va, tries=200, seed=0, time_limit=None, scratch=None, log=print):
 
 # --------------------------------------------------------------- --fast search
 
-class FastSearch:
-    """The state of a --fast search, shared by its workers. The search walks as
-    the default one does, but on scores from the reduced image: a variant that
-    scores no worse than the walk's position becomes the position. One that
-    scores better is first confirmed: confirm (a full build) scores it, and it
-    becomes the best, and the position, only when that score beats the best's
-    full score. The best is the only variant ever written, so every written
-    variant's score comes from a full build: baseline, the original's full
-    score, to start with."""
+class Greedy:
+    """The default walk: a variant becomes the position when its reduced-image
+    score is no worse than the position's, and the search ends when the
+    position has no new variants."""
+    stall = None  # tries without a new best before a restart: never
+    rounds = 1  # rounds of 50 attempts at a new variant before the search gives up
 
-    def __init__(self, prefix, body, suffix, confirm, baseline, log=print):
+    def count(self, rng):
+        return None  # mutate's own: one or two mutations
+
+    def accepts(self, delta, progress, rng):
+        return delta <= 0
+
+
+class Anneal:
+    """--anneal: simulated annealing on the reduced image's scores. A variant
+    that scores delta worse than the position still becomes the position with
+    probability exp(-delta / T); T falls from start to end as the run goes on
+    (progress, 0 to 1). After stall tries without a new best the walk
+    restarts, from the best and from the original in turn; so it does when
+    the position has no new variants, with one more mutation each round, and
+    the search ends only when rounds of that find nothing new. A proposal
+    applies one mutation, or sometimes two to four."""
+
+    def __init__(self, start=0.8, end=0.2, stall=30, rounds=4, more=0.35):
+        self.start, self.end, self.stall, self.rounds, self.more = start, end, stall, rounds, more
+
+    def temperature(self, progress):
+        return self.start * (self.end / self.start) ** min(max(progress, 0.0), 1.0)
+
+    def count(self, rng):
+        n = 1
+        while n < 4 and rng.random() < self.more:
+            n += 1
+        return n
+
+    def accepts(self, delta, progress, rng):
+        return delta <= 0 or rng.random() < math.exp(-delta / self.temperature(progress))
+
+
+class FastSearch:
+    """The state of a --fast search, shared by its workers. The search walks on
+    scores from the reduced image: strategy (Greedy, the default, or Anneal)
+    says whether a variant becomes the walk's position. A variant that scores
+    better than the best's reduced-image score is first confirmed: confirm (a
+    full build) scores it, and it becomes the best, and the position, only
+    when that score beats the best's full score. The best is the only variant
+    ever written, so every written variant's score comes from a full build:
+    baseline, the original's full score, to start with. Variants come from
+    mutate with mutations and context; seen holds every variant proposed, so
+    none is scored twice. progress (0 to 1) is how far the run has gone."""
+
+    def __init__(self, prefix, body, suffix, confirm, baseline, log=print, strategy=None, mutations=None,
+                 context=None):
         self.prefix, self.original, self.suffix = prefix, body, suffix
         self.confirm, self.log = confirm, log
+        self.strategy = strategy or Greedy()
+        self.mutations, self.context = mutations, context
+        self.progress = lambda: 0.0
         self.lock = threading.Lock()  # guards the state below
         self.confirming = threading.Lock()  # one full build at a time
         self.walk, self.walk_score = body, None  # the position and its reduced-image score
         self.fast_baseline = None
         self.best, self.best_score = body, baseline  # the best and its full-build score
+        self.best_fast = None  # the best's reduced-image score
         self.baseline = baseline
         self.seen = {body}
         self.tries = 0
         self.confirmations = 0
+        self.stalled = 0  # tries since the last new best or restart
+        self.scores = Counter()  # how many variants scored each reduced-image score
+        self.uphill = 0  # worse variants the walk took
+        self.restarts = 0
+        self.end = ''  # why the search ended, when it ended on its own
         self.done = False
 
     def text(self, body):
@@ -1242,7 +2404,7 @@ class FastSearch:
         """Records the original's reduced-image score (each worker scores it once)."""
         with self.lock:
             if self.fast_baseline is None:
-                self.fast_baseline = self.walk_score = score
+                self.fast_baseline = self.walk_score = self.best_fast = score
                 self.log(f'baseline: {score} differing instructions on the reduced image ({note})')
                 if score != self.baseline:
                     self.log(f'warning: the reduced image scores the original {score}, the full image '
@@ -1250,33 +2412,53 @@ class FastSearch:
             elif score != self.fast_baseline:
                 self.log(f'warning: a worker scored the original {score}, not {self.fast_baseline}')
 
+    def restart(self, why):
+        """Moves the walk back to the best or, every other time, the original."""
+        self.restarts += 1
+        to_best = self.restarts % 2 == 1
+        self.walk, self.walk_score = (self.best, self.best_fast) if to_best else (self.original, self.fast_baseline)
+        self.stalled = 0
+        self.log(f'restart {self.restarts} from the {"best" if to_best else "original"} ({why})')
+
     def propose(self, rng, tries):
         """(a new variant of the position, its try number), or (None, None) when
         the search is over or no new variant turns up."""
         with self.lock:
             if self.done or self.tries >= tries:
+                if not self.done:
+                    self.end = 'tries'
                 return None, None
-            for _ in range(50):
-                candidate = mutate(self.walk, rng)
-                if candidate is not None and candidate not in self.seen:
-                    self.seen.add(candidate)
-                    self.tries += 1
-                    return candidate, self.tries
+            if self.strategy.stall is not None and self.stalled >= self.strategy.stall:
+                self.restart(f'no new best in {self.stalled} tries')
+            for round_ in range(self.strategy.rounds):
+                if round_:
+                    self.restart('no new variants of the position')
+                for _ in range(50):
+                    count = self.strategy.count(rng)
+                    candidate = mutate(self.walk, rng, count and count + round_, self.mutations, self.context)
+                    if candidate is not None and candidate not in self.seen:
+                        self.seen.add(candidate)
+                        self.tries += 1
+                        return candidate, self.tries
             self.log('no new mutations available')
-            self.done = True
+            self.done, self.end = True, 'no new mutations'
             return None, None
 
-    def offer(self, candidate, score, note, n):
-        """Takes a variant's reduced-image score; confirms it if it is better."""
+    def offer(self, candidate, score, note, n, rng=None):
+        """Takes a variant's reduced-image score: confirms it if it beats the
+        best's, else lets the strategy say whether the walk moves to it."""
         with self.lock:
-            if score > self.walk_score:
-                return
-            if score == self.walk_score:
-                self.walk = candidate
+            self.stalled += 1
+            self.scores[score] += 1
+            if score >= self.best_fast:
+                delta = score - self.walk_score
+                if self.strategy.accepts(delta, self.progress(), rng):
+                    self.uphill += delta > 0
+                    self.walk, self.walk_score = candidate, score
                 return
         with self.confirming:
             with self.lock:
-                if self.done or score >= self.walk_score:  # another worker moved on meanwhile
+                if self.done or score >= self.best_fast:  # another worker moved on meanwhile
                     return
             full, full_note = self.confirm(self.text(candidate))
             with self.lock:
@@ -1285,9 +2467,11 @@ class FastSearch:
                 self.log(f'try {n}: {score} on the reduced image ({note}), {full} in the full image ({full_note}): '
                          + ('new best' if better else 'rejected'))
                 if better:
-                    self.best, self.best_score = candidate, full
+                    self.best, self.best_score, self.best_fast = candidate, full, score
                     self.walk, self.walk_score = candidate, score
-                    self.done = full == 0
+                    self.stalled = 0
+                    if full == 0:
+                        self.done, self.end = True, 'match'
 
 
 def _work(search, scorer, rng, tries, deadline):
@@ -1298,17 +2482,18 @@ def _work(search, scorer, rng, tries, deadline):
         if candidate is None:
             break
         score, note = scorer.score_text(search.text(candidate))
-        search.offer(candidate, score, note, n)
+        search.offer(candidate, score, note, n, rng)
 
 
-def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, jobs=1, depth=None):
+def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, jobs=1, depth=None, anneal=False):
     """The --fast search with jobs workers, each scoring on its own scratch root
     with its own seed (seed, seed + 1, ...), and one more root for the full
     builds: first the original's, whose map gives the library objects the
     reduced images take in, then those that confirm. tries None: 200, or no
     limit with a time limit, which starts after that first build. The images
     are linked in build/permute/<va>/ of the repository, one folder per root,
-    as .img files (see build.build)."""
+    as .img files (see build.build). anneal: the Anneal walk, with
+    TYPED_MUTATIONS besides MUTATIONS."""
     if tries is None:
         tries = DEFAULT_TRIES if time_limit is None else float('inf')
     own = scratch is None
@@ -1340,9 +2525,16 @@ def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, j
                 scorer.include = include
                 scorer.units |= pinning
         log(f'reduced image: {len(scorers[0].units)} sources: ' + ', '.join(sorted(scorers[0].units)))
-        search = FastSearch(original[:start], original[start:end], original[end:], full.score_text, baseline, log)
+        walk = dict(strategy=Anneal(), mutations=MUTATIONS + TYPED_MUTATIONS,
+                    context=function_context(original, start, full.root)) if anneal else {}
+        search = FastSearch(original[:start], original[start:end], original[end:], full.score_text, baseline, log,
+                            **walk)
         t0 = time.time()
         deadline = None if time_limit is None else t0 + time_limit
+        if time_limit is not None:
+            search.progress = lambda: (time.time() - t0) / time_limit
+        elif tries != float('inf'):
+            search.progress = lambda: search.tries / tries
         with ThreadPoolExecutor(jobs) as pool:
             work = [pool.submit(_work, search, s, random.Random(seed + k), tries, deadline)
                     for k, s in enumerate(scorers)]
@@ -1352,8 +2544,9 @@ def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, j
             finally:
                 search.done = True
         return Result(search.baseline, search.best_score, search.text(search.best), original, search.tries,
-                      time.time() - t0, fast_baseline=search.fast_baseline, fast_best=search.walk_score,
-                      confirmations=search.confirmations)
+                      time.time() - t0, fast_baseline=search.fast_baseline, fast_best=search.best_fast,
+                      confirmations=search.confirmations, end=search.end or 'time limit', uphill=search.uphill,
+                      restarts=search.restarts, scores=dict(search.scores))
     finally:
         shutil.rmtree(images, ignore_errors=True)
         if own:
@@ -1367,20 +2560,28 @@ def main():
                     help='default 200; with --fast and --time-limit, as many as the time allows')
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--time-limit', type=float, default=None, help='seconds')
-    ap.add_argument('--write', action='store_true', help='write a strictly better variant back to the source file')
+    writes = ap.add_mutually_exclusive_group()
+    writes.add_argument('--write', action='store_true', help='write a strictly better variant back to the source file')
+    writes.add_argument('--write-only-match', action='store_true',
+                        help='write the variant back only when a full build finds that it matches retail exactly')
     ap.add_argument('--fast', action='store_true',
                     help='score on a reduced image; a full build confirms each improvement')
     ap.add_argument('--jobs', type=int, default=1, help='with --fast: scorers working in parallel')
     ap.add_argument('--depth', type=int, default=None,
                     help='with --fast: follow callees only this many levels (default: all)')
+    ap.add_argument('--anneal', action='store_true',
+                    help='with --fast: simulated annealing with restarts, and the typed mutations too')
     args = ap.parse_args()
     if args.jobs < 1 or (args.jobs > 1 and not args.fast):
         ap.error('--jobs takes a positive count, and needs --fast')
     if args.depth is not None and (args.depth < 0 or not args.fast):
         ap.error('--depth takes a count of levels, and needs --fast')
+    if args.anneal and not args.fast:
+        ap.error('--anneal needs --fast')
     va = check.parse_addresses([args.address]).pop()
     if args.fast:
-        result = run_fast(va, args.tries, args.seed, args.time_limit, jobs=args.jobs, depth=args.depth)
+        result = run_fast(va, args.tries, args.seed, args.time_limit, jobs=args.jobs, depth=args.depth,
+                          anneal=args.anneal)
     else:
         result = run(va, DEFAULT_TRIES if args.tries is None else args.tries, args.seed, args.time_limit)
     rate = result.tries / result.seconds if result.seconds else 0
@@ -1389,6 +2590,10 @@ def main():
               f'{result.fast_best} (baseline {result.fast_baseline}); full image: best {result.best} '
               f'(baseline {result.baseline}), {result.confirmations} confirming builds'
               + (' MATCH' if result.best == 0 else ''))
+        if args.anneal:
+            scores = ', '.join(f'{"failed" if s == WORST else s}: {n}' for s, n in sorted((result.scores or {}).items()))
+            print(f'annealing: ended by {result.end}; {result.uphill} worse variants taken, {result.restarts} restarts; '
+                  f'variants by reduced-image score: {scores}')
     else:
         print(f'{result.tries} tries in {result.seconds:.1f}s ({rate:.2f} tries/s); '
               f'best score {result.best} (baseline {result.baseline})' + (' MATCH' if result.best == 0 else ''))
@@ -1397,11 +2602,13 @@ def main():
         diff = ''.join(difflib.unified_diff(result.original.splitlines(True), result.text.splitlines(True),
                                             'a/src', 'b/src'))
         print(diff)
-        if args.write:
+        if args.write or (args.write_only_match and result.best == 0):
             marked = next(m for m in build.marked_sources() if m.retail == va)
             with open(os.path.join(ROOT, marked.path), 'w', encoding='utf-8', newline='') as f:
                 f.write(result.text)
             print(f'wrote {marked.path}')
+        elif args.write_only_match:
+            print('not written: --write-only-match writes only a variant that matches retail')
     sys.exit(0)
 
 
