@@ -203,7 +203,7 @@ void __stdcall function_1b3880(long actor_index, s_slot *slot)
 
 	if (actor->prop_index != NONE)
 	{
-		s_prop_node_view *node = (s_prop_node_view *)datum_get_inlined(g_502418, actor->prop_index);
+		s_prop_node_view *volatile node = (s_prop_node_view *)datum_get_inlined(g_502418, actor->prop_index);
 		s_slot_64 *state = (s_slot_64 *)slot;
 		vector3f delta;
 

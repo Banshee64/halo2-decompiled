@@ -275,36 +275,44 @@ local_0:
 	return result;
 }
 
+#pragma optimize("g", off)
+PRIVATE __forceinline real function_1aded1(real arg_0, real arg_1)
+{
+    return arg_0 + (arg_1 - arg_0) * AI_RANDOM_REAL();
+}
+#pragma optimize("", on)
+
 // @retail 0x1aded0
 bool __stdcall function_1aded0(long actor_index, s_slot *slot)
 {
 	s_slot_3b *state = (s_slot_3b *)slot;
-	bool result = true;
+	volatile bool result = true;
 	s_actor_entry_4ef0 *entry = (s_actor_entry_4ef0 *)function_1e4ef0(actor_index);
 
-	if (!entry)
-		return false;
-
-	real delay = entry->unknown14 + (entry->unknown18 - entry->unknown14) * AI_RANDOM_REAL();
-	real duration = entry->unknown1c + (entry->unknown20 - entry->unknown1c) * AI_RANDOM_REAL();
-	real ticks = (real)g_510c54->field_2_3 * delay;
-	long rounded;
-	__asm
+	if (entry)
 	{
-		fld ticks
-		fistp rounded
+		real delay = function_1aded1(entry->unknown14, entry->unknown18);
+		real duration = function_1aded1(entry->unknown1c, entry->unknown20);
+		real ticks = (real)g_510c54->field_2_3 * delay;
+		long rounded;
+		__asm
+		{
+			fld ticks
+			fistp rounded
+		}
+		state->ticks = (short)rounded;
+		ticks = (real)g_510c54->field_2_3 * duration;
+		__asm
+		{
+			fld ticks
+			fistp rounded
+		}
+		state->unknown10 = 0;
+		state->unknown12 = false;
+		state->timer = (short)rounded;
+		return result;
 	}
-	state->ticks = (short)rounded;
-	ticks = (real)g_510c54->field_2_3 * duration;
-	__asm
-	{
-		fld ticks
-		fistp rounded
-	}
-	state->unknown10 = 0;
-	state->unknown12 = false;
-	state->timer = (short)rounded;
-	return result;
+	return false;
 }
 
 // @retail 0x1ae350

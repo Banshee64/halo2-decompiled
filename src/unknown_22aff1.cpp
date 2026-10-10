@@ -34,6 +34,33 @@ PRIVATE __forceinline real function_22aff2(real arg_0)
 	return arg_0 < 0.0f ? 0.0f : arg_0 > 1.0f ? 1.0f : arg_0;
 }
 
+struct s_22aff3
+{
+    point2f field_0;
+    real field_8;
+    point2f field_c[4];
+    byte field_2c[4];
+    point2f field_30;
+    union { long field_38; real field_38_1; };
+    point2f field_3c;
+    long field_44;
+    point2f field_48;
+    union { long field_50; real field_50_1; };
+    box2f field_54;
+    byte field_64[3];
+    bool field_67;
+};
+
+PRIVATE __forceinline real function_22aff5(real arg_0)
+{
+    real local_0 = arg_0;
+    if (0.0f > arg_0)
+        local_0 = 0.0f;
+    else if (arg_0 > 1.0f)
+        local_0 = 1.0f;
+    return local_0;
+}
+
 // @retail 0x22aff1
 void function_22aff1(long arg_0, byte const *arg_1, byte const *arg_2, real const *arg_3)
 {
@@ -41,68 +68,64 @@ void function_22aff1(long arg_0, byte const *arg_1, byte const *arg_2, real cons
 	(void)&arg_0; (void)&arg_1; (void)&arg_2; (void)&arg_3;
 	if (*(long const *)(arg_2 + 0x2c) != NONE && *(long const *)(arg_2 + 0x24) != NONE)
 	{
-		long local_3;
-		long local_1;
-		long local_2;
-		box2f local_4;
+		s_22aff3 local_45;
 		function_22ae21(arg_0, (s_bitmap_widget_22ae21 const *)arg_2,
-			&local_1, &local_2, &local_3, &local_4);
-		if (local_1 != NONE)
+			&local_45.field_44, &local_45.field_50, &local_45.field_38, &local_45.field_54);
+		if (local_45.field_44 != NONE)
 		{
-			point2f local_5;
-			bool local_6 = false;
-			function_1396c7(*(word const *)(arg_2 + 0x1c), &local_5);
-			point2f local_7 = {1.0f, 0.0f};
-			point2f local_8 = {0.0f, 1.0f};
-			point2f local_9;
+			local_45.field_67 = false;
+			function_1396c7(*(word const *)(arg_2 + 0x1c), &local_45.field_48);
+			local_45.field_0.x = 1.0f; local_45.field_0.y = 0.0f;
+			local_45.field_30.x = 0.0f; local_45.field_30.y = 1.0f;
 			switch (local_0)
 			{
 			case 0:
-				local_5.x += *(short const *)(arg_2 + 0x34);
-				local_5.y += *(short const *)(arg_2 + 0x36);
-				local_9.x = local_4.x0 + (local_4.x1 - local_4.x0) * *(real const *)(arg_2 + 0x40);
-				local_9.y = local_4.y0 + (local_4.y1 - local_4.y0) * *(real const *)(arg_2 + 0x44);
+				local_45.field_48.x += *(short const *)(arg_2 + 0x34);
+				local_45.field_48.y += *(short const *)(arg_2 + 0x36);
+				local_45.field_3c.x = local_45.field_54.x0 + (local_45.field_54.x1 - local_45.field_54.x0) * *(real const *)(arg_2 + 0x40);
+				local_45.field_3c.y = local_45.field_54.y0 + (local_45.field_54.y1 - local_45.field_54.y0) * *(real const *)(arg_2 + 0x44);
 				break;
 			case 1:
-				local_5.x += *(short const *)(arg_2 + 0x38);
-				local_5.y += *(short const *)(arg_2 + 0x3a);
-				local_9.x = local_4.x0 + (local_4.x1 - local_4.x0) * *(real const *)(arg_2 + 0x48);
-				local_9.y = local_4.y0 + (local_4.y1 - local_4.y0) * *(real const *)(arg_2 + 0x4c);
+				local_45.field_48.x += *(short const *)(arg_2 + 0x38);
+				local_45.field_48.y += *(short const *)(arg_2 + 0x3a);
+				local_45.field_3c.x = local_45.field_54.x0 + (local_45.field_54.x1 - local_45.field_54.x0) * *(real const *)(arg_2 + 0x48);
+				local_45.field_3c.y = local_45.field_54.y0 + (local_45.field_54.y1 - local_45.field_54.y0) * *(real const *)(arg_2 + 0x4c);
 				break;
 			case 2:
-				local_5.x += *(short const *)(arg_2 + 0x3c);
-				local_5.y += *(short const *)(arg_2 + 0x3e);
-				local_9.x = local_4.x0 + (local_4.x1 - local_4.x0) * *(real const *)(arg_2 + 0x50);
-				local_9.y = local_4.y0 + (local_4.y1 - local_4.y0) * *(real const *)(arg_2 + 0x54);
+				local_45.field_48.x += *(short const *)(arg_2 + 0x3c);
+				local_45.field_48.y += *(short const *)(arg_2 + 0x3e);
+				local_45.field_3c.x = local_45.field_54.x0 + (local_45.field_54.x1 - local_45.field_54.x0) * *(real const *)(arg_2 + 0x50);
+				local_45.field_3c.y = local_45.field_54.y0 + (local_45.field_54.y1 - local_45.field_54.y0) * *(real const *)(arg_2 + 0x54);
 				break;
 			}
 			g_4e6950.field_40 = *(color4f const *)arg_3;
-			function_22bcaf((s_widget_transform_block const *)(arg_2 + 0x58), &local_5, &local_8, &local_7);
-			real local_10 = (real)local_3;
-			real local_11 = (real)local_2;
-			point2f local_12[4];
+			function_22bcaf((s_widget_transform_block const *)(arg_2 + 0x58), &local_45.field_48, &local_45.field_30, &local_45.field_0);
+			long local_44 = local_45.field_50;
+			local_45.field_8 = (real)local_45.field_38;
+			local_45.field_38_1 = (real)local_45.field_50;
 			for (long local_13 = 0; local_13 < 4; ++local_13)
 			{
 				bool local_14 = local_13 > 1;
 				bool local_15 = local_13 == 1 || local_13 == 2;
-				real local_16 = local_14 ? (real)function_1d6d0((local_4.y1 - local_9.y) * local_10) :
-					(real)-function_2b460((local_9.y - local_4.y0) * local_10);
-				real local_17 = local_15 ? (real)function_1d6d0((local_4.x1 - local_9.x) * local_11) :
-					(real)-function_2b460((local_9.x - local_4.x0) * local_11);
-				local_12[local_13].x = local_7.x * local_17 + local_8.x * local_16 + local_5.x;
-				local_12[local_13].y = local_7.y * local_17 + local_8.y * local_16 + local_5.y;
+				local_45.field_50_1 = local_14 ? (real)function_1d6d0((local_45.field_54.y1 - local_45.field_3c.y) * local_45.field_8) :
+					(real)-function_2b460((local_45.field_3c.y - local_45.field_54.y0) * local_45.field_8);
+				real &local_17 = *(real *)&arg_3;
+				local_17 = local_15 ? (real)function_1d6d0((local_45.field_54.x1 - local_45.field_3c.x) * local_45.field_38_1) :
+					(real)-function_2b460((local_45.field_3c.x - local_45.field_54.x0) * local_45.field_38_1);
+				local_45.field_c[local_13].x = local_45.field_0.x * local_17 + local_45.field_30.x * local_45.field_50_1 + local_45.field_48.x;
+				local_45.field_c[local_13].y = local_45.field_0.y * local_17 + local_45.field_30.y * local_45.field_50_1 + local_45.field_48.y;
 			}
 			if (*(word const *)(arg_2 + 0x1e) & 1)
 			{
-				real local_18 = local_4.x0;
-				local_4.x0 = local_4.x1;
-				local_4.x1 = local_18;
+				real local_18 = local_45.field_54.x0;
+				local_45.field_54.x0 = local_45.field_54.x1;
+				local_45.field_54.x1 = local_18;
 			}
 			if (*(word const *)(arg_2 + 0x1e) & 2)
 			{
-				real local_19 = local_4.y0;
-				local_4.y0 = local_4.y1;
-				local_4.y1 = local_19;
+				real local_19 = local_45.field_54.y0;
+				local_45.field_54.y0 = local_45.field_54.y1;
+				local_45.field_54.y1 = local_19;
 			}
 			switch (*(word const *)(arg_2 + 0x60))
 			{
@@ -126,14 +149,14 @@ void function_22aff1(long arg_0, byte const *arg_1, byte const *arg_2, real cons
 			{
 				byte const *local_20 = (byte const *)g_510c4c + arg_0 * 0x6c;
 				dword local_21[5] = {0, 0xff0000, 0xff00, 0xffff00, 0x7f00ff};
-				local_6 = true;
+				local_45.field_67 = true;
 				for (long local_22 = 0; local_22 <= 4; ++local_22)
 				{
-					real local_23 = function_22aff2(*(real const *)(arg_1 + 0x2c) - local_22);
-					real local_24 = function_22aff2(*(real const *)local_20 - local_22);
+					real local_23 = function_22aff5(*(real const *)(arg_1 + 0x2c) - local_22);
+					real local_24 = function_22aff5(*(real const *)local_20 - local_22);
 					bool local_25 = local_24 > local_23;
 					real local_26 = local_25 ? *(real const *)(local_20 + 4) : -1.0f;
-					real local_27 = local_26 < 0.0f ? 0.0f : function_22aff2(1.0f - local_26);
+					real local_27 = local_26 < 0.0f ? 0.0f : function_22aff5(1.0f - local_26);
 					color3f local_28 = *(color3f const *)g_468710;
 					local_28.red *= local_27;
 					local_28.green *= local_27;
@@ -163,30 +186,30 @@ void function_22aff1(long arg_0, byte const *arg_1, byte const *arg_2, real cons
 						unpack_color3f(local_21[local_22], &g_4e6950.field_5c);
 						unpack_color3f(local_21[local_22], &g_4e6950.field_68);
 					}
-					function_22a664((s_widget_quad_2b11 const *)&local_4, (s_float_rect const *)local_12,
-						*(long const *)(arg_2 + 0x24), local_1, *(long const *)(arg_2 + 0x2c));
+					function_22a664((s_widget_quad_2b11 const *)&local_45.field_54, (s_float_rect const *)local_45.field_c,
+						*(long const *)(arg_2 + 0x24), local_45.field_44, *(long const *)(arg_2 + 0x2c));
 				}
 				break;
 			}
 			case 7:
 			{
-				local_6 = true;
+				local_45.field_67 = true;
 				long local_29 = *(long const *)(arg_1 + 0x22c);
 				if (local_29 > 0)
 				{
-					real local_30 = (real)(local_2 + 1);
+					real local_30 = (real)(local_44 + 1);
 					real local_31 = (real)(local_29 - 1) * (local_30 * 0.5f);
 					for (long local_32 = 0; local_32 < 4; ++local_32)
-						local_12[local_32].x -= local_31;
+						local_45.field_c[local_32].x -= local_31;
 					g_4e6950.field_5c = *(color3f const *)g_468718;
 					for (long local_33 = 0; local_33 < *(long const *)(arg_1 + 0x22c); ++local_33)
 					{
 						unpack_color3f(*(dword const *)(arg_1 + 0x230 + local_33 * 4), &g_4e6950.field_50);
 						g_4e6950.field_40.alpha = *(real const *)(arg_1 + 0x250 + local_33 * 4);
-						function_22a664((s_widget_quad_2b11 const *)&local_4, (s_float_rect const *)local_12,
-							*(long const *)(arg_2 + 0x24), local_1, *(long const *)(arg_2 + 0x2c));
+						function_22a664((s_widget_quad_2b11 const *)&local_45.field_54, (s_float_rect const *)local_45.field_c,
+							*(long const *)(arg_2 + 0x24), local_45.field_44, *(long const *)(arg_2 + 0x2c));
 						for (long local_34 = 0; local_34 < 4; ++local_34)
-							local_12[local_34].x += local_30;
+							local_45.field_c[local_34].x += local_30;
 					}
 				}
 				break;
@@ -194,55 +217,55 @@ void function_22aff1(long arg_0, byte const *arg_1, byte const *arg_2, real cons
 			}
 			if (*(word const *)(arg_2 + 0x1e) & 0x10)
 			{
-				real local_35 = local_12[1].x - local_12[0].x;
-				real local_36 = local_12[2].y - local_12[1].y;
+				real local_35 = local_45.field_c[1].x - local_45.field_c[0].x;
+				real local_36 = local_45.field_c[2].y - local_45.field_c[1].y;
 				for (long local_37 = 0; local_37 < 4; ++local_37)
 				{
 					if (local_37 != 1 && local_37 != 2)
-						local_12[local_37].x -= local_35 * 10.0f;
+						local_45.field_c[local_37].x -= local_35 * 10.0f;
 					if (local_37 <= 1)
-						local_12[local_37].y -= local_36 * 10.0f;
+						local_45.field_c[local_37].y -= local_36 * 10.0f;
 				}
-				local_4.x0 -= (local_4.x1 - local_4.x0) * 10.0f;
-				local_4.y0 -= (local_4.y1 - local_4.y0) * 10.0f;
+				local_45.field_54.x0 -= (local_45.field_54.x1 - local_45.field_54.x0) * 10.0f;
+				local_45.field_54.y0 -= (local_45.field_54.y1 - local_45.field_54.y0) * 10.0f;
 			}
-			if (!local_6)
+			if (!local_45.field_67)
 			{
-				function_22a664((s_widget_quad_2b11 const *)&local_4, (s_float_rect const *)local_12,
-					*(long const *)(arg_2 + 0x24), local_1, *(long const *)(arg_2 + 0x2c));
-				real local_38 = local_12[1].x - local_12[0].x;
-				real local_39 = local_12[2].y - local_12[1].y;
+				function_22a664((s_widget_quad_2b11 const *)&local_45.field_54, (s_float_rect const *)local_45.field_c,
+					*(long const *)(arg_2 + 0x24), local_45.field_44, *(long const *)(arg_2 + 0x2c));
+				real local_38 = local_45.field_c[1].x - local_45.field_c[0].x;
+				real local_39 = local_45.field_c[2].y - local_45.field_c[1].y;
 				point2f local_40[4];
-				memcpy(local_40, local_12, sizeof(local_40));
+				memcpy(local_40, local_45.field_c, sizeof(local_40));
 				if (*(word const *)(arg_2 + 0x1e) & 4)
 				{
 					for (long local_41 = 0; local_41 < 4; ++local_41)
 						if (local_41 != 1 && local_41 != 2)
-							local_12[local_41].x += local_38 * 2.0f;
-					function_22a664((s_widget_quad_2b11 const *)&local_4, (s_float_rect const *)local_12,
-						*(long const *)(arg_2 + 0x24), local_1, *(long const *)(arg_2 + 0x2c));
+							local_45.field_c[local_41].x += local_38 * 2.0f;
+					function_22a664((s_widget_quad_2b11 const *)&local_45.field_54, (s_float_rect const *)local_45.field_c,
+						*(long const *)(arg_2 + 0x24), local_45.field_44, *(long const *)(arg_2 + 0x2c));
 				}
-				memcpy(local_12, local_40, sizeof(local_40));
+				memcpy(local_45.field_c, local_40, sizeof(local_40));
 				if (*(word const *)(arg_2 + 0x1e) & 8)
 				{
 					for (long local_42 = 0; local_42 < 4; ++local_42)
 						if (local_42 <= 1)
-							local_12[local_42].y += local_39 * 2.0f;
-					function_22a664((s_widget_quad_2b11 const *)&local_4, (s_float_rect const *)local_12,
-						*(long const *)(arg_2 + 0x24), local_1, *(long const *)(arg_2 + 0x2c));
+							local_45.field_c[local_42].y += local_39 * 2.0f;
+					function_22a664((s_widget_quad_2b11 const *)&local_45.field_54, (s_float_rect const *)local_45.field_c,
+						*(long const *)(arg_2 + 0x24), local_45.field_44, *(long const *)(arg_2 + 0x2c));
 				}
-				memcpy(local_12, local_40, sizeof(local_40));
+				memcpy(local_45.field_c, local_40, sizeof(local_40));
 				if ((*(word const *)(arg_2 + 0x1e) & 4) && (*(word const *)(arg_2 + 0x1e) & 8))
 				{
 					for (long local_43 = 0; local_43 < 4; ++local_43)
 					{
 						if (local_43 != 1 && local_43 != 2)
-							local_12[local_43].x += local_38 * 2.0f;
+							local_45.field_c[local_43].x += local_38 * 2.0f;
 						if (local_43 <= 1)
-							local_12[local_43].y += local_39 * 2.0f;
+							local_45.field_c[local_43].y += local_39 * 2.0f;
 					}
-					function_22a664((s_widget_quad_2b11 const *)&local_4, (s_float_rect const *)local_12,
-						*(long const *)(arg_2 + 0x24), local_1, *(long const *)(arg_2 + 0x2c));
+					function_22a664((s_widget_quad_2b11 const *)&local_45.field_54, (s_float_rect const *)local_45.field_c,
+						*(long const *)(arg_2 + 0x24), local_45.field_44, *(long const *)(arg_2 + 0x2c));
 				}
 			}
 		}

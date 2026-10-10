@@ -776,7 +776,7 @@ void function_1a7b30(s_flag_bits *result, long owner_index)
 
 		if (element && element->tag_index != NONE)
 		{
-			function_1c2330(0x83, result->d, (dword *)(tags[element->tag_index & 0xffff].bytes + 0x38), result->d);
+			function_1c2330(0x83, (dword *)(tags[element->tag_index & 0xffff].bytes + 0x38), result->d, result->d);
 			return;
 		}
 	}
@@ -923,12 +923,12 @@ short function_1a77a0(long actor_index, long argument, short level)
 // @retail 0x1a78a0
 short function_1a78a0(long actor_index, long argument, short level)
 {
-	s_slot *slot = actor_slot_get(actor_index, level);
+    long local_0 = actor_index;
+	s_slot *slot = actor_slot_get(local_0, level);
 	short state = slot->unknown4;
 	short count = 0;
 	short index = NONE;
-	short out;
-	short result = function_1a7030(actor_index, level, argument, &out);
+	short result = function_1a7030(local_0, level, argument, (short *)&actor_index);
 
 	if (result == g_46fbec)
 		return g_46fbe4;
@@ -936,12 +936,12 @@ short function_1a78a0(long actor_index, long argument, short level)
 	{
 		bool valid;
 		short score;
-		s_action_node **nodes = function_1a73c0(actor_index, slot->type, &valid, &count);
+		s_action_node **nodes = function_1a73c0(local_0, slot->type, &valid, &count);
 
 		if (state < count - 1)
-			result = function_1a75f0(actor_index, nodes, state == NONE ? 0 : state, count, slot, argument, NONE, valid, state != NONE, &score, &index);
+			result = function_1a75f0(local_0, nodes, state == NONE ? 0 : state, count, slot, argument, NONE, valid, state != NONE, &score, &index);
 		if (result == g_46fbe4 && state > 0)
-			result = function_1a75f0(actor_index, nodes, 0, state, slot, argument, NONE, valid, false, &score, &index);
+			result = function_1a75f0(local_0, nodes, 0, state, slot, argument, NONE, valid, false, &score, &index);
 		if (result != g_46fbe4)
 			slot->unknown4 = index;
 	}
@@ -1592,20 +1592,22 @@ struct s_candidate_scale_globals
 long function_1a5c00(s_sort_weight_view const *weights, long object_index, bool alternate,
 	point3f const *origin, vector3f const *direction, long count, s_sort_candidate_view *candidates)
 {
+	long &local_0 = count;
 	s_target_link_view *object = (s_target_link_view *)OBJECT_HEADER(object_index)->object;
 	byte *definition = g_4e3b44[object->definition_index & 0xffff].bytes;
 	real scale = 1.0f;
 	if (((1 << object->field_aa) & 3) &&
-		(bool)((((s_target_link_definition *)g_4e3b44[object->definition_index & 0xffff].bytes)->field_bc >> 19) & 1))
+		(bool)((((s_target_link_definition *)g_4e3b44[(*(long volatile *)&object->definition_index) & 0xffff].bytes)->field_bc >> 19) & 1))
 		scale = ((s_candidate_scale_globals *)g_4e034c)->field_f4->field_8;
-	if (count < 64 && function_1a5e40(object_index, NONE, NULL, NULL, NULL, alternate,
-		origin, direction, &candidates[count]) && function_1a60f0(&candidates[count], weights, scale))
-		count++;
+	if (local_0 < 64 && function_1a5e40(object_index, NONE, NULL, NULL, NULL, alternate,
+		origin, direction, &candidates[local_0]) && function_1a60f0(&candidates[local_0], weights, scale))
+		local_0++;
 	long marker_tag = *(long *)(definition + 0x38);
 	if (marker_tag != NONE)
 	{
 		s_target_marker_table *table = (s_target_marker_table *)g_4e3b44[marker_tag & 0xffff].bytes;
-		s_sort_candidate_view *candidate = &candidates[count];
+		s_sort_candidate_view *candidate = &candidates[local_0];
+		long volatile &local_1 = count;
 		for (long marker_index = 0; marker_index < table->count; marker_index++)
 		{
 			s_target_marker *marker = &table->markers[marker_index];
@@ -1614,18 +1616,18 @@ long function_1a5c00(s_sort_weight_view const *weights, long object_index, bool 
 			if (marker_count != 0)
 			{
 				s_object_marker *second = marker_count == 2 ? &markers[1] : NULL;
-				if (count < 64 && function_1a5e40(object_index, marker_index, marker,
+				if (local_1 < 64 && function_1a5e40(object_index, marker_index, marker,
 					&markers[0].matrix, second ? &second->matrix : NULL, alternate,
 					origin, direction, candidate) &&
 					function_1a60f0(candidate, weights, marker->field_10 * scale))
 				{
-					count++;
+					local_1++;
 					candidate++;
 				}
 			}
 		}
 	}
-	return count;
+	return local_0;
 }
 
 struct s_1a56c0
@@ -1802,6 +1804,7 @@ bool __stdcall function_1a5370(s_sort_weight_view const *arg_0, point3f const *a
 	vector3f const *arg_2, long arg_3, short arg_4, s_sort_candidate_view *arg_5)
 {
 	bool local_0 = false;
+	volatile bool local_6 = local_0;
 	s_sort_candidate_view local_1[0x40];
 	long local_2 = function_14a280(g_4e033c, 0, (point3f *)arg_1);
 	if (local_2 != NONE)
@@ -1814,14 +1817,17 @@ bool __stdcall function_1a5370(s_sort_weight_view const *arg_0, point3f const *a
 			{
 				g_51e99c = (s_sort_globals *)arg_0;
 				qsort(local_1, local_4, sizeof(s_sort_candidate_view), (int (__cdecl *)(void const *, void const *))function_1a66f0);
-				for (long local_5 = 0; local_5 < local_4; local_5++)
+				real *volatile local_7 = &local_1[0].radius;
+                for (long local_5 = 0; local_5 < local_4; local_5++, local_7 = (real *)((byte *)local_7 + 0x60))
 				{
-					if (function_1a67f0(arg_1, &local_1[local_5].point, local_1[local_5].object_index, arg_3))
+					real *local_8 = local_7;
+                    if (function_1a67f0(arg_1, (point3f *)((byte *)local_8 - 0x0c), *(long *)((byte *)local_8 - 0x14), arg_3))
 					{
 						*arg_5 = local_1[local_5];
 						return true;
 					}
 				}
+				return local_6;
 			}
 		}
 	}

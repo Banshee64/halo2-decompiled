@@ -221,10 +221,23 @@ long online_presence_task_new(DWORD controller_index)
 	return task_index;
 }
 
+PRIVATE __forceinline s_type_9df9da *function_8c3a4(long arg_0, s_record_pool *arg_1)
+{
+ s_type_9df9da *local_0 = 0;
+ long local_1 = arg_0 & 0xffff;
+ if (local_1 < arg_1->high_water_index)
+ {
+  byte *local_2 = arg_1->data + arg_1->size * local_1;
+  short local_3 = *(short *)local_2;
+  if (local_3 != 0 && local_3 == (arg_0 >> 16)) local_0 = (s_type_9df9da *)local_2;
+ }
+ return local_0;
+}
 // @retail 0x8c3a0
 void online_presence_add(long task_index, DWORD group_id, DWORD user_count, XUID *users)
 {
-	s_type_9df9da *task = online_task_try_get(task_index);
+	s_type_9df9da *task = 0;
+	if (task_index != NONE) task = function_8c3a4(task_index, g_4cf78c);
 
 	if (task && online_logon_connected())
 		XOnlinePresenceAdd((XONLINETASK_HANDLE)task->handle, group_id, user_count, users);

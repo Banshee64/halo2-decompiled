@@ -1223,10 +1223,10 @@ void function_16ff10(long user_index)
 	real *constant = state->constant;
 	real *time = state->times;
 	real *acceleration = state->second_derivative;
-	real *delta = state->delta;
 	real *velocity = state->first_derivative;
+	real *delta = state->delta;
 	function_172520((s_observer_command *)((byte *)state + 8));
-	for (short group = 0; group < 6; ++group, ++time)
+	for (short group = 0; group < 6; ++time, ++group)
 	{
 		if ((state->flags & 1) && *time > g_4e9bd0)
 		{
@@ -1237,7 +1237,9 @@ void function_16ff10(long user_index)
 			real inverse5 = inverse4 * inverse;
 			for (short i = 0; i < g_468d3c[group]; ++i)
 			{
-				fifth[i] = acceleration[i] * inverse3 * 0.5f - (delta[i] * inverse5 * 6.0f + velocity[i] * inverse4 * 3.0f);
+				real fifth_delta = delta[i] * inverse5 * 6.0f;
+				real fifth_velocity = velocity[i] * inverse4 * 3.0f;
+				fifth[i] = acceleration[i] * inverse3 * 0.5f - (fifth_delta + fifth_velocity);
 				fourth[i] = delta[i] * inverse4 * 15.0f + velocity[i] * inverse3 * 7.0f - acceleration[i] * inverse2;
 				third[i] = acceleration[i] * inverse * 0.5f - (delta[i] * inverse3 * 10.0f + velocity[i] * inverse2 * 4.0f);
 				second[i] = 0.0f;
@@ -1259,10 +1261,11 @@ void function_16ff10(long user_index)
 		third += count;
 		second += count;
 		first += count;
-		constant += count;
+		real *next_constant = constant + count;
 		acceleration += count;
 		delta += count;
 		velocity += count;
+		constant = next_constant;
 	}
 }
 real g_468d28 = 1.0f;

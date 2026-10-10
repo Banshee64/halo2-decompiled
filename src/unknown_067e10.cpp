@@ -780,7 +780,7 @@ struct s_simulation_watcher_state
 void simulation_watcher_update_machines(s_simulation_world_owner *watcher);
 
 // @retail 0x68350
-void function_68350(s_simulation_watcher_state *state, bool *valid)
+void function_68350(bool *valid, s_simulation_watcher_state *state)
 {
 	s_simulation_watcher *watcher = (s_simulation_watcher *)g_4cf780;
 	*valid = false;
@@ -1848,6 +1848,8 @@ void __stdcall function_162060(void *engine);
 void function_196470(void);
 void function_196780(void);
 
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x6aee0
 bool function_6aee0(c_class_6a600 *world)
 {
@@ -1863,7 +1865,8 @@ bool function_6aee0(c_class_6a600 *world)
   s_machine_address address = world->local_address;
   byte preserve = world->unknown2f;
   function_68e20(world);
-  *(volatile byte *)&g_4e6948->mode = 3;
+  *(byte *)&g_4e6948->mode = 3;
+  _ReadWriteBarrier();
   function_68c00(owner, (void *)g_4cf784, distribution, world);
   world->local_address = address;
   world->unknown0c = true;
@@ -1904,6 +1907,7 @@ bool function_6aee0(c_class_6a600 *world)
  }
  return result;
 }
+#pragma function(_ReadWriteBarrier)
 
 byte g_4cf77a;
 void simulation_world_reset_replication(c_class_6a600 *world);
@@ -2080,7 +2084,7 @@ void function_69260(c_class_6a600 *world, s_simulation_block_data *block)
 		bool *valid = (bool *)(data + 0xdd0);
 		s_simulation_watcher_state *state = (s_simulation_watcher_state *)(data + 0xdd4);
 		*(dword *)(data + 0x4044) = g_4e7408->unknown0;
-		function_68350(state, valid);
+		function_68350(valid, state);
 		function_83610((s_simulation_world_owner *)g_4cf780, (long *)(data + 0xe38), (s_simulation_player_update *)(data + 0xe3c));
 		bool active = function_68250();
 		*(bool *)(data + 4) = active;

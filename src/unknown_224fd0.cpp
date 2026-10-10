@@ -63,7 +63,9 @@ PRIVATE inline void draw_cross(vector3f const *a, vector3f const *b, vector3f *o
 
 PRIVATE __forceinline void draw_rotation(vector3f const *axis, real sine, real cosine, matrix3x3 *out)
 {
-	real i2=axis->i*axis->i, j2=axis->j*axis->j, k2=axis->k*axis->k;
+	real k2=axis->k*axis->k;
+	real i2=axis->i*axis->i;
+	real j2=axis->j*axis->j;
 	real ij=(1.0f-cosine)*axis->i*axis->j;
 	real ik=(1.0f-cosine)*axis->k*axis->i;
 	real jk=(1.0f-cosine)*axis->k*axis->j;

@@ -2,6 +2,55 @@
 
 The newest entry comes first.
 
+## 2026-10-10: 7429 functions match
+
+```
+matched 7429 of 11318 game functions (864966 of 2784283 bytes, 31.07%)
+```
+
+6 new matches, none lost:
+- Deep lane 1, helpers first: the helpers 0xa9440 and 0xb9c60 match, and with them their callers 0xd0d20, 0xd2bb0, 0x14e970 and 0x2a1610, with no change to those.
+
+## 2026-10-10: 7423 functions match
+
+```
+matched 7423 of 11318 game functions (864283 of 2784283 bytes, 31.04%)
+```
+
+1 new matches, none lost:
+- Deep lane 1, closest first in lanes S, N and Q: 0x101490 (266 bytes).
+
+## 2026-10-10: 7422 functions match
+
+```
+matched 7422 of 11318 game functions (864017 of 2784283 bytes, 31.03%)
+```
+
+2 new matches, none lost:
+- Deep lane 3, closest first in lanes V, X, A, the UI screens, W, Z, AB and AD: 0xd35a0 and 0x2aa2c0.
+
+## 2026-10-10: 7420 functions match
+
+```
+matched 7420 of 11318 game functions (863786 of 2784283 bytes, 31.02%)
+```
+
+12 new matches, none lost:
+- Machine 2's lane D lower half, deep round 11 (#292): 0x61e00, 0x662f0, 0x69260, 0x6aee0.
+- Lane D upper half, deep round 11 (#293): 0x80aa0, 0x87ac0, 0x8c3a0, and 0x1a4141 as a side effect; also a behaviour fix in 0x8ef60.
+- Lane O, deep round 19 (#294): 0x242510. Lane K, deep round 16 (#295): 0x2277b0, and 0x2079f0 as a side effect. Lane M, deep round 17 (#296): 0x1acfd0.
+- Lane B, deep round 11 (#291): 0x1f2250 now returns bool (code only).
+
+## 2026-10-10: 7408 functions match
+
+```
+matched 7408 of 11318 game functions (860814 of 2784283 bytes, 30.92%)
+```
+
+12 new matches, none lost:
+- Deep lane 2, closest first in lanes S, T, R, Q, N, H and the UI core: 0x192b90, 0x16a0a0 and 0x17b490, whose first two parameters are now swapped at the definition and every call site.
+- Nine more follow from the same round's changes: 0x168a10, 0x168e20, 0x1785c0, 0x17cc60, 0x17d350, 0x194a10, 0x214a60, 0x23da00 and 0x25217b.
+
 ## 2026-10-10: 7396 functions match
 
 ```

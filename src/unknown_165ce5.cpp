@@ -372,10 +372,14 @@ void first_person_nodes_remap(transform4x3f const *base, transform4x3f *out, vol
 	transform4x3f const *nodes, long const *node_map, long render_model_index)
 {
 	s_first_person_render_model *model = (s_first_person_render_model *)g_4e3b44[render_model_index & 0xffff].bytes;
-	long count = MIN(model->node_count, out_count);
+	long capacity = out_count;
+	long count = MIN(model->node_count, capacity);
 	long i;
+	if (count <= 0)
+		return;
+	transform4x3f *destination = out;
 
-	for (i = 0; i < count; i++, out++)
+	for (i = 0; i < count; i++, destination++)
 	{
 		long node_index = node_map[i];
 
@@ -383,11 +387,11 @@ void first_person_nodes_remap(transform4x3f const *base, transform4x3f *out, vol
 		{
 			if (base)
 			{
-				function_142a60(base, &nodes[node_index], out);
+				function_142a60(base, &nodes[node_index], destination);
 			}
 			else
 			{
-				*out = nodes[node_index];
+				*destination = nodes[node_index];
 			}
 		}
 	}

@@ -350,7 +350,8 @@ long __stdcall async_copy_position_callback(s_async_task *task)
 	s_copy_position_task *copy = &task->copy_position;
 	dword size = g_46e488;
 	long finished = false;
-	DWORD bytes = 0;
+	DWORD *local_0 = (DWORD *)&task;
+    *local_0 = 0;
 	LONG high = 0;
 
 	if (g_46e48c <= size)
@@ -362,10 +363,10 @@ long __stdcall async_copy_position_callback(s_async_task *task)
 	{
 		if (SetFilePointer(copy->source.handle, copy->source_offset, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
 		{
-			bytes = ReadFile(copy->source.handle, (byte *)copy->buffer + copy->bytes_copied, size, &bytes, NULL) ? bytes : 0;
-			copy->source_offset += bytes;
+			*local_0 = ReadFile(copy->source.handle, (byte *)copy->buffer + copy->bytes_copied, size, local_0, NULL) ? *local_0 : 0;
+			copy->source_offset += *local_0;
 		}
-		if (bytes < size)
+		if (*local_0 < size)
 			finished = true;
 		copy->writing = true;
 	}
@@ -373,11 +374,11 @@ long __stdcall async_copy_position_callback(s_async_task *task)
 	{
 		if (SetFilePointer(copy->destination.handle, copy->destination_offset, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
 		{
-			bytes = WriteFile(copy->destination.handle, (byte *)copy->buffer + copy->bytes_copied, size, &bytes, NULL) ? bytes : 0;
-			copy->bytes_copied += bytes;
-			copy->destination_offset += bytes;
+			*local_0 = WriteFile(copy->destination.handle, (byte *)copy->buffer + copy->bytes_copied, size, local_0, NULL) ? *local_0 : 0;
+			copy->bytes_copied += *local_0;
+			copy->destination_offset += *local_0;
 		}
-		if (copy->size == copy->bytes_copied || bytes < size)
+		if (copy->size == copy->bytes_copied || *local_0 < size)
 			finished = true;
 		copy->writing = false;
 	}
