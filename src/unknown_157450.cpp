@@ -697,13 +697,9 @@ bool function_158a50(long player_index)
 	if ((flags & 1) && !(flags & 2) && player->team != NONE)
 	{
 		if (player->unit_index != NONE)
-		{
-			return true;
-		}
-		if (!(flags & 0x4000) && !function_15db30(player_index))
-		{
 			result = true;
-		}
+		else if (!(flags & 0x4000) && !function_15db30(player_index))
+			result = true;
 	}
 	return result;
 }
@@ -2331,7 +2327,7 @@ void function_15b3a0(long player_or_team, bool value)
 	s_game_engine_globals *globals = function_xaee93d();
 	long wins = 0;
 	bool const *value_reference = &value;
-	bool finish = *value_reference;
+	bool finish = (byte)*value_reference != 0;
 
 	if (player_or_team != NONE)
 	{

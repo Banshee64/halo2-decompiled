@@ -1993,7 +1993,7 @@ void function_3d270(void)
 
 typedef dword (__stdcall *t_cache_hash)(void const *);
 typedef bool (__stdcall *t_cache_compare)(void const *, void const *);
-hash_table *function_13e1a0(char const *name, long data_size, long bucket_count,
+__declspec(noinline) hash_table *function_13e1a0(char const *name, long data_size, long bucket_count,
     t_cache_hash hash, t_cache_compare compare, long maximum_count, c_data_allocator *allocator);
 
 // @retail 0x1e110
