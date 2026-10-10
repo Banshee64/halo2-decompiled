@@ -880,6 +880,8 @@ s_online_file g_477058 =
 };
 
 #pragma optimize("s", on)
+extern "C" void _ReadWriteBarrier(void);
+#pragma intrinsic(_ReadWriteBarrier)
 // @retail 0x662f0
 void network_configuration_initialize()
 {
@@ -890,13 +892,16 @@ void network_configuration_initialize()
 		if (success)
 		{
 			g_477058.flags |= (1 << 1);
+			_ReadWriteBarrier();
 			g_477058.flags |= (1 << 3);
 		}
 		else
 		{
 			g_477058.flags &= ~(1 << 1);
+			_ReadWriteBarrier();
 			g_477058.flags &= ~(1 << 3);
 		}
 	}
 }
+#pragma function(_ReadWriteBarrier)
 #pragma optimize("", on)

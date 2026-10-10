@@ -131,16 +131,17 @@ PRIVATE __forceinline void function_1befd1(long arg_0)
 // @retail 0x1befd0
 bool __stdcall function_1befd0(long actor_index, s_slot *slot)
 {
+	struct s_1befd4 { double field_0; double field_8; } local_0;
 	s_slot_0a *state = (s_slot_0a *)slot;
-	double delay = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 3.0f, 5.0f);
-	double wait = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 0.0f, 0.5f);
+	local_0.field_0 = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 3.0f, 5.0f);
+	local_0.field_8 = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 0.0f, 0.5f);
 	real ticks;
 	long rounded;
 
 	function_1befd1(actor_index);
 	state->reference = g_470fa0;
 
-	ticks = g_510c54->field_2_3 * delay;
+	ticks = g_510c54->field_2_3 * local_0.field_0;
 	__asm
 	{
 		fld ticks
@@ -148,7 +149,7 @@ bool __stdcall function_1befd0(long actor_index, s_slot *slot)
 	}
 	state->unknown10 = (short)rounded;
 
-	ticks = g_510c54->field_2_3 * wait;
+	ticks = g_510c54->field_2_3 * local_0.field_8;
 	__asm
 	{
 		fld ticks

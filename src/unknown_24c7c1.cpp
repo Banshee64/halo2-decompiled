@@ -486,11 +486,11 @@ bool __stdcall function_24cedf(real *vertices, long parameter)
 			local_0 *= scale;
 			local_0 *= 0.5f;
 			local_2 += local_0;
+			vertex[0] = local_2;
 			real local_3 = *(real const volatile *)(vertex + 1);
 			local_1 *= scale;
 			local_1 *= 0.5f;
 			local_3 += local_1;
-			vertex[0] = local_2;
 			vertex[1] = local_3;
 		}
 	}
@@ -682,69 +682,68 @@ void function_24cf66(long local_player_index)
 		{
 			s_hud_message *message = &player->messages[i];
 
-			if (message->active)
+			if (!message->active)
+				break;
+			s_game_time_globals *game_time_globals = g_510c54;
+			long game_time = game_time_globals->game_time;
+
+			if (function_163040(local_player_index))
+				message->time++;
+
+			real age = (real)(game_time - message->time) * game_time_globals->rate;
+
+			*(s_color_bits *)&color.red = *function_13927e(local_player_index);
+			color.alpha = function_1392a9(local_player_index);
+			field_24 = *(color4f *)g_4686d4;
+			field_24.alpha = function_1392a9(local_player_index);
+
+			if (age > view->fade_time)
 			{
-				s_game_time_globals *game_time_globals = g_510c54;
-				long game_time = game_time_globals->game_time;
+				real fade = 1.0f - (age - view->fade_time) / view->display_time;
+				if (fade < 0.0f)
+					fade = 0.0f;
+				else if (fade > 1.0f)
+					fade = 1.0f;
 
-				if (function_163040(local_player_index))
-					message->time++;
-
-				real age = (real)(game_time - message->time) * game_time_globals->rate;
-
-				*(s_color_bits *)&color.red = *function_13927e(local_player_index);
-				color.alpha = function_1392a9(local_player_index);
-				field_24 = *(color4f *)g_4686d4;
-				field_24.alpha = function_1392a9(local_player_index);
-
-				if (age > view->fade_time)
-				{
-					real fade = 1.0f - (age - view->fade_time) / view->display_time;
-					if (fade < 0.0f)
-						fade = 0.0f;
-					else if (fade > 1.0f)
-						fade = 1.0f;
-
-					real scale = pow(fade, 1.9f);
-					color.alpha *= scale;
-					field_24.alpha *= scale;
-				}
-
-				long message_height = 0;
-				function_13edb0(font, NONE, 0, 0, &color, &field_24);
-
-				if (message->counted && message->count)
-				{
-					unicode_string_copy(text, message->text, 0x100);
-					((s_510c4c_view *)g_510c4c)->text_count = message->count;
-					function_22d2ee(text, 0x100);
-					if (function_13ee20(text, g_4e73a0.font))
-					{
-						function_24ce9d(text, left, y, &bounds, &text_bounds);
-						message_height = (short)(bounds.bottom - bounds.top);
-						function_1fa30(text, &bounds);
-					}
-				}
-				else if (function_13ef30(message->text))
-				{
-					function_24ce9d(message->text, left, y, &bounds, &text_bounds);
-					message_height = (short)(bounds.bottom - bounds.top);
-					function_1fa30(message->text, &bounds);
-				}
-
-				y = (short)((real)message_height * view->line_spacing + (real)y);
+				real scale = pow(fade, 1.9f);
+				color.alpha *= scale;
+				field_24.alpha *= scale;
 			}
+
+			long message_height = 0;
+			function_13edb0(font, NONE, 0, 0, &color, &field_24);
+
+			if (message->counted && message->count)
+			{
+				unicode_string_copy(text, message->text, 0x100);
+				((s_510c4c_view *)g_510c4c)->text_count = message->count;
+				function_22d2ee(text, 0x100);
+				if (function_13ee20(text, g_4e73a0.font))
+				{
+					function_24ce9d(text, left, y, &bounds, &text_bounds);
+					message_height = (short)(bounds.bottom - bounds.top);
+					function_1fa30(text, &bounds);
+				}
+			}
+			else if (function_13ef30(message->text))
+			{
+				function_24ce9d(message->text, left, y, &bounds, &text_bounds);
+				message_height = (short)(bounds.bottom - bounds.top);
+				function_1fa30(message->text, &bounds);
+			}
+
+			y = (short)((real)message_height * view->line_spacing + (real)y);
 		}
 
 		player = hud_player_get(local_player_index);
 		field_24 = *(color4f *)g_4686d4;
 		long game_time = g_510c54->game_time;
-		top = g_4b9dd8.bottom - g_4b9dd0 - 0x28;
+		long local_2 = g_4b9dd8.bottom - g_4b9dd0 - 0x28;
 		*(s_color_bits *)&color.red = *function_13927e(local_player_index);
 		bounds.left = g_4b9dd8.left - g_4b9dd2;
 		bounds.right = g_4b9dd8.right - g_4b9dd2;
-		bounds.bottom = top + line_height * 5;
-		bounds.top = top;
+		bounds.bottom = local_2 + line_height * 5;
+		bounds.top = local_2;
 
 		if (game_time >= player->time_4d8 && game_time < player->time_4d8 + player->value_4dc)
 		{
@@ -759,8 +758,8 @@ void function_24cf66(long local_player_index)
 		}
 
 		bounds.bottom += 0x12;
-		top += 0x12;
-		bounds.top = top;
+		local_2 += 0x12;
+		bounds.top = local_2;
 		*(s_color_bits *)&color.red = *function_13927e(local_player_index);
 		color.alpha = function_1392a9(local_player_index);
 		field_24.alpha = function_1392a9(local_player_index);

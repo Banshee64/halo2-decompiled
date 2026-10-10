@@ -281,11 +281,12 @@ struct s_game_engine_player_info
 // @retail 0x162a30
 void function_162a30(long player_index)
 {
-	s_game_engine_player_info *info = (s_game_engine_player_info *)&g_4e9ae8->players[player_index & 0xffff];
+	long const *const player_reference = &player_index;
+	s_game_engine_player_info *info = (s_game_engine_player_info *)&g_4e9ae8->players[(*player_reference) & 0xffff];
 
 	if (g_4e6948->mode != 4)
 	{
-		long previous = info->state;
+		short previous = info->state;
 
 		if (info->state_ticks != 0 && --info->state_ticks == 0)
 		{
@@ -312,7 +313,7 @@ void function_162a30(long player_index)
 		}
 		if (previous != info->state && game_engine_get())
 		{
-			long slot = g_4e9ae8->slots[(short)player_index];
+			long slot = g_4e9ae8->slots[(short)(*player_reference)];
 
 			if (slot != NONE)
 			{
@@ -324,7 +325,8 @@ void function_162a30(long player_index)
 	{
 		long time = info->timer - 1;
 
-		time = time > 0 ? time : 0;
+		if (time <= 0)
+			time = 0;
 		info->timer = (short)time;
 		if ((short)time == 0)
 		{
@@ -556,15 +558,15 @@ long function_162470(bool flag)
 			{
 				s_event event;
 
-				event.type = 0;
-				event.subtype = 0x25;
 				event.a = NONE;
 				event.cause_player_index = NONE;
 				event.cause_team = NONE;
 				event.effect_player_index = NONE;
 				event.effect_team = NONE;
-				event.f = 0;
 				event.g = NONE;
+				event.type = 0;
+				event.subtype = 0x25;
+				event.f = 0;
 				if (g_4e6948->mode != 4)
 				{
 					function_a7c50(&event);

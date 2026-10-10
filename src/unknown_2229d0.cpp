@@ -251,19 +251,21 @@ void function_222a70(
 
 	if (!g_509340 && !simulation_world_is_remote())
 	{
-		long i;
-		s_speed_table_entry *local_0 = g_502120->entries;
+		long i = 0;
+		real *local_0 = g_502120->entries[0].timers + 1;
 		long const *local_1 = g_4e8c20->entries;
 
-		for (i = 0; i < 4; i++, local_0++, local_1++)
+		for (; i < 4; i++, local_1++, local_0 += sizeof(s_speed_table_entry) / sizeof(real))
 		{
-			s_speed_table_entry *entry = local_0;
+			s_speed_table_entry *entry = (s_speed_table_entry *)((byte *)local_0 - 0x64);
 			s_rumble_state state = rumble_player_evaluate(entry);
-			long player_index = i != NONE ? *local_1 : NONE;
+			long player_index = NONE;
+			if (i != NONE)
+				player_index = *local_1;
 			long j;
 
 			for (j = 0; j < 8; j++)
-				entry->timers[j] += seconds;
+				local_0[j - 1] += seconds;
 
 			if (player_index != NONE)
 			{
