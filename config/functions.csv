@@ -3175,7 +3175,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 000e4d90,686,game,speed,a16 pad,,,000b8bd0 000b8d30 000b9dd0 0011c120 001697c0 00188180,src/bipeds.cpp,todo
 000e5040,504,game,speed,a16 pad,,,000e4d90,,todo
 000e5240,49,game,speed,a16 pad,,,000e4050,src/unknown_0e5240.cpp,matched
-000e5280,127,game,speed,a16 pad,,,000cbd80,src/unknown_0e5280.cpp,near
+000e5280,127,game,speed,a16 pad,,,000cbd80,src/unknown_0e5280.cpp,matched
 000e5300,353,game,speed,a16 pad,,,000b9dd0 001cfe70 001d0bb0 001d1160,,todo
 000e5470,502,game,speed,a16 pad,,,00030bf0 000caf60 000cb7e0 000cd7b0 00118e80,,todo
 000e5670,29,game,speed,a16 pad,,,,src/unknown_0a76b0.cpp,matched
