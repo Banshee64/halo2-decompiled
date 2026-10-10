@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-10: 7472 functions match
+
+```
+matched 7472 of 11318 game functions (874340 of 2784283 bytes, 31.40%)
+```
+
+1 new matches, none lost:
+- Deep lane 3, closest first in lanes V, X, A and the UI screens: 0x26dc90 (334 bytes).
+
 ## 2026-10-10: 7471 functions match
 
 ```
