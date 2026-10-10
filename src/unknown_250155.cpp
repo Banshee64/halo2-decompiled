@@ -1673,7 +1673,8 @@ bool __stdcall function_252166(c_class_1473c9 *screen, long dialog_id)
 // @retail 0x25217b
 void function_25217b(c_matchmaking_screen *screen, s_widget_event *event)
 {
-	if (function_25142f() < 2 || function_75890(screen->value614) >= 60000)
+	bool show_dialog = function_25142f() < 2 || function_75890(screen->value614) >= 60000;
+	if (show_dialog)
 	{
 		long dialog_id = (function_199ebc() <= function_199f6d()) + 0x8c;
 		long user_flags = event ? 1 << event->controller_index : (short)function_1901fc();
@@ -2291,7 +2292,9 @@ void c_screen_24fd74::function_2508a8()
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_text((short)index);
 	if (text)
 	{
-		bool show = function_19a935() && function_199f34() <= 1;
+		bool show = true;
+		if (!function_19a935() || function_199f34() > 1)
+			show = false;
 
 		text->value6e = show;
 		if (show)

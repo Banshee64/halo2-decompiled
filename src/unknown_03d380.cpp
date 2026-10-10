@@ -426,7 +426,7 @@ void __stdcall function_155f10(dword flags)
 // @retail 0x16eff0
 void __stdcall function_16eff0(dword flags)
 {
-	if (!((flags >> 4) & 1))
+	if ((bool)((~(flags >> 4)) & 1))
 	{
 		long *out = g_510c70;
 		long *entry = g_4e8c20->entries;
