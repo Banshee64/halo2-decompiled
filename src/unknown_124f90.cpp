@@ -3323,8 +3323,8 @@ void function_127400(bool arg_0)
 		{
 			long local_3 = *(long *)(g_4e8c24->data + (local_2 & 0xffff) * 0x21c + 0x2c);
 			short local_4 = (short)function_155760(local_0);
-			s_player_state local_5 = g_4e9bd4[local_0].state;
-			s_127401 const *local_6 = g_4686c4 != NONE ? (s_127401 const *)&local_5 : NULL;
+			s_player_4e9bd4 const *local_5 = g_4e9bd4;
+			s_127401 const *local_6 = g_4686c4 != NONE ? (s_127401 const *)((byte const *)(local_5 + local_0) + 0xb8) : NULL;
 			vector3f local_7;
 			vector3f local_8;
 			point3f local_9;

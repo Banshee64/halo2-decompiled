@@ -85,7 +85,7 @@ long render_model_find_marker_group(long render_model_index, long index)
 }
 
 // @retail 0x16d8d0
-void render_model_build_child_node_matrices(s_render_model_definition const *definition, transform4x3f const *parent_matrix,
+void __stdcall render_model_build_child_node_matrices(s_render_model_definition const *definition, transform4x3f const *parent_matrix,
 	long node_index, long node_count, transform4x3f *field_50)
 {
 	long child_index = definition->nodes[node_index].first_child_node_index;
@@ -97,7 +97,7 @@ void render_model_build_child_node_matrices(s_render_model_definition const *def
 		function_142a60(parent_matrix, &field_50[child_index], &field_50[child_index]);
 		if (child->first_child_node_index != NONE)
 		{
-			render_model_build_child_node_matrices(definition, &field_50[child_index], child_index, node_count, field_50);
+			render_model_build_child_node_matrices(definition, parent_matrix, child_index, node_count, field_50);
 		}
 		child_index = child->next_sibling_node_index;
 	}
@@ -311,9 +311,9 @@ void model_variant_region_get_choices(s_type_f83fc7 const *region, long permutat
 
 						if (next_sum > random_value)
 						{
+							unknown0c = alternative->unknown0c;
 							unknown10 = alternative->unknown10;
 							choice_permutation_index = alternative->permutation_index;
-							unknown0c = alternative->unknown0c;
 							choice_name = alternative->name;
 							choice_value = alternative->unknown05;
 							goto found;
@@ -336,9 +336,9 @@ void model_variant_region_get_choices(s_type_f83fc7 const *region, long permutat
 
 						if (alternative->name == name && alternative->unknown05 == value)
 						{
+							unknown0c = alternative->unknown0c;
 							unknown10 = alternative->unknown10;
 							choice_permutation_index = alternative->permutation_index;
-							unknown0c = alternative->unknown0c;
 							goto found;
 						}
 					}

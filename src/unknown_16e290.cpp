@@ -560,7 +560,7 @@ bool function_16e7b0(long index)
 	{
 		s_16e290_bsp *bsp = g_4e0344->bsp;
 
-		if (bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
+		if (*(volatile long *)&bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
 		{
 			short bitmap_index = bsp->bitmaps2c[index].bitmap_index;
 
@@ -586,7 +586,7 @@ bool function_16e820(long index)
 	{
 		s_16e290_bsp *bsp = g_4e0344->bsp;
 
-		if (bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
+		if (*(volatile long *)&bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
 		{
 			long bitmap_index = bsp->bitmaps4c[index].bitmap_index;
 
@@ -710,7 +710,7 @@ extern s_sound_globals *g_51ebd4;
 // @retail 0x16ea60
 bool function_16ea60(long sound_index)
 {
-	s_16ea60_sound *sound = (s_16ea60_sound *)g_4e3b44[sound_index & 0xffff].bytes;
+	s_16ea60_sound *volatile sound = (s_16ea60_sound *)g_4e3b44[sound_index & 0xffff].bytes;
 	long pitch_range_count = sound->pitch_range_count;
 	bool result = true;
 	long pitch_range_index;
@@ -719,7 +719,7 @@ bool function_16ea60(long sound_index)
 	{
 		s_16ea60_tables *tables = (s_16ea60_tables *)g_51ebd4;
 		s_16ea60_pitch_range *arg_58ecd0 = &tables->pitch_ranges[sound->first_pitch_range + pitch_range_index];
-		long permutation_count = arg_58ecd0->permutation_count;
+		short permutation_count = arg_58ecd0->permutation_count;
 		long permutation_index;
 
 		for (permutation_index = 0; permutation_index < permutation_count; permutation_index++)

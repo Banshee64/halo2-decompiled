@@ -598,6 +598,7 @@ bool __stdcall function_169510(long object_index, bool a, dword flags, dword tes
 	{
 		s_collision_object_header *header = &((s_collision_object_header *)g_4e0300->data)[object_index & 0xffff];
 		s_collision_object *object = header->object;
+		s_collision_object *volatile saved_object = object;
 		if (a || (collision_object_test(object_index, header, object, flags, ignore_object_index, ignore_unit_index) &&
 			function_11e5e0(point, (point3f const *)((byte *)object + 0x40), vector, *(real *)((byte *)object + 0x4c))))
 		{
@@ -619,7 +620,7 @@ bool __stdcall function_169510(long object_index, bool a, dword flags, dword tes
 			}
 			if (!(flags & 0x20000))
 			{
-				long child_index = *(long *)((byte *)object + 0x10);
+				long child_index = *(long *)((byte *)saved_object + 0x10);
 				if (child_index != NONE && function_169510(child_index, false, flags, test_flags, point, vector,
 					ignore_object_index, ignore_unit_index, result))
 				{
@@ -628,7 +629,7 @@ bool __stdcall function_169510(long object_index, bool a, dword flags, dword tes
 				}
 			}
 		}
-		object_index = *(long *)((byte *)object + 0xc);
+		object_index = *(long *)((byte *)saved_object + 0xc);
 	} while (object_index != NONE);
 done:
 	return found;
@@ -1299,7 +1300,7 @@ void __stdcall function_16a280(long object_index, dword flags, point3f const *po
 {
     do
     {
-        s_collision_object_header *header = &((s_collision_object_header *)g_4e0300->data)[object_index & 0xffff];
+        s_collision_object_header *volatile header = &((s_collision_object_header *)g_4e0300->data)[object_index & 0xffff];
         s_collision_object *object = header->object;
         if (collision_object_test(object_index, header, object, flags, ignore_object_index, ignore_object_index2))
         {

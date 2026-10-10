@@ -1710,6 +1710,7 @@ bool function_101490(long weapon_index, long magazine_index)
 	{
 		long i;
 
+		result = true;
 		function_b7360(weapon_index);
 		for (i = 0; i < definition->trigger_count; i++)
 		{
@@ -1728,7 +1729,6 @@ bool function_101490(long weapon_index, long magazine_index)
 			if (definition->reload_style != 1)
 				function_103dd0(*weapon_reference, (short)i);
 		}
-		result = true;
 	}
 	return result;
 }
@@ -1915,8 +1915,8 @@ void function_a7cd0(long weapon_index);
 void function_102b90(long weapon_index, short magazine_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
-	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
 	s_weapon_magazine_definition *magazine_definition = &WEAPON_DEFINITION(weapon)->magazines[magazine_index];
+	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
 
 	if (magazine_definition->flags & 1)
 		magazine->rounds_loaded = 0;
@@ -1924,7 +1924,7 @@ void function_102b90(long weapon_index, short magazine_index)
 	long available = function_1008f0(magazine_index, weapon_index, false);
 	long reloaded = magazine_definition->rounds_reloaded > available ? available : magazine_definition->rounds_reloaded;
 	word loaded = magazine->rounds_loaded;
-	short rounds = (short)(loaded + reloaded);
+	long rounds = (short)(loaded + reloaded);
 
 	if (rounds > magazine_definition->rounds_loaded_maximum)
 		rounds = magazine_definition->rounds_loaded_maximum;

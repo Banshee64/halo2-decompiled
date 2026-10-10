@@ -331,6 +331,7 @@ void function_29cbb0(long arg_0, long arg_1, vector3f const *arg_2, vector3f *ar
 				local_27 = -local_34;
 			else if (local_27 > local_34)
 				local_27 = local_34;
+			local_12.i = 1.0f;
 		}
 		local_12.i *= local_27;
 		local_12.j *= local_27;

@@ -192,25 +192,26 @@ void function_141ce0(
 	real c,
 	transform4x3f *out)
 {
-	real cos_c, sin_c, cos_b, sin_b, cos_a, sin_a, sin_b_sin_c, sin_b_cos_c;
-	cos_c = (real)cos(c);
-	sin_c = (real)sin(c);
+	point2f angle_c;
+	real cos_b, sin_b, cos_a, sin_a, sin_b_sin_c, sin_b_cos_c;
+	angle_c.x = (real)cos(c);
+	angle_c.y = (real)sin(c);
 	cos_b = (real)cos(b);
 	sin_b = (real)sin(b);
 	cos_a = (real)cos(a);
-	sin_b_sin_c = sin_b * sin_c;
-	sin_b_cos_c = sin_b * cos_c;
+	sin_b_sin_c = sin_b * angle_c.y;
+	sin_b_cos_c = sin_b * angle_c.x;
 	sin_a = (real)sin(a);
 	out->scale = 1.f;
-	out->forward.j = sin_a * cos_c - sin_b_sin_c * cos_a;
+	out->forward.j = sin_a * angle_c.x - sin_b_sin_c * cos_a;
 	out->forward.i = cos_a * cos_b;
-	out->forward.k = sin_b_cos_c * cos_a + sin_a * sin_c;
+	out->forward.k = sin_b_cos_c * cos_a + sin_a * angle_c.y;
 	out->left.i = 0.f - sin_a * cos_b;
-	out->left.j = sin_b_sin_c * sin_a + cos_a * cos_c;
+	out->left.k = cos_a * angle_c.y - sin_b_cos_c * sin_a;
+	out->left.j = sin_b_sin_c * sin_a + cos_a * angle_c.x;
 	out->up.i = 0.f - sin_b;
-	out->left.k = cos_a * sin_c - sin_b_cos_c * sin_a;
-	out->up.j = 0.f - cos_b * sin_c;
-	out->up.k = cos_b * cos_c;
+	out->up.j = 0.f - cos_b * angle_c.y;
+	out->up.k = cos_b * angle_c.x;
 	out->position.x = 0.f;
 	out->position.y = 0.f;
 	out->position.z = 0.f;
@@ -621,8 +622,8 @@ vector3f *function_1427f0(
 	return out;
 }
 
-bool function_a0190(vector3f const *vector);
-bool function_a0200(real a, real b);
+inline bool function_a0190(vector3f const *vector);
+__declspec(noinline) bool function_a0200(real a, real b);
 
 // @retail 0x143120
 bool function_143120(

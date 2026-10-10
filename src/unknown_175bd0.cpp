@@ -310,7 +310,7 @@ static inline void effect_parameters_initialize_inline(s_effect_parameters *para
 
 long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
 bool function_176210(s_effect_parameters *parameters);
-long function_178120(long tag_index, s_effect_owner const *owner, bool force);
+long function_178120(s_effect_owner const *owner, bool force, long tag_index);
 void function_178240(point3f const *origin, vector3f const *direction, s_effect_datum *effect, real scale_a, real scale_b);
 struct s_effect_marker_source;
 void function_1786f0(s_effect_marker_source const *source, s_effect_object_marker *out, short marker_index);
@@ -442,6 +442,17 @@ static inline vector3f *effect_matrix_transform_normal(transform4x3f const *matr
 	out->i = matrix->up.i * vector->k + matrix->left.i * vector->j + matrix->forward.i * vector->i;
 	out->j = matrix->up.j * vector->k + matrix->left.j * vector->j + matrix->forward.j * vector->i;
 	out->k = matrix->up.k * vector->k + matrix->left.k * vector->j + matrix->forward.k * vector->i;
+	return out;
+}
+
+static inline vector3f *effect_matrix_transform_normal_179880(transform4x3f const *matrix, vector3f const *vector, vector3f *out)
+{
+	real x = vector->i;
+	real y = vector->j;
+	real z = vector->k;
+	out->i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+	out->j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+	out->k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
 	return out;
 }
 
@@ -923,7 +934,7 @@ bool function_178060(void)
 }
 
 // @retail 0x178120
-long function_178120(long tag_index, s_effect_owner const *owner, bool force)
+long function_178120(s_effect_owner const *owner, bool force, long tag_index)
 {
 	long effect_index = NONE;
 
@@ -1268,7 +1279,7 @@ long __stdcall effect_new_from_parameters(s_effect_parameters *parameters)
 
 	if (force || function_176210(parameters))
 	{
-		effect_index = function_178120(parameters->tag_index, &parameters->owner, force);
+		effect_index = function_178120(&parameters->owner, force, parameters->tag_index);
 		if (effect_index != NONE)
 		{
 			s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
@@ -2665,9 +2676,11 @@ void __stdcall function_179880(s_effect_datum *effect, long effect_index)
 			part->tag_index != NONE && part->location >= 0 && part->location < definition->location_count)
 		{
 			long index = effect->location_indices[part->location];
-			short mode = 2;
+			short mode;
 			if (effect->unknown58 != NONE && g_4b9ed8 == effect->unknown58 && !function_155760(effect->unknown58))
 				mode = 1;
+			else
+				mode = 2;
 			s_effect_location_datum *location;
 			while ((location = effect_location_next(effect, &index, mode)) != 0)
 			{
@@ -2685,10 +2698,8 @@ void __stdcall function_179880(s_effect_datum *effect, long effect_index)
 					transform4x3f matrix;
 					function_17aec0(&matrix, effect, location->node_index);
 					effect_matrix_transform_point(&matrix, &position, &position);
-					vector3f original_forward = forward;
-					vector3f original_up = up;
-					effect_matrix_transform_normal(&matrix, &original_forward, &forward);
-					effect_matrix_transform_normal(&matrix, &original_up, &up);
+					effect_matrix_transform_normal_179880(&matrix, &forward, &forward);
+					effect_matrix_transform_normal_179880(&matrix, &up, &up);
 				}
 				if (part->group_tag == 'lens')
 				{

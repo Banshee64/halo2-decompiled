@@ -40,8 +40,8 @@ struct s_z_transform_state
 {
  long identifier;
  vector3f position;
- vector3f forward;
  vector3f up;
+ vector3f forward;
  vector3f linear_velocity;
  vector3f angular_velocity;
 };
@@ -57,10 +57,13 @@ bool function_ab960(s_bitstream *stream, s_z_transform_state *state)
  byte salt = (byte)function_1959c0(stream, 4);
  state->identifier = index | ((dword)salt << 28);
  simulation_read_position(stream, (real *)&state->position, 16);
- function_195240(stream, &state->forward, &state->up);
+ function_195240(stream, &state->up, &state->forward);
  function_195070(stream, &state->linear_velocity, 0.03f, 350.0f, 10);
  function_195070(stream, &state->angular_velocity, 0.03f, 30.0f, 8);
- return function_ab9f0(state) != false;
+ bool result;
+ if (function_ab9f0(state)) result = true;
+ else result = false;
+ return result;
 }
 
 #include <string.h>
@@ -142,6 +145,18 @@ void function_194d30(s_bitstream *stream, vector3f const *up, vector3f const *fo
 void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real hi, long bits);
 bool __stdcall function_a75d0(vector3f *vector, real maximum);
 
+PRIVATE __forceinline void transform_angular_cap(vector3f *vector, real maximum)
+{
+ real squared = length_sq3f(vector);
+ if (squared > maximum * maximum)
+ {
+  double scale = maximum / sqrt(squared);
+  vector->i = (real)(scale * vector->i);
+  vector->j = (real)(scale * vector->j);
+  vector->k = (real)(scale * vector->k);
+ }
+}
+
 // @retail 0xab7f0
 void function_ab7f0(s_bitstream *stream, s_z_transform_state const *state)
 {
@@ -163,7 +178,7 @@ void function_ab7f0(s_bitstream *stream, s_z_transform_state const *state)
  }
  function_194c10(stream, &velocity, 0.03f, 350.0f, 10);
  velocity = state->angular_velocity;
- function_a75d0(&velocity, 30.0f);
+ transform_angular_cap(&velocity, 30.0f);
  function_194c10(stream, &velocity, 0.03f, 30.0f, 8);
 }
 

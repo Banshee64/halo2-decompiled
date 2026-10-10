@@ -326,7 +326,7 @@ bool font_cache_character_load_pixels(long datum_index, dword flags)
 			void *pixels = font_cache_pixels_get(character->pixels_index, wait);
 
 			PHYSICAL_BLOCK(character->pixels_index)->time = g_54d580->time;
-			return pixels != NULL;
+			result = pixels != NULL;
 		}
 	}
 

@@ -374,7 +374,7 @@ PRIVATE inline double plane_error_163db0(s_plane const *plane, point3f const *po
 }
 
 // @retail 0x163db0
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier)
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result)
 {
 	bool valid = false;
 	if (rectangle->x1 > rectangle->x0 && rectangle->y1 > rectangle->y0)

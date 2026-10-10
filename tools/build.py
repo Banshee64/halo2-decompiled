@@ -18,6 +18,14 @@ conventions retail uses for code outside the project. A generated ballast
 object, which the linker discards, keeps inlining decisions stable as the
 program grows (see INLINE_THRESHOLD).
 
+build(units=...) builds a reduced image instead, build/reduced.img with its
+map build/reduced.map: only the listed sources (with their stand-ins), the
+ballast and the libraries, linked with /FORCE:UNRESOLVED so that what the
+left-out sources define does not stop the link. tools/permute.py --fast scores
+variants on it; nothing else may use it. It is never named .exe: it does not
+run, and antivirus software flags such images. build(image=...) links to the
+given path instead.
+
     python tools/build.py
 """
 import json
@@ -52,6 +60,7 @@ LIBRARIES = ['libcmt.lib', 'libcpmt.lib', 'xapilib.lib', 'xboxkrnl.lib', 'dsound
              'xvoice.lib', 'xnet.lib', 'd3d8ltcg.lib', 'xgraphicsltcg.lib', 'd3dx8.lib']
 EXE_NAME = 'halo2.exe'
 MAP_NAME = 'halo2.map'
+REDUCED_NAME = 'reduced'  # build(units=...): build/reduced.img, build/reduced.map, build/gen/entry_reduced.cpp
 # The compiler's link-time inliner behaves differently as the program grows:
 # adding about 30 KB of LTCG code anywhere changed inlining decisions across
 # the image. The ballast object (unreferenced functions the linker discards)
@@ -194,24 +203,37 @@ def vcall_name(offset):
     return f"`vcall'{{{offset:#x}}}"
 
 
+def _declared(text):
+    return set(CLASS_DECLARATION.findall(text)) | set(CLASS_TYPEDEF.findall(text))
+
+
 def class_names(texts):
     """Names declared as struct, class or union in the given sources."""
-    names = set()
-    for text in texts:
-        names.update(CLASS_DECLARATION.findall(text))
-        names.update(CLASS_TYPEDEF.findall(text))
-    return names
+    return set().union(*map(_declared, texts))
+
+
+def _class_bodies(text):
+    """(name, has a virtual member, bases, has a pure virtual member) of each class defined in text."""
+    out = []
+    for m in CLASS_BODY.finditer(text):
+        body = _balanced(text, m.end() - 1, '{', '}') or ''
+        bases = [part.split()[-1] for part in (m.group(2) or '').split(',') if part.split()]
+        out.append((m.group(1), bool(re.search(r'\bvirtual\b', body)), bases, bool(PURE_VIRTUAL.search(body))))
+    return out
 
 
 def polymorphic_classes(texts):
     """Classes with a vtable (a virtual member of their own or of a base) that
     can be instantiated (no pure virtual member of their own)."""
+    return _polymorphic(map(_class_bodies, texts))
+
+
+def _polymorphic(bodies):
+    """polymorphic_classes, from each text's _class_bodies."""
     found = {}
-    for text in texts:
-        for m in CLASS_BODY.finditer(text):
-            body = _balanced(text, m.end() - 1, '{', '}') or ''
-            bases = [part.split()[-1] for part in (m.group(2) or '').split(',') if part.split()]
-            found[m.group(1)] = (bool(re.search(r'\bvirtual\b', body)), bases, bool(PURE_VIRTUAL.search(body)))
+    for found_in_text in bodies:
+        for name, own, bases, pure in found_in_text:
+            found[name] = (own, bases, pure)
     virtual = {name for name, (own, _, _) in found.items() if own}
     grew = True
     while grew:
@@ -388,13 +410,35 @@ def _source_names(root):
     return sorted(n for n in os.listdir(src) if n.endswith('.cpp')) if os.path.isdir(src) else []
 
 
+# path -> ((modification time, size), text, {what: derived from the text}):
+# a file is read and parsed again only when it changes (_stale trusts the same
+# times), so repeated builds in one process (tools/permute.py) parse only the
+# source that changed
+_FILES = {}
+
+
+def _read(path, what=None, derive=None):
+    """The file's text, or derive(text) cached under what."""
+    stat = os.stat(path)
+    key = (stat.st_mtime_ns, stat.st_size)
+    entry = _FILES.get(path)
+    if entry is None or entry[0] != key:
+        with open(path, encoding='utf-8') as f:
+            entry = _FILES[path] = (key, f.read(), {})
+    if what is None:
+        return entry[1]
+    if what not in entry[2]:
+        entry[2][what] = derive(entry[1])
+    return entry[2][what]
+
+
 def marked_sources(root=ROOT):
     """Every function marked "// @retail 0x..." in src/*.cpp, in file order.
     Stubs ("// @stub 0x...") are not among them: they are not checked and get no stand-in."""
     marked = []
     for name in _source_names(root):
-        with open(os.path.join(root, 'src', name), encoding='utf-8') as f:
-            marked += [m for m in scan(f.read(), f'src/{name}') if not m.stub]
+        found = _read(os.path.join(root, 'src', name), 'scan', lambda text: scan(text, f'src/{name}'))
+        marked += [m for m in found if not m.stub]
     return marked
 
 
@@ -404,9 +448,20 @@ def stub_sources(root=ROOT):
     marked = []
     if os.path.isdir(folder):
         for name in sorted(n for n in os.listdir(folder) if n.endswith('.cpp')):
-            with open(os.path.join(folder, name), encoding='utf-8') as f:
-                marked += [m for m in scan(f.read(), f'src/stubs/{name}') if m.stub]
+            found = _read(os.path.join(folder, name), 'scan', lambda text: scan(text, f'src/stubs/{name}'))
+            marked += [m for m in found if m.stub]
     return marked
+
+
+def source_objects(root=ROOT):
+    """{an object's name, as build() names it and the linker map shows it: its
+    source ('src/<name>.cpp' or 'src/stubs/<name>.cpp')}."""
+    out = {f'{os.path.splitext(n)[0]}.obj': f'src/{n}' for n in _source_names(root)}
+    folder = os.path.join(root, 'src', 'stubs')
+    if os.path.isdir(folder):
+        out.update({f'stubs_{os.path.splitext(n)[0]}.obj': f'src/stubs/{n}' for n in os.listdir(folder)
+                    if n.endswith('.cpp')})
+    return out
 
 
 def standin_names(marked):
@@ -439,7 +494,13 @@ def ballast_source(functions=BALLAST_FUNCTIONS):
     return '\n'.join(out) + '\n'
 
 
-def build(root=ROOT, xdk=None):
+def build(root=ROOT, xdk=None, units=None, image=None, include=()):
+    """Builds the image and returns its map's path. units, if given, is the set
+    of sources ('src/<name>.cpp', 'src/stubs/<name>.cpp') of a reduced image
+    (see the module docstring). image, if given, is the path to link the image
+    to, instead of build/halo2.exe or build/reduced.img; its map goes next to
+    it. include lists symbols the link must take in (/INCLUDE), with the
+    library objects that define them."""
     xdk = xdk or xdk_dir()
     if not os.path.exists(os.path.join(xdk, 'bin', 'vc71', 'CL.Exe')):
         raise SystemExit(f'Xbox SDK 5849 not found at {xdk}. Put its xbox folder at sdk/xbox, '
@@ -458,17 +519,16 @@ def build(root=ROOT, xdk=None):
     for m in marked_sources(root):
         marked_by_path.setdefault(m.path, []).append(m)
 
-    texts = {}
-    for name in _source_names(root):
-        with open(os.path.join(src, name), encoding='utf-8') as f:
-            texts[name] = f.read()
-    header_texts = [open(h, encoding='utf-8').read() for h in headers]
-    classes = class_names([*texts.values(), *header_texts])
-    polymorphic = polymorphic_classes([*texts.values(), *header_texts])
+    texts = {name: _read(os.path.join(src, name)) for name in _source_names(root)}
+    parsed = [os.path.join(src, name) for name in texts] + headers
+    classes = set().union(*(_read(path, 'declared', _declared) for path in parsed))
+    polymorphic = _polymorphic(_read(path, 'class bodies', _class_bodies) for path in parsed)
     outside = outside_callees(read_rows(os.path.join(root, 'config', 'functions.csv')))
 
     objects, entry_calls, entry_decls = [], [], []
     for name in _source_names(root):
+        if units is not None and f'src/{name}' not in units:
+            continue
         path = os.path.join(src, name)
         stem = os.path.splitext(name)[0]
         text = texts[name]
@@ -495,6 +555,8 @@ def build(root=ROOT, xdk=None):
     folder = os.path.join(src, 'stubs')
     if os.path.isdir(folder):
         for name in sorted(n for n in os.listdir(folder) if n.endswith('.cpp')):
+            if units is not None and f'src/stubs/{name}' not in units:
+                continue
             path = os.path.join(folder, name)
             obj = os.path.join(obj_dir, f'stubs_{os.path.splitext(name)[0]}.obj')
             if _stale(obj, [path], newest_header):
@@ -513,9 +575,10 @@ def build(root=ROOT, xdk=None):
                  root, xdk)
     objects.append(ballast_obj)
 
-    entry = os.path.join(gen, 'entry.cpp')
+    entry_name = 'entry' if units is None else f'entry_{REDUCED_NAME}'
+    entry = os.path.join(gen, entry_name + '.cpp')
     entry_text = entry_source(entry_decls, entry_calls)
-    entry_obj = os.path.join(obj_dir, 'entry.obj')
+    entry_obj = os.path.join(obj_dir, entry_name + '.obj')
     if not os.path.exists(entry) or open(entry, encoding='utf-8').read() != entry_text:
         with open(entry, 'w', encoding='utf-8') as f:
             f.write(entry_text)
@@ -523,14 +586,22 @@ def build(root=ROOT, xdk=None):
         run_tool('CL.Exe', ['/c', '/GL', *SIZE_FLAGS, entry, f'/Fo{entry_obj}'], root, xdk)
     objects.append(entry_obj)
 
-    exe, map_path = os.path.join(out, EXE_NAME), os.path.join(out, MAP_NAME)
+    if units is None:
+        exe = image or os.path.join(out, EXE_NAME)
+        response, force = os.path.join(out, 'link_objects.rsp'), []
+    else:
+        exe = image or os.path.join(out, REDUCED_NAME + '.img')
+        response, force = os.path.join(out, f'link_{REDUCED_NAME}.rsp'), ['/FORCE:UNRESOLVED']
+    map_path = os.path.splitext(exe)[0] + '.map'
+    os.makedirs(os.path.dirname(exe), exist_ok=True)
     # the objects go in a response file: listed on the command line, their paths
     # outgrow Windows' 32K command-line limit
-    response = os.path.join(out, 'link_objects.rsp')
     with open(response, 'w', encoding='utf-8') as f:
         f.write(''.join(f'"{tool_arg(obj)}"\n' for obj in objects))
+        f.write(''.join(f'/INCLUDE:{symbol}\n' for symbol in include))
     run_tool('Link.Exe', ['/LTCG', '/NODEFAULTLIB', '/ENTRY:entry', '/SUBSYSTEM:CONSOLE', '/MAP:' + map_path,
-                          '/MAPINFO:FIXUPS', '/FIXED:NO', f'/OUT:{exe}', '@' + tool_arg(response), *LIBRARIES],
+                          '/MAPINFO:FIXUPS', '/FIXED:NO', *force, f'/OUT:{exe}', '@' + tool_arg(response),
+                          *LIBRARIES],
              root, xdk)
     return map_path
 

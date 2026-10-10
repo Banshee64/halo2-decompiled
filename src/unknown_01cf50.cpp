@@ -3206,13 +3206,13 @@ void function_1eb00()
     function_1c590((s_shader_cache *)g_51f0f0, *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x6c), 0);
     function_1c710(g_51f0f0);
     real x = 1.0f / (short)(g_48564e - g_48564a);
-    real y = 1.0f / (short)(g_48564c - g_485648);
     real constants[20];
     constants[0] = x * 2.0f;
     constants[1] = 0.0f;
     constants[2] = 0.0f;
     constants[3] = -1.0f - x;
     constants[4] = 0.0f;
+    real y = 1.0f / (short)(g_48564c - g_485648);
     constants[5] = y * -2.0f;
     constants[6] = 0.0f;
     constants[7] = y + 1.0f;
@@ -3370,8 +3370,8 @@ short __stdcall function_467c0(short first, short second, short count)
         D3DDevice_SetPixelShaderProgram(&program);
         for (short i = 0; i < count; ++i)
         {
-            short source = i & 1 ? second : first;
-            short target = i & 1 ? first : second;
+            volatile short source = i & 1 ? second : first;
+            volatile short target = i & 1 ? first : second;
             for (short stage = 0; stage < 4; ++stage)
             {
                 function_14f60(stage, source);
@@ -3794,7 +3794,7 @@ void function_40890(void)
 	inverse.red = (1.0f - g_48587c) * g_485874;
 	inverse.green = (1.0f - g_485880) * g_485874;
 	inverse.blue = (1.0f - g_485884) * g_485874;
-	dword packed = pack_color4f(&color);
+	volatile dword packed = pack_color4f(&color);
 	dword constant = pack_color4f(&inverse);
 	function_0222d0(D3DRS_CULLMODE, 0x901);
 	function_0222d0(D3DRS_COLORWRITEENABLE, 0x10101);
@@ -4050,8 +4050,11 @@ void function_47930(word flags, long format, long mode)
         D3DDevice_SetStipple(function_1c290(1.0f));
         g_4b8494 = 1.0f;
     }
-    if (format == 1)
-    {
+    if (!(format == 1)) {
+        function_1c590((s_shader_cache *)g_51f0f0,
+            *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x54), 0);
+        function_1ccb0(39);
+    } else {
         function_1c590((s_shader_cache *)g_51f0f0,
             *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x24), 0);
         function_1ccb0(40);
@@ -4059,15 +4062,16 @@ void function_47930(word flags, long format, long mode)
             0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f };
         D3DDevice_SetVertexShaderConstantFast(78, identity, 3);
     }
-    else
-    {
-        function_1c590((s_shader_cache *)g_51f0f0,
-            *(long *)(*(byte **)(g_485a80 + 0x5c) + 0x54), 0);
-        function_1ccb0(39);
-    }
     function_1c710(g_51f0f0);
-    if (mode)
-    {
+    if (!(mode)) {
+        g_4b82e8 = 0;
+        D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
+        g_4b82ec = 0;
+        D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
+        memset(&g_484f68, 0, sizeof(g_484f68));
+        g_484f68.PSCombinerCount = 1;
+        g_484f68.PSFinalCombinerInputsABCD = 0x20;
+    } else {
         if (mode == 1 || mode == 2 || mode == 3)
         {
             g_4b82e8 = 0;
@@ -4137,16 +4141,6 @@ void function_47930(word flags, long format, long mode)
                 g_484f68.PSFinalCombinerInputsABCD = 0xc;
             }
         }
-    }
-    else
-    {
-        g_4b82e8 = 0;
-        D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, 0);
-        g_4b82ec = 0;
-        D3DDevice_SetRenderState(D3DRS_ALPHATESTENABLE, 0);
-        memset(&g_484f68, 0, sizeof(g_484f68));
-        g_484f68.PSCombinerCount = 1;
-        g_484f68.PSFinalCombinerInputsABCD = 0x20;
     }
     D3DDevice_SetPixelShaderProgram(&g_484f68);
 }
@@ -4832,8 +4826,7 @@ void __stdcall function_4e260(long tag, long context, long first, long second,
     if (function_12de70((s_geometry_block_info *)block, 3)
         && function_12de70((s_geometry_block_info *)(definition + 0x38), 3))
     {
-        real opacity_min = *(real *)(definition + 8);
-        real opacity_scale = *(real *)(definition + 0xc);
+        struct { real a, b; } local_opacity_min_opacity_scale_record = { *(real *)(definition + 8), *(real *)(definition + 0xc) };
         real constants[4] = {g_52598c[handle >> 30], g_525998[handle >> 30], 0.0f, 1.0f};
         D3DDevice_SetVertexShaderConstant(-43, constants, 1);
         point3f center;
@@ -4866,7 +4859,7 @@ void __stdcall function_4e260(long tag, long context, long first, long second,
             point3f position;
             function_3f220(coordinates & 0x3ff, (coordinates >> 10) & 0x3ff, coordinates >> 20, &position);
             real fraction = ((packed >> 16) & 0xf) * (1.0f / 15.0f);
-            real alpha = (*(real *)(vertex + 0x14) - opacity_min) * opacity_scale;
+            real alpha = (*(real *)(vertex + 0x14) - local_opacity_min_opacity_scale_record.a) * local_opacity_min_opacity_scale_record.b;
             color3f light, color;
             function_4ca00((s_4ca40_colors *)settings, vertex, &light, &color);
             light.red *= color.red; light.green *= color.green; light.blue *= color.blue;
@@ -4991,7 +4984,7 @@ void __stdcall function_4ebd0(long tag, long context, long first, long second,
     byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
     byte *record = *(byte **)(table + 0x1c) + ((handle >> 8) & 0x3fffff) * 24;
     byte *block = *(byte **)(table + 0x14) + *(short *)(record + 6) * 0x2c;
-    long record_tag = (*(long **)((byte *)g_4e0350 + 0x37c))[(signed char)record[0] * 2 + 1];
+    volatile long record_tag = (*(long **)((byte *)g_4e0350 + 0x37c))[(signed char)record[0] * 2 + 1];
     byte *definition = g_4e3b44[record_tag & 0xffff].bytes;
     byte *part = *(byte **)(definition + 0x14) + record[1] * 20;
     if (function_12de70((s_geometry_block_info *)block, 3))
@@ -5092,12 +5085,13 @@ void __stdcall function_35b90(void *material)
     constants[7] = source[9] ? 0.0f : 1.0f;
     constants[8] = source[0xa] ? 1.0f : 0.0f;
     constants[9] = source[0xa] ? 0.0f : 1.0f;
-    for (long pair = 0; pair < 3; ++pair)
-    {
+    { long pair = 0; if (pair < 3) do {
         real *coordinates = *(real **)(source + 0x1c + pair * 4);
         constants[10 + pair * 2] = coordinates ? coordinates[0] : 0.0f;
         constants[11 + pair * 2] = coordinates ? coordinates[1] : 0.0f;
-    }
+    
+++pair;
+} while (pair < 3); }
     memcpy(constants + 16, source + 0x28, 24);
     constants[22] = constants[23] = 0.0f;
     D3DDevice_SetVertexShaderConstant(81, transform, 5);
@@ -5196,21 +5190,18 @@ void function_1f070(short_rectangle2d const *bounds, short_rectangle2d const *cl
         wanted_bounds.right -= g_4b9dd2;
     }
     short_rectangle2d wanted_clip;
-    if (clip)
-    {
+    if (!(clip)) {
+        wanted_clip.left = 0;
+        wanted_clip.top = 0;
+        wanted_clip.right = g_4b9dd6 - g_4b9dd2;
+        wanted_clip.bottom = g_4b9dd4 - g_4b9dd0;
+    } else {
         long right = g_4b9dd6 - g_4b9dd2;
         long bottom = g_4b9dd4 - g_4b9dd0;
         wanted_clip.left = clip->left < 0 ? 0 : clip->left;
         wanted_clip.top = clip->top < 0 ? 0 : clip->top;
         wanted_clip.right = (short)(right > clip->right ? clip->right : right);
         wanted_clip.bottom = (short)(bottom > clip->bottom ? clip->bottom : bottom);
-    }
-    else
-    {
-        wanted_clip.left = 0;
-        wanted_clip.top = 0;
-        wanted_clip.right = g_4b9dd6 - g_4b9dd2;
-        wanted_clip.bottom = g_4b9dd4 - g_4b9dd0;
     }
     byte material[0x98];
     memset(material, 0, sizeof(material));

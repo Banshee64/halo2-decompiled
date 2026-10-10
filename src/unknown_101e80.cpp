@@ -199,9 +199,11 @@ long function_101fb0(long object_index)
 			if (TEST_FIELD_BIT(tag->flagbc_26) && parent->parent_index != NONE
 				&& ((1 << OBJECT_HEADER(parent->parent_index)->type) & 3))
 			{
-				result = OBJECT_HEADER(parent->parent_index)->object->field_24c;
+				parent_index = ((volatile s_object *)parent)->parent_index;
+				parent = OBJECT_HEADER(parent_index)->object;
+				result = parent->field_24c;
 				if (result == NONE)
-					result = parent->parent_index;
+					result = parent_index;
 			}
 			else
 			{

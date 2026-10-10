@@ -680,7 +680,7 @@ void motion_sensor_render(long local_player_index, short const *origin)
 			s_motion_sensor_sample *sample = &sensor->samples[(g_51e994->sample_index + i) % 10];
 			real fraction = (real)age * 0.1f;
 			real scale = fraction * fraction;
-			real intensity = (real)pow(1.0 - fraction, 3.5) * 7.0f + 1.0f;
+			fraction = (real)(pow(1.0 - fraction, 3.5) * 7.0f + 1.0f);
 			for (long j = 0; j < sample->count; j++)
 			{
 				s_motion_sensor_blip *blip = &sample->blips[j];
@@ -689,7 +689,7 @@ void motion_sensor_render(long local_player_index, short const *origin)
 					point2f point;
 					point.x = (real)blip->x;
 					point.y = (real)blip->y;
-					motion_sensor_draw_blip(blip->type, &point, scale, intensity, blip->height);
+					motion_sensor_draw_blip(blip->type, &point, scale, fraction, blip->height);
 				}
 			}
 		}
@@ -706,7 +706,7 @@ bool motion_sensor_enemy_vehicle_ahead(long local_player_index)
 	if (player_index != NONE)
 	{
 		s_sensor_player *player = SENSOR_PLAYER(player_index);
-		if (player->unit_index != NONE)
+		if (((s_sensor_player volatile *)player)->unit_index != NONE)
 		{
 			long unit_index = player->unit_index;
 			s_motion_sensor_player *sensor = &g_51e994->players[local_player_index];
@@ -723,10 +723,10 @@ bool motion_sensor_enemy_vehicle_ahead(long local_player_index)
 					{
 						point3f position;
 						function_b9dd0(object_index, &position);
-						real dz = position.z - unit_position.z;
-						real dy = position.y - unit_position.y;
 						real dx = position.x - unit_position.x;
-						if (16.0f > dz * dz + dx * dx + dy * dy)
+						real dy = position.y - unit_position.y;
+						real dz = position.z - unit_position.z;
+						if (16.0f > dz * dz + dy * dy + dx * dx)
 						{
 							vector3f velocity;
 							function_ba1d0(object_index, &velocity, NULL);
@@ -737,7 +737,7 @@ bool motion_sensor_enemy_vehicle_ahead(long local_player_index)
 								direction.j = object->position.y - unit->position.y;
 								direction.k = object->position.z - unit->position.z;
 								function_30bf0(&direction);
-								if (direction.k * unit->forward.k + direction.j * unit->forward.j + direction.i * unit->forward.i > cos(0.5235987715423107))
+								if (direction.k * unit->forward.k + direction.j * unit->forward.j + direction.i * unit->forward.i < cos(0.5235987715423107))
 								{
 									s_sensor_definition *definition = SENSOR_DEFINITION(object->definition_index);
 									for (long j = 0; j < definition->block_count; j++)
@@ -770,10 +770,10 @@ bool motion_sensor_enemy_nearby(long local_player_index)
 	if (player_index != NONE)
 	{
 		s_sensor_player *player = SENSOR_PLAYER(player_index);
-		if (player->unit_index != NONE)
+		if (((s_sensor_player volatile *)player)->unit_index != NONE)
 		{
-			s_motion_sensor_player *sensor = &g_51e994->players[local_player_index];
 			real range = g_510c94->motion_sensor_range;
+			s_motion_sensor_player *sensor = &g_51e994->players[local_player_index];
 			real range_squared = range * range;
 			s_sensor_object *unit = SENSOR_OBJECT(player->unit_index);
 			for (long i = 0; i < sensor->other_count; i++)
@@ -784,12 +784,12 @@ bool motion_sensor_enemy_nearby(long local_player_index)
 					s_sensor_object *object = (s_sensor_object *)function_badc0(object_index, 3);
 					if (object)
 					{
-						char type = motion_sensor_object_type(local_player_index, object_index);
+						long type = motion_sensor_object_type(local_player_index, object_index);
 						if (type == 5 || type == 3)
 						{
-							real dy = object->position.y - unit->position.y;
 							real dx = object->position.x - unit->position.x;
-							if (range_squared >= dx * dx + dy * dy)
+							real dy = object->position.y - unit->position.y;
+							if (range_squared >= dy * dy + dx * dx)
 							{
 								result = true;
 								break;

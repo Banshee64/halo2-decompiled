@@ -293,8 +293,8 @@ s_saved_game_file *saved_game_file_new_from_id(s_saved_game_file *file, long fla
 // @retail 0x2ad020
 bool saved_game_file_copy_create(s_saved_game_file *file)
 {
-	long type = file->flags & 0xf;
-	bool result = false;
+	volatile long type = file->flags & 0xf;
+	volatile bool result = false;
 	wchar_t name[0x80];
 	char root[8];
 	char path[0x100] = { 0 };

@@ -83,7 +83,7 @@ void __stdcall function_39e50(real step)
 
 struct s_frustum_1648d0;
 struct s_camera_163db0;
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result);
 void function_141590(transform4x3f const *in, transform4x3f *out);
 real function_30bf0(vector3f *vector);
 
@@ -2685,7 +2685,7 @@ bool __stdcall function_3d7f0(long object_index, real *out_alpha, bool *out_spec
     s_scalar_object_header *header = &((s_scalar_object_header *)g_4e0300->data)[object_index & 0xffff];
     byte *object = header->object;
     byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
-    long kind = *(signed char *)(object + 0xaa);
+    volatile long kind = *(signed char *)(object + 0xaa);
     real alpha = 0.0f;
     bool result = false;
     if (!(object[6] & 1))

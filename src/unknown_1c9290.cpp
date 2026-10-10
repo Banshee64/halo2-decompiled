@@ -49,9 +49,9 @@ bool function_1c9290(long arg_0, point3f const *arg_1, vector3f const *arg_2,
  long local_2 = 0x15808c2f;
  if (arg_6)
   local_2 = 0x15808c0f;
+ arg_3 *= 0.9f;
  point3f local_3 = *arg_1;
  vector3f local_4 = *arg_2;
- arg_3 *= 0.9f;
  real local_6 = 0.0f;
  real local_5 = arg_3 < 0.2f ? arg_3 : 0.2f;
  bool local_7;

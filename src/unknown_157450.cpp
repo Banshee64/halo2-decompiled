@@ -1402,7 +1402,7 @@ void function_15b220(long object_index, long index)
 	object->netgame_entry = NONE;
 }
 
-void function_1967d0(long a, long b, long c, long delta);
+void function_1967d0(long a, long c, long b, long delta);
 
 // @retail 0x15b930
 void function_15b930(long player_index, bool by_team, long counter, long delta)
@@ -1420,7 +1420,7 @@ void function_15b930(long player_index, bool by_team, long counter, long delta)
 	{
 		team = NONE;
 	}
-	function_1967d0(index, *counter_reference, team, *delta_reference);
+	function_1967d0(index, team, *counter_reference, *delta_reference);
 }
 
 long function_196ef0(byte code);
@@ -2030,7 +2030,7 @@ void function_15d6c0(long player_index, long maximum, long minimum)
 }
 
 // @retail 0x15a090
-long function_15a090(short const *types, long type, long count)
+long function_15a090(short const *types, long type, volatile long count)
 {
 	long result = NONE;
 	long i;
@@ -2530,7 +2530,7 @@ void function_15ba90(long team)
 		{
 			if (iterator.player->team == team && iterator.player->unit_index != NONE)
 			{
-				function_1967d0(NONE, 13, team, 1);
+				function_1967d0(NONE, team, 13, 1);
 				break;
 			}
 		}
@@ -3280,7 +3280,8 @@ long function_15ee30(long player_index)
 				{
 					long elapsed = g_510c54->game_time - ((s_engine_round_clock *)g_4e9ae8)->start_time;
 					elapsed = elapsed < 0 ? 0 : elapsed;
-					if (elapsed < duration)
+					long const *elapsed_reference = &elapsed;
+					if (*elapsed_reference < duration)
 						result = 18;
 					else if (countdown != NONE && countdown != 0 && countdown < 5)
 						result = 17;
@@ -3314,19 +3315,17 @@ void function_15ebd0(void)
 				if (type != g_4e9af0.players[user_index].index)
 				{
 					s_engine_notice_settings *settings = ((s_engine_notice_root *)g_4e3b44[g_4e034c->index & 0xffff].bytes)->settings;
-					s_engine_local_notice notice;
-					notice.type = type;
-					notice.unknown04 = 0;
-					notice.definition_index = NONE;
+					g_4e9af0.players[user_index].index = type;
+					g_4e9af0.players[user_index].value04 = 0;
+					g_4e9af0.players[user_index].value08 = NONE;
 					for (long i = 0; i < settings->notice_count; i++)
 					{
 						if (settings->notices[i].type == type)
 						{
-							notice.definition_index = i;
+							g_4e9af0.players[user_index].value08 = i;
 							break;
 						}
 					}
-					g_4e9af0.players[user_index] = *(s_local_engine_player *)&notice;
 				}
 			}
 		}
@@ -4095,7 +4094,7 @@ void __stdcall function_15bb20(long player_index)
         --player->value194;
     if (g_4e6948->mode != 4 && player->unit_index != NONE && function_15b2f0() &&
         g_510c54->game_time % g_510c54->field_2_3 == 0)
-        function_1967d0(absolute_index, 13, NONE, 1);
+        function_1967d0(absolute_index, NONE, 13, 1);
 
     char *seat_timer = (char *)player + 0x1a6;
     char *dead_timer = (char *)player + 0x1a7;
@@ -4201,7 +4200,9 @@ PRIVATE __forceinline long sweep_rank_mode()
 // @retail 0x158e90
 long function_158e90(long team)
 {
-    bool mode = g_4e6948->flag1128 != 0;
+    long mode = 0;
+    if (g_4e6948->flag1128 != 0)
+        mode = 1;
     return function_23f360((long)mode, team) / 2;
 }
 

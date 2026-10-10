@@ -190,7 +190,7 @@ real function_194ff0(s_bitstream *stream, real lo, real hi, long bits)
 }
 
 // @retail 0x195240
-void function_195240(s_bitstream *stream, vector3f *forward, vector3f *up)
+void function_195240(s_bitstream *stream, vector3f *up, vector3f *forward)
 {
 	if (function_1957d0(stream))
 		*forward = *g_4687b0;

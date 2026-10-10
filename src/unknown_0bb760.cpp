@@ -194,8 +194,18 @@ void function_bb780(long object_index, long value)
 	function_108e10(object_index);
 }
 
+__declspec(noinline) void function_bb7b0(long object_index);
+
 // @retail 0xbb7b0
 void function_bb7b0(long object_index)
+{
+	s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	function_108e80(object_index);
+	object->unknownd4 = NONE;
+	object->unknownd8 = 0;
+}
+
+PRIVATE __forceinline void object_clear_notification_inline(long object_index)
 {
 	s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	function_108e80(object_index);
@@ -215,7 +225,7 @@ void function_bb7f0()
 	while ((state.object = function_baeb0(&state.iterator)) != 0)
 	{
 		if (state.object->unknownd4 != NONE)
-			function_bb7b0(state.iterator.object_index);
+			object_clear_notification_inline(state.iterator.object_index);
 	}
 }
 

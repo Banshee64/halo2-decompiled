@@ -725,15 +725,18 @@ static __forceinline void discard_block(void *block, long *size)
 // @retail 0x8a110
 long entity_table_new_entity(c_entry_table *table, long handler_index)
 {
+	c_entry_table *local_2 = table;
+	long local_1 = handler_index;
 	long result = NONE;
+	c_entry_table *const *local_0 = &table;
 	long data_size;
 	void *data = 0;
 	long state_size;
 	void *state = 0;
 
-	if (table->function_08af70(handler_index, &data_size, &data) && table->function_08b010(handler_index, &state_size, &state))
+	if (local_2->function_08af70(local_1, &data_size, &data) && local_2->function_08b010(local_1, &state_size, &state))
 	{
-		s_handle_peers *peers = (s_handle_peers *)table->unknown0c;
+		s_handle_peers *peers = (s_handle_peers *)local_2->unknown0c;
 		long identifier = NONE;
 		long index = replication_table_allocate(peers);
 		if (index != NONE)
@@ -741,14 +744,15 @@ long entity_table_new_entity(c_entry_table *table, long handler_index)
 		result = identifier;
 		if (identifier != NONE)
 		{
-			table->function_08ae80(identifier, (short)handler_index, data_size, (long)data, state_size, (long)state);
-			return result;
+			local_2->function_08ae80(identifier, (short)handler_index, data_size, (long)data, state_size, (long)state);
+			goto local_3;
 		}
 	}
 	if (data)
-		release_block(data, (long *)&table);
+		release_block(data, &handler_index);
 	if (state)
-		release_block(state, (long *)&table);
+		release_block(state, &handler_index);
+local_3:
 	return result;
 }
 
