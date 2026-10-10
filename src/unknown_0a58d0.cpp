@@ -834,7 +834,7 @@ bool function_a6d50(long flags_address, long state_address, s_bitstream *stream)
  }
  if (function_1957d0(stream))
  {
-  function_195240(stream, (vector3f *)(state + 0xc), (vector3f *)(state + 0x18));
+  function_195240(stream, (vector3f *)(state + 0x18), (vector3f *)(state + 0xc));
   *flags |= 4;
   result = result && function_a74c0((vector3f *)(state + 0xc), (vector3f *)(state + 0x18));
  }

@@ -73,7 +73,9 @@ real __stdcall function_182d90(c_extent_shape *shape, real radius,
 	{
 		for (long i = 0; i < data->field_c.count; i++)
 		{
-			real extent = data->vectors[i].m128_f32[3] + extent_length(data->vectors[i]);
+			__m128 const *local_3 = data->vectors + i;
+			real extent = extent_length(*local_3);
+			extent += local_3->m128_f32[3];
 			if (extent > result) result = extent;
 			*minimum = EXTENT_MIN(*minimum, extent * 2.0f);
 			*maximum = EXTENT_MAX(*maximum, extent * 2.0f);
@@ -85,14 +87,16 @@ real __stdcall function_182d90(c_extent_shape *shape, real radius,
 		if (type == 2 || (type > 9 && type <= 11))
 		{
 			long key = shape->first_key();
-			while (key != NONE)
+			if (key == NONE) return result;
+			do
 			{
 				__m128 buffer[16];
 				c_extent_shape *child = shape->child(key, buffer);
-				// The collection keeps its incoming radius; children update the bounds.
 				volatile real local_0 = function_182d90(child, result, &local, minimum, maximum);
+				result = local_0;
 				key = shape->next_key(key);
-			}
+			} while (key != NONE);
+			return result;
 		}
 		else if (shape->shape_kind() == 19)
 			result = function_182d90(data->field_c.nested, radius, &local, minimum, maximum);

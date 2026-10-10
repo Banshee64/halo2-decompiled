@@ -1394,8 +1394,13 @@ long __stdcall function_1dfb90(long definition_index)
                 s_actor_creation_tag *tag = (s_actor_creation_tag *)g_4e3b44[tag_index & 0xffff].bytes;
                 if (tag->count > 0)
                 {
-                    if (tag->flags && (bool)((*tag->flags >> 3) & 1))
-                        ++*(short *)((byte *)g_5047f4 + 6);
+                    if (tag->flags)
+                    {
+                        byte *local_0 = (byte *)&definition_index;
+                        *(volatile byte *)local_0 = (byte)((*tag->flags >> 3) & 1);
+                        if (*local_0)
+                            ++*(short *)((byte *)g_5047f4 + 6);
+                    }
                     break;
                 }
                 tag_index = tag->parent_index;

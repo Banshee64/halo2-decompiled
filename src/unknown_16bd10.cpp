@@ -435,8 +435,8 @@ void function_16c5f0(short camera_point_index, short target_point_index, short t
 
 	function_16c2f0(camera_point_index, 0, NONE);
 	camera = camera_scripting_state;
-	camera->mode = _camera_scripting_mode_pan;
-	camera->active = true;
+	*(volatile short *)&camera->mode = _camera_scripting_mode_pan;
+	*(volatile bool *)&camera->active = true;
 	if (camera_velocity_profile_new(&camera->pan.profile, (real)ticks * (1.0f / 30.0f),
 		(real)acceleration_ticks * (1.0f / 30.0f), (real)deceleration_ticks * (1.0f / 30.0f), start_rate, end_rate))
 	{
@@ -647,10 +647,11 @@ static __forceinline long camera_cluster_from_point(point3f *point)
 // @retail 0x16cee0
 long camera_scripting_cluster_get(void)
 {
+	long mode = camera_scripting_state->mode;
 	s_camera_scripting_state *camera = camera_scripting_state;
 	long result = NONE;
 
-	switch (camera->mode)
+	switch (mode)
 	{
 	case _camera_scripting_mode_point:
 		result = camera_cluster_from_point(&camera->position);

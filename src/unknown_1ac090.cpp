@@ -286,6 +286,14 @@ short __stdcall function_1ac3f0(long actor_index)
 	return result;
 }
 
+#pragma optimize("g", off)
+PRIVATE __forceinline real function_1ac431(real arg_0, short arg_1)
+{
+    real local_0 = (real)arg_1;
+    return local_0 * arg_0;
+}
+#pragma optimize("", on)
+
 // @retail 0x1ac430
 bool __stdcall function_1ac430(long actor_index, s_slot *slot)
 {
@@ -307,7 +315,7 @@ bool __stdcall function_1ac430(long actor_index, s_slot *slot)
 		state->unknown0c = true;
 		state->unknown22 = 0;
 		state->unknown3b = false;
-		seconds = g_510c54->field_2_3 * scale;
+		seconds = function_1ac431(scale, g_510c54->field_2_3);
 		__asm
 		{
 			fld seconds
@@ -431,8 +439,13 @@ void __stdcall function_1ad130(long actor_index, s_slot *slot)
 					s_unit_request request;
 					request.type = 0x24;
 					function_210850(&state->point, &request.type25.point);
-					request.type25.facing = state->facing;
+					dword local_1 = *(dword const *)&state->facing.i;
+					dword local_2 = *(dword const *)&state->facing.j;
+					dword local_3 = *(dword const *)&state->facing.k;
+					*(dword *)&request.type25.facing.i = local_1;
 					request.type25.unknown1c = state->unknown38;
+					*(dword *)&request.type25.facing.j = local_2;
+					*(dword *)&request.type25.facing.k = local_3;
 					if (function_e6900(actor->unknown018, &request))
 					{
 						real seconds = g_510c54->field_2_3 * 0.5f;
@@ -564,7 +577,7 @@ bool function_1ad4c0(long actor_index, long prop_index)
 	{
 		s_prop_datum_54 *prop = (s_prop_datum_54 *)prop_node_get(prop_index);
 		real range = element->unknown98 > g_45dbd8 ? element->unknown98 : 20.0f;
-		return prop->unknown28 > range;
+		result = prop->unknown28 > range;
 	}
 	return result;
 }
@@ -950,17 +963,18 @@ bool function_1ac9e0(long arg_0, s_reference arg_1, s_1f4a20_entry const *arg_2,
 		*(long *)((byte *)local_2 + 0x14) != NONE &&
 		*(long *)((byte *)local_2 + 0x14) != 0xffff)
 	{
-		if (function_1f4a20(arg_0, arg_1, arg_2, false, &arg_7->field_1c,
-			&arg_7->field_8, &arg_7->field_2c, &local_0, arg_6))
+		bool local_8 = function_1f4a20(arg_0, arg_1, arg_2, false, &arg_7->field_1c,
+			&arg_7->field_8, &arg_7->field_2c, &local_0, arg_6);
+		if (local_8)
 		{
 			arg_7->field_19 = true;
 			arg_7->field_2e = false;
 			arg_7->field_7 = true;
 			arg_7->field_1 = false;
-			return true;
+			return local_8;
 		}
 		if (local_0)
-			return false;
+			return local_8;
 	}
 	s_reference local_3 = function_2626b0(arg_0, arg_1, arg_3, arg_4, arg_5, true);
 	arg_7->field_1 = false;

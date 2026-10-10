@@ -586,7 +586,7 @@ void function_23661f(s_dialog_definition *definition, long dialog_id)
 
 struct s_1ed70_point { short x, y; };
 void function_1eb00();
-void function_1ed70(color4f const *color, s_1ed70_point const *points, short count);
+void function_1ed70(color4f const *color, s_1ed70_point const *points, volatile short count);
 void function_1ee50();
 
 // @retail 0x235d69
@@ -615,7 +615,7 @@ void function_235d69(short_rectangle2d const *rectangle, real depth,
     points[1].x = (short)c.x; points[1].y = (short)c.y;
     points[2].x = (short)d.x; points[2].y = (short)d.y;
     points[3].x = (short)b.x; points[3].y = (short)b.y;
-    points[4] = points[0];
+    points[4].x = (short)a.x; points[4].y = (short)a.y;
     function_1eb00();
     function_1ed70(color, points, 5);
     function_1ee50();
