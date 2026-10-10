@@ -124,8 +124,14 @@ void __stdcall function_224550(s_draw_sprite_seed const *seed,s_draw_value_cache
 	tint.red=color->red*tint.red;
 	tint.green=color->green*tint.green;
 	tint.blue=color->blue*tint.blue;
-	tint.alpha=sprite_pin(tint.alpha); tint.red=sprite_pin(tint.red);
-	tint.green=sprite_pin(tint.green); tint.blue=sprite_pin(tint.blue);
+	if(tint.alpha<0.0f) tint.alpha=0.0f;
+	else if(tint.alpha>1.0f) tint.alpha=1.0f;
+	if(tint.red<0.0f) tint.red=0.0f;
+	else if(tint.red>1.0f) tint.red=1.0f;
+	if(tint.green<0.0f) tint.green=0.0f;
+	else if(tint.green>1.0f) tint.green=1.0f;
+	if(tint.blue<0.0f) tint.blue=0.0f;
+	else if(tint.blue>1.0f) tint.blue=1.0f;
 	dword packed=pack_color4f(&tint);
 	real geometry[4];
 	s_draw_sprite_uv uv_a,uv_b;

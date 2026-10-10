@@ -74,7 +74,7 @@ void function_2234e0(void)
 	long local_0 = 0;
 	long local_1 = NONE;
 	long local_2;
-	long local_3;
+	volatile long local_3;
 	if (g_4e6470 > 0)
 		--g_4e6470;
 	if (g_4e64a0 > 0)
@@ -84,7 +84,13 @@ void function_2234e0(void)
 	else
 	{
 		short local_4 = *(short const *)((byte const *)g_4e8c20 + 8);
-		local_2 = local_4 < 1 ? 1 : local_4 > 4 ? 4 : local_4;
+		local_2 = 1;
+		if (local_4 >= 1)
+		{
+			local_2 = 4;
+			if (local_4 <= 4)
+				local_2 = local_4;
+		}
 	}
 	if (local_2 > 1)
 	{
