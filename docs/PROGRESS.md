@@ -2,6 +2,72 @@
 
 The newest entry comes first.
 
+## 2026-10-10: 7477 functions match
+
+```
+matched 7477 of 11318 game functions (876062 of 2784283 bytes, 31.46%)
+```
+
+1 new matches, none lost:
+- Our permuter lane: 0xe5280, held back because it calls a function that doesn't match yet, then checked by hand and confirmed by a full build.
+
+## 2026-10-10: 7476 functions match
+
+```
+matched 7476 of 11318 game functions (875935 of 2784283 bytes, 31.46%)
+```
+
+3 new matches, none lost:
+- Deep lane 2, closest first in lanes T, R, H and the UI core: 0x176210, 0x17d690 and 0x22cd48.
+
+## 2026-10-10: 7473 functions match
+
+```
+matched 7473 of 11318 game functions (874621 of 2784283 bytes, 31.41%)
+```
+
+1 new matches, none lost:
+- Deep lane 3, second-level blockers: 0xbef30 (281 bytes, newly written); its fifth parameter is a bool, as retail's callers pass it.
+
+## 2026-10-10: 7472 functions match
+
+```
+matched 7472 of 11318 game functions (874340 of 2784283 bytes, 31.40%)
+```
+
+1 new matches, none lost:
+- Deep lane 3, closest first in lanes V, X, A and the UI screens: 0x26dc90 (334 bytes).
+
+## 2026-10-10: 7471 functions match
+
+```
+matched 7471 of 11318 game functions (874006 of 2784283 bytes, 31.39%)
+```
+
+5 new matches, none lost:
+- Our permuter lane: 0x1061c0 and 0x195720, written by the lane, and 0xbf890, 0x196390 and 0x19c120, which it held back because they call functions that don't match yet; each was checked by hand and confirmed by a full build.
+
+## 2026-10-10: 7466 functions match
+
+```
+matched 7466 of 11318 game functions (873311 of 2784283 bytes, 31.37%)
+```
+
+30 new matches, none lost:
+- Machine 2's lane D lower half, deep round 12 (#300): 0x533e0, 0x534a0, 0x544e0, 0x58b00, 0x5f6a0, 0x600f0, 0x62e70, 0x62eb0, 0x64c70, 0x64d30, 0x680c0, 0x6f050, 0x765c0 and 0x8fa80.
+- Lane I, deep round 10 (#301): 0x258480, 0x25bf10, 0x25c570, 0x25e800, 0x25ed60. Lane C, deep round 45 (#303): 0x1cb410, 0x1d70d0, and 0x1086e0 and 0x1087c0 as side effects.
+- Lane P, deep round 14 (#297): 0x136970, and 0x2abd80 as a side effect. Lane AC (#298): 0x277a00. Lane D upper (#302): 0x8cfe0. Lane U (#304): 0x20aa70.
+- Machine 2's permuter lane: 0x18e600 (#299) and 0x90d90 (#305).
+
+## 2026-10-10: 7436 functions match
+
+```
+matched 7436 of 11318 game functions (866949 of 2784283 bytes, 31.14%)
+```
+
+7 new matches, none lost:
+- Deep lane 3, helpers first: tuning the helpers at the first difference of close callers made seven callers match with no change to them: 0x1ada70, 0x1f5110, 0x1f90f0, 0x1f9490, 0x1fed70, 0x257a90 and 0x26c240.
+
 ## 2026-10-10: 7429 functions match
 
 ```
