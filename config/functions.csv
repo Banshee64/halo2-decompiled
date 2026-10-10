@@ -9409,7 +9409,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0026db50,121,game,speed,a16 pad,,,,src/unknown_26db50.cpp,matched
 0026dbd0,73,game,speed,a16 pad,,,,src/unknown_26db50.cpp,matched
 0026dc20,97,game,speed,a16 pad,,,0016ba40 001e22d0,src/unknown_26db50.cpp,matched
-0026dc90,334,game,speed,a16 pad,,,000b9fc0 00210a30 0026bfa0,src/unknown_26db50.cpp,todo
+0026dc90,334,game,speed,a16 pad,,,000b9fc0 00210a30 0026bfa0,src/unknown_26db50.cpp,matched
 0026dde0,266,game,speed,a16 pad,,,0026d570 0026db50 0026dbd0 0026dc20 0026dc90 0026def0 0026df40,src/unknown_26db50.cpp,matched
 0026def0,68,game,speed,a16 pad,,,0026dc20,src/unknown_26db50.cpp,matched
 0026df40,227,game,speed,a16 pad,,,000baf80,src/unknown_26db50.cpp,matched
