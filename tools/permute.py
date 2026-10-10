@@ -35,8 +35,9 @@ worse, and the search ends when the walk's position has no new variants. Its
 mutations (MUTATIONS) are drawn by WEIGHTS.
 --anneal (with --fast) searches by simulated annealing instead, and adds the
 typed mutations (TYPED_MUTATIONS, weight 1). The walk also takes a worse
-variant, with a probability that falls over the run (exp(-delta / T), T
-from 0.8 to 0.2). It restarts from the best, or from the original, after 30
+variant, with a probability that falls over the run: a typically worse one
+(the median of those seen) one time in ten at first, one in two hundred at
+the end (see Anneal). It restarts from the best, or from the original, after 30
 tries without a new best, or when its position has no new variants left. It
 applies one mutation at a time, sometimes two to four. It ends at the time
 or try limit, or when restarts find nothing new. Only a variant better than
@@ -52,8 +53,8 @@ variant is scored twice.
                             [--fast [--jobs N] [--depth N] [--anneal]]
 """
 import argparse
+import bisect
 import difflib
-import math
 import os
 import random
 import re
@@ -2338,18 +2339,26 @@ class Greedy:
 class Anneal:
     """--anneal: simulated annealing on the reduced image's scores. A variant
     that scores delta worse than the position still becomes the position with
-    probability exp(-delta / T); T falls from start to end as the run goes on
-    (progress, 0 to 1). After stall tries without a new best the walk
-    restarts, from the best and from the original in turn; so it does when
-    the position has no new variants, with one more mutation each round, and
-    the search ends only when rounds of that find nothing new. A proposal
-    applies one mutation, or sometimes two to four."""
+    probability p ** (delta / typical): typical is the median of the worse
+    deltas seen so far (a failed build aside, which is never taken), and p
+    falls from start to end as the run goes on (progress, 0 to 1). So a
+    typical worse variant is taken one time in ten at first and one in two
+    hundred at the end, whatever the scale of a function's scores: a near
+    miss's neighbours score 3 to 20 worse, where a fixed temperature takes
+    none or all. After stall tries without a new best the walk restarts,
+    from the best and from the original in turn; so it does when the position
+    has no new variants, with one more mutation each round, and the search
+    ends only when rounds of that find nothing new. A proposal applies one
+    mutation, or sometimes two to four."""
 
-    def __init__(self, start=0.8, end=0.2, stall=30, rounds=4, more=0.35):
+    def __init__(self, start=0.1, end=0.005, stall=30, rounds=4, more=0.35):
         self.start, self.end, self.stall, self.rounds, self.more = start, end, stall, rounds, more
+        self.deltas = []  # the worse deltas seen, sorted
 
-    def temperature(self, progress):
-        return self.start * (self.end / self.start) ** min(max(progress, 0.0), 1.0)
+    def probability(self, delta, progress):
+        p = self.start * (self.end / self.start) ** min(max(progress, 0.0), 1.0)
+        typical = self.deltas[len(self.deltas) // 2] if self.deltas else 1
+        return p ** (delta / typical)
 
     def count(self, rng):
         n = 1
@@ -2358,7 +2367,12 @@ class Anneal:
         return n
 
     def accepts(self, delta, progress, rng):
-        return delta <= 0 or rng.random() < math.exp(-delta / self.temperature(progress))
+        if delta <= 0:
+            return True
+        if delta >= WORST // 2:  # a failed build
+            return False
+        bisect.insort(self.deltas, delta)
+        return rng.random() < self.probability(delta, progress)
 
 
 class FastSearch:

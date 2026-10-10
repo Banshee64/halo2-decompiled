@@ -690,14 +690,26 @@ class Draws:
 
 
 def test_anneal_accepts_worse_with_falling_probability():
-    a = permute.Anneal(start=1.0, end=0.1)
+    a = permute.Anneal(start=0.1, end=0.005)
     assert a.accepts(0, 0.0, None) and a.accepts(-2, 1.0, None)  # never draws for no worse
-    assert a.temperature(0) == 1.0 and abs(a.temperature(1) - 0.1) < 1e-12
-    # exp(-1 / 1.0) = 0.37 at the start; exp(-1 / 0.1) = 0.00005 at the end
-    assert a.accepts(1, 0.0, Draws(0.3)) and not a.accepts(1, 0.0, Draws(0.4))
-    assert not a.accepts(1, 1.0, Draws(0.001))
-    assert not a.accepts(permute.WORST, 0.0, Draws(0.0))  # a failed build: exp underflows to 0
+    assert not a.accepts(permute.WORST - 2, 0.0, Draws(0.0)) and a.deltas == []  # a failed build: never, not counted
+    # the first worse variant is the typical one: 0.1 at the start
+    assert a.accepts(6, 0.0, Draws(0.09)) and not a.accepts(6, 0.0, Draws(0.11))
+    assert a.deltas == [6, 6]
+    # a variant half as bad as the typical one: 0.1 ** 0.5 = 0.32; twice as bad: 0.01
+    assert a.accepts(3, 0.0, Draws(0.3)) and not a.accepts(12, 0.0, Draws(0.02))
+    assert a.deltas == [3, 6, 6, 12]
+    # at the end of the run a typical one: 0.005
+    assert abs(a.probability(6, 1.0) - 0.005) < 1e-12 and abs(a.probability(6, 0.5) - 0.1 * 0.05 ** 0.5) < 1e-12
     assert not permute.Greedy().accepts(1, 0.0, Draws(0.0))
+
+
+def test_anneal_probability_does_not_depend_on_the_score_scale():
+    small, large = permute.Anneal(), permute.Anneal()
+    for d in (1, 2, 3):
+        small.accepts(d, 0.0, Draws(1.0))
+        large.accepts(10 * d, 0.0, Draws(1.0))
+    assert abs(small.probability(2, 0.3) - large.probability(20, 0.3)) < 1e-12
 
 
 def anneal_search(full, strategy=None, log=None):
