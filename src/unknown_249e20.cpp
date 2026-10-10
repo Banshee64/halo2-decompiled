@@ -165,6 +165,7 @@ void function_249d10(s_structure_bsp_view *bsp, dword *bits, long index)
 }
 
 /* the distance sound travels between two clusters */
+#pragma optimize("s", on)
 // @retail 0x249d60
 real function_249d60(s_structure_bsp_view *bsp, long cluster_a, long cluster_b)
 {
@@ -195,3 +196,4 @@ real function_249d60(s_structure_bsp_view *bsp, long cluster_a, long cluster_b)
 		local_0 = (real)(function_249ed0((short)cluster_a, (short)cluster_b, bsp) & ~0x80) * (256.0f / 127.0f);
 	return local_0;
 }
+#pragma optimize("", on)
