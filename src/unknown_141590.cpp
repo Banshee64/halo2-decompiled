@@ -625,6 +625,22 @@ vector3f *function_1427f0(
 inline bool function_a0190(vector3f const *vector);
 __declspec(noinline) bool function_a0200(real a, real b);
 
+static __forceinline real basis_dot_xzy(vector3f const *a, vector3f const *b)
+{
+	real result = a->i * b->i;
+	result += b->k * a->k;
+	result += a->j * b->j;
+	return result;
+}
+
+static __forceinline real basis_dot_xyz(vector3f const *a, vector3f const *b)
+{
+	real result = a->i * b->i;
+	result += b->j * a->j;
+	result += a->k * b->k;
+	return result;
+}
+
 // @retail 0x143120
 bool function_143120(
 	vector3f const *forward,
@@ -634,9 +650,9 @@ bool function_143120(
 	return function_a0190(forward) &&
 		function_a0190(left) &&
 		function_a0190(up) &&
-		function_a0200(dot3f(forward, left), 0.f) &&
-		function_a0200(dot3f(left, up), 0.f) &&
-		function_a0200(dot3f(forward, up), 0.f);
+		function_a0200(basis_dot_xzy(forward, left), 0.f) &&
+		function_a0200(basis_dot_xyz(left, up), 0.f) &&
+		function_a0200(basis_dot_xzy(forward, up), 0.f);
 }
 
 // @retail 0x143250
