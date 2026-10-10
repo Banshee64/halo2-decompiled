@@ -46,12 +46,16 @@ bool function_153750(s_player_appearance *appearance)
 }
 
 // @retail 0x1537a0
-char *function_1537a0(byte const *address)
+char *__stdcall function_1537a0(byte const *address)
 {
-	for (long i = 0; i < 12; i++)
+	long i = 0;
+	long remaining = 12;
+	do
 	{
 		sprintf(&g_55eb88[i * 3], "%02x%c", address[i], (char)(i == 11 ? 0 : ':'));
+		i++;
 	}
+	while (--remaining);
 	return g_55eb88;
 }
 

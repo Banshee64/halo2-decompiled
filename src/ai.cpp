@@ -423,7 +423,7 @@ void function_1dfae0(void);
 struct s_output_entry;
 extern s_output_entry *g_4f93a0;
 struct hash_table;
-hash_table *function_13e1a0(char const *name, long data_size, long bucket_count,
+__declspec(noinline) hash_table *function_13e1a0(char const *name, long data_size, long bucket_count,
 	dword (__stdcall *hash_proc)(void const *), bool (__stdcall *compare_proc)(void const *, void const *),
 	long maximum_count, c_data_allocator *allocator);
 long __stdcall function_25dd20(long key);

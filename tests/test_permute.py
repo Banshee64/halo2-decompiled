@@ -478,3 +478,384 @@ def test_jobs_needs_fast(monkeypatch, capsys):
     assert '--jobs' in capsys.readouterr().err
 
 
+# ------------------------------------------------------- typed mutations
+
+HEADER = '''typedef unsigned char byte;
+typedef unsigned short word;
+typedef unsigned long dword;
+typedef float real;
+#define NONE -1
+
+struct s_point
+{
+	long x;
+	short y;
+};
+
+struct s_thing
+{
+	s_point *point;
+	long value;
+	word flags;
+	short count;
+	bool ready;
+};
+
+extern s_thing *g_thing;
+long helper(long a, short b);
+bool test(long a);
+void store(long a, bool b);
+'''
+PARAMS = 's_thing *thing, long index, short count'
+
+
+def context():
+    return permute.Context(PARAMS, 'long', HEADER)
+
+
+def outputs(mut, body, seeds=40):
+    """The distinct results of a typed mutation over many seeds; each must still parse."""
+    found = set()
+    for seed in range(seeds):
+        out = mut(body, random.Random(seed), context())
+        if out is not None:
+            assert parses(out), out
+            found.add(out)
+    return found
+
+
+def parses(body):
+    """Balanced braces, parentheses and brackets, and find_body takes the body back whole."""
+    if any(body.count(a) != body.count(b) for a, b in ('{}', '()', '[]')):
+        return False
+    text = f'// @retail 0x1234\nlong f({PARAMS})\n{{{body}}}\n'
+    start, end = permute.find_body(text, 0x1234)
+    return text[start:end] == body
+
+
+# (mutation, body, the results it must give): each body is valid C++ in
+# long f(s_thing *thing, long index, short count) after HEADER, and so is each result
+CASES = [
+    (permute.mut_reorder_fields, '\n\tthing->value = 0;\n\tthing->count = 1;\n\treturn 0;\n',
+     {'\n\tthing->count = 1;\n\tthing->value = 0;\n\treturn 0;\n'}),
+    (permute.mut_hoist_argument, '\n\tstore(thing->value, index != 0);\n\treturn 0;\n',
+     {'\n\tlong tmp0 = thing->value;\n\tstore(tmp0, index != 0);\n\treturn 0;\n',
+      '\n\tbool tmp0 = index != 0;\n\tstore(thing->value, tmp0);\n\treturn 0;\n'}),
+    (permute.mut_hoist_argument, '\n\tif (index)\n\t\tstore(helper(index, count), true);\n\treturn 0;\n',
+     {'\n\tif (index)\n\t{\n\t\tlong tmp0 = helper(index, count);\n\t\tstore(tmp0, true);\n\t}\n\treturn 0;\n'}),
+    (permute.mut_inline_local, '\n\tshort s = thing->count;\n\tstore(s, true);\n\treturn 0;\n',
+     {'\n\tstore(thing->count, true);\n\treturn 0;\n'}),
+    (permute.mut_inline_local, '\n\tshort s = thing->value;\n\tstore(s, true);\n\treturn 0;\n',
+     {'\n\tstore((short)thing->value, true);\n\treturn 0;\n'}),
+    (permute.mut_cache_field,
+     '\n\tstore(thing->value, true);\n\tstore(thing->value + 1, false);\n\tthing->value = 0;\n\treturn thing->value;\n',
+     {'\n\tlong tmp0 = thing->value;\n\tstore(tmp0, true);\n\tstore(tmp0 + 1, false);\n\tthing->value = 0;\n'
+      '\treturn thing->value;\n'}),
+    (permute.mut_uncache_field, '\n\tword flags = thing->flags;\n\tif (flags & 1)\n\t\tstore(index, (flags & 2) != 0);\n'
+                                '\treturn 0;\n',
+     {'\n\tif (thing->flags & 1)\n\t\tstore(index, (thing->flags & 2) != 0);\n\treturn 0;\n'}),
+    (permute.mut_zero_compare, '\n\tif (index && !count)\n\t\treturn 1;\n\treturn 0;\n',
+     {'\n\tif (index != 0 && !count)\n\t\treturn 1;\n\treturn 0;\n',
+      '\n\tif (index && count == 0)\n\t\treturn 1;\n\treturn 0;\n'}),
+    (permute.mut_zero_compare, '\n\tif (index != 0 || (count & 3) == 0)\n\t\treturn 1;\n\treturn 0;\n',
+     {'\n\tif (index || (count & 3) == 0)\n\t\treturn 1;\n\treturn 0;\n',
+      '\n\tif (index != 0 || !(count & 3))\n\t\treturn 1;\n\treturn 0;\n'}),
+    (permute.mut_zero_compare, '\n\tbool ok = test(index);\n\tthing->ready = test(count) != 0;\n\treturn ok;\n',
+     {'\n\tbool ok = test(index) != 0;\n\tthing->ready = test(count) != 0;\n\treturn ok;\n',
+      '\n\tbool ok = test(index);\n\tthing->ready = test(count);\n\treturn ok;\n'}),
+    (permute.mut_early_return, '\n\tlong result = 0;\n\tif (index)\n\t{\n\t\tresult = 1;\n\t}\n\treturn result;\n',
+     {'\n\tlong result = 0;\n\tif (index)\n\t{\n\t\treturn 1;\n\t}\n\treturn result;\n'}),
+    (permute.mut_early_return, '\n\tlong result;\n\tif (index)\n\t{\n\t\tresult = 1;\n\t\tgoto done;\n\t}\n\tresult = 2;\n'
+                               'done:\n\treturn result;\n',
+     {'\n\tlong result;\n\tif (index)\n\t{\n\t\treturn 1;\n\t}\n\tresult = 2;\ndone:\n\treturn result;\n',
+      '\n\tlong result;\n\tif (index)\n\t{\n\t\tresult = 1;\n\t\tgoto done;\n\t}\n\treturn 2;\ndone:\n\treturn result;\n'}),
+    (permute.mut_early_return, '\n\tlong result = 0;\n\tif (index)\n\t{\n\t\treturn 1;\n\t}\n\tresult = 2;\n\treturn result;\n',
+     {'\n\tlong result = 0;\n\tif (index)\n\t{\n\t\tresult = 1;\n\t}\n\telse\n\t{\n\t\tresult = 2;\n\t}\n'
+      '\treturn result;\n',
+      '\n\tlong result = 0;\n\tif (index)\n\t{\n\t\treturn 1;\n\t}\n\treturn 2;\n\treturn result;\n'}),
+    (permute.mut_volatile_local, '\n\tlong a = index;\n\ts_point *p = thing->point;\n\treturn a + p->x;\n',
+     {'\n\tvolatile long a = index;\n\ts_point *p = thing->point;\n\treturn a + p->x;\n',
+      '\n\tlong a = index;\n\ts_point *volatile p = thing->point;\n\treturn a + p->x;\n'}),
+    # the local's own qualifier comes off; what a pointer points to stays volatile (mut_volatile_pointer's)
+    (permute.mut_volatile_local, '\n\tvolatile long a = index;\n\ts_point volatile *volatile p = 0;\n\treturn a;\n',
+     {'\n\tlong a = index;\n\ts_point volatile *volatile p = 0;\n\treturn a;\n',
+      '\n\tvolatile long a = index;\n\ts_point volatile *p = 0;\n\treturn a;\n'}),
+    (permute.mut_retype_wide, '\n\tshort s = count;\n\treturn s;\n',
+     {'\n\tword s = count;\n\treturn s;\n', '\n\tchar s = count;\n\treturn s;\n'}),
+    (permute.mut_retype_wide, '\n\tword w = count;\n\treturn w;\n',
+     {'\n\tshort w = count;\n\treturn w;\n', '\n\tbyte w = count;\n\treturn w;\n', '\n\tdword w = count;\n\treturn w;\n'}),
+    (permute.mut_recast, '\n\treturn *(short *)&index;\n',
+     {'\n\treturn *(word *)&index;\n', '\n\treturn *(char *)&index;\n', '\n\treturn *(long *)&index;\n'}),
+    (permute.mut_redundant_cast, '\n\tstore((long)index, true);\n\treturn 0;\n', {'\n\tstore(index, true);\n\treturn 0;\n'}),
+    (permute.mut_redundant_cast, '\n\tstore(index, true);\n\treturn 0;\n', {'\n\tstore((long)index, true);\n\treturn 0;\n'}),
+    (permute.mut_do_while, '\n\twhile (index > 0)\n\t{\n\t\tindex--;\n\t}\n\treturn index;\n',
+     {'\n\tif (index > 0)\n\t{\n\t\tdo\n\t\t{\n\t\t\tindex--;\n\t\t} while (index > 0);\n\t}\n\treturn index;\n'}),
+]
+
+
+@pytest.mark.parametrize('mut, body, expected', CASES, ids=[f'{c[0].__name__}-{k}' for k, c in enumerate(CASES)])
+def test_typed_mutation_gives_the_intended_rewrites(mut, body, expected):
+    assert parses(body)
+    assert outputs(mut, body) == expected
+
+
+def test_typed_mutations_cover_every_one():
+    assert {c[0] for c in CASES} == set(permute.TYPED_MUTATIONS)
+    assert not set(permute.TYPED_MUTATIONS) & set(permute.MUTATIONS)
+
+
+def test_do_while_round_trip():
+    body = '\n\twhile (index > 0)\n\t{\n\t\tindex--;\n\t}\n\treturn index;\n'
+    there = permute.mut_do_while(body, rng(), context())
+    assert permute.mut_do_while(there, rng(), context()) == body
+
+
+def test_typed_mutations_leave_alone_what_they_must():
+    ctx = context()
+    # reads the field the other writes; two calls; pairs mut_reorder already takes
+    assert permute.mut_reorder_fields('\n\tthing->value = 0;\n\tindex = thing->value;\n', rng(), ctx) is None
+    assert permute.mut_reorder_fields('\n\tstore(thing->value, true);\n\tstore(thing->value, false);\n', rng(),
+                                      ctx) is None
+    assert permute.mut_reorder_fields('\n\tlong a = 1;\n\tlong b = 2;\n', rng(), ctx) is None
+    # an argument whose type nothing declares, and trivial ones
+    assert permute.mut_hoist_argument('\n\tstore(unknown->field, true);\n', rng(), ctx) is None
+    assert permute.mut_hoist_argument('\n\tstore(index, true);\n', rng(), ctx) is None
+    # mut_inline_temp's own types
+    assert permute.mut_inline_local('\n\tlong t = index + 1;\n\treturn t;\n', rng(), ctx) is None
+    # a loop between the assignment and the return
+    assert permute.mut_early_return('\n\tlong result = 0;\n\twhile (index)\n\t{\n\t\tresult = 1;\n\t}\n'
+                                    '\treturn result;\n', rng(), ctx) is None
+    # a's address is taken, so only p can be volatile
+    assert permute.mut_volatile_local('\n\tlong a = 0;\n\tlong *p = &a;\n', rng(), ctx) == \
+        '\n\tlong a = 0;\n\tlong *volatile p = &a;\n'
+    # a local read once is the inline mutations' business
+    assert permute.mut_uncache_field('\n\tword flags = thing->flags;\n\treturn flags;\n', rng(), ctx) is None
+
+
+def test_a_declaration_in_a_switch_gets_braces():
+    body = '\n\tswitch (index)\n\t{\n\tcase 1:\n\t\tstore(thing->value, true);\n\t\tbreak;\n\t}\n\treturn 0;\n'
+    out = permute.mut_hoist_argument(body, rng(), context())
+    assert out == ('\n\tswitch (index)\n\t{\n\tcase 1:\n\t{\n\t\tlong tmp0 = thing->value;\n\t\tstore(tmp0, true);\n'
+                   '\t}\n\t\tbreak;\n\t}\n\treturn 0;\n')
+
+
+def test_expr_type_reads_declarations():
+    ctx = context()
+    types = permute.declared_types('\n\tlong *arguments = 0;\n\ts_point *p = 0;\n', ctx)
+    assert types == {'thing': 's_thing *', 'index': 'long', 'count': 'short', 'arguments': 'long *',
+                     'p': 's_point *'}
+    for expr, t in [('arguments[1]', 'long'), ('*(short *)&arguments[2]', 'short'), ('thing->point->y', 'short'),
+                    ('&thing->value', 'long *'), ('helper(1, 2)', 'long'), ('g_thing->flags', 'word'),
+                    ('index != 0', 'bool'), ('(word)index', 'word'), ('index + 1', 'long'), ('store(1, 0)', None),
+                    ('mystery->x', None)]:
+        assert permute.expr_type(expr, types, ctx) == t, expr
+
+
+def test_function_context_reads_the_signature(tmp_path):
+    (tmp_path / 'include').mkdir()
+    (tmp_path / 'include' / 'thing.h').write_text(HEADER)
+    text = '#include "thing.h"\n// @retail 0x1234\nbool __stdcall c_x::f(s_thing *thing, long index)\n{\n\treturn 0;\n}\n'
+    start, _ = permute.find_body(text, 0x1234)
+    ctx = permute.function_context(text, start, str(tmp_path))
+    assert (ctx.params, ctx.returns) == ('s_thing *thing, long index', 'bool')
+    assert ctx.field_type('s_thing', 'flags') == 'word'
+
+
+def test_mutate_survives_bodies_the_typed_mutations_cannot_parse():
+    body = '\n\twhile (x) {\n\t\ty = (z;\n\tif (q) {\n'  # unbalanced
+    for seed in range(20):
+        permute.mutate(body, random.Random(seed), mutations=permute.TYPED_MUTATIONS, context=context())
+
+
+@pytest.mark.sdk
+def test_typed_mutation_results_compile(xdk_dir, tmp_path):
+    """Every body and result in CASES compiles (cl /Zs) as a function after HEADER."""
+    bodies = {b for _, b, expected in CASES for b in [b, *expected]}
+    source = HEADER + ''.join(f'long f{k}({PARAMS})\n{{{b}}}\n\n' for k, b in enumerate(sorted(bodies)))
+    path = tmp_path / 'typed.cpp'
+    path.write_text(source)
+    build.run_tool('CL.Exe', ['/Zs', '/TP', str(path)], str(tmp_path), xdk_dir)
+
+
+# ------------------------------------------------------- --anneal
+
+class Draws:
+    """A stand-in rng whose random() returns the given values in turn."""
+
+    def __init__(self, *values):
+        self.values = list(values)
+
+    def random(self):
+        return self.values.pop(0)
+
+
+def test_anneal_accepts_worse_with_falling_probability():
+    a = permute.Anneal(start=0.1, end=0.005)
+    assert a.accepts(0, 0.0, None) and a.accepts(-2, 1.0, None)  # never draws for no worse
+    assert not a.accepts(permute.WORST - 2, 0.0, Draws(0.0)) and a.deltas == []  # a failed build: never, not counted
+    # the first worse variant is the typical one: 0.1 at the start
+    assert a.accepts(6, 0.0, Draws(0.09)) and not a.accepts(6, 0.0, Draws(0.11))
+    assert a.deltas == [6, 6]
+    # a variant half as bad as the typical one: 0.1 ** 0.5 = 0.32; twice as bad: 0.01
+    assert a.accepts(3, 0.0, Draws(0.3)) and not a.accepts(12, 0.0, Draws(0.02))
+    assert a.deltas == [3, 6, 6, 12]
+    # at the end of the run a typical one: 0.005
+    assert abs(a.probability(6, 1.0) - 0.005) < 1e-12 and abs(a.probability(6, 0.5) - 0.1 * 0.05 ** 0.5) < 1e-12
+    assert not permute.Greedy().accepts(1, 0.0, Draws(0.0))
+
+
+def test_anneal_probability_does_not_depend_on_the_score_scale():
+    small, large = permute.Anneal(), permute.Anneal()
+    for d in (1, 2, 3):
+        small.accepts(d, 0.0, Draws(1.0))
+        large.accepts(10 * d, 0.0, Draws(1.0))
+    assert abs(small.probability(2, 0.3) - large.probability(20, 0.3)) < 1e-12
+
+
+def anneal_search(full, strategy=None, log=None):
+    """A FastSearch over body 'B' (full score 4, reduced 5) with Anneal; confirm scores with full (a dict)."""
+    confirmed = []
+
+    def confirm(text):
+        confirmed.append(text)
+        return full[text], 'full'
+
+    s = permute.FastSearch('<', 'B', '>', confirm, 4, log or (lambda *_: None), strategy or permute.Anneal())
+    s.start(5, 'fast baseline')
+    return s, confirmed
+
+
+def test_anneal_walk_takes_a_worse_variant_without_a_full_build():
+    s, confirmed = anneal_search({})
+    s.offer('C', 6, 'worse', 1, Draws(0.0))
+    assert (s.walk, s.walk_score, s.uphill, s.best, s.best_fast, confirmed) == ('C', 6, 1, 'B', 5, [])
+    s.offer('D', 7, 'worse', 2, Draws(0.99))
+    assert (s.walk, s.walk_score, s.uphill) == ('C', 6, 1)
+
+
+def test_anneal_confirms_only_what_beats_the_best_not_the_walk():
+    """From a worse position, a variant better than the position but not than
+    the best moves the walk; only one that beats the best costs a full build."""
+    s, confirmed = anneal_search({'<E>': 3})
+    s.offer('C', 7, 'worse', 1, Draws(0.0))
+    s.offer('D', 6, 'better than the walk', 2, Draws())
+    assert (s.walk, s.walk_score, confirmed) == ('D', 6, [])
+    s.offer('E', 4, 'better than the best', 3, Draws())
+    assert confirmed == ['<E>']
+    assert (s.best, s.best_score, s.best_fast, s.walk, s.walk_score, s.stalled) == ('E', 3, 4, 'E', 4, 0)
+
+
+def test_anneal_restarts_from_the_best_then_the_original_when_it_stalls():
+    lines = []
+    body = '\n\tx = a + b;\n\ty = c * d;\n'
+    better, worse = '\n\tx = b + a;\n\ty = c * d;\n', '\n\tx = a + b;\n\ty = d * c;\n'
+    s = permute.FastSearch('<', body, '>', lambda t: (2, 'full'), 4, lines.append, permute.Anneal(stall=2),
+                           permute.MUTATIONS)
+    s.start(5, 'fast')
+    s.offer(better, 4, 'better', 1, Draws())  # confirmed: the new best
+    s.offer(worse, 6, 'worse', 2, Draws(0.0))
+    assert s.walk == worse and s.stalled == 1
+    s.offer('\n\tx = a + b;\n\ty = c;\n', 9, 'worse', 3, Draws(0.0))
+    s.propose(random.Random(0), 100)
+    assert s.restarts == 1 and any('restart 1 from the best' in l for l in lines)
+    s.stalled = 2
+    s.propose(random.Random(0), 100)
+    assert s.restarts == 2 and any('restart 2 from the original' in l for l in lines)
+    assert (s.walk, s.walk_score) == (body, 5)
+
+
+def test_anneal_restarts_when_the_position_runs_dry_then_ends():
+    """When no new variant turns up, the walk restarts with more mutations at
+    a time, and the search ends only after its rounds of that."""
+    lines = []
+    s = permute.FastSearch('<', '\n\tx = a + b;\n', '>', lambda t: (9, 'full'), 9, lines.append, permute.Anneal(),
+                           [permute.mut_swap_operands])
+    s.start(9, 'fast')
+    rng = random.Random(4)
+    proposals = []
+    while True:
+        c, n = s.propose(rng, 1000)
+        if c is None:
+            break
+        proposals.append(c)
+        s.offer(c, 9, '', n, rng)
+    assert proposals == ['\n\tx = b + a;\n']
+    assert s.end == 'no new mutations' and s.restarts == permute.Anneal().rounds - 1
+    assert lines[-1] == 'no new mutations available'
+
+
+def test_anneal_stub_search_keeps_the_best_confirmed():
+    """With a random reduced score and a random full score, the best is always
+    the confirmed variant with the lowest full score, and the walk wanders."""
+    rng = random.Random(9)
+    full = {}
+
+    def confirm(text):
+        full.setdefault(text, rng.randrange(1, 30))
+        return full[text], 'full'
+
+    class Fast:
+        def score_text(self, text):
+            return rng.randrange(1, 12), 'fast'
+
+    start, end = permute.find_body(SOURCE, 0x1234)
+    s = permute.FastSearch(SOURCE[:start], SOURCE[start:end], SOURCE[end:], confirm, 40, lambda *_: None,
+                           permute.Anneal(), permute.MUTATIONS + permute.TYPED_MUTATIONS, context())
+    proposals, propose = [], s.propose
+    s.propose = lambda *a: proposals.append(propose(*a)[0]) or (proposals[-1], len(proposals))
+    permute._work(s, Fast(), random.Random(3), 60, None)
+    assert s.tries == 60 and s.uphill > 0
+    assert len(set(proposals[:60])) == 60 and SOURCE[start:end] not in proposals  # no variant scored twice
+    assert s.best_score == min([40, *full.values()])
+    assert s.best == SOURCE[start:end] or full[s.text(s.best)] == s.best_score
+
+
+def run_main(monkeypatch, tmp_path, best, *flags, callees='matched'):
+    """main() with a stubbed search whose best scores best (full build), for 0x1234, which calls 0x2000 (decompiled,
+    with status callees) and 0x3000 (library code); the source file's text afterwards."""
+    result = permute.Result(2, best, 'variant', 'original', 5, 1.0, fast_baseline=2, fast_best=best)
+    monkeypatch.setattr(permute, 'run_fast', lambda *a, **k: result)
+    monkeypatch.setattr(permute, 'run', lambda *a, **k: result)
+    monkeypatch.setattr(permute, 'ROOT', str(tmp_path))
+    monkeypatch.setattr(permute.build, 'marked_sources', lambda *a: [type('M', (), {'retail': 0x1234, 'path': 'f.cpp'})(),
+                                                                    type('M', (), {'retail': 0x2000, 'path': 'g.cpp'})()])
+    monkeypatch.setattr(permute, 'read_rows', lambda path: {0x1234: {'calls': '00002000 00003000', 'status': 'near'},
+                                                            0x2000: {'calls': '', 'status': callees},
+                                                            0x3000: {'calls': '', 'status': 'todo'}})
+    (tmp_path / 'f.cpp').write_text('original')
+    monkeypatch.setattr(permute.sys, 'argv', ['permute.py', '0x1234', *flags])
+    with pytest.raises(SystemExit):
+        permute.main()
+    return (tmp_path / 'f.cpp').read_text()
+
+
+def test_write_only_match_writes_an_exact_match(monkeypatch, tmp_path):
+    assert run_main(monkeypatch, tmp_path, 0, '--fast', '--anneal', '--write-only-match') == 'variant'
+    assert run_main(monkeypatch, tmp_path, 0, '--write-only-match') == 'variant'
+
+
+def test_write_only_match_leaves_a_match_that_calls_unmatched_code(monkeypatch, tmp_path, capsys):
+    """Its calls can pass a callee that does not match yet its arguments in other registers than retail's."""
+    assert run_main(monkeypatch, tmp_path, 0, '--fast', '--write-only-match', callees='todo') == 'original'
+    assert 'not written: it calls 0x2000, which do not match retail yet' in capsys.readouterr().out
+    assert run_main(monkeypatch, tmp_path, 1, '--fast', '--write', callees='todo') == 'variant'  # --write as before
+
+
+def test_write_only_match_leaves_a_merely_better_variant(monkeypatch, tmp_path, capsys):
+    assert run_main(monkeypatch, tmp_path, 1, '--fast', '--write-only-match') == 'original'
+    assert 'not written' in capsys.readouterr().out
+
+
+def test_write_keeps_its_meaning(monkeypatch, tmp_path):
+    assert run_main(monkeypatch, tmp_path, 1, '--fast', '--write') == 'variant'
+
+
+@pytest.mark.parametrize('flags, message', [(['--write', '--write-only-match'], 'not allowed with'),
+                                            (['--anneal'], '--anneal needs --fast')])
+def test_option_conflicts(monkeypatch, capsys, flags, message):
+    monkeypatch.setattr(permute.sys, 'argv', ['permute.py', '0x1234', *flags])
+    with pytest.raises(SystemExit):
+        permute.main()
+    assert message in capsys.readouterr().err
+
+
