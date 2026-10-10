@@ -810,13 +810,18 @@ def test_anneal_stub_search_keeps_the_best_confirmed():
     assert s.best == SOURCE[start:end] or full[s.text(s.best)] == s.best_score
 
 
-def run_main(monkeypatch, tmp_path, best, *flags):
-    """main() with a stubbed search whose best scores best (full build); the source file's text afterwards."""
+def run_main(monkeypatch, tmp_path, best, *flags, callees='matched'):
+    """main() with a stubbed search whose best scores best (full build), for 0x1234, which calls 0x2000 (decompiled,
+    with status callees) and 0x3000 (library code); the source file's text afterwards."""
     result = permute.Result(2, best, 'variant', 'original', 5, 1.0, fast_baseline=2, fast_best=best)
     monkeypatch.setattr(permute, 'run_fast', lambda *a, **k: result)
     monkeypatch.setattr(permute, 'run', lambda *a, **k: result)
     monkeypatch.setattr(permute, 'ROOT', str(tmp_path))
-    monkeypatch.setattr(permute.build, 'marked_sources', lambda *a: [type('M', (), {'retail': 0x1234, 'path': 'f.cpp'})()])
+    monkeypatch.setattr(permute.build, 'marked_sources', lambda *a: [type('M', (), {'retail': 0x1234, 'path': 'f.cpp'})(),
+                                                                    type('M', (), {'retail': 0x2000, 'path': 'g.cpp'})()])
+    monkeypatch.setattr(permute, 'read_rows', lambda path: {0x1234: {'calls': '00002000 00003000', 'status': 'near'},
+                                                            0x2000: {'calls': '', 'status': callees},
+                                                            0x3000: {'calls': '', 'status': 'todo'}})
     (tmp_path / 'f.cpp').write_text('original')
     monkeypatch.setattr(permute.sys, 'argv', ['permute.py', '0x1234', *flags])
     with pytest.raises(SystemExit):
@@ -827,6 +832,13 @@ def run_main(monkeypatch, tmp_path, best, *flags):
 def test_write_only_match_writes_an_exact_match(monkeypatch, tmp_path):
     assert run_main(monkeypatch, tmp_path, 0, '--fast', '--anneal', '--write-only-match') == 'variant'
     assert run_main(monkeypatch, tmp_path, 0, '--write-only-match') == 'variant'
+
+
+def test_write_only_match_leaves_a_match_that_calls_unmatched_code(monkeypatch, tmp_path, capsys):
+    """Its calls can pass a callee that does not match yet its arguments in other registers than retail's."""
+    assert run_main(monkeypatch, tmp_path, 0, '--fast', '--write-only-match', callees='todo') == 'original'
+    assert 'not written: it calls 0x2000, which do not match retail yet' in capsys.readouterr().out
+    assert run_main(monkeypatch, tmp_path, 1, '--fast', '--write', callees='todo') == 'variant'  # --write as before
 
 
 def test_write_only_match_leaves_a_merely_better_variant(monkeypatch, tmp_path, capsys):

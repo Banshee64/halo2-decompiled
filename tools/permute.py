@@ -7,8 +7,12 @@ the repository is never modified unless --write or --write-only-match is
 given, and then only with a strictly better variant of the one function.
 --write writes the best variant whenever it scores better than the original;
 it may behave differently from the original. --write-only-match writes it only
-when a full build finds that it matches retail exactly, so its bytes are
-retail's: that is the option for unattended runs.
+when a full build finds that it matches retail exactly and every decompiled
+function it calls matches too: then its bytes, and the registers its calls
+use, are retail's. (A function that calls code which does not match yet can
+match retail's bytes with two arguments swapped, say, since under LTCG a call
+follows its callee's registers; such a match is reported, not written.) That
+is the option for unattended runs.
 
 --fast scores each variant on a reduced image instead of the whole program
 (tools/build.py's build(units=...)): the function's own source, and the
@@ -2567,6 +2571,18 @@ def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, j
             shutil.rmtree(scratch, ignore_errors=True)
 
 
+def unmatched_callees(va, root=ROOT):
+    """The decompiled functions va calls (config/functions.csv) whose code does
+    not match retail yet. Under LTCG the registers a call passes its arguments
+    in follow the callee's code, so while such a callee's differ from retail's,
+    a caller can match retail's bytes and still pass it different arguments
+    (two of them swapped, say). Stubs and library code are not decompiled."""
+    rows = read_rows(FUNCTIONS_CSV)
+    decompiled = {m.retail for m in build.marked_sources(root)}
+    calls = [int(c, 16) for c in rows.get(va, {}).get('calls', '').split()]
+    return [c for c in calls if c in decompiled and rows.get(c, {}).get('status') != 'matched']
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('address', help='retail address of a function marked // @retail in src/')
@@ -2577,7 +2593,8 @@ def main():
     writes = ap.add_mutually_exclusive_group()
     writes.add_argument('--write', action='store_true', help='write a strictly better variant back to the source file')
     writes.add_argument('--write-only-match', action='store_true',
-                        help='write the variant back only when a full build finds that it matches retail exactly')
+                        help='write the variant back only when a full build finds that it matches retail exactly, '
+                             'and every decompiled function it calls matches too')
     ap.add_argument('--fast', action='store_true',
                     help='score on a reduced image; a full build confirms each improvement')
     ap.add_argument('--jobs', type=int, default=1, help='with --fast: scorers working in parallel')
@@ -2616,11 +2633,16 @@ def main():
         diff = ''.join(difflib.unified_diff(result.original.splitlines(True), result.text.splitlines(True),
                                             'a/src', 'b/src'))
         print(diff)
-        if args.write or (args.write_only_match and result.best == 0):
+        pending = unmatched_callees(va) if args.write_only_match and result.best == 0 else []
+        if args.write or (args.write_only_match and result.best == 0 and not pending):
             marked = next(m for m in build.marked_sources() if m.retail == va)
             with open(os.path.join(ROOT, marked.path), 'w', encoding='utf-8', newline='') as f:
                 f.write(result.text)
             print(f'wrote {marked.path}')
+        elif pending:
+            print('not written: it calls ' + ', '.join(f'{c:#x}' for c in pending) + ', which do not match retail '
+                  'yet, so the match may pass them arguments in registers their retail code does not read; '
+                  'check it by hand')
         elif args.write_only_match:
             print('not written: --write-only-match writes only a variant that matches retail')
     sys.exit(0)
