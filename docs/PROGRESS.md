@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-10: 7476 functions match
+
+```
+matched 7476 of 11318 game functions (875935 of 2784283 bytes, 31.46%)
+```
+
+3 new matches, none lost:
+- Deep lane 2, closest first in lanes T, R, H and the UI core: 0x176210, 0x17d690 and 0x22cd48.
+
 ## 2026-10-10: 7473 functions match
 
 ```
