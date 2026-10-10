@@ -431,7 +431,7 @@ void function_23da00(s_observer_state *observer, long local_index, long target)
 	observer->field_of_view = g_54e854;
 	observer->distance = camera_random_23da00(2.f, 6.f);
 	observer->yaw = camera_random_23da00(0.f, 6.2831855f);
-	observer->pitch = -camera_random_23da00(0.47123894f, 1.0995574f);
+	observer->pitch = (real)(-(double)camera_random_23da00(0.47123894f, 1.0995574f));
 	observer->timer = 3.f;
 	real delay = 3.f;
 	if (target != NONE)

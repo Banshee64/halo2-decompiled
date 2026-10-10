@@ -655,12 +655,11 @@ void sound_driver_voice_update(
 		IDirectSoundBuffer_SetPosition(voice->buffer, parameters->position.x, parameters->position.y, parameters->position.z, DS3D_DEFERRED);
 		voice->position = parameters->position;
 	}
-	else if (fabs(occlusion - voice->unknown2c) < 0.001f &&
+	if (!force && fabs(occlusion - voice->unknown2c) < 0.001f &&
 		fabs(obstruction - voice->unknown30) < 0.001f &&
 		(voice->flags & 1) == flag)
 	{
-		voice->flags |= 2;
-		return;
+		goto local_0;
 	}
 	if (!force && (voice->flags & 1) == flag && parameters->obstruction_rate > 0.0f)
 	{
@@ -680,5 +679,6 @@ void sound_driver_voice_update(
 	}
 	voice->flags ^= (voice->flags ^ flag) & 1;
 	sound_driver_voice_environment_set(voice_index, parameters->decibels);
+local_0:
 	voice->flags |= 2;
 }

@@ -141,6 +141,7 @@ bool collision_object_test(long object_index, s_collision_object_header const *h
 	long ignore_object_index, long ignore_object_index2)
 {
 	bool result = false;
+	s_collision_object const volatile *observed = object;
 
 	if (object_index != ignore_object_index && object_index != ignore_object_index2 && !(header->flags & 0x10) &&
 		!(*(dword const *)((byte const *)object + 4) & 1))
@@ -148,9 +149,9 @@ bool collision_object_test(long object_index, s_collision_object_header const *h
 		word type = header->type;
 
 		if ((flags & (1 << (type + 4))) &&
-			!((flags & 0x80000) && TEST_FIELD_BIT(object->bit20)) &&
-			!((flags & 0x40000) && !TEST_FIELD_BIT(object->bit22)) &&
-			!((flags & 0x40000000) && !TEST_FIELD_BIT(object->bit31)))
+			!((flags & 0x80000) && TEST_FIELD_BIT(observed->bit20)) &&
+			!((flags & 0x40000) && !TEST_FIELD_BIT(observed->bit22)) &&
+			!((flags & 0x40000000) && !TEST_FIELD_BIT(observed->bit31)))
 		{
 			if (type == 0)
 			{
@@ -217,7 +218,7 @@ bool function_1efdc0(s_lookup *lookup, point3f const *point);
 bool object_or_parent_hidden(long object_index);
 
 // @retail 0x168e20
-bool function_168e20(long object_index, bool skip_test, dword flags,
+bool __stdcall function_168e20(long object_index, bool skip_test, dword flags,
 	point3f const *point, long ignore_object_index, long ignore_object_index2)
 {
 	// The recursive call passes these arguments on the stack.
@@ -243,7 +244,8 @@ bool function_168e20(long object_index, bool skip_test, dword flags,
 		}
 		{
 			s_lookup lookup;
-			if (lookup.initialize(object_index) && function_1efdc0(&lookup, point))
+			s_lookup *lookup_pointer = &lookup;
+			if (lookup_pointer->initialize(object_index) && function_1efdc0(lookup_pointer, point))
 				return true;
 		}
 		if (!(flags & 0x20000))
@@ -1102,7 +1104,6 @@ bool collision_test_vector_object(dword flags, s_collision_result_1697c0 *collis
 	point3f const *point, vector3f const *vector)
 {
 	point3f const *const *point_reference = &point;
-	dword *flags_reference = &flags;
 	bool result;
 	short bsp_index = g_4686c4;
 
@@ -1118,17 +1119,18 @@ bool collision_test_vector_object(dword flags, s_collision_result_1697c0 *collis
 	collision->instance_index = NONE;
 	collision->unknown3c = NONE;
 	collision->unknown40 = NONE;
-	if (((*flags_reference) & 8) && !((*flags_reference) & 0x1fff0))
+	if ((flags & 8) && !(flags & 0x1fff0))
 	{
-		(*flags_reference) |= 0x1fff0;
+		flags |= 0x1fff0;
 	}
-	if (function_1691a0(object_index, (*flags_reference), collision_flags_to_test_flags((*flags_reference)), (*point_reference), vector, collision))
+	if (function_1691a0(object_index, flags, collision_flags_to_test_flags(flags), (*point_reference), vector, collision))
 	{
 		result = true;
 	}
-	collision->point.x = vector->i * collision->t + (*point_reference)->x;
-	collision->point.y = vector->j * collision->t + (*point_reference)->y;
-	collision->point.z = vector->k * collision->t + (*point_reference)->z;
+	real fraction = collision->t;
+	collision->point.x = vector->i * fraction + (*point_reference)->x;
+	collision->point.y = vector->j * fraction + (*point_reference)->y;
+	collision->point.z = vector->k * fraction + (*point_reference)->z;
 	function_11bed0((s_location *)&collision->end_location, &collision->point);
 	return result;
 }
@@ -1220,32 +1222,46 @@ PRIVATE __forceinline void sweep_transform_vector(transform4x3f const *matrix, v
 void function_16a0a0(long instance_index, dword flags, point3f const *point, real radius,
     real height, real thickness, s_collection_245270 *collection)
 {
+    real const &local_a47c5e = radius;
     s_168d60_bsp_view *bsp = (s_168d60_bsp_view *)g_4e0348;
     s_168d60_instance *instance = &bsp->instances[instance_index];
     byte *section = bsp->sections + instance->section_index * 0xc8;
     if (collision_surface_test((s_collision_result_view const *)section, instance_index, flags))
     {
+        real extent = instance->radius + local_a47c5e;
         real dx = instance->center.x - point->x;
         real dy = instance->center.y - point->y;
         real dz = instance->center.z - point->z;
-        real extent = instance->radius + radius;
-        if (dz * dz + dx * dx + dy * dy <= extent * extent)
+        real distance_squared = dz * dz;
+        distance_squared += dx * dx;
+        distance_squared += dy * dy;
+        if (distance_squared <= extent * extent)
         {
             transform4x3f inverse;
             function_141590(&instance->matrix, &inverse);
             point3f local_point;
+            real scale = inverse.scale;
             real x = point->x, y = point->y, z = point->z;
-            if (inverse.scale != 1.0f)
+            if (scale != 1.0f)
             {
-                x *= inverse.scale; y *= inverse.scale; z *= inverse.scale;
+                x *= scale; y *= scale; z *= scale;
             }
-            local_point.x = inverse.forward.i * x + inverse.left.i * y + inverse.up.i * z + inverse.position.x;
-            local_point.y = inverse.forward.j * x + inverse.left.j * y + inverse.up.j * z + inverse.position.y;
-            local_point.z = inverse.forward.k * x + inverse.left.k * y + inverse.up.k * z + inverse.position.z;
+            local_point.x = inverse.forward.i * x;
+            local_point.x += inverse.left.i * y;
+            local_point.x += inverse.up.i * z;
+            local_point.x += inverse.position.x;
+            local_point.y = inverse.forward.j * x;
+            local_point.y += inverse.left.j * y;
+            local_point.y += inverse.up.j * z;
+            local_point.y += inverse.position.y;
+            local_point.z = inverse.forward.k * x;
+            local_point.z += inverse.left.k * y;
+            local_point.z += inverse.up.k * z;
+            local_point.z += inverse.position.z;
             s_1de2c2 hits;
             s_bsp3d const *geometry = (s_bsp3d const *)(section + 0x70);
             if (function_1dde10(geometry, 8, (dword const *)function_183fc0(instance_index),
-                &local_point, inverse.scale * radius, &hits))
+                &local_point, scale * local_a47c5e, &hits))
                 function_245aa0((s_245aa0 const *)&hits, (s_source_245400 const *)geometry,
                     &instance->matrix, height, thickness, NONE, NONE, collection);
         }

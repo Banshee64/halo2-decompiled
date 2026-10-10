@@ -26,10 +26,20 @@ vector3f *function_4efb0(vector3f *arg_0);
 
 PRIVATE __forceinline real function_248eff(real arg_0)
 {
-	real local_0 = arg_0 - (real)real_truncate(arg_0);
+	real volatile local_1 = arg_0;
+	real local_0 = arg_0 - (real)real_truncate(local_1);
 	if (local_0 < 0.f)
 		local_0 += 1.f;
 	return local_0;
+}
+
+PRIVATE __forceinline real function_248ef0(real const *arg_0)
+{
+	long local_0 = real_truncate(*arg_0);
+	real local_1 = *(real const volatile *)arg_0 - (real)local_0;
+	if (local_1 < 0.f)
+		local_1 += 1.f;
+	return local_1;
 }
 
 // @retail 0x248df0
@@ -76,7 +86,7 @@ real function_248df0(long arg_0, void *arg_1, void *arg_2, void const *arg_3)
 			local_0 = ((s_effect_datum *)g_4ea93c->data)[local_2->effect_index & 0xffff].scale_b;
 		break;
 	case 11:
-		if (local_1) local_0 = function_248eff(local_1->field_38);
+		if (local_1) local_0 = function_248ef0(&local_1->field_38);
 		break;
 	case 12:
 		if (local_1 && arg_2)

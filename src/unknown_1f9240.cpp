@@ -74,6 +74,13 @@ inline s_path_squad_definition *path_squad_definition_get(short index)
 	return result;
 }
 
+PRIVATE __forceinline dword function_1f924a(dword arg_0, long const *arg_1)
+{
+    dword local_0 = arg_0;
+    local_0 &= arg_1[0] << 1;
+    return local_0;
+}
+
 // @retail 0x1f9240
 bool function_1f9240(long actor_index, s_path_settings *settings)
 {
@@ -108,7 +115,7 @@ bool function_1f9240(long actor_index, s_path_settings *settings)
 		(script_style = (s_path_mask_tag *)g_4e3b44[script->style88 & 0xffff].bytes)->mask_count > 0)
 	{
 		s_path_settings *local_0 = settings;
-		*(dword volatile *)&local_0->flags = settings->flags & (script_style->masks[0] << 1);
+		*(dword volatile *)&local_0->flags = function_1f924a(settings->flags, script_style->masks);
 	}
 	else if (actor->unknown030 != NONE)
 	{

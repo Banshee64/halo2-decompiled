@@ -381,13 +381,13 @@ void __stdcall function_2395dc(XONLINE_FRIEND *friend_, long controller_index, l
 		{
 			if (players > 1)
 			{
-				if (mode != 1)
+				if (mode == 1)
 				{
-					function_239843(controller_index);
-					return;
+					join_type = 2;
+					goto leave;
 				}
-				join_type = 2;
-				goto leave;
+				function_239843(controller_index);
+				return;
 			}
 		}
 		else if (players > 1)

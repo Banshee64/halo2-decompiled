@@ -775,6 +775,39 @@ static inline long sound_submix_volume(real gain)
 	return volume;
 }
 
+PRIVATE __forceinline real function_21ee81(s_sound_driver_occlusion const *arg_0, real const *arg_1)
+{
+    real local_0 = arg_1[1];
+    if (!(arg_0->maximum > local_0))
+        local_0 = arg_0->maximum;
+    real local_1 = arg_0->minimum;
+    if (!(local_1 > arg_1[0]))
+        local_1 = arg_1[0];
+    real local_2 = local_0 - local_1;
+    if (!(local_2 > 0.0f))
+        local_2 = 0.0f;
+    return local_2;
+}
+
+PRIVATE __forceinline long function_21ee82(real arg_0)
+{
+    long local_0 = -6400;
+    if (!(0.0f > arg_0))
+    {
+        if (arg_0 > 1.0f)
+            arg_0 = 1.0f;
+        if (arg_0 != 0.0f)
+        {
+            local_0 = (long)(log10(arg_0) * 2000.0f);
+            if (local_0 < -6400)
+                local_0 = -6400;
+            else if (local_0 > 0)
+                local_0 = 0;
+        }
+    }
+    return local_0;
+}
+
 // @retail 0x21ee80
 void function_21ee80(void)
 {
@@ -827,12 +860,12 @@ void function_21ee80(void)
 			s_sound_driver_occlusion const *occlusion = &SOUND_DRIVER_GLOBALS->occlusions[group];
 			for (long channel = 0; channel < 4; channel++)
 			{
-				real overlap0 = sound_occlusion_overlap(occlusion, ranges[channel]);
-				real overlap1 = sound_occlusion_overlap(occlusion, ranges[channel] + 2);
-				real overlap2 = sound_occlusion_overlap(occlusion, ranges[channel] + 4);
+				real overlap0 = function_21ee81(occlusion, ranges[channel]);
+				real overlap1 = function_21ee81(occlusion, ranges[channel] + 2);
+				real overlap2 = function_21ee81(occlusion, ranges[channel] + 4);
 				real fraction = (overlap2 + overlap1 + overlap0) * 0.318309873f;
 				real gain = ((fraction - occlusion->offset) * occlusion->scale + occlusion->offset) * scale;
-				SOUND_DRIVER_GLOBALS->submix_buffers[group * 4 + channel]->SetVolume(sound_submix_volume(gain));
+				SOUND_DRIVER_GLOBALS->submix_buffers[group * 4 + channel]->SetVolume(function_21ee82(gain));
 			}
 			SOUND_DRIVER_GLOBALS->occlusion_dirty[group] = false;
 		}

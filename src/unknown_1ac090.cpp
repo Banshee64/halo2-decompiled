@@ -179,7 +179,8 @@ PRIVATE __forceinline void local_1(real seconds, short *timer)
 // @retail 0x1ac100
 short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next)
 {
-	s_actor_view *actor = actor_get(actor_index);
+	long local_2 = actor_index;
+	s_actor_view *actor = actor_get(local_2);
 	short result = g_46fbe8;
 	s_slot_2c *state = (s_slot_2c *)slot;
 	long unit_index = actor->unknown018;
@@ -191,13 +192,23 @@ short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next)
 		dword *seed = &g_4e7408->unknown0;
 		*seed = 1664525 * *seed + 1013904223;
 		short delay = (short)(2 + (3 * (*seed >> 16) >> 16));
-		real seconds = (real)delay * g_510c54->field_2_3;
-		local_0(seconds, &state->ticks);
+		*(real *)&actor_index = (real)delay * g_510c54->field_2_3;
+		__asm
+		{
+			fld actor_index
+			fistp slot
+		}
+		state->ticks += (short)(long)slot;
 		state->unknown12 = false;
-		seconds = g_510c54->field_2_3 * 0.5f;
-		local_1(seconds, &state->unknown22);
+		*(real *)&actor_index = g_510c54->field_2_3 * 0.5f;
+		__asm
+		{
+			fld actor_index
+			fistp slot
+		}
+		state->unknown22 = (short)(long)slot;
 		if (actor->prop_index != NONE)
-			function_265bb0(actor_index);
+			function_265bb0(local_2);
 		if (function_e68c0(0x24, actor->unknown018))
 		{
 			g_46eeb8[0x2c]->unknown8 = g_46f348;
@@ -376,7 +387,7 @@ void __stdcall function_1acfd0(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	s_character_2b *character = (s_character_2b *)function_1e4d10(actor_index);
-	s_slot_2c *state = (s_slot_2c *)slot;
+	s_slot_2c *state = *(s_slot_2c *volatile *)&slot;
 
 	if (actor->prop_index == NONE)
 	{

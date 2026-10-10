@@ -393,7 +393,7 @@ void __stdcall function_23c110(void *state, void *input, s_observer_command *com
         function_cb810(current_unit, &forward);
     function_23bd70(unit_index, &forward, (s_camera_command_23bd70 *)command);
     byte *settings = *(byte **)((byte *)g_4e034c + 0xf4);
-    real limits[2];
+    volatile real limits[2];
     limits[0] = *(real *)(settings + 0x18);
     limits[1] = *(real *)(settings + 0x1c);
     *(real *)((byte *)command + 0x1c) = limits[0];
