@@ -697,13 +697,9 @@ bool function_158a50(long player_index)
 	if ((flags & 1) && !(flags & 2) && player->team != NONE)
 	{
 		if (player->unit_index != NONE)
-		{
-			return true;
-		}
-		if (!(flags & 0x4000) && !function_15db30(player_index))
-		{
 			result = true;
-		}
+		else if (!(flags & 0x4000) && !function_15db30(player_index))
+			result = true;
 	}
 	return result;
 }
