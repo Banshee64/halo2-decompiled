@@ -731,15 +731,16 @@ short __stdcall function_1b9890(long actor_index, s_slot *slot)
 // @retail 0x1bb3a0
 short __stdcall function_1bb3a0(long actor_index, long joint_index, long a, long b)
 {
+	long count = 0;
 	s_actor_view *actor = actor_get(actor_index);
 	s_4c_element *element = (s_4c_element *)element_502424_get(joint_index);
-	long count = 0;
+	long local_0 = element->object_index;
 	short seat_count = 0;
 	short free_count = 0;
 	point3f position;
 	s_object_seat seats[0x40];
 
-	function_c8a40(element->object_index, seats, &seat_count, 0x40);
+	function_c8a40(local_0, seats, &seat_count, 0x40);
 	for (short i = 0; i < seat_count; i++)
 	{
 		if (!TEST_FIELD_BIT(seats[i].definition->flags.bit11))

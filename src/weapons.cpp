@@ -1714,7 +1714,8 @@ bool function_101490(long weapon_index, long magazine_index)
 		function_b7360(weapon_index);
 		for (i = 0; i < definition->trigger_count; i++)
 		{
-			s_weapon *weapon = WEAPON_GET(weapon_index);
+			s_weapon_header *headers = (s_weapon_header *)((s_record_pool volatile *)g_4e0300)->data;
+			s_weapon *weapon = headers[weapon_index & 0xffff].weapon;
 			weapon->triggers[(short)i].state = 0;
 			weapon->triggers[(short)i].timer = 0;
 		}

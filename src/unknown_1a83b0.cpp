@@ -26,6 +26,16 @@ real function_11e130(point3f const *a0, vector3f const *a, point3f const *b0, ve
 /* where the target (actor +0x360) stands relative to the line the actor
    watches (from +0x370 along +0x37c): whether the actor's own position, the
    point at +0x510 and the segment along +0x5ec come within reach */
+#pragma optimize("g", off)
+PRIVATE __forceinline real function_1a8fa1(vector3f const *arg_0)
+{
+    real local_0 = arg_0->i;
+    real local_1 = arg_0->j;
+    real local_2 = arg_0->k;
+    return (real)sqrt(local_0 * local_0 + local_1 * local_1 + local_2 * local_2);
+}
+#pragma optimize("", on)
+
 // @retail 0x1a8fa0
 void function_1a8fa0(long actor_index, real distance, bool *near_point, bool *near_actor, bool *near_segment)
 {
@@ -35,7 +45,7 @@ void function_1a8fa0(long actor_index, real distance, bool *near_point, bool *ne
 	bool point;
 	bool within;
 
-	if ((real)sqrt(target->velocity.i * target->velocity.i + target->velocity.j * target->velocity.j + target->velocity.k * target->velocity.k) > 0.1f)
+	if (function_1a8fa1(&target->velocity) > 0.1f)
 	{
 		vector3f direction;
 		direction.i = actor->unknown370.x - actor->position.x;
@@ -485,8 +495,12 @@ bool function_1a8a10(point2f const *arg_0, long arg_1, short arg_2, real arg_3, 
             __assume(0);
         }
         real local_5[4];
-        real local_10 = local_1->unknown290.i * local_4.y + (0.0f - local_1->unknown290.j) * local_4.x;
-        real local_11 = local_1->unknown290.j * local_4.y + local_1->unknown290.i * local_4.x;
+        real local_14 = local_4.x;
+        real local_12 = local_1->unknown290.i;
+        real local_13 = local_1->unknown290.j;
+        real local_15 = local_4.y;
+        real local_10 = local_12 * local_15 + (0.0f - local_1->unknown290.j) * local_14;
+        real local_11 = local_13 * local_15 + local_12 * local_14;
         local_5[3] = 0.0f - local_11;
         local_5[1] = 0.0f - local_10;
         local_5[2] = local_11;

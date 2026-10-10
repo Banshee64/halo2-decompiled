@@ -160,7 +160,7 @@ bool __stdcall function_1ab4b0(long actor_index, s_slot *slot)
 				}
 				slot_state->ticks = ticks;
 				slot_state->timer = NONE;
-				return true;
+				result = true;
 			}
 		}
 	}

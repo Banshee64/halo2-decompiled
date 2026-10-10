@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "object_queries.h"
 #include "unknown_123b30.h"
 #include "physical_memory.h"
 #include <string.h>
@@ -197,9 +198,13 @@ void decals_update_locations(void)
 
 				if (leaf_index != NONE)
 				{
-					short cluster_index = ((s_decal_structure_bsp *)g_4e0348)->leaves[leaf_index].cluster_index;
+					s_location cluster_location;
+					cluster_location.leaf_index = leaf_index;
+					volatile short &cluster_index = cluster_location.cluster_index;
+					short cluster_value = ((s_decal_structure_bsp *)g_4e0348)->leaves[leaf_index].cluster_index;
+					cluster_index = cluster_value;
 
-					if (cluster_index != NONE)
+					if (cluster_value != NONE)
 					{
 						if (next_index != NONE)
 							DECAL(next_index)->previous_index = decal->previous_index;
@@ -379,6 +384,7 @@ bool function_17ce60(void)
 // @retail 0x17cfa0
 long function_17cfa0(long first_index, long definition_index, short cell_x, short cell_y, bool permanent)
 {
+	bool first = false;
 	long *first_index_reference = &first_index;
 	s_record_pool *decals = g_4ea950;
 	long decal_index = record_pool_allocate(decals);
@@ -386,7 +392,6 @@ long function_17cfa0(long first_index, long definition_index, short cell_x, shor
 	if (decal_index != NONE)
 	{
 		s_decal_datum *decal = DECAL(decal_index);
-		bool first = false;
 
 		decal->definition_index = definition_index;
 		if ((*first_index_reference) != NONE)
@@ -415,7 +420,7 @@ long function_17cfa0(long first_index, long definition_index, short cell_x, shor
 			decal->flags = 2;
 			g_4ea94c->permanent_count++;
 		}
-		else if ((long)(random_next(&g_4e7408->seed) * 100) / 0xffff < 10 && first)
+		else if (random_next(&g_4e7408->seed) * 100 < 10 * 0xffff && first)
 		{
 			decal->flags = 1;
 			g_4ea94c->fading_count++;
@@ -498,7 +503,7 @@ void function_17cc60(long decal_index)
 		long index = decal->next_in_group_index;
 		long alpha = decal->alpha;
 
-		if (!function_17ccd0(decal_index))
+		if (!function_17ccd0(decal->first_index))
 		{
 			while (index != NONE)
 			{

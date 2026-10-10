@@ -42,7 +42,6 @@ void function_22b8e2(s_22b8e2 const *arg_0, long arg_1, color4f const *arg_2)
 	long local_0 = function_13a690(arg_0->field_1c);
 	long local_1;
 	long local_2;
-	long local_3 = 0;
 	point2f local_4;
 	(void)&arg_1; (void)&arg_2;
 	switch (local_0)
@@ -55,6 +54,7 @@ void function_22b8e2(s_22b8e2 const *arg_0, long arg_1, color4f const *arg_2)
 	if (local_1 == NONE)
 		return;
 	local_2 = NONE;
+	long local_3 = 0;
 	switch (local_0)
 	{
 	case 0: local_3 = arg_0->field_40[0]; break;

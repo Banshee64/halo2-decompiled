@@ -124,7 +124,7 @@ bool function_87ac0(s_bitstream *stream, s_simulation_player_update *update)
 		if (!result || update->other_player_index < 0 || update->other_player_index >= 16 ||
 			update->other_player_index == update->player_index)
 			goto failed;
-		return true;
+		result = true;
 	}
 	goto done;
 failed:

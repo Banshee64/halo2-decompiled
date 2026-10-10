@@ -99,12 +99,51 @@ struct s_244de0
 	real field_28;
 };
 
+PRIVATE __forceinline void function_244de2(real thickness, short count, point3f const *points, real arg_0, real arg_1, real arg_2, real arg_3,
+	real height, long field_00, long field_04, long field_08, byte field_0c,
+	byte field_0d, short field_0e, s_collection_245270 *collection)
+{
+	point3f const *const *local_points = &points;
+	if (collection->field_04 < 256)
+	{
+		s_prism_245270 *prism = &collection->field_4c08[collection->field_04++];
+		prism->field_00 = field_00;
+		prism->field_04 = field_04;
+		prism->field_08 = field_08;
+		prism->field_0c = field_0c;
+		prism->field_0d = field_0d;
+		prism->field_0e = field_0e;
+		prism->field_10.i = arg_0;
+		prism->field_10.j = arg_1;
+		prism->field_10.k = arg_2;
+		prism->field_10.d = arg_3;
+		prism->field_20 = thickness;
+		prism->field_24 = function_120850(&prism->field_10.n);
+		prism->field_26 = prism->field_10.n.n[prism->field_24] > 0.f ? 1 : 0;
+		prism->field_28 = count;
+		for (short i = 0; i < prism->field_28; ++i)
+		{
+			function_245270_project(&(*local_points)[i], prism->field_24, prism->field_26, &prism->field_2c[i]);
+		}
+		if (height > 0.f && arg_2 < 0.f)
+		{
+			prism->field_10.d -= prism->field_10.k * height;
+			if (prism->field_24 != 2)
+			{
+				short axis = g_440b94[prism->field_24 * 2 + prism->field_26][1] == 2;
+				for (short i = 0; i < prism->field_28; ++i)
+					((real *)&prism->field_2c[i])[axis] -= height;
+			}
+		}
+	}
+}
+
 // @retail 0x244de0
 void function_244de0(point3f const *arg_0, vector3f const *arg_1, real arg_2,
 	real arg_3, long arg_4, long arg_5, long arg_6, byte arg_7,
 	byte arg_8, short arg_9, s_collection_245270 *arg_10)
 {
-	real const *local_7 = &arg_3;
+	real const volatile *local_7 = &arg_3;
 	if (arg_10->field_02 < 256)
 	{
 		s_244de0 *local_0 = &((s_244de0 *)((byte *)arg_10 + 0x2008))[arg_10->field_02++];
@@ -158,14 +197,14 @@ void function_244de0(point3f const *arg_0, vector3f const *arg_1, real arg_2,
 			local_5[2].z -= arg_2;
 			local_5[3] = *arg_0;
 			local_5[3].z -= arg_2;
-			function_24526f((*local_7), 4, local_5, &local_4, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
+			function_244de2((*local_7), 4, local_5, local_4.i, local_4.j, local_4.k, local_4.d, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
 			point3f local_6 = local_5[1];
 			local_5[1] = local_5[3];
 			local_5[3] = local_6;
 			local_4.i = 0.f - local_4.i;
 			local_4.j = 0.f - local_4.j;
 			local_4.d = 0.f - local_4.d;
-			function_24526f((*local_7), 4, local_5, &local_4, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
+			function_244de2((*local_7), 4, local_5, local_4.i, local_4.j, local_4.k, local_4.d, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
 		}
 	}
 }

@@ -143,12 +143,12 @@ bool function_1f3230(long actor_index, real radius)
 			function_210be0(previous, target, &segment);
 			function_210c90(position, target, &offset);
 			if (dot3f(&offset, &segment) < 0.0f)
-				result = true;
+				goto local_0;
 		}
 	}
 	else if (radius * radius > distance_squared)
 	{
-		result = true;
+		goto local_0;
 	}
 	else if (actor->unknown4ae)
 	{
@@ -160,10 +160,14 @@ bool function_1f3230(long actor_index, real radius)
 
 			function_210c90(position, target, &offset);
 			if (dot3f(&unit->velocity, &offset) < 0.0f)
-				result = true;
+				goto local_0;
 		}
 	}
 
+	goto local_1;
+local_0:
+	result = true;
+local_1:
 	return result;
 }
 

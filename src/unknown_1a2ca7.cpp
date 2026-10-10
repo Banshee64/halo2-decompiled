@@ -937,7 +937,7 @@ long players_list_add_message_senders(XUID const *excluded, long excluded_count)
 			break;
 		if (TEST_FIELD_BIT(message->flag_bits.flag12))
 		{
-			XUID *xuid = message_entry_get_xuid(message);
+			XUID *xuid = message_entry_get_xuid(*(s_entry *volatile *)&message);
 			bool is_excluded = false;
 			long j;
 

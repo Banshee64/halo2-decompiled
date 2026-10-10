@@ -787,66 +787,87 @@ struct s_1aa750
 	real field_4;
 };
 
+struct s_1aa751
+{
+    long field_0;
+    short field_4;
+    byte field_6[3];
+    char field_9;
+    bool field_a;
+    byte field_b[0x24 - 0xb];
+    short field_24;
+    short field_26;
+    real field_28;
+    real field_2c;
+};
+
 // @retail 0x1aa750
 bool __stdcall function_1aa750(long arg_0, s_slot *arg_1, bool arg_2)
 {
+	bool local_11;
 	s_actor_view *local_0 = actor_get(arg_0);
 	s_1aa0d1 *local_1 = (s_1aa0d1 *)function_1e4f90(arg_0);
 	s_ai_object *local_2 = ai_object_get(local_0->unknown018);
-	s_1aa0d0 *local_3 = (s_1aa0d0 *)arg_1;
-	if ((local_2->flags19 & 1) && ((local_2->flags19 & 2) || !(*(byte *)local_1 & 1)))
-		return false;
-	memset((byte *)local_3 + 0xc, 0, 0x30);
-	short local_4 = 0;
-	short local_5 = 0;
-	real local_6 = 0.0f;
-	real local_7 = 0.0f;
-	local_3->field_c = g_510c54->game_time;
-	local_3->field_10 = NONE;
-	local_3->field_16 = (local_2->flags19 & 1) != 0;
-	local_3->field_32 = 0;
-	local_3->field_38 = 0.0f;
-	if (!local_1)
-		return false;
-	local_3->field_34 = local_1->field_c;
-	long local_8 = arg_2 ? 0xa000040 : local_3->field_16 ? 0xe00067d : 0x500000a;
-	if (function_10fa80(local_0->unknown018, 0x7000101, local_8, &local_4, &local_6, &local_5, &local_7))
+	s_1aa751 *local_3 = (s_1aa751 *)((byte *)arg_1 + 0xc);
+	local_11 = false;
+	if (!((local_2->flags19 & 1) && ((local_2->flags19 & 2) || !(*(byte *)local_1 & 1))))
 	{
-		if (local_4 == NONE)
+		memset(local_3, 0, 0x30);
+		long local_12 = 0;
+		long local_13 = 0;
+		short &local_4 = *(short *)&local_12;
+		short &local_5 = *(short *)&local_13;
+		real local_6 = 0.0f;
+		real local_7 = 0.0f;
+		local_3->field_0 = g_510c54->game_time;
+		local_3->field_4 = NONE;
+		local_3->field_a = (local_2->flags19 & 1) != 0;
+		local_3->field_26 = 0;
+		local_3->field_2c = 0.0f;
+		if (local_1)
 		{
-			if (arg_2)
+			local_3->field_28 = local_1->field_c;
+			long local_8 = arg_2 ? 0xa000040 : local_3->field_a ? 0xe00067d : 0x500000a;
+			if (function_10fa80(local_0->unknown018, 0x7000101, local_8, &local_4, &local_6, &local_5, &local_7))
 			{
-				local_6 = 0.0f;
-				local_3->field_30 = 0;
+				if (local_4 == NONE)
+				{
+					if (arg_2)
+					{
+						local_6 = 0.0f;
+						local_3->field_24 = 0;
+					}
+					else
+					{
+						local_6 = local_7 * 0.5f;
+						local_3->field_24 = local_5 / 2;
+					}
+				}
+				else
+					local_3->field_24 = local_4;
 			}
 			else
+				local_3->field_24 = 0;
+			local_3->field_9 = 0;
+			if (local_0->prop_index != NONE)
+				function_1fb7e0(0x1f, arg_0, NULL, prop_node_get(local_0->prop_index)->object_index, NONE);
+			if (!arg_2)
 			{
-				local_6 = local_7 * 0.5f;
-				local_3->field_30 = local_5 / 2;
+				s_1aa750 *local_9 = (s_1aa750 *)function_1e4a50(local_0->unknown054);
+				real local_10 = local_9 ? local_9->field_4 + 0.2f : 0.0f;
+				local_10 += local_6;
+				local_3->field_28 = local_3->field_28 > local_10 ? local_3->field_28 : local_10;
+				local_8 = local_3->field_a ? 0xe00067d : 0xc0006cd;
+				local_5 = 0;
+				local_7 = 0.0f;
+				if (function_10fa80(local_0->unknown018, 0x7000101, local_8, &local_4, &local_6, &local_5, &local_7))
+				{
+					local_3->field_26 = local_5;
+					local_3->field_2c = local_7;
+				}
 			}
-		}
-		else
-			local_3->field_30 = local_4;
-	}
-	else
-		local_3->field_30 = 0;
-	local_3->field_15 = 0;
-	if (local_0->prop_index != NONE)
-		function_1fb7e0(0x1f, arg_0, NULL, prop_node_get(local_0->prop_index)->object_index, NONE);
-	if (!arg_2)
-	{
-		s_1aa750 *local_9 = (s_1aa750 *)function_1e4a50(local_0->unknown054);
-		real local_10 = local_9 ? local_9->field_4 + 0.2f : 0.0f;
-		local_10 += local_6;
-		local_3->field_34 = local_3->field_34 > local_10 ? local_3->field_34 : local_10;
-		local_8 = local_3->field_16 ? 0xe00067d : 0xc0006cd;
-		local_5 = 0;
-		local_7 = 0.0f;
-		if (function_10fa80(local_0->unknown018, 0x7000101, local_8, &local_4, &local_6, &local_5, &local_7))
-		{
-			local_3->field_32 = local_5;
-			local_3->field_38 = local_7;
+			local_11 = true;
 		}
 	}
-	return true;
+	return local_11;
 }

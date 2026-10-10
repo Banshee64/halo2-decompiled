@@ -314,7 +314,8 @@ void c_juggernaut_engine::v18()
 			}
 		}
 
-		if (g_510c9c->players != (word)players)
+		word difference = g_510c9c->players ^ (word)players;
+		if (difference)
 		{
 			g_510c9c->players = (word)players;
 			juggernaut_globals_changed();

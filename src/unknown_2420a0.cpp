@@ -580,7 +580,7 @@ PRIVATE s_color_bits *marker_color()
 
 PRIVATE __forceinline s_color_bits *function_243ed1()
 {
-    color4f *local_0 = g_468c80;
+    s_color_bits *local_0 = (s_color_bits *)((byte *)g_468c80 + 4);
     if (g_4b9ed8 != NONE)
     {
         long local_1 = g_4e8c20->entries[g_4b9ed8];
@@ -588,10 +588,10 @@ PRIVATE __forceinline s_color_bits *function_243ed1()
         {
             s_player_view *local_2 = (s_player_view *)(g_4e8c24->data + (local_1 & 0xffff) * 0x21c);
             if (local_2->type == 1 || local_2->type == 3)
-                local_0 = g_468c80 + 1;
+                local_0 = (s_color_bits *)((byte *)(g_468c80 + 1) + 4);
         }
     }
-    return (s_color_bits *)&local_0->red;
+    return local_0;
 }
 
 #pragma inline_depth(1)
@@ -927,7 +927,8 @@ long function_242210(point3f const *point);
 void function_2422d0(long slot);
 bool function_2423f0();
 long function_242510(long object_index);
-long function_242ef0(point3f const *point, long team);
+struct s_242ef1 { point3f const *field_0; };
+long function_242ef0(s_242ef1 arg_0, long team);
 void function_2430a0(long player_index, bool flag);
 void function_2431a0();
 void function_243250(long player_index);
@@ -1322,7 +1323,8 @@ static inline bool ctf_engine_running()
 // @retail 0x241520
 bool c_game_engine_markers::v16(long player_index, long object_index)
 {
-	bool result = true;
+	bool result;
+	*(bool volatile *)&result = true;
 
 	if (!ctf_engine_running())
 	{
@@ -1549,9 +1551,9 @@ long function_242510(long object_index)
 								point3f point;
 								point3f const *local_0 = marker_position(marker_index);
 								*(long volatile *)&point.x = ((long const *)local_0)[0];
-								long local_1 = ((long const *)local_0)[1];
-								((long *)&point)[2] = ((long const *)local_0)[2];
-								((long *)&point)[1] = local_1;
+								long local_1 = ((long const *)local_0)[2];
+								((long *)&point)[1] = ((long const *)local_0)[1];
+								((long *)&point)[2] = local_1;
 
 								if (distance_sq3f(&position, &point) < 0.09f)
 								{
@@ -1570,7 +1572,7 @@ long function_242510(long object_index)
 }
 
 // @retail 0x242ef0
-long function_242ef0(point3f const *point, long team)
+long function_242ef0(s_242ef1 arg_0, long team)
 {
 	s_slot_table *g = g_51ec80;
 	long result = NONE;
@@ -1597,9 +1599,15 @@ long function_242ef0(point3f const *point, long team)
 
 					if (valid && marker_index != NONE)
 					{
-						point3f marker = *marker_position(marker_index);
+						point3f marker;
+						point3f const *local_0 = marker_position(marker_index);
+						((long *)&marker)[0] = ((long const *)local_0)[0];
+						long local_1 = ((long const *)local_0)[2];
+						((long *)&marker)[1] = ((long const *)local_0)[1];
+						((long *)&marker)[2] = local_1;
 
 						g = g_51ec80;
+						point3f const *point = *(point3f const *const volatile *)&arg_0.field_0;
 						if (distance_sq3f(point, &marker) < 1.0f)
 						{
 							result = marker_index;
@@ -2315,6 +2323,12 @@ void c_game_engine_markers::v13(long arg_0)
 }
 
 #include "engine_peer.h"
+
+PRIVATE inline bool function_2419c1(short arg_0, short arg_1)
+{
+	c_engine_peer *local_0 = g_55e4d0[g_4e9ae8->engine_index];
+	return local_0 && local_0->p27(arg_0, arg_1);
+}
 extern color3f *g_468714;
 
 // @retail 0x2419c0
@@ -2389,7 +2403,7 @@ void c_game_engine_markers::v14(long arg_0)
 	}
 	for (long local_15 = 0; local_15 < 8; ++local_15)
 	{
-		if (g_55e4d0[g_4e9ae8->engine_index] && g_4e6948->flags184.bit0 && local_15 >= 0 && local_15 < 8 && (g_4e9ae8->wc & (1 << local_15)))
+		if (ctf_team_is_active(local_15))
 		{
 			s_team_entry *local_16 = function_15e410((short)local_15);
 			if ((local_15 == local_1->team && local_2) || (local_15 != local_1->team && local_4) || (local_15 == g_51ec80->l1f4 && local_3))
@@ -2470,8 +2484,7 @@ void c_game_engine_markers::v14(long arg_0)
 		{
 			if (local_32.index != local_0)
 			{
-				c_engine_peer *local_33 = g_55e4d0[g_4e9ae8->engine_index];
-				if (!local_33 || !local_33->p27(local_32.player->team, ctf_player_get(local_0)->team))
+				if (!function_2419c1(local_32.player->team, ctf_player_get(local_0)->team))
 				{
 					if (function_162550(local_32.index, &local_14))
 					{

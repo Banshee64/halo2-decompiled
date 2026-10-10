@@ -75,7 +75,7 @@ bool __stdcall function_1af810(long arg_0, s_slot *arg_1)
                 }
                 if (!local_4)
                 {
-                    local_4 = function_2003a0(arg_0) != 0;
+                    *(byte *)&local_4 = (byte)function_2003a0(arg_0);
                     if (!local_4)
                     {
                         function_26c180(arg_0);
@@ -89,7 +89,11 @@ bool __stdcall function_1af810(long arg_0, s_slot *arg_1)
         if (!local_0->unknown227 && local_3->unknown27 < 2)
             function_1f86a0(arg_0);
         if (local_4)
-            local_2 = function_1af160(arg_0, local_1);
+        {
+            bool local_17 = function_1af160(arg_0, local_1);
+            local_2 = local_17;
+            return local_17;
+        }
         else if (function_1f8660(arg_0))
         {
             point3f local_14;

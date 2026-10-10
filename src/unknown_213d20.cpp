@@ -131,7 +131,8 @@ long cache_file_find(char const *map_name)
 	{
 		if (!function_11c920(path, cache_file_map_name(index)))
 		{
-			return index;
+			result = index;
+			break;
 		}
 	}
 	return result;

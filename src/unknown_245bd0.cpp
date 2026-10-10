@@ -385,14 +385,7 @@ bool function_246360(
 	{
 		t_exit = 1.f;
 	}
-	if (uv == 0.f)
-	{
-		if (0.f > vw || vw > a)
-		{
-			return false;
-		}
-	}
-	else
+	if (uv != 0.f)
 	{
 		real inv_uv = 1.f / uv;
 		real s0 = 0.f - inv_uv * vw;
@@ -420,6 +413,13 @@ bool function_246360(
 			}
 		}
 		if (t_enter > t_exit)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (0.f > vw || vw > a)
 		{
 			return false;
 		}
