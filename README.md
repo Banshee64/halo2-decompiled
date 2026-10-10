@@ -15,8 +15,10 @@ project's scope, what it does not contain, and its rules for contributions,
 and [PROVENANCE.md](PROVENANCE.md) for where its information comes from.
 
 **Contributors are welcome.** No prior decompilation experience is needed,
-only patience and some C. Read [How to help](#how-to-help) and
-[CONTRIBUTING.md](CONTRIBUTING.md).
+only patience and some C. **New here? Start with
+[docs/START_HERE.md](docs/START_HERE.md):** the setup checklist, how to claim
+a range, and a prompt you can paste into an AI coding agent. Then see
+[How to help](#how-to-help) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## What this repository does not contain
 
@@ -155,6 +157,8 @@ So the work runs in stages:
 ## How to help
 
 Halo 2 has about 11,300 game functions, so there is room for many people.
+[docs/START_HERE.md](docs/START_HERE.md) walks through these steps and has a
+ready-made prompt for AI coding agents.
 1. Get set up as in [Build and check](#build-and-check), with your own
    lawfully owned copy of Halo 2 (see [Requirements](#requirements)).
 2. Pick a source file or an address range nobody has claimed (the pinned

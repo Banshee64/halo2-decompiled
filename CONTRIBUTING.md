@@ -5,7 +5,8 @@ when the original compiler turns our source back into the retail XBE's exact
 bytes, and `tools/check.py` decides that automatically.
 
 Please read [LEGAL.md](LEGAL.md) and [PROVENANCE.md](PROVENANCE.md) before
-contributing.
+contributing. For a step-by-step start, including a prompt to paste into an AI
+coding agent, see [docs/START_HERE.md](docs/START_HERE.md).
 
 ## Contribution provenance
 
