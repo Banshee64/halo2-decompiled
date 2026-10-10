@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-09: 7394 functions match
+
+```
+matched 7394 of 11318 game functions (857436 of 2784283 bytes, 30.80%)
+```
+
+7 new matches, none lost:
+- Deep lane 1, closest first in lanes S, N and Q: 0x1e110, 0x102c60, 0x102d60, 0x14b580, 0x14b600, 0x1502e0, 0x1537a0.
+
 ## 2026-10-09: 7387 functions match
 
 ```
