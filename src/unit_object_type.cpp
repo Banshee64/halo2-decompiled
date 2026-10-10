@@ -2346,8 +2346,10 @@ bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index)
 	}
 	else
 	{
-		result = function_10fcd0(unit_index, unknown, *(long *)(local_67e06b + 0x288),
+		byte available = function_10fcd0(unit_index, unknown, *(long *)(local_67e06b + 0x288),
 			*(long *)(local_67e06b + 0x28c));
+
+		result = *(bool *)&available;
 	}
 	if (unit->unknown13c != NONE && TEST_FIELD_BIT((*(dword *)(local_67e06b + 0x12c) >> 29) & 1))
 	{
