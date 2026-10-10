@@ -477,7 +477,7 @@ static __forceinline void plane_vector_normalize(vector3f *out, real j)
     }
 }
 
-static __forceinline void matrix4x3_from_plane(plane3f const *plane, transform4x3f *out)
+static __forceinline void function_x7a3668(plane3f const *plane, transform4x3f *out)
 {
 	vector3f w;
 	point3f position;
@@ -494,7 +494,7 @@ void function_142390(
 	plane3f const *plane,
 	transform4x3f *out)
 {
-	matrix4x3_from_plane(plane, out);
+	function_x7a3668(plane, out);
 }
 
 int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
