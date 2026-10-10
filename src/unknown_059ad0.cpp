@@ -652,7 +652,7 @@ bool network_session_handle_mode_acknowledge(c_class_58d20 *session, const s_net
 void network_session_leave_joining(c_class_58d20 *session);
 void network_session_leave_join_request(c_class_58d20 *session);
 void network_session_disband(c_class_58d20 *session);
-void network_session_host_leave(c_class_58d20 *session, long peer_index, bool host);
+void network_session_host_leave(c_class_58d20 *session, bool host, long peer_index);
 void network_session_close(c_class_58d20 *session);
 
 struct s_type_fd6c3d
@@ -662,6 +662,7 @@ struct s_type_fd6c3d
 	byte unknown0c[0x34 - 0xc];
 };
 
+__declspec(noinline)
 // @retail 0x5a400 standard
 void c_class_58d20::leave(bool immediately)
 {
@@ -685,7 +686,7 @@ void c_class_58d20::leave(bool immediately)
 			else if (state == 7)
 				session->flag7420 = true;
 			else
-				network_session_host_leave(session, NONE, true);
+				network_session_host_leave(session, true, NONE);
 			break;
 		case 8:
 			session->flag7420 = true;
@@ -1051,7 +1052,7 @@ bool network_session_host_leave_to_peer(c_class_58d20 *session, long peer_index)
 
 	if (session->state == 5)
 	{
-		network_session_host_leave(session, peer_index, false);
+		network_session_host_leave(session, false, peer_index);
 		result = true;
 	}
 	return result;
@@ -2104,7 +2105,7 @@ void network_session_disband(c_class_58d20 *session)
 }
 
 // @retail 0x614a0
-void network_session_host_leave(c_class_58d20 *session, long peer_index, bool leave)
+void network_session_host_leave(c_class_58d20 *session, bool leave, long peer_index)
 {
 	if (session->member_count > 1)
 	{
@@ -4078,8 +4079,8 @@ void __stdcall function_609e0(c_class_58d20 *session, const byte *current, s_609
  if (!local_0 || memcmp(current + 0x54, local_0 + 0x54, 0x1c))
  {
   update[0x52] = true;
-  long kind = *(const long *)(current + 0x54);
-  *(long *)(update + 0x54) = kind;
+  unsigned __int64 kind = *(const dword *)(current + 0x54);
+  *(long *)(update + 0x54) = (long)kind;
   *(long *)(update + 0x68) = 0;
   *(long *)(update + 0x6c) = 0;
   *(long *)(update + 0x58) = 0;
@@ -4453,13 +4454,19 @@ void function_627e0(c_class_58d20 *session)
  memcpy((byte *)session + 0x5e28, &session->update_count, 0x14b0);
 }
 
+PRIVATE __forceinline bool function_61e02(byte *arg_0)
+{
+ long local_0 = *(long *)(arg_0 + 8);
+ return network_session_time_now() - local_0 >= g_network_configuration.value1480;
+}
+
 // @retail 0x61e00
 void function_61e00(c_class_58d20 *session)
 {
  network_session_send_host_reestablish(session);
  byte *transition = (byte *)&session->value7420;
  if ((*(dword *)(transition + 0x10) | *(dword *)(transition + 0x14)) == (1u << session->member_count) - 1 ||
-  network_session_time_now() - *(long *)(transition + 8) >= g_network_configuration.value1480)
+  function_61e02(transition))
  {
   bool leave = *(bool *)transition;
   bool migrate = *(bool *)(transition + 1);
@@ -4476,7 +4483,7 @@ void function_61e00(c_class_58d20 *session)
   if (leave)
    session->leave(false);
   else if (migrate)
-   network_session_host_leave(session, NONE, false);
+   network_session_host_leave(session, false, NONE);
  }
 }
 
