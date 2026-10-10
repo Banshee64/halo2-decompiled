@@ -2,7 +2,8 @@
 many ways, rebuilds, and keeps the variant with the fewest differing
 instructions (0 = MATCH).
 
-It works on a copy of src/, include/ and config/ in a scratch build root, so
+It works on a copy of src/, include/ and config/ (and the build caches
+build/obj and build/gen) in a scratch build root under build/permute/, so
 the repository is never modified unless --write or --write-only-match is
 given, and then only with a strictly better variant of the one function.
 --write writes the best variant whenever it scores better than the original;
@@ -2255,11 +2256,19 @@ class FastScorer(Scorer):
 
 
 def prepare_scratch(scratch):
-    for d in ('src', 'include', 'config', 'build'):
+    # only the build caches: a working tree's build/ also holds reports and images
+    for d in ('src', 'include', 'config', os.path.join('build', 'obj'), os.path.join('build', 'gen')):
         s = os.path.join(ROOT, d)
         if os.path.isdir(s):
-            shutil.copytree(s, os.path.join(scratch, d), copy_function=shutil.copy2,
-                            ignore=shutil.ignore_patterns('*.exe', '*.map', 'permute') if d == 'build' else None)
+            shutil.copytree(s, os.path.join(scratch, d), copy_function=shutil.copy2)
+
+
+def new_scratch():
+    # inside the working tree, not the system temp folder, which sandboxed
+    # agents may not be allowed to write
+    parent = os.path.join(ROOT, 'build', 'permute')
+    os.makedirs(parent, exist_ok=True)
+    return tempfile.mkdtemp(prefix='scratch_', dir=parent)
 
 
 @dataclass
@@ -2286,7 +2295,7 @@ class Result:
 def run(va, tries=200, seed=0, time_limit=None, scratch=None, log=print):
     rng = random.Random(seed)
     own = scratch is None
-    scratch = scratch or tempfile.mkdtemp(prefix='permute_')
+    scratch = scratch or new_scratch()
     try:
         prepare_scratch(scratch)
         scorer = Scorer(va, scratch)
@@ -2515,7 +2524,7 @@ def run_fast(va, tries=None, seed=0, time_limit=None, scratch=None, log=print, j
     if tries is None:
         tries = DEFAULT_TRIES if time_limit is None else float('inf')
     own = scratch is None
-    scratch = scratch or tempfile.mkdtemp(prefix='permute_')
+    scratch = scratch or new_scratch()
     images = os.path.join(ROOT, 'build', 'permute', f'{va:08x}')
     try:
         names = ['full', *(f'fast{k}' for k in range(jobs))]
