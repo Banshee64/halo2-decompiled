@@ -572,7 +572,10 @@ bool c_game_engine::v19(short player_index, dword mask, long, s_player_update *u
 			g->players[index].b14 = update->b0;
 		if (mask & 8)
 		{
-			player->flags2.bit2 = update->b18;
+			if (update->b18)
+				player->flags2.bit2 = 1;
+			else
+				player->flags2.bit2 = 0;
 		}
 		if (mask & 0x10)
 			memcpy(&g->l6dc[index * 4], update->w26, 16);
@@ -587,7 +590,7 @@ bool c_game_engine::v19(short player_index, dword mask, long, s_player_update *u
 			{
 				value = NONE;
 				if (owner != NONE)
-					value = (player_get(owner)->identifier << 16) | owner;
+					value = (((s_player *)(g_4e8c24->data + g_4e8c24->size * owner))->identifier << 16) | owner;
 			}
 			player->l1b0 = value;
 		}
@@ -595,15 +598,24 @@ bool c_game_engine::v19(short player_index, dword mask, long, s_player_update *u
 			player->l170 = update->w20;
 		if (mask & 0x100)
 		{
-			player->flags3.bit3 = update->b22;
+			if (update->b22)
+				player->flags3.bit3 = 1;
+			else
+				player->flags3.bit3 = 0;
 		}
 		if (mask & 0x200)
 		{
-			player->flags2.bit0 = update->b23;
+			if (update->b23)
+				player->flags2.bit0 = 1;
+			else
+				player->flags2.bit0 = 0;
 		}
 		if (mask & 0x400)
 		{
-			player->flags3.bit6 = update->b24;
+			if (update->b24)
+				player->flags3.bit6 = 1;
+			else
+				player->flags3.bit6 = 0;
 		}
 		result = true;
 	}
