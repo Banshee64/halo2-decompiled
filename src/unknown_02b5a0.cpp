@@ -48,7 +48,7 @@ void function_2b5c0(void)
 void function_2b540(void)
 {
 	g_4ba040 = 0.0;
-	g_4ba134 = 0;
+	*(volatile long *)&g_4ba134 = 0;
 	g_509434->valid = true;
 	record_pool_release_all(g_509434);
 	memset(g_4b9970, 0, sizeof(g_4b9970));

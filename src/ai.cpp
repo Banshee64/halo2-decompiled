@@ -423,7 +423,7 @@ void function_1dfae0(void);
 struct s_output_entry;
 extern s_output_entry *g_4f93a0;
 struct hash_table;
-hash_table *function_13e1a0(char const *name, long data_size, long bucket_count,
+__declspec(noinline) hash_table *function_13e1a0(char const *name, long data_size, long bucket_count,
 	dword (__stdcall *hash_proc)(void const *), bool (__stdcall *compare_proc)(void const *, void const *),
 	long maximum_count, c_data_allocator *allocator);
 long __stdcall function_25dd20(long key);
@@ -1394,8 +1394,13 @@ long __stdcall function_1dfb90(long definition_index)
                 s_actor_creation_tag *tag = (s_actor_creation_tag *)g_4e3b44[tag_index & 0xffff].bytes;
                 if (tag->count > 0)
                 {
-                    if (tag->flags && (bool)((*tag->flags >> 3) & 1))
-                        ++*(short *)((byte *)g_5047f4 + 6);
+                    if (tag->flags)
+                    {
+                        byte *local_0 = (byte *)&definition_index;
+                        *(volatile byte *)local_0 = (byte)((*tag->flags >> 3) & 1);
+                        if (*local_0)
+                            ++*(short *)((byte *)g_5047f4 + 6);
+                    }
                     break;
                 }
                 tag_index = tag->parent_index;

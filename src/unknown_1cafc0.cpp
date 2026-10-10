@@ -774,13 +774,13 @@ c_type_709360 *s_animation_state::transition_find(c_type_709360 *result, long mo
 		}
 		if (transition.index != NONE && event_transition.index == NONE)
 			local_0 = transition;
-		else if (event_transition.index == NONE)
+		else if (event_transition.index != NONE)
+			local_0 = event_transition;
+		else
 		{
 			*blend = found;
 			local_0 = none;
 		}
-		else
-			local_0 = event_transition;
 	}
 	else
 		local_0 = none;

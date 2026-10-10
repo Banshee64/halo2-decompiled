@@ -1096,9 +1096,8 @@ bool network_session_is_full(c_class_58d20 *session, long peer_count, long playe
     {
         if (session->member_count + peer_count > session->value4990)
             goto local_0;
-        if (session->player_count + player_count > session->value4994)
-            goto local_0;
-        return result;
+        if (session->player_count + player_count <= session->value4994)
+            return false;
 local_0:
         result = true;
     }
@@ -4003,153 +4002,191 @@ done:
  return result;
 }
 
-// @retail 0x609e0
-void __stdcall function_609e0(c_class_58d20 *session, const byte *current, const byte *previous, byte *update)
+struct s_609e1
 {
+ const byte *field_0;
+ s_609e1(const byte *arg_0) : field_0(arg_0) {}
+};
+
+// @retail 0x609e0
+void __stdcall function_609e0(c_class_58d20 *session, const byte *current, s_609e1 arg_0, byte *update)
+{
+ const byte *local_0 = *(const byte *volatile *)&arg_0.field_0;
  memset(update, 0, 0x14d8);
  memcpy(update, &session->unknown1c, 8);
  *(long *)(update + 8) = *(const long *)current;
- *(long *)(update + 0xc) = previous ? *(const long *)previous : NONE;
- if (!previous || memcmp(current + 4, previous + 4, 8))
+ long local_1;
+ if (!local_0)
+  local_1 = NONE;
+ else
+  local_1 = *(const long *)local_0;
+ *(long *)(update + 0xc) = local_1;
+ if (!local_0 || (*(const long *)(current + 4) != *(const long *)(local_0 + 4) || *(const long *)(current + 0x8) != *(const long *)(local_0 + 0x8)))
  {
   update[0x10] = true;
   memcpy(update + 0x14, current + 8, 4);
   memcpy(update + 0x18, current + 4, 4);
   update[0x11] = *((byte *)session + 0x765c);
  }
- if (!previous || memcmp(current + 0x10, previous + 0x10, 0x4))
+ if (!local_0 || memcmp(current + 0x10, local_0 + 0x10, 0x4))
  {
   update[0x1c] = true;
   memcpy(update + 0x20, current + 0x10, 0x4);
  }
- if (!previous || memcmp(current + 0x14, previous + 0x14, 0x4))
+ if (!local_0 || memcmp(current + 0x14, local_0 + 0x14, 0x4))
  {
   update[0x24] = true;
   memcpy(update + 0x28, current + 0x14, 0x4);
  }
- if (!previous || memcmp(current + 0x18, previous + 0x18, 0x8))
+ if (!local_0 || (*(const long *)(current + 0x18) != *(const long *)(local_0 + 0x18) || *(const long *)(current + 0x1c) != *(const long *)(local_0 + 0x1c)))
  {
   update[0x2c] = true;
   memcpy(update + 0x30, current + 0x18, 0x8);
  }
- if (!previous || current[0x20] != previous[0x20] || memcmp(current + 0x21, previous + 0x21, 8))
+ if (!local_0 || current[0x20] != local_0[0x20] || memcmp(current + 0x21, local_0 + 0x21, 8))
  {
   update[0x38] = true;
-  update[0x39] = current[0x20];
-  if (current[0x20]) memcpy(update + 0x3a, current + 0x21, 8);
+  byte local_2 = current[0x20];
+  update[0x39] = local_2;
+  if (local_2) memcpy(update + 0x3a, current + 0x21, 8);
  }
- if (!previous || memcmp(current + 0x2c, previous + 0x2c, 0x4))
+ if (!local_0 || memcmp(current + 0x2c, local_0 + 0x2c, 0x4))
  {
   update[0x42] = true;
   memcpy(update + 0x44, current + 0x2c, 0x4);
  }
- if (!previous || memcmp(current + 0x4c, previous + 0x4c, 0x1))
+ if (!local_0 || memcmp(current + 0x4c, local_0 + 0x4c, 0x1))
  {
   update[0x48] = true;
   memcpy(update + 0x49, current + 0x4c, 0x1);
  }
- if (!previous || memcmp(current + 0x50, previous + 0x50, 0x4))
+ if (!local_0 || memcmp(current + 0x50, local_0 + 0x50, 0x4))
  {
   update[0x4a] = true;
   memcpy(update + 0x4c, current + 0x50, 0x4);
  }
- if (!previous || memcmp(current + 0x84, previous + 0x84, 0x1))
+ if (!local_0 || memcmp(current + 0x84, local_0 + 0x84, 0x1))
  {
   update[0x50] = true;
   memcpy(update + 0x51, current + 0x84, 0x1);
  }
- if (!previous || memcmp(current + 0x80, previous + 0x80, 0x4))
+ if (!local_0 || memcmp(current + 0x80, local_0 + 0x80, 0x4))
  {
   update[0x70] = true;
   memcpy(update + 0x74, current + 0x80, 0x4);
  }
- if (!previous || memcmp(current + 0x54, previous + 0x54, 0x1c))
+ if (!local_0 || memcmp(current + 0x54, local_0 + 0x54, 0x1c))
  {
   update[0x52] = true;
   long kind = *(const long *)(current + 0x54);
   *(long *)(update + 0x54) = kind;
-  memset(update + 0x58, 0, 0x18);
-  if (kind == 1) memcpy(update + 0x58, current + 0x58, 0x10);
+  *(long *)(update + 0x68) = 0;
+  *(long *)(update + 0x6c) = 0;
+  *(long *)(update + 0x58) = 0;
+  *(long *)(update + 0x60) = 0;
+  *(long *)(update + 0x5c) = 0;
+  *(long *)(update + 0x64) = 0;
+  if (kind == 1)
+  {
+   *(long *)(update + 0x58) = *(const long *)(current + 0x58);
+   *(long *)(update + 0x60) = *(const long *)(current + 0x60);
+   *(long *)(update + 0x5c) = *(const long *)(current + 0x5c);
+   *(long *)(update + 0x64) = *(const long *)(current + 0x64);
+  }
   else if (kind == 2) memcpy(update + 0x68, current + 0x68, 4);
   else if (kind == 3) memcpy(update + 0x6c, current + 0x6c, 4);
  }
- if (!previous || current[0x85] != previous[0x85] || memcmp(current + 0x88, previous + 0x88, 0x308))
+ if (!local_0 || current[0x85] != local_0[0x85] || memcmp(current + 0x88, local_0 + 0x88, 0x308))
  {
   update[0x88] = true;
   update[0x89] = current[0x85];
   memcpy(update + 0x8c, current + 0x88, 0x308);
  }
- if (!previous || current[0x70] != previous[0x70] || memcmp(current + 0x78, previous + 0x78, 8))
+ if (!local_0 || current[0x70] != local_0[0x70] || memcmp(current + 0x78, local_0 + 0x78, 8))
  {
   update[0x78] = true;
   update[0x79] = current[0x70];
   memcpy(update + 0x80, current + 0x78, 8);
  }
- if (!previous || memcmp(current + 0x390, previous + 0x390, 8) ||
-  strncmp((const char *)current + 0x398, (const char *)previous + 0x398, 0x80))
+ if (!local_0 || (*(const long *)(current + 0x390) != *(const long *)(arg_0.field_0 + 0x390) || *(const long *)(current + 0x394) != *(const long *)(arg_0.field_0 + 0x394)) ||
+  strncmp((const char *)current + 0x398, (const char *)arg_0.field_0 + 0x398, 0x80))
  {
   update[0x394] = true;
   memcpy(update + 0x398, current + 0x390, 8);
-  strncpy((char *)update + 0x3a0, (const char *)current + 0x398, 0x80);
-  update[0x41f] = 0;
+  char *local_3 = (char *)update + 0x3a0;
+  strncpy(local_3, (const char *)current + 0x398, 0x80);
+  local_3[0x7f] = 0;
  }
- if (!previous || memcmp(current + 0x428, previous + 0x428, 0x8))
+ if (!arg_0.field_0 || (*(const long *)(current + 0x428) != *(const long *)(arg_0.field_0 + 0x428) || *(const long *)(current + 0x42c) != *(const long *)(arg_0.field_0 + 0x42c)))
  {
   update[0x420] = true;
   memcpy(update + 0x428, current + 0x428, 0x8);
  }
- if (!previous || memcmp(current + 0x430, previous + 0x430, 0x4))
+ if (!arg_0.field_0 || memcmp(current + 0x430, arg_0.field_0 + 0x430, 0x4))
  {
   update[0x430] = true;
   memcpy(update + 0x434, current + 0x430, 0x4);
  }
- if (!previous || memcmp(current + 0x434, previous + 0x434, 0x4))
+ if (!arg_0.field_0 || memcmp(current + 0x434, arg_0.field_0 + 0x434, 0x4))
  {
   update[0x438] = true;
   memcpy(update + 0x43c, current + 0x434, 0x4);
  }
- if (!previous || memcmp(current + 0x438, previous + 0x438, 0x130))
+ if (!arg_0.field_0 || memcmp(current + 0x438, arg_0.field_0 + 0x438, 0x130))
  {
   update[0x440] = true;
   memcpy(update + 0x444, current + 0x438, 0x130);
  }
- if (!previous || wcsncmp((const wchar_t *)(current + 0x568), (const wchar_t *)(previous + 0x568), 32))
+ if (!arg_0.field_0 || wcsncmp((const wchar_t *)(current + 0x568), (const wchar_t *)(arg_0.field_0 + 0x568), 32))
  {
   update[0x574] = true;
-  wcsncpy((wchar_t *)(update + 0x576), (const wchar_t *)(current + 0x568), 31);
-  *(word *)(update + 0x5b4) = 0;
+  wchar_t *local_6 = (wchar_t *)(update + 0x576);
+  wcsncpy(local_6, (const wchar_t *)(current + 0x568), 31);
+  local_6[31] = 0;
  }
- if (!previous || current[0x5a8] != previous[0x5a8] || memcmp(current + 0x5ac, previous + 0x5ac, 0x6c) ||
-  memcmp(current + 0x618, previous + 0x618, 0xe40))
+ if (arg_0.field_0)
+ {
+  const byte *local_4 = *(const byte *volatile *)&arg_0.field_0;
+  if (current[0x5a8] == local_4[0x5a8])
+  {
+   local_4 = *(const byte *volatile *)&arg_0.field_0;
+   if (!memcmp(current + 0x5ac, local_4 + 0x5ac, 0x6c) && !memcmp(current + 0x618, local_4 + 0x618, 0xe40))
+    goto local_5;
+  }
+ }
  {
   update[0x5b6] = true;
   update[0x5b7] = current[0x5a8];
   memcpy(update + 0x5b8, current + 0x5ac, 0x6c);
   memcpy(update + 0x624, current + 0x618, 0xe40);
  }
- if (!previous || memcmp(current + 0x29, previous + 0x29, 0x1))
+local_5:
+ if (!arg_0.field_0 || memcmp(current + 0x29, arg_0.field_0 + 0x29, 0x1))
  {
   update[0x1464] = true;
   memcpy(update + 0x1465, current + 0x29, 0x1);
  }
- if (!previous || memcmp(current + 0x1458, previous + 0x1458, 0x2))
+ if (!arg_0.field_0 || memcmp(current + 0x1458, arg_0.field_0 + 0x1458, 0x2))
  {
   update[0x1466] = true;
   memcpy(update + 0x1468, current + 0x1458, 0x2);
  }
- if (!previous || current[0x30] != previous[0x30] || memcmp(current + 0x34, previous + 0x34, 0x18))
+ if (!arg_0.field_0 || current[0x30] != arg_0.field_0[0x30] || (*(const long *)(current + 0x34) != *(const long *)(arg_0.field_0 + 0x34) || *(const long *)(current + 0x38) != *(const long *)(arg_0.field_0 + 0x38) || *(const long *)(current + 0x3c) != *(const long *)(arg_0.field_0 + 0x3c) || memcmp(current + 0x40, arg_0.field_0 + 0x40, 0xc)))
  {
   update[0x146a] = true;
   update[0x146b] = current[0x30];
-  memcpy(update + 0x146c, current + 0x34, 0x18);
+  *(long *)(update + 0x146c) = *(const long *)(current + 0x34);
+  *(long *)(update + 0x1470) = *(const long *)(current + 0x38);
+  *(long *)(update + 0x1474) = *(const long *)(current + 0x3c);
+  memcpy(update + 0x1478, current + 0x40, 0xc);
  }
- if (!previous || current[0x1460] != previous[0x1460] || memcmp(current + 0x1464, previous + 0x1464, 0x44))
+ if (!arg_0.field_0 || current[0x1460] != arg_0.field_0[0x1460] || memcmp(current + 0x1464, arg_0.field_0 + 0x1464, 0x44))
  {
   update[0x1484] = true;
   update[0x1485] = current[0x1460];
   memcpy(update + 0x1488, current + 0x1464, 0x44);
  }
- if (!previous || memcmp(current + 0x14a8, previous + 0x14a8, 0x4))
+ if (!arg_0.field_0 || memcmp(current + 0x14a8, arg_0.field_0 + 0x14a8, 0x4))
  {
   update[0x14cc] = true;
   memcpy(update + 0x14d0, current + 0x14a8, 0x4);
@@ -4398,9 +4435,9 @@ void function_627e0(c_class_58d20 *session)
   }
  }
  if (full_mask)
-  function_609e0(session, (const byte *)&session->update_count, 0, full);
+  function_609e0(session, (const byte *)&session->update_count, s_609e1(0), full);
  if (delta_mask)
-  function_609e0(session, (const byte *)&session->update_count, (const byte *)session + 0x5e28, delta);
+  function_609e0(session, (const byte *)&session->update_count, s_609e1((const byte *)session + 0x5e28), delta);
  for (long j = 0; j < session->member_count; j++)
  {
   byte *message;
@@ -4457,6 +4494,7 @@ struct s_membership_update_snapshot
 // @retail 0x5cb80
 bool __stdcall function_05cb80(c_class_58d20 *session, const void *message)
 {
+	bool result = true;
 	const byte *update = (const byte *)message;
 	if (*(const long *)(update + 0xc) != NONE && *(const long *)(update + 0xc) != session->value4c)
 		goto stale_update;
@@ -4472,7 +4510,6 @@ bool __stdcall function_05cb80(c_class_58d20 *session, const void *message)
 	dword retained = 0;
 	long old_to_new[16];
 	memset(old_to_new, NONE, sizeof(old_to_new));
-	bool result = true;
 	if (*(const long *)(update + 0xc) != NONE)
 		for (long i = 0; i < session->member_count; i++)
 			old_to_new[i] = i;
@@ -4637,7 +4674,7 @@ bool __stdcall function_05cb80(c_class_58d20 *session, const void *message)
 			session->members[i].player_count = 0;
 		}
 	}
-	for (long i = 0; i < *(const short *)(update + 0x12) && result; i++)
+	for (long i = 0; result && i < *(const short *)(update + 0x12); i++)
 	{
 		const byte *entry = update + 0x2094 + i * 0x140;
 		short player = *(const short *)entry;
@@ -4668,17 +4705,19 @@ bool __stdcall function_05cb80(c_class_58d20 *session, const void *message)
 		default: result = false; break;
 		}
 	}
-	if (result) return result;
+	if (result) goto local_0;
 	finish:
 	session->flag48 = true;
 	if (!result) network_session_close(session);
+	local_0:
 	return result;
 	failed:
 	result = false;
 	goto finish;
 	stale_update:
 	network_session_host_lost(session);
-	return false;
+	result = false;
+	goto local_0;
 }
 
 void network_session_expire_reservations(c_class_58d20 *session);

@@ -879,6 +879,7 @@ s_online_file g_477058 =
 	0
 };
 
+#pragma optimize("s", on)
 // @retail 0x662f0
 void network_configuration_initialize()
 {
@@ -887,12 +888,15 @@ void network_configuration_initialize()
 		bool success = g_477058.definition->initialize_defaults(&g_477058);
 
 		if (success)
+		{
 			g_477058.flags |= (1 << 1);
-		else
-			g_477058.flags &= ~(1 << 1);
-		if (success)
 			g_477058.flags |= (1 << 3);
+		}
 		else
+		{
+			g_477058.flags &= ~(1 << 1);
 			g_477058.flags &= ~(1 << 3);
+		}
 	}
 }
+#pragma optimize("", on)

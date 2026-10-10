@@ -169,14 +169,20 @@ rewrites have not helped, let `tools/permute.py` search for you:
 
 It mechanically rewrites the body of the function marked `// @retail 0x<va>`
 (operand swaps, statement and declaration order, integer types of locals,
-temporaries, `if`/`else` branches, `for`/`while`, `+=` forms, `++` forms),
-rebuilds, and keeps the variant with the fewest differing instructions; 0 is a
-match. It works on a copy of `src/` in a scratch directory, so your tree is
-untouched; the search is deterministic for a given `--seed`. It prints the
-best score, the tries per second and a unified diff. With `--write` a strictly
-better variant is written back to the source file. Read the diff before you
-keep it: a changed local type can change what the function means, and a variant
-that matches by accident still has to read like Bungie's code.
+temporaries, `if`/`else` branches, `for`/`while`, `+=` forms, `++` forms,
+`a = b = 0` chains, a named `bool` for an `&&` condition, `||` and `&&`
+conditions against `else if` and nested `if`, `?:` against `if`/`else`,
+arguments of a call trading places or rotating, `volatile` reads, stores and
+pointers), rebuilds, and keeps the variant with the fewest differing
+instructions; 0 is a match. Rearranged arguments are tried most often: they
+were the last change in about a quarter of the near functions that went on to
+match, as far as git shows. It works on a copy of `src/` in a scratch
+directory, so your tree is untouched; the search is deterministic for a given
+`--seed`. It prints the best score, the tries per second and a unified diff.
+With `--write` a strictly better variant is written back to the source file.
+Read the diff before you keep it: a changed local type, a swapped argument or
+a `volatile` access can change what the function means, and a variant that
+matches by accident still has to read like Bungie's code.
 
 ## What a match means
 

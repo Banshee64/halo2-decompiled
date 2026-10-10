@@ -251,17 +251,18 @@ bool simulation_player_changed(const s_machine_address *machines, dword player_m
 // @retail 0x83c90
 void simulation_player_collection_find_slot(const s_type_c67652 *collection, long player_index, const t_player_key *key, long *slot, bool *occupied)
 {
+	long local_2 = 0;
+	long found = NONE;
 	dword bit = 1 << player_index;
 	*occupied = (collection->player_mask & bit) != 0;
 	*slot = NONE;
 
-	long found = NONE;
 	dword player_mask = collection->player_mask;
-	for (long i = 0; i < 16; i++)
+	for (; local_2 < 16; local_2++)
 	{
-		const s_simulation_owner_player *player = &collection->players[i];
-		if ((player_mask & (1 << i)) && player->flag0c && !memcmp(player, key, sizeof(t_player_key)))
-			found = i;
+		const s_simulation_owner_player *player = &collection->players[local_2];
+		if ((player_mask & (1 << local_2)) && player->flag0c && !memcmp(player, key, sizeof(t_player_key)))
+			found = local_2;
 	}
 	if (found == player_index)
 	{

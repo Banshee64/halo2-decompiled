@@ -12,7 +12,7 @@
 
 void function_108e10(long object_index);
 void function_108e80(long object_index);
-void function_bb7b0(long object_index);
+__declspec(noinline) void function_bb7b0(long object_index);
 // @retail 0x9f9d0
 long c_turret_entity_definition::v0()
 {

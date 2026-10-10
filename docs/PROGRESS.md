@@ -2,6 +2,44 @@
 
 The newest entry comes first.
 
+## 2026-10-10: 7396 functions match
+
+```
+matched 7396 of 11318 game functions (857602 of 2784283 bytes, 30.80%)
+```
+
+2 new matches, none lost:
+- The permuter's first matches: 0x158a50 and 0x2b540, found by its new annealing search and @coldspear's mutations (#286), each confirmed by a full build with nothing lost.
+
+## 2026-10-09: 7394 functions match
+
+```
+matched 7394 of 11318 game functions (857436 of 2784283 bytes, 30.80%)
+```
+
+7 new matches, none lost:
+- Deep lane 1, closest first in lanes S, N and Q: 0x1e110, 0x102c60, 0x102d60, 0x14b580, 0x14b600, 0x1502e0, 0x1537a0.
+
+## 2026-10-09: 7387 functions match
+
+```
+matched 7387 of 11318 game functions (856593 of 2784283 bytes, 30.77%)
+```
+
+24 new matches, none lost:
+- Merge batch r55: the second machine's lane D lower 10 (#282), C 43 (#283, #86 item 50), D upper 10 (#284, +4), M 16 (#285, +6 and a side effect), K 15 (#287, +3), F 16 (#288, #86 item 68), L 12 (#289, +9: 0x12e3a0 and the callers of 0x12de70) and AC 23 (#290, #86 item 66). Several of machine 1's functions waiting on those helpers matched with them (0x4ede0, 0xd1d70, 0x449e0, 0x16e290, 0xb57d0, 0xb5830).
+- Permuter mutations learned from the near-to-matched history, by @coldspear (#286).
+
+## 2026-10-09: 7363 functions match
+
+```
+matched 7363 of 11318 game functions (850898 of 2784283 bytes, 30.56%)
+```
+
+7 new matches, none lost:
+- Deep lane 3, closest first: 0xa5b40, 0xa74c0, 0xd2dc0 (454 bytes), 0xab7f0 (353 bytes).
+- Deep lane 2, closest first: 0x16cee0, 0x235d69; and 0x1724a0 matched as a side effect.
+
 ## 2026-10-09: 7356 functions match
 
 ```
