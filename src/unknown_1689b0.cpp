@@ -1222,13 +1222,13 @@ PRIVATE __forceinline void sweep_transform_vector(transform4x3f const *matrix, v
 void function_16a0a0(long instance_index, dword flags, point3f const *point, real radius,
     real height, real thickness, s_collection_245270 *collection)
 {
-    real const &sphere_radius = radius;
+    real const &local_a47c5e = radius;
     s_168d60_bsp_view *bsp = (s_168d60_bsp_view *)g_4e0348;
     s_168d60_instance *instance = &bsp->instances[instance_index];
     byte *section = bsp->sections + instance->section_index * 0xc8;
     if (collision_surface_test((s_collision_result_view const *)section, instance_index, flags))
     {
-        real extent = instance->radius + sphere_radius;
+        real extent = instance->radius + local_a47c5e;
         real dx = instance->center.x - point->x;
         real dy = instance->center.y - point->y;
         real dz = instance->center.z - point->z;
@@ -1261,7 +1261,7 @@ void function_16a0a0(long instance_index, dword flags, point3f const *point, rea
             s_1de2c2 hits;
             s_bsp3d const *geometry = (s_bsp3d const *)(section + 0x70);
             if (function_1dde10(geometry, 8, (dword const *)function_183fc0(instance_index),
-                &local_point, scale * sphere_radius, &hits))
+                &local_point, scale * local_a47c5e, &hits))
                 function_245aa0((s_245aa0 const *)&hits, (s_source_245400 const *)geometry,
                     &instance->matrix, height, thickness, NONE, NONE, collection);
         }
