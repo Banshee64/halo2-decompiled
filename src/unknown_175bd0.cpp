@@ -1950,12 +1950,11 @@ void function_179020(long effect_index, real scale, real unknown)
 {
 	s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
 	s_effect_event *event = &TAG_GET(s_effect_definition, effect->tag_index)->events[effect->event_index];
-	long i;
 	volatile long mode = 0;
 
 	if (effect->unknown58 != NONE && !function_155760(effect->unknown58))
 		mode = 1;
-	for (i = 0; i < event->particle_system_count; i++)
+	for (long i = 0; i < event->particle_system_count; i++)
 	{
 		s_effect_particle_system_definition *definition = &event->particle_systems[i];
 		bool field_b4 = definition->unknown0c != 0;
@@ -1966,10 +1965,9 @@ void function_179020(long effect_index, real scale, real unknown)
 
 			for (dword j = 0; j < 16; j++)
 			{
-				s_effect_event_slot *slot = &effect->event_slots[j];
-				if ((s_effect_particle_system_definition *)slot->unknown0 == definition)
+				if ((s_effect_particle_system_definition *)effect->event_slots[j].unknown0 == definition)
 				{
-					particle_system = DATUM(g_510c74, s_particle_system_datum, slot->unknown4);
+					particle_system = DATUM(g_510c74, s_particle_system_datum, effect->event_slots[j].unknown4);
 					break;
 				}
 			}
