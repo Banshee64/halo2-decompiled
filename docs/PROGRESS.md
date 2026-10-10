@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-10: 7396 functions match
+
+```
+matched 7396 of 11318 game functions (857602 of 2784283 bytes, 30.80%)
+```
+
+2 new matches, none lost:
+- The permuter's first matches: 0x158a50 and 0x2b540, found by its new annealing search and @coldspear's mutations (#286), each confirmed by a full build with nothing lost.
+
 ## 2026-10-09: 7394 functions match
 
 ```
