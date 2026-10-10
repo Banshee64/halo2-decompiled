@@ -95,6 +95,7 @@ void function_220790(s_sound_listener const *listener);
 bool sound_driver_voice_create_buffer(long voice_index);
 void function_221490(LPDIRECTSOUNDBUFFER *buffer_reference);
 
+#pragma inline_depth(0)
 // @retail 0x21e4b0
 bool function_21e4b0(s_sound_driver_counts const *counts)
 {
@@ -165,17 +166,18 @@ bool function_21e4b0(s_sound_driver_counts const *counts)
 					long mixbin = SOUND_DRIVER_GLOBALS->effect_mixbins[send];
 					LPDIRECTSOUNDBUFFER *buffer = &SOUND_DRIVER_GLOBALS->effect_buffers_a[send];
 					LPDIRECTSOUNDBUFFER *spatial_buffer = &SOUND_DRIVER_GLOBALS->effect_buffers_b[send];
-					DSBUFFERDESC description = {0};
-					description.dwSize = sizeof(description);
-					description.dwFlags = DSBCAPS_FXIN2;
-					description.dwInputMixBin = mixbin;
-					if (SUCCEEDED(SOUND_DRIVER_GLOBALS->direct_sound->CreateSoundBuffer(&description, buffer, NULL)))
+					union { DSBUFFERDESC field_0; DSBUFFERDESC field_0_1; } local_0;
+					memset(&local_0.field_0, 0, sizeof(DSBUFFERDESC));
+					local_0.field_0.dwSize = sizeof(local_0.field_0);
+					local_0.field_0.dwFlags = DSBCAPS_FXIN2;
+					local_0.field_0.dwInputMixBin = mixbin;
+					if (SUCCEEDED(SOUND_DRIVER_GLOBALS->direct_sound->CreateSoundBuffer(&local_0.field_0, buffer, NULL)))
 						(*buffer)->Play(0, 0, 0);
-					DSBUFFERDESC spatial_description = {0};
-					spatial_description.dwSize = sizeof(spatial_description);
-					spatial_description.dwFlags = DSBCAPS_FXIN2 | DSBCAPS_CTRL3D;
-					spatial_description.dwInputMixBin = mixbin;
-					if (SUCCEEDED(SOUND_DRIVER_GLOBALS->direct_sound->CreateSoundBuffer(&spatial_description, spatial_buffer, NULL)))
+					memset(&local_0.field_0_1, 0, sizeof(DSBUFFERDESC));
+					local_0.field_0_1.dwSize = sizeof(local_0.field_0_1);
+					local_0.field_0_1.dwFlags = DSBCAPS_FXIN2 | DSBCAPS_CTRL3D;
+					local_0.field_0_1.dwInputMixBin = mixbin;
+					if (SUCCEEDED(SOUND_DRIVER_GLOBALS->direct_sound->CreateSoundBuffer(&local_0.field_0_1, spatial_buffer, NULL)))
 					{
 						(*spatial_buffer)->SetMaxDistance(FLT_MAX, DS3D_DEFERRED);
 						(*spatial_buffer)->SetMinDistance(FLT_MAX, DS3D_DEFERRED);
@@ -228,3 +230,4 @@ bool function_21e4b0(s_sound_driver_counts const *counts)
 		function_21eae0();
 	return result;
 }
+#pragma inline_depth(8)
