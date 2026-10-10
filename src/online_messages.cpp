@@ -214,12 +214,12 @@ void online_message_block_set_text(s_state_block *block, const wchar_t *text)
 // @retail 0x8ef60
 void online_message_block_set_values(s_state_block *block, long value210, long value214, long value20c)
 {
-	if (value210 < 0x499a)
-	{
-		block->unknown210 = value210;
-		block->unknown20c = value20c;
-		*(long *)block->unknown214 = value214;
-	}
+ if (value210 < 0x499a)
+ {
+  block->unknown210 = value210;
+  *(long *)block->unknown214 = value20c;
+  block->unknown20c = value214;
+ }
 }
 
 /* the message property tag of each of the game's message properties */
@@ -537,6 +537,29 @@ static inline s_long_pair *network_session_interface_get_data_4999_inline2(void)
 	return result;
 }
 
+#pragma optimize("g", off)
+PRIVATE __forceinline s_long_pair *function_8f174(c_class_58d20 *arg_0, long arg_1)
+{
+ s_long_pair *local_0 = 0;
+ if (arg_1 > 2 && arg_1 <= 8)
+ {
+  bool local_1 = arg_0->flag4998;
+  if (local_1) local_0 = &arg_0->data4999;
+ }
+ return local_0;
+}
+#pragma optimize("", on)
+PRIVATE __forceinline s_long_pair *function_8f175(void)
+{
+ s_long_pair *local_0 = 0;
+ if (g_527330.initialized)
+ {
+  c_class_58d20 *local_1 = (c_class_58d20 *)g_527330.session_a;
+  long local_2 = local_1->state;
+  if (local_2) local_0 = function_8f174(local_1, local_2);
+ }
+ return local_0;
+}
 // @retail 0x8f170
 void online_message_block_set_properties(s_state_block *block, long controller_index)
 {
@@ -562,7 +585,7 @@ void online_message_block_set_properties(s_state_block *block, long controller_i
 	if (block->unknown4 == 3)
 	{
 		s_long_pair *session_id;
-		session_id = network_session_interface_get_data_4999_inline2();
+		session_id = function_8f175();
 		if (session_id)
 			online_message_block_set_property(block, 5, 8, session_id);
 		else

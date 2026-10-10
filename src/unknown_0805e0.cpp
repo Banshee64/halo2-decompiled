@@ -505,15 +505,18 @@ void function_80bf0(s_cache_property_record *records, long record_capacity,
 void function_80aa0(s_cache_property_record *records, long count)
 {
 	long position;
-	for (long i = 0; i < count; i++)
+	if (count <= 0) return;
+ s_cache_property *const *local_0 = &records->properties;
+ long local_2 = count;
+ do
 	{
-		s_cache_property_record *record = &records[i];
-		if (record->type == 0x61 && record->count == 4)
+		const s_cached_player_identity *local_1 = (const s_cached_player_identity *)((byte const *)local_0 - 0x14);
+		if (*(long const *)((byte const *)local_0 - 8) == 0x61 && *(long const *)((byte const *)local_0 - 4) == 4)
 		{
-			long index = function_7fc80(record->identity, &position);
+			long index = function_7fc80(local_1, &position);
 			if (index != NONE)
 			{
-				s_cache_property *properties = record->properties;
+				s_cache_property *properties = *local_0;
 				long values[3];
 				long present = 0;
 				long absent = 0;
@@ -549,7 +552,8 @@ void function_80aa0(s_cache_property_record *records, long count)
 				}
 			}
 		}
-	}
+  local_0 = (s_cache_property *const *)((byte const *)local_0 + 0x18);
+	} while (--local_2);
 }
 
 bool g_51055c;
