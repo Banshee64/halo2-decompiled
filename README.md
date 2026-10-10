@@ -148,6 +148,7 @@ So the work runs in stages:
 | `tools/build.py` | Builds the whole game as one LTCG image, with each source file's flags. |
 | `tools/check.py` | Compares our functions with retail and records progress. Needs the SDK and capstone. |
 | `tools/ready.py` | Lists the functions that are ready to decompile next. `--claims` drops addresses from a saved copy of the Active claims table. |
+| `tools/open_work.py` | Lists work a contributor can claim (source files with functions left, and functions ready to write) outside every person's claim, with the claim line to use. Takes a saved copy of issue #9. |
 | `tools/permute.py` | Searches variants of a source function for ones that turn a near-miss into a match. |
 | `tools/near.py` | Counts the near-misses in the csv by source file (functions, bytes). No XBE. `--list` prints each function. |
 | `tools/masked.py` | Lists what `check.py` cannot see because it masks address fields: float constants one step away from the source's literals, strings, and script function definitions that differ from retail. Needs the retail XBE and capstone. |
@@ -161,10 +162,11 @@ Halo 2 has about 11,300 game functions, so there is room for many people.
 ready-made prompt for AI coding agents.
 1. Get set up as in [Build and check](#build-and-check), with your own
    lawfully owned copy of Halo 2 (see [Requirements](#requirements)).
-2. Pick a source file or an address range nobody has claimed (the pinned
-   [Active claims](https://github.com/kirklandsig/halo2-decompiled/issues/9)
-   issue lists them), and open a draft pull request saying what you are
-   taking.
+2. Pick a source file or an address range that no other person holds (the
+   pinned [Active claims](https://github.com/kirklandsig/halo2-decompiled/issues/9)
+   issue lists claims; the maintainers' automated lanes make way for
+   contributors), and open a draft pull request saying what you are taking.
+   `python tools/open_work.py` lists what is open.
 3. Decompile, run `python tools/check.py`, and push as functions match.
    [docs/DECOMPILING.md](docs/DECOMPILING.md) explains the conventions and
    the compiler's quirks.
