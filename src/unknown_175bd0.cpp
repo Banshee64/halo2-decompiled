@@ -310,7 +310,7 @@ static inline void effect_parameters_initialize_inline(s_effect_parameters *para
 
 long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
 bool function_176210(s_effect_parameters *parameters);
-long function_178120(long tag_index, s_effect_owner const *owner, bool force);
+long function_178120(s_effect_owner const *owner, bool force, long tag_index);
 void function_178240(point3f const *origin, vector3f const *direction, s_effect_datum *effect, real scale_a, real scale_b);
 struct s_effect_marker_source;
 void function_1786f0(s_effect_marker_source const *source, s_effect_object_marker *out, short marker_index);
@@ -442,6 +442,17 @@ static inline vector3f *effect_matrix_transform_normal(transform4x3f const *matr
 	out->i = matrix->up.i * vector->k + matrix->left.i * vector->j + matrix->forward.i * vector->i;
 	out->j = matrix->up.j * vector->k + matrix->left.j * vector->j + matrix->forward.j * vector->i;
 	out->k = matrix->up.k * vector->k + matrix->left.k * vector->j + matrix->forward.k * vector->i;
+	return out;
+}
+
+static inline vector3f *effect_matrix_transform_normal_179880(transform4x3f const *matrix, vector3f const *vector, vector3f *out)
+{
+	real x = vector->i;
+	real y = vector->j;
+	real z = vector->k;
+	out->i = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x;
+	out->j = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x;
+	out->k = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x;
 	return out;
 }
 
@@ -712,15 +723,20 @@ void function_177260(long effect_index, bool flag)
 
 	if (effect)
 	{
-		effect_stop_looping_sound(effect);
+		if (effect->looping_sound_index != NONE)
+		{
+			s_effect_looping_sound *sound = DATUM(g_4ed28c, s_effect_looping_sound, effect->looping_sound_index);
+			*(volatile byte *)((byte *)sound + 4) |= 2;
+			effect->looping_sound_index = NONE;
+		}
 		function_1771a0(effect);
-		if (TEST_FIELD_BIT(effect->flag1))
+		if (((byte)effect->flags >> 1) & 1)
 		{
 			if (flag)
-				effect->flag4 = true;
+				*(volatile byte *)&effect->flags |= 0x10;
 			else
-				effect->flag4 = false;
-			effect->flag2 = true;
+				*(volatile byte *)&effect->flags &= ~0x10;
+			*(volatile byte *)&effect->flags |= 4;
 		}
 		else
 		{
@@ -918,7 +934,7 @@ bool function_178060(void)
 }
 
 // @retail 0x178120
-long function_178120(long tag_index, s_effect_owner const *owner, bool force)
+long function_178120(s_effect_owner const *owner, bool force, long tag_index)
 {
 	long effect_index = NONE;
 
@@ -999,11 +1015,12 @@ void function_1782a0(long effect_index, short event_index)
 
 		if (event_index >= 0 && event_index < definition->event_count)
 		{
-			s_effect_event *event = &definition->events[event_index];
+			s_effect_event *event;
 
 			effect->flag0 = false;
 			effect->event_index = event_index;
 			effect->unknown60 = 0.0f;
+			event = &definition->events[event_index];
 			if (event->delay_lower == event->delay_upper)
 				effect->event_delay = event->delay_lower;
 			else
@@ -1262,7 +1279,7 @@ long __stdcall effect_new_from_parameters(s_effect_parameters *parameters)
 
 	if (force || function_176210(parameters))
 	{
-		effect_index = function_178120(parameters->tag_index, &parameters->owner, force);
+		effect_index = function_178120(&parameters->owner, force, parameters->tag_index);
 		if (effect_index != NONE)
 		{
 			s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
@@ -1815,6 +1832,7 @@ static inline bool effect_location_in_zone(s_location const *location, point3f c
 // @retail 0x178c80
 void function_178c80(real scale, s_effect_datum *effect, s_particle_system_datum *particle_system, s_effect_particle_system_definition *definition, real unknown, bool field_b4)
 {
+	real *scale_reference = &scale;
 	long location_index = effect->location_indices[definition->location_index];
 	s_effect_location_datum *location;
 	s_particle_system_spawn spawn;
@@ -1823,7 +1841,7 @@ void function_178c80(real scale, s_effect_datum *effect, s_particle_system_datum
 		particle_system->set_location(&effect->location);
 	dword color_a = effect->color_a;
 
-	spawn.scale = scale;
+	spawn.scale = (*scale_reference);
 	spawn.unknown = unknown;
 	spawn.location_index = particle_system->location_index;
 	{
@@ -2625,8 +2643,7 @@ bool function_1778d0(void)
 
 extern long g_4b9ed8;
 bool function_3e9c0(long object_index);
-bool function_2dba0(long tag, vector3f const *direction, bool alternate, long c, long d, long e,
-	point3f const *position, color3f const *color, real alpha, real amount, real scale);
+bool function_2dba0(long tag, vector3f const *direction, long c, long d, long e, point3f const *position, color3f const *color, real alpha, real amount, real scale, bool alternate);
 void function_42850(long a, long b, point3f const *position, vector3f const *first,
 	vector3f const *second, real scale, real width, vector3f const *third);
 real function_17ca10(real x, short curve);
@@ -2659,9 +2676,11 @@ void __stdcall function_179880(s_effect_datum *effect, long effect_index)
 			part->tag_index != NONE && part->location >= 0 && part->location < definition->location_count)
 		{
 			long index = effect->location_indices[part->location];
-			short mode = 2;
+			short mode;
 			if (effect->unknown58 != NONE && g_4b9ed8 == effect->unknown58 && !function_155760(effect->unknown58))
 				mode = 1;
+			else
+				mode = 2;
 			s_effect_location_datum *location;
 			while ((location = effect_location_next(effect, &index, mode)) != 0)
 			{
@@ -2679,10 +2698,8 @@ void __stdcall function_179880(s_effect_datum *effect, long effect_index)
 					transform4x3f matrix;
 					function_17aec0(&matrix, effect, location->node_index);
 					effect_matrix_transform_point(&matrix, &position, &position);
-					vector3f original_forward = forward;
-					vector3f original_up = up;
-					effect_matrix_transform_normal(&matrix, &original_forward, &forward);
-					effect_matrix_transform_normal(&matrix, &original_up, &up);
+					effect_matrix_transform_normal_179880(&matrix, &forward, &forward);
+					effect_matrix_transform_normal_179880(&matrix, &up, &up);
 				}
 				if (part->group_tag == 'lens')
 				{
@@ -2694,8 +2711,7 @@ void __stdcall function_179880(s_effect_datum *effect, long effect_index)
 							real remaining = effect_remaining_fraction_179880(effect);
 							scale *= 1.0f - function_17ca10(1.0f - remaining, *(short *)(tag + 0x3c));
 						}
-						function_2dba0(part->tag_index, &forward, function_3e9c0(effect->object_index),
-							1, effect_index & 0xffff, flare_index, &position, (color3f const *)&effect->origin, 1.0f, scale, 1.0f);
+						function_2dba0(part->tag_index, &forward, 1, effect_index & 0xffff, flare_index, &position, (color3f const *)&effect->origin, 1.0f, scale, 1.0f, function_3e9c0(effect->object_index));
 						++flare_index;
 					}
 				}

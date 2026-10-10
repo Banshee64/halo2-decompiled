@@ -272,10 +272,10 @@ PRIVATE inline void slot_assign(long owner, long entry, long index, bool *used)
 // @retail 0x185630
 void function_185630()
 {
-	bool used[8] = { false };
-	long count = 0;
 	s_match_globals_slot_view *globals = (s_match_globals_slot_view *)g_4e0348;
 	s_slot_entry_list *list = g_4e0340;
+	long count = 0;
+	bool used[8] = { false };
 	for (long i = 0; i < list->count; ++i)
 	{
 		s_slot_entry *entry = &list->entries[i];

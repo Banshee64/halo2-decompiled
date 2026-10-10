@@ -921,14 +921,14 @@ word *unicode_string_append(word *destination, const word *source, long maximum_
 // @retail 0x23223d
 void function_23223d(c_pause_game_screen *screen)
 {
-	c_pause_game_screen **screen_reference = &screen;
-	c_class_1a2c81 *text = screen->find_child(6, 2, false);
+	c_pause_game_screen * volatile *screen_reference = &screen;
+	c_class_1a2c81 *text = (*screen_reference)->find_child(6, 2, false);
 
 	s_text_object_view *text_object;
 
 	if (text && (text_object = (s_text_object_view *)text->function_22f52e()) != NULL)
 	{
-		word *buffer = screen->text.text;
+		word *buffer = (*screen_reference)->text.text;
 
 		memcpy(&text_object->layout, &g_459130, sizeof(text_object->layout));
 		text_object->value38 = 1;

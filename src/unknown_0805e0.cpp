@@ -558,6 +558,12 @@ struct s_profile_record;
 void function_1537f0(s_profile_record *record);
 long function_7fe90(const s_cached_player_identity *identity, long position, const s_cached_player_source *source);
 
+#pragma inline_depth(0)
+static __forceinline void function_80491(long arg_0)
+{
+ function_7fe40(arg_0);
+}
+#pragma inline_depth(8)
 // @retail 0x80490
 void function_80490(const s_cached_player_identity *identity, const s_cached_player_source *source,
 	bool local, bool recent)
@@ -601,7 +607,7 @@ void function_80490(const s_cached_player_identity *identity, const s_cached_pla
 		changed = changed || !(entry->flags & 16);
 		entry->flags |= 16;
 	}
-	function_7fe40(index);
+	function_80491(index);
 	if (changed || time_changed)
 		g_51055c = true;
 }

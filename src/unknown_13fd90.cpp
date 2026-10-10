@@ -88,24 +88,24 @@ void utf8_string_to_utf16_string(const char *source, word *destination, long des
 		long length;
 		bool valid = true;
 
-		if (s[0] < 0x80)
+		if ((signed char)s[0] >= 0)
 		{
 			value = s[0];
 			length = 1;
 		}
 		else if ((s[0] & 0xe0) == 0xc0)
 		{
-			value = s[0] & 0x1f;
+			value = s[0] & ~0xe0u;
 			length = 2;
 		}
 		else if ((s[0] & 0xf0) == 0xe0)
 		{
-			value = s[0] & 0x0f;
+			value = s[0] & ~0xf0u;
 			length = 3;
 		}
 		else if ((s[0] & 0xf8) == 0xf0)
 		{
-			value = s[0] & 0x07;
+			value = s[0] & ~0xf8u;
 			length = 4;
 		}
 		else
@@ -117,7 +117,7 @@ void utf8_string_to_utf16_string(const char *source, word *destination, long des
 
 		for (long i = 1; i < length && valid; i++)
 		{
-			value = (value << 6) | (s[i] & 0x3f);
+			value = (value << 6) | (s[i] & ~0xc0u);
 			if ((s[i] & 0xc0) != 0x80)
 			{
 				valid = false;
@@ -187,8 +187,9 @@ long utf8_encode_character(dword value, byte *buffer, long buffer_size)
 	return length;
 }
 
-// @retail 0x140650
-void utf16_string_to_utf8_string(const word *source, char *destination, long destination_size)
+void utf16_string_to_utf8_string(const word *source, char *destination, long destination_size);
+
+static __forceinline void utf16_string_write_utf8(const word *source, char *destination, long destination_size)
 {
 	long destination_index = 0;
 
@@ -208,4 +209,10 @@ void utf16_string_to_utf8_string(const word *source, char *destination, long des
 	{
 		destination[destination_index - 1] = 0;
 	}
+}
+
+// @retail 0x140650
+void utf16_string_to_utf8_string(const word *source, char *destination, long destination_size)
+{
+	utf16_string_write_utf8(source, destination, destination_size);
 }

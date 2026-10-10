@@ -56,7 +56,8 @@ bool function_162550(long player_index, s_marker_list *list)
 	s_marker_player *player = marker_player_get(player_index);
 	s_player_info *info = &g_4e9ae8->players[absolute_index];
 	bool result = true;
-	s_font_header *font = font_get(g_4e28f4[(g_4ba04c <= 1) + 5]);
+	volatile long font_slot = (g_4ba04c <= 1) + 5;
+	s_font_header *font = font_get(g_4e28f4[font_slot]);
 	short height = 10;
 
 	if (font)

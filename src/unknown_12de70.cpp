@@ -55,29 +55,32 @@ static inline s_physical_block *physical_block_get(long index)
 bool function_12e3a0(bool wait, s_geometry_block_info *block, bool urgent, long priority)
 {
 	bool immediate = wait || urgent;
-	long physical_index = function_13d370(g_4e649c, block->block_size, immediate ? 1 : 5);
+	long local_6 = block->block_size;
+	long local_7 = immediate ? 1 : 5;
+	long physical_index = function_13d370(g_4e649c, local_6, local_7);
 
-	if (physical_index == NONE)
+	if (physical_index != NONE)
 	{
-		return false;
+		dword address = (physical_block_get(physical_index)->offset << physical_object_get()->page_shift) + g_4e6494;
+		long cache_index = datum_new_at_index_with_salt(g_4e648c, physical_index);
+		s_cache_block *cache_block = &((s_cache_block *)g_4e648c->data)[cache_index & 0xffff];
+		long size;
+	
+		cache_block->block = block;
+		block->cache_block_index = physical_index;
+		cache_block->block->runtime_linked = false;
+		size = block->block_size;
+		if (size & 0x1ff)
+		{
+			size = (size | 0x1ff) + 1;
+		}
+		long local_2 = block->block_offset;
+		volatile long local_0 = *(long *)((byte *)block + 0x18);
+		cache_block->job = function_213760(local_2, size, (void *)address, NULL, &cache_block->done, 4, priority);
+		cache_block->priority = (byte)priority;
+		return true;
 	}
-
-	dword address = (physical_block_get(physical_index)->offset << physical_object_get()->page_shift) + g_4e6494;
-	long cache_index = datum_new_at_index_with_salt(g_4e648c, physical_index);
-	s_cache_block *cache_block = &((s_cache_block *)g_4e648c->data)[cache_index & 0xffff];
-	long size;
-
-	cache_block->block = block;
-	block->cache_block_index = physical_index;
-	cache_block->block->runtime_linked = false;
-	size = block->block_size;
-	if (size & 0x1ff)
-	{
-		size = (size | 0x1ff) + 1;
-	}
-	cache_block->job = function_213760(block->block_offset, size, (void *)address, NULL, &cache_block->done, 4, priority);
-	cache_block->priority = (byte)priority;
-	return true;
+	return false;
 }
 
 // @retail 0x12de70
@@ -607,6 +610,7 @@ void function_12e480(void)
 
 /* the geometry cache's frame: its memory's clock, the predicted blocks'
    requests and the low-memory message */
+#pragma optimize("s", on)
 // @retail 0x12dd80
 void geometry_cache_update(void)
 {
@@ -630,3 +634,4 @@ void geometry_cache_update(void)
 		function_12e480();
 	}
 }
+#pragma optimize("", on)

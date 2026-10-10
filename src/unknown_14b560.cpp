@@ -92,7 +92,8 @@ void function_14b580(void)
 		globals->unknown9c = 0;
 		players->valid = true;
 		record_pool_release_all(players);
-		ai_players_reset();
+		void (*reset_players)(void) = ai_players_reset;
+		reset_players();
 		((s_players_globals *)g_4e8c20)->local_machine_index = NONE;
 	}
 }
@@ -103,7 +104,8 @@ void function_14b600(void)
 	if (!g_4ed39c)
 	{
 		g_4e8c24->valid = false;
-		ai_players_reset();
+		void (*reset_players)(void) = ai_players_reset;
+		reset_players();
 
 		s_players_globals *globals = (s_players_globals *)g_4e8c20;
 
@@ -484,7 +486,7 @@ bool function_14d0a0(s_player_action const *action)
 		return false;
 	}
 
-	if (action->field_14_3 < 0.0f || action->field_14_3 > 1.0f)
+	if (!(action->field_14_3 >= 0.0f && action->field_14_3 <= 1.0f))
 	{
 		return false;
 	}
@@ -494,8 +496,8 @@ bool function_14d0a0(s_player_action const *action)
 		return false;
 	}
 
-	if (action->throttle_i < -1.0f || action->throttle_i > 1.0f ||
-		action->throttle_j < -1.0f || action->throttle_j > 1.0f)
+	if (!(action->throttle_i >= -1.0f && action->throttle_i <= 1.0f &&
+		action->throttle_j >= -1.0f && action->throttle_j <= 1.0f))
 	{
 		return false;
 	}
@@ -540,7 +542,15 @@ bool function_14d0a0(s_player_action const *action)
 		return false;
 	}
 
-	return player_action_target_valid(&action->target);
+	s_player_action_target const *target = &action->target;
+	if (!target)
+		return false;
+	short type = (short)target->type;
+	if (type < 0 || type >= 9)
+		return false;
+	if (type != 0 && target->index == NONE)
+		return false;
+	return true;
 }
 
 bool simulation_machine_is_ready(const s_machine_address *address);
@@ -1490,8 +1500,9 @@ void function_158090(long player_index, short old_team);
 void function_1582d0(long player_index, short old_team);
 void function_1583d0(long player_index, short old_value, short new_value);
 
-// @retail 0x14be90
-void __stdcall function_14be90(long player_index, dword const *configuration)
+void __stdcall function_14be90(long player_index, dword const *configuration);
+
+static __forceinline void player_configuration_apply(long player_index, dword const *configuration)
 {
     s_player *player = player_get(player_index);
     s_type_b07538 *current = (s_type_b07538 *)((byte *)player + 0x44);
@@ -1502,12 +1513,18 @@ void __stdcall function_14be90(long player_index, dword const *configuration)
     function_158090(player_index, verified.team_index);
     *current = verified;
     wcsncmp((wchar_t const *)&previous, (wchar_t const *)current, 0x20);
-    if (previous.team_index != current->team_index)
-        function_1582d0(player_index, current->team_index);
-    if (previous.unknown7d != current->unknown7d)
-        function_1583d0(player_index, current->unknown7d, previous.unknown7d);
+    if (previous.team_index != *(char *)((byte *)player + 0xc0))
+        function_1582d0(player_index, *(char *)((byte *)player + 0xc0));
+    if (previous.unknown7d != *(char *)((byte *)player + 0xc1))
+        function_1583d0(player_index, *(char *)((byte *)player + 0xc1), previous.unknown7d);
     if (player->unit_index != NONE)
         function_14bfc0(player_index, player->unit_index);
+}
+
+// @retail 0x14be90
+void __stdcall function_14be90(long player_index, dword const *configuration)
+{
+	player_configuration_apply(player_index, configuration);
 }
 
 struct s_spawn_influence

@@ -90,8 +90,8 @@ void __stdcall function_ba410(long object_index, long region_name, long arg_dbe8
     if (definition->model_index != NONE)
     {
         long region_index = function_16d1d0(definition->model_index, (string_handle)region_name);
-        long count = object->regions_size / 10;
         char *regions = (char *)object + object->regions_offset;
+        long count = object->regions_size / 10;
         memcpy(previous, regions, count);
         if (((byte *)header)[3] == 6 && *(short *)((byte *)object + 0x1a) != NONE &&
             !(((byte *)object)[0x12c] & 2))
@@ -105,8 +105,7 @@ void __stdcall function_ba410(long object_index, long region_name, long arg_dbe8
                 {
                     regions[i] = (char)variant;
                     s_region_change_ab *change = (s_region_change_ab *)(regions + count * 2) + i;
-                    change->variant = 0xff;
-                    change->state = 0;
+                    *(word *)change = 0xff;
                     change->flags = 0;
                     change->stamp = NONE;
                 }
@@ -169,6 +168,40 @@ void function_ba690(long object_index, byte **states, long *state_count, long *a
 		*a = (long)(regions + *state_count);
 	if (b)
 		*b = (long)(regions + 2 * *state_count);
+}
+
+void render_model_choose_permutations(long render_model_index, long variant_index,
+    char *permutation_indices, s_region_permutation_choice *region_choices, dword fixed_region_mask);
+
+// @retail 0xba590
+void __stdcall function_ba590(long object_index, dword fixed_region_mask)
+{
+    byte *states;
+    long count;
+    long saved_states;
+    long choices;
+    char previous[16];
+    s_object_blocks_ab *object = object_blocks_get_ab(object_index);
+    s_object_variant_definition_ab *definition = (s_object_variant_definition_ab *)g_4e3b44[object->tag_index & 0xffff].bytes;
+    function_ba690(object_index, &states, &count, &saved_states, &choices);
+    memcpy(previous, states, count);
+    if (definition->model_index != NONE)
+        render_model_choose_permutations(definition->model_index, object->variant,
+            (char *)states, (s_region_permutation_choice *)choices, fixed_region_mask);
+    else
+    {
+        for (long i = 0; i < count; ++i)
+        {
+            states[i] = 0;
+            s_region_change_ab *choice = &((s_region_change_ab *)choices)[i];
+            choice->variant = 0xff;
+            choice->state = 0;
+            choice->flags = 0;
+        }
+    }
+    memcpy((void *)saved_states, states, count);
+    function_17b1d0(object_index);
+    function_1c54b0(object_index, previous);
 }
 
 struct s_object
@@ -412,8 +445,7 @@ short function_bb430(long mask, short cluster_count, short const *clusters, shor
         mask = NONE;
     ++g_4de2fc;
     g_4de2f8 = true;
-    for (short i = 0; i < cluster_count; ++i)
-    {
+    { short i = 0; if (i < cluster_count) do {
         short cluster = clusters[i];
         long next;
         long object;
@@ -445,7 +477,9 @@ short function_bb430(long mask, short cluster_count, short const *clusters, shor
                 }
             }
         }
-    }
+    
+++i;
+} while (i < cluster_count); }
 done:
     g_4de2f8 = false;
     return count;
@@ -548,26 +582,27 @@ bool function_ba8c0(s_object_function_ab const *function, long object_index, rea
 // @retail 0xbab40
 bool __stdcall function_bab40(long object_index, long name, real *value)
 {
-    *value = 0.0f;
+    real *saved_value = value;
+    *saved_value = 0.0f;
     bool enabled = false;
     s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
     if ((bool)(((dword)object->flags_c0 >> 9) & 1))
     {
-        long index;
-        if (function_10aac0(object_index, name, value, &index))
+        long &index = *(long *)&value;
+        if (function_10aac0(object_index, name, saved_value, &index))
             return true;
     }
     if (!name || name == 0x030005a6)
     {
-        *value = 1.0f;
+        *saved_value = 1.0f;
         return true;
     }
     if (name == 0x040005a7)
     {
-        *value = 0.0f;
+        *saved_value = 0.0f;
         return false;
     }
-    if (object_index != NONE && !function_108d90(object_index, name, value, &enabled))
+    if (object_index != NONE && !function_108d90(object_index, name, saved_value, &enabled))
     {
         object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
         s_object_functions_definition_ab *definition = (s_object_functions_definition_ab *)g_4e3b44[*(long *)object & 0xffff].bytes;
@@ -577,15 +612,15 @@ bool __stdcall function_bab40(long object_index, long name, real *value)
             s_object_function_ab *function = &definition->functions[i];
             if (function->output_name == name)
             {
-                enabled = function_ba8c0(function, object_index, value);
+                enabled = function_ba8c0(function, object_index, saved_value);
                 found = true;
             }
         }
         if (!found)
         {
             if (TEST_FIELD_BIT(object->flag26) && object->parent_index != NONE)
-                return function_bab40(object->parent_index, name, value);
-            *value = 0.0f;
+                return function_bab40(object->parent_index, name, saved_value);
+            *saved_value = 0.0f;
             return false;
         }
     }

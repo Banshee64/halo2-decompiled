@@ -55,7 +55,7 @@ void function_1579f0(void);
 void function_15c000(void);
 void function_a77c0(void);
 long function_1587f0(long team);
-void function_15b3a0(long team, long a);
+void function_15b3a0(long team, bool a);
 bool function_19f240(long *iterator);
 
 #define MACRO_0A8D68 ((s_simulation_world_view *)g_4cf77c)

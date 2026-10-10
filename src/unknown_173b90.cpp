@@ -472,16 +472,18 @@ PRIVATE inline void particle_rotate_175610(matrix3x3 const *matrix, vector3f con
 // @retail 0x175610
 void function_175610(s_particle_value_cache *cache, s_particle_system_datum *system, s_particle_location_datum *location, particle_callback_175610 callback, void *context)
 {
-	s_effect_particle_system_definition *definition = system->function_1751d0();
-	if (system != cache->field_48)
+	s_particle_system_datum * *system_reference = &system;
+	s_particle_value_cache * *cache_reference = &cache;
+	s_effect_particle_system_definition *definition = (*system_reference)->function_1751d0();
+	if ((*system_reference) != (*cache_reference)->field_48)
 	{
-		cache->field_48 = system;
-		cache->mask &= 0xfffff98f;
+		(*cache_reference)->field_48 = (*system_reference);
+		(*cache_reference)->mask &= 0xfffff98f;
 	}
-	if (location != cache->field_4c)
+	if (location != (*cache_reference)->field_4c)
 	{
-		cache->field_4c = location;
-		cache->mask &= 0xfffecf7f;
+		(*cache_reference)->field_4c = location;
+		(*cache_reference)->mask &= 0xfffecf7f;
 	}
 	long emitter_index = *(long *)((byte *)location + 4);
 	s_emitter_definition_175610 *emitter_definition = *(s_emitter_definition_175610 **)((byte *)definition + 0x34);
@@ -493,7 +495,7 @@ void function_175610(s_particle_value_cache *cache, s_particle_system_datum *sys
 		{
 			real multiplier = 1.0f;
 			real scale = 1.0f;
-			if (TEST_FIELD_BIT(system->flag10))
+			if (TEST_FIELD_BIT((*system_reference)->flag10))
 				multiplier = function_3eb70();
 			matrix3x3 rotation;
 			point3f origin;
@@ -503,34 +505,34 @@ void function_175610(s_particle_value_cache *cache, s_particle_system_datum *sys
 			if (definition->unknown0c)
 				function_248450(&rotation, (s_particle_frame const *)emitter, &origin, &rotation_result, &origin_result, *((byte *)location + 2) != 0);
 			dword mask = emitter_definition->mask & 0x107f0;
-			function_173ba0(~cache->mask & mask, cache->field_48, cache->field_4c, cache->field_50, cache->values);
-			cache->mask |= mask;
+			function_173ba0(~(*cache_reference)->mask & mask, (*cache_reference)->field_48, (*cache_reference)->field_4c, (*cache_reference)->field_50, (*cache_reference)->values);
+			(*cache_reference)->mask |= mask;
 			if (emitter_definition->flags & 1)
-				color.alpha = function_246cd0(&emitter_definition->alpha, cache->values);
+				color.alpha = function_246cd0(&emitter_definition->alpha, (*cache_reference)->values);
 			if (emitter_definition->flags & 2)
-				function_246d80(&emitter_definition->color, cache->values, (color3f *)&color.red);
+				function_246d80(&emitter_definition->color, (*cache_reference)->values, (color3f *)&color.red);
 			if ((bool)((emitter_definition->flags >> 2) & 1))
-				scale = function_246cd0(&emitter_definition->scale, cache->values) * multiplier;
+				scale = function_246cd0(&emitter_definition->scale, (*cache_reference)->values) * multiplier;
 			mask = emitter_definition->mask & 0xf80f;
 			while (particle_index != NONE)
 			{
 				s_particle_175610 *particle = DATUM(g_51ec84, s_particle_175610, particle_index);
 				point3f position = particle->position;
 				vector3f velocity = particle->velocity;
-				if (particle != cache->field_50)
+				if (particle != (*cache_reference)->field_50)
 				{
-					cache->field_50 = particle;
-					cache->mask &= 0xffff07f0;
+					(*cache_reference)->field_50 = particle;
+					(*cache_reference)->mask &= 0xffff07f0;
 				}
-				function_173ba0(~cache->mask & mask, cache->field_48, cache->field_4c, cache->field_50, cache->values);
-				cache->mask |= mask;
+				function_173ba0(~(*cache_reference)->mask & mask, (*cache_reference)->field_48, (*cache_reference)->field_4c, (*cache_reference)->field_50, (*cache_reference)->values);
+				(*cache_reference)->mask |= mask;
 				particle_index = particle->next_index;
 				if (!(emitter_definition->flags & 1))
-					color.alpha = function_246cd0(&emitter_definition->alpha, cache->values);
+					color.alpha = function_246cd0(&emitter_definition->alpha, (*cache_reference)->values);
 				if (!(emitter_definition->flags & 2))
-					function_246d80(&emitter_definition->color, cache->values, (color3f *)&color.red);
+					function_246d80(&emitter_definition->color, (*cache_reference)->values, (color3f *)&color.red);
 				if (!(bool)((emitter_definition->flags >> 2) & 1))
-					scale = function_246cd0(&emitter_definition->scale, cache->values) * multiplier;
+					scale = function_246cd0(&emitter_definition->scale, (*cache_reference)->values) * multiplier;
 				if (definition->unknown0c)
 				{
 					particle_rotate_175610(rotation_result, (vector3f const *)&position, (vector3f *)&position);
@@ -539,7 +541,7 @@ void function_175610(s_particle_value_cache *cache, s_particle_system_datum *sys
 					position.z = origin_result->z + position.z;
 					particle_rotate_175610(rotation_result, &velocity, &velocity);
 				}
-				callback(particle, cache, &position, &velocity, scale, &color, context);
+				callback(particle, (*cache_reference), &position, &velocity, scale, &color, context);
 			}
 		}
 		emitter_index = emitter->next_index;

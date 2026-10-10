@@ -106,8 +106,8 @@ short __stdcall function_1a83b0(long actor_index, short level, bool active)
 // @retail 0x1a92b0
 short __stdcall function_1a92b0(long actor_index)
 {
-	short result = 0;
 	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
 
 	if (actor->unknown358 != 0 &&
 		prop_node_get(actor->unknown368)->unknown24 >= 1 &&
@@ -120,12 +120,12 @@ short __stdcall function_1a92b0(long actor_index)
 			bool near_actor;
 			bool near_segment;
 
-			function_1a8fa0(actor_index, 0.0f, &near_point, &near_actor, &near_segment);
 			result = 1;
+			function_1a8fa0(actor_index, 0.0f, &near_point, &near_actor, &near_segment);
 			if (near_point || near_segment && !near_actor)
 			{
 				if (!REFERENCE_EQUAL(actor->unknown418, g_470fa0))
-					function_262800(actor_index, actor->unknown418, false);
+					function_262800(actor_index, actor->unknown418, true);
 			}
 			if (near_actor || near_segment)
 				result = 3;
@@ -216,12 +216,12 @@ short __stdcall function_1a9540(long actor_index)
 			bool near_actor;
 			bool near_segment;
 
-			function_1a8fa0(actor_index, 0.5f, &near_point, &near_actor, &near_segment);
 			result = 1;
+			function_1a8fa0(actor_index, 0.5f, &near_point, &near_actor, &near_segment);
 			if (near_point || near_segment && !near_actor)
 			{
 				if (!REFERENCE_EQUAL(actor->unknown418, g_470fa0))
-					function_262800(actor_index, actor->unknown418, false);
+					function_262800(actor_index, actor->unknown418, true);
 			}
 			if (near_actor || near_segment)
 				result = 3;

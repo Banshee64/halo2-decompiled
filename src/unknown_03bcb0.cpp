@@ -51,7 +51,7 @@ bool function_3bea0(void)
 #include <string.h>
 struct s_frustum_1648d0;
 struct s_camera_163db0;
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier);
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result);
 void function_141590(transform4x3f const *in, transform4x3f *out);
 real function_30bf0(vector3f *vector);
 
@@ -119,7 +119,7 @@ void function_441b0(s_planar_camera_source const *source, s_planar_camera *state
 	state->corners[3].y = rectangle->y1;
 	state->count = 4;
 	state->valid = true;
-	function_163db0((s_frustum_1648d0 *)state->frustum, rectangle, (s_camera_163db0 *)state, 0);
+	function_163db0((s_camera_163db0 *)state, rectangle, 0, (s_frustum_1648d0 *)state->frustum);
 }
 
 struct s_3c9a0_matrix
@@ -244,12 +244,13 @@ long function_15d70(long tag, long stage, long pass, bool first, bool second)
 {
 	(void)&pass; (void)&first; (void)&second;
 	byte *definition = g_4e3b44[tag & 0xffff].bytes;
-	long result = 0;
+	long result = NONE;
 	byte *groups = record_format_groups(tag);
 	long group = *(word *)(*(byte **)(groups + 4) + pass * 10) & 0x1ff;
 	word range = (*(word **)(groups + 0xc))[group + stage];
-	if (range >> 9)
+	if (range > 0x1ff)
 	{
+		result = 0;
 		switch (stage)
 		{
 		case 3: result = function_0226d0() ? NONE : 3; break;
@@ -259,8 +260,6 @@ long function_15d70(long tag, long stage, long pass, bool first, bool second)
 		case 13: result = function_30e00(*(word *)(definition + 0x3e) != 0); break;
 		}
 	}
-	else
-		result = NONE;
 	return result;
 }
 
@@ -301,10 +300,11 @@ bool __stdcall function_4dfa0(long tag, long context, long pass, long stage, lon
 // @retail 0x4de20
 bool __stdcall function_4de20(long tag, long context, long pass, long stage, long entry, long handle, s_sort_record *out)
 {
+    bool final_value;
 	(void)&tag; (void)&context; (void)&pass; (void)&stage;
 	(void)&entry; (void)&handle; (void)&out;
 	out->unknown04 = 0;
-	if (stage == 1) return false;
+	if (stage == 1) { final_value = false; goto complete; }
 	byte *table = *(byte **)((byte *)g_4e0348 + 0x238);
 	byte *record = *(byte **)(table + 0x1c) + (((dword)handle >> 8) & 0x3fffff) * 24;
 	long record_tag = (*(long **)((byte *)g_4e0350 + 0x37c))[(signed char)record[0] * 2 + 1];
@@ -320,9 +320,11 @@ bool __stdcall function_4de20(long tag, long context, long pass, long stage, lon
 		out->value10 = (dword)material;
 		out->value08 = 1;
 		out->unknown14 = 0;
-		return function_4cbb0(*(long *)(material + 0x100), 1) != 0;
+		{ final_value = function_4cbb0(*(long *)(material + 0x100), 1) != 0; goto complete; }
 	}
-	return false;
+	{ final_value = false; goto complete; }
+complete:
+    return final_value;
 }
 
 // @retail 0x4e0d0
@@ -794,10 +796,9 @@ void function_3d000(real const *state)
         state[41] - state[40] > 0.0001f)
     {
         double inverse = 1.0 / state[34];
-        real low = (real)(inverse * state[40] * 16777215.0);
-        real high = (real)(inverse * state[41] * 16777215.0);
-        direction[0] = 1.0f / (high - low);
-        direction[1] = 0.0f - direction[0] * low;
+        struct { real a, b; } local_low_high_record = { (real)(inverse * state[40] * 16777215.0), (real)(inverse * state[41] * 16777215.0) };
+        direction[0] = 1.0f / (local_low_high_record.b - local_low_high_record.a);
+        direction[1] = 0.0f - direction[0] * local_low_high_record.a;
         direction[2] = 0.0f;
         direction[3] = 0.0f;
     }
@@ -1059,6 +1060,8 @@ void function_41040(short index, long part_index, long group, byte weight,
     s_render_part_context const *context, long material_override, bool force,
     dword and_mask, dword or_mask)
 {
+    part_index = *(long volatile *)&part_index;
+    index = *(short volatile *)&index;
     (void)&group; (void)&weight; (void)&context; (void)&material_override;
     (void)&force; (void)&and_mask; (void)&or_mask;
     s_44940_entry const *entry = &g_4ba138[index];
@@ -1142,13 +1145,14 @@ bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
     long entry_index, long handle, void *record)
 {
     s_sort_record *out = (s_sort_record *)record;
+    tag = *(long volatile *)&tag;
     long key = (byte)handle;
     short index = (short)(handle >> 8);
     s_44940_entry *source = &g_4ba138[index];
     byte *object = *(byte **)source->unknown10;
+    volatile bool result = false;
     long mode = function_15d70(tag, stage, pass, source->tag != NONE,
         (bool)((source->unknown00 >> 10) & 1));
-    bool result = false;
     switch (stage)
     {
     case 3:
@@ -1162,14 +1166,6 @@ bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
         default: mode = 3; break;
         }
         break;
-    case 16:
-    {
-        bool enabled = g_4ba004 && !g_485a75 && !g_485a76;
-        if (!(source->unknown00 & 0x80)) mode = NONE;
-        else if (source->unknown00 & 0x100) mode = enabled ? NONE : 1;
-        else mode = enabled ? 2 : 0;
-        break;
-    }
     case 18:
     {
         byte *definition = g_4e3b44[tag & 0xffff].bytes;
@@ -1195,6 +1191,14 @@ bool __stdcall function_4cbf0(long tag, long context, long pass, long stage,
                 (g_4b9f78 > g_4b9f7c ? g_4b9f78 : g_4b9f7c) > 0.0f && object[0x76] < 0xff)
                 mode = 0;
         }
+        break;
+    }
+    case 16:
+    {
+        bool enabled = g_4ba004 && !g_485a75 && !g_485a76;
+        if (!(source->unknown00 & 0x80)) mode = NONE;
+        else if (source->unknown00 & 0x100) mode = enabled ? NONE : 1;
+        else mode = enabled ? 2 : 0;
         break;
     }
     }

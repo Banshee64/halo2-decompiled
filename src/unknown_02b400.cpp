@@ -76,41 +76,42 @@ bool g_4ba019;
 // @retail 0x2f970
 bool function_2f970(s_2f970_view const *view, real *out)
 {
-	real center_x = (view->outer_right + view->outer_left) * 0.5f;
-	real center_y = (view->outer_top + view->outer_bottom) * 0.5f;
-	real vertical_scale = 2.0f / (view->outer_bottom - view->outer_top);
-	real horizontal_scale = (real)(view->bottom - view->top) / (view->right - view->left) * vertical_scale;
-	out[0] = (view->left - center_x) * horizontal_scale;
-	out[1] = (view->right - center_x) * horizontal_scale;
-	out[2] = (center_y - view->bottom) * vertical_scale;
-	out[3] = (center_y - view->top) * vertical_scale;
-	g_4ba019 = view->crop || view->offset;
-	if (g_4e0350)
-		g_4ba019 |= *(short *)((byte *)g_4e0350 + 0x10) == 2;
-	if (view->crop)
-	{
-		real width = out[1] - out[0];
-		real height = out[3] - out[2];
-		real x = (view->center_x + 1.0f) * 0.5f * width + out[0];
-		real y = (view->center_y + 1.0f) * 0.5f * height + out[2];
-		real half_width = view->crop_scale * width * 0.5f;
-		real half_height = view->crop_scale * height * 0.5f;
-		out[0] = x - half_width;
-		out[2] = y - half_height;
-		out[3] = half_height + y;
-		out[1] = half_width + x;
-	}
-	else if (view->offset)
-	{
-		real x = (out[1] - out[0]) * (1.0f / 640.0f) * view->offset_x;
-		real y = (out[3] - out[2]) * (1.0f / 480.0f) * view->offset_y;
-		out[0] += x;
-		real right = out[1] + x;
-		out[2] -= y;
-		out[3] -= y;
-		out[1] = right;
-	}
-	return true;
+    real center_x = (view->outer_right + view->outer_left) * 0.5f;
+    real center_y = (view->outer_top + view->outer_bottom) * 0.5f;
+    real vertical_scale = 2.0f / (view->outer_bottom - view->outer_top);
+    real horizontal_scale = (real)(view->bottom - view->top) / (view->right - view->left) * vertical_scale;
+    out[0] = (view->left - center_x) * horizontal_scale;
+    out[1] = (view->right - center_x) * horizontal_scale;
+    out[2] = (center_y - view->bottom) * vertical_scale;
+    out[3] = (center_y - view->top) * vertical_scale;
+    g_4ba019 = view->crop || view->offset;
+    if (g_4e0350)
+        g_4ba019 |= *(short *)((byte *)g_4e0350 + 0x10) == 2;
+    bool const volatile *crop = &view->crop;
+    if (*crop)
+    {
+        real width = out[1] - out[0];
+        real height = out[3] - out[2];
+        real x = (view->center_x + 1.0f) * 0.5f * width + out[0];
+        real y = (view->center_y + 1.0f) * 0.5f * height + out[2];
+        real half_width = *(real const volatile *)&view->crop_scale * width * 0.5f;
+        real half_height = *(real const volatile *)&view->crop_scale * height * 0.5f;
+        out[0] = x - half_width;
+        out[2] = y - half_height;
+        out[3] = half_height + y;
+        out[1] = half_width + x;
+    }
+    else if (view->offset)
+    {
+        real x = (out[1] - out[0]) * (1.0f / 640.0f) * view->offset_x;
+        real y = (out[3] - out[2]) * (1.0f / 480.0f) * view->offset_y;
+        out[0] += x;
+        real right = out[1] + x;
+        out[2] -= y;
+        out[3] -= y;
+        out[1] = right;
+    }
+    return true;
 }
 
 // @retail 0x2f800
@@ -168,49 +169,49 @@ struct s_projection_scalars
 // @retail 0x2fb70
 void function_2fb70(s_2f800_view const *view, box2f const *clip, s_projection_scalars *out)
 {
-	short const *viewport = (short const *)view->unknown30;
-	out->width = (real)(viewport[3] - viewport[1]);
-	out->height = (real)(viewport[2] - viewport[0]);
-	if (!clip)
-	{
-		out->clip.x0 = out->clip.y0 = -1.0f;
-		out->clip.x1 = out->clip.y1 = 1.0f;
-	}
-	else
-		out->clip = *clip;
-	real half_width = (out->clip.x1 - out->clip.x0) * 0.5f;
-	real half_height = (out->clip.y1 - out->clip.y0) * 0.5f;
-	real offset_x = (out->clip.x1 + out->clip.x0) / half_width * -0.5f;
-	real offset_y = (out->clip.y0 + out->clip.y1) / half_height * -0.5f;
-	out->half_height = half_height;
-	out->half_width = half_width;
-	out->offset_x = offset_x;
-	out->offset_y = offset_y;
-	real tangent = (real)tan((double)view->angle * 0.5f);
-	real aspect = out->width / out->height;
-	if (!(g_4e6948 && g_4e6948->flag && g_4e6948->index != NONE && g_4e6948->state == 3) && g_485ac2)
-	{
-		aspect *= 4.0f / 3.0f;
-		if (g_510c50 && ((byte *)g_510c50)[5])
-			tangent = tangent * (4.0f / 3.0f) * 0.5625f;
-	}
-	else if (g_510c50 && ((byte *)g_510c50)[5])
-	{
-		real scale = out->height * (1.0f / 480.0f);
-		out->clip.y0 *= scale;
-		out->clip.y1 *= scale;
-	}
-	out->scale_x = 1.0f / (half_width * aspect * tangent);
-	real inverse_x = 1.0f / out->scale_x;
-	out->scale_y = 1.0f / (out->half_height * tangent);
-	real left = 0.0f - (offset_x + 1.0f) * inverse_x;
-	out->right = 0.0f - (offset_x - 1.0f) * inverse_x;
-	real inverse_y = 1.0f / out->scale_y;
-	real bottom = 0.0f - (out->offset_y + 1.0f) * inverse_y;
-	real top = 0.0f - (out->offset_y - 1.0f) * inverse_y;
-	out->left = left;
-	out->bottom = bottom;
-	out->top = top;
+    short const *viewport = (short const *)view->unknown30;
+    out->width = (real)(viewport[3] - viewport[1]);
+    out->height = (real)(viewport[2] - viewport[0]);
+    if (!clip)
+    {
+        out->clip.x0 = out->clip.y0 = -1.0f;
+        out->clip.x1 = out->clip.y1 = 1.0f;
+    }
+    else
+        out->clip = *clip;
+    real half_width = (out->clip.x1 - out->clip.x0) * 0.5f;
+    real half_height = (out->clip.y1 - out->clip.y0) * 0.5f;
+    real offset_x = (out->clip.x1 + out->clip.x0) / half_width * -0.5f;
+    real offset_y = (out->clip.y0 + out->clip.y1) / half_height * -0.5f;
+    out->half_height = half_height;
+    out->half_width = half_width;
+    out->offset_x = offset_x;
+    out->offset_y = offset_y;
+    real volatile tangent = (real)tan((double)view->angle * 0.5f);
+    real aspect = out->width / out->height;
+    if (!(g_4e6948 && g_4e6948->flag && g_4e6948->index != NONE && g_4e6948->state == 3) && g_485ac2)
+    {
+        aspect *= 4.0f / 3.0f;
+        if (g_510c50 && ((byte *)g_510c50)[5])
+            tangent = tangent * (4.0f / 3.0f) * 0.5625f;
+    }
+    else if (g_510c50 && ((byte *)g_510c50)[5])
+    {
+        real scale = out->height * (1.0f / 480.0f);
+        out->clip.y0 *= scale;
+        out->clip.y1 *= scale;
+    }
+    out->scale_x = 1.0f / (half_width * aspect * tangent);
+    real inverse_x = 1.0f / out->scale_x;
+    out->scale_y = 1.0f / (out->half_height * tangent);
+    real left = 0.0f - (offset_x + 1.0f) * inverse_x;
+    out->right = 0.0f - (offset_x - 1.0f) * inverse_x;
+    real inverse_y = 1.0f / out->scale_y;
+    real bottom = 0.0f - (out->offset_y + 1.0f) * inverse_y;
+    real top = 0.0f - (out->offset_y - 1.0f) * inverse_y;
+    out->left = left;
+    out->bottom = bottom;
+    out->top = top;
 }
 
 #define k_real_epsilon 0.0001f
@@ -764,7 +765,7 @@ void function_27aa0(void)
     else if (crossing > 0.0f) filter_random_pair(points + *ring);
     if (phase < 0.0f || phase >= 1.0f) return;
     real offsets[4] = { 0.0f, 0.7135000228881836f, 0.34220001101493835f, 0.579800009727478f };
-    long bitmap_count = *(long *)(bitmap + 0x44);
+    volatile long bitmap_count = *(long *)(bitmap + 0x44);
     for (long i = 0; i < 4; ++i)
     {
         if (*(real *)(definition + 0x28) > 0.0f)
@@ -789,7 +790,7 @@ void function_27aa0(void)
     }
     for (long j = 0; j < 4; ++j)
     {
-        long index = (*ring + j) % 4;
+        volatile long index = (*ring + j) % 4;
         real distance = (j + phase) * step + g_4857dc;
         real fraction = (distance - g_4857dc) * inverse_span;
         real weight = (real)(pow(1.0 - pow((double)fabs(fraction * 2.0f - 1.0f), 3.0), 2.0) * g_4b9d98);
@@ -902,7 +903,7 @@ bool __stdcall function_38450(byte *state, byte const *definition, real remainin
             nearby[nearby_count++] = volumes + i;
     }
     long active = 0;
-    for (long j = start; j < start + count; ++j)
+    for (long j = start, remaining_count = count; remaining_count > 0; ++j, --remaining_count)
     {
         s_38450_vertex *vertex = records->vertices + j;
         s_38450_particle *particle = records->particles + j;
@@ -998,12 +999,12 @@ bool __stdcall function_38450(byte *state, byte const *definition, real remainin
         {
             vertex->color = 0xffffffff;
             particle->lifetime = (real)(filter_random_fraction() *
-                (*(real *)(state + 0x20) - *(real *)(state + 0x1c)) + *(real *)(state + 0x1c));
+                ((double)*(real *)(state + 0x20) - *(real *)(state + 0x1c)) + *(real *)(state + 0x1c));
             particle->velocity.i = (real)(filter_random_fraction() * *(real *)(state + 0x30));
             particle->velocity.j = (real)(filter_random_fraction() * *(real *)(state + 0x34));
             particle->velocity.k = (real)(filter_random_fraction() * *(real *)(state + 0x38));
             vertex->size = (real)(filter_random_fraction() *
-                (*(real *)(state + 0x28) - *(real *)(state + 0x24)) + *(real *)(state + 0x24));
+                ((double)*(real *)(state + 0x28) - *(real *)(state + 0x24)) + *(real *)(state + 0x24));
             particle->age = 0.0f;
             vertex->position.x = (real)((filter_random_fraction() * 2.0 - 1.0f) * extent.depth + camera.x);
             vertex->position.y = (real)((filter_random_fraction() * 2.0 - 1.0f) * extent.width + camera.y);

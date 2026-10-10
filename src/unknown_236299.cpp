@@ -217,7 +217,7 @@ s_type_7ba8e9 *function_236235(short frame_index, short sequence_index)
 /* projects a point onto the screen: the window manager's depth moves it away
    from the eye, and x and y scale about the bounds' centre */
 // @retail 0x2360c3
-void function_2360c3(short_rectangle2d const *bounds, point3f *point)
+void function_2360c3(point3f *point, short_rectangle2d const *bounds)
 {
 	real half_width = (real)(bounds->right - bounds->left) * 0.5f;
 	real half_height = (real)(bounds->bottom - bounds->top) * 0.5f;
@@ -257,8 +257,8 @@ s_float_rect *function_23618e(s_float_rect *rect, real depth, short_rectangle2d 
 	p1.x = rect->x1;
 	p1.y = rect->y1;
 	p1.z = depth;
-	function_2360c3(bounds, &p0);
-	function_2360c3(bounds, &p1);
+	function_2360c3(&p0, bounds);
+	function_2360c3(&p1, bounds);
 	rect->x0 = p0.x;
 	rect->y0 = p0.y;
 	rect->x1 = p1.x;
@@ -586,7 +586,7 @@ void function_23661f(s_dialog_definition *definition, long dialog_id)
 
 struct s_1ed70_point { short x, y; };
 void function_1eb00();
-void function_1ed70(color4f const *color, s_1ed70_point const *points, short count);
+void function_1ed70(color4f const *color, s_1ed70_point const *points, volatile short count);
 void function_1ee50();
 
 // @retail 0x235d69
@@ -606,16 +606,16 @@ void function_235d69(short_rectangle2d const *rectangle, real depth,
     d.x = (real)rectangle->right;
     d.y = (real)rectangle->bottom;
     d.z = depth;
-    function_2360c3(screen, &a);
-    function_2360c3(screen, &b);
-    function_2360c3(screen, &c);
-    function_2360c3(screen, &d);
+    function_2360c3(&a, screen);
+    function_2360c3(&b, screen);
+    function_2360c3(&c, screen);
+    function_2360c3(&d, screen);
     s_1ed70_point points[5];
     points[0].x = (short)a.x; points[0].y = (short)a.y;
     points[1].x = (short)c.x; points[1].y = (short)c.y;
     points[2].x = (short)d.x; points[2].y = (short)d.y;
     points[3].x = (short)b.x; points[3].y = (short)b.y;
-    points[4] = points[0];
+    points[4].x = (short)a.x; points[4].y = (short)a.y;
     function_1eb00();
     function_1ed70(color, points, 5);
     function_1ee50();
@@ -662,14 +662,16 @@ void function_23675a(s_bitmap_view *bitmap, s_texture_rect const *texture, dword
 	point2f corners[4];
 	real height = bounds->y1 - bounds->y0;
 	real width = bounds->x1 - bounds->x0;
+	real right = bounds->x0 + width;
+	real bottom = bounds->y0 + height;
 	corners[0].x = bounds->x0;
 	corners[0].y = bounds->y0;
-	corners[1].x = bounds->x0 + width;
+	corners[1].x = right;
 	corners[1].y = bounds->y0;
-	corners[2].x = bounds->x0 + width;
-	corners[2].y = bounds->y0 + height;
+	corners[2].x = right;
+	corners[2].y = bottom;
 	corners[3].x = bounds->x0;
-	corners[3].y = bounds->y0 + height;
+	corners[3].y = bottom;
 	s_interface_draw_vertex vertices[4];
 	for (long i = 0; i < 4; i++)
 	{

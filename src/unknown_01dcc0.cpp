@@ -251,7 +251,7 @@ bool function_1dc40(long index, long width, long height)
     (void)&height;
     long size = ((width + 63) & ~63) * height * 4;
     long active = g_485898 >= 4 && g_485898 <= 7;
-    void *data = (void *)function_12d400((long)(bool)(byte)active + 1, size, index, 0, (long)function_1db90);
+    void *data = (void *)function_12d400((long)((byte)active != 0) + 1, size, index, 0, (long)function_1db90);
     if (data)
         XPhysicalProtect(data, size, PAGE_READWRITE | PAGE_WRITECOMBINE);
     return function_1df20(index, 3, width, height, false, true, 1, data);

@@ -24,7 +24,7 @@ long function_a58d0(long a)
 
 
 // @stub 0xa6660
-void function_a6660(s_entity_info *info)
+void __stdcall function_a6660(s_entity_info *info)
 {
 }
 

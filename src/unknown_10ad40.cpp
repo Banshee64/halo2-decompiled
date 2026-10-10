@@ -47,9 +47,9 @@ void function_10ad40(long object_index, bool flag)
 		bool old_flag = TEST_FIELD_BIT(object->flag_c0_5);
 
 		if (flag)
-			object->flags_c0 |= 0x20;
+			*(byte *)&object->flags_c0 |= 0x20;
 		else
-			object->flags_c0 &= ~0x20;
+			*(byte *)&object->flags_c0 &= ~0x20;
 		if (old_flag != flag)
 			function_1c3770(object_index, 0);
 	}

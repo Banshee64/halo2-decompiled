@@ -11,6 +11,32 @@
 
 #include "unknown_163110.h"
 
+struct s_22bbca { short top, left, bottom, right; };
+void function_22bbca(s_22bbca const *bounds, long tag_index, long first, long second,
+	long text_index, real alpha);
+extern short g_4b9dd0, g_4b9dd2;
+
+// @retail 0x163400
+void function_163400(s_text_widget_a const *widget)
+{
+	if (g_4e034c && g_4e034c->index != NONE && widget->valid)
+	{
+		s_22bbca bounds = *(s_22bbca const *)&widget->bounds;
+		byte *definition = g_4e3b44[g_4e034c->index & 0xffff].bytes;
+		byte *data = *(byte **)(definition + 0xc);
+		bounds.left += g_4b9dd2;
+		bounds.right += g_4b9dd2;
+		bounds.top += g_4b9dd0;
+		bounds.bottom += g_4b9dd0;
+		if (widget->text[0] == 0)
+			function_22bbca((s_22bbca const *)&bounds, *(long *)(data + 0x54c),
+				*(long *)(data + 0x554), 0, *(long *)widget->unknown34, widget->color_b.alpha);
+		else if (widget->text[0] == 1)
+			function_22bbca((s_22bbca const *)&bounds, *(long *)(data + 0x55c),
+				*(long *)(data + 0x564), 0, *(long *)widget->unknown34, widget->color_b.alpha);
+	}
+}
+
 // @retail 0x163110
 s_text_buffer *text_buffer_format(s_text_buffer *buffer, const word *format, ...)
 {
@@ -348,7 +374,7 @@ PRIVATE inline double plane_error_163db0(s_plane const *plane, point3f const *po
 }
 
 // @retail 0x163db0
-bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_163db0 const *camera, long identifier)
+bool function_163db0(s_camera_163db0 const *camera, box2f const *rectangle, long identifier, s_frustum_1648d0 *result)
 {
 	bool valid = false;
 	if (rectangle->x1 > rectangle->x0 && rectangle->y1 > rectangle->y0)
@@ -399,7 +425,7 @@ bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_
 		function_30bf0(&result->planes[3].normal);
 		result->planes[3].d = 0.0f;
 		transform_plane_163db0(&camera->matrix, &result->planes[3]);
-		if (camera->has_plane)
+		if (!(!(camera->has_plane)))
 		{
 			result->planes[4].normal.i = 0.0f - camera->plane.normal.i;
 			result->planes[4].normal.j = 0.0f - camera->plane.normal.j;
@@ -419,11 +445,18 @@ bool function_163db0(s_frustum_1648d0 *result, box2f const *rectangle, s_camera_
 		result->planes[5].normal.k = -1.0f;
 		result->planes[5].d = camera->depth;
 		transform_plane_163db0(&camera->matrix, &result->planes[5]);
-		for (long i = 0; i < 4; ++i)
 		{
-			result->directions[i].i = result->points[i].x - result->points[4].x;
-			result->directions[i].j = result->points[i].y - result->points[4].y;
-			result->directions[i].k = result->points[i].z - result->points[4].z;
+			long i = 0;
+			if (i < 4)
+			{
+				do
+				{
+					result->directions[i].i = result->points[i].x - result->points[4].x;
+					result->directions[i].j = result->points[i].y - result->points[4].y;
+					result->directions[i].k = result->points[i].z - result->points[4].z;
+					++i;
+				} while (i < 4);
+			}
 		}
 		char const *error = 0;
 		if (!(plane_error_163db0(&result->planes[0], &result->points[1]) < 0.01f &&
@@ -509,6 +542,9 @@ long function_239cb0(long count, point3f const *points, point2f *hull);
 bool function_1648d0(s_frustum_1648d0 const *source, s_view *view,
 	s_clip_1648d0 const *clip, s_projection_1648d0 *result, bool make_hull)
 {
+	bool *make_hull_reference = &make_hull;
+	s_clip_1648d0 const * *clip_reference = &clip;
+	s_view * *view_reference = &view;
 	long pyramid_edges[8][2] = { {0, 1}, {1, 3}, {3, 2}, {2, 0}, {4, 0}, {4, 1}, {4, 2}, {4, 3} };
 	long box_edges[12][2] = { {0, 1}, {1, 3}, {3, 2}, {2, 0}, {4, 5}, {5, 7}, {7, 6}, {6, 4}, {4, 0}, {5, 1}, {6, 2}, {7, 3} };
 	point3f points[8];
@@ -534,7 +570,7 @@ bool function_1648d0(s_frustum_1648d0 const *source, s_view *view,
 		edges = pyramid_edges;
 		edge_count = 8;
 	}
-	real margin = 1.52588e-5f > clip->margin ? 1.52588e-5f : clip->margin;
+	real margin = 1.52588e-5f > (*clip_reference)->margin ? 1.52588e-5f : (*clip_reference)->margin;
 	s_bounds3d bounds = *g_4687e0;
 	point3f segments[24];
 	point3f projected[24];
@@ -545,21 +581,21 @@ bool function_1648d0(s_frustum_1648d0 const *source, s_view *view,
 		segments[point_count++] = points[edges[i][0]];
 		segments[point_count++] = points[edges[i][1]];
 	}
-	function_1652e0(view, margin, segments, point_count, projected, &projected_count, &bounds, true, true);
+	function_1652e0((*view_reference), margin, segments, point_count, projected, &projected_count, &bounds, true, true);
 	result->bounds = *g_4687e0;
 	result->unknown18 = *g_4687e0;
 	result->hull_count = 0;
 	if (projected_count >= 4)
 	{
 		box2f clipped;
-		clipped.x0 = bounds.x0 > clip->x0 ? bounds.x0 : clip->x0;
-		clipped.x1 = bounds.x1 > clip->x1 ? clip->x1 : bounds.x1;
-		clipped.y0 = bounds.y0 > clip->y0 ? bounds.y0 : clip->y0;
-		clipped.y1 = bounds.y1 > clip->y1 ? clip->y1 : bounds.y1;
+		clipped.x0 = bounds.x0 > (*clip_reference)->x0 ? bounds.x0 : (*clip_reference)->x0;
+		clipped.x1 = bounds.x1 > (*clip_reference)->x1 ? (*clip_reference)->x1 : bounds.x1;
+		clipped.y0 = bounds.y0 > (*clip_reference)->y0 ? bounds.y0 : (*clip_reference)->y0;
+		clipped.y1 = bounds.y1 > (*clip_reference)->y1 ? (*clip_reference)->y1 : bounds.y1;
 		if (!(clipped.x0 > clipped.x1 || clipped.y0 > clipped.y1))
 		{
 			*(box2f *)&result->bounds = clipped;
-			if (make_hull)
+			if ((*make_hull_reference))
 				result->hull_count = (short)function_239cb0(projected_count, projected, result->hull);
 			result->bounds.z0 = bounds.z0;
 			result->bounds.z1 = bounds.y1;

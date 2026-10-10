@@ -190,7 +190,7 @@ real function_194ff0(s_bitstream *stream, real lo, real hi, long bits)
 }
 
 // @retail 0x195240
-void function_195240(s_bitstream *stream, vector3f *forward, vector3f *up)
+void function_195240(s_bitstream *stream, vector3f *up, vector3f *forward)
 {
 	if (function_1957d0(stream))
 		*forward = *g_4687b0;
@@ -221,7 +221,7 @@ bool function_1952f0(real a1, real a2, real a3, real a4, long bits)
 }
 
 // @retail 0x195560
-bool function_195560(vector3f const *a, vector3f const *b, vector3f const *up_a, vector3f const *up_b)
+bool function_195560(vector3f const *b, vector3f const *a, vector3f const *up_a, vector3f const *up_b)
 {
 	bool result = false;
 	if (a->quantized_equal(b))

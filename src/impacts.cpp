@@ -621,6 +621,49 @@ PRIVATE inline void cross3f(vector3f const *a, vector3f const *b, vector3f *resu
 	result->k = a->i * b->j - a->j * b->i;
 }
 
+PRIVATE __forceinline real function_227811(vector3f const *arg_0, vector3f const *arg_1)
+{
+	real local_0 = arg_0->k * arg_1->k;
+	local_0 += arg_0->j * arg_1->j;
+	local_0 += arg_0->i * arg_1->i;
+	return local_0;
+}
+
+PRIVATE __forceinline void function_227812(vector3f const *arg_0, vector3f *arg_1)
+{
+	real local_0 = function_227811(arg_0, arg_1);
+	vector3f local_1;
+	local_1.i = local_0 * arg_0->i;
+	local_1.j = arg_0->j * local_0;
+	local_1.k = arg_0->k * local_0;
+	arg_1->i -= local_1.i;
+	arg_1->j -= local_1.j;
+	arg_1->k -= local_1.k;
+}
+
+PRIVATE __forceinline vector3f const *function_227813(vector3f const *arg_0, s_impact_object *arg_1)
+{
+	real local_0 = arg_1->unknown70.k * arg_0->k;
+	local_0 += arg_1->unknown70.j * arg_0->j;
+	vector3f const *local_1 = &arg_1->unknown70;
+	local_0 += local_1->i * arg_0->i;
+	if (!(local_0 >= 0.0f))
+		local_0 = -local_0;
+	if (!(local_0 < 0.9f))
+		local_1 = &arg_1->unknown7c;
+	return local_1;
+}
+
+PRIVATE __forceinline void function_227814(vector3f const *arg_0, vector3f const *arg_1, vector3f *arg_2)
+{
+	real local_0 = arg_0->i * arg_1->j - arg_0->j * arg_1->i;
+	real local_1 = arg_0->k * arg_1->i - arg_0->i * arg_1->k;
+	real local_2 = arg_0->j * arg_1->k - arg_0->k * arg_1->j;
+	arg_2->i = local_2;
+	arg_2->j = local_1;
+	arg_2->k = local_0;
+}
+
 // @retail 0x227810
 void impact_build_matrix(
 	long component_index,
@@ -628,22 +671,13 @@ void impact_build_matrix(
 	matrix3x3 *matrix)
 {
 	s_impact_object *object = impact_object_header_get(havok_component_get(component_index)->object_index)->object;
-	vector3f const *forward = &object->unknown70;
-	real dot;
 
 	matrix->up = impact->normal;
-	dot = dot3f(forward, &impact->normal);
-	if (!(dot >= 0.0f))
-		dot = -dot;
-	if (!(dot < 0.9f))
-		forward = &object->unknown7c;
+	vector3f const *forward = function_227813(&impact->normal, object);
 	matrix->forward = *forward;
-	dot = dot3f(&matrix->up, &matrix->forward);
-	matrix->forward.i -= matrix->up.i * dot;
-	matrix->forward.j -= matrix->up.j * dot;
-	matrix->forward.k -= matrix->up.k * dot;
+	function_227812(&matrix->up, &matrix->forward);
 	function_30bf0(&matrix->forward);
-	cross3f(&matrix->up, &matrix->forward, &matrix->left);
+	function_227814(&matrix->up, &matrix->forward, &matrix->left);
 	function_30bf0(&matrix->left);
 }
 
@@ -733,6 +767,25 @@ void impact_rigid_body_indices_get(
 	}
 }
 
+PRIVATE __forceinline void function_2281a1(transform4x3f const *arg_0, point3f const *arg_1, point3f *arg_2)
+{
+	real local_0 = arg_1->x;
+	real local_1 = arg_1->y;
+	real local_2 = arg_1->z;
+	if (arg_0->scale != 1.f)
+	{
+		local_0 = arg_0->scale * local_0;
+		local_1 = arg_0->scale * local_1;
+		local_2 = arg_0->scale * local_2;
+	}
+	arg_2->x = arg_0->up.i * local_2 + arg_0->left.i * local_1 + arg_0->forward.i * local_0 + arg_0->position.x;
+	real local_3 = arg_0->up.j * local_2;
+	local_3 += arg_0->left.j * local_1;
+	local_3 += arg_0->forward.j * local_0;
+	arg_2->y = local_3 + arg_0->position.y;
+	arg_2->z = arg_0->up.k * local_2 + arg_0->left.k * local_1 + arg_0->forward.k * local_0 + arg_0->position.z;
+}
+
 // @retail 0x2281a0
 void impact_local_positions_update(
 	s_impact *impact,
@@ -750,12 +803,12 @@ void impact_local_positions_update(
 	else
 	{
 		function_141590(&matrix, &inverse);
-		transform4x3f_apply_point(&inverse, &impact->position, &impact->local_position_a);
+		function_2281a1(&inverse, &impact->position, &impact->local_position_a);
 		if (impact->component_b != NONE)
 		{
 			havok_component_rigid_body_matrix_get(rigid_body_index_b, havok_component_get(impact->component_b), &matrix);
 			function_141590(&matrix, &inverse);
-			transform4x3f_apply_point(&inverse, &impact->position, &impact->local_position_b);
+			function_2281a1(&inverse, &impact->position, &impact->local_position_b);
 		}
 	}
 }
@@ -1281,6 +1334,7 @@ long impact_new(
 
 // @retail 0x2285d0
 void impact_material_effects_get_for_component(
+	vector3f const *normal,
 	long component_index,
 	long unknownd,
 	long unknownb,
@@ -1289,7 +1343,6 @@ void impact_material_effects_get_for_component(
 	c_type_47f957 material_a,
 	c_type_47f957 material_b,
 	long type,
-	vector3f const *normal,
 	long *first_value04,
 	long *second_value04,
 	long *first_value,
@@ -1370,8 +1423,8 @@ void impact_material_effects_get(
 		second_material = material_a;
 		component_index = impact->component_a;
 	}
-	impact_material_effects_get_for_component(component_index, impact->unknownd, impact->unknownb, impact->component_b != NONE,
-		position, second_material, first_material, type, &impact->normal,
+	impact_material_effects_get_for_component(&impact->normal, component_index, impact->unknownd, impact->unknownb, impact->component_b != NONE,
+		position, second_material, first_material, type,
 		first_value04, second_value04, first_value, second_value, first_value0c, second_value0c);
 }
 
@@ -1847,6 +1900,20 @@ PRIVATE inline s_physics_model_shape_key physics_model_shape_key_make(short type
 	return key;
 }
 
+PRIVATE __forceinline s_physics_model_material *function_226a61(short arg_0, byte *arg_1, long *arg_2)
+{
+	s_physics_model_material *local_0 = *(s_physics_model_material **)(arg_1 + 0x34);
+	*arg_2 = local_0[arg_0].shape_count;
+	return &local_0[arg_0];
+}
+
+PRIVATE __forceinline void function_226a62(s_impact_data *arg_0, bool arg_1, long arg_2, long arg_3, dword arg_4,
+	long arg_5, long arg_6, dword arg_7, point3f const *arg_8, vector3f const *arg_9, long arg_a, s_physics_model_shape_key const *arg_b)
+{
+	impact_data_set(arg_0, arg_1, arg_2, arg_3, *(c_type_47f957 *)&arg_4,
+		arg_5, arg_6, *(c_type_47f957 *)&arg_7, arg_8, arg_9, arg_a, arg_b);
+}
+
 // @retail 0x226a60
 void function_226a60(
 	long component_index)
@@ -1881,10 +1948,11 @@ void function_226a60(
 				material_index = *(short *)(element + 0x70);
 				if (material_index != NONE)
 				{
-					s_physics_model_material *material = &(*(s_physics_model_material **)(physics_model + 0x34))[material_index];
+					long local_2;
+					s_physics_model_material *material = function_226a61(material_index, physics_model, &local_2);
 					long j;
 
-					for (j = 0; j < material->shape_count; j++)
+					for (j = 0; j < local_2; j++)
 					{
 						s_physics_model_material_shape *material_shape = &material->shapes[j];
 
@@ -1906,8 +1974,8 @@ void function_226a60(
 
 						havok_component_contact_properties_get(component, i, &rigid_body_index_a, &rigid_body_index_b);
 						havok_component_rigid_body_matrix_get(rigid_body_index_a, component, &matrix);
-						impact_data_set(&data, false, component_index, rigid_body_index_a, c_type_47f957(material->material_a),
-							rigid_body_index_b != NONE ? component_index : NONE, rigid_body_index_b, c_type_47f957(material->material_b),
+						function_226a62(&data, false, component_index, rigid_body_index_a, (word)material->material_a,
+							rigid_body_index_b != NONE ? component_index : NONE, rigid_body_index_b, (word)material->material_b,
 							&matrix.position, &matrix.forward, NONE, &shape);
 						impact_index = havok_component_impact_find(component, (s_havok_impact_contact const *)&data, false);
 						if (impact_index == NONE)

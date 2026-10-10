@@ -291,11 +291,12 @@ long function_1a0f10(
 // @retail 0x1a0fb0
 long __stdcall function_1a0fb0(s_async_task *task)
 {
+	long local_0 = 0;
 	s_write_position_task *write = &task->write_position;
 	DWORD bytes_written = NONE;
-	LONG high = 0;
+	task = 0;
 
-	if (SetFilePointer(write->file.handle, write->offset, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
+	if (SetFilePointer(write->file.handle, write->offset, (LONG *)&task, FILE_BEGIN) != INVALID_SET_FILE_POINTER)
 	{
 		dword size = g_46e48c;
 
@@ -305,13 +306,15 @@ long __stdcall function_1a0fb0(s_async_task *task)
 		write->offset += bytes_written;
 		write->bytes_written += bytes_written;
 		if (write->size != write->bytes_written && bytes_written >= size)
-			return 0;
+			goto local_1;
 		if (write->bytes_written_out)
 			*write->bytes_written_out = write->bytes_written;
 	}
+	local_0 = 1;
 	if (write->flags & 1)
 		FlushFileBuffers(write->file.handle);
-	return 1;
+local_1:
+	return local_0;
 }
 
 // @retail 0x1a1050

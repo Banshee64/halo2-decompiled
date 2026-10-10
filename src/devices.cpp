@@ -451,7 +451,7 @@ bool function_107870(long device_index)
 		word flags = power_group->flags;
 		bool active = true;
 
-		if ((flags & 1) && !(flags & 2))
+		if ((flags & 1) && (flags & 2))
 			active = false;
 		if (device->flags & 2)
 			active = false;
@@ -551,7 +551,10 @@ void __stdcall function_107000(long device_index, dword const *node_mask, long n
 		long render_model_tag_index = ((s_device_model_definition *)g_4e3b44[model_tag_index & 0xffff].bytes)->render_model_tag_index;
 
 		if (render_model_tag_index != NONE)
-			device_channels_sample(g_4e3b44[render_model_tag_index & 0xffff].bytes, device, node_mask, node_count, transforms);
+			{
+			void const *volatile render_model = g_4e3b44[render_model_tag_index & 0xffff].bytes;
+			device_channels_sample(render_model, device, node_mask, node_count, transforms);
+		}
 	}
 }
 
@@ -1187,7 +1190,7 @@ bool function_107cc0(long device_index, s_device_motion *motion, c_animation_cha
 
 bool function_107cc0(long device_index, s_device_motion *motion, c_animation_channel *channel,
 	s_animation_state *state, real position, real *out_position);
-bool function_11eed0(real *velocity, real *position, real dt, bool wrap, real target,
+bool function_11eed0(real *velocity, real *position, volatile real dt, bool wrap, real target,
 	real speed, real acceleration, real lower, real upper);
 void __stdcall function_bd020(long object_index);
 void machine_keyframe_rigid_bodies(long object_index, bool value);

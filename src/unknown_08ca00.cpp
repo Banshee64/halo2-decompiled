@@ -104,6 +104,12 @@ s_name_list *name_list_clear(s_name_list *list);
 void function_08cc20(s_name_buffer *buffer, const wchar_t *name);
 bool function_1368f0(s_type_acf665 *file);
 
+#pragma inline_depth(0)
+static __forceinline bool function_8ca71(s_type_acf665 *arg_0, dword arg_1, bool arg_2)
+{
+ return function_136bf0(arg_0, arg_1, arg_2);
+}
+#pragma inline_depth(8)
 // @retail 0x8ca70
 bool __stdcall function_8ca70(long mode, s_name_buffer *output)
 {
@@ -127,13 +133,17 @@ bool __stdcall function_8ca70(long mode, s_name_buffer *output)
 				{
 					s_name_list list;
 					name_list_clear(&list);
-					function_136bf0(&file, 0x200, true);
-					if (function_136ca0(&file, &list, sizeof(list), true) && list.count <= 32)
+					function_8ca71(&file, 0x200, true);
+					if (function_136ca0(&file, &list, sizeof(list), true))
+					{
+					long local_1 = list.count;
+					if (local_1 <= 32)
 					{
 						g_4e7408->seed = g_4e7408->seed * 0x19660d + 0x3c6ef35f;
-						short index = (short)(((g_4e7408->seed >> 16) * (short)list.count) >> 16);
+						short index = (short)(((g_4e7408->seed >> 16) * (short)local_1) >> 16);
 						function_08cc20(output, list.names[index].name);
 						result = true;
+					}
 					}
 				}
 				else
@@ -169,6 +179,12 @@ static inline __int64 message_read_ticks(void)
  __asm rdtsc
 }
 
+static __forceinline __int64 function_8c792(void)
+{
+ volatile long local_0 = 0;
+ volatile long local_1 = 0;
+ __asm rdtsc
+}
 // @retail 0x8c790
 bool function_8c790(const byte *request)
 {
@@ -181,7 +197,7 @@ bool function_8c790(const byte *request)
   dword size = *(dword *)(request + 0x28) - 16;
   if (source && size && function_199560(source, size) == 0x25224)
   {
-   __int64 start = message_read_ticks();
+   __int64 start = function_8c792();
    byte *allocation = 0;
    if (g_4e6464->page_count > 0)
    {
@@ -195,7 +211,7 @@ bool function_8c790(const byte *request)
      }
      else
      {
-      __int64 elapsed = message_read_ticks() - start;
+      __int64 elapsed = function_8c792() - start;
       if (elapsed < 0) elapsed = 0;
       if (timing_ticks_to_seconds(elapsed) >= 1.0f) break;
       D3DDevice_KickPushBuffer();
