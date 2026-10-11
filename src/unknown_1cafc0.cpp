@@ -964,17 +964,15 @@ names_store:
 // @retail 0x1cb0d0
 bool s_animation_state::initialize(long graph_tag_index, long model_tag_index, bool flag)
 {
-	bool result = false;
 	if (model_tag_index != NONE)
 	{
 		if (graph_tag_index == NONE)
 		{
-			goto done;
+			return false;
 		}
-		result = (short)graph_tag_get(graph_tag_index)->node_count == *(long *)((byte *)graph_tag_get(model_tag_index) + 0x78);
-		if (!result)
+		if ((short)graph_tag_get(graph_tag_index)->node_count != *(long *)((byte *)graph_tag_get(model_tag_index) + 0x78))
 		{
-			goto done;
+			return false;
 		}
 	}
 	if (flag)
@@ -1003,9 +1001,7 @@ bool s_animation_state::initialize(long graph_tag_index, long model_tag_index, b
 	unknown60.unknown3 = 0;
 	unknown6e = 0;
 	unknown80 = 0.0f;
-	result = true;
-done:
-	return result;
+	return true;
 }
 
 /* the identity transform (arg_0e6cbc.cpp) */
