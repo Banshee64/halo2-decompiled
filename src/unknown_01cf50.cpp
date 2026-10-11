@@ -6873,7 +6873,7 @@ void __stdcall function_132d0(s_frame_view_2c560 const *frame)
 struct s_render_mode_44370
 {
     long target;
-    dword clear_flags, clear_color;
+    dword clear_flags, field_8_7;
     real clear_depth;
     byte clear_stencil, unknown11[7];
     short cull_mode, unknown1a;
@@ -6915,7 +6915,7 @@ bool __stdcall function_44370(long mode)
         if (settings->clear_flags)
         {
             if (!g_485a75 && !g_485a76)
-                function_14b60(settings->clear_flags, settings->clear_color, settings->clear_depth, settings->clear_stencil);
+                function_14b60(settings->clear_flags, settings->field_8_7, settings->clear_depth, settings->clear_stencil);
         }
         else if (mode == 10)
         {

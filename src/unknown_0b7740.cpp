@@ -1096,8 +1096,8 @@ void __stdcall function_bd090(long object_index)
         if (parent_index != NONE)
         {
             parent = function_b8bd0(parent_index, *(signed char *)(object + 0x18));
-            byte *parent_object = (byte *)((s_object_transform_header *)g_4e0300->data)[parent_index & 0xffff].object;
-            parent_mirrored = (bool)((*(dword *)(parent_object + 4) >> 10) & 1);
+            byte *local_be682a_3 = (byte *)((s_object_transform_header *)g_4e0300->data)[parent_index & 0xffff].object;
+            parent_mirrored = (bool)((*(dword *)(local_be682a_3 + 4) >> 10) & 1);
         }
         if (!((bool)((*(dword *)(current + 4) >> 29) & 1))
             && (!((1 << definition[0]) & 1) || !current[0x34b]))
@@ -1172,9 +1172,9 @@ void __stdcall function_bd090(long object_index)
         long parent_index = *(long *)(object + 0x14);
         if (parent_index != NONE)
         {
-            byte *parent_object = (byte *)((s_object_transform_header *)g_4e0300->data)[parent_index & 0xffff].object;
-            parent = (transform4x3f *)(parent_object + *(short *)(parent_object + 0x116)) + *(signed char *)(object + 0x18);
-            parent_mirrored = (bool)((*(dword *)(parent_object + 4) >> 10) & 1);
+            byte *local_be682a_3 = (byte *)((s_object_transform_header *)g_4e0300->data)[parent_index & 0xffff].object;
+            parent = (transform4x3f *)(local_be682a_3 + *(short *)(local_be682a_3 + 0x116)) + *(signed char *)(object + 0x18);
+            parent_mirrored = (bool)((*(dword *)(local_be682a_3 + 4) >> 10) & 1);
         }
         function_bdc40((point3f *)(object + 0x64), (vector3f *)(object + 0x70), (vector3f *)(object + 0x7c),
             *(real *)(object + 0xa0), (bool)((*(dword *)(object + 4) >> 10) & 1), parent, parent_mirrored, matrices);

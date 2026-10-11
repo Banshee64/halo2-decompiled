@@ -1324,7 +1324,7 @@ void function_108a40(long *placement);
 long __stdcall function_bc280(short size);
 void __stdcall function_bc300(long index);
 bool function_bc380(long index, long field, long size, long alignment);
-bool function_bf9a0(long index, long *render_model, long *animation_graph);
+bool function_bf9a0(long index, long *render_model, long *arg_0e6cbc_2);
 void function_b8b70(long index);
 bool function_108a90(long index, long placement, long failed);
 void function_108b80(long index);
@@ -1362,12 +1362,12 @@ long __stdcall function_b7b40(void *creation)
     if (tag == NONE) return result;
     byte *definition = g_4e3b44[tag & 0xffff].bytes;
     short type = *(short *)definition;
-    byte *type_definition = (byte *)g_468630[type];
+    byte *local_33f9fd = (byte *)g_468630[type];
     byte *model = 0;
     long model_tag = *(long *)(definition + 0x38);
     if (model_tag != NONE) model = g_4e3b44[model_tag & 0xffff].bytes;
     if ((1 << type) & 0x1883) function_146bf0();
-    result = function_bc280(*(word *)(type_definition + 8));
+    result = function_bc280(*(word *)(local_33f9fd + 8));
     if (result == NONE) return result;
     s_object_header_view *header = OBJECT_HEADER_GET(result);
     byte *object = (byte *)header->object;
@@ -1401,8 +1401,8 @@ long __stdcall function_b7b40(void *creation)
     else *(dword *)(object + 4) &= ~0x400;
     if (model && *(long *)(model + 0xc) != NONE) *(dword *)(object + 4) |= 0x200;
     else *(dword *)(object + 4) &= ~0x200;
-    long render_model, animation_graph;
-    if (function_bf9a0(result, &render_model, &animation_graph)) *(dword *)(object + 4) |= 0x80000000;
+    long render_model, arg_0e6cbc_2;
+    if (function_bf9a0(result, &render_model, &arg_0e6cbc_2)) *(dword *)(object + 4) |= 0x80000000;
     else *(dword *)(object + 4) &= 0x7fffffff;
     header->unknown04 = NONE;
     *(long *)(object + 0x28) = NONE;
@@ -1798,15 +1798,15 @@ void __stdcall function_b8ee0(long parent_index, long parent_marker_name, long i
     byte *object = (byte *)OBJECT_GET(index);
     function_b7300(index);
     if (*(dword *)(object + 4) & 0x100) function_b87b0(index);
-    s_object_marker parent_marker, child_marker;
+    s_object_marker parent_marker, name_9ae4a2;
     function_b8d30(parent_index, parent_marker_name, &parent_marker, 1, false);
-    function_b8d30(index, child_marker_name, &child_marker, 1, false);
+    function_b8d30(index, child_marker_name, &name_9ae4a2, 1, false);
     if (child_marker_name != NONE && child_marker_name != 0)
-        function_b92d0(index, (transform4x3f const *)&child_marker, &parent_marker.matrix);
+        function_b92d0(index, (transform4x3f const *)&name_9ae4a2, &parent_marker.matrix);
     else
     {
         transform4x3f inverse;
-        function_141590(&child_marker.node_matrix, &inverse);
+        function_141590(&name_9ae4a2.node_matrix, &inverse);
         point3f position = object_attachment_point_r18(inverse, parent_marker.matrix.position);
         vector3f forward = object_attachment_vector_r18(inverse, parent_marker.matrix.forward);
         vector3f up = object_attachment_vector_r18(inverse, parent_marker.matrix.up);
@@ -1844,9 +1844,9 @@ void __stdcall function_be760(long index)
         long child = function_b7b40(creation);
         if (child != NONE)
         {
-            byte *child_object = (byte *)OBJECT_GET(child);
+            byte *local_f86fb0_2 = (byte *)OBJECT_GET(child);
             function_b8ee0(index, *(long *)attachment, child, *(long *)(attachment + 4));
-            *(dword *)(child_object + 4) |= 0x4000000;
+            *(dword *)(local_f86fb0_2 + 4) |= 0x4000000;
         }
     }
 }

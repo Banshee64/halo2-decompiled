@@ -3749,8 +3749,8 @@ void __stdcall function_2bcd0(long frame_mode, long draw_ui, bool world_effects,
                         long weapon = function_cbd50(unit, (signed char)unit_data[0x212]);
                         if (weapon != NONE)
                         {
-                            byte *weapon_data = ((s_scalar_object_header *)g_4e0300->data)[weapon & 0xffff].object;
-                            long tag = *(long *)weapon_data;
+                            byte *local_ec1b9c = ((s_scalar_object_header *)g_4e0300->data)[weapon & 0xffff].object;
+                            long tag = *(long *)local_ec1b9c;
                             if (tag != NONE)
                             {
                                 point2f *scale = (point2f *)(g_4e3b44[tag & 0xffff].bytes + 0x314);
